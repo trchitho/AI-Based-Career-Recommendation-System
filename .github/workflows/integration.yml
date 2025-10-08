@@ -1,9 +1,0 @@
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Check if frontend directory exists
-        run: |
-          if [ ! -d "apps/frontend" ]; then
-            echo "❌ Directory apps/frontend does not exist. Please check your repo structure."
-            exit 1
-          fi
