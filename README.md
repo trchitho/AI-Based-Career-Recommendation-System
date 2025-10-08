@@ -112,7 +112,7 @@ AI-Based-Career-Recommendation-System/
 ├─ .github/workflows/    # CI/CD pipelines
 │
 ├─ CONTRIBUTING.md       # Quy tắc & hướng dẫn nhóm
-└─ README.md             
+└─ README.md
 ```
 
 ---

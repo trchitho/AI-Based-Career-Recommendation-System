@@ -1,4 +1,4 @@
-﻿# apps/backend/app/main.py
+# apps/backend/app/main.py
 from __future__ import annotations
 
 import os

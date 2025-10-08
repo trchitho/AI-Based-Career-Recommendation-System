@@ -1,4 +1,4 @@
-﻿# Pydantic models nội bộ
+# Pydantic models nội bộ
 from pydantic import BaseModel
 
 

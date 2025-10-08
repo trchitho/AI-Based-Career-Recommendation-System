@@ -1,2 +1,4 @@
 ﻿// Trang essay
-export default function EssayPage() { return <main>essay page</main>; }
+export default function EssayPage() {
+  return <main>essay page</main>;
+}

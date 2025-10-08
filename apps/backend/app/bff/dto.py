@@ -1,4 +1,4 @@
-﻿# DTO schema trả về FE
+# DTO schema trả về FE
 from pydantic import BaseModel
 
 
