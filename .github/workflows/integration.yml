@@ -1,4 +1,4 @@
-﻿name: Integration - Contract Tests (FE ↔ BFF)
+name: Integration - Contract Tests (FE ↔ BFF)
 
 on:
   pull_request:
@@ -27,12 +27,18 @@ jobs:
       run:
         working-directory: apps/backend
     env:
-      DATABASE_URL: "sqlite+pysqlite:///:memory:"  # không cần Postgres thật
+      DATABASE_URL: "sqlite+pysqlite:///:memory:"
       AI_MODELS_DIR: "packages/ai-core/models"
       ALLOWED_ORIGINS: "http://localhost:3000"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Show workspace & pwd
+        run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          pwd
+          ls -la
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -43,38 +49,59 @@ jobs:
       - name: Install backend deps
         run: |
           pip install -r requirements.txt
-          # Chỉ cài ai-core ở dạng editable khi tồn tại và hợp lệ
+          # Optional: chỉ cài ai-core nếu là package hợp lệ
           AI_CORE_PATH="../packages/ai-core"
           if [ -d "$AI_CORE_PATH" ] && { [ -f "$AI_CORE_PATH/pyproject.toml" ] || [ -f "$AI_CORE_PATH/setup.py" ]; }; then
             echo "Installing ai-core from $AI_CORE_PATH ..."
             pip install -e "$AI_CORE_PATH"
           else
-            echo "ai-core not found or not installable, skipping."
+            echo "Skip ai-core install."
           fi
+
+      - name: Sanity import (fail fast)
+        run: |
+          python - <<'PY'
+          import importlib, sys
+          try:
+              importlib.import_module("app.main")
+              print("✅ import app.main OK")
+          except Exception as e:
+              print("❌ import app.main FAILED:", e)
+              sys.exit(1)
+          PY
 
       - name: Export openapi.json
         shell: bash
         run: |
           python - <<'PY'
-          import json
-          from app.main import app
+          import json, os
           from fastapi.openapi.utils import get_openapi
+          from app.main import app
           schema = app.openapi() if hasattr(app, "openapi") else get_openapi(
               title=getattr(app, "title", "API"),
               version=getattr(app, "version", "0.1.0"),
               routes=getattr(app, "routes", []),
           )
-          with open("openapi.json", "w", encoding="utf-8") as f:
+          out = "openapi.json"
+          with open(out, "w", encoding="utf-8") as f:
               json.dump(schema, f, ensure_ascii=False, indent=2)
-          print("✅ Exported apps/backend/openapi.json")
+          print("✅ Wrote", os.path.abspath(out))
           PY
+
+      - name: Verify openapi.json exists
+        run: |
+          pwd
+          ls -l openapi.json
+          test -f openapi.json
 
       - name: Upload OpenAPI artifact
         uses: actions/upload-artifact@v4
         with:
           name: openapi-spec
-          # Lưu ý: đang ở apps/backend nên chỉ cần 'openapi.json'
-          path: openapi.json
+          # dùng đường dẫn tuyệt đối để tránh nhầm thư mục
+          path: ${{ github.workspace }}/apps/backend/openapi.json
+          if-no-files-found: error
+          retention-days: 7
 
   fe-contract:
     name: FE contract check against OpenAPI
@@ -92,10 +119,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: openapi-spec
-          # Artifact sẽ được đặt ở $GITHUB_WORKSPACE/apps/backend/openapi.json
           path: apps/backend
 
-      # Phát hiện package manager
+      - name: Verify artifact downloaded
+        run: |
+          ls -la ../backend
+          test -f ../backend/openapi.json
+
+      # Detect npm/yarn
       - name: Detect package manager
         id: detect
         run: |
@@ -105,7 +136,6 @@ jobs:
             echo "pkg=npm" >> $GITHUB_OUTPUT
           fi
 
-      # Setup Node + cache đúng loại
       - name: Setup Node (npm)
         if: steps.detect.outputs.pkg == 'npm'
         uses: actions/setup-node@v4
@@ -122,7 +152,6 @@ jobs:
           cache: "yarn"
           cache-dependency-path: "apps/frontend/yarn.lock"
 
-      # Cài deps linh hoạt theo lockfile
       - name: Install FE deps (npm)
         if: steps.detect.outputs.pkg == 'npm'
         run: |
@@ -141,10 +170,8 @@ jobs:
             yarn install
           fi
 
-      # Generate types từ OpenAPI (dùng npx --yes để không phụ thuộc devDeps)
       - name: Generate TS types from OpenAPI
         run: npx --yes openapi-typescript ../backend/openapi.json -o src/types/backend.d.ts
 
-      # Type check (dùng npx --yes để auto fetch typescript nếu chưa có)
       - name: Type check FE
         run: npx --yes tsc --noEmit

@@ -1,4 +1,4 @@
-﻿name: BE - CI
+name: BE - CI
 
 on:
   pull_request:

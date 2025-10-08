@@ -3,7 +3,12 @@ from dotenv import load_dotenv
 import os
 
 # Nạp biến môi trường tự động khi module được import
-load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env.example"))
+env_path = os.path.join(os.path.dirname(__file__), "../../.env")
+example_env_path = os.path.join(os.path.dirname(__file__), "../../.env.example")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv(example_env_path)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
