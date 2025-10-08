@@ -1,0 +1,29 @@
+﻿name: BE - CI
+on:
+    pull_request:
+        paths:
+            - "apps/backend/**"
+            - "packages/ai-core/**"
+            - ".github/workflows/be-ci.yml"
+    push:
+        branches: [main]
+        paths:
+            - "apps/backend/**"
+            - "packages/ai-core/**"
+jobs:
+    be-ci:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: apps/backend
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+                  cache: "pip"
+            - run: pip install -r requirements.txt
+            - run: pip install -e ../packages/ai-core || true # editable install nếu cần
+            - run: ruff check .
+            - run: black --check .
+            - run: pytest -q
