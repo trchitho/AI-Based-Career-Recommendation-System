@@ -64,7 +64,7 @@ cp apps/backend/.env.example apps/backend/.env
 
 ### 2️⃣ Khởi chạy CSDL (Postgres + pgvector + pgAdmin)
 
-* Đọc lại file README.md trong nhánh Database_SetUp
+* Đọc lại file README.md trong nhánh Database_SetUp để setting
 
 ---
 
@@ -107,12 +107,12 @@ NCKH/
 ├─ packages/
 │  └─ ai-core/           # AI models & inference (PhoBERT, NeuMF, RL)
 │
-├─ infra/                # Docker Compose + SQL init + K8s manifests
+├─ infra/                # Docker Compose + SQL init + K8s manifests (khi nào deploy hay chạy bản prod chính thức sẽ dùng, hiện tại chỉ cần dùng trong nhánh Database_SetUp)
 │
 ├─ .github/workflows/    # CI/CD pipelines
 │
 ├─ CONTRIBUTING.md       # Quy tắc & hướng dẫn nhóm
-└─ README.md             # Tài liệu này
+└─ README.md             
 ```
 
 ---
@@ -128,7 +128,7 @@ NEXT_PUBLIC_API_BASE=http://localhost:8000
 ### Backend (`apps/backend/.env.example`)
 
 ```env
-DATABASE_URL=postgresql://postgres:123456@localhost:5433/ai_core
+DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
 AI_MODELS_DIR=packages/ai-core/models
 ALLOWED_ORIGINS=http://localhost:3000
 ```
