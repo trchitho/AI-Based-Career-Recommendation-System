@@ -115,18 +115,47 @@ http://localhost:8000/bff/...
 
 ---
 
-## 🧭 Luồng FE ↔ BE ↔ AI-core
+### 🧭 Luồng FE ↔ BE ↔ AI-core
 
-```mermaid
-graph TD
-A[Frontend (Next.js)] --> B[BFF (FastAPI)]
-B --> C[Modules: nlu / retrieval / recommendation]
-C --> D[AI-core (PhoBERT, NeuMF)]
-B --> E[(PostgreSQL + pgvector)]
-```
+1. **Frontend (Next.js)**
 
-* FE chỉ gọi BFF, không gọi trực tiếp AI-core hay DB.
-* BFF tổng hợp dữ liệu từ nhiều module và trả về đúng định dạng UI cần.
+   * Giao diện người dùng.
+   * Gửi request (HTTP) đến **BFF API** qua `NEXT_PUBLIC_API_BASE` (ví dụ: `http://localhost:8000/bff/...`).
+   * Không truy cập trực tiếp cơ sở dữ liệu hay mô hình AI.
+
+2. **Backend (FastAPI – BFF Layer)**
+
+   * Nhận request từ FE, tổng hợp dữ liệu từ nhiều nguồn:
+
+     * Module **assessment** (RIASEC, Big Five).
+     * Module **nlu** (phân tích bài luận với PhoBERT).
+     * Module **retrieval** (truy vấn vector nghề nghiệp trong PostgreSQL + pgvector).
+     * Module **recommendation** (NeuMF / Reinforcement Learning).
+   * Chuẩn hóa dữ liệu và trả kết quả đã xử lý về cho FE.
+
+3. **AI-core (packages/ai-core)**
+
+   * Chứa toàn bộ mô hình AI: PhoBERT, vi-SBERT, NeuMF, RL bandit,…
+   * Được import trực tiếp vào backend qua `pip install -e ./packages/ai-core`.
+   * Cung cấp API nội bộ cho module `nlu`, `retrieval`, `recommendation`.
+
+4. **Database (PostgreSQL + pgvector)**
+
+   * Lưu trữ dữ liệu người dùng, kết quả trắc nghiệm, embedding nghề nghiệp, và các vector biểu diễn.
+   * Module `retrieval` trong backend sử dụng truy vấn vector để tìm top nghề gần nhất với embedding người dùng.
+
+---
+
+### 🔄 Tóm tắt dòng chảy dữ liệu
+
+| Bước | Thành phần                   | Hành động chính                                          |
+| ---- | ---------------------------- | -------------------------------------------------------- |
+| ①    | **FE (Next.js)**             | Gửi yêu cầu phân tích bài test hoặc bài luận             |
+| ②    | **BE (FastAPI / BFF)**       | Nhận request, gọi module xử lý phù hợp                   |
+| ③    | **AI-core**                  | Sinh embedding hoặc dự đoán nghề nghiệp                  |
+| ④    | **DB (Postgres + pgvector)** | Truy vấn vector nghề nghiệp tương đồng                   |
+| ⑤    | **BE → FE**                  | Trả kết quả nghề nghiệp và gợi ý lộ trình cho người dùng |
+
 
 ---
 
