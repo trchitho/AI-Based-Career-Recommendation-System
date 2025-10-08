@@ -49,8 +49,8 @@ BFF chịu trách nhiệm gom dữ liệu từ các **module** và **AI-Core**,
 ### 1️⃣ Chuẩn Bị Môi Trường
 
 ```bash
-git clone https://github.com/trchitho/NCKH.git
-cd NCKH
+git clone https://github.com/trchitho/AI-Based-Career-Recommendation-System.git
+cd AI-Based-Career-Recommendation-System
 ```
 
 Sao chép file môi trường:
@@ -99,7 +99,7 @@ Truy cập → [http://localhost:3000](http://localhost:3000)
 ## 📂 Cấu Trúc Thư Mục Monorepo
 
 ```
-NCKH/
+AI-Based-Career-Recommendation-System/
 ├─ apps/
 │  ├─ frontend/          # Next.js 14 + Tailwind (App Router)
 │  └─ backend/           # FastAPI modular monolith (BFF + modules)
