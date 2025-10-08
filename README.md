@@ -1,18 +1,18 @@
-# 🧠 Frontend — AI-Based Career Recommendation System
+# ⚙️ Backend — AI-Based Career Recommendation System
 
-Next.js 14 (App Router) + TailwindCSS skeleton  
-Đây là phần **giao diện người dùng (UI)** của hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo (AI).
+FastAPI Modular Monolith + PostgreSQL + pgvector  
+Đây là phần **backend** (BFF + API + integration AI) cho hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo.
 
 ---
 
 ## 🚀 Tech Stack
 
-- [Next.js 14](https://nextjs.org/docs/app) — React Framework  
-- [TypeScript](https://www.typescriptlang.org/)  
-- [Tailwind CSS](https://tailwindcss.com/)  
-- [React Query](https://tanstack.com/query/latest) — Data fetching  
-- [Axios](https://axios-http.com/) — HTTP client  
-- [Zod](https://zod.dev/) — Schema validation  
+- [FastAPI](https://fastapi.tiangolo.com/) — Python web framework  
+- [SQLAlchemy 2.x](https://docs.sqlalchemy.org/) — ORM hiện đại  
+- [PostgreSQL + pgvector](https://github.com/pgvector/pgvector) — Lưu và truy vấn vector AI  
+- [Pydantic v2](https://docs.pydantic.dev/) — Schema validation  
+- [Alembic](https://alembic.sqlalchemy.org/) — Quản lý migration DB  
+- [Ruff / Black / Pytest] — Lint + format + test  
 
 ---
 
@@ -20,30 +20,29 @@ Next.js 14 (App Router) + TailwindCSS skeleton
 
 ```
 
-apps/frontend/
-├─ app/                        # Routes, layouts, server actions
-│  ├─ (auth)/signin/page.tsx
-│  ├─ (auth)/signup/page.tsx
-│  ├─ (assessment)/assessment/page.tsx
-│  ├─ (essay)/essay/page.tsx
-│  ├─ (results)/results/page.tsx
-│  ├─ (careers)/careers/[id]/page.tsx
-│  ├─ layout.tsx
-│  └─ providers.tsx
-├─ src/
-│  ├─ components/              # UI components tái sử dụng (Button, Card, Modal,…)
-│  ├─ features/                # Theo domain: assessment, results, careers, …
-│  ├─ hooks/                   # Custom hooks (useAuth, useToast, useQuery,…)
-│  ├─ lib/                     # Utils, constants, schema zod
-│  ├─ services/                # axios clients, BFF fetchers
-│  │  ├─ api.ts
-│  │  └─ bff.client.ts
-│  ├─ styles/                  # global.css, tailwind layers
-│  └─ types/                   # Common type definitions (User, Career,…)
-├─ public/                     # Ảnh, icon, logo
-├─ .env.example
-├─ package.json
-└─ tailwind.config.ts
+apps/backend/
+├─ app/
+│  ├─ main.py                  # Mount routers, cấu hình CORS, OpenAPI
+│  ├─ bff/                     # BFF endpoint khớp với UI FE
+│  │  ├─ router.py
+│  │  └─ dto.py
+│  ├─ modules/                 # Bounded contexts (Clean Architecture)
+│  │  ├─ auth/
+│  │  ├─ user_profile/
+│  │  ├─ assessment/           # RIASEC & Big Five chấm điểm
+│  │  ├─ nlu/                  # Gọi AI-core: PhoBERT inference
+│  │  ├─ retrieval/            # Truy vấn pgvector
+│  │  ├─ recommendation/       # NeuMF / Reinforcement Learning
+│  │  └─ admin/
+│  ├─ core/                    # DB session, logging, settings, deps
+│  ├─ schemas/                 # Pydantic I/O models
+│  ├─ repositories/            # DB adapters (Postgres/Neo4j/ES)
+│  ├─ services/                # Business logic / Use cases
+│  ├─ tasks/                   # Celery/RQ jobs (nếu cần)
+│  └─ tests/                   # Unit tests
+├─ alembic/                    # DB migrations
+├─ requirements.txt
+└─ .env.example
 
 ````
 
@@ -52,115 +51,103 @@ apps/frontend/
 ## ⚙️ Môi trường (`.env.example`)
 
 ```env
-NEXT_PUBLIC_API_BASE=http://localhost:8000
+# PostgreSQL + pgvector
+DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
+
+# AI models (liên kết với packages/ai-core)
+AI_MODELS_DIR=packages/ai-core/models
 ````
 
 ---
 
 ## 🧑‍💻 Chạy cục bộ
 
-### 1️⃣ Cài dependencies
+### 1️⃣ Tạo và kích hoạt môi trường ảo
 
 ```bash
-npm install
+python -m venv .venv
+.venv\Scripts\activate     # (Windows)
+# hoặc trên macOS/Linux:
+# source .venv/bin/activate
 ```
 
-### 2️⃣ Chạy server dev
+### 2️⃣ Cài dependencies
 
 ```bash
-npm run dev
+pip install -r requirements.txt
 ```
 
-> Truy cập: [http://localhost:3000](http://localhost:3000)
+### 3️⃣ Chạy server
+
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+> Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
 ## 🧾 CI/CD (GitHub Actions)
 
-Workflow tự động kiểm tra lint + build mỗi khi push hoặc mở PR.
+**Workflow:** `.github/workflows/be-ci.yml`
 
-File: `.github/workflows/fe-ci.yml`
+Tự động lint, format và test khi có push/PR vào `main`.
 
 ```yaml
-name: FE - CI
+name: BE - CI
 on:
-  pull_request: { paths: ["apps/frontend/**"] }
+  pull_request: { paths: ["apps/backend/**"] }
   push:
     branches: [ main ]
-    paths: ["apps/frontend/**"]
+    paths: ["apps/backend/**"]
 jobs:
-  fe:
+  be:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: apps/frontend } }
+    defaults: { run: { working-directory: apps/backend } }
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm, cache-dependency-path: apps/frontend/package-lock.json }
-      - run: npm ci || npm i
-      - run: npm run lint || echo "skip lint"
-      - run: npm run build
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11", cache: pip }
+      - run: pip install -r requirements.txt
+      - run: ruff check .
+      - run: black --check .
+      - run: pytest || echo "skip tests"
 ```
 
 ---
 
-## 🔗 Kết nối Backend (BFF)
+## 🔗 Kết nối với AI-core
 
-FE gọi API qua layer trung gian BFF của BE:
+Backend import `packages/ai-core` (dạng editable install):
 
+```bash
+pip install -e ./packages/ai-core
 ```
-http://localhost:8000/bff/...
-```
 
-→ Đảm bảo cấu trúc dữ liệu và endpoint thống nhất giữa UI và API.
+Các module:
+
+* `nlu` → gọi PhoBERT inference (essay)
+* `retrieval` → query pgvector job embeddings
+* `recommendation` → rerank kết quả bằng NeuMF hoặc RL
 
 ---
 
-### 🧭 Luồng FE ↔ BE ↔ AI-core
+## 🧭 Kết nối Database
 
-1. **Frontend (Next.js)**
+Database mặc định: **PostgreSQL + pgvector**
+Cấu hình qua `.env` hoặc Docker Compose (ở `infra/docker-compose.dev.yml`).
 
-   * Giao diện người dùng.
-   * Gửi request (HTTP) đến **BFF API** qua `NEXT_PUBLIC_API_BASE` (ví dụ: `http://localhost:8000/bff/...`).
-   * Không truy cập trực tiếp cơ sở dữ liệu hay mô hình AI.
+Kiểm tra nhanh:
 
-2. **Backend (FastAPI – BFF Layer)**
-
-   * Nhận request từ FE, tổng hợp dữ liệu từ nhiều nguồn:
-
-     * Module **assessment** (RIASEC, Big Five).
-     * Module **nlu** (phân tích bài luận với PhoBERT).
-     * Module **retrieval** (truy vấn vector nghề nghiệp trong PostgreSQL + pgvector).
-     * Module **recommendation** (NeuMF / Reinforcement Learning).
-   * Chuẩn hóa dữ liệu và trả kết quả đã xử lý về cho FE.
-
-3. **AI-core (packages/ai-core)**
-
-   * Chứa toàn bộ mô hình AI: PhoBERT, vi-SBERT, NeuMF, RL bandit,…
-   * Được import trực tiếp vào backend qua `pip install -e ./packages/ai-core`.
-   * Cung cấp API nội bộ cho module `nlu`, `retrieval`, `recommendation`.
-
-4. **Database (PostgreSQL + pgvector)**
-
-   * Lưu trữ dữ liệu người dùng, kết quả trắc nghiệm, embedding nghề nghiệp, và các vector biểu diễn.
-   * Module `retrieval` trong backend sử dụng truy vấn vector để tìm top nghề gần nhất với embedding người dùng.
-
----
-
-### 🔄 Tóm tắt dòng chảy dữ liệu
-
-| Bước | Thành phần                   | Hành động chính                                          |
-| ---- | ---------------------------- | -------------------------------------------------------- |
-| ①    | **FE (Next.js)**             | Gửi yêu cầu phân tích bài test hoặc bài luận             |
-| ②    | **BE (FastAPI / BFF)**       | Nhận request, gọi module xử lý phù hợp                   |
-| ③    | **AI-core**                  | Sinh embedding hoặc dự đoán nghề nghiệp                  |
-| ④    | **DB (Postgres + pgvector)** | Truy vấn vector nghề nghiệp tương đồng                   |
-| ⑤    | **BE → FE**                  | Trả kết quả nghề nghiệp và gợi ý lộ trình cho người dùng |
-
+```python
+from app.core.db import test_connection
+test_connection()  # ✅ DB Connected: <timestamp>
+```
 
 ---
 
 ## 🧱 Mục tiêu của skeleton
 
-* Tạo “khung FE” chuẩn để dễ mở rộng khi thêm feature.
-* Tách biệt rõ UI, API, và business logic (theo domain).
-* Hỗ trợ deploy dễ dàng qua CI/CD.
+* Cài đặt backend “khung” sẵn sàng để nhóm BE chỉ cần thêm module cụ thể.
+* Hỗ trợ AI integration và pgvector retrieval ngay từ đầu.
+* Dễ mở rộng lên microservice sau MVP.

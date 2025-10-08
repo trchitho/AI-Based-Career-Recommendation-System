@@ -201,13 +201,6 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
-
-
-cd $DST
 @"
 # === GLOBAL / MONOREPO ===
 .DS_Store
@@ -244,3 +237,4 @@ Thumbs.db
 **/.env
 **/.env.*.local
 "@ | Out-File -Encoding utf8 .gitignore
+
