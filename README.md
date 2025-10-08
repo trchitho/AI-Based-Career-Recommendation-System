@@ -1,153 +1,264 @@
-# ⚙️ Backend — AI-Based Career Recommendation System
+🧠 Hệ Thống Gợi Ý Nghề Nghiệp Cá Nhân Hóa Bằng Trí Tuệ Nhân Tạo
 
-FastAPI Modular Monolith + PostgreSQL + pgvector  
-Đây là phần **backend** (BFF + API + integration AI) cho hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo.
-
----
-
-## 🚀 Tech Stack
-
-- [FastAPI](https://fastapi.tiangolo.com/) — Python web framework  
-- [SQLAlchemy 2.x](https://docs.sqlalchemy.org/) — ORM hiện đại  
-- [PostgreSQL + pgvector](https://github.com/pgvector/pgvector) — Lưu và truy vấn vector AI  
-- [Pydantic v2](https://docs.pydantic.dev/) — Schema validation  
-- [Alembic](https://alembic.sqlalchemy.org/) — Quản lý migration DB  
-- [Ruff / Black / Pytest] — Lint + format + test  
+### AI-Based Career Recommendation System (RIASEC + Big Five + NLP Essay Inference)
 
 ---
 
-## 📂 Cấu trúc thư mục
+## 📘 Tổng Quan
+
+Đề tài xây dựng **hệ thống gợi ý nghề nghiệp cá nhân hóa** dựa trên:
+
+* 🎯 Kết quả trắc nghiệm **RIASEC** (sở thích nghề nghiệp)
+* 🧩 Trắc nghiệm **Big Five** (đặc điểm tính cách)
+* 📝 Phân tích bài viết tự luận bằng mô hình **PhoBERT / vi-SBERT**
+* ⚙️ Thuật toán **gợi ý kết hợp** (Neural Matrix Factorization + Reinforcement Learning)
+
+Dự án được phát triển dưới dạng **monorepo** gồm 4 phần chính:
+
+| Thành phần   | Công nghệ                    | Mô tả                               |
+| ------------ | ---------------------------- | ----------------------------------- |
+| **Frontend** | Next.js 14 + TailwindCSS     | Giao diện người dùng (UI)           |
+| **Backend**  | FastAPI (Python)             | API, BFF (Backend-for-Frontend)     |
+| **AI-Core**  | PhoBERT, vi-SBERT, NeuMF, RL | Mô hình xử lý ngôn ngữ & gợi ý nghề |
+| **Infra**    | Docker, Postgres + pgvector  | Hạ tầng lưu trữ, vector database    |
+
+---
+
+## 🧩 Kiến Trúc Hệ Thống
 
 ```
-
-apps/backend/
-├─ app/
-│  ├─ main.py                  # Mount routers, cấu hình CORS, OpenAPI
-│  ├─ bff/                     # BFF endpoint khớp với UI FE
-│  │  ├─ router.py
-│  │  └─ dto.py
-│  ├─ modules/                 # Bounded contexts (Clean Architecture)
-│  │  ├─ auth/
-│  │  ├─ user_profile/
-│  │  ├─ assessment/           # RIASEC & Big Five chấm điểm
-│  │  ├─ nlu/                  # Gọi AI-core: PhoBERT inference
-│  │  ├─ retrieval/            # Truy vấn pgvector
-│  │  ├─ recommendation/       # NeuMF / Reinforcement Learning
-│  │  └─ admin/
-│  ├─ core/                    # DB session, logging, settings, deps
-│  ├─ schemas/                 # Pydantic I/O models
-│  ├─ repositories/            # DB adapters (Postgres/Neo4j/ES)
-│  ├─ services/                # Business logic / Use cases
-│  ├─ tasks/                   # Celery/RQ jobs (nếu cần)
-│  └─ tests/                   # Unit tests
-├─ alembic/                    # DB migrations
-├─ requirements.txt
-└─ .env.example
-
-````
-
----
-
-## ⚙️ Môi trường (`.env.example`)
-
-```env
-# PostgreSQL + pgvector
-DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
-
-# AI models (liên kết với packages/ai-core)
-AI_MODELS_DIR=packages/ai-core/models
-````
-
----
-
-## 🧑‍💻 Chạy cục bộ
-
-### 1️⃣ Tạo và kích hoạt môi trường ảo
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate     # (Windows)
-# hoặc trên macOS/Linux:
-# source .venv/bin/activate
+Frontend (Next.js)
+    ↓
+BFF (FastAPI)
+    ↓
+Modules (Assessment / NLU / Retrieval / Recommendation)
+    ↓
+AI-Core (PhoBERT / vi-SBERT / NeuMF / RL)
+    ↓
+PostgreSQL + pgvector
 ```
 
-### 2️⃣ Cài dependencies
+**Frontend** chỉ giao tiếp với **BFF (Backend-for-Frontend)**,
+BFF chịu trách nhiệm gom dữ liệu từ các **module** và **AI-Core**,
+đảm bảo hệ thống dễ bảo trì và mở rộng.
+
+---
+
+## 🚀 Hướng Dẫn Chạy Dự Án (Development)
+
+### 1️⃣ Chuẩn Bị Môi Trường
 
 ```bash
+git clone https://github.com/trchitho/NCKH.git
+cd NCKH
+```
+
+Sao chép file môi trường:
+
+```bash
+cp apps/frontend/.env.example apps/frontend/.env.local
+cp apps/backend/.env.example apps/backend/.env
+```
+
+---
+
+### 2️⃣ Khởi chạy CSDL (Postgres + pgvector + pgAdmin)
+
+```bash
+docker compose -f infra/docker-compose.dev.yml up -d
+```
+
+Truy cập:
+
+* **pgAdmin** → [http://localhost:5050](http://localhost:5050)
+* **Postgres** → localhost:5433
+
+---
+
+### 3️⃣ Chạy Backend (FastAPI)
+
+```bash
+cd apps/backend
+python -m venv .venv && .\.venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-### 3️⃣ Chạy server
-
-```bash
 uvicorn app.main:app --reload --port 8000
 ```
 
-> Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+Kiểm tra:
+
+* API Docs → [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+* Health check → [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
 
 ---
 
-## 🧾 CI/CD (GitHub Actions)
-
-**Workflow:** `.github/workflows/be-ci.yml`
-
-Tự động lint, format và test khi có push/PR vào `main`.
-
-```yaml
-name: BE - CI
-on:
-  pull_request: { paths: ["apps/backend/**"] }
-  push:
-    branches: [ main ]
-    paths: ["apps/backend/**"]
-jobs:
-  be:
-    runs-on: ubuntu-latest
-    defaults: { run: { working-directory: apps/backend } }
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11", cache: pip }
-      - run: pip install -r requirements.txt
-      - run: ruff check .
-      - run: black --check .
-      - run: pytest || echo "skip tests"
-```
-
----
-
-## 🔗 Kết nối với AI-core
-
-Backend import `packages/ai-core` (dạng editable install):
+### 4️⃣ Chạy Frontend (Next.js)
 
 ```bash
-pip install -e ./packages/ai-core
+cd apps/frontend
+npm i
+npm run dev
 ```
 
-Các module:
-
-* `nlu` → gọi PhoBERT inference (essay)
-* `retrieval` → query pgvector job embeddings
-* `recommendation` → rerank kết quả bằng NeuMF hoặc RL
+Truy cập → [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🧭 Kết nối Database
+## 📂 Cấu Trúc Thư Mục Monorepo
 
-Database mặc định: **PostgreSQL + pgvector**
-Cấu hình qua `.env` hoặc Docker Compose (ở `infra/docker-compose.dev.yml`).
-
-Kiểm tra nhanh:
-
-```python
-from app.core.db import test_connection
-test_connection()  # ✅ DB Connected: <timestamp>
+```
+NCKH/
+├─ apps/
+│  ├─ frontend/          # Next.js 14 + Tailwind (App Router)
+│  └─ backend/           # FastAPI modular monolith (BFF + modules)
+│
+├─ packages/
+│  └─ ai-core/           # AI models & inference (PhoBERT, NeuMF, RL)
+│
+├─ infra/                # Docker Compose + SQL init + K8s manifests
+│
+├─ .github/workflows/    # CI/CD pipelines
+│
+├─ CONTRIBUTING.md       # Quy tắc & hướng dẫn nhóm
+└─ README.md             # Tài liệu này
 ```
 
 ---
 
-## 🧱 Mục tiêu của skeleton
+## ⚙️ Môi Trường Cấu Hình
 
-* Cài đặt backend “khung” sẵn sàng để nhóm BE chỉ cần thêm module cụ thể.
-* Hỗ trợ AI integration và pgvector retrieval ngay từ đầu.
-* Dễ mở rộng lên microservice sau MVP.
+### Frontend (`apps/frontend/.env.example`)
+
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:8000
+```
+
+### Backend (`apps/backend/.env.example`)
+
+```env
+DATABASE_URL=postgresql://postgres:123456@localhost:5433/ai_core
+AI_MODELS_DIR=packages/ai-core/models
+ALLOWED_ORIGINS=http://localhost:3000
+```
+
+---
+
+## 🧠 Mô Tả Thành Phần
+
+### 🖥️ Frontend (Next.js + Tailwind)
+
+* Giao diện người dùng: đăng nhập, làm trắc nghiệm, xem kết quả, đọc lộ trình nghề.
+* Tổ chức theo hướng **Domain-First**: mỗi chức năng (feature) là 1 module riêng.
+
+**Thư mục chính:**
+
+```
+apps/frontend/
+├─ app/              # Routing (App Router)
+├─ src/features/     # Các tính năng (assessment, results, careers,…)
+├─ src/services/     # axios clients, BFF fetchers
+├─ src/components/   # UI tái sử dụng (Card, Modal, Button,…)
+└─ src/hooks/, src/lib/, src/types/
+```
+
+---
+
+### ⚙️ Backend (FastAPI Modular)
+
+* Cung cấp API và BFF (Backend-for-Frontend) cho giao diện web.
+* Kiến trúc module hóa theo **Clean Architecture**.
+
+**Thư mục chính:**
+
+```
+apps/backend/app/
+├─ main.py             # Mount routers, cấu hình CORS, OpenAPI
+├─ bff/                # Endpoint tương ứng UI
+├─ modules/            # assessment, nlu, retrieval, recommendation
+├─ core/               # DB session, logging, settings
+├─ repositories/       # Adapter: Postgres / Neo4j / Elastic
+└─ services/, tasks/, tests/
+```
+
+---
+
+### 🤖 AI-Core
+
+Chứa toàn bộ mô hình và mã nguồn xử lý AI:
+
+```
+packages/ai-core/
+├─ src/          # NLP, Retrieval, Recommendation, RL
+├─ configs/      # encode.yaml, nlp.yaml, schema.yaml
+├─ models/       # PhoBERT, NeuMF checkpoints
+└─ notebooks/    # Thử nghiệm, huấn luyện
+```
+
+> BE import trực tiếp `packages/ai-core` bằng `pip install -e ./packages/ai-core`.
+
+---
+
+### 🧱 Infra (Hạ tầng)
+
+* `docker-compose.dev.yml`: chạy Postgres + pgvector + pgAdmin + backend/frontend.
+* `sql/`: chứa script khởi tạo bảng, index vector.
+* `k8s/`: manifest cho Kubernetes (dự kiến triển khai sau MVP).
+
+---
+
+### 🔄 CI/CD
+
+Tích hợp qua **GitHub Actions**:
+
+| Workflow                 | Mục đích                             |
+| ------------------------ | ------------------------------------ |
+| `fe-ci.yml`              | Kiểm tra lint + build FE             |
+| `be-ci.yml`              | Kiểm tra ruff + black + pytest BE    |
+| `integration.yml`        | Kiểm tra contract FE ↔ BFF (OpenAPI) |
+| `infra-ci.yml` (sắp tới) | Build & test Docker Compose          |
+
+---
+
+## 🌱 Quy Trình Phát Triển
+
+### 1️⃣ Skeleton (hoàn tất)
+
+* Nhánh `feat/fe-skeleton` → cấu trúc FE
+* Nhánh `feat/be-skeleton` → cấu trúc BE
+* Merge vào `main` theo kiểu **Squash & Merge**
+
+### 2️⃣ Làm Tính Năng (Feature Branch)
+
+```bash
+git checkout main
+git pull
+git checkout -b feat/<tên-tính-năng>
+
+# Code...
+git add .
+git commit -m "feat(fe): add assessment UI"
+git push -u origin feat/<tên-tính-năng>
+```
+
+Sau đó tạo PR → review → merge ≤ 2–3 ngày/lần.
+
+---
+
+## 🧭 Luồng Hoạt Động Hệ Thống
+
+1. **Người dùng** hoàn thành trắc nghiệm RIASEC và Big Five trên giao diện web.
+2. **FE (Next.js)** gửi kết quả tới **BFF (FastAPI)**.
+3. **BFF** gọi các module:
+
+   * `assessment`: chấm điểm RIASEC + Big Five
+   * `nlu`: phân tích bài luận bằng PhoBERT
+   * `retrieval`: truy vấn vector nghề (pgvector)
+   * `recommendation`: gợi ý nghề phù hợp (NeuMF / RL)
+4. **Kết quả** được tổng hợp và trả lại FE để hiển thị biểu đồ + mô tả nghề.
+
+---
+
+> **Đề tài Nghiên cứu khoa học sinh viên – Đại học Duy Tân 2025**
+> Hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo
+> *(AI-Based Career Recommendation System)*
+
+---
