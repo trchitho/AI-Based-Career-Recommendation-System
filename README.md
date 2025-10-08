@@ -64,14 +64,7 @@ cp apps/backend/.env.example apps/backend/.env
 
 ### 2️⃣ Khởi chạy CSDL (Postgres + pgvector + pgAdmin)
 
-```bash
-docker compose -f infra/docker-compose.dev.yml up -d
-```
-
-Truy cập:
-
-* **pgAdmin** → [http://localhost:5050](http://localhost:5050)
-* **Postgres** → localhost:5433
+* Đọc lại file README.md trong nhánh Database_SetUp
 
 ---
 
