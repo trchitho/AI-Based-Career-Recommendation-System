@@ -12,6 +12,7 @@ from fastapi.responses import RedirectResponse
 # (tuỳ chọn) nạp .env nếu chạy local/CI
 try:
     from dotenv import load_dotenv  # type: ignore
+
     # Tìm .env ở: apps/backend/.env
     here = os.path.dirname(__file__)
     env_path = os.path.abspath(os.path.join(here, "..", ".env"))
@@ -89,6 +90,7 @@ def create_app() -> FastAPI:
 
     # Routers
     from app.bff import router as bff_router  # import sau khi app có sẵn
+
     app.include_router(bff_router.router)
 
     return app
