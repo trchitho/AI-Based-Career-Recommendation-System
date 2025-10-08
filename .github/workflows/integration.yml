@@ -1,105 +1,150 @@
-﻿name: Integration - Contract Tests (FE ↔ BFF)
+name: Integration - Contract Tests (FE ↔ BFF)
 
 on:
-    pull_request:
-        paths:
-            - "apps/backend/**"
-            - "apps/frontend/**"
-            - "packages/ai-core/**"
-            - ".github/workflows/integration.yml"
-    push:
-        branches: ["main"]
-        paths:
-            - "apps/backend/**"
-            - "apps/frontend/**"
-            - "packages/ai-core/**"
-            - ".github/workflows/integration.yml"
+  pull_request:
+    paths:
+      - "apps/backend/**"
+      - "apps/frontend/**"
+      - "packages/ai-core/**"
+      - ".github/workflows/integration.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "apps/backend/**"
+      - "apps/frontend/**"
+      - "packages/ai-core/**"
+      - ".github/workflows/integration.yml"
 
 concurrency:
-    group: integration-${{ github.ref }}
-    cancel-in-progress: true
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-    export-openapi:
-        name: Export OpenAPI from FastAPI
-        runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: apps/backend
-        env:
-            # Dùng SQLite memory để import app mà không cần Postgres thật
-            DATABASE_URL: "sqlite+pysqlite:///:memory:"
-            AI_MODELS_DIR: "packages/ai-core/models"
-            ALLOWED_ORIGINS: "http://localhost:3000"
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  export-openapi:
+    name: Export OpenAPI from FastAPI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+    env:
+      DATABASE_URL: "sqlite+pysqlite:///:memory:"  # không cần Postgres thật
+      AI_MODELS_DIR: "packages/ai-core/models"
+      ALLOWED_ORIGINS: "http://localhost:3000"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: "3.11"
-                  cache: "pip"
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
 
-            - name: Install backend deps
-              run: |
-                  pip install -r requirements.txt
-                  # Nếu có package ai-core trong monorepo, cài editable (không bắt buộc)
-                  if [ -d ../packages/ai-core ]; then
-                    pip install -e ../packages/ai-core
-                  fi
+      - name: Install backend deps
+        run: |
+          pip install -r requirements.txt
+          # Chỉ cài ai-core ở dạng editable khi tồn tại và hợp lệ
+          AI_CORE_PATH="../packages/ai-core"
+          if [ -d "$AI_CORE_PATH" ] && { [ -f "$AI_CORE_PATH/pyproject.toml" ] || [ -f "$AI_CORE_PATH/setup.py" ]; }; then
+            echo "Installing ai-core from $AI_CORE_PATH ..."
+            pip install -e "$AI_CORE_PATH"
+          else
+            echo "ai-core not found or not installable, skipping."
+          fi
 
-            - name: Export openapi.json
-              run: |
-                  python - <<'PY'
-                  import json
-                  from app.main import app
-                  from fastapi.openapi.utils import get_openapi
-                  schema = app.openapi() if hasattr(app, "openapi") else get_openapi(
-                      title=app.title, version="0.1.0", routes=app.routes
-                  )
-                  with open("openapi.json", "w", encoding="utf-8") as f:
-                      json.dump(schema, f, ensure_ascii=False, indent=2)
-                  print("✅ Exported apps/backend/openapi.json")
-                  PY
+      - name: Export openapi.json
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from app.main import app
+          from fastapi.openapi.utils import get_openapi
+          schema = app.openapi() if hasattr(app, "openapi") else get_openapi(
+              title=getattr(app, "title", "API"),
+              version=getattr(app, "version", "0.1.0"),
+              routes=getattr(app, "routes", []),
+          )
+          with open("openapi.json", "w", encoding="utf-8") as f:
+              json.dump(schema, f, ensure_ascii=False, indent=2)
+          print("✅ Exported apps/backend/openapi.json")
+          PY
 
-            - name: Upload OpenAPI artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: openapi-spec
-                  path: apps/backend/openapi.json
+      - name: Upload OpenAPI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          # Lưu ý: đang ở apps/backend nên chỉ cần 'openapi.json'
+          path: openapi.json
 
-    fe-contract:
-        name: FE contract check against OpenAPI
-        runs-on: ubuntu-latest
-        needs: export-openapi
-        defaults:
-            run:
-                working-directory: apps/frontend
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  fe-contract:
+    name: FE contract check against OpenAPI
+    runs-on: ubuntu-latest
+    needs: export-openapi
+    defaults:
+      run:
+        working-directory: apps/frontend
 
-            - name: Download OpenAPI artifact
-              uses: actions/download-artifact@v4
-              with:
-                  name: openapi-spec
-                  path: apps/backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Setup Node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "20"
-                  cache: "npm"
-                  cache-dependency-path: "apps/frontend/package-lock.json"
+      - name: Download OpenAPI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-spec
+          # Artifact sẽ được đặt ở $GITHUB_WORKSPACE/apps/backend/openapi.json
+          path: apps/backend
 
-            - name: Install FE deps
-              run: npm ci
+      # Phát hiện package manager
+      - name: Detect package manager
+        id: detect
+        run: |
+          if [ -f "yarn.lock" ]; then
+            echo "pkg=yarn" >> $GITHUB_OUTPUT
+          else
+            echo "pkg=npm" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Generate TS types from OpenAPI
-              # openapi-typescript sẽ tạo file định nghĩa TypeScript từ OpenAPI
-              run: npx --yes openapi-typescript ../backend/openapi.json -o src/types/backend.d.ts
+      # Setup Node + cache đúng loại
+      - name: Setup Node (npm)
+        if: steps.detect.outputs.pkg == 'npm'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "apps/frontend/package-lock.json"
 
-            - name: Type check FE
-              # Nếu bạn có script riêng, đổi thành: npm run typecheck
-              run: npx tsc --noEmit
+      - name: Setup Node (yarn)
+        if: steps.detect.outputs.pkg == 'yarn'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: "apps/frontend/yarn.lock"
+
+      # Cài deps linh hoạt theo lockfile
+      - name: Install FE deps (npm)
+        if: steps.detect.outputs.pkg == 'npm'
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm i
+          fi
+
+      - name: Install FE deps (yarn)
+        if: steps.detect.outputs.pkg == 'yarn'
+        run: |
+          if [ -f yarn.lock ]; then
+            yarn install --frozen-lockfile || yarn install
+          else
+            yarn install
+          fi
+
+      # Generate types từ OpenAPI (dùng npx --yes để không phụ thuộc devDeps)
+      - name: Generate TS types from OpenAPI
+        run: npx --yes openapi-typescript ../backend/openapi.json -o src/types/backend.d.ts
+
+      # Type check (dùng npx --yes để auto fetch typescript nếu chưa có)
+      - name: Type check FE
+        run: npx --yes tsc --noEmit
