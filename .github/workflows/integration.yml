@@ -27,7 +27,7 @@ jobs:
       run:
         working-directory: apps/backend
     env:
-      DATABASE_URL: "sqlite+pysqlite:///:memory:" # không cần Postgres thật
+      DATABASE_URL: "sqlite+pysqlite:///:memory:"  # không cần Postgres thật
       AI_MODELS_DIR: "packages/ai-core/models"
       ALLOWED_ORIGINS: "http://localhost:3000"
     steps:

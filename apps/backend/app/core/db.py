@@ -8,6 +8,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env.example"))
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
+
 def test_connection():
     with engine.connect() as conn:
         result = conn.execute(text("SELECT now();"))
