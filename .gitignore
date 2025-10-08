@@ -205,3 +205,42 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+cd $DST
+@"
+# === GLOBAL / MONOREPO ===
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+
+# Node / Next.js
+**/node_modules/
+**/.next/
+**/out/
+**/coverage/
+**/.turbo/
+**/.vercel/
+
+# Python
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+
+# Editor/OS
+.vscode/
+.idea/
+*.local
+
+# Builds
+**/dist/
+**/build/
+
+# Env
+**/.env
+**/.env.*.local
+"@ | Out-File -Encoding utf8 .gitignore
