@@ -1,0 +1,240 @@
+{
+  "common": {
+    "appName": "Hệ Thống Gợi Ý Nghề Nghiệp",
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "close": "Đóng",
+    "submit": "Gửi",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "logout": "Đăng xuất",
+    "tryAgain": "Thử lại",
+    "never": "Chưa bao giờ"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "dashboard": "Bảng điều khiển",
+    "assessment": "Đánh giá",
+    "results": "Kết quả",
+    "roadmap": "Lộ trình",
+    "profile": "Hồ sơ",
+    "admin": "Quản trị"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "firstName": "Tên",
+    "lastName": "Họ",
+    "forgotPassword": "Quên mật khẩu?",
+    "noAccount": "Chưa có tài khoản?",
+    "hasAccount": "Đã có tài khoản?",
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "welcomeBack": "Chào mừng trở lại",
+    "createAccount": "Tạo tài khoản của bạn",
+    "loginSubtitle": "Đăng nhập để tiếp tục hành trình nghề nghiệp",
+    "registerSubtitle": "Bắt đầu khám phá nghề nghiệp phù hợp với bạn"
+  },
+  "home": {
+    "hero": {
+      "title": "Khám Phá Con Đường Sự Nghiệp Hoàn Hảo",
+      "subtitle": "Đánh giá tính cách bằng AI và gợi ý nghề nghiệp cá nhân hóa để định hướng hành trình chuyên nghiệp của bạn",
+      "cta": "Bắt đầu đánh giá",
+      "learnMore": "Tìm hiểu thêm"
+    },
+    "features": {
+      "title": "Tại sao chọn nền tảng của chúng tôi",
+      "assessment": {
+        "title": "Đánh giá khoa học",
+        "description": "Bài kiểm tra tính cách RIASEC và Big Five dựa trên nghiên cứu tâm lý học"
+      },
+      "ai": {
+        "title": "Phân tích bằng AI",
+        "description": "Thuật toán tiên tiến phân tích câu trả lời để đưa ra gợi ý nghề nghiệp chính xác"
+      },
+      "roadmap": {
+        "title": "Lộ trình học tập",
+        "description": "Hướng dẫn từng bước được cá nhân hóa để đạt được mục tiêu nghề nghiệp"
+      },
+      "tracking": {
+        "title": "Theo dõi tiến độ",
+        "description": "Giám sát sự phát triển và ăn mừng các cột mốc quan trọng"
+      }
+    },
+    "howItWorks": {
+      "title": "Cách thức hoạt động",
+      "step1": {
+        "title": "Làm bài đánh giá",
+        "description": "Hoàn thành các bài kiểm tra tính cách và sở thích toàn diện"
+      },
+      "step2": {
+        "title": "Nhận gợi ý",
+        "description": "Nhận các đề xuất nghề nghiệp được AI tùy chỉnh cho bạn"
+      },
+      "step3": {
+        "title": "Theo lộ trình",
+        "description": "Truy cập các lộ trình học tập cá nhân hóa để đạt mục tiêu"
+      },
+      "step4": {
+        "title": "Theo dõi tiến độ",
+        "description": "Giám sát sự phát triển và thành tích của bạn theo thời gian"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "welcome": "Chào mừng trở lại",
+    "overview": "Theo dõi hành trình phát triển nghề nghiệp của bạn",
+    "loading": "Đang tải dữ liệu bảng điều khiển...",
+    "error": "Không thể tải dữ liệu bảng điều khiển. Vui lòng thử lại.",
+    "noAssessment": {
+      "title": "Bắt đầu hành trình nghề nghiệp của bạn",
+      "description": "Làm bài đánh giá đầu tiên để nhận gợi ý nghề nghiệp cá nhân hóa và khám phá tiềm năng của bạn.",
+      "cta": "Làm bài đánh giá",
+      "subtitle": "Khám phá những nghề nghiệp phù hợp với tính cách và sở thích của bạn"
+    },
+    "profileSummary": {
+      "title": "Tóm tắt hồ sơ",
+      "assessmentsTaken": "Số bài đánh giá đã làm",
+      "completionRate": "Tỷ lệ hoàn thành",
+      "lastActivity": "Hoạt động gần nhất",
+      "memberSince": "Thành viên từ",
+      "viewProfile": "Xem hồ sơ đầy đủ"
+    },
+    "careerSuggestions": {
+      "title": "Gợi ý nghề nghiệp",
+      "subtitle": "Dựa trên kết quả đánh giá của bạn",
+      "viewAll": "Xem kết quả đầy đủ",
+      "noSuggestions": "Hoàn thành bài đánh giá để xem gợi ý nghề nghiệp",
+      "match": "Phù hợp",
+      "analyzing": "Bài đánh giá của bạn đang được phân tích. Gợi ý nghề nghiệp sẽ xuất hiện sớm!"
+    },
+    "recentActivity": {
+      "title": "Hoạt động gần đây",
+      "noActivity": "Không có hoạt động gần đây",
+      "assessmentCompleted": "Đã hoàn thành đánh giá",
+      "profileUpdated": "Đã cập nhật hồ sơ",
+      "milestoneCompleted": "Đã hoàn thành cột mốc"
+    },
+    "progress": {
+      "title": "Tiến độ của bạn",
+      "overallProgress": "Tiến độ tổng thể",
+      "skillsDeveloped": "Kỹ năng đã phát triển",
+      "milestonesCompleted": "Cột mốc đã hoàn thành",
+      "hoursLearned": "Giờ học",
+      "viewRoadmap": "Xem lộ trình học tập"
+    },
+    "quickActions": {
+      "title": "Hành động nhanh",
+      "takeAssessment": "Làm bài đánh giá",
+      "viewResults": "Xem kết quả",
+      "updateProfile": "Cập nhật hồ sơ",
+      "exploreRoadmap": "Khám phá lộ trình"
+    }
+  },
+  "assessment": {
+    "title": "Đánh giá nghề nghiệp",
+    "subtitle": "Khám phá con đường sự nghiệp lý tưởng với thông tin chi tiết từ AI",
+    "discoverPath": "Khám phá con đường sự nghiệp lý tưởng của bạn",
+    "comprehensiveDesc": "Bài đánh giá toàn diện này kết hợp hai bài kiểm tra được xác thực khoa học để giúp bạn hiểu về sở thích nghề nghiệp và đặc điểm tính cách của mình:",
+    "riasec": "Bài kiểm tra sở thích nghề nghiệp RIASEC",
+    "riasecDesc": "Xác định sở thích của bạn qua sáu chủ đề nghề nghiệp: Thực tế, Nghiên cứu, Nghệ thuật, Xã hội, Kinh doanh và Thông thường.",
+    "bigFive": "Đánh giá tính cách Big Five",
+    "bigFiveDesc": "Đo lường tính cách của bạn qua năm khía cạnh: Cởi mở, Tận tâm, Hướng ngoại, Dễ chịu và Bất ổn cảm xúc.",
+    "whatToExpect": "Những gì cần biết",
+    "duration": "Mất khoảng 15-20 phút để hoàn thành",
+    "honestAnswers": "Trả lời trung thực - không có câu trả lời đúng hay sai",
+    "optionalEssay": "Bài luận tùy chọn để có thông tin cá nhân hóa",
+    "tailoredRecommendations": "Nhận gợi ý nghề nghiệp phù hợp với hồ sơ của bạn",
+    "startAssessment": "Bắt đầu đánh giá",
+    "question": "Câu hỏi",
+    "of": "của",
+    "answered": "đã trả lời",
+    "stronglyDisagree": "Hoàn toàn không đồng ý",
+    "disagree": "Không đồng ý",
+    "neutral": "Trung lập",
+    "agree": "Đồng ý",
+    "stronglyAgree": "Hoàn toàn đồng ý",
+    "careerInterest": "Sở thích nghề nghiệp",
+    "personality": "Tính cách",
+    "rateFrom": "Đánh giá từ 1 (Hoàn toàn không đồng ý) đến 5 (Hoàn toàn đồng ý)",
+    "submitAssessment": "Gửi bài đánh giá",
+    "submitEssay": "Gửi bài luận",
+    "essayPrompt": "Hãy cho chúng tôi biết về nguyện vọng và mục tiêu nghề nghiệp của bạn",
+    "essayPlaceholder": "Viết ít nhất 100 ký tự về sở thích nghề nghiệp, mục tiêu và điều gì thúc đẩy bạn...",
+    "processingResults": "Đang xử lý kết quả của bạn",
+    "analyzingResponses": "AI của chúng tôi đang phân tích câu trả lời và tạo gợi ý nghề nghiệp cá nhân hóa...",
+    "completing": "Đang hoàn thành đánh giá",
+    "submitting": "Đang gửi..."
+  },
+  "results": {
+    "title": "Kết quả đánh giá của bạn",
+    "completedOn": "Hoàn thành vào",
+    "summary": "Tóm tắt",
+    "detailed": "Phân tích chi tiết",
+    "recommendations": "Gợi ý nghề nghiệp",
+    "topInterest": "Sở thích nghề nghiệp hàng đầu",
+    "dominantTrait": "Đặc điểm tính cách nổi bật",
+    "essayInsights": "Thông tin từ bài luận",
+    "keyInsights": "Thông tin chính",
+    "themes": "Chủ đề được xác định",
+    "matchPercentage": "Phù hợp",
+    "viewDetails": "Xem chi tiết",
+    "failedToLoad": "Không thể tải kết quả đánh giá. Vui lòng thử lại."
+  },
+  "roadmap": {
+    "title": "Lộ trình học tập",
+    "selectCareer": "Chọn nghề nghiệp",
+    "milestones": "Cột mốc",
+    "completed": "Đã hoàn thành",
+    "inProgress": "Đang thực hiện",
+    "notStarted": "Chưa bắt đầu",
+    "markComplete": "Đánh dấu hoàn thành",
+    "duration": "Thời lượng",
+    "skills": "Kỹ năng cần học",
+    "resources": "Tài nguyên"
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "personalInfo": "Thông tin cá nhân",
+    "assessmentHistory": "Lịch sử đánh giá",
+    "developmentProgress": "Tiến độ phát triển",
+    "editProfile": "Chỉnh sửa hồ sơ",
+    "dateOfBirth": "Ngày sinh",
+    "memberSince": "Thành viên từ",
+    "assessmentsTaken": "Số bài đánh giá đã làm",
+    "viewResults": "Xem kết quả",
+    "compareAssessments": "So sánh đánh giá",
+    "noAssessments": "Chưa có bài đánh giá nào"
+  },
+  "admin": {
+    "dashboard": "Bảng điều khiển quản trị",
+    "users": "Người dùng",
+    "careers": "Nghề nghiệp",
+    "skills": "Kỹ năng",
+    "questions": "Câu hỏi",
+    "monitoring": "Giám sát AI",
+    "totalUsers": "Tổng người dùng",
+    "totalCareers": "Tổng nghề nghiệp",
+    "totalAssessments": "Tổng đánh giá",
+    "systemHealth": "Tình trạng hệ thống"
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "noNotifications": "Không có thông báo",
+    "milestoneCompleted": "Đã hoàn thành cột mốc!",
+    "newRecommendation": "Có gợi ý nghề nghiệp mới"
+  }
+}

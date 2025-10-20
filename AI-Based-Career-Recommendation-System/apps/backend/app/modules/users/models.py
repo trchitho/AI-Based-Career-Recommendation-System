@@ -1,0 +1,31 @@
+# apps/backend/app/modules/users/models.py
+from sqlalchemy import Column, BigInteger, Text, Boolean, TIMESTAMP, func
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    __table_args__ = {"schema": "core"}  # vì bảng nằm trong schema "core"
+
+    id = Column(BigInteger, primary_key=True)
+    email = Column(Text, nullable=False, unique=True)
+    password_hash = Column(Text, nullable=False)
+    full_name = Column(Text)
+    avatar_url = Column(Text)
+    role = Column(Text, nullable=False, default="user")
+    is_locked = Column(Boolean, nullable=False, default=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    last_login = Column(TIMESTAMP(timezone=True))
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "email": self.email,
+            "full_name": self.full_name,
+            "avatar_url": self.avatar_url,
+            "role": self.role,
+            "is_locked": self.is_locked,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "last_login": self.last_login.isoformat() if self.last_login else None,
+        }

@@ -1,0 +1,125 @@
+{
+  "info": {
+    "name": "CareerBridge Admin API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth - Register Admin",
+      "request": {
+        "method": "POST",
+        "header": [ {"key":"Content-Type","value":"application/json"} ],
+        "url": { "raw": "{{baseUrl}}/api/auth/register-admin", "host":["{{baseUrl}}"], "path":["api","auth","register-admin"] },
+        "body": {"mode":"raw","raw":"{\n  \"email\": \"admin@site.com\",\n  \"password\": \"Admin1234\",\n  \"full_name\": \"Admin\",\n  \"admin_signup_secret\": \"CHANGE_ME\"\n}"}
+      }
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [ {"key":"Content-Type","value":"application/json"} ],
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host":["{{baseUrl}}"], "path":["api","auth","login"] },
+        "body": {"mode":"raw","raw":"{\n  \"email\": \"admin@site.com\",\n  \"password\": \"Admin1234\"\n}"}
+      }
+    },
+    {
+      "name": "Admin - List Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key":"Authorization","value":"Bearer {{token}}"}
+        ],
+        "url": { "raw": "{{baseUrl}}/api/admin/users", "host":["{{baseUrl}}"], "path":["api","admin","users"] }
+      }
+    },
+    {
+      "name": "Admin - Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key":"Authorization","value":"Bearer {{token}}"},
+          {"key":"Content-Type","value":"application/json"}
+        ],
+        "url": { "raw": "{{baseUrl}}/api/admin/users", "host":["{{baseUrl}}"], "path":["api","admin","users"] },
+        "body": {"mode":"raw","raw":"{\n  \"email\": \"user@site.com\",\n  \"password\": \"User12345\",\n  \"full_name\": \"User One\",\n  \"role\": \"user\"\n}"}
+      }
+    },
+    {
+      "name": "Admin - Update User",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {"key":"Authorization","value":"Bearer {{token}}"},
+          {"key":"Content-Type","value":"application/json"}
+        ],
+        "url": { "raw": "{{baseUrl}}/api/admin/users/1", "host":["{{baseUrl}}"], "path":["api","admin","users","1"] },
+        "body": {"mode":"raw","raw":"{\n  \"full_name\": \"User Updated\",\n  \"role\": \"admin\"\n}"}
+      }
+    },
+    {
+      "name": "Admin - Get Settings",
+      "request": {
+        "method": "GET",
+        "header": [ {"key":"Authorization","value":"Bearer {{token}}"} ],
+        "url": { "raw": "{{baseUrl}}/api/admin/settings", "host":["{{baseUrl}}"], "path":["api","admin","settings"] }
+      }
+    },
+    {
+      "name": "Admin - Update Settings",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key":"Authorization","value":"Bearer {{token}}"},
+          {"key":"Content-Type","value":"application/json"}
+        ],
+        "url": { "raw": "{{baseUrl}}/api/admin/settings", "host":["{{baseUrl}}"], "path":["api","admin","settings"] },
+        "body": {"mode":"raw","raw":"{\n  \"logo_url\": \"https://example.com/logo.png\",\n  \"app_title\": \"CareerBridge AI\",\n  \"app_name\": \"CareerBridge\",\n  \"footer_html\": \"&copy; 2025 CareerBridge AI\"\n}"}
+      }
+    },
+    {
+      "name": "Admin - List Careers",
+      "request": {
+        "method": "GET",
+        "header": [ {"key":"Authorization","value":"Bearer {{token}}"} ],
+        "url": { "raw": "{{baseUrl}}/api/admin/careers", "host":["{{baseUrl}}"], "path":["api","admin","careers"] }
+      }
+    },
+    {
+      "name": "Admin - Create Career",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key":"Authorization","value":"Bearer {{token}}"},
+          {"key":"Content-Type","value":"application/json"}
+        ],
+        "url": { "raw": "{{baseUrl}}/api/admin/careers", "host":["{{baseUrl}}"], "path":["api","admin","careers"] },
+        "body": {"mode":"raw","raw":"{\n  \"title\": \"Data Analyst\",\n  \"description\": \"Phân tích dữ liệu...\"\n}"}
+      }
+    },
+    {
+      "name": "Admin - List Questions",
+      "request": {
+        "method": "GET",
+        "header": [ {"key":"Authorization","value":"Bearer {{token}}"} ],
+        "url": { "raw": "{{baseUrl}}/api/admin/questions", "host":["{{baseUrl}}"], "path":["api","admin","questions"] }
+      }
+    },
+    {
+      "name": "Admin - Create Question",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key":"Authorization","value":"Bearer {{token}}"},
+          {"key":"Content-Type","value":"application/json"}
+        ],
+        "url": { "raw": "{{baseUrl}}/api/admin/questions", "host":["{{baseUrl}}"], "path":["api","admin","questions"] },
+        "body": {"mode":"raw","raw":"{\n  \"text\": \"Bạn thường thích hoạt động ngoài trời?\",\n  \"testType\": \"RIASEC\",\n  \"dimension\": \"Realistic\",\n  \"questionType\": \"scale\"\n}"}
+      }
+    }
+  ]
+}
+
