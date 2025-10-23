@@ -20,7 +20,6 @@ Dự án được phát triển dưới dạng **monorepo** gồm 4 phần chín
 | **Frontend** | Next.js 14 + TailwindCSS     | Giao diện người dùng (UI)           |
 | **Backend**  | FastAPI (Python)             | API, BFF (Backend-for-Frontend)     |
 | **AI-Core**  | PhoBERT, vi-SBERT, NeuMF, RL | Mô hình xử lý ngôn ngữ & gợi ý nghề |
-| **Infra**    | Docker, Postgres + pgvector  | Hạ tầng lưu trữ, vector database    |
 
 ---
 
@@ -107,8 +106,6 @@ AI-Based-Career-Recommendation-System/
 ├─ packages/
 │  └─ ai-core/           # AI models & inference (PhoBERT, NeuMF, RL)
 │
-├─ infra/                # Docker Compose + SQL init + K8s manifests (khi nào deploy hay chạy bản prod chính thức sẽ dùng, hiện tại chỉ cần dùng trong nhánh Database_SetUp)
-│
 ├─ .github/workflows/    # CI/CD pipelines
 │
 ├─ CONTRIBUTING.md       # Quy tắc & hướng dẫn nhóm
@@ -188,13 +185,6 @@ packages/ai-core/
 
 > BE import trực tiếp `packages/ai-core` bằng `pip install -e ./packages/ai-core`.
 
----
-
-### 🧱 Infra (Hạ tầng)
-
-* `docker-compose.dev.yml`: chạy Postgres + pgvector + pgAdmin + backend/frontend.
-* `sql/`: chứa script khởi tạo bảng, index vector.
-* `k8s/`: manifest cho Kubernetes (dự kiến triển khai sau MVP).
 
 ---
 
@@ -207,7 +197,6 @@ Tích hợp qua **GitHub Actions**:
 | `fe-ci.yml`              | Kiểm tra lint + build FE             |
 | `be-ci.yml`              | Kiểm tra ruff + black + pytest BE    |
 | `integration.yml`        | Kiểm tra contract FE ↔ BFF (OpenAPI) |
-| `infra-ci.yml` (sắp tới) | Build & test Docker Compose          |
 
 ---
 
