@@ -6,7 +6,10 @@ from sqlalchemy.orm import Session
 
 from .models import User
 from ...core.security import hash_password, verify_password
-from ...core.jwt import create_access_token
+from ...core.jwt import create_access_token, refresh_expiry_dt
+from ..auth.models import RefreshToken
+from datetime import datetime, timezone
+import secrets
 import os
 
 router = APIRouter()
@@ -58,7 +61,12 @@ def register(request: Request, payload: RegisterPayload):
     session.refresh(u)
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
-    return {"access_token": token, "user": u.to_dict()}
+    # issue refresh token
+    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
+    session.add(rt)
+    session.commit()
+    session.refresh(u)
+    return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
 
 @router.post("/login")
 def login(request: Request, payload: LoginPayload):
@@ -71,7 +79,10 @@ def login(request: Request, payload: LoginPayload):
         raise HTTPException(status_code=403, detail="Invalid credentials")
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
-    return {"access_token": token, "user": u.to_dict()}
+    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
+    session.add(rt)
+    session.commit()
+    return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
 
 
 @router.post("/register-admin", status_code=status.HTTP_201_CREATED)
@@ -105,7 +116,41 @@ def register_admin(request: Request, payload: AdminRegisterPayload):
     session.refresh(u)
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
-    return {"access_token": token, "user": u.to_dict()}
+    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
+    session.add(rt)
+    session.commit()
+    return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
+
+
+@router.post("/refresh")
+def refresh_token(request: Request, payload: dict):
+    session: Session = _db(request)
+    token_str = (payload.get("refresh_token") or payload.get("refreshToken") or "").strip()
+    if not token_str:
+        raise HTTPException(status_code=400, detail="refresh_token is required")
+    rt = session.query(RefreshToken).filter(RefreshToken.token == token_str).first()
+    if not rt or rt.revoked:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    now = datetime.now(timezone.utc)
+    if rt.expires_at and rt.expires_at < now:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+
+    # Create new access token; keep RT (or rotate if needed)
+    new_access = create_access_token({"sub": str(rt.user_id), "role": "user"})
+    return {"access_token": new_access}
+
+
+@router.post("/logout")
+def logout(request: Request, payload: dict):
+    session: Session = _db(request)
+    token_str = (payload.get("refresh_token") or payload.get("refreshToken") or "").strip()
+    if not token_str:
+        raise HTTPException(status_code=400, detail="refresh_token is required")
+    rt = session.query(RefreshToken).filter(RefreshToken.token == token_str).first()
+    if rt:
+        rt.revoked = True
+        session.commit()
+    return {"status": "ok"}
 
 # tiện test Postman
 @router.post("/create-test-user")

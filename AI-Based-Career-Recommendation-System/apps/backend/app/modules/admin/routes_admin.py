@@ -5,7 +5,7 @@ from ..users.models import User
 from ..assessments.models import AssessmentForm, AssessmentQuestion, Assessment
 from ...core.db import engine
 from sqlalchemy import text
-from ..content.models import Career, CareerKSA
+from ..content.models import Career, CareerKSA, BlogPost, Comment
 from ..system.models import AppSettings
 from ...core.jwt import require_admin
 
@@ -359,6 +359,8 @@ def delete_question(request: Request, question_id: int):
     session.commit()
     return {"status": "ok"}
 
+# ----- Users Management -----
+
 
 # ----- User Management (by admin) -----
 @router.get("/users")
@@ -439,3 +441,74 @@ def update_user(request: Request, user_id: int, payload: dict):
         "role": u.role,
         "is_locked": u.is_locked,
     }
+
+# ----- Blog Management (CRUD) -----
+@router.get("/blog")
+def admin_list_posts(request: Request, limit: int = 50, offset: int = 0):
+    _ = require_admin(request)
+    session = _db(request)
+    rows = session.execute(select(BlogPost).order_by(BlogPost.created_at.desc()).limit(limit).offset(offset)).scalars().all()
+    return [p.to_dict() for p in rows]
+
+
+@router.post("/blog")
+def admin_create_post(request: Request, payload: dict):
+    _ = require_admin(request)
+    session = _db(request)
+    title = (payload.get("title") or "").strip()
+    slug = (payload.get("slug") or "").strip() or "-".join(title.lower().split())
+    content_md = payload.get("content_md") or ""
+    status = payload.get("status") or "Draft"
+    p = BlogPost(title=title, slug=slug, content_md=content_md, status=status)
+    session.add(p)
+    session.commit()
+    session.refresh(p)
+    return p.to_dict()
+
+
+@router.put("/blog/{post_id}")
+def admin_update_post(request: Request, post_id: int, payload: dict):
+    _ = require_admin(request)
+    session = _db(request)
+    p = session.get(BlogPost, post_id)
+    if not p:
+        raise HTTPException(status_code=404, detail="Post not found")
+    for field in ("title", "slug", "content_md", "status"):
+        if field in payload:
+            setattr(p, field, payload[field])
+    session.commit()
+    session.refresh(p)
+    return p.to_dict()
+
+
+@router.delete("/blog/{post_id}")
+def admin_delete_post(request: Request, post_id: int):
+    _ = require_admin(request)
+    session = _db(request)
+    p = session.get(BlogPost, post_id)
+    if not p:
+        raise HTTPException(status_code=404, detail="Post not found")
+    session.delete(p)
+    session.commit()
+    return {"status": "ok"}
+
+
+# ----- Comments Management (basic delete) -----
+@router.get("/comments")
+def admin_list_comments(request: Request, limit: int = 100, offset: int = 0):
+    _ = require_admin(request)
+    session = _db(request)
+    rows = session.execute(select(Comment).order_by(Comment.created_at.desc()).limit(limit).offset(offset)).scalars().all()
+    return [c.to_dict() for c in rows]
+
+
+@router.delete("/comments/{comment_id}")
+def admin_delete_comment(request: Request, comment_id: int):
+    _ = require_admin(request)
+    session = _db(request)
+    c = session.get(Comment, comment_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    session.delete(c)
+    session.commit()
+    return {"status": "ok"}

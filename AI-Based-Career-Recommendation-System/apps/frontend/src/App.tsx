@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -14,11 +15,20 @@ import AssessmentPage from './pages/AssessmentPage';
 import ResultsPage from './pages/ResultsPage';
 import RoadmapPage from './pages/RoadmapPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import CareersPage from './pages/CareersPage';
+import CareerDetailPage from './pages/CareerDetailPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
+import EssayInputPage from './pages/EssayInputPage';
+import RecommendationsPage from './pages/RecommendationsPage';
+import ChatSummaryPage from './pages/ChatSummaryPage';
+import ChatPage from './pages/ChatPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
   const { user } = useAuth();
-  return user ? <Navigate to="/dashboard" replace /> : <HomePage />;
+  return user ? <Navigate to="/assessment" replace /> : <HomePage />;
 };
 
 function App() {
@@ -30,8 +40,12 @@ function App() {
           <Routes>
           {/* Public routes */}
           <Route path="/" element={<RootRedirect />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot" element={<ForgotPasswordPage />} />
+          <Route path="/reset" element={<ResetPasswordPage />} />
+          <Route path="/verify" element={<VerifyEmailPage />} />
 
           {/* Protected routes */}
           <Route
@@ -51,10 +65,58 @@ function App() {
             }
           />
           <Route
+            path="/careers"
+            element={
+              <ProtectedRoute>
+                <CareersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/careers/:idOrSlug"
+            element={
+              <ProtectedRoute>
+                <CareerDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/assessment"
             element={
               <ProtectedRoute>
                 <AssessmentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/essay"
+            element={
+              <ProtectedRoute>
+                <EssayInputPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/recommendations"
+            element={
+              <ProtectedRoute>
+                <RecommendationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat/summary"
+            element={
+              <ProtectedRoute>
+                <ChatSummaryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
               </ProtectedRoute>
             }
           />
@@ -79,9 +141,9 @@ function App() {
           <Route
             path="/admin/*"
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <AdminDashboardPage />
-              </ProtectedRoute>
+              </AdminRoute>
             }
           />
 

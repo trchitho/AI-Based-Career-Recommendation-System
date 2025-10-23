@@ -15,6 +15,14 @@ class Settings:
     NEO4J_USER = os.getenv("NEO4J_USER")
     NEO4J_PASS = os.getenv("NEO4J_PASS")
 
+    # Search (Elastic)
+    ES_URL = os.getenv("ES_URL")
+    ES_USER = os.getenv("ES_USER")
+    ES_PASS = os.getenv("ES_PASS")
+
+    # External AI service (optional)
+    AI_SERVICE_URL = os.getenv("AI_SERVICE_URL")
+
     # JWT & Security
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-secret-change-me")
     ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")

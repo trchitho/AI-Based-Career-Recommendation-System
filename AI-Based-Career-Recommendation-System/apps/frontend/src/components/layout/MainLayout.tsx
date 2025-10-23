@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../ThemeToggle';
 import LanguageSwitcher from '../LanguageSwitcher';
+import { useAppSettings } from '../../contexts/AppSettingsContext';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -13,6 +14,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const app = useAppSettings();
 
   const handleLogout = () => {
     logout();
@@ -33,14 +35,18 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-8">
-              <Link to="/dashboard" className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
+              <Link to="/dashboard" className="flex items-center space-x-3">
+                {app.logo_url ? (
+                  <img src={app.logo_url} alt={app.app_name || 'Logo'} className="h-10 w-auto rounded" />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                )}
                 <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  CareerBridge <span className="text-purple-600 dark:text-purple-400">AI</span>
+                  {app.app_title || 'CareerBridge AI'}
                 </span>
               </Link>
 
@@ -56,6 +62,24 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
                 >
                   {t('nav.assessment')}
+                </Link>
+                <Link
+                  to="/essay"
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+                >
+                  Essay
+                </Link>
+                <Link
+                  to="/recommendations"
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+                >
+                  Recommendations
+                </Link>
+                <Link
+                  to="/careers"
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+                >
+                  Careers
                 </Link>
                 <Link
                   to="/profile"
@@ -90,6 +114,17 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <main className="relative z-10">
         {children}
       </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 mt-12 border-t border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/50 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-gray-600 dark:text-gray-400">
+          {app.footer_html ? (
+            <div dangerouslySetInnerHTML={{ __html: app.footer_html }} />
+          ) : (
+            <div>© 2025 CareerBridge AI</div>
+          )}
+        </div>
+      </footer>
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { Notification } from '../../types/notification';
 
 const NotificationCenter = () => {
   const { user } = useAuth();
-  const { socket, connected } = useSocket();
+  const { ws, connected } = useSocket();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -21,17 +21,19 @@ const NotificationCenter = () => {
   }, [user]);
 
   useEffect(() => {
-    if (!socket || !connected) return;
-
-    // Listen for new notifications
-    socket.on('notification', (notification: Notification) => {
-      setNotifications((prev) => [notification, ...prev]);
-    });
-
-    return () => {
-      socket.off('notification');
+    if (!ws || !connected) return;
+    const handler = (ev: MessageEvent) => {
+      try {
+        const data = JSON.parse(ev.data);
+        // Treat any JSON payload as a notification item
+        if (data && data.id) {
+          setNotifications((prev) => [data as Notification, ...prev]);
+        }
+      } catch (_) { /* ignore non-JSON */ }
     };
-  }, [socket, connected]);
+    ws.addEventListener('message', handler);
+    return () => ws.removeEventListener('message', handler);
+  }, [ws, connected]);
 
   useEffect(() => {
     // Close dropdown when clicking outside

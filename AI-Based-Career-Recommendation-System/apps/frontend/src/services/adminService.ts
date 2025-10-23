@@ -151,4 +151,52 @@ export const adminService = {
   async deleteQuestion(questionId: string): Promise<void> {
     await api.delete(`/api/admin/questions/${questionId}`);
   },
+
+  // Users Management
+  async listUsers(): Promise<any[]> {
+    const res = await api.get('/api/admin/users');
+    return res.data;
+  },
+  async createUser(data: { email: string; password: string; full_name?: string; role?: 'admin' | 'user' | 'manager' }): Promise<any> {
+    const res = await api.post('/api/admin/users', data);
+    return res.data;
+  },
+  async updateUser(userId: string, data: Partial<{ full_name: string; role: 'admin' | 'user' | 'manager'; is_locked: boolean; password: string }>): Promise<any> {
+    const res = await api.patch(`/api/admin/users/${userId}`, data);
+    return res.data;
+  },
+
+  // App Settings
+  async getSettings(): Promise<any> {
+    const res = await api.get('/api/admin/settings');
+    return res.data;
+  },
+  async updateSettings(payload: Partial<{ logo_url: string; app_title: string; app_name: string; footer_html: string }>): Promise<any> {
+    const res = await api.put('/api/admin/settings', payload);
+    return res.data;
+  },
+
+  // Blog Management
+  async listPosts(): Promise<any[]> {
+    const res = await api.get('/api/admin/blog');
+    return res.data;
+  },
+  async createPost(data: { title: string; slug?: string; content_md?: string; status?: string }): Promise<any> {
+    const res = await api.post('/api/admin/blog', data);
+    return res.data;
+  },
+  async updatePost(postId: string, data: Partial<{ title: string; slug: string; content_md: string; status: string }>): Promise<any> {
+    const res = await api.put(`/api/admin/blog/${postId}`, data);
+    return res.data;
+  },
+  async deletePost(postId: string): Promise<void> {
+    await api.delete(`/api/admin/blog/${postId}`);
+  },
+  async listComments(): Promise<any[]> {
+    const res = await api.get('/api/admin/comments');
+    return res.data;
+  },
+  async deleteComment(commentId: string): Promise<void> {
+    await api.delete(`/api/admin/comments/${commentId}`);
+  },
 };

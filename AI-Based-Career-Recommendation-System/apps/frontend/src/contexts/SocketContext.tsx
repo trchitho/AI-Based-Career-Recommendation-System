@@ -1,16 +1,12 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
 interface SocketContextType {
-  socket: Socket | null;
+  ws: WebSocket | null;
   connected: boolean;
 }
 
-const SocketContext = createContext<SocketContextType>({
-  socket: null,
-  connected: false,
-});
+const SocketContext = createContext<SocketContextType>({ ws: null, connected: false });
 
 export const useSocket = () => useContext(SocketContext);
 
@@ -20,15 +16,14 @@ interface SocketProviderProps {
 
 export const SocketProvider = ({ children }: SocketProviderProps) => {
   const { user } = useAuth();
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [ws, setWs] = useState<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     if (!user) {
-      // Disconnect socket if user logs out
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
+      if (ws) {
+        ws.close();
+        setWs(null);
         setConnected(false);
       }
       return;
@@ -38,44 +33,23 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
     const token = localStorage.getItem('accessToken');
     if (!token) return;
 
-    // Initialize socket connection
-    const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-    
-    const newSocket = io(SOCKET_URL, {
-      auth: {
-        token,
-      },
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
-    });
-
-    newSocket.on('connect', () => {
-      console.log('Socket connected');
-      setConnected(true);
-    });
-
-    newSocket.on('disconnect', () => {
-      console.log('Socket disconnected');
-      setConnected(false);
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-      setConnected(false);
-    });
-
-    setSocket(newSocket);
+    // Initialize native WebSocket connection to FastAPI endpoint
+    const WS_BASE = import.meta.env.DEV ? 'ws://localhost:8000' : window.location.origin.replace(/^http/, 'ws');
+    const url = `${WS_BASE}/ws/notifications?token=${encodeURIComponent(token)}`;
+    const sock = new WebSocket(url);
+    sock.onopen = () => { setConnected(true); };
+    sock.onclose = () => { setConnected(false); };
+    sock.onerror = () => { setConnected(false); };
+    setWs(sock);
 
     // Cleanup on unmount
     return () => {
-      newSocket.disconnect();
+      sock.close();
     };
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket, connected }}>
+    <SocketContext.Provider value={{ ws, connected }}>
       {children}
     </SocketContext.Provider>
   );

@@ -291,6 +291,141 @@ Sau đó tạo PR → review → merge ≤ 2–3 ngày/lần.
 
 ---
 
+## 🧰 Seed Dữ Liệu & Backup
+
+- Seed lõi (forms/questions VI, careers mẫu, settings):
+  - `db/AI-Based-Career-Recommendation-System/db/migrations/20-10-2025_seed_core_data.sql`
+- Seed bổ sung bản EN cho RIASEC/Big Five:
+  - `db/AI-Based-Career-Recommendation-System/db/migrations/20-10-2025_seed_assessments_en.sql`
+- Import backup SQL vào DB (đặt search_path phù hợp):
+  - `powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/restore_backup.ps1 -File "<path-to-dump>.sql" -Schema core`
+- Seed số lượng lớn từ JSON (careers/ksas/forms):
+  - `python -m app.scripts.seed_bulk --careers data/careers.json --ksas data/ksas.json --form data/riasec_vi.json`
+
+---
+
+## 🔎 Search & Graph & Recommendation
+
+- Search (ElasticSearch)
+  - ENV: `ES_URL`, `ES_USER`, `ES_PASS` (tuỳ chọn)
+  - Reindex: `POST /api/search/reindex`
+  - Tìm kiếm: `GET /api/search/careers?q=...&limit=20`
+  - Nếu ES chưa cấu hình, API fallback Postgres LIKE.
+
+- Graph (Neo4j)
+  - ENV: `NEO4J_URL`, `NEO4J_USER`, `NEO4J_PASS`
+  - Đồng bộ Career nodes: `POST /api/graph/sync/careers`
+  - Đồng bộ quan hệ Career–Skill từ KSAs: `POST /api/graph/sync/career-skills`
+
+- Recommendation API (AI Layer)
+  - ENV: `AI_SERVICE_URL` (ví dụ `http://localhost:9000`)
+  - Gọi: `POST /api/recommendations/generate` → gửi scores/essay đến AI; fallback trả danh sách gợi ý giả lập nếu AI vắng mặt.
+
+---
+
+## 🚀 Quick Start (Development)
+
+1) Prerequisites
+- Windows 10/11 (PowerShell), Git
+- Python 3.11+, Node.js 18+ (npm), PostgreSQL 14+ (hoặc Docker)
+
+2) Clone & cấu trúc
+```
+git clone <repo>
+cd AI-Based-Career-Recommendation-System
+```
+
+3) Database (PostgreSQL)
+- Tạo DB `career_ai` (UTF‑8). Hoặc dùng folder `db/AI-Based-Career-Recommendation-System/docker-compose.yml` (nếu có).
+- Chạy migrations + seed:
+```
+powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/apply_latest_migrations.ps1
+```
+- (Tuỳ chọn) Import backup UTF‑8:
+```
+powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/restore_backup.ps1 -File "db/AI-Based-Career-Recommendation-System/db/backup/dev_snapshot.sql" -Schema core
+```
+
+4) Backend (FastAPI)
+```
+cd apps/backend
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+# Bật WebSocket backend để realtime hoạt động
+pip install "uvicorn[standard]"
+# ENV (apps/backend/.env) ví dụ:
+# DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
+# ALLOWED_ORIGINS=http://localhost:3000
+uvicorn app.main:app --reload --port 8000
+```
+
+5) Frontend (Vite + React)
+```
+cd apps/frontend
+npm i
+npm run dev
+# http://localhost:3000 (proxy API sang http://localhost:8000)
+```
+
+6) Tài khoản admin (pbkdf2 – giống đăng ký)
+- Cách A: tạo bằng API `register-admin` (yêu cầu .env có `ADMIN_SIGNUP_SECRET`):
+```
+POST http://localhost:8000/api/auth/register-admin
+{ "email":"admin@site.com", "password":"Admin12345", "full_name":"Administrator", "admin_signup_secret":"<secret>" }
+```
+- Cách B: script đặt mật khẩu bằng hàm hash của app:
+```
+cd apps/backend
+.\.venv\Scripts\python -m app.scripts.set_admin_password --email admin@site.com --password Admin12345 --create
+```
+
+7) Làm bài test / Kết quả
+- RIASEC/Big Five: `/assessment` → submit → `/results/:id`.
+- Essay: `/essay` gửi bài luận; Recommendation: `/recommendations` (fallback nếu chưa có AI layer).
+
+8) Admin UI (role=admin)
+- `/admin` quản trị Users, Settings (logo/title/footer), Careers/Skills/Questions, Blog/Comments (API đã có; UI sẽ tiếp tục mở rộng).
+
+---
+
+## ⚙️ ENV Templates
+
+- Backend `apps/backend/.env` ví dụ:
+```
+DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
+ALLOWED_ORIGINS=http://localhost:3000
+ADMIN_SIGNUP_SECRET=dev-secret
+ES_URL=
+NEO4J_URL=
+AI_SERVICE_URL=
+```
+
+- Frontend `apps/frontend/.env` (dev proxy Vite đã cấu hình, tuỳ chọn):
+```
+VITE_API_URL=http://localhost:8000
+```
+
+---
+
+## 🧰 Troubleshooting
+
+- WebSocket 404 / “No supported WebSocket library detected”: cài `pip install "uvicorn[standard]"` rồi khởi động lại backend.
+- Login 403 sau khi seed SQL: nếu seed bằng bcrypt/pgcrypto → cài `pip install bcrypt` hoặc đặt lại mật khẩu bằng script `set_admin_password` để dùng pbkdf2.
+- Tiếng Việt hiển thị sai: dùng script import UTF‑8 (`restore_backup.ps1`), DB `SERVER_ENCODING=UTF8`, `CLIENT_ENCODING=UTF8`. Nếu dữ liệu đã “??”, xoá và import lại UTF‑8.
+- Assessments trả rỗng: seed forms/questions; DB dùng `form_type='RIASEC'` và `form_type='BigFive'` (API đã map `BIG_FIVE → BigFive`).
+
+
+---
+
+## 🖼️ FE: App Settings
+
+- FE gọi `/api/app/settings` khi khởi động để hiển thị logo/title/footer.
+- Context: `src/contexts/AppSettingsContext.tsx`
+- Đã render trong header/footer: `src/components/layout/MainLayout.tsx`
+
+---
+
 > **Đề tài Nghiên cứu khoa học sinh viên – Đại học Duy Tân 2025**
 > Hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo
 > *(AI-Based Career Recommendation System)*

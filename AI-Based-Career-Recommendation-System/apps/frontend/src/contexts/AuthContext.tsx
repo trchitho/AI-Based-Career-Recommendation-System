@@ -6,15 +6,17 @@ interface User {
   email: string;
   firstName?: string;
   lastName?: string;
+  role?: string; // 'admin' | 'user' | 'manager'
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,18 +60,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await api.post('/api/auth/login', { email, password });
-      const { access_token, user: userPayload } = response.data;
+      const { access_token, refresh_token, user: userPayload } = response.data;
 
-      if (access_token) {
-        localStorage.setItem('accessToken', access_token);
-      }
+      if (access_token) localStorage.setItem('accessToken', access_token);
+      if (refresh_token) localStorage.setItem('refreshToken', refresh_token);
 
       // Use returned user if available; otherwise fetch
       if (userPayload) {
         setUser(userPayload);
+        return userPayload as User;
       } else {
         const profileResponse = await api.get('/api/users/me');
         setUser(profileResponse.data);
+        return profileResponse.data as User;
       }
     } catch (error: any) {
       const msg = error?.response?.data?.detail || error?.response?.data?.message || error?.message;
@@ -85,11 +88,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         password,
         full_name: [firstName, lastName].filter(Boolean).join(' ') || undefined,
       });
-      const { access_token, user: userPayload } = response.data;
+      const { access_token, refresh_token, user: userPayload } = response.data;
 
-      if (access_token) {
-        localStorage.setItem('accessToken', access_token);
-      }
+      if (access_token) localStorage.setItem('accessToken', access_token);
+      if (refresh_token) localStorage.setItem('refreshToken', refresh_token);
 
       // Use returned user if available; otherwise fetch
       if (userPayload) {
@@ -119,6 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     isAuthenticated: !!user,
+    isAdmin: !!user && (user as any).role === 'admin',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

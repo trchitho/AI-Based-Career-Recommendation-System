@@ -20,8 +20,13 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const u = await login(email, password);
+      if ((u as any)?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        // Người dùng thường: chuyển tới trang bắt đầu làm bài test
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {

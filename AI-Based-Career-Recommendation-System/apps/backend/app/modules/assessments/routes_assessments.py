@@ -13,18 +13,38 @@ def _db(req: Request) -> Session:
     return req.state.db
 
 
+def _normalize_type(t: str) -> str:
+    # Map FE types to DB enum/check-compatible values
+    if t == "BIG_FIVE":
+        return "BigFive"
+    return t
+
+
 @router.get("/questions/{test_type}")
 def get_questions(request: Request, test_type: Literal["RIASEC", "BIG_FIVE"]):
     session = _db(request)
-    form = session.execute(
-        select(AssessmentForm).where(AssessmentForm.form_type == test_type)
-    ).scalar_one_or_none()
-    if not form:
+    # Try both DB-compatible value and raw value for backward compatibility
+    try:
+        db_type = _normalize_type(test_type)
+        # If there are multiple forms for the same type (e.g., VI/EN), pick the latest one by created_at
+        form = session.execute(
+            select(AssessmentForm)
+            .where(AssessmentForm.form_type == db_type)
+            .order_by(AssessmentForm.created_at.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+        if not form:
+            return []
+        rows = session.execute(
+            select(AssessmentQuestion)
+                .where(AssessmentQuestion.form_id == form.id)
+                .order_by(AssessmentQuestion.question_no.asc())
+        ).scalars().all()
+        return [q.to_client() | {"test_type": test_type} for q in rows]
+    except Exception as e:
+        # Avoid 500 to keep FE functional if DB seed chưa sẵn
+        print("[assessments] get_questions error:", repr(e))
         return []
-    rows = session.execute(
-        select(AssessmentQuestion).where(AssessmentQuestion.form_id == form.id).order_by(AssessmentQuestion.question_no.asc())
-    ).scalars().all()
-    return [q.to_client() | {"test_type": test_type} for q in rows]
 
 
 @router.post("/submit")
@@ -34,7 +54,8 @@ def submit_assessment(request: Request, payload: dict):
 
     test_types = payload.get("testTypes") or []
     responses = payload.get("responses") or []
-    a_type = (test_types[0] if test_types else "RIASEC")
+    a_type_client = (test_types[0] if test_types else "RIASEC")
+    a_type = _normalize_type(a_type_client)
 
     # naive scoring: if numeric answers, average
     numeric_scores = []

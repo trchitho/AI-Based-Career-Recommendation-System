@@ -18,9 +18,9 @@ except Exception:
     pass
 
 # DB Session (SQLAlchemy sync)
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import sessionmaker
 from app.core.db import engine, test_connection
-SessionLocal = scoped_session(sessionmaker(bind=engine, autocommit=False, autoflush=False))
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
 def _split_csv_env(value: str | None, default: str) -> list[str]:
@@ -69,16 +69,17 @@ def create_app() -> FastAPI:
     # DB session per-request
     @app.middleware("http")
     async def db_session_middleware(request: Request, call_next):
-        request.state.db = SessionLocal()
+        db = SessionLocal()
+        request.state.db = db
         try:
             response = await call_next(request)
-            request.state.db.commit()
+            db.commit()
             return response
         except Exception:
-            request.state.db.rollback()
+            db.rollback()
             raise
         finally:
-            request.state.db.close()
+            db.close()
 
     # Health & root
     @app.get("/health", tags=["system"])
@@ -126,6 +127,55 @@ def create_app() -> FastAPI:
         app.include_router(admin_router.router, prefix="/api/admin", tags=["admin"])
     except Exception as e:
         print("??  Skip admin router:", repr(e))
+
+    # Public system settings (no auth)
+    try:
+        from .modules.system import routes_public as system_public
+        app.include_router(system_public.router, prefix="/api/app", tags=["app"])
+    except Exception as e:
+        print("??  Skip system public router:", repr(e))
+
+    # Auth tokens (verify/reset)
+    try:
+        from .modules.auth import routes_tokens as auth_tokens
+        app.include_router(auth_tokens.router, prefix="/api/auth", tags=["auth"])
+    except Exception as e:
+        print("??  Skip auth tokens router:", repr(e))
+
+    # Profile extras (goals/skills/journey)
+    try:
+        from .modules.users import routes_profile as profile_router
+        app.include_router(profile_router.router, prefix="/api/profile", tags=["profile"])
+    except Exception as e:
+        print("??  Skip profile router:", repr(e))
+
+    # WS notifications
+    try:
+        from .modules.realtime import ws_notifications as ws_notifs
+        app.include_router(ws_notifs.router)
+    except Exception as e:
+        print("??  Skip ws notifications:", repr(e))
+
+    # Search API (Elastic or fallback)
+    try:
+        from .modules.search import routes_search as search_router
+        app.include_router(search_router.router, prefix="/api/search", tags=["search"])
+    except Exception as e:
+        print("??  Skip search router:", repr(e))
+
+    # Graph API (Neo4j) - sync
+    try:
+        from .modules.graph import routes_graph as graph_router
+        app.include_router(graph_router.router, prefix="/api/graph", tags=["graph"])
+    except Exception as e:
+        print("??  Skip graph router:", repr(e))
+
+    # Recommendation API (AI layer integration)
+    try:
+        from .modules.recommendation import routes_recommendations as rec_router
+        app.include_router(rec_router.router, prefix="/api/recommendations", tags=["recommendations"])
+    except Exception as e:
+        print("??  Skip recommendations router:", repr(e))
 
     # Notifications
     try:

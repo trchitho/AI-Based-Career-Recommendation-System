@@ -2,6 +2,7 @@
 import os
 import time
 from typing import Any, Dict
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, Request
 
@@ -13,12 +14,17 @@ except ImportError:
 JWT_SECRET = os.getenv("JWT_SECRET_KEY", "dev-secret-change-me")
 JWT_ALG = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_ACCESS_EXPIRES_MIN = int(os.getenv("JWT_ACCESS_EXPIRES_MIN", "60"))
+JWT_REFRESH_EXPIRES_DAYS = int(os.getenv("JWT_REFRESH_EXPIRES_DAYS", "30"))
 
 def create_access_token(payload: Dict[str, Any], expires_minutes: int | None = None) -> str:
     # payload ví dụ: {"sub": "123", "role": "admin"}
     exp_min = expires_minutes if expires_minutes is not None else JWT_ACCESS_EXPIRES_MIN
     to_encode = {**payload, "exp": int(time.time()) + exp_min * 60}
     return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALG)
+
+
+def refresh_expiry_dt() -> datetime:
+    return datetime.now(timezone.utc) + timedelta(days=JWT_REFRESH_EXPIRES_DAYS)
 
 def decode_token(token: str) -> Dict[str, Any]:
     try:

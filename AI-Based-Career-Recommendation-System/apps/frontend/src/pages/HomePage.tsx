@@ -39,7 +39,7 @@ const HomePage = () => {
                                 {t('auth.signIn')}
                             </Link>
                             <Link
-                                to="/register"
+                                to="/assessment"
                                 className="px-6 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-purple-500/50"
                             >
                                 {t('auth.signUp')}
@@ -62,7 +62,7 @@ const HomePage = () => {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                         <Link
-                            to="/register"
+                            to="/assessment"
                             className="px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-bold text-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-2xl hover:shadow-purple-500/50 flex items-center space-x-2"
                         >
                             <span>Start Free Assessment</span>
@@ -181,7 +181,7 @@ const HomePage = () => {
                         Join thousands of professionals who have discovered their ideal career path with CareerBridge AI.
                     </p>
                     <Link
-                        to="/register"
+                        to="/assessment"
                         className="inline-flex items-center space-x-2 px-10 py-5 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-bold text-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-2xl hover:shadow-purple-500/50"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

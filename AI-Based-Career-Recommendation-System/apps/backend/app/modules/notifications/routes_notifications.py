@@ -3,6 +3,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 from ...core.jwt import require_user
 from .models import Notification
+from ..realtime.ws_notifications import manager
 
 router = APIRouter()
 
@@ -48,3 +49,25 @@ def mark_all_read(request: Request, user_id: int):
     )
     session.commit()
     return {"status": "ok", "user_id": str(user_id)}
+
+
+@router.post("")
+def create_notification(request: Request, payload: dict):
+    # helper for testing: create a notification for current user
+    uid = require_user(request)
+    session = _db(request)
+    n = Notification(
+        user_id=uid,
+        type=payload.get("type") or "SYSTEM_UPDATE",
+        title=payload.get("title") or "Message",
+        message=payload.get("message") or "...",
+        link=payload.get("link"),
+    )
+    session.add(n)
+    session.commit()
+    try:
+        import anyio
+        anyio.from_thread.run(manager.send, uid, n.to_dict())
+    except Exception:
+        pass
+    return n.to_dict()

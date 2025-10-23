@@ -3,9 +3,12 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 import './i18n/config'
+import { AppSettingsProvider } from './contexts/AppSettingsContext'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <AppSettingsProvider>
+      <App />
+    </AppSettingsProvider>
   </React.StrictMode>,
 )
