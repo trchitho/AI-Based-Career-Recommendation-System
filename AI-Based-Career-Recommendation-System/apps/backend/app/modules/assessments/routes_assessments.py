@@ -132,10 +132,49 @@ def get_results(request: Request, assessment_id: int):
     obj = session.get(Assessment, assessment_id)
     if not obj:
         raise HTTPException(status_code=404, detail="Assessment not found")
+    # Aggregate simple scores from responses if available
+    resp_rows = session.execute(
+        select(AssessmentResponse).where(AssessmentResponse.assessment_id == obj.id)
+    ).scalars().all()
 
-    # demo career ids until recommendation module is wired
+    riasec_map = {"R": "realistic", "I": "investigative", "A": "artistic", "S": "social", "E": "enterprising", "C": "conventional"}
+    big5_map = {"O": "openness", "C": "conscientiousness", "E": "extraversion", "A": "agreeableness", "N": "neuroticism"}
+
+    riasec_acc: dict[str, list[float]] = {v: [] for v in riasec_map.values()}
+    big5_acc: dict[str, list[float]] = {v: [] for v in big5_map.values()}
+
+    for r in resp_rows:
+        key = (r.question_key or "").strip().upper()
+        try:
+            val = float(r.score_value) if r.score_value is not None else float(r.answer_raw)
+        except Exception:
+            val = None
+        if val is None:
+            continue
+        if key in riasec_map:
+            riasec_acc[riasec_map[key]].append(val)
+        if key in big5_map:
+            big5_acc[big5_map[key]].append(val)
+
+    def _avg(d: dict[str, list[float]]) -> dict[str, float]:
+        out: dict[str, float] = {}
+        for k, arr in d.items():
+            out[k] = round(sum(arr) / len(arr), 3) if arr else 0.0
+        return out
+
+    riasec_scores = _avg(riasec_acc)
+    big_five_scores = _avg(big5_acc)
+
+    # Fallback demo when empty
+    if not any(riasec_scores.values()) and not any(big_five_scores.values()):
+        riasec_scores = {"realistic": 3.0, "investigative": 3.0, "artistic": 3.0, "social": 3.0, "enterprising": 3.0, "conventional": 3.0}
+        big_five_scores = {"openness": 3.0, "conscientiousness": 3.0, "extraversion": 3.0, "agreeableness": 3.0, "neuroticism": 3.0}
+
     return {
         "assessment_id": str(obj.id),
+        "user_id": str(obj.user_id),
+        "riasec_scores": riasec_scores,
+        "big_five_scores": big_five_scores,
         "career_recommendations": ["1", "2", "3"],
-        "scores": obj.scores or {},
+        "completed_at": obj.created_at.isoformat() if getattr(obj, "created_at", None) else None,
     }
