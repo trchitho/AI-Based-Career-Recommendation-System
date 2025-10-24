@@ -1,0 +1,51 @@
+form_code,question_no,question_key,prompt,options_json,reverse_score
+BIG5_50,1,O1,Tôi thích khám phá những ý tưởng mới lạ.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,2,O2,Tôi dễ bị cuốn hút bởi nghệ thuật và cái đẹp.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,3,O3,Tôi tò mò về những chủ đề chưa biết.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,4,O4,Tôi thường tìm góc nhìn khác thường cho một vấn đề.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,5,O5,Tôi yêu thích trải nghiệm văn hóa mới.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,6,O6,Tôi cởi mở với thay đổi và thử nghiệm.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,7,O7,Tôi đánh giá cao trí tưởng tượng.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,8,O8,Tôi thích đọc sách/chuyên đề sâu.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,9,O9,Tôi quan tâm đến triết lý đằng sau sự vật.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,10,O10,Tôi dễ nhàm chán với công việc quá lặp lại.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,11,C1,Tôi hoàn thành công việc đúng hạn.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,12,C2,Tôi sắp xếp công việc rất ngăn nắp.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,13,C3,Tôi đặt mục tiêu rõ ràng và theo đuổi đến cùng.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,14,C4,Tôi thường kiểm tra lại để tránh sai sót.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,15,C5,Tôi giữ kỷ luật tốt khi làm việc.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,16,C6,Tôi lên kế hoạch trước khi bắt đầu.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,17,C7,Tôi tập trung vào nhiệm vụ được giao.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,18,C8,Tôi hiếm khi trì hoãn công việc.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,19,C9,Tôi chú ý đến chi tiết quan trọng.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,20,C10,Tôi giữ cam kết ngay cả khi khó khăn.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,21,E1,Tôi thấy thoải mái khi nói chuyện với người lạ.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,22,E2,Tôi tràn đầy năng lượng trong các sự kiện xã hội.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,23,E3,Tôi thích làm trung tâm của sự chú ý.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,24,E4,Tôi chủ động bắt chuyện trước.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,25,E5,Tôi cảm thấy hứng khởi khi làm việc nhóm.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,26,E6,Tôi giao tiếp trực tiếp và tự tin.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,27,E7,Tôi dễ dàng kết bạn mới.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,28,E8,Tôi nói nhiều hơn là im lặng trong nhóm.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,29,E9,Tôi thích tổ chức các hoạt động chung.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,30,E10,Tôi thoải mái trình bày trước đám đông.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,31,A1,Tôi quan tâm đến cảm xúc của người khác.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,32,A2,Tôi sẵn lòng giúp đỡ khi ai đó cần.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,33,A3,Tôi cố gắng lắng nghe trước khi phán xét.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,34,A4,Tôi tôn trọng quan điểm khác biệt.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,35,A5,Tôi dễ thông cảm với khó khăn của người khác.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,36,A6,Tôi kiên nhẫn trong tranh luận.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,37,A7,Tôi cư xử lịch thiệp dù không đồng ý.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,38,A8,Tôi tránh làm tổn thương người khác.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,39,A9,Tôi thích hợp tác hơn là cạnh tranh.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,40,A10,Tôi tin vào sự công bằng và tôn trọng.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",False
+BIG5_50,41,N1,Tôi hay lo lắng về những điều nhỏ nhặt.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True
+BIG5_50,42,N2,Tôi dễ cảm thấy căng thẳng.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True
+BIG5_50,43,N3,Tâm trạng của tôi thay đổi thất thường.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True
+BIG5_50,44,N4,Tôi thường tự chỉ trích bản thân.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True
+BIG5_50,45,N5,Tôi dễ mất bình tĩnh khi áp lực.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True
+BIG5_50,46,N6,Tôi khó thư giãn hoàn toàn.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True
+BIG5_50,47,N7,Tôi hay nghĩ đến tình huống xấu nhất.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True
+BIG5_50,48,N8,Tôi nhạy cảm với lời phê bình.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True
+BIG5_50,49,N9,Tôi thấy bất an khi mọi thứ không chắc chắn.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True
+BIG5_50,50,N10,Tôi dễ bị ảnh hưởng bởi cảm xúc tiêu cực.,"{""options"": [""Rất không đồng ý"", ""Không đồng ý"", ""Trung lập"", ""Đồng ý"", ""Rất đồng ý""], ""scale"": ""Likert-5""}",True

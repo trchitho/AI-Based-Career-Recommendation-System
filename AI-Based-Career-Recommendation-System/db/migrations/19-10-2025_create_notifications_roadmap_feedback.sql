@@ -12,10 +12,17 @@ CREATE TABLE IF NOT EXISTS core.notifications (
     created_at timestamp with time zone DEFAULT now()
 );
 
-ALTER TABLE core.notifications
-    ADD CONSTRAINT notifications_user_id_fkey
-    FOREIGN KEY (user_id) REFERENCES core.users (id)
-    ON UPDATE NO ACTION ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'notifications_user_id_fkey'
+  ) THEN
+    ALTER TABLE core.notifications
+      ADD CONSTRAINT notifications_user_id_fkey
+      FOREIGN KEY (user_id) REFERENCES core.users (id)
+      ON UPDATE NO ACTION ON DELETE CASCADE;
+  END IF;
+END$$;
 
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON core.notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON core.notifications(is_read);
@@ -29,10 +36,17 @@ CREATE TABLE IF NOT EXISTS core.roadmaps (
     updated_at timestamp with time zone DEFAULT now()
 );
 
-ALTER TABLE core.roadmaps
-    ADD CONSTRAINT roadmaps_career_id_fkey
-    FOREIGN KEY (career_id) REFERENCES core.careers (id)
-    ON UPDATE NO ACTION ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'roadmaps_career_id_fkey'
+  ) THEN
+    ALTER TABLE core.roadmaps
+      ADD CONSTRAINT roadmaps_career_id_fkey
+      FOREIGN KEY (career_id) REFERENCES core.careers (id)
+      ON UPDATE NO ACTION ON DELETE CASCADE;
+  END IF;
+END$$;
 
 CREATE TABLE IF NOT EXISTS core.roadmap_milestones (
     id bigserial PRIMARY KEY,
@@ -44,10 +58,17 @@ CREATE TABLE IF NOT EXISTS core.roadmap_milestones (
     resources_json jsonb
 );
 
-ALTER TABLE core.roadmap_milestones
-    ADD CONSTRAINT roadmap_milestones_roadmap_id_fkey
-    FOREIGN KEY (roadmap_id) REFERENCES core.roadmaps (id)
-    ON UPDATE NO ACTION ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'roadmap_milestones_roadmap_id_fkey'
+  ) THEN
+    ALTER TABLE core.roadmap_milestones
+      ADD CONSTRAINT roadmap_milestones_roadmap_id_fkey
+      FOREIGN KEY (roadmap_id) REFERENCES core.roadmaps (id)
+      ON UPDATE NO ACTION ON DELETE CASCADE;
+  END IF;
+END$$;
 
 CREATE INDEX IF NOT EXISTS idx_milestones_roadmap ON core.roadmap_milestones(roadmap_id);
 
@@ -64,20 +85,41 @@ CREATE TABLE IF NOT EXISTS core.user_progress (
     last_updated_at timestamp with time zone DEFAULT now()
 );
 
-ALTER TABLE core.user_progress
-    ADD CONSTRAINT user_progress_user_id_fkey
-    FOREIGN KEY (user_id) REFERENCES core.users (id)
-    ON UPDATE NO ACTION ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'user_progress_user_id_fkey'
+  ) THEN
+    ALTER TABLE core.user_progress
+      ADD CONSTRAINT user_progress_user_id_fkey
+      FOREIGN KEY (user_id) REFERENCES core.users (id)
+      ON UPDATE NO ACTION ON DELETE CASCADE;
+  END IF;
+END$$;
 
-ALTER TABLE core.user_progress
-    ADD CONSTRAINT user_progress_roadmap_id_fkey
-    FOREIGN KEY (roadmap_id) REFERENCES core.roadmaps (id)
-    ON UPDATE NO ACTION ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'user_progress_roadmap_id_fkey'
+  ) THEN
+    ALTER TABLE core.user_progress
+      ADD CONSTRAINT user_progress_roadmap_id_fkey
+      FOREIGN KEY (roadmap_id) REFERENCES core.roadmaps (id)
+      ON UPDATE NO ACTION ON DELETE CASCADE;
+  END IF;
+END$$;
 
-ALTER TABLE core.user_progress
-    ADD CONSTRAINT user_progress_career_id_fkey
-    FOREIGN KEY (career_id) REFERENCES core.careers (id)
-    ON UPDATE NO ACTION ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'user_progress_career_id_fkey'
+  ) THEN
+    ALTER TABLE core.user_progress
+      ADD CONSTRAINT user_progress_career_id_fkey
+      FOREIGN KEY (career_id) REFERENCES core.careers (id)
+      ON UPDATE NO ACTION ON DELETE CASCADE;
+  END IF;
+END$$;
 
 CREATE INDEX IF NOT EXISTS idx_user_progress_user ON core.user_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_progress_career ON core.user_progress(career_id);
@@ -92,19 +134,32 @@ CREATE TABLE IF NOT EXISTS core.user_feedback (
     created_at timestamp with time zone DEFAULT now()
 );
 
-ALTER TABLE core.user_feedback
-    ADD CONSTRAINT user_feedback_user_id_fkey
-    FOREIGN KEY (user_id) REFERENCES core.users (id)
-    ON UPDATE NO ACTION ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'user_feedback_user_id_fkey'
+  ) THEN
+    ALTER TABLE core.user_feedback
+      ADD CONSTRAINT user_feedback_user_id_fkey
+      FOREIGN KEY (user_id) REFERENCES core.users (id)
+      ON UPDATE NO ACTION ON DELETE CASCADE;
+  END IF;
+END$$;
 
-ALTER TABLE core.user_feedback
-    ADD CONSTRAINT user_feedback_assessment_id_fkey
-    FOREIGN KEY (assessment_id) REFERENCES core.assessments (id)
-    ON UPDATE NO ACTION ON DELETE SET NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'user_feedback_assessment_id_fkey'
+  ) THEN
+    ALTER TABLE core.user_feedback
+      ADD CONSTRAINT user_feedback_assessment_id_fkey
+      FOREIGN KEY (assessment_id) REFERENCES core.assessments (id)
+      ON UPDATE NO ACTION ON DELETE SET NULL;
+  END IF;
+END$$;
 
 CREATE INDEX IF NOT EXISTS idx_feedback_user ON core.user_feedback(user_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_assessment ON core.user_feedback(assessment_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_created ON core.user_feedback(created_at);
 
 COMMIT;
-
