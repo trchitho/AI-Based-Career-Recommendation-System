@@ -1,21 +1,25 @@
+# apps/backend/app/etl/onet_loader.py
 from __future__ import annotations
+
 import argparse
 import os
+import socket
 import sys
+import re
 from datetime import date
+from pathlib import Path
 from typing import Any, Iterable
 
-# --- load environment variables from apps/backend/.env ---
-from pathlib import Path
-from dotenv import load_dotenv
-
-DOTENV_PATH = Path(__file__).resolve().parents[2] / ".env"  # -> apps/backend/.env
-load_dotenv(DOTENV_PATH, override=True)
-# ----------------------------------------------------------
-
+import httpx
 import psycopg
 from psycopg.rows import dict_row
+from dotenv import load_dotenv
+
 from ..services.onetsvc import OnetService
+
+# --- Load .env (sau khi import) ---
+DOTENV_PATH = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(DOTENV_PATH, override=True)
 
 DB_URL = os.getenv("DATABASE_URL")
 
@@ -88,7 +92,6 @@ ON CONFLICT (onet_code) DO UPDATE SET
 
 
 def _slugify(title: str, code: str) -> str:
-    import re
     import unicodedata
 
     s = "".join(
@@ -427,12 +430,6 @@ def _iter_codes_from_db(conn: psycopg.Connection) -> Iterable[str]:
         )
         for row in cur.fetchall():
             yield row["onet_code"]
-
-
-import os
-import httpx
-import socket
-# ... các import sẵn có khác
 
 
 def _etl_one(conn, svc, code: str) -> tuple[bool, str]:

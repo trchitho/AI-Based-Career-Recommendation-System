@@ -1,10 +1,8 @@
 # apps/backend/app/api/bff_career.py
-
+from __future__ import annotations
 from pathlib import Path
 from dotenv import load_dotenv
 
-
-from __future__ import annotations
 import os
 import json
 from typing import Any, Dict, Optional
