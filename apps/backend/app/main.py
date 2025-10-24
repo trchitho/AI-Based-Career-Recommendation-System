@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from contextlib import asynccontextmanager
 from typing import Iterable
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -91,12 +92,13 @@ def create_app() -> FastAPI:
     def root():
         return RedirectResponse(url=app.docs_url or "/docs")
 
-    # Import router SAU khi app đã tạo để tránh vòng lặp import
+    # Import routers SAU khi app đã tạo để tránh vòng lặp import
     from app.api.bff_career import router as bff_career_router
-
-    app.include_router(bff_router.router)
     from app.modules.auth import router as auth_router
-    app.include_router(auth_router.router)
+
+    # Truyền APIRouter objects trực tiếp (không gọi .router)
+    app.include_router(bff_career_router, prefix="/bff/career")
+    app.include_router(auth_router, prefix="/auth")
 
     return app
 

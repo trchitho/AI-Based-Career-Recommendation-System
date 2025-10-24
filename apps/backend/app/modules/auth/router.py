@@ -52,15 +52,19 @@ def signup(payload: SignupRequest):
     )
     try:
         with get_engine().begin() as conn:
-            row = conn.execute(
-                insert_sql,
-                {
-                    "email": payload.email,
-                    "password_hash": pw_hash,
-                    "full_name": payload.full_name,
-                    "role": "user",
-                },
-            ).mappings().first()
+            row = (
+                conn.execute(
+                    insert_sql,
+                    {
+                        "email": payload.email,
+                        "password_hash": pw_hash,
+                        "full_name": payload.full_name,
+                        "role": "user",
+                    },
+                )
+                .mappings()
+                .first()
+            )
     except Exception:
         # Fallback nếu DB chưa có cột role
         fallback_sql = text(
@@ -71,14 +75,18 @@ def signup(payload: SignupRequest):
             """
         )
         with get_engine().begin() as conn:
-            row = conn.execute(
-                fallback_sql,
-                {
-                    "email": payload.email,
-                    "password_hash": pw_hash,
-                    "full_name": payload.full_name,
-                },
-            ).mappings().first()
+            row = (
+                conn.execute(
+                    fallback_sql,
+                    {
+                        "email": payload.email,
+                        "password_hash": pw_hash,
+                        "full_name": payload.full_name,
+                    },
+                )
+                .mappings()
+                .first()
+            )
     if not row:
         raise HTTPException(status_code=500, detail="Failed to create user")
 
@@ -103,7 +111,10 @@ def signin(payload: SigninRequest):
     token = create_jwt({"sub": str(user["id"])}, _secret(), expires_in=3600 * 24 * 7)
     schema = _get_schema_prefix()
     with get_engine().begin() as conn:
-        conn.execute(text(f"UPDATE {schema}.users SET last_login = NOW() WHERE id = :id"), {"id": user["id"]})
+        conn.execute(
+            text(f"UPDATE {schema}.users SET last_login = NOW() WHERE id = :id"),
+            {"id": user["id"]},
+        )
     return TokenResponse(
         token=token,
         user_id=user["id"],
@@ -211,17 +222,21 @@ def google_callback(code: Optional[str] = None):
     if not user:
         with get_engine().begin() as conn:
             row = (
-                conn.execute(
-                    text(
-                        f"""
+                (
+                    conn.execute(
+                        text(
+                            f"""
                         INSERT INTO {schema}.users (email, password_hash, full_name, role, is_blocked, created_at)
                         VALUES (:email, '', :full_name, :role, false, NOW())
                         RETURNING id, email, full_name, role
                         """
-                    ),
-                    {"email": email, "full_name": name, "role": "user"},
+                        ),
+                        {"email": email, "full_name": name, "role": "user"},
+                    )
                 )
-            ).mappings().first()
+                .mappings()
+                .first()
+            )
             user_id = row["id"]
             role = row.get("role")
     else:
@@ -229,4 +244,6 @@ def google_callback(code: Optional[str] = None):
         role = user.get("role")
 
     token = create_jwt({"sub": str(user_id)}, _secret(), expires_in=3600 * 24 * 7)
-    return TokenResponse(token=token, user_id=user_id, email=email, full_name=name, role=role)
+    return TokenResponse(
+        token=token, user_id=user_id, email=email, full_name=name, role=role
+    )

@@ -17,6 +17,7 @@ def health():
         db_ok = False
     return {"status": "ok", "db_ok": db_ok}
 
+
 @router.get("/db")
 def db_time():
     with get_engine().connect() as conn:

@@ -38,4 +38,3 @@ def test_connection() -> bool:
         return True
     except Exception:
         return False
-

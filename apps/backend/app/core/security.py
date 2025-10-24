@@ -59,10 +59,14 @@ def verify_jwt(token: str, secret: str) -> Optional[Dict[str, Any]]:
     try:
         header_b64, payload_b64, sig_b64 = token.split(".")
         signing_input = f"{header_b64}.{payload_b64}".encode()
+
         def _pad(s: str) -> str:
             return s + "=" * (-len(s) % 4)
+
         sig = base64.urlsafe_b64decode(_pad(sig_b64))
-        expected = hmac.new(secret.encode("utf-8"), signing_input, hashlib.sha256).digest()
+        expected = hmac.new(
+            secret.encode("utf-8"), signing_input, hashlib.sha256
+        ).digest()
         if not hmac.compare_digest(sig, expected):
             return None
         payload = json.loads(base64.urlsafe_b64decode(_pad(payload_b64)).decode())
@@ -71,4 +75,3 @@ def verify_jwt(token: str, secret: str) -> Optional[Dict[str, Any]]:
         return payload
     except Exception:
         return None
-
