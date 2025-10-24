@@ -323,6 +323,86 @@ Sau đó tạo PR → review → merge ≤ 2–3 ngày/lần.
 
 ---
 
+## 👥 Team Setup: Run Backend & Frontend
+
+This is the shortest, proven path for any teammate to pull the repo and get the app running locally.
+
+### 1) Requirements
+- Windows 10/11 (PowerShell), Git
+- Python 3.11+, Node.js 18+ (npm)
+- PostgreSQL 14+ (local or Docker)
+
+### 2) Clone the repo
+```
+git clone <repo>
+cd AI-Based-Career-Recommendation-System
+```
+
+### 3) Database (PostgreSQL)
+Option A — Local Postgres (recommended)
+- Create a database UTF‑8 named `career_ai` (port 5433 in examples below)
+- Apply migrations + seed core data:
+```
+powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/apply_latest_migrations.ps1
+```
+
+Option B — Import backup (UTF‑8 safe)
+```
+powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/restore_backup.ps1 -File "db/AI-Based-Career-Recommendation-System/db/backup/dev_snapshot.sql" -Schema core
+```
+The import script forces UTF‑8 so Vietnamese text is preserved.
+
+### 4) Backend (FastAPI)
+```
+cd apps/backend
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+# Enable WebSocket realtime (required by /ws/notifications)
+pip install "uvicorn[standard]"
+
+# Create apps/backend/.env
+# Example:
+# DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
+# ALLOWED_ORIGINS=http://localhost:3000
+# ADMIN_SIGNUP_SECRET=dev-secret
+
+uvicorn app.main:app --reload --port 8000
+```
+Health: http://127.0.0.1:8000/health
+
+### 5) Frontend (Vite + React + TypeScript)
+```
+cd apps/frontend
+npm i
+npm run dev
+```
+Dev server: http://localhost:3000 (Vite proxies `/api` → http://localhost:8000)
+
+Optional FE env (only if you want to bypass proxy):
+```
+# apps/frontend/.env
+VITE_API_URL=http://localhost:8000
+```
+
+### 6) First admin account (same hashing as register)
+Option A — Register via API (pbkdf2):
+```
+POST http://localhost:8000/api/auth/register-admin
+{ "email":"admin@site.com", "password":"Admin12345", "full_name":"Administrator", "admin_signup_secret":"dev-secret" }
+```
+Option B — Script to set admin password (pbkdf2):
+```
+cd apps/backend
+.\.venv\Scripts\python -m app.scripts.set_admin_password --email admin@site.com --password Admin12345 --create
+```
+
+### 7) Where to start in the app
+- User (role user): `/assessment` to start the tests → `/results/:id`
+- Essay: `/essay`, Recommendations: `/recommendations` (fallback if AI not configured)
+- Admin (role admin): `/admin` → manage Users, Settings (logo/title/footer), Careers/Skills/Questions, Blog/Comments
+
+---
 ## 🚀 Quick Start (Development)
 
 1) Prerequisites
