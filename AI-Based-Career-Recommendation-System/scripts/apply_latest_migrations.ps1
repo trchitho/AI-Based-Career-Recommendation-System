@@ -6,6 +6,13 @@
 
 Write-Host "🚀 Bắt đầu áp dụng các migration trong db/migrations..." -ForegroundColor Cyan
 
+
+# Bảo đảm PowerShell/Console dùng UTF-8 không BOM khi pipe vào psql (tránh lỗi tiếng Việt)
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = $utf8NoBom
+[Console]::OutputEncoding = $utf8NoBom
+[Console]::InputEncoding = $utf8NoBom
+
 # 1️⃣ Cấu hình cơ bản
 $ServiceName = "postgres"
 $DbUser = "postgres"
@@ -28,12 +35,15 @@ if ($migrations.Count -eq 0) {
   exit
 }
 
-# 4️⃣ Chạy từng migration bằng pipeline (PowerShell-compatible)
+# 4️⃣ Chạy từng migration bằng pipeline (UTF-8 safe)
 foreach ($file in $migrations) {
   Write-Host "`n📄 Đang chạy: $($file.Name)" -ForegroundColor Green
 
-  # Dùng pipeline Get-Content để truyền nội dung file vào container
-  Get-Content -Raw $file.FullName | docker compose exec -T $ServiceName `
+  # Dùng pipeline UTF-8, ép client_encoding UTF8 trước khi chạy nội dung file
+  (
+    "SET client_encoding TO 'UTF8';",
+    (Get-Content -Raw -Encoding UTF8 $file.FullName)
+  ) -join "`n" | docker compose exec -e PGCLIENTENCODING=UTF8 -T $ServiceName `
     psql -U $DbUser -d $DbName -v ON_ERROR_STOP=1
 
   if ($LASTEXITCODE -eq 0) {
