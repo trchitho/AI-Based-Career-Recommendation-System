@@ -7,10 +7,10 @@ import os
 import json
 from typing import Any, Dict, Optional
 
-import psycopg
-from psycopg.rows import dict_row
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from fastapi import APIRouter, HTTPException
-import redis.asyncio as redis
+from redis import asyncio as redis
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -29,8 +29,8 @@ async def _get_redis() -> redis.Redis:
     return _redis
 
 
-def _fetch_sections(conn: psycopg.Connection, code: str) -> Dict[str, Any]:
-    with conn.cursor(row_factory=dict_row) as cur:
+def _fetch_sections(conn, code: str) -> Dict[str, Any]:
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
         # Career header
         cur.execute(
             """
@@ -125,7 +125,7 @@ async def get_career(onet_code: str):
 
     if not DATABASE_URL:
         raise HTTPException(status_code=500, detail="Missing DATABASE_URL")
-    with psycopg.connect(DATABASE_URL) as conn:
+    with psycopg2.connect(DATABASE_URL) as conn:
         dto = _fetch_sections(conn, onet_code)
 
     # Cache 30 phút

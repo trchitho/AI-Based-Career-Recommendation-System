@@ -54,8 +54,7 @@ def create_app() -> FastAPI:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],
-            # '*' không đi kèm credentials để tránh lỗi khởi động
-            allow_credentials=False,
+            allow_credentials=_bool_env("ALLOW_CREDENTIALS", True),
             allow_methods=["*"],
             allow_headers=["*"],
             expose_headers=["*"],
