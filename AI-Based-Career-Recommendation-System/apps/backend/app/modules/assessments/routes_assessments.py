@@ -72,12 +72,40 @@ def submit_assessment(request: Request, payload: dict):
     session.flush()
 
     for r in responses:
+        # Try to persist normalized linkage to questions and numeric score
+        raw_qid = r.get("questionId")
+        qid_int = None
+        qkey = None
+        try:
+            if raw_qid is not None and str(raw_qid).isdigit():
+                qid_int = int(str(raw_qid))
+        except Exception:
+            qid_int = None
+
+        if qid_int is not None:
+            try:
+                from .models import AssessmentQuestion as _AQ
+                qobj = session.get(_AQ, qid_int)
+                if qobj and qobj.question_key:
+                    qkey = qobj.question_key
+            except Exception:
+                pass
+
+        if qkey is None:
+            qkey = str(raw_qid) if raw_qid is not None else None
+
+        score_val = None
+        try:
+            score_val = float(r.get("answer"))
+        except Exception:
+            score_val = None
+
         ar = AssessmentResponse(
             assessment_id=assessment.id,
-            question_id=None,
-            question_key=r.get("questionId"),
+            question_id=qid_int,
+            question_key=qkey,
             answer_raw=str(r.get("answer")),
-            score_value=None,
+            score_value=score_val,
         )
         session.add(ar)
 
