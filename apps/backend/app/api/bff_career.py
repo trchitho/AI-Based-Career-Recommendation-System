@@ -12,7 +12,7 @@ from psycopg.rows import dict_row
 from fastapi import APIRouter, HTTPException
 import redis.asyncio as redis
 
-load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 DATABASE_URL = os.getenv("DATABASE_URL")
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
