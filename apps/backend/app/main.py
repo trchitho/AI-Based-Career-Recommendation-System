@@ -92,6 +92,8 @@ def create_app() -> FastAPI:
     from app.bff import router as bff_router  # import sau khi app có sẵn
 
     app.include_router(bff_router.router)
+    from app.modules.auth import router as auth_router
+    app.include_router(auth_router.router)
 
     return app
 
