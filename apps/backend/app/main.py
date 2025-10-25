@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import Iterable, List
+from typing import List
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,8 +23,8 @@ def _load_env() -> None:
         print("[ENV] python-dotenv chưa cài -> bỏ qua load .env")
         return
 
-    here = Path(__file__).resolve().parent            # .../apps/backend/app
-    backend_env = (here / ".." / ".env").resolve()    # .../apps/backend/.env
+    here = Path(__file__).resolve().parent  # .../apps/backend/app
+    backend_env = (here / ".." / ".env").resolve()  # .../apps/backend/.env
     root_env = (here / ".." / ".." / ".env").resolve()  # .../.env (repo root)
 
     loaded = False
@@ -88,7 +88,7 @@ def create_app() -> FastAPI:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],
-            allow_credentials=False,   # '*' không đi với credentials
+            allow_credentials=False,  # '*' không đi với credentials
             allow_methods=["*"],
             allow_headers=["*"],
             expose_headers=["*"],
@@ -96,8 +96,12 @@ def create_app() -> FastAPI:
         )
     else:
         origins = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000")
-        allow_headers = _split_csv_env(os.getenv("ALLOWED_HEADERS"), "Authorization, Content-Type")
-        allow_methods = _split_csv_env(os.getenv("ALLOWED_METHODS"), "GET,POST,PUT,PATCH,DELETE,OPTIONS")
+        allow_headers = _split_csv_env(
+            os.getenv("ALLOWED_HEADERS"), "Authorization, Content-Type"
+        )
+        allow_methods = _split_csv_env(
+            os.getenv("ALLOWED_METHODS"), "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+        )
         app.add_middleware(
             CORSMiddleware,
             allow_origins=list(origins),

@@ -1,15 +1,9 @@
 from __future__ import annotations
 
-import json
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
 import os
 from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Header
-from httpx import HTTPError
 from sqlalchemy import text
-
 from app.core.db import get_engine
 from app.core.security import create_jwt, verify_jwt, hash_password, verify_password
 from .schemas import SignupRequest, SigninRequest, TokenResponse, UserPublic
@@ -51,11 +45,18 @@ def signup(payload: SignupRequest):
         RETURNING id, email, full_name, role
     """)
     with get_engine().begin() as conn:
-        row = (conn.execute(sql, {
-            "email": payload.email,
-            "phash": pw_hash,
-            "full_name": payload.full_name,
-        }).mappings().first())
+        row = (
+            conn.execute(
+                sql,
+                {
+                    "email": payload.email,
+                    "phash": pw_hash,
+                    "full_name": payload.full_name,
+                },
+            )
+            .mappings()
+            .first()
+        )
 
     if row is None:
         # Không chèn được vì trùng email (UNIQUE on email)
@@ -65,7 +66,7 @@ def signup(payload: SignupRequest):
     if not secret:
         raise HTTPException(status_code=500, detail="JWT secret chưa được cấu hình")
 
-    token = create_jwt({"sub": str(row["id"])}, secret, expires_in=3600*24*7)
+    token = create_jwt({"sub": str(row["id"])}, secret, expires_in=3600 * 24 * 7)
     return TokenResponse(
         token=token,
         user_id=row["id"],
@@ -152,20 +153,23 @@ def google_callback(code: Optional[str] = None):
     client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
     redirect_uri = os.getenv("GOOGLE_REDIRECT_URI")
 
-    import json, base64
+    import json  # local import (fix F401/E401)
+    import base64  # tách dòng, không "import a, b" (fix E401)
     from urllib.parse import urlencode
     from urllib.request import Request, urlopen
     from urllib.error import HTTPError
 
     token_req = Request(
         url="https://oauth2.googleapis.com/token",
-        data=urlencode({
-            "code": code,
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "redirect_uri": redirect_uri,
-            "grant_type": "authorization_code",
-        }).encode(),
+        data=urlencode(
+            {
+                "code": code,
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "redirect_uri": redirect_uri,
+                "grant_type": "authorization_code",
+            }
+        ).encode(),
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
 
@@ -181,7 +185,9 @@ def google_callback(code: Optional[str] = None):
     if not id_token:
         raise HTTPException(status_code=400, detail="No id_token returned from Google")
 
-    def _pad(s: str): return s + "=" * (-len(s) % 4)
+    def _pad(s: str):
+        return s + "=" * (-len(s) % 4)
+
     try:
         _h, payload_b64, _s = id_token.split(".")
         payload = json.loads(base64.urlsafe_b64decode(_pad(payload_b64)).decode())
@@ -194,15 +200,19 @@ def google_callback(code: Optional[str] = None):
     user = _get_user_by_email(email)
     if not user:
         with get_engine().begin() as conn:
-            row = conn.execute(
-                text(f"""
+            row = (
+                conn.execute(
+                    text(f"""
                     INSERT INTO {schema}.users (email, password_hash, full_name, role, is_blocked, created_at)
                     VALUES (:email, '', :full_name, 'user', false, NOW())
                     ON CONFLICT (email) DO NOTHING
                     RETURNING id, email, full_name, role
                 """),
-                {"email": email, "full_name": name},
-            ).mappings().first()
+                    {"email": email, "full_name": name},
+                )
+                .mappings()
+                .first()
+            )
             user_id = row["id"]
             role = row.get("role")
     else:
@@ -210,5 +220,6 @@ def google_callback(code: Optional[str] = None):
         role = user.get("role")
 
     token = create_jwt({"sub": str(user_id)}, _secret(), expires_in=3600 * 24 * 7)
-    return TokenResponse(token=token, user_id=user_id, email=email, full_name=name, role=role)
-
+    return TokenResponse(
+        token=token, user_id=user_id, email=email, full_name=name, role=role
+    )
