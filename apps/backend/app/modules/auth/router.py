@@ -38,12 +38,14 @@ def signup(payload: SignupRequest):
     schema = _get_schema_prefix()
     pw_hash = hash_password(payload.password)
 
-    sql = text(f"""
+    sql = text(
+        f"""
         INSERT INTO {schema}.users (email, password_hash, full_name, role, is_blocked, created_at)
         VALUES (:email, :phash, :full_name, 'user', false, NOW())
         ON CONFLICT (email) DO NOTHING
         RETURNING id, email, full_name, role
-    """)
+    """
+    )
     with get_engine().begin() as conn:
         row = (
             conn.execute(
@@ -202,12 +204,14 @@ def google_callback(code: Optional[str] = None):
         with get_engine().begin() as conn:
             row = (
                 conn.execute(
-                    text(f"""
+                    text(
+                        f"""
                     INSERT INTO {schema}.users (email, password_hash, full_name, role, is_blocked, created_at)
                     VALUES (:email, '', :full_name, 'user', false, NOW())
                     ON CONFLICT (email) DO NOTHING
                     RETURNING id, email, full_name, role
-                """),
+                """
+                    ),
                     {"email": email, "full_name": name},
                 )
                 .mappings()
