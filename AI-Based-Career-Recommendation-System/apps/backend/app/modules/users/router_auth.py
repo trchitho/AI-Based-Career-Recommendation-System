@@ -77,6 +77,16 @@ def login(request: Request, payload: LoginPayload):
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u or not verify_password(password, u.password_hash):
         raise HTTPException(status_code=403, detail="Invalid credentials")
+    # Block login if account is locked
+    if getattr(u, "is_locked", False):
+        raise HTTPException(status_code=403, detail="Account is locked")
+
+    # Update last_login timestamp on successful login
+    try:
+        u.last_login = datetime.now(timezone.utc)
+        session.commit()
+    except Exception:
+        session.rollback()
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
     rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)

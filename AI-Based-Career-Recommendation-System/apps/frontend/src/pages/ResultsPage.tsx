@@ -6,6 +6,7 @@ import { AssessmentResults, CareerRecommendation } from '../types/results';
 import RIASECSpiderChart from '../components/results/RIASECSpiderChart';
 import BigFiveBarChart from '../components/results/BigFiveBarChart';
 import CareerRecommendationsDisplay from '../components/results/CareerRecommendationsDisplay';
+import { feedbackService } from '../services/feedbackService';
 import api from '../lib/api';
 
 const ResultsPage = () => {
@@ -17,6 +18,9 @@ const ResultsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'summary' | 'detailed' | 'recommendations'>('summary');
+  const [fbRating, setFbRating] = useState<number | null>(null);
+  const [fbComment, setFbComment] = useState('');
+  const [fbDone, setFbDone] = useState(false);
 
   useEffect(() => {
     if (assessmentId) {
@@ -251,6 +255,39 @@ const ResultsPage = () => {
 
               {activeTab === 'recommendations' && (
                 <CareerRecommendationsDisplay recommendations={careerRecommendations} />
+              )}
+
+              {/* Quick Feedback */}
+              {!fbDone && (
+                <div className="mt-8 bg-white shadow rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Rate Your Results</h3>
+                  <div className="flex items-center space-x-2 mb-3">
+                    {[1,2,3,4,5].map(v => (
+                      <button key={v} onClick={() => setFbRating(v)} className={`w-8 h-8 rounded-full border ${fbRating===v? 'bg-indigo-600 text-white border-indigo-600':'border-gray-300 text-gray-700'}`}>{v}</button>
+                    ))}
+                  </div>
+                  <textarea
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="Optional comment"
+                    value={fbComment}
+                    onChange={(e)=>setFbComment(e.target.value)}
+                  />
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      disabled={!fbRating}
+                      onClick={async ()=>{
+                        if (!assessmentId || !fbRating) return;
+                        try {
+                          await feedbackService.submit(assessmentId, fbRating, fbComment);
+                          setFbDone(true);
+                        } catch (e) { console.error(e); }
+                      }}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-50"
+                    >
+                      Submit Feedback
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}

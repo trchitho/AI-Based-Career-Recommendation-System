@@ -165,7 +165,7 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
 
         {/* Answer Options */}
         <div className="space-y-3">
-          {currentQuestion.question_type === 'MULTIPLE_CHOICE' && currentQuestion.options ? (
+          {currentQuestion.question_type === 'MULTIPLE_CHOICE' && Array.isArray(currentQuestion.options) ? (
             currentQuestion.options.map((option, index) => (
               <button
                 key={index}

@@ -138,7 +138,9 @@ def create_app() -> FastAPI:
     # Auth tokens (verify/reset)
     try:
         from .modules.auth import routes_tokens as auth_tokens
+        from .modules.auth import routes_google as auth_google
         app.include_router(auth_tokens.router, prefix="/api/auth", tags=["auth"])
+        app.include_router(auth_google.router, prefix="/api/auth", tags=["auth"])
     except Exception as e:
         print("??  Skip auth tokens router:", repr(e))
 

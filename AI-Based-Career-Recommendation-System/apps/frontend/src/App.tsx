@@ -24,6 +24,7 @@ import EssayInputPage from './pages/EssayInputPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import ChatSummaryPage from './pages/ChatSummaryPage';
 import ChatPage from './pages/ChatPage';
+import OAuthCallbackPage from './pages/OAuthCallbackPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -46,6 +47,7 @@ function App() {
           <Route path="/forgot" element={<ForgotPasswordPage />} />
           <Route path="/reset" element={<ResetPasswordPage />} />
           <Route path="/verify" element={<VerifyEmailPage />} />
+          <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
           {/* Protected routes */}
           <Route

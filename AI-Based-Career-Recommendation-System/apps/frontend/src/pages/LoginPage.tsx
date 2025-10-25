@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import ThemeToggle from '../components/ThemeToggle';
+import api from '../lib/api';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -146,6 +147,26 @@ const LoginPage = () => {
               </p>
             </div>
           </form>
+
+          {/* Divider */}
+          <div className="my-6 flex items-center">
+            <div className="flex-1 h-px bg-gray-700" />
+            <span className="px-4 text-gray-400 text-sm">or</span>
+            <div className="flex-1 h-px bg-gray-700" />
+          </div>
+
+          {/* Google Sign-In */}
+          <button
+            onClick={() => {
+              const redirect = `${window.location.origin}/oauth/callback`;
+              const url = `${api.defaults.baseURL}api/auth/google/login?redirect=${encodeURIComponent(redirect)}`;
+              window.location.href = url;
+            }}
+            className="w-full flex items-center justify-center py-3 px-4 bg-white text-gray-800 rounded-lg font-medium hover:bg-gray-100 transition-all duration-200 border border-gray-300"
+          >
+            <svg className="w-5 h-5 mr-2" viewBox="0 0 533.5 544.3"><path d="M533.5 278.4c0-18.5-1.5-36.9-4.6-54.8H272v103.8h147.3c-6.4 34.7-25.9 64.1-55.2 83.7v69.5h89.2c52.2-48 80.2-118.8 80.2-202.2z" fill="#4285F4"/><path d="M272 544.3c72.7 0 133.8-24.1 178.4-65.7l-89.2-69.5c-24.8 16.7-56.5 26.5-89.2 26.5-68.5 0-126.6-46.2-147.4-108.3H33.5v68.8C77.7 485.7 168.2 544.3 272 544.3z" fill="#34A853"/><path d="M124.6 327.3c-10.8-31.9-10.8-66.3 0-98.2V160.3H33.5c-39.1 77.8-39.1 169.9 0 247.7l91.1-80.7z" fill="#FBBC05"/><path d="M272 106.1c37.9-.6 74.4 14.2 101.7 41.1l76.1-76.1C402.8 24.4 339.6-.2 272 0 168.2 0 77.7 58.6 33.5 160.3l91.1 68.8C145.4 152.3 203.5 106.1 272 106.1z" fill="#EA4335"/></svg>
+            Continue with Google
+          </button>
 
           <div className="mt-6 flex items-center justify-center text-xs text-gray-500">
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

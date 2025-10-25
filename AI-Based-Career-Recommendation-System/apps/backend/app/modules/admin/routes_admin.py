@@ -8,6 +8,8 @@ from sqlalchemy import text
 from ..content.models import Career, CareerKSA, BlogPost, Comment
 from ..system.models import AppSettings
 from ...core.jwt import require_admin
+from sqlalchemy.orm import registry
+from sqlalchemy import Column, BigInteger, Integer, Text, TIMESTAMP
 
 router = APIRouter()
 
@@ -72,10 +74,43 @@ def ai_metrics(_: Request):
 
 
 @router.get("/feedback")
-def user_feedback(_: Request, startDate: str | None = None, endDate: str | None = None, minRating: int | None = None):
-    _ = _  # placeholder to keep linter happy
-    # we return empty until feedback UI is finalized
-    return []
+def user_feedback(request: Request, startDate: str | None = None, endDate: str | None = None, minRating: int | None = None):
+    _ = require_admin(request)
+    session = _db(request)
+
+    # Lightweight model mapping
+    mapper_registry = registry()
+
+    @mapper_registry.mapped
+    class UserFeedback:
+        __tablename__ = "user_feedback"
+        __table_args__ = {"schema": "core"}
+        id = Column(BigInteger, primary_key=True)
+        user_id = Column(BigInteger)
+        assessment_id = Column(BigInteger)
+        rating = Column(Integer)
+        comment = Column(Text)
+        created_at = Column(TIMESTAMP(timezone=True))
+
+    stmt = select(UserFeedback)
+    if minRating is not None:
+        stmt = stmt.where(UserFeedback.rating >= minRating)
+    if startDate:
+        stmt = stmt.where(UserFeedback.created_at >= text("CAST(:sd AS timestamp with time zone)")).params(sd=startDate)
+    if endDate:
+        stmt = stmt.where(UserFeedback.created_at <= text("CAST(:ed AS timestamp with time zone)")).params(ed=endDate)
+    rows = session.execute(stmt.order_by(UserFeedback.created_at.desc()).limit(200)).scalars().all()
+    return [
+        {
+            "id": str(x.id),
+            "user_id": str(x.user_id),
+            "assessment_id": str(x.assessment_id) if x.assessment_id else None,
+            "rating": int(x.rating or 0),
+            "comment": x.comment,
+            "created_at": x.created_at.isoformat() if x.created_at else None,
+        }
+        for x in rows
+    ]
 
 
 # ----- App Settings (logo, title, app name, footer) -----

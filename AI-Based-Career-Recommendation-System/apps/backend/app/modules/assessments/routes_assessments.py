@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Request, HTTPException
 from typing import Literal
-from sqlalchemy import select
 from sqlalchemy.orm import Session
-from .models import AssessmentForm, AssessmentQuestion, Assessment, AssessmentResponse
-from ..content.models import Essay  # reuse Essay model in content
+from .models import Assessment
 from ...core.jwt import require_user
+from . import service
 
 router = APIRouter()
 
@@ -14,33 +13,30 @@ def _db(req: Request) -> Session:
 
 
 def _normalize_type(t: str) -> str:
-    # Map FE types to DB enum/check-compatible values
-    if t == "BIG_FIVE":
-        return "BigFive"
-    return t
+    return service._normalize_type(t)
 
 
 @router.get("/questions/{test_type}")
-def get_questions(request: Request, test_type: Literal["RIASEC", "BIG_FIVE"]):
+def get_questions(
+    request: Request,
+    test_type: Literal["RIASEC", "BIG_FIVE"],
+    shuffle: bool = False,
+    seed: int | None = None,
+    lang: str | None = None,
+    limit: int | None = None,
+    per_dim: int | None = None,
+):
     session = _db(request)
-    # Try both DB-compatible value and raw value for backward compatibility
     try:
-        db_type = _normalize_type(test_type)
-        # If there are multiple forms for the same type (e.g., VI/EN), pick the latest one by created_at
-        form = session.execute(
-            select(AssessmentForm)
-            .where(AssessmentForm.form_type == db_type)
-            .order_by(AssessmentForm.created_at.desc())
-            .limit(1)
-        ).scalar_one_or_none()
-        if not form:
-            return []
-        rows = session.execute(
-            select(AssessmentQuestion)
-                .where(AssessmentQuestion.form_id == form.id)
-                .order_by(AssessmentQuestion.question_no.asc())
-        ).scalars().all()
-        return [q.to_client() | {"test_type": test_type} for q in rows]
+        return service.get_questions(
+            session,
+            test_type,
+            shuffle=shuffle,
+            seed=seed,
+            lang=lang,
+            limit=limit,
+            per_dim=per_dim,
+        )
     except Exception as e:
         # Avoid 500 to keep FE functional if DB seed chưa sẵn
         print("[assessments] get_questions error:", repr(e))
@@ -51,66 +47,12 @@ def get_questions(request: Request, test_type: Literal["RIASEC", "BIG_FIVE"]):
 def submit_assessment(request: Request, payload: dict):
     session = _db(request)
     user_id = require_user(request)
-
-    test_types = payload.get("testTypes") or []
-    responses = payload.get("responses") or []
-    a_type_client = (test_types[0] if test_types else "RIASEC")
-    a_type = _normalize_type(a_type_client)
-
-    # naive scoring: if numeric answers, average
-    numeric_scores = []
-    for r in responses:
-        v = r.get("answer")
-        try:
-            numeric_scores.append(float(v))
-        except Exception:
-            pass
-    avg = round(sum(numeric_scores) / len(numeric_scores), 3) if numeric_scores else 0.0
-
-    assessment = Assessment(user_id=user_id, a_type=a_type, scores={"avg": avg})
-    session.add(assessment)
-    session.flush()
-
-    for r in responses:
-        # Try to persist normalized linkage to questions and numeric score
-        raw_qid = r.get("questionId")
-        qid_int = None
-        qkey = None
-        try:
-            if raw_qid is not None and str(raw_qid).isdigit():
-                qid_int = int(str(raw_qid))
-        except Exception:
-            qid_int = None
-
-        if qid_int is not None:
-            try:
-                from .models import AssessmentQuestion as _AQ
-                qobj = session.get(_AQ, qid_int)
-                if qobj and qobj.question_key:
-                    qkey = qobj.question_key
-            except Exception:
-                pass
-
-        if qkey is None:
-            qkey = str(raw_qid) if raw_qid is not None else None
-
-        score_val = None
-        try:
-            score_val = float(r.get("answer"))
-        except Exception:
-            score_val = None
-
-        ar = AssessmentResponse(
-            assessment_id=assessment.id,
-            question_id=qid_int,
-            question_key=qkey,
-            answer_raw=str(r.get("answer")),
-            score_value=score_val,
-        )
-        session.add(ar)
-
-    session.commit()
-    return {"assessmentId": str(assessment.id)}
+    try:
+        aid = service.save_assessment(session, user_id, payload)
+        return {"assessmentId": str(aid)}
+    except Exception as e:
+        print("[assessments] submit error:", repr(e))
+        raise
 
 
 @router.post("/essay")
@@ -120,61 +62,27 @@ def submit_essay(request: Request, payload: dict):
     content = payload.get("essayText") or payload.get("content")
     if not content:
         raise HTTPException(status_code=400, detail="essayText is required")
-    essay = Essay(user_id=user_id, lang="vi", content=content)
-    session.add(essay)
-    session.commit()
-    return {"status": "ok", "essay_id": str(essay.id)}
+    eid = service.save_essay(session, user_id, content)
+    return {"status": "ok", "essay_id": str(eid)}
 
 
 @router.get("/{assessment_id}/results")
 def get_results(request: Request, assessment_id: int):
     session = _db(request)
-    obj = session.get(Assessment, assessment_id)
-    if not obj:
+    try:
+        return service.build_results(session, assessment_id)
+    except ValueError:
         raise HTTPException(status_code=404, detail="Assessment not found")
-    # Aggregate simple scores from responses if available
-    resp_rows = session.execute(
-        select(AssessmentResponse).where(AssessmentResponse.assessment_id == obj.id)
-    ).scalars().all()
 
-    riasec_map = {"R": "realistic", "I": "investigative", "A": "artistic", "S": "social", "E": "enterprising", "C": "conventional"}
-    big5_map = {"O": "openness", "C": "conscientiousness", "E": "extraversion", "A": "agreeableness", "N": "neuroticism"}
 
-    riasec_acc: dict[str, list[float]] = {v: [] for v in riasec_map.values()}
-    big5_acc: dict[str, list[float]] = {v: [] for v in big5_map.values()}
-
-    for r in resp_rows:
-        key = (r.question_key or "").strip().upper()
-        try:
-            val = float(r.score_value) if r.score_value is not None else float(r.answer_raw)
-        except Exception:
-            val = None
-        if val is None:
-            continue
-        if key in riasec_map:
-            riasec_acc[riasec_map[key]].append(val)
-        if key in big5_map:
-            big5_acc[big5_map[key]].append(val)
-
-    def _avg(d: dict[str, list[float]]) -> dict[str, float]:
-        out: dict[str, float] = {}
-        for k, arr in d.items():
-            out[k] = round(sum(arr) / len(arr), 3) if arr else 0.0
-        return out
-
-    riasec_scores = _avg(riasec_acc)
-    big_five_scores = _avg(big5_acc)
-
-    # Fallback demo when empty
-    if not any(riasec_scores.values()) and not any(big_five_scores.values()):
-        riasec_scores = {"realistic": 3.0, "investigative": 3.0, "artistic": 3.0, "social": 3.0, "enterprising": 3.0, "conventional": 3.0}
-        big_five_scores = {"openness": 3.0, "conscientiousness": 3.0, "extraversion": 3.0, "agreeableness": 3.0, "neuroticism": 3.0}
-
-    return {
-        "assessment_id": str(obj.id),
-        "user_id": str(obj.user_id),
-        "riasec_scores": riasec_scores,
-        "big_five_scores": big_five_scores,
-        "career_recommendations": ["1", "2", "3"],
-        "completed_at": obj.created_at.isoformat() if getattr(obj, "created_at", None) else None,
-    }
+@router.post("/{assessment_id}/feedback")
+def submit_feedback(request: Request, assessment_id: int, payload: dict):
+    session = _db(request)
+    uid = require_user(request)
+    try:
+        rating = int(payload.get("rating") or 0)
+        comment = (payload.get("comment") or "").strip() or None
+        service.save_feedback(session, uid, assessment_id, rating, comment)
+        return {"status": "ok"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

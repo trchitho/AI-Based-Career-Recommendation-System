@@ -10,7 +10,8 @@ const EssayModalComponent = ({ onSubmit, onSkip, loading = false }: EssayModalCo
   const [essayText, setEssayText] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const MIN_CHARS = 100;
+  // Keep essay lightweight; backend accepts any non-empty content
+  const MIN_CHARS = 50;
   const charCount = essayText.length;
   const isValid = charCount >= MIN_CHARS;
 

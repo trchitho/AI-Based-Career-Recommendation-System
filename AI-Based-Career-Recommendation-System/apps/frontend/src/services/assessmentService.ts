@@ -4,7 +4,13 @@ import { Question, AssessmentSubmission, EssaySubmission } from '../types/assess
 export const assessmentService = {
   async getQuestions(testType: 'RIASEC' | 'BIG_FIVE'): Promise<Question[]> {
     try {
-      const response = await api.get(`/api/assessments/questions/${testType}`);
+      // Shuffle questions each attempt using a time-based seed
+      const seed = Date.now();
+      // Keep tests short and balanced by dimension
+      const perDim = testType === 'RIASEC' ? 4 : 4; // 24 for RIASEC, 20 for Big Five
+      const response = await api.get(
+        `/api/assessments/questions/${testType}?shuffle=true&seed=${seed}&per_dim=${perDim}`
+      );
       return response.data;
     } catch (error) {
       console.error(`Error fetching ${testType} questions:`, error);

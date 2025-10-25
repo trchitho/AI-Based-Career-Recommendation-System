@@ -30,13 +30,17 @@ class AssessmentQuestion(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     def to_client(self):
+        # Normalize options: only expose list options; structured objects (e.g., scale descriptors)
+        # should be treated as SCALE questions on the FE.
+        opts = self.options_json if isinstance(self.options_json, list) else None
+        qtype = "MULTIPLE_CHOICE" if opts else "SCALE"
         return {
             "id": str(self.id),
             "test_type": None,  # filled at service level if needed
             "question_text": self.prompt,
-            "question_type": "SCALE" if not self.options_json else "MULTIPLE_CHOICE",
-            "options": self.options_json or None,
-            "dimension": None,
+            "question_type": qtype,
+            "options": opts,
+            "dimension": self.question_key,
             "order_index": self.question_no or 0,
         }
 
@@ -64,3 +68,14 @@ class AssessmentResponse(Base):
     score_value = Column(Numeric(6, 3))
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
+
+class UserFeedback(Base):
+    __tablename__ = "user_feedback"
+    __table_args__ = {"schema": "core"}
+
+    id = Column(BigInteger, primary_key=True)
+    user_id = Column(BigInteger, nullable=False)
+    assessment_id = Column(BigInteger)
+    rating = Column(Integer)
+    comment = Column(Text)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
