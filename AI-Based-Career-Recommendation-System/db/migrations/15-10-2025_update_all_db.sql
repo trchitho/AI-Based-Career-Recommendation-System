@@ -7,6 +7,27 @@ ALTER TABLE core.careers
 CREATE INDEX IF NOT EXISTS idx_core_careers_onet
   ON core.careers(onet_code);
 
+-- Some databases may not have a generic "title" column yet (only title_vi/title_en)
+ALTER TABLE core.careers
+  ADD COLUMN IF NOT EXISTS title TEXT;
+
+-- Best-effort populate new column from existing localized columns if present
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema='core' AND table_name='careers' AND column_name='title_vi'
+  ) THEN
+    UPDATE core.careers SET title = COALESCE(title, title_vi);
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema='core' AND table_name='careers' AND column_name='title_en'
+  ) THEN
+    UPDATE core.careers SET title = COALESCE(title, title_en);
+  END IF;
+END $$;
+
 DROP VIEW IF EXISTS core.v_retrieval_with_career;
 CREATE OR REPLACE VIEW core.v_retrieval_with_career AS
 SELECT r.*,
