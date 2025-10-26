@@ -3,10 +3,32 @@
 
 BEGIN;
 
--- app_settings.updated_by -> users.id
+-- Ensure referenced column (careers.onet_code) exists and is unique before adding FKs
+ALTER TABLE core.careers ADD COLUMN IF NOT EXISTS onet_code TEXT;
+-- Clean duplicates (keep smallest id) before creating unique index
+WITH ranked AS (
+  SELECT id, onet_code,
+         ROW_NUMBER() OVER (PARTITION BY onet_code ORDER BY id ASC) AS rn
+  FROM core.careers
+  WHERE onet_code IS NOT NULL
+)
+DELETE FROM core.careers c
+USING ranked r
+WHERE c.id = r.id AND r.rn > 1;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_careers_onet_code
+  ON core.careers (onet_code);
+
+-- Guard: only add FK if both tables exist
 DO $$
 BEGIN
-  IF NOT EXISTS (
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema='core' AND table_name='app_settings'
+  ) AND EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema='core' AND table_name='users'
+  ) AND NOT EXISTS (
     SELECT 1 FROM pg_constraint WHERE conname = 'app_settings_updated_by_fkey'
   ) THEN
     ALTER TABLE core.app_settings
