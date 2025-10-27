@@ -1,7 +1,7 @@
 services:
   postgres:
     image: ankane/pgvector:latest
-    container_name: careerai_postgresv2
+    container_name: careerai_postgres
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     environment:
