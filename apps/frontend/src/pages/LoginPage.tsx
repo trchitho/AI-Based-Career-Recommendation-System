@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from '../components/LanguageSwitcher';
 import ThemeToggle from '../components/ThemeToggle';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import api from '../lib/api';
 
 const LoginPage = () => {
@@ -36,37 +36,38 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-gray-100 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900 transition-colors duration-300">
       {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-96 h-96 -top-48 -left-48 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
-        <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse delay-1000"></div>
-        <div className="absolute w-96 h-96 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-pulse delay-500"></div>
+        <div className="absolute w-96 h-96 -top-48 -left-48 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 dark:opacity-10 animate-pulse"></div>
+        <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 dark:opacity-10 animate-pulse delay-1000"></div>
+        <div className="absolute w-96 h-96 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-5 dark:opacity-5 animate-pulse delay-500"></div>
       </div>
 
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4 z-10">
-        <div className="flex items-center space-x-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+      {/* Navigation (standalone) */}
+      <nav className="sticky top-0 z-[999999] bg-white/80 dark:bg-gray-800/50 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700/50 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center space-x-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">
+                CareerBridge <span className="text-purple-600 dark:text-purple-400">AI</span>
+              </span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <LanguageSwitcher />
+              <ThemeToggle />
+            </div>
           </div>
-          <span className="text-xl font-bold text-white">CareerBridge <span className="text-purple-400">AI</span></span>
         </div>
-        <div className="flex items-center space-x-4">
-          <LanguageSwitcher />
-          <ThemeToggle />
-          <Link
-            to="/register"
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-purple-500/50"
-          >
-            {t('auth.signUp')}
-          </Link>
-        </div>
-      </div>
+      </nav>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+      {/* Main content */}
+      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md py-12 flex-1">
         {/* Logo/Icon */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-purple-500/50">
@@ -176,6 +177,13 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer (standalone) */}
+      <footer className="relative z-10 border-t border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/50 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-gray-600 dark:text-gray-400">
+          © 2025 CareerBridge AI
+        </div>
+      </footer>
     </div>
   );
 };
