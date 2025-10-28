@@ -23,7 +23,9 @@ def sync_careers_to_graph(request: Request):
         for c in payload:
             s.run(
                 "MERGE (n:Career {id:$id}) SET n.title=$title, n.slug=$slug",
-                id=str(c["id"]), title=c["title"], slug=c["slug"],
+                id=str(c["id"]),
+                title=c["title"],
+                slug=c["slug"],
             )
     return {"synced": len(payload)}
 
@@ -47,19 +49,24 @@ def sync_career_skills(request: Request):
             # MERGE Career node by career id
             s.run(
                 "MERGE (c:Career {id:$cid}) SET c.title=$title",
-                cid=str(c.id), title=c.title,
+                cid=str(c.id),
+                title=c.title,
             )
             # MERGE Skill node
             s.run(
                 "MERGE (sk:Skill {name:$name}) SET sk.category=$cat",
-                name=k.name, cat=k.ksa_type,
+                name=k.name,
+                cat=k.ksa_type,
             )
             # MERGE relation
             s.run(
                 "MATCH (c:Career {id:$cid}), (sk:Skill {name:$name}) "
                 "MERGE (c)-[r:REQUIRES]->(sk) "
                 "SET r.level=$lvl, r.importance=$imp",
-                cid=str(c.id), name=k.name, lvl=float(k.level) if k.level is not None else None, imp=float(k.importance) if k.importance is not None else None,
+                cid=str(c.id),
+                name=k.name,
+                lvl=float(k.level) if k.level is not None else None,
+                imp=float(k.importance) if k.importance is not None else None,
             )
             count += 1
     return {"relations": count}

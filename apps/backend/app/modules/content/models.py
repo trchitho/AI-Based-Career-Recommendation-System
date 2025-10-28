@@ -1,7 +1,6 @@
-from sqlalchemy import (
-    Column, BigInteger, Text, Integer, Boolean, TIMESTAMP, Numeric, func, JSON
-)
+from sqlalchemy import Column, BigInteger, Text, TIMESTAMP, Numeric, func
 from ...core.db import Base
+
 
 # bảng core.career_categories
 class CareerCategory(Base):
@@ -10,6 +9,7 @@ class CareerCategory(Base):
     id = Column(BigInteger, primary_key=True)
     name = Column(Text, nullable=False, unique=True)
     parent_id = Column(BigInteger)
+
 
 # bảng core.careers
 class Career(Base):
@@ -39,6 +39,7 @@ class Career(Base):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
+
 # bảng core.blog_posts
 class BlogPost(Base):
     __tablename__ = "blog_posts"
@@ -61,10 +62,13 @@ class BlogPost(Base):
             "slug": self.slug,
             "content_md": self.content_md,
             "status": self.status,
-            "published_at": self.published_at.isoformat() if self.published_at else None,
+            "published_at": self.published_at.isoformat()
+            if self.published_at
+            else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
 
 # bảng core.comments
 class Comment(Base):
@@ -89,6 +93,7 @@ class Comment(Base):
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
+
 # bảng core.essays
 class Essay(Base):
     __tablename__ = "essays"
@@ -109,6 +114,7 @@ class Essay(Base):
             "prompt_id": self.prompt_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+
 
 # bảng core.career_ksas (skills)
 class CareerKSA(Base):

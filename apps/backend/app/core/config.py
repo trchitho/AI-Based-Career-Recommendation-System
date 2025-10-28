@@ -7,6 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent  # tới thư mục /ba
 ENV_PATH = BASE_DIR / ".env"
 load_dotenv(ENV_PATH)
 
+
 class Settings:
     # Database & Services
     DATABASE_URL = os.getenv("DATABASE_URL")
@@ -29,5 +30,6 @@ class Settings:
 
     # AI models or extra configs
     AI_MODELS_DIR = os.getenv("AI_MODELS_DIR")
+
 
 settings = Settings()

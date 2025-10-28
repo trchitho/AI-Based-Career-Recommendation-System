@@ -152,9 +152,13 @@ def create_app() -> FastAPI:
         from app.modules.content import routes_comments as comments_router
         from app.modules.content import routes_essays as essays_router
 
-        app.include_router(careers_router.router, prefix="/api/careers", tags=["careers"])
+        app.include_router(
+            careers_router.router, prefix="/api/careers", tags=["careers"]
+        )
         app.include_router(blog_router.router, prefix="/api/blog", tags=["blog"])
-        app.include_router(comments_router.router, prefix="/api/comments", tags=["comments"])
+        app.include_router(
+            comments_router.router, prefix="/api/comments", tags=["comments"]
+        )
         app.include_router(essays_router.router, prefix="/api/essays", tags=["essays"])
     except Exception as e:
         print("ℹ️  Skip content routers:", repr(e))
@@ -163,7 +167,9 @@ def create_app() -> FastAPI:
     try:
         from app.modules.assessments import routes_assessments as assess_router
 
-        app.include_router(assess_router.router, prefix="/api/assessments", tags=["assessments"])
+        app.include_router(
+            assess_router.router, prefix="/api/assessments", tags=["assessments"]
+        )
     except Exception as e:
         print("ℹ️  Skip assessments router:", repr(e))
 
@@ -197,7 +203,9 @@ def create_app() -> FastAPI:
     try:
         from app.modules.users import routes_profile as profile_router
 
-        app.include_router(profile_router.router, prefix="/api/profile", tags=["profile"])
+        app.include_router(
+            profile_router.router, prefix="/api/profile", tags=["profile"]
+        )
     except Exception as e:
         print("ℹ️  Skip profile router:", repr(e))
 
@@ -229,7 +237,9 @@ def create_app() -> FastAPI:
     try:
         from app.modules.recommendation import routes_recommendations as rec_router
 
-        app.include_router(rec_router.router, prefix="/api/recommendations", tags=["recommendations"])
+        app.include_router(
+            rec_router.router, prefix="/api/recommendations", tags=["recommendations"]
+        )
     except Exception as e:
         print("ℹ️  Skip recommendations router:", repr(e))
 
@@ -237,7 +247,9 @@ def create_app() -> FastAPI:
     try:
         from app.modules.notifications import routes_notifications as notif_router
 
-        app.include_router(notif_router.router, prefix="/api/notifications", tags=["notifications"])
+        app.include_router(
+            notif_router.router, prefix="/api/notifications", tags=["notifications"]
+        )
     except Exception as e:
         print("ℹ️  Skip notifications router:", repr(e))
 

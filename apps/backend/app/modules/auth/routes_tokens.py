@@ -1,34 +1,24 @@
 from fastapi import APIRouter, Request, HTTPException
-from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import datetime, timedelta, timezone
 import secrets
 
 from ..users.models import User
-from .models import RefreshToken  # reuse package
-from ...core.jwt import create_access_token
 
-from ...core.db import Base
-from sqlalchemy import Column, BigInteger, Text, TIMESTAMP, Boolean
-from ...core.db import engine
+from sqlalchemy import Column, BigInteger, Text, TIMESTAMP
 
 
 router = APIRouter()
 
 
-from sqlalchemy.orm import declarative_base, Session as ORMSession
-from sqlalchemy import text as sqltext
-
-from ...core.db import engine
-from sqlalchemy.orm import sessionmaker
-
-from sqlalchemy import Table, MetaData
+from sqlalchemy.orm import Session as ORMSession
 
 
 # Lightweight model for auth_tokens to avoid circular imports
 from sqlalchemy.orm import registry
 
 mapper_registry = registry()
+
 
 @mapper_registry.mapped
 class AuthToken:
@@ -46,7 +36,9 @@ def _db(req: Request) -> ORMSession:
     return req.state.db
 
 
-def _issue_token(session: ORMSession, user_id: int, ttype: str, minutes: int = 30) -> str:
+def _issue_token(
+    session: ORMSession, user_id: int, ttype: str, minutes: int = 30
+) -> str:
     tok = AuthToken(
         user_id=user_id,
         token=secrets.token_urlsafe(48),
@@ -80,8 +72,16 @@ def verify_email(request: Request, payload: dict):
     token = (payload.get("token") or "").strip()
     if not token:
         raise HTTPException(status_code=400, detail="token is required")
-    tok = session.execute(select(AuthToken).where(AuthToken.token == token, AuthToken.ttype == "verify_email")).scalar_one_or_none()
-    if not tok or tok.used_at is not None or tok.expires_at < datetime.now(timezone.utc):
+    tok = session.execute(
+        select(AuthToken).where(
+            AuthToken.token == token, AuthToken.ttype == "verify_email"
+        )
+    ).scalar_one_or_none()
+    if (
+        not tok
+        or tok.used_at is not None
+        or tok.expires_at < datetime.now(timezone.utc)
+    ):
         raise HTTPException(status_code=400, detail="invalid or expired token")
     tok.used_at = datetime.now(timezone.utc)
     session.commit()
@@ -106,15 +106,23 @@ def reset_password(request: Request, payload: dict):
     new_pw = payload.get("new_password")
     if not token or not new_pw:
         raise HTTPException(status_code=400, detail="token and new_password required")
-    tok = session.execute(select(AuthToken).where(AuthToken.token == token, AuthToken.ttype == "reset_password")).scalar_one_or_none()
-    if not tok or tok.used_at is not None or tok.expires_at < datetime.now(timezone.utc):
+    tok = session.execute(
+        select(AuthToken).where(
+            AuthToken.token == token, AuthToken.ttype == "reset_password"
+        )
+    ).scalar_one_or_none()
+    if (
+        not tok
+        or tok.used_at is not None
+        or tok.expires_at < datetime.now(timezone.utc)
+    ):
         raise HTTPException(status_code=400, detail="invalid or expired token")
     u = session.get(User, tok.user_id)
     if not u:
         raise HTTPException(status_code=404, detail="user not found")
     from ...core.security import hash_password
+
     u.password_hash = hash_password(new_pw)
     tok.used_at = datetime.now(timezone.utc)
     session.commit()
     return {"status": "password_reset"}
-

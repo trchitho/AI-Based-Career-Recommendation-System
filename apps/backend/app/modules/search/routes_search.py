@@ -16,7 +16,16 @@ def search_careers(request: Request, q: str, limit: int = 20):
     es = get_es_client()
     if es:
         try:
-            resp = es.search(index="careers", query={"multi_match": {"query": q, "fields": ["title^2", "short_desc", "content_md"]}}, size=limit)
+            resp = es.search(
+                index="careers",
+                query={
+                    "multi_match": {
+                        "query": q,
+                        "fields": ["title^2", "short_desc", "content_md"],
+                    }
+                },
+                size=limit,
+            )
             hits = resp.get("hits", {}).get("hits", [])
             return [h.get("_source") for h in hits]
         except Exception:
@@ -24,7 +33,21 @@ def search_careers(request: Request, q: str, limit: int = 20):
     # Fallback to Postgres LIKE search
     session = _db(request)
     like = f"%{q.lower()}%"
-    rows = session.execute(select(Career).where(or_(Career.title.ilike(like), Career.short_desc.ilike(like), Career.content_md.ilike(like))).limit(limit)).scalars().all()
+    rows = (
+        session.execute(
+            select(Career)
+            .where(
+                or_(
+                    Career.title.ilike(like),
+                    Career.short_desc.ilike(like),
+                    Career.content_md.ilike(like),
+                )
+            )
+            .limit(limit)
+        )
+        .scalars()
+        .all()
+    )
     return [c.to_dict() for c in rows]
 
 
@@ -54,10 +77,12 @@ def reindex_careers(_: Request):
     # Bulk index from DB fallback
     from elasticsearch import helpers  # type: ignore
     from ..content.models import Career
+
     # Late import request DB to avoid circular
     # This endpoint doesn't accept Request db session; open a new one via SQLAlchemy engine
     from ...core.db import engine
     from sqlalchemy.orm import sessionmaker
+
     SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
     s = SessionLocal()
     try:

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException
 from typing import Literal
 from sqlalchemy.orm import Session
-from .models import Assessment
 from ...core.jwt import require_user
 from . import service
 

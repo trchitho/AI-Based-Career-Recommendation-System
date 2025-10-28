@@ -4,13 +4,13 @@ import json
 import http.client
 from urllib.parse import urlparse
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 
 from ..assessments.models import Assessment
 
 
 def _latest_assessment(session: Session, user_id: int) -> Assessment | None:
     from sqlalchemy import desc
+
     return (
         session.query(Assessment)
         .filter(Assessment.user_id == user_id)
@@ -50,4 +50,3 @@ def generate(session: Session, user_id: int, essay: str | None = None) -> dict:
         ],
         "source": "fallback",
     }
-

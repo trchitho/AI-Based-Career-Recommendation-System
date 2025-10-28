@@ -21,4 +21,3 @@ def get_es_client() -> Optional[Any]:
         return Elasticsearch(**opts)
     except Exception:
         return None
-
