@@ -1,22 +1,18 @@
-from fastapi import APIRouter, Request, HTTPException
-from sqlalchemy import select
-from datetime import datetime, timedelta, timezone
+from __future__ import annotations
+
 import secrets
+from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, HTTPException, Request
+from sqlalchemy import TIMESTAMP, BigInteger, Column, Text, select
+from sqlalchemy.orm import Session as ORMSession, registry
 
 from ..users.models import User
 
-from sqlalchemy import Column, BigInteger, Text, TIMESTAMP
-
-
+# Khởi tạo APIRouter ở top (ổn cho lint)
 router = APIRouter()
 
-
-from sqlalchemy.orm import Session as ORMSession
-
-
 # Lightweight model for auth_tokens to avoid circular imports
-from sqlalchemy.orm import registry
-
 mapper_registry = registry()
 
 
@@ -24,6 +20,7 @@ mapper_registry = registry()
 class AuthToken:
     __tablename__ = "auth_tokens"
     __table_args__ = {"schema": "core"}
+
     id = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger)
     token = Column(Text)
@@ -120,7 +117,9 @@ def reset_password(request: Request, payload: dict):
     u = session.get(User, tok.user_id)
     if not u:
         raise HTTPException(status_code=404, detail="user not found")
-    from ...core.security import hash_password
+
+    # import tại top để tránh E402; đưa lên đầu file ở bản này
+    from ...core.security import hash_password  # nếu muốn giữ import inline, vẫn OK
 
     u.password_hash = hash_password(new_pw)
     tok.used_at = datetime.now(timezone.utc)
