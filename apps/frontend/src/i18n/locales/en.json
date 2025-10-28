@@ -1,0 +1,240 @@
+{
+  "common": {
+    "appName": "Career Recommendation System",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "logout": "Logout",
+    "tryAgain": "Try Again",
+    "never": "Never"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "assessment": "Assessment",
+    "results": "Results",
+    "roadmap": "Roadmap",
+    "profile": "Profile",
+    "admin": "Admin"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "welcomeBack": "Welcome Back",
+    "createAccount": "Create Your Account",
+    "loginSubtitle": "Sign in to continue your career journey",
+    "registerSubtitle": "Start your personalized career discovery"
+  },
+  "home": {
+    "hero": {
+      "title": "Discover Your Perfect Career Path",
+      "subtitle": "AI-powered personality assessments and personalized career recommendations to guide your professional journey",
+      "cta": "Start Your Assessment",
+      "learnMore": "Learn More"
+    },
+    "features": {
+      "title": "Why Choose Our Platform",
+      "assessment": {
+        "title": "Scientific Assessments",
+        "description": "RIASEC and Big Five personality tests backed by psychological research"
+      },
+      "ai": {
+        "title": "AI-Powered Analysis",
+        "description": "Advanced algorithms analyze your responses to provide accurate career matches"
+      },
+      "roadmap": {
+        "title": "Learning Roadmaps",
+        "description": "Personalized step-by-step guides to achieve your career goals"
+      },
+      "tracking": {
+        "title": "Progress Tracking",
+        "description": "Monitor your development and celebrate milestones along the way"
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Take Assessment",
+        "description": "Complete our comprehensive personality and interest tests"
+      },
+      "step2": {
+        "title": "Get Recommendations",
+        "description": "Receive AI-powered career suggestions tailored to you"
+      },
+      "step3": {
+        "title": "Follow Your Roadmap",
+        "description": "Access personalized learning paths to reach your goals"
+      },
+      "step4": {
+        "title": "Track Progress",
+        "description": "Monitor your growth and achievements over time"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "overview": "Track your career development journey",
+    "loading": "Loading dashboard data...",
+    "error": "Failed to load dashboard data. Please try again.",
+    "noAssessment": {
+      "title": "Start Your Career Journey",
+      "description": "Take your first assessment to receive personalized career recommendations and unlock your potential.",
+      "cta": "Take Assessment",
+      "subtitle": "Discover careers that match your personality and interests"
+    },
+    "profileSummary": {
+      "title": "Profile Summary",
+      "assessmentsTaken": "Assessments Taken",
+      "completionRate": "Completion Rate",
+      "lastActivity": "Last Activity",
+      "memberSince": "Member since",
+      "viewProfile": "View Full Profile"
+    },
+    "careerSuggestions": {
+      "title": "Career Suggestions",
+      "subtitle": "Based on your assessment results",
+      "viewAll": "View Full Results",
+      "noSuggestions": "Complete an assessment to see career suggestions",
+      "match": "Match",
+      "analyzing": "Your assessment is being analyzed. Career recommendations will appear here soon!"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "noActivity": "No recent activity",
+      "assessmentCompleted": "Assessment completed",
+      "profileUpdated": "Profile updated",
+      "milestoneCompleted": "Milestone completed"
+    },
+    "progress": {
+      "title": "Your Progress",
+      "overallProgress": "Overall Progress",
+      "skillsDeveloped": "Skills Developed",
+      "milestonesCompleted": "Milestones Completed",
+      "hoursLearned": "Hours Learned",
+      "viewRoadmap": "View Learning Roadmap"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "takeAssessment": "Take Assessment",
+      "viewResults": "View Results",
+      "updateProfile": "Update Profile",
+      "exploreRoadmap": "Explore Roadmap"
+    }
+  },
+  "assessment": {
+    "title": "Career Assessment",
+    "subtitle": "Discover your ideal career path with AI-powered insights",
+    "discoverPath": "Discover Your Ideal Career Path",
+    "comprehensiveDesc": "This comprehensive assessment combines two scientifically-validated tests to help you understand your career interests and personality traits:",
+    "riasec": "RIASEC Career Interest Test",
+    "riasecDesc": "Identifies your preferences across six career themes: Realistic, Investigative, Artistic, Social, Enterprising, and Conventional.",
+    "bigFive": "Big Five Personality Assessment",
+    "bigFiveDesc": "Measures your personality across five dimensions: Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism.",
+    "whatToExpect": "What to Expect",
+    "duration": "Approximately 15-20 minutes to complete",
+    "honestAnswers": "Answer honestly - there are no right or wrong answers",
+    "optionalEssay": "Optional essay for personalized insights",
+    "tailoredRecommendations": "Receive career recommendations tailored to your profile",
+    "startAssessment": "Start Assessment",
+    "question": "Question",
+    "of": "of",
+    "answered": "answered",
+    "stronglyDisagree": "Strongly Disagree",
+    "disagree": "Disagree",
+    "neutral": "Neutral",
+    "agree": "Agree",
+    "stronglyAgree": "Strongly Agree",
+    "careerInterest": "Career Interest",
+    "personality": "Personality",
+    "rateFrom": "Rate from 1 (Strongly Disagree) to 5 (Strongly Agree)",
+    "submitAssessment": "Submit Assessment",
+    "submitEssay": "Submit Essay",
+    "essayPrompt": "Tell us about your career aspirations and goals",
+    "essayPlaceholder": "Write at least 100 characters about your career interests, goals, and what motivates you...",
+    "processingResults": "Processing Your Results",
+    "analyzingResponses": "Our AI is analyzing your responses and generating personalized career recommendations...",
+    "completing": "Completing Assessment",
+    "submitting": "Submitting..."
+  },
+  "results": {
+    "title": "Your Assessment Results",
+    "completedOn": "Completed on",
+    "summary": "Summary",
+    "detailed": "Detailed Analysis",
+    "recommendations": "Career Recommendations",
+    "topInterest": "Top Career Interest",
+    "dominantTrait": "Dominant Personality Trait",
+    "essayInsights": "Essay Insights",
+    "keyInsights": "Key Insights",
+    "themes": "Identified Themes",
+    "matchPercentage": "Match",
+    "viewDetails": "View Details",
+    "failedToLoad": "Failed to load assessment results. Please try again."
+  },
+  "roadmap": {
+    "title": "Learning Roadmap",
+    "selectCareer": "Select a Career",
+    "milestones": "Milestones",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "notStarted": "Not Started",
+    "markComplete": "Mark as Complete",
+    "duration": "Duration",
+    "skills": "Skills to Learn",
+    "resources": "Resources"
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal Information",
+    "assessmentHistory": "Assessment History",
+    "developmentProgress": "Development Progress",
+    "editProfile": "Edit Profile",
+    "dateOfBirth": "Date of Birth",
+    "memberSince": "Member Since",
+    "assessmentsTaken": "Assessments Taken",
+    "viewResults": "View Results",
+    "compareAssessments": "Compare Assessments",
+    "noAssessments": "No assessments taken yet"
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "users": "Users",
+    "careers": "Careers",
+    "skills": "Skills",
+    "questions": "Questions",
+    "monitoring": "AI Monitoring",
+    "totalUsers": "Total Users",
+    "totalCareers": "Total Careers",
+    "totalAssessments": "Total Assessments",
+    "systemHealth": "System Health"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark All as Read",
+    "noNotifications": "No notifications",
+    "milestoneCompleted": "Milestone completed!",
+    "newRecommendation": "New career recommendation available"
+  }
+}
