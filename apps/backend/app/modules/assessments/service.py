@@ -224,9 +224,9 @@ def build_results(session: Session, assessment_id: int) -> dict:
         "riasec_scores": riasec_scores,
         "big_five_scores": big_five_scores,
         "career_recommendations": ["1", "2", "3"],
-        "completed_at": obj.created_at.isoformat()
-        if getattr(obj, "created_at", None)
-        else None,
+        "completed_at": (
+            obj.created_at.isoformat() if getattr(obj, "created_at", None) else None
+        ),
     }
 
 

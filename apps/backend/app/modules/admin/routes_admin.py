@@ -27,10 +27,12 @@ def dashboard_metrics(request: Request):
     # recent 7 days
     recent_assessments = (
         session.execute(
-            text("""
+            text(
+                """
         SELECT COUNT(*) FROM core.assessments 
         WHERE created_at >= now() - interval '7 days'
-    """)
+    """
+            )
         ).scalar()
         or 0
     )

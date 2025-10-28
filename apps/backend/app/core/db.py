@@ -46,5 +46,6 @@ try:
                     cur.execute("SET client_encoding TO 'UTF8';")
             except Exception:
                 pass
+
 except Exception:
     pass

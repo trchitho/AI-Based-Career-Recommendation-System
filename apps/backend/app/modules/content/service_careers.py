@@ -129,14 +129,14 @@ def get_roadmap(session: Session, user_id: int, career_id: int):
             "roadmap_id": str(up.roadmap_id),
             "completed_milestones": up.completed_milestones or [],
             "milestone_completions": up.milestone_completions or {},
-            "current_milestone_id": str(up.current_milestone_id)
-            if up.current_milestone_id
-            else None,
+            "current_milestone_id": (
+                str(up.current_milestone_id) if up.current_milestone_id else None
+            ),
             "progress_percentage": float(up.progress_percentage or 0),
             "started_at": up.started_at.isoformat() if up.started_at else None,
-            "last_updated_at": up.last_updated_at.isoformat()
-            if up.last_updated_at
-            else None,
+            "last_updated_at": (
+                up.last_updated_at.isoformat() if up.last_updated_at else None
+            ),
         }
 
     return {
