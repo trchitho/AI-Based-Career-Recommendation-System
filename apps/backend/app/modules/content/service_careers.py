@@ -1,5 +1,5 @@
 from __future__ import annotations
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from sqlalchemy.orm import Session
 from .models import Career
 from ..roadmap.models import Roadmap, RoadmapMilestone, UserProgress
@@ -7,32 +7,120 @@ from ...core.jwt import require_user
 
 
 def list_careers(session: Session, q: str | None, category_id: int | None, limit: int, offset: int):
-    stmt = select(Career)
+    # Select only portable columns to avoid schema drift
+    title_expr = func.coalesce(Career.title_vi, Career.title_en)
+    desc_expr = func.coalesce(Career.short_desc_vn, Career.short_desc_en)
+    stmt = select(
+        Career.id,
+        Career.slug,
+        title_expr.label("title"),
+        desc_expr.label("short_desc"),
+        Career.onet_code,
+        Career.created_at,
+        Career.updated_at,
+    )
     if q:
         like = f"%{q.lower()}%"
-        stmt = stmt.where(or_(Career.title.ilike(like), Career.slug.ilike(like)))
-    if category_id:
-        stmt = stmt.where(Career.category_id == category_id)
+        stmt = stmt.where(or_(title_expr.ilike(like), Career.slug.ilike(like)))
     stmt = stmt.order_by(Career.created_at.desc()).limit(limit).offset(offset)
-    rows = session.execute(stmt).scalars().all()
-    return [c.to_dict() for c in rows]
+    rows = session.execute(stmt).all()
+    out: list[dict] = []
+    for rid, slug, title, sdesc, onet, c_at, u_at in rows:
+        if not title:
+            title = (slug or "").replace("-", " ").title()
+        out.append({
+            "id": str(rid),
+            "slug": slug,
+            "title": title or "",
+            "short_desc": sdesc or "",
+            "description": (sdesc or ""),
+            "onet_code": onet,
+            "created_at": c_at.isoformat() if c_at else None,
+            "updated_at": u_at.isoformat() if u_at else None,
+        })
+    return out
 
 
 def get_career(session: Session, id_or_slug: str):
+    # Be defensive about legacy columns: attempt rich select; on error, fall back to minimal
+    def _select_rich(where_clause):
+        cols = (
+            Career.id,
+            Career.slug,
+            Career.title_vi,
+            Career.title_en,
+            Career.short_desc_vn,
+            Career.short_desc_en,
+            Career.created_at,
+            Career.updated_at,
+            Career.onet_code,
+        )
+        return session.execute(select(*cols).where(where_clause)).first()
+
+    def _select_min(where_clause):
+        cols = (Career.id, Career.slug)
+        return session.execute(select(*cols).where(where_clause)).first()
+
+    from sqlalchemy import and_  # noqa: F401
+    where = (Career.id == int(id_or_slug)) if id_or_slug.isdigit() else (Career.slug == id_or_slug)
+
+    row = None
+    try:
+        row = _select_rich(where)
+        if row:
+            (
+                cid,
+                slug,
+                title_vi,
+                title_en,
+                short_desc_vn,
+                short_desc_en,
+                created_at,
+                updated_at,
+                onet_code,
+            ) = row
+            title = title_vi or title_en or ""
+            sdesc = short_desc_vn or short_desc_en or ""
+            return {
+                "id": cid,
+                "slug": slug,
+                "title": title,
+                "short_desc": sdesc,
+                "description": sdesc,
+                "onet_code": onet_code,
+                "created_at": created_at.isoformat() if created_at else None,
+                "updated_at": updated_at.isoformat() if updated_at else None,
+            }
+    except Exception:
+        # Fall back to minimal shape if some columns are missing
+        try:
+            row = _select_min(where)
+            if row:
+                cid, slug = row
+                return {
+                    "id": cid,
+                    "slug": slug,
+                    "title": slug,
+                    "description": "",
+                }
+        except Exception:
+            pass
+    return None
+
+
+def get_roadmap(session: Session, user_id: int, id_or_slug: str):
+    # Resolve career by id or slug
     if id_or_slug.isdigit():
-        obj = session.get(Career, int(id_or_slug))
+        c = session.get(Career, int(id_or_slug))
     else:
-        obj = session.execute(select(Career).where(Career.slug == id_or_slug)).scalar_one_or_none()
-    return obj.to_dict() if obj else None
-
-
-def get_roadmap(session: Session, user_id: int, career_id: int):
-    c = session.get(Career, career_id)
+        c = session.execute(select(Career).where(Career.slug == id_or_slug)).scalar_one_or_none()
     if not c:
         return None
+    career_id = int(c.id)
     roadmap = session.execute(select(Roadmap).where(Roadmap.career_id == career_id)).scalar_one_or_none()
     if not roadmap:
-        roadmap = Roadmap(career_id=career_id, title=f"{c.title} Roadmap")
+        ct = c.to_dict().get("title") or "Career"
+        roadmap = Roadmap(career_id=career_id, title=f"{ct} Roadmap")
         session.add(roadmap)
         session.flush()
         demo_ms = [
@@ -90,7 +178,7 @@ def get_roadmap(session: Session, user_id: int, career_id: int):
     return {
         "id": str(roadmap.id),
         "careerId": str(career_id),
-        "careerTitle": c.title,
+        "careerTitle": c.to_dict().get("title"),
         "milestones": milestones,
         "estimatedTotalDuration": "",
         "userProgress": user_progress,
@@ -99,8 +187,16 @@ def get_roadmap(session: Session, user_id: int, career_id: int):
     }
 
 
-def complete_milestone(session: Session, user_id: int, career_id: int, milestone_id: int):
-    roadmap = session.execute(select(Roadmap).where(Roadmap.career_id == career_id)).scalar_one_or_none()
+def complete_milestone(session: Session, user_id: int, id_or_slug: str, milestone_id: int):
+    # Resolve career id
+    if id_or_slug.isdigit():
+        cid = int(id_or_slug)
+    else:
+        c = session.execute(select(Career).where(Career.slug == id_or_slug)).scalar_one_or_none()
+        if not c:
+            return None
+        cid = int(c.id)
+    roadmap = session.execute(select(Roadmap).where(Roadmap.career_id == cid)).scalar_one_or_none()
     if not roadmap:
         return None
     up = session.execute(
@@ -109,7 +205,7 @@ def complete_milestone(session: Session, user_id: int, career_id: int, milestone
     if not up:
         up = UserProgress(
             user_id=user_id,
-            career_id=career_id,
+            career_id=cid,
             roadmap_id=roadmap.id,
             completed_milestones=[],
             milestone_completions={},
@@ -131,4 +227,3 @@ def complete_milestone(session: Session, user_id: int, career_id: int, milestone
     up.progress_percentage = f"{round(len(completed) * 100 / total_count, 2)}"
     session.commit()
     return {"status": "ok", "completed": up.completed_milestones, "progress": up.progress_percentage}
-

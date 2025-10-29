@@ -18,10 +18,9 @@ def seed_careers(session, careers_file: Path):
             continue
         obj = Career(
             slug=slug,
-            title=c.get("title") or slug.replace("-", " ").title(),
-            category_id=c.get("category_id"),
-            short_desc=c.get("short_desc"),
-            content_md=c.get("content_md"),
+            title_vi=c.get("title") or slug.replace("-", " ").title(),
+            short_desc_vn=c.get("short_desc_vn") or c.get("short_desc") or None,
+            short_desc_en=c.get("short_desc_en") or None,
             onet_code=c.get("onet_code"),
         )
         session.add(obj)
@@ -94,4 +93,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

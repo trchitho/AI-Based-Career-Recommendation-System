@@ -17,23 +17,27 @@ class Career(Base):
     __table_args__ = {"schema": "core"}
     id = Column(BigInteger, primary_key=True)
     slug = Column(Text, nullable=False, unique=True)
-    title = Column(Text, nullable=False)
-    category_id = Column(BigInteger)
-    short_desc = Column(Text)
-    content_md = Column(Text)
+    # Some DBs have title_vi/title_en instead of a generic title
+    title_vi = Column(Text)
+    title_en = Column(Text)
+    # Many DBs store short descriptions in localized columns
+    short_desc_en = Column(Text)
+    short_desc_vn = Column(Text)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     onet_code = Column(Text, unique=True)
 
     def to_dict(self) -> dict:
+        # Fallback title from slug if localized titles are missing
+        fallback = (self.slug or "").replace("-", " ").title() if getattr(self, "slug", None) else ""
+        display_title = self.title_vi or self.title_en or fallback
+        short_desc = self.short_desc_vn or self.short_desc_en or ""
         return {
             "id": self.id,
             "slug": self.slug,
-            "title": self.title,
-            "category_id": self.category_id,
-            "short_desc": self.short_desc,
-            "content_md": self.content_md,
-            "description": self.content_md or self.short_desc or "",
+            "title": display_title,
+            "short_desc": short_desc,
+            "description": short_desc,
             "onet_code": self.onet_code,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

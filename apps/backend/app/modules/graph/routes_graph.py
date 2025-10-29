@@ -47,7 +47,7 @@ def sync_career_skills(request: Request):
             # MERGE Career node by career id
             s.run(
                 "MERGE (c:Career {id:$cid}) SET c.title=$title",
-                cid=str(c.id), title=c.title,
+                cid=str(c.id), title=c.to_dict().get("title"),
             )
             # MERGE Skill node
             s.run(

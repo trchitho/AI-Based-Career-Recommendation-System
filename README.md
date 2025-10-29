@@ -1,186 +1,90 @@
-🧠 AI-Based Career Recommendation System
+🧠 Hệ Thống Gợi Ý Nghề Nghiệp Cá Nhân Hóa Bằng Trí Tuệ Nhân Tạo
 
-*(Hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo)*
-
-## 1) Tổng quan
-
-Hệ thống gợi ý nghề dựa trên:
-
-* Kết quả trắc nghiệm **RIASEC** và **Big Five**,
-* Phân tích **essay** bằng **PhoBERT / vi-SBERT**,
-* **Gợi ý kết hợp** với **NeuMF** và **online bandit (RL)**.
-
-**Kiến trúc:** Monorepo gồm Frontend (Next.js), Backend (FastAPI – BFF + modules), và AI-Core (mô hình, embed, ranking). Frontend chỉ gọi **BFF**; BFF điều phối giữa modules/AI-Core/DB để trả về DTO đúng UI.
+### AI-Based Career Recommendation System (RIASEC + Big Five + NLP Essay Inference)
 
 ---
 
-## 2) Kiến trúc tổng thể
+## 📘 Tổng Quan
+
+Đề tài xây dựng **hệ thống gợi ý nghề nghiệp cá nhân hóa** dựa trên:
+
+* 🎯 Kết quả trắc nghiệm **RIASEC** (sở thích nghề nghiệp)
+* 🧩 Trắc nghiệm **Big Five** (đặc điểm tính cách)
+* 📝 Phân tích bài viết tự luận bằng mô hình **PhoBERT / vi-SBERT**
+* ⚙️ Thuật toán **gợi ý kết hợp** (Neural Matrix Factorization + Reinforcement Learning)
+
+Dự án được phát triển dưới dạng **monorepo** gồm 4 phần chính:
+
+| Thành phần   | Công nghệ                    | Mô tả                               |
+| ------------ | ---------------------------- | ----------------------------------- |
+| **Frontend** | Next.js 14 + TailwindCSS     | Giao diện người dùng (UI)           |
+| **Backend**  | FastAPI (Python)             | API, BFF (Backend-for-Frontend)     |
+| **AI-Core**  | PhoBERT, vi-SBERT, NeuMF, RL | Mô hình xử lý ngôn ngữ & gợi ý nghề |
+| **Infra**    | Docker, Postgres + pgvector  | Hạ tầng lưu trữ, vector database    |
+
+---
+
+## 🧩 Kiến Trúc Hệ Thống
 
 ```
-Frontend (Next.js + Tailwind)
-    ↓ via /bff/*
-Backend (FastAPI BFF)
+Frontend (Next.js)
     ↓
-Modules: assessment · nlu · retrieval · recommendation · search · auth · content
+BFF (FastAPI)
     ↓
-AI-Core: PhoBERT (RIASEC/BigFive) · vi-SBERT (retrieval) · NeuMF/MLP (ranking) · Bandit (RL)
+Modules (Assessment / NLU / Retrieval / Recommendation)
     ↓
-PostgreSQL + pgvector  ·  (Neo4j/ElasticSearch khi cần)
+AI-Core (PhoBERT / vi-SBERT / NeuMF / RL)
+    ↓
+PostgreSQL + pgvector
 ```
 
-* **BFF** gom dữ liệu theo màn hình FE, giảm số call và ẩn phức tạp backend.
-* **AI-Core** cung cấp: chuẩn hóa dữ liệu, train PhoBERT, sinh embedding vi-SBERT, nạp **pgvector**, rank bằng **NeuMF**, online re-rank bằng **Thompson Sampling**.
+**Frontend** chỉ giao tiếp với **BFF (Backend-for-Frontend)**,
+BFF chịu trách nhiệm gom dữ liệu từ các **module** và **AI-Core**,
+đảm bảo hệ thống dễ bảo trì và mở rộng.
 
 ---
 
-## 3) Cấu trúc monorepo hiện tại (không có `infra/`)
+## 🚀 Hướng Dẫn Chạy Dự Án (Development)
 
-```
-AI-Based-Career-Recommendation-System/
-├─ apps/
-│  ├─ backend/   # FastAPI (BFF + modules)
-│  └─ frontend/  # Next.js (App/Pages + services)
-├─ packages/
-│  └─ ai-core/   # PhoBERT · vi-SBERT · NeuMF · RL · retrieval/pgvector
-├─ .github/workflows/   # fe-ci.yml · be-ci.yml · integration.yml
-└─ README.md / CONTRIBUTING.md
-```
-
-* Cấu trúc modules/routers BE và cây FE chi tiết bạn đã thiết kế (bên dưới).
-* AI-Core chứa toàn bộ mã nguồn, dữ liệu, script encode, load **pgvector**, test.
-
-> **Lưu ý:** Mọi thứ liên quan **DB/compose/scripts** đặt ở nhánh: `setup/database-env`. Xem:
-> `https://github.com/trchitho/AI-Based-Career-Recommendation-System/tree/setup/database-env`
-
----
-
-## 4) Thành phần chi tiết
-
-### 4.1 Frontend (Next.js + Tailwind)
-
-* **Tổ chức domain-first**: `components/`, `pages/`, `services/`, `types/`, `contexts/`.
-* **Router**: hiện tại theo **pages**; có thể chuyển dần sang **App Router** khi ổn định.
-* **Services** chia theo nghiệp vụ: `assessmentService.ts`, `careerService.ts`, `recommendationService.ts`, …
-
-Các thư mục/chức năng đã có:
-
-```
-apps/frontend/src/
-  components/(assessment|results|dashboard|roadmap|admin|layout)/*
-  contexts/(Auth|Socket|Theme|AppSettings).tsx
-  pages/(Home|Assessment|EssayInput|Results|Careers|CareerDetail|Profile|Recommendations|Roadmap|Admin/*)
-  services/*.ts
-  types/*.ts
-```
-
-→ Phần này map 1-1 với BFF endpoints và modules ở BE (bảng ở 4.2).
-
-**ENV (FE)**
-
-```env
-NEXT_PUBLIC_API_BASE=http://localhost:8000
-```
-
-(Đặt trong `apps/frontend/.env.local` – ví dụ.)
-
----
-
-### 4.2 Backend (FastAPI Modular + BFF)
-
-Cây thư mục đã có:
-`app/main.py`, `app/bff/{router.py,dto.py}`, `app/core/{config.py,db.py,jwt.py,security.py}`, `app/modules/*`…
-
-**Các modules đang khai báo**
-
-* `auth`, `users`, `assessments/assessment`, `content` (blog/careers/comments), `recommendation`, `search` (ES client), `graph` (Neo4j), `realtime` (WebSocket), `notifications`, `system`, `admin`, `nlu`, `retrieval` (khởi tạo).
-
-**BFF endpoints (đề xuất/chuẩn hóa theo UI)**
-
-* `POST /bff/assessment/submit` → chấm & lưu RIASEC/BigFive.
-* `POST /bff/nlu/essay:analyze` → gọi AI-Core PhoBERT suy luận + (opt) essay_emb.
-* `GET /bff/search/careers?q=&k=` → truy vấn **pgvector** trong Postgres.
-* `POST /bff/recommend/rank` → NeuMF/MLP + (opt) bandit cho Top-K.
-* `GET /bff/catalog/career/:id` → chi tiết nghề (DB + Neo4j).
-
-**ENV (BE) – ví dụ**
-
-```env
-DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
-AI_MODELS_DIR=packages/ai-core/models
-ALLOWED_ORIGINS=http://localhost:3000
-```
-
-(Các biến về DB/pgvector/Neo4j… theo hướng dẫn trong nhánh `setup/database-env`.)
-
-**Tích hợp AI-Core**
-
-```bash
-pip install -e ./packages/ai-core   # BE import trực tiếp ai_core
-```
-
-* `modules/nlu` gọi PhoBERT; `modules/retrieval` gọi truy vấn **pgvector**; `modules/recommendation` gọi NeuMF/MLP.
-
----
-
-## 5) Database schema & Retrieval (PostgreSQL + pgvector)
-
-**Thiết kế**: 24 bảng `core` + 3 bảng `ai` (vector 768d), bám sát O*NET và nghiệp vụ hệ thống.
-
-* `core.users`, `assessments`, `assessment_forms/questions/responses`, `essays`, `careers` (+ tags/ksas/tasks/technology/prep/wages/outlook/interests), `blog_posts/comments/reactions`, `audit_logs`…
-* `ai.retrieval_jobs_visbert`, `ai.career_embeddings`, `ai.user_embeddings` (IVF + cosine).
-
-**Lưu ý quan trọng**
-
-* **pgvector** thay cho FAISS file-based: đồng nhất dữ liệu, dễ backup/restore, truy vấn bằng SQL, vẫn nhanh ở mức ms–tens-ms.
-* Script **encode_jobs / pgvector_load / search_pgvector** nằm trong `packages/ai-core/src/...`.
-
-> Toàn bộ **hướng dẫn cài DB, tạo EXTENSION, seed dữ liệu, chỉ mục vector** đã được đặt ở **nhánh** `setup/database-env` (README, compose, SQL init). Hãy theo nhánh này để dựng môi trường DB cục bộ.
-
----
-
-## 6) AI-Core: Pipeline & mô-đun chính
-
-* **Chuẩn hóa dữ liệu → silver labels** (kết hợp điểm test + centroid nghề).
-* **Train PhoBERT (RIASEC/BigFive)** – regression head (masked MSE).
-* **Sinh embeddings vi-SBERT** và **nạp pgvector**.
-* **Ranking NeuMF/MLP** + **online bandit** cho re-rank theo CTR.
-* **Neo4j** để sinh roadmap/kỹ năng/khóa học (explainability).
-
----
-
-## 7) Hướng dẫn chạy (Dev)
-
-### Bước 1 — Clone & ENV
+### 1️⃣ Chuẩn Bị Môi Trường
 
 ```bash
 git clone https://github.com/trchitho/AI-Based-Career-Recommendation-System.git
 cd AI-Based-Career-Recommendation-System
+```
 
-# FE
+Sao chép file môi trường:
+
+```bash
 cp apps/frontend/.env.example apps/frontend/.env.local
-# BE
 cp apps/backend/.env.example apps/backend/.env
 ```
 
-(Điền biến DB theo nhánh `setup/database-env`.)
+---
 
-### Bước 2 — Dựng CSDL (tham khảo nhánh DB)
+### 2️⃣ Khởi chạy CSDL (Postgres + pgvector + pgAdmin)
 
-* Làm theo hướng dẫn tại:
-  `setup/database-env` → cài Postgres, bật **pgvector**, tạo DB/schema, seed dữ liệu.
+* Đọc lại file README.md trong nhánh Database_SetUp để setting
 
-### Bước 3 — Chạy Backend
+---
+
+### 3️⃣ Chạy Backend (FastAPI)
 
 ```bash
 cd apps/backend
-python -m venv .venv ; .\.venv\Scripts\activate
+python -m venv .venv && .\.venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-* Docs: `http://127.0.0.1:8000/docs` (Swagger), health: `/health`.
+Kiểm tra:
 
-### Bước 4 — Chạy Frontend
+* API Docs → [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+* Health check → [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
+
+---
+
+### 4️⃣ Chạy Frontend (Vite React)
 
 ```bash
 cd apps/frontend
@@ -188,70 +92,665 @@ npm i
 npm run dev
 ```
 
-* Mở: `http://localhost:3000`
+Truy cập → [http://localhost:3000](http://localhost:3000)
+
+Ghi chú kết nối FE ↔ BE (dev):
+- Frontend chạy trên cổng 3000.
+- Backend chạy trên cổng 8000.
+- FE gọi API trực tiếp tới BE qua `VITE_API_URL` (mặc định `http://localhost:8000`).
 
 ---
 
-## 8) CI/CD & Quy ước
+## 📂 Cấu Trúc Thư Mục Monorepo
 
-* **GitHub Actions**: `fe-ci.yml` (eslint+build), `be-ci.yml` (ruff+black+pytest), `integration.yml` (contract FE↔BFF).
-* **Branching**: `main` bảo vệ; làm việc trên feature branches ngắn; AI phát triển trên nhánh `AI` rồi gộp vào `packages/ai-core`.
-* **Coding style**: FE (eslint+prettier), BE (ruff+black), chỉ commit `.env.example`.
+```
+AI-Based-Career-Recommendation-System/
+├─ apps/
+│  ├─ frontend/          # Next.js 14 + Tailwind (App Router)
+│  └─ backend/           # FastAPI modular monolith (BFF + modules)
+│
+├─ packages/
+│  └─ ai-core/           # AI models & inference (PhoBERT, NeuMF, RL)
+│
+├─ infra/                # Docker Compose + SQL init + K8s manifests (khi nào deploy hay chạy bản prod chính thức sẽ dùng, hiện tại chỉ cần dùng trong nhánh Database_SetUp)
+│
+├─ .github/workflows/    # CI/CD pipelines
+│
+├─ CONTRIBUTING.md       # Quy tắc & hướng dẫn nhóm
+└─ README.md             
+```
 
 ---
 
-## 9) Phụ lục: Cây mã nguồn chi tiết (đang có)
+## ⚙️ Môi Trường Cấu Hình
 
-### Backend (từ `apps/backend/app`)
+### Frontend (`apps/frontend/.env.example`)
 
-```
-main.py
-bff/{router.py,dto.py}
-core/{config.py,db.py,jwt.py,security.py}
-modules/
-  admin/ routes_admin.py
-  auth/  routes_google.py · routes_tokens.py · models.py
-  users/ routers_users.py · router_auth.py · service.py · repository.py · models.py
-  content/ routes_{blog,careers,comments}.py · service_careers.py · models.py
-  assessments/ routes_assessments.py · service.py · models.py
-  recommendation/ routes_recommendations.py · service.py
-  search/ es_client.py · routes_search.py
-  graph/ neo4j_client.py · routes_graph.py
-  realtime/ ws_notifications.py
-  notifications/ routes_notifications.py · models.py
-  nlu/  (khởi tạo)      retrieval/ (khởi tạo)
-system/ routes_public.py
-scripts/ create_admin.py · seed_bulk.py
-tests/  test_sample.py
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:8000
 ```
 
-### Frontend (từ `apps/frontend/src`)
+### Backend (`apps/backend/.env.example`)
 
-```
-components/(assessment|results|dashboard|roadmap|admin|layout)/*
-contexts/(Auth|Socket|Theme|AppSettings).tsx
-pages/(Home|Assessment|EssayInput|Results|Careers|CareerDetail|Profile|Recommendations|Roadmap|
-       Login|Register|ForgotPassword|ResetPassword|VerifyEmail|OAuthCallback|
-       Admin/* dashboards)
-services/*.ts
-types/*.ts
+```env
+DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
+AI_MODELS_DIR=packages/ai-core/models
+ALLOWED_ORIGINS=http://localhost:3000
 ```
 
-### AI-Core (rút gọn)
+---
+
+## 🧠 Mô Tả Thành Phần
+
+### 🖥️ Frontend (Next.js + Tailwind)
+
+* Giao diện người dùng: đăng nhập, làm trắc nghiệm, xem kết quả, đọc lộ trình nghề.
+* Tổ chức theo hướng **Domain-First**: mỗi chức năng (feature) là 1 module riêng.
+
+**Thư mục chính:**
+
+```
+apps/frontend/
+├─ app/              # Routing (App Router)
+├─ src/features/     # Các tính năng (assessment, results, careers,…)
+├─ src/services/     # axios clients, BFF fetchers
+├─ src/components/   # UI tái sử dụng (Card, Modal, Button,…)
+└─ src/hooks/, src/lib/, src/types/
+```
+
+---
+
+### ⚙️ Backend (FastAPI Modular)
+
+* Cung cấp API và BFF (Backend-for-Frontend) cho giao diện web.
+* Kiến trúc module hóa theo **Clean Architecture**.
+
+**Thư mục chính:**
+
+```
+apps/backend/app/
+├─ main.py             # Mount routers, cấu hình CORS, OpenAPI
+├─ bff/                # Endpoint tương ứng UI
+├─ modules/            # assessment, nlu, retrieval, recommendation
+├─ core/               # DB session, logging, settings
+├─ repositories/       # Adapter: Postgres / Neo4j / Elastic
+└─ services/, tasks/, tests/
+```
+
+---
+
+### 🤖 AI-Core
+
+Chứa toàn bộ mô hình và mã nguồn xử lý AI:
 
 ```
 packages/ai-core/
-  src/{nlp,retrieval,training,recsys,utils,api}
-  data/{catalog,raw,processed,nlp,embeddings}
-  models/{riasec_phobert,big5_phobert,vi_sbert}
-  tests/*  tools/*  configs/*
+├─ src/          # NLP, Retrieval, Recommendation, RL
+├─ configs/      # encode.yaml, nlp.yaml, schema.yaml
+├─ models/       # PhoBERT, NeuMF checkpoints
+└─ notebooks/    # Thử nghiệm, huấn luyện
+```
+
+> BE import trực tiếp `packages/ai-core` bằng `pip install -e ./packages/ai-core`.
+
+---
+
+### 🧱 Infra (Hạ tầng)
+
+* `docker-compose.dev.yml`: chạy Postgres + pgvector + pgAdmin + backend/frontend.
+* `sql/`: chứa script khởi tạo bảng, index vector.
+* `k8s/`: manifest cho Kubernetes (dự kiến triển khai sau MVP).
+
+---
+
+### 🔄 CI/CD
+
+Tích hợp qua **GitHub Actions**:
+
+| Workflow                 | Mục đích                             |
+| ------------------------ | ------------------------------------ |
+| `fe-ci.yml`              | Kiểm tra lint + build FE             |
+| `be-ci.yml`              | Kiểm tra ruff + black + pytest BE    |
+| `integration.yml`        | Kiểm tra contract FE ↔ BFF (OpenAPI) |
+| `infra-ci.yml` (sắp tới) | Build & test Docker Compose          |
+
+---
+
+## 🌱 Quy Trình Phát Triển
+
+### 1️⃣ Skeleton (hoàn tất)
+
+* Nhánh `feat/fe-skeleton` → cấu trúc FE
+* Nhánh `feat/be-skeleton` → cấu trúc BE
+* Merge vào `main` theo kiểu **Squash & Merge**
+
+### 2️⃣ Làm Tính Năng (Feature Branch)
+
+```bash
+git checkout main
+git pull
+git checkout -b feat/<tên-tính-năng>
+
+# Code...
+git add .
+git commit -m "feat(fe): add assessment UI"
+git push -u origin feat/<tên-tính-năng>
+```
+
+Sau đó tạo PR → review → merge ≤ 2–3 ngày/lần.
+
+---
+
+## 🧭 Luồng Hoạt Động Hệ Thống
+
+1. **Người dùng** hoàn thành trắc nghiệm RIASEC và Big Five trên giao diện web.
+2. **FE (Next.js)** gửi kết quả tới **BFF (FastAPI)**.
+3. **BFF** gọi các module:
+
+   * `assessment`: chấm điểm RIASEC + Big Five
+   * `nlu`: phân tích bài luận bằng PhoBERT
+   * `retrieval`: truy vấn vector nghề (pgvector)
+   * `recommendation`: gợi ý nghề phù hợp (NeuMF / RL)
+4. **Kết quả** được tổng hợp và trả lại FE để hiển thị biểu đồ + mô tả nghề.
+
+
+---
+
+## 🔐 Quản Lý Quyền (Admin vs User)
+
+- Tạo admin lần đầu (không cần admin sẵn):
+  - Đặt biến môi trường `ADMIN_SIGNUP_SECRET` trong `apps/backend/.env`.
+  - Gọi API `POST /api/auth/register-admin` với payload:
+    - `{ "email": "...", "password": "...", "full_name": "...", "admin_signup_secret": "<trùng ADMIN_SIGNUP_SECRET>" }`
+  - Backend trả `access_token` role `admin`.
+
+- Cấp/bỏ quyền admin cho tài khoản khác (chỉ admin được phép):
+  - API: `PATCH /api/users/{user_id}/role` với body `{ "role": "admin" | "user" }`
+
+- Bảo vệ API quản trị:
+  - Các endpoint dưới `/api/admin/*` yêu cầu token có `role=admin`.
+  - Nếu không phải admin → 403.
+
+---
+
+## 🗄️ DB Migration: app_settings
+
+- Đã thêm migration tạo bảng `core.app_settings` để lưu thông tin thương hiệu (logo_url, app_title, app_name, footer_html).
+- File: `db/AI-Based-Career-Recommendation-System/db/migrations/19-10-2025_create_table_app_settings.sql`
+- Sau khi áp dụng, có thể cập nhật/đọc qua các API admin `/api/admin/settings`.
+
+---
+
+## 🧪 Postman Collection (Admin)
+
+- Collection mẫu: `test/AI-Based-Career-Recommendation-System/postman/admin_api_collection.json`
+- Biến sẵn có:
+  - `baseUrl` mặc định `http://localhost:8000`
+  - `token` (điền access_token của admin sau khi login)
+- Bao gồm các request: đăng ký admin, login, users (list/create/update), settings (get/update), careers/questions CRUD.
+
+---
+
+## 🧰 Seed Dữ Liệu & Backup
+
+- Seed lõi (forms/questions VI, careers mẫu, settings):
+  - `db/AI-Based-Career-Recommendation-System/db/migrations/20-10-2025_seed_core_data.sql`
+- Seed bổ sung bản EN cho RIASEC/Big Five:
+  - `db/AI-Based-Career-Recommendation-System/db/migrations/20-10-2025_seed_assessments_en.sql`
+- Import backup SQL vào DB (đặt search_path phù hợp):
+  - `powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/restore_backup.ps1 -File "<path-to-dump>.sql" -Schema core`
+- Seed số lượng lớn từ JSON (careers/ksas/forms):
+  - `python -m app.scripts.seed_bulk --careers data/careers.json --ksas data/ksas.json --form data/riasec_vi.json`
+
+---
+
+## 🔎 Search & Graph & Recommendation
+
+- Search (ElasticSearch)
+  - ENV: `ES_URL`, `ES_USER`, `ES_PASS` (tuỳ chọn)
+  - Reindex: `POST /api/search/reindex`
+  - Tìm kiếm: `GET /api/search/careers?q=...&limit=20`
+  - Nếu ES chưa cấu hình, API fallback Postgres LIKE.
+
+- Graph (Neo4j)
+  - ENV: `NEO4J_URL`, `NEO4J_USER`, `NEO4J_PASS`
+  - Đồng bộ Career nodes: `POST /api/graph/sync/careers`
+  - Đồng bộ quan hệ Career–Skill từ KSAs: `POST /api/graph/sync/career-skills`
+
+- Recommendation API (AI Layer)
+  - ENV: `AI_SERVICE_URL` (ví dụ `http://localhost:9000`)
+  - Gọi: `POST /api/recommendations/generate` → gửi scores/essay đến AI; fallback trả danh sách gợi ý giả lập nếu AI vắng mặt.
+
+---
+
+## 👥 Team Setup: Run Backend & Frontend
+
+This is the shortest, proven path for any teammate to pull the repo and get the app running locally.
+
+### 1) Requirements
+- Windows 10/11 (PowerShell), Git
+- Python 3.11+, Node.js 18+ (npm)
+- PostgreSQL 14+ (local or Docker)
+
+### 2) Clone the repo
+```
+git clone <repo>
+cd AI-Based-Career-Recommendation-System
+```
+
+### 3) Database (PostgreSQL)
+Option A — Local Postgres (recommended)
+- Create a database UTF‑8 named `career_ai` (port 5433 in examples below)
+- Apply migrations + seed core data:
+```
+powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/apply_latest_migrations.ps1
+```
+
+Option B — Import backup (UTF‑8 safe)
+```
+powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/restore_backup.ps1 -File "db/AI-Based-Career-Recommendation-System/db/backup/dev_snapshot.sql" -Schema core
+```
+The import script forces UTF‑8 so Vietnamese text is preserved.
+
+### 4) Backend (FastAPI)
+```
+cd apps/backend
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+# Enable WebSocket realtime (required by /ws/notifications)
+pip install "uvicorn[standard]"
+
+# Create apps/backend/.env
+# Example:
+# DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
+# ALLOWED_ORIGINS=http://localhost:3000
+# ADMIN_SIGNUP_SECRET=dev-secret
+
+uvicorn app.main:app --reload --port 8000
+```
+Health: http://127.0.0.1:8000/health
+
+### 5) Frontend (Vite + React + TypeScript)
+```
+cd apps/frontend
+npm i
+npm run dev
+```
+Dev server: http://localhost:3000 (Vite proxies `/api` → http://localhost:8000)
+
+Optional FE env (only if you want to bypass proxy):
+```
+# apps/frontend/.env
+VITE_API_URL=http://localhost:8000
+```
+
+### 6) First admin account (same hashing as register)
+Option A — Register via API (pbkdf2):
+```
+POST http://localhost:8000/api/auth/register-admin
+{ "email":"admin@site.com", "password":"Admin12345", "full_name":"Administrator", "admin_signup_secret":"dev-secret" }
+```
+Option B — Script to set admin password (pbkdf2):
+```
+cd apps/backend
+.\.venv\Scripts\python -m app.scripts.set_admin_password --email admin@site.com --password Admin12345 --create
+```
+
+### 7) Where to start in the app
+- User (role user): `/assessment` to start the tests → `/results/:id`
+- Essay: `/essay`, Recommendations: `/recommendations` (fallback if AI not configured)
+- Admin (role admin): `/admin` → manage Users, Settings (logo/title/footer), Careers/Skills/Questions, Blog/Comments
+
+---
+## 🚀 Quick Start (Development)
+
+chú ý: coppy đoạn sau vào trong thư mục .gitignore
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+#   For a library or package, you might want to ignore these files since the code is
+#   intended to run in multiple environments; otherwise, check them in:
+# .python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# UV
+#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#uv.lock
+
+# poetry
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+#poetry.lock
+#poetry.toml
+
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#   pdm recommends including project-wide configuration in pdm.toml, but excluding .pdm-python.
+#   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
+#pdm.lock
+#pdm.toml
+.pdm-python
+.pdm-build/
+
+# pixi
+#   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
+#pixi.lock
+#   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
+#   in the .venv directory. It is recommended not to include this directory in version control.
+.pixi
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+#.idea/
+
+# Abstra
+# Abstra is an AI-powered process automation framework.
+# Ignore directories containing user credentials, local state, and settings.
+# Learn more at https://abstra.io/docs
+.abstra/
+
+# Visual Studio Code
+#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
+#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#  you could uncomment the following to ignore the entire vscode folder
+# .vscode/
+
+# Ruff stuff:
+.ruff_cache/
+
+# PyPI configuration file
+.pypirc
+
+# Cursor
+#  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
+#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
+#  refer to https://docs.cursor.com/context/ignore-files
+.cursorignore
+.cursorindexingignore
+
+@"
+# === GLOBAL / MONOREPO ===
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+
+# Node / Next.js
+**/node_modules/
+**/.next/
+**/out/
+**/coverage/
+**/.turbo/
+**/.vercel/
+
+# Python
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+
+# Editor/OS
+.vscode/
+.idea/
+*.local
+
+# Builds
+**/dist/
+**/build/
+
+# Env
+**/.env
+**/.env.*.local
+"@ | Out-File -Encoding utf8 .gitignore
+
+
+
+1) Prerequisites
+- Windows 10/11 (PowerShell), Git
+- Python 3.11+, Node.js 18+ (npm), PostgreSQL 14+ (hoặc Docker)
+
+2) Clone & cấu trúc
+```
+git clone <repo>
+cd AI-Based-Career-Recommendation-System
+```
+
+3) Database (PostgreSQL)
+- Tạo DB `career_ai` (UTF‑8). Hoặc dùng folder `db/AI-Based-Career-Recommendation-System/docker-compose.yml` (nếu có).
+- Chạy migrations + seed:
+```
+powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/apply_latest_migrations.ps1
+```
+- (Tuỳ chọn) Import backup UTF‑8:
+```
+powershell -ExecutionPolicy Bypass -File db/AI-Based-Career-Recommendation-System/scripts/restore_backup.ps1 -File "db/AI-Based-Career-Recommendation-System/db/backup/dev_snapshot.sql" -Schema core
+```
+
+4) Backend (FastAPI)
+```
+cd apps/backend
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+# Bật WebSocket backend để realtime hoạt động
+pip install "uvicorn[standard]"
+# ENV (apps/backend/.env) ví dụ:
+# DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
+# ALLOWED_ORIGINS=http://localhost:3000
+uvicorn app.main:app --reload --port 8000
+```
+
+5) Frontend (Vite + React)
+```
+cd apps/frontend
+npm i
+npm run dev
+# http://localhost:3000 (proxy API sang http://localhost:8000)
+```
+
+6) Tài khoản admin (pbkdf2 – giống đăng ký)
+- Cách A: tạo bằng API `register-admin` (yêu cầu .env có `ADMIN_SIGNUP_SECRET`):
+```
+POST http://localhost:8000/api/auth/register-admin
+{ "email":"admin@site.com", "password":"Admin12345", "full_name":"Administrator", "admin_signup_secret":"<secret>" }
+```
+- Cách B: script đặt mật khẩu bằng hàm hash của app:
+```
+cd apps/backend
+.\.venv\Scripts\python -m app.scripts.set_admin_password --email admin@site.com --password Admin12345 --create
+```
+
+7) Làm bài test / Kết quả
+- RIASEC/Big Five: `/assessment` → submit → `/results/:id`.
+- Essay: `/essay` gửi bài luận; Recommendation: `/recommendations` (fallback nếu chưa có AI layer).
+
+8) Admin UI (role=admin)
+- `/admin` quản trị Users, Settings (logo/title/footer), Careers/Skills/Questions, Blog/Comments (API đã có; UI sẽ tiếp tục mở rộng).
+
+---
+
+## ⚙️ ENV Templates
+
+- Backend `apps/backend/.env` ví dụ:
+```
+DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
+ALLOWED_ORIGINS=http://localhost:3000
+ADMIN_SIGNUP_SECRET=dev-secret
+ES_URL=
+NEO4J_URL=
+AI_SERVICE_URL=
+```
+
+- Frontend `apps/frontend/.env` (dev proxy Vite đã cấu hình, tuỳ chọn):
+```
+VITE_API_URL=http://localhost:8000
 ```
 
 ---
 
-## 10) DB design & dữ liệu mẫu
+## 🧰 Troubleshooting
 
-* ERD và ràng buộc 24 bảng `core` (users, assessments, essays, careers + nhóm O*NET, blog/comments/reactions…) và 3 bảng `ai` đã mô tả đầy đủ.
-* Có **bộ dữ liệu mẫu** cho toàn bộ bảng để seed/dev test.
+- WebSocket 404 / “No supported WebSocket library detected”: cài `pip install "uvicorn[standard]"` rồi khởi động lại backend.
+- Login 403 sau khi seed SQL: nếu seed bằng bcrypt/pgcrypto → cài `pip install bcrypt` hoặc đặt lại mật khẩu bằng script `set_admin_password` để dùng pbkdf2.
+- Tiếng Việt hiển thị sai: dùng script import UTF‑8 (`restore_backup.ps1`), DB `SERVER_ENCODING=UTF8`, `CLIENT_ENCODING=UTF8`. Nếu dữ liệu đã “??”, xoá và import lại UTF‑8.
+- Assessments trả rỗng: seed forms/questions; DB dùng `form_type='RIASEC'` và `form_type='BigFive'` (API đã map `BIG_FIVE → BigFive`).
+
+
+---
+
+## 🖼️ FE: App Settings
+
+- FE gọi `/api/app/settings` khi khởi động để hiển thị logo/title/footer.
+- Context: `src/contexts/AppSettingsContext.tsx`
+- Đã render trong header/footer: `src/components/layout/MainLayout.tsx`
+
+---
+
+> **Đề tài Nghiên cứu khoa học sinh viên – Đại học Duy Tân 2025**
+> Hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo
+> *(AI-Based Career Recommendation System)*
 
 ---

@@ -146,13 +146,14 @@ def update_settings(request: Request, payload: dict):
 
 # ----- Careers CRUD -----
 def _career_to_client(c: Career) -> dict:
+    dto = c.to_dict()
     return {
         "id": str(c.id),
-        "title": c.title,
-        "description": c.content_md or c.short_desc or "",
+        "title": dto.get("title"),
+        "description": dto.get("short_desc") or "",
         "required_skills": [],
         "salary_range": {"min": 0, "max": 0, "currency": "VND"},
-        "industry_category": str(c.category_id or ""),
+        "industry_category": "",
         "riasec_profile": {"realistic": 0, "investigative": 0, "artistic": 0, "social": 0, "enterprising": 0, "conventional": 0},
         "created_at": c.created_at.isoformat() if c.created_at else None,
         "updated_at": c.updated_at.isoformat() if c.updated_at else None,
@@ -187,7 +188,7 @@ def create_career(request: Request, payload: dict):
         raise HTTPException(status_code=400, detail="title is required")
 
     slug = "-".join(title.lower().split())[:100]
-    c = Career(title=title, slug=slug, short_desc=description[:160], content_md=description)
+    c = Career(title_vi=title, slug=slug, short_desc_vn=(description or "")[:160])
     session.add(c)
     session.commit()
     session.refresh(c)
@@ -202,11 +203,10 @@ def update_career(request: Request, career_id: int, payload: dict):
     if not c:
         raise HTTPException(status_code=404, detail="Career not found")
     if "title" in payload and payload["title"]:
-        c.title = payload["title"].strip()
+        c.title_vi = payload["title"].strip()
     if "description" in payload:
         desc = payload.get("description") or ""
-        c.short_desc = desc[:160]
-        c.content_md = desc
+        c.short_desc_vn = (desc or "")[:160]
     session.commit()
     session.refresh(c)
     return {"career": _career_to_client(c)}

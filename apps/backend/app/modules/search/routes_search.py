@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from sqlalchemy.orm import Session
 from .es_client import get_es_client
 from ..content.models import Career
@@ -24,8 +24,14 @@ def search_careers(request: Request, q: str, limit: int = 20):
     # Fallback to Postgres LIKE search
     session = _db(request)
     like = f"%{q.lower()}%"
-    rows = session.execute(select(Career).where(or_(Career.title.ilike(like), Career.short_desc.ilike(like), Career.content_md.ilike(like))).limit(limit)).scalars().all()
-    return [c.to_dict() for c in rows]
+    title_expr = func.coalesce(Career.title_vi, Career.title_en)
+    desc_expr = func.coalesce(Career.short_desc_vn, Career.short_desc_en)
+    rows = session.execute(
+        select(Career.id, Career.slug, title_expr, desc_expr).where(
+            or_(title_expr.ilike(like), desc_expr.ilike(like))
+        ).limit(limit)
+    ).all()
+    return [{"id": str(i), "slug": s, "title": t, "short_desc": d} for (i, s, t, d) in rows]
 
 
 @router.post("/reindex")
@@ -61,17 +67,17 @@ def reindex_careers(_: Request):
     SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
     s = SessionLocal()
     try:
-        items = s.execute(select(Career)).scalars().all()
+        items = s.execute(select(Career.id, Career.slug, func.coalesce(Career.title_vi, Career.title_en), func.coalesce(Career.short_desc_vn, Career.short_desc_en))).all()
         docs = (
             {
                 "_index": index,
-                "_id": str(c.id),
-                "id": str(c.id),
-                "title": c.title,
-                "short_desc": c.short_desc,
-                "content_md": c.content_md,
+                "_id": str(i),
+                "id": str(i),
+                "title": t,
+                "short_desc": d,
+                "slug": sl,
             }
-            for c in items
+            for (i, sl, t, d) in items
         )
         helpers.bulk(es, docs)
     finally:

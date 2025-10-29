@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 
 const HomePage = () => {
     const { t } = useTranslation();
+    const app = useAppSettings();
     
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900 relative overflow-hidden transition-colors duration-300">
@@ -26,7 +28,7 @@ const HomePage = () => {
                                 </svg>
                             </div>
                             <span className="text-xl font-bold text-gray-900 dark:text-white">
-                                CareerBridge <span className="text-purple-600 dark:text-purple-400">AI</span>
+                                {app.app_title || 'CareerBridge AI'}
                             </span>
                         </div>
                         <div className="flex items-center space-x-4">

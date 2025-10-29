@@ -83,16 +83,56 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
     a_type_client = (test_types[0] if test_types else "RIASEC")
     a_type = _normalize_type(a_type_client)
 
-    numeric_scores: list[float] = []
-    for r in responses:
-        v = r.get("answer")
-        try:
-            numeric_scores.append(float(v))
-        except Exception:
-            pass
-    avg = round(sum(numeric_scores) / len(numeric_scores), 3) if numeric_scores else 0.0
+    # Accumulate scores per dimension for both tests
+    riasec_letters = {"R", "I", "A", "S", "E", "C"}
+    big5_letters = {"O", "C", "E", "A", "N"}
+    riasec_acc: dict[str, list[float]] = {k: [] for k in riasec_letters}
+    big5_acc: dict[str, list[float]] = {k: [] for k in big5_letters}
 
-    assessment = Assessment(user_id=user_id, a_type=a_type, scores={"avg": avg})
+    # Fetch question keys as needed and aggregate
+    for r in responses:
+        raw_qid = r.get("questionId")
+        qid_int = None
+        try:
+            if raw_qid is not None and str(raw_qid).isdigit():
+                qid_int = int(str(raw_qid))
+        except Exception:
+            qid_int = None
+
+        qkey = None
+        if qid_int is not None:
+            try:
+                qobj = session.get(AssessmentQuestion, qid_int)
+                if qobj and qobj.question_key:
+                    qkey = qobj.question_key
+            except Exception:
+                qkey = None
+        if qkey is None and raw_qid is not None:
+            qkey = str(raw_qid)
+
+        # normalize key and value
+        dim = (qkey or "").strip().upper()[:1]
+        val: float | None
+        try:
+            val = float(r.get("answer"))
+        except Exception:
+            val = None
+        if val is None:
+            continue
+        if dim in riasec_acc:
+            riasec_acc[dim].append(val)
+        if dim in big5_acc:
+            big5_acc[dim].append(val)
+
+    def _avg_map(acc: dict[str, list[float]]) -> dict[str, float]:
+        return {k: (round(sum(v)/len(v), 3) if v else 0.0) for k, v in acc.items()}
+
+    scores_payload = {
+        "riasec": _avg_map(riasec_acc),
+        "big5": _avg_map(big5_acc),
+    }
+
+    assessment = Assessment(user_id=user_id, a_type=a_type, scores=scores_payload)
     session.add(assessment)
     session.flush()
 
@@ -208,12 +248,46 @@ def build_results(session: Session, assessment_id: int) -> dict:
             "neuroticism": 3.0,
         }
 
+    # Suggest top 3 careers (placeholder): pick first 3 existing IDs to avoid 404/500
+    from ..content.models import Career  # local import to avoid cycles
+    rec_rows = session.execute(select(Career.id).order_by(Career.id.asc()).limit(3)).all()
+    rec_ids = [str(cid) for (cid,) in rec_rows]
+
+    # Preload minimal career details to avoid FE N+1 calls
+    careers_full: list[dict] = []
+    try:
+        if rec_ids:
+            id_ints = [int(x) for x in rec_ids if str(x).isdigit()]
+            if id_ints:
+                rows = session.execute(
+                    select(
+                        Career.id,
+                        Career.slug,
+                        Career.title_vi,
+                        Career.title_en,
+                        Career.short_desc_vn,
+                        Career.short_desc_en,
+                    ).where(Career.id.in_(id_ints))
+                ).all()
+                for rid, slug, tvi, ten, sdesc_vn, sdesc_en in rows:
+                    title = tvi or ten or ((slug or "").replace("-", " ").title())
+                    sdesc = sdesc_vn or sdesc_en or ""
+                    careers_full.append({
+                        "id": str(rid),
+                        "title": title,
+                        "description": sdesc,
+                        "slug": slug,
+                    })
+    except Exception:
+        pass
+
     return {
         "assessment_id": str(obj.id),
         "user_id": str(obj.user_id),
         "riasec_scores": riasec_scores,
         "big_five_scores": big_five_scores,
-        "career_recommendations": ["1", "2", "3"],
+        "career_recommendations": rec_ids,
+        "career_recommendations_full": careers_full,
         "completed_at": obj.created_at.isoformat() if getattr(obj, "created_at", None) else None,
     }
 
@@ -224,4 +298,3 @@ def save_feedback(session: Session, user_id: int, assessment_id: int, rating: in
     fb = UserFeedback(user_id=user_id, assessment_id=assessment_id, rating=rating, comment=(comment or None))
     session.add(fb)
     session.commit()
-
