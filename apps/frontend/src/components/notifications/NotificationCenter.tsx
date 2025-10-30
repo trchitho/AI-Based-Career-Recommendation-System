@@ -1,9 +1,9 @@
-import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useSocket } from '../../contexts/SocketContext';
-import { notificationService } from '../../services/notificationService';
-import { Notification } from '../../types/notification';
+import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { useSocket } from "../../contexts/SocketContext";
+import { notificationService } from "../../services/notificationService";
+import { Notification } from "../../types/notification";
 
 const NotificationCenter = () => {
   const { user } = useAuth();
@@ -29,22 +29,27 @@ const NotificationCenter = () => {
         if (data && data.id) {
           setNotifications((prev) => [data as Notification, ...prev]);
         }
-      } catch (_) { /* ignore non-JSON */ }
+      } catch (_) {
+        /* ignore non-JSON */
+      }
     };
-    ws.addEventListener('message', handler);
-    return () => ws.removeEventListener('message', handler);
+    ws.addEventListener("message", handler);
+    return () => ws.removeEventListener("message", handler);
   }, [ws, connected]);
 
   useEffect(() => {
     // Close dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const fetchNotifications = async () => {
@@ -55,7 +60,7 @@ const NotificationCenter = () => {
       const data = await notificationService.getNotifications(user.id);
       setNotifications(data);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
     } finally {
       setLoading(false);
     }
@@ -65,10 +70,12 @@ const NotificationCenter = () => {
     try {
       await notificationService.markAsRead(notificationId);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
+        prev.map((n) =>
+          n.id === notificationId ? { ...n, is_read: true } : n,
+        ),
       );
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
     }
   };
 
@@ -79,7 +86,7 @@ const NotificationCenter = () => {
       await notificationService.markAllAsRead(user.id);
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (error) {
-      console.error('Error marking all as read:', error);
+      console.error("Error marking all as read:", error);
     }
   };
 
@@ -98,16 +105,16 @@ const NotificationCenter = () => {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'LEARNING_REMINDER':
-        return '📚';
-      case 'ESSAY_FEEDBACK':
-        return '✍️';
-      case 'MILESTONE_ACHIEVEMENT':
-        return '🎉';
-      case 'SYSTEM_UPDATE':
-        return '🔔';
+      case "LEARNING_REMINDER":
+        return "📚";
+      case "ESSAY_FEEDBACK":
+        return "✍️";
+      case "MILESTONE_ACHIEVEMENT":
+        return "🎉";
+      case "SYSTEM_UPDATE":
+        return "🔔";
       default:
-        return '📬';
+        return "📬";
     }
   };
 
@@ -119,7 +126,7 @@ const NotificationCenter = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
@@ -150,7 +157,7 @@ const NotificationCenter = () => {
         {/* Unread Badge */}
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
 
@@ -165,7 +172,9 @@ const NotificationCenter = () => {
         <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[600px] flex flex-col">
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Notifications
+            </h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
@@ -193,7 +202,7 @@ const NotificationCenter = () => {
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
                     className={`px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
-                      !notification.is_read ? 'bg-indigo-50' : ''
+                      !notification.is_read ? "bg-indigo-50" : ""
                     }`}
                   >
                     <div className="flex items-start">
@@ -201,10 +210,14 @@ const NotificationCenter = () => {
                         {getNotificationIcon(notification.type)}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium text-gray-900 ${!notification.is_read ? 'font-semibold' : ''}`}>
+                        <p
+                          className={`text-sm font-medium text-gray-900 ${!notification.is_read ? "font-semibold" : ""}`}
+                        >
                           {notification.title}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {notification.message}
+                        </p>
                         <p className="text-xs text-gray-400 mt-1">
                           {formatTime(notification.created_at)}
                         </p>

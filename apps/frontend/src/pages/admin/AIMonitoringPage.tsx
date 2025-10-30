@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { adminService } from '../../services/adminService';
-import { AIMetrics, UserFeedback } from '../../types/admin';
+import { useState, useEffect } from "react";
+import { adminService } from "../../services/adminService";
+import { AIMetrics, UserFeedback } from "../../types/admin";
 
 const AIMonitoringPage = () => {
   const [metrics, setMetrics] = useState<AIMetrics | null>(null);
@@ -8,9 +8,9 @@ const AIMonitoringPage = () => {
   const [loading, setLoading] = useState(true);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
-    minRating: '',
+    startDate: "",
+    endDate: "",
+    minRating: "",
   });
 
   useEffect(() => {
@@ -24,7 +24,7 @@ const AIMonitoringPage = () => {
       const data = await adminService.getAIMetrics();
       setMetrics(data);
     } catch (error) {
-      console.error('Error loading AI metrics:', error);
+      console.error("Error loading AI metrics:", error);
     } finally {
       setLoading(false);
     }
@@ -36,12 +36,13 @@ const AIMonitoringPage = () => {
       const filterParams: any = {};
       if (filters.startDate) filterParams.startDate = filters.startDate;
       if (filters.endDate) filterParams.endDate = filters.endDate;
-      if (filters.minRating) filterParams.minRating = parseInt(filters.minRating);
-      
+      if (filters.minRating)
+        filterParams.minRating = parseInt(filters.minRating);
+
       const data = await adminService.getUserFeedback(filterParams);
       setFeedback(data.feedback || []);
     } catch (error) {
-      console.error('Error loading feedback:', error);
+      console.error("Error loading feedback:", error);
     } finally {
       setFeedbackLoading(false);
     }
@@ -73,11 +74,15 @@ const AIMonitoringPage = () => {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">AI Performance Monitoring</h1>
+      <h1 className="text-2xl font-bold text-gray-900">
+        AI Performance Monitoring
+      </h1>
 
       {/* Performance Metrics */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Metrics</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Performance Metrics
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
             title="Total Recommendations"
@@ -93,7 +98,7 @@ const AIMonitoringPage = () => {
             title="Avg Processing Time"
             value={`${metrics.avgProcessingTime}s`}
             subtitle="Per assessment"
-            status={metrics.avgProcessingTime < 30 ? 'good' : 'warning'}
+            status={metrics.avgProcessingTime < 30 ? "good" : "warning"}
           />
           <MetricCard
             title="Error Rate"
@@ -114,7 +119,9 @@ const AIMonitoringPage = () => {
             {Object.entries(metrics.riasecDistribution).map(([key, value]) => (
               <div key={key}>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm font-medium text-gray-700 capitalize">{key}</span>
+                  <span className="text-sm font-medium text-gray-700 capitalize">
+                    {key}
+                  </span>
                   <span className="text-sm text-gray-600">{value}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -139,7 +146,9 @@ const AIMonitoringPage = () => {
             {Object.entries(metrics.bigFiveDistribution).map(([key, value]) => (
               <div key={key}>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm font-medium text-gray-700 capitalize">{key}</span>
+                  <span className="text-sm font-medium text-gray-700 capitalize">
+                    {key}
+                  </span>
                   <span className="text-sm text-gray-600">{value}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -156,7 +165,9 @@ const AIMonitoringPage = () => {
 
       {/* User Feedback Section */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">User Feedback</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          User Feedback
+        </h2>
 
         {/* Feedback Filters */}
         <div className="bg-white rounded-lg shadow p-4 mb-4">
@@ -168,7 +179,9 @@ const AIMonitoringPage = () => {
               <input
                 type="date"
                 value={filters.startDate}
-                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                onChange={(e) =>
+                  handleFilterChange("startDate", e.target.value)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -179,7 +192,7 @@ const AIMonitoringPage = () => {
               <input
                 type="date"
                 value={filters.endDate}
-                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                onChange={(e) => handleFilterChange("endDate", e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -189,7 +202,9 @@ const AIMonitoringPage = () => {
               </label>
               <select
                 value={filters.minRating}
-                onChange={(e) => handleFilterChange('minRating', e.target.value)}
+                onChange={(e) =>
+                  handleFilterChange("minRating", e.target.value)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Ratings</option>
@@ -250,7 +265,9 @@ const AIMonitoringPage = () => {
                           <span
                             key={i}
                             className={`text-lg ${
-                              i < item.rating ? 'text-yellow-400' : 'text-gray-300'
+                              i < item.rating
+                                ? "text-yellow-400"
+                                : "text-gray-300"
                             }`}
                           >
                             ★
@@ -281,7 +298,8 @@ const AIMonitoringPage = () => {
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <p className="text-gray-500">No feedback available</p>
             <p className="text-sm text-gray-400 mt-2">
-              User feedback will appear here once users start rating recommendations
+              User feedback will appear here once users start rating
+              recommendations
             </p>
           </div>
         )}
@@ -289,7 +307,9 @@ const AIMonitoringPage = () => {
 
       {/* System Health Indicators */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">System Health</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          System Health
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <HealthIndicator
             title="AI Service Status"
@@ -316,18 +336,25 @@ interface MetricCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  status?: 'good' | 'warning' | 'error';
+  status?: "good" | "warning" | "error";
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, status }) => {
+const MetricCard: React.FC<MetricCardProps> = ({
+  title,
+  value,
+  subtitle,
+  status,
+}) => {
   const statusColors = {
-    good: 'border-green-500',
-    warning: 'border-yellow-500',
-    error: 'border-red-500',
+    good: "border-green-500",
+    warning: "border-yellow-500",
+    error: "border-red-500",
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow p-6 ${status ? `border-l-4 ${statusColors[status]}` : ''}`}>
+    <div
+      className={`bg-white rounded-lg shadow p-6 ${status ? `border-l-4 ${statusColors[status]}` : ""}`}
+    >
       <p className="text-sm font-medium text-gray-600">{title}</p>
       <p className="mt-2 text-3xl font-semibold text-gray-900">{value}</p>
       {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
@@ -337,16 +364,20 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, status 
 
 interface HealthIndicatorProps {
   title: string;
-  status: 'operational' | 'good' | 'warning' | 'error';
+  status: "operational" | "good" | "warning" | "error";
   message: string;
 }
 
-const HealthIndicator: React.FC<HealthIndicatorProps> = ({ title, status, message }) => {
+const HealthIndicator: React.FC<HealthIndicatorProps> = ({
+  title,
+  status,
+  message,
+}) => {
   const statusConfig = {
-    operational: { color: 'bg-green-500', text: 'Operational' },
-    good: { color: 'bg-green-500', text: 'Good' },
-    warning: { color: 'bg-yellow-500', text: 'Warning' },
-    error: { color: 'bg-red-500', text: 'Error' },
+    operational: { color: "bg-green-500", text: "Operational" },
+    good: { color: "bg-green-500", text: "Good" },
+    warning: { color: "bg-yellow-500", text: "Warning" },
+    error: { color: "bg-red-500", text: "Error" },
   };
 
   const config = statusConfig[status];
@@ -357,7 +388,9 @@ const HealthIndicator: React.FC<HealthIndicatorProps> = ({ title, status, messag
         <h3 className="text-sm font-medium text-gray-900">{title}</h3>
         <div className="flex items-center">
           <div className={`w-3 h-3 rounded-full ${config.color} mr-2`} />
-          <span className="text-sm font-medium text-gray-700">{config.text}</span>
+          <span className="text-sm font-medium text-gray-700">
+            {config.text}
+          </span>
         </div>
       </div>
       <p className="text-sm text-gray-500">{message}</p>

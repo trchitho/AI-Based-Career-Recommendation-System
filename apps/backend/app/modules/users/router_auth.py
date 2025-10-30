@@ -1,16 +1,17 @@
 # apps/backend/app/modules/users/router_auth.py
-from fastapi import APIRouter, Request, HTTPException, status
+import os
+import secrets
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .models import User
-from ...core.security import hash_password, verify_password
 from ...core.jwt import create_access_token, refresh_expiry_dt
+from ...core.security import hash_password, verify_password
 from ..auth.models import RefreshToken
-from datetime import datetime, timezone
-import secrets
-import os
+from .models import User
 
 router = APIRouter()
 
@@ -45,9 +46,7 @@ def register(request: Request, payload: RegisterPayload):
     full_name = payload.full_name
 
     # email đã tồn tại?
-    exists = session.execute(
-        select(User).where(User.email == email)
-    ).scalar_one_or_none()
+    exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
         raise HTTPException(status_code=400, detail="Email already registered")
 
@@ -69,10 +68,7 @@ def register(request: Request, payload: RegisterPayload):
     token = create_access_token({"sub": str(u.id), "role": u.role})
     # issue refresh token
     rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
+        user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False
     )
     session.add(rt)
     session.commit()
@@ -102,10 +98,7 @@ def login(request: Request, payload: LoginPayload):
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
     rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
+        user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False
     )
     session.add(rt)
     session.commit()
@@ -117,9 +110,7 @@ def register_admin(request: Request, payload: AdminRegisterPayload):
     session: Session = _db(request)
     secret_expected = os.getenv("ADMIN_SIGNUP_SECRET")
     if not secret_expected:
-        raise HTTPException(
-            status_code=500, detail="ADMIN_SIGNUP_SECRET not configured"
-        )
+        raise HTTPException(status_code=500, detail="ADMIN_SIGNUP_SECRET not configured")
     if payload.admin_signup_secret != secret_expected:
         raise HTTPException(status_code=403, detail="Invalid admin signup secret")
 
@@ -127,9 +118,7 @@ def register_admin(request: Request, payload: AdminRegisterPayload):
     password = payload.password
     full_name = payload.full_name
 
-    exists = session.execute(
-        select(User).where(User.email == email)
-    ).scalar_one_or_none()
+    exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
         raise HTTPException(status_code=400, detail="Email already registered")
     if not (8 <= len(password) <= 256):
@@ -148,10 +137,7 @@ def register_admin(request: Request, payload: AdminRegisterPayload):
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
     rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
+        user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False
     )
     session.add(rt)
     session.commit()
@@ -161,9 +147,7 @@ def register_admin(request: Request, payload: AdminRegisterPayload):
 @router.post("/refresh")
 def refresh_token(request: Request, payload: dict):
     session: Session = _db(request)
-    token_str = (
-        payload.get("refresh_token") or payload.get("refreshToken") or ""
-    ).strip()
+    token_str = (payload.get("refresh_token") or payload.get("refreshToken") or "").strip()
     if not token_str:
         raise HTTPException(status_code=400, detail="refresh_token is required")
     rt = session.query(RefreshToken).filter(RefreshToken.token == token_str).first()
@@ -181,9 +165,7 @@ def refresh_token(request: Request, payload: dict):
 @router.post("/logout")
 def logout(request: Request, payload: dict):
     session: Session = _db(request)
-    token_str = (
-        payload.get("refresh_token") or payload.get("refreshToken") or ""
-    ).strip()
+    token_str = (payload.get("refresh_token") or payload.get("refreshToken") or "").strip()
     if not token_str:
         raise HTTPException(status_code=400, detail="refresh_token is required")
     rt = session.query(RefreshToken).filter(RefreshToken.token == token_str).first()
@@ -202,11 +184,7 @@ def create_test_user(request: Request):
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if u:
-        return {
-            "message": "Test user already exists",
-            "email": email,
-            "password": password,
-        }
+        return {"message": "Test user already exists", "email": email, "password": password}
 
     u = User(
         email=email,

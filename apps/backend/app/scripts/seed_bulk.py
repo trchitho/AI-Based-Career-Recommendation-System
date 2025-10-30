@@ -1,10 +1,11 @@
-import json
 import argparse
+import json
 from pathlib import Path
-from sqlalchemy.orm import sessionmaker
+
 from app.core.db import engine
-from app.modules.content.models import Career, CareerKSA
 from app.modules.assessments.models import AssessmentForm, AssessmentQuestion
+from app.modules.content.models import Career, CareerKSA
+from sqlalchemy.orm import sessionmaker
 
 
 def seed_careers(session, careers_file: Path):
@@ -18,10 +19,9 @@ def seed_careers(session, careers_file: Path):
             continue
         obj = Career(
             slug=slug,
-            title=c.get("title") or slug.replace("-", " ").title(),
-            category_id=c.get("category_id"),
-            short_desc=c.get("short_desc"),
-            content_md=c.get("content_md"),
+            title_vi=c.get("title") or slug.replace("-", " ").title(),
+            short_desc_vn=c.get("short_desc_vn") or c.get("short_desc") or None,
+            short_desc_en=c.get("short_desc_en") or None,
             onet_code=c.get("onet_code"),
         )
         session.add(obj)
@@ -77,9 +77,7 @@ def main():
     ap = argparse.ArgumentParser(description="Seed bulk data into DB from JSON files")
     ap.add_argument("--careers", type=Path, help="JSON file list of careers")
     ap.add_argument("--ksas", type=Path, help="JSON file list of KSAs")
-    ap.add_argument(
-        "--form", type=Path, help="JSON file of an assessment form + questions"
-    )
+    ap.add_argument("--form", type=Path, help="JSON file of an assessment form + questions")
     args = ap.parse_args()
 
     Session = sessionmaker(bind=engine, autocommit=False, autoflush=False)

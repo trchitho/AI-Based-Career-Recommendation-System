@@ -1,18 +1,19 @@
-from __future__ import annotations
-
 import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Text, select
-from sqlalchemy.orm import Session as ORMSession, registry
 
 from ..users.models import User
 
-# Khởi tạo APIRouter ở top (ổn cho lint)
 router = APIRouter()
 
+
+from sqlalchemy.orm import Session as ORMSession
+
 # Lightweight model for auth_tokens to avoid circular imports
+from sqlalchemy.orm import registry
+
 mapper_registry = registry()
 
 
@@ -20,7 +21,6 @@ mapper_registry = registry()
 class AuthToken:
     __tablename__ = "auth_tokens"
     __table_args__ = {"schema": "core"}
-
     id = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger)
     token = Column(Text)
@@ -33,9 +33,7 @@ def _db(req: Request) -> ORMSession:
     return req.state.db
 
 
-def _issue_token(
-    session: ORMSession, user_id: int, ttype: str, minutes: int = 30
-) -> str:
+def _issue_token(session: ORMSession, user_id: int, ttype: str, minutes: int = 30) -> str:
     tok = AuthToken(
         user_id=user_id,
         token=secrets.token_urlsafe(48),
@@ -70,15 +68,9 @@ def verify_email(request: Request, payload: dict):
     if not token:
         raise HTTPException(status_code=400, detail="token is required")
     tok = session.execute(
-        select(AuthToken).where(
-            AuthToken.token == token, AuthToken.ttype == "verify_email"
-        )
+        select(AuthToken).where(AuthToken.token == token, AuthToken.ttype == "verify_email")
     ).scalar_one_or_none()
-    if (
-        not tok
-        or tok.used_at is not None
-        or tok.expires_at < datetime.now(timezone.utc)
-    ):
+    if not tok or tok.used_at is not None or tok.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="invalid or expired token")
     tok.used_at = datetime.now(timezone.utc)
     session.commit()
@@ -104,22 +96,14 @@ def reset_password(request: Request, payload: dict):
     if not token or not new_pw:
         raise HTTPException(status_code=400, detail="token and new_password required")
     tok = session.execute(
-        select(AuthToken).where(
-            AuthToken.token == token, AuthToken.ttype == "reset_password"
-        )
+        select(AuthToken).where(AuthToken.token == token, AuthToken.ttype == "reset_password")
     ).scalar_one_or_none()
-    if (
-        not tok
-        or tok.used_at is not None
-        or tok.expires_at < datetime.now(timezone.utc)
-    ):
+    if not tok or tok.used_at is not None or tok.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="invalid or expired token")
     u = session.get(User, tok.user_id)
     if not u:
         raise HTTPException(status_code=404, detail="user not found")
-
-    # import tại top để tránh E402; đưa lên đầu file ở bản này
-    from ...core.security import hash_password  # nếu muốn giữ import inline, vẫn OK
+    from ...core.security import hash_password
 
     u.password_hash = hash_password(new_pw)
     tok.used_at = datetime.now(timezone.utc)

@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { UserProfile } from '../../types/profile';
-import { profileService } from '../../services/profileService';
+import { useState } from "react";
+import { UserProfile } from "../../types/profile";
+import { profileService } from "../../services/profileService";
 
 interface ProfileInfoSectionProps {
   profile: UserProfile;
@@ -10,9 +10,9 @@ interface ProfileInfoSectionProps {
 const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: profile.first_name || '',
-    lastName: profile.last_name || '',
-    dateOfBirth: profile.date_of_birth || '',
+    firstName: profile.first_name || "",
+    lastName: profile.last_name || "",
+    dateOfBirth: profile.date_of_birth || "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,8 +27,8 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
       onUpdate(updatedProfile);
       setIsEditing(false);
     } catch (err) {
-      console.error('Error updating profile:', err);
-      setError('Failed to update profile. Please try again.');
+      console.error("Error updating profile:", err);
+      setError("Failed to update profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -36,27 +36,29 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
 
   const handleCancel = () => {
     setFormData({
-      firstName: profile.first_name || '',
-      lastName: profile.last_name || '',
-      dateOfBirth: profile.date_of_birth || '',
+      firstName: profile.first_name || "",
+      lastName: profile.last_name || "",
+      dateOfBirth: profile.date_of_birth || "",
     });
     setIsEditing(false);
     setError(null);
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Not set';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    if (!dateString) return "Not set";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-900">Personal Information</h3>
+        <h3 className="text-xl font-semibold text-gray-900">
+          Personal Information
+        </h3>
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
@@ -76,40 +78,55 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
       {isEditing ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="firstName"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               First Name
             </label>
             <input
               type="text"
               id="firstName"
               value={formData.firstName}
-              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, firstName: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="lastName"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Last Name
             </label>
             <input
               type="text"
               id="lastName"
               value={formData.lastName}
-              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, lastName: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           <div>
-            <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="dateOfBirth"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Date of Birth
             </label>
             <input
               type="date"
               id="dateOfBirth"
               value={formData.dateOfBirth}
-              onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, dateOfBirth: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
@@ -120,7 +137,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
               disabled={saving}
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400"
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? "Saving..." : "Save Changes"}
             </button>
             <button
               type="button"
@@ -141,23 +158,33 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Member Since</p>
-              <p className="mt-1 text-base text-gray-900">{formatDate(profile.created_at)}</p>
+              <p className="mt-1 text-base text-gray-900">
+                {formatDate(profile.created_at)}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">First Name</p>
-              <p className="mt-1 text-base text-gray-900">{profile.first_name || 'Not set'}</p>
+              <p className="mt-1 text-base text-gray-900">
+                {profile.first_name || "Not set"}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Last Name</p>
-              <p className="mt-1 text-base text-gray-900">{profile.last_name || 'Not set'}</p>
+              <p className="mt-1 text-base text-gray-900">
+                {profile.last_name || "Not set"}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Date of Birth</p>
-              <p className="mt-1 text-base text-gray-900">{formatDate(profile.date_of_birth)}</p>
+              <p className="mt-1 text-base text-gray-900">
+                {formatDate(profile.date_of_birth)}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Last Login</p>
-              <p className="mt-1 text-base text-gray-900">{formatDate(profile.last_login_at)}</p>
+              <p className="mt-1 text-base text-gray-900">
+                {formatDate(profile.last_login_at)}
+              </p>
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ export interface UserProfileSummary {
 
 export interface CareerSuggestion {
   id: string;
+  slug?: string;
   title: string;
   matchPercentage: number;
   description: string;

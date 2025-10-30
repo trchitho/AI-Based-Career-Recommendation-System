@@ -1,10 +1,15 @@
-import { useEffect, useState } from 'react';
-import MainLayout from '../components/layout/MainLayout';
-import { recommendationService, RecommendationItem } from '../services/recommendationService';
-import { careerService, CareerItem } from '../services/careerService';
+import { useEffect, useState } from "react";
+import MainLayout from "../components/layout/MainLayout";
+import {
+  recommendationService,
+  RecommendationItem,
+} from "../services/recommendationService";
+import { careerService, CareerItem } from "../services/careerService";
 
 const RecommendationsPage = () => {
-  const [items, setItems] = useState<(RecommendationItem & { career?: CareerItem })[]>([]);
+  const [items, setItems] = useState<
+    (RecommendationItem & { career?: CareerItem })[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,10 +19,15 @@ const RecommendationsPage = () => {
       try {
         const res = await recommendationService.generate();
         const list = res.recommendations || [];
-        const withCareers = await Promise.all(list.map(async (r) => ({ ...r, career: await careerService.get(r.career_id) })));
+        const withCareers = await Promise.all(
+          list.map(async (r) => ({
+            ...r,
+            career: await careerService.get(r.career_id),
+          })),
+        );
         setItems(withCareers);
       } catch (err: any) {
-        setError(err?.response?.data?.detail || err?.message || 'Failed');
+        setError(err?.response?.data?.detail || err?.message || "Failed");
       } finally {
         setLoading(false);
       }
@@ -34,12 +44,21 @@ const RecommendationsPage = () => {
         {!loading && !error && (
           <div className="space-y-4">
             {items.map((it) => (
-              <div key={it.career_id} className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow flex justify-between items-center">
+              <div
+                key={it.career_id}
+                className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow flex justify-between items-center"
+              >
                 <div>
-                  <div className="text-lg font-semibold text-gray-900 dark:text-white">{it.career?.title || it.career_id}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 max-w-3xl">{it.career?.description || it.career?.short_desc}</div>
+                  <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {it.career?.title || it.career_id}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300 max-w-3xl">
+                    {it.career?.description || it.career?.short_desc}
+                  </div>
                 </div>
-                <div className="text-purple-600 font-bold">{Math.round(it.score * 100)}%</div>
+                <div className="text-purple-600 font-bold">
+                  {Math.round(it.score * 100)}%
+                </div>
               </div>
             ))}
           </div>
@@ -50,4 +69,3 @@ const RecommendationsPage = () => {
 };
 
 export default RecommendationsPage;
-

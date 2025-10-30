@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { adminService } from '../../services/adminService';
-import { AdminDashboardMetrics, AIMetrics } from '../../types/admin';
-import MetricCard from '../../components/admin/MetricCard';
+import { useState, useEffect } from "react";
+import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { adminService } from "../../services/adminService";
+import { AdminDashboardMetrics, AIMetrics } from "../../types/admin";
+import MetricCard from "../../components/admin/MetricCard";
 
 // Import admin pages
-import CareerManagementPage from './CareerManagementPage.tsx';
-import SkillManagementPage from './SkillManagementPage.tsx';
-import QuestionManagementPage from './QuestionManagementPage.tsx';
-import AIMonitoringPage from './AIMonitoringPage.tsx';
-import UserManagementPage from './UserManagementPage';
-import SettingsPage from './SettingsPage';
+import CareerManagementPage from "./CareerManagementPage.tsx";
+import SkillManagementPage from "./SkillManagementPage.tsx";
+import QuestionManagementPage from "./QuestionManagementPage.tsx";
+import AIMonitoringPage from "./AIMonitoringPage.tsx";
+import UserManagementPage from "./UserManagementPage";
+import SettingsPage from "./SettingsPage";
 
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
@@ -34,15 +34,17 @@ const AdminDashboardPage = () => {
       setAIMetrics(aiData);
       setError(null);
     } catch (err) {
-      setError('Failed to load dashboard metrics');
-      console.error('Error loading metrics:', err);
+      setError("Failed to load dashboard metrics");
+      console.error("Error loading metrics:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    return (
+      location.pathname === path || location.pathname.startsWith(path + "/")
+    );
   };
 
   return (
@@ -59,9 +61,9 @@ const AdminDashboardPage = () => {
                 <Link
                   to="/admin"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    location.pathname === '/admin'
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    location.pathname === "/admin"
+                      ? "border-blue-500 text-gray-900"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
                 >
                   Dashboard
@@ -69,9 +71,9 @@ const AdminDashboardPage = () => {
                 <Link
                   to="/admin/users"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/users')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    isActive("/admin/users")
+                      ? "border-blue-500 text-gray-900"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
                 >
                   Users
@@ -79,9 +81,9 @@ const AdminDashboardPage = () => {
                 <Link
                   to="/admin/settings"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/settings')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    isActive("/admin/settings")
+                      ? "border-blue-500 text-gray-900"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
                 >
                   Settings
@@ -89,9 +91,9 @@ const AdminDashboardPage = () => {
                 <Link
                   to="/admin/careers"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/careers')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    isActive("/admin/careers")
+                      ? "border-blue-500 text-gray-900"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
                 >
                   Careers
@@ -99,9 +101,9 @@ const AdminDashboardPage = () => {
                 <Link
                   to="/admin/skills"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/skills')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    isActive("/admin/skills")
+                      ? "border-blue-500 text-gray-900"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
                 >
                   Skills
@@ -109,9 +111,9 @@ const AdminDashboardPage = () => {
                 <Link
                   to="/admin/questions"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/questions')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    isActive("/admin/questions")
+                      ? "border-blue-500 text-gray-900"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
                 >
                   Questions
@@ -119,9 +121,9 @@ const AdminDashboardPage = () => {
                 <Link
                   to="/admin/ai-monitoring"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/ai-monitoring')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                    isActive("/admin/ai-monitoring")
+                      ? "border-blue-500 text-gray-900"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
                 >
                   AI Monitoring
@@ -203,7 +205,9 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     <div className="space-y-8">
       {/* User Metrics */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">User Metrics</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          User Metrics
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
             title="Total Users"
@@ -230,7 +234,9 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
       {/* AI Performance Metrics */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Performance</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          AI Performance
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <MetricCard
             title="Total Recommendations"
@@ -257,12 +263,16 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </h2>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {Object.entries(aiMetrics.riasecDistribution).map(([key, value]) => (
-              <div key={key} className="text-center">
-                <p className="text-sm text-gray-600 capitalize">{key}</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
-              </div>
-            ))}
+            {Object.entries(aiMetrics.riasecDistribution).map(
+              ([key, value]) => (
+                <div key={key} className="text-center">
+                  <p className="text-sm text-gray-600 capitalize">{key}</p>
+                  <p className="text-2xl font-semibold text-gray-900 mt-1">
+                    {value}
+                  </p>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </div>
@@ -274,12 +284,16 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </h2>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {Object.entries(aiMetrics.bigFiveDistribution).map(([key, value]) => (
-              <div key={key} className="text-center">
-                <p className="text-sm text-gray-600 capitalize">{key}</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
-              </div>
-            ))}
+            {Object.entries(aiMetrics.bigFiveDistribution).map(
+              ([key, value]) => (
+                <div key={key} className="text-center">
+                  <p className="text-sm text-gray-600 capitalize">{key}</p>
+                  <p className="text-2xl font-semibold text-gray-900 mt-1">
+                    {value}
+                  </p>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </div>

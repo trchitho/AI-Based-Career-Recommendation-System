@@ -33,6 +33,7 @@ export interface AssessmentResults {
 
 export interface CareerRecommendation {
   id: string;
+  slug?: string;
   title: string;
   description: string;
   matchPercentage: number;

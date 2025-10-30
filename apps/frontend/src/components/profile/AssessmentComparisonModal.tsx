@@ -1,21 +1,24 @@
-import { AssessmentHistoryItem } from '../../types/profile';
+import { AssessmentHistoryItem } from "../../types/profile";
 
 interface AssessmentComparisonModalProps {
   assessments: AssessmentHistoryItem[];
   onClose: () => void;
 }
 
-const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentComparisonModalProps) => {
+const AssessmentComparisonModal = ({
+  assessments,
+  onClose,
+}: AssessmentComparisonModalProps) => {
   if (assessments.length !== 2) return null;
 
   const assessment1 = assessments[0]!;
   const assessment2 = assessments[1]!;
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -24,40 +27,45 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
     const change = score2 - score1;
     return {
       value: Math.abs(change),
-      direction: change > 0 ? 'increase' : change < 0 ? 'decrease' : 'same',
+      direction: change > 0 ? "increase" : change < 0 ? "decrease" : "same",
     };
   };
 
   const renderScoreComparison = (
     label: string,
     score1?: number,
-    score2?: number
+    score2?: number,
   ) => {
     const change = calculateChange(score1, score2);
-    
+
     return (
       <div className="flex items-center justify-between py-2 border-b border-gray-100">
         <span className="text-sm font-medium text-gray-700 w-1/3">{label}</span>
         <div className="flex items-center space-x-4 w-2/3">
           <span className="text-sm text-gray-900 w-16 text-right">
-            {score1?.toFixed(0) || 'N/A'}
+            {score1?.toFixed(0) || "N/A"}
           </span>
           <div className="flex-1 flex items-center justify-center">
-            {change && change.direction !== 'same' && (
+            {change && change.direction !== "same" && (
               <span
                 className={`text-xs font-medium ${
-                  change.direction === 'increase' ? 'text-green-600' : 'text-red-600'
+                  change.direction === "increase"
+                    ? "text-green-600"
+                    : "text-red-600"
                 }`}
               >
-                {change.direction === 'increase' ? '↑' : '↓'} {change.value.toFixed(0)}
+                {change.direction === "increase" ? "↑" : "↓"}{" "}
+                {change.value.toFixed(0)}
               </span>
             )}
-            {change && change.direction === 'same' && (
-              <span className="text-xs font-medium text-gray-500">→ No change</span>
+            {change && change.direction === "same" && (
+              <span className="text-xs font-medium text-gray-500">
+                → No change
+              </span>
             )}
           </div>
           <span className="text-sm text-gray-900 w-16 text-left">
-            {score2?.toFixed(0) || 'N/A'}
+            {score2?.toFixed(0) || "N/A"}
           </span>
         </div>
       </div>
@@ -68,7 +76,9 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-gray-900">Assessment Comparison</h3>
+          <h3 className="text-xl font-semibold text-gray-900">
+            Assessment Comparison
+          </h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
@@ -103,37 +113,39 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
           {/* RIASEC Scores Comparison */}
           {assessment1.riasec_scores && assessment2.riasec_scores && (
             <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">RIASEC Scores</h4>
+              <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                RIASEC Scores
+              </h4>
               <div className="space-y-1">
                 {renderScoreComparison(
-                  'Realistic',
+                  "Realistic",
                   assessment1.riasec_scores.realistic,
-                  assessment2.riasec_scores.realistic
+                  assessment2.riasec_scores.realistic,
                 )}
                 {renderScoreComparison(
-                  'Investigative',
+                  "Investigative",
                   assessment1.riasec_scores.investigative,
-                  assessment2.riasec_scores.investigative
+                  assessment2.riasec_scores.investigative,
                 )}
                 {renderScoreComparison(
-                  'Artistic',
+                  "Artistic",
                   assessment1.riasec_scores.artistic,
-                  assessment2.riasec_scores.artistic
+                  assessment2.riasec_scores.artistic,
                 )}
                 {renderScoreComparison(
-                  'Social',
+                  "Social",
                   assessment1.riasec_scores.social,
-                  assessment2.riasec_scores.social
+                  assessment2.riasec_scores.social,
                 )}
                 {renderScoreComparison(
-                  'Enterprising',
+                  "Enterprising",
                   assessment1.riasec_scores.enterprising,
-                  assessment2.riasec_scores.enterprising
+                  assessment2.riasec_scores.enterprising,
                 )}
                 {renderScoreComparison(
-                  'Conventional',
+                  "Conventional",
                   assessment1.riasec_scores.conventional,
-                  assessment2.riasec_scores.conventional
+                  assessment2.riasec_scores.conventional,
                 )}
               </div>
             </div>
@@ -142,32 +154,34 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
           {/* Big Five Scores Comparison */}
           {assessment1.big_five_scores && assessment2.big_five_scores && (
             <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">Big Five Personality Traits</h4>
+              <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                Big Five Personality Traits
+              </h4>
               <div className="space-y-1">
                 {renderScoreComparison(
-                  'Openness',
+                  "Openness",
                   assessment1.big_five_scores.openness,
-                  assessment2.big_five_scores.openness
+                  assessment2.big_five_scores.openness,
                 )}
                 {renderScoreComparison(
-                  'Conscientiousness',
+                  "Conscientiousness",
                   assessment1.big_five_scores.conscientiousness,
-                  assessment2.big_five_scores.conscientiousness
+                  assessment2.big_five_scores.conscientiousness,
                 )}
                 {renderScoreComparison(
-                  'Extraversion',
+                  "Extraversion",
                   assessment1.big_five_scores.extraversion,
-                  assessment2.big_five_scores.extraversion
+                  assessment2.big_five_scores.extraversion,
                 )}
                 {renderScoreComparison(
-                  'Agreeableness',
+                  "Agreeableness",
                   assessment1.big_five_scores.agreeableness,
-                  assessment2.big_five_scores.agreeableness
+                  assessment2.big_five_scores.agreeableness,
                 )}
                 {renderScoreComparison(
-                  'Neuroticism',
+                  "Neuroticism",
                   assessment1.big_five_scores.neuroticism,
-                  assessment2.big_five_scores.neuroticism
+                  assessment2.big_five_scores.neuroticism,
                 )}
               </div>
             </div>
@@ -175,11 +189,14 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
 
           {/* Summary */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-blue-900 mb-2">Interpretation</h4>
+            <h4 className="text-sm font-semibold text-blue-900 mb-2">
+              Interpretation
+            </h4>
             <p className="text-sm text-blue-800">
-              Changes in scores can reflect personal growth, new experiences, or evolving interests.
-              Significant changes (±10 points or more) may indicate shifts in your career preferences
-              and personality development over time.
+              Changes in scores can reflect personal growth, new experiences, or
+              evolving interests. Significant changes (±10 points or more) may
+              indicate shifts in your career preferences and personality
+              development over time.
             </p>
           </div>
         </div>

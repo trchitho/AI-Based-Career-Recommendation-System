@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Milestone, UserProgress } from '../../types/roadmap';
+import { useState } from "react";
+import { Milestone, UserProgress } from "../../types/roadmap";
 
 interface RoadmapTimelineComponentProps {
   milestones: Milestone[];
@@ -14,32 +14,38 @@ const RoadmapTimelineComponent = ({
   onCompleteMilestone,
   completingMilestone,
 }: RoadmapTimelineComponentProps) => {
-  const [expandedMilestone, setExpandedMilestone] = useState<number | null>(null);
+  const [expandedMilestone, setExpandedMilestone] = useState<number | null>(
+    null,
+  );
 
   const isMilestoneCompleted = (order: number) => {
-    return userProgress?.completed_milestones?.includes(order.toString()) || false;
+    return (
+      userProgress?.completed_milestones?.includes(order.toString()) || false
+    );
   };
 
   const getCurrentMilestone = () => {
     if (!userProgress) return 0;
     const completedCount = userProgress.completed_milestones?.length || 0;
-    return completedCount < milestones.length ? completedCount : milestones.length - 1;
+    return completedCount < milestones.length
+      ? completedCount
+      : milestones.length - 1;
   };
 
   const currentMilestoneIndex = getCurrentMilestone();
 
   const getResourceIcon = (type: string) => {
     switch (type) {
-      case 'course':
-        return '📚';
-      case 'article':
-        return '📄';
-      case 'video':
-        return '🎥';
-      case 'book':
-        return '📖';
+      case "course":
+        return "📚";
+      case "article":
+        return "📄";
+      case "video":
+        return "🎥";
+      case "book":
+        return "📖";
       default:
-        return '🔗';
+        return "🔗";
     }
   };
 
@@ -58,7 +64,8 @@ const RoadmapTimelineComponent = ({
           const isCompleted = isMilestoneCompleted(milestone.order);
           const isCurrent = index === currentMilestoneIndex && !isCompleted;
           const isExpanded = expandedMilestone === milestone.order;
-          const isCompleting = completingMilestone === milestone.order.toString();
+          const isCompleting =
+            completingMilestone === milestone.order.toString();
 
           return (
             <div key={milestone.order} className="relative pl-16">
@@ -66,10 +73,10 @@ const RoadmapTimelineComponent = ({
               <div
                 className={`absolute left-5 top-2 w-6 h-6 rounded-full border-4 ${
                   isCompleted
-                    ? 'bg-green-500 border-green-200'
+                    ? "bg-green-500 border-green-200"
                     : isCurrent
-                    ? 'bg-indigo-500 border-indigo-200 animate-pulse'
-                    : 'bg-white border-gray-300'
+                      ? "bg-indigo-500 border-indigo-200 animate-pulse"
+                      : "bg-white border-gray-300"
                 }`}
               >
                 {isCompleted && (
@@ -91,10 +98,10 @@ const RoadmapTimelineComponent = ({
               <div
                 className={`bg-white rounded-lg shadow-md border-2 transition-all ${
                   isCurrent
-                    ? 'border-indigo-500'
+                    ? "border-indigo-500"
                     : isCompleted
-                    ? 'border-green-200'
-                    : 'border-gray-200'
+                      ? "border-green-200"
+                      : "border-gray-200"
                 }`}
               >
                 <div
@@ -121,7 +128,9 @@ const RoadmapTimelineComponent = ({
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
                         {milestone.skillName}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-2">{milestone.description}</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {milestone.description}
+                      </p>
                       <p className="text-xs text-gray-500">
                         ⏱️ Estimated Duration: {milestone.estimatedDuration}
                       </p>
@@ -129,7 +138,7 @@ const RoadmapTimelineComponent = ({
                     <button className="ml-4 text-gray-400 hover:text-gray-600">
                       <svg
                         className={`w-5 h-5 transition-transform ${
-                          isExpanded ? 'transform rotate-180' : ''
+                          isExpanded ? "transform rotate-180" : ""
                         }`}
                         fill="none"
                         stroke="currentColor"
@@ -149,7 +158,9 @@ const RoadmapTimelineComponent = ({
                 {/* Expanded Content */}
                 {isExpanded && (
                   <div className="px-5 pb-5 border-t border-gray-200 pt-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">Learning Resources</h4>
+                    <h4 className="font-semibold text-gray-900 mb-3">
+                      Learning Resources
+                    </h4>
                     <div className="space-y-2 mb-4">
                       {milestone.resources.map((resource, idx) => (
                         <a
@@ -159,10 +170,16 @@ const RoadmapTimelineComponent = ({
                           rel="noopener noreferrer"
                           className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
-                          <span className="text-2xl mr-3">{getResourceIcon(resource.type)}</span>
+                          <span className="text-2xl mr-3">
+                            {getResourceIcon(resource.type)}
+                          </span>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">{resource.title}</p>
-                            <p className="text-xs text-gray-500 capitalize">{resource.type}</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {resource.title}
+                            </p>
+                            <p className="text-xs text-gray-500 capitalize">
+                              {resource.type}
+                            </p>
                           </div>
                           <svg
                             className="w-4 h-4 text-gray-400"
@@ -190,27 +207,35 @@ const RoadmapTimelineComponent = ({
                         disabled={isCompleting}
                         className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
                       >
-                        {isCompleting ? 'Marking Complete...' : 'Mark as Complete'}
+                        {isCompleting
+                          ? "Marking Complete..."
+                          : "Mark as Complete"}
                       </button>
                     )}
 
                     {isCompleted && userProgress && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                         <p className="text-sm text-green-800">
-                          ✓ Completed on{' '}
+                          ✓ Completed on{" "}
                           {(() => {
                             const completionTimestamp =
-                              userProgress.milestone_completions?.[milestone.order.toString()];
+                              userProgress.milestone_completions?.[
+                                milestone.order.toString()
+                              ];
                             if (completionTimestamp) {
-                              return new Date(completionTimestamp).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
+                              return new Date(
+                                completionTimestamp,
+                              ).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
                               });
                             }
-                            return new Date(userProgress.last_updated_at).toLocaleDateString();
+                            return new Date(
+                              userProgress.last_updated_at,
+                            ).toLocaleDateString();
                           })()}
                         </p>
                       </div>

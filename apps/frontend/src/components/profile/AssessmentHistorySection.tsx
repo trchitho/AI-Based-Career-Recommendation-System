@@ -1,29 +1,31 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AssessmentHistoryItem } from '../../types/profile';
-import AssessmentComparisonModal from './AssessmentComparisonModal.tsx';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { AssessmentHistoryItem } from "../../types/profile";
+import AssessmentComparisonModal from "./AssessmentComparisonModal.tsx";
 
 interface AssessmentHistorySectionProps {
   assessmentHistory: AssessmentHistoryItem[];
 }
 
-const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectionProps) => {
+const AssessmentHistorySection = ({
+  assessmentHistory,
+}: AssessmentHistorySectionProps) => {
   const navigate = useNavigate();
   const [showComparison, setShowComparison] = useState(false);
   const [selectedAssessments, setSelectedAssessments] = useState<string[]>([]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getTestTypeLabel = (testTypes: string[]) => {
-    return testTypes.join(', ');
+    return testTypes.join(", ");
   };
 
   const handleCheckboxChange = (assessmentId: string) => {
@@ -48,19 +50,19 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
   };
 
   const getRiasecSummary = (scores?: any) => {
-    if (!scores) return 'N/A';
+    if (!scores) return "N/A";
     const entries = Object.entries(scores) as [string, number][];
     const sorted = entries.sort((a, b) => b[1] - a[1]);
-    if (sorted.length === 0) return 'N/A';
+    if (sorted.length === 0) return "N/A";
     const top = sorted[0]!;
     return `${top[0].charAt(0).toUpperCase() + top[0].slice(1)} (${top[1].toFixed(0)})`;
   };
 
   const getBigFiveSummary = (scores?: any) => {
-    if (!scores) return 'N/A';
+    if (!scores) return "N/A";
     const entries = Object.entries(scores) as [string, number][];
     const sorted = entries.sort((a, b) => b[1] - a[1]);
-    if (sorted.length === 0) return 'N/A';
+    if (sorted.length === 0) return "N/A";
     const top = sorted[0]!;
     return `${top[0].charAt(0).toUpperCase() + top[0].slice(1)} (${top[1].toFixed(0)})`;
   };
@@ -68,7 +70,9 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-900">Assessment History</h3>
+        <h3 className="text-xl font-semibold text-gray-900">
+          Assessment History
+        </h3>
         {assessmentHistory.length >= 2 && (
           <button
             onClick={handleCompare}
@@ -82,9 +86,11 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
 
       {assessmentHistory.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500 mb-4">You haven't completed any assessments yet.</p>
+          <p className="text-gray-500 mb-4">
+            You haven't completed any assessments yet.
+          </p>
           <button
-            onClick={() => navigate('/assessment')}
+            onClick={() => navigate("/assessment")}
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
           >
             Take Your First Assessment

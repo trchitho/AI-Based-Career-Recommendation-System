@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { adminService } from '../../services/adminService';
-import { Skill, SkillFormData, LearningResource } from '../../types/admin';
+import { useState, useEffect } from "react";
+import { adminService } from "../../services/adminService";
+import { Skill, SkillFormData, LearningResource } from "../../types/admin";
 
 const SkillManagementPage = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -20,7 +20,7 @@ const SkillManagementPage = () => {
       const data = await adminService.getAllSkills();
       setSkills(data);
     } catch (error) {
-      console.error('Error loading skills:', error);
+      console.error("Error loading skills:", error);
     } finally {
       setLoading(false);
     }
@@ -42,8 +42,8 @@ const SkillManagementPage = () => {
       await loadSkills();
       setDeleteConfirm(null);
     } catch (error) {
-      console.error('Error deleting skill:', error);
-      alert('Failed to delete skill');
+      console.error("Error deleting skill:", error);
+      alert("Failed to delete skill");
     }
   };
 
@@ -58,10 +58,11 @@ const SkillManagementPage = () => {
     loadSkills();
   };
 
-  const filteredSkills = skills.filter((skill) =>
-    skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    skill.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    skill.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSkills = skills.filter(
+    (skill) =>
+      skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      skill.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      skill.category.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -121,11 +122,15 @@ const SkillManagementPage = () => {
               {filteredSkills.map((skill) => (
                 <tr key={skill.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{skill.name}</div>
-                    <div className="text-sm text-gray-500 line-clamp-2">{skill.description}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {skill.name}
+                    </div>
+                    <div className="text-sm text-gray-500 line-clamp-2">
+                      {skill.description}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {skill.category || 'N/A'}
+                    {skill.category || "N/A"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {skill.proficiency_levels?.length || 0} levels
@@ -194,19 +199,23 @@ interface SkillFormModalProps {
   onSuccess: () => void;
 }
 
-const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSuccess }) => {
+const SkillFormModal: React.FC<SkillFormModalProps> = ({
+  skill,
+  onClose,
+  onSuccess,
+}) => {
   const [formData, setFormData] = useState<SkillFormData>({
-    name: skill?.name || '',
-    description: skill?.description || '',
-    category: skill?.category || '',
+    name: skill?.name || "",
+    description: skill?.description || "",
+    category: skill?.category || "",
     proficiencyLevels: skill?.proficiency_levels || [],
     learningResources: skill?.learning_resources || [],
   });
-  const [levelInput, setLevelInput] = useState('');
+  const [levelInput, setLevelInput] = useState("");
   const [resourceInput, setResourceInput] = useState<LearningResource>({
-    title: '',
-    url: '',
-    type: 'course',
+    title: "",
+    url: "",
+    type: "course",
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -221,20 +230,23 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
       }
       onSuccess();
     } catch (error) {
-      console.error('Error saving skill:', error);
-      alert('Failed to save skill');
+      console.error("Error saving skill:", error);
+      alert("Failed to save skill");
     } finally {
       setSubmitting(false);
     }
   };
 
   const addLevel = () => {
-    if (levelInput.trim() && !formData.proficiencyLevels.includes(levelInput.trim())) {
+    if (
+      levelInput.trim() &&
+      !formData.proficiencyLevels.includes(levelInput.trim())
+    ) {
       setFormData({
         ...formData,
         proficiencyLevels: [...formData.proficiencyLevels, levelInput.trim()],
       });
-      setLevelInput('');
+      setLevelInput("");
     }
   };
 
@@ -251,14 +263,16 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
         ...formData,
         learningResources: [...formData.learningResources, resourceInput],
       });
-      setResourceInput({ title: '', url: '', type: 'course' });
+      setResourceInput({ title: "", url: "", type: "course" });
     }
   };
 
   const removeResource = (index: number) => {
     setFormData({
       ...formData,
-      learningResources: formData.learningResources.filter((_, i) => i !== index),
+      learningResources: formData.learningResources.filter(
+        (_, i) => i !== index,
+      ),
     });
   };
 
@@ -267,7 +281,7 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            {skill ? 'Edit Skill' : 'Add Skill'}
+            {skill ? "Edit Skill" : "Add Skill"}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -278,7 +292,9 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -290,7 +306,9 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -303,7 +321,9 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
               <input
                 type="text"
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -317,7 +337,9 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
                   type="text"
                   value={levelInput}
                   onChange={(e) => setLevelInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addLevel())}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), addLevel())
+                  }
                   placeholder="e.g., Beginner, Intermediate, Advanced"
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -356,14 +378,21 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
                 <input
                   type="text"
                   value={resourceInput.title}
-                  onChange={(e) => setResourceInput({ ...resourceInput, title: e.target.value })}
+                  onChange={(e) =>
+                    setResourceInput({
+                      ...resourceInput,
+                      title: e.target.value,
+                    })
+                  }
                   placeholder="Resource title"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <input
                   type="url"
                   value={resourceInput.url}
-                  onChange={(e) => setResourceInput({ ...resourceInput, url: e.target.value })}
+                  onChange={(e) =>
+                    setResourceInput({ ...resourceInput, url: e.target.value })
+                  }
                   placeholder="Resource URL"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -371,7 +400,10 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
                   <select
                     value={resourceInput.type}
                     onChange={(e) =>
-                      setResourceInput({ ...resourceInput, type: e.target.value as any })
+                      setResourceInput({
+                        ...resourceInput,
+                        type: e.target.value as any,
+                      })
                     }
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -396,7 +428,9 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{resource.title}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {resource.title}
+                      </p>
                       <p className="text-xs text-gray-500">{resource.url}</p>
                       <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                         {resource.type}
@@ -427,7 +461,7 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
                 disabled={submitting}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                {submitting ? 'Saving...' : skill ? 'Update' : 'Create'}
+                {submitting ? "Saving..." : skill ? "Update" : "Create"}
               </button>
             </div>
           </form>

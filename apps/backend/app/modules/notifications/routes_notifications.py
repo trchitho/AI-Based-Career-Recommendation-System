@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
+
 from ...core.jwt import require_user
-from .models import Notification
 from ..realtime.ws_notifications import manager
+from .models import Notification
 
 router = APIRouter()
 

@@ -1,14 +1,12 @@
-from fastapi import APIRouter, Request, HTTPException, Query
-from sqlalchemy import select, func
-from sqlalchemy.orm import Session
-from ..users.models import User
-from ..assessments.models import AssessmentForm, AssessmentQuestion, Assessment
-from sqlalchemy import text
-from ..content.models import Career, CareerKSA, BlogPost, Comment
-from ..system.models import AppSettings
+from fastapi import APIRouter, HTTPException, Query, Request
+from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, Text, func, select, text
+from sqlalchemy.orm import Session, registry
+
 from ...core.jwt import require_admin
-from sqlalchemy.orm import registry
-from sqlalchemy import Column, BigInteger, Integer, Text, TIMESTAMP
+from ..assessments.models import Assessment, AssessmentForm, AssessmentQuestion
+from ..content.models import BlogPost, Career, CareerKSA, Comment
+from ..system.models import AppSettings
+from ..users.models import User
 
 router = APIRouter()
 
@@ -27,19 +25,15 @@ def dashboard_metrics(request: Request):
     # recent 7 days
     recent_assessments = (
         session.execute(
-            text(
-                """
+            text("""
         SELECT COUNT(*) FROM core.assessments 
         WHERE created_at >= now() - interval '7 days'
-    """
-            )
+    """)
         ).scalar()
         or 0
     )
     completed_assessments = total_assessments
-    completion_rate = (
-        float((completed_assessments / total_users) * 100) if total_users else 0.0
-    )
+    completion_rate = float((completed_assessments / total_users) * 100) if total_users else 0.0
 
     return {
         "totalUsers": total_users,
@@ -116,11 +110,7 @@ def user_feedback(
         stmt = stmt.where(
             UserFeedback.created_at <= text("CAST(:ed AS timestamp with time zone)")
         ).params(ed=endDate)
-    rows = (
-        session.execute(stmt.order_by(UserFeedback.created_at.desc()).limit(200))
-        .scalars()
-        .all()
-    )
+    rows = session.execute(stmt.order_by(UserFeedback.created_at.desc()).limit(200)).scalars().all()
     return [
         {
             "id": str(x.id),
@@ -172,13 +162,14 @@ def update_settings(request: Request, payload: dict):
 
 # ----- Careers CRUD -----
 def _career_to_client(c: Career) -> dict:
+    dto = c.to_dict()
     return {
         "id": str(c.id),
-        "title": c.title,
-        "description": c.content_md or c.short_desc or "",
+        "title": dto.get("title"),
+        "description": dto.get("short_desc") or "",
         "required_skills": [],
         "salary_range": {"min": 0, "max": 0, "currency": "VND"},
-        "industry_category": str(c.category_id or ""),
+        "industry_category": "",
         "riasec_profile": {
             "realistic": 0,
             "investigative": 0,
@@ -196,11 +187,7 @@ def _career_to_client(c: Career) -> dict:
 def list_careers(request: Request, industryCategory: str | None = Query(None)):
     _ = require_admin(request)
     session = _db(request)
-    rows = (
-        session.execute(select(Career).order_by(Career.created_at.desc()))
-        .scalars()
-        .all()
-    )
+    rows = session.execute(select(Career).order_by(Career.created_at.desc())).scalars().all()
     return [_career_to_client(c) for c in rows]
 
 
@@ -224,9 +211,7 @@ def create_career(request: Request, payload: dict):
         raise HTTPException(status_code=400, detail="title is required")
 
     slug = "-".join(title.lower().split())[:100]
-    c = Career(
-        title=title, slug=slug, short_desc=description[:160], content_md=description
-    )
+    c = Career(title_vi=title, slug=slug, short_desc_vn=(description or "")[:160])
     session.add(c)
     session.commit()
     session.refresh(c)
@@ -241,11 +226,10 @@ def update_career(request: Request, career_id: int, payload: dict):
     if not c:
         raise HTTPException(status_code=404, detail="Career not found")
     if "title" in payload and payload["title"]:
-        c.title = payload["title"].strip()
+        c.title_vi = payload["title"].strip()
     if "description" in payload:
         desc = payload.get("description") or ""
-        c.short_desc = desc[:160]
-        c.content_md = desc
+        c.short_desc_vn = (desc or "")[:160]
     session.commit()
     session.refresh(c)
     return {"career": _career_to_client(c)}
@@ -273,9 +257,7 @@ def list_skills(request: Request):
     _ = require_admin(request)
     session = _db(request)
     rows = (
-        session.execute(select(CareerKSA).order_by(CareerKSA.id.desc()).limit(200))
-        .scalars()
-        .all()
+        session.execute(select(CareerKSA).order_by(CareerKSA.id.desc()).limit(200)).scalars().all()
     )
     return [_ksa_to_client(x) for x in rows]
 
@@ -363,9 +345,7 @@ def _question_to_client(q: AssessmentQuestion, test_type: str) -> dict:
 
 @router.get("/questions")
 def list_questions(
-    request: Request,
-    testType: str | None = Query(None),
-    isActive: bool | None = Query(None),
+    request: Request, testType: str | None = Query(None), isActive: bool | None = Query(None)
 ):
     _ = require_admin(request)
     session = _db(request)
@@ -486,9 +466,7 @@ def delete_question(request: Request, question_id: int):
 def list_users(request: Request):
     _ = require_admin(request)
     session = _db(request)
-    rows = (
-        session.execute(select(User).order_by(User.created_at.desc())).scalars().all()
-    )
+    rows = session.execute(select(User).order_by(User.created_at.desc())).scalars().all()
     return [
         {
             "id": str(u.id),
@@ -506,8 +484,8 @@ def list_users(request: Request):
 def create_user(request: Request, payload: dict):
     _ = require_admin(request)
     session = _db(request)
-    from ..users.models import User  # local import to avoid cycles
     from ...core.security import hash_password
+    from ..users.models import User  # local import to avoid cycles
 
     email = (payload.get("email") or "").strip().lower()
     password = payload.get("password") or ""
@@ -517,9 +495,7 @@ def create_user(request: Request, payload: dict):
         raise HTTPException(status_code=400, detail="email and password are required")
     if role not in {"admin", "user"}:
         raise HTTPException(status_code=400, detail="Invalid role")
-    exists = session.execute(
-        select(User).where(User.email == email)
-    ).scalar_one_or_none()
+    exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
         raise HTTPException(status_code=400, detail="Email already registered")
     u = User(
@@ -545,8 +521,8 @@ def create_user(request: Request, payload: dict):
 def update_user(request: Request, user_id: int, payload: dict):
     _ = require_admin(request)
     session = _db(request)
-    from ..users.models import User
     from ...core.security import hash_password
+    from ..users.models import User
 
     u = session.get(User, user_id)
     if not u:
@@ -580,10 +556,7 @@ def admin_list_posts(request: Request, limit: int = 50, offset: int = 0):
     session = _db(request)
     rows = (
         session.execute(
-            select(BlogPost)
-            .order_by(BlogPost.created_at.desc())
-            .limit(limit)
-            .offset(offset)
+            select(BlogPost).order_by(BlogPost.created_at.desc()).limit(limit).offset(offset)
         )
         .scalars()
         .all()
@@ -640,10 +613,7 @@ def admin_list_comments(request: Request, limit: int = 100, offset: int = 0):
     session = _db(request)
     rows = (
         session.execute(
-            select(Comment)
-            .order_by(Comment.created_at.desc())
-            .limit(limit)
-            .offset(offset)
+            select(Comment).order_by(Comment.created_at.desc()).limit(limit).offset(offset)
         )
         .scalars()
         .all()

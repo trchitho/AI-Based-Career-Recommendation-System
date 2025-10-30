@@ -1,5 +1,5 @@
 # apps/backend/app/modules/users/models.py
-from sqlalchemy import Column, BigInteger, Text, Boolean, TIMESTAMP, func, Date
+from sqlalchemy import TIMESTAMP, BigInteger, Boolean, Column, Date, Text, func
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -16,9 +16,7 @@ class User(Base):
     avatar_url = Column(Text)
     role = Column(Text, nullable=False, default="user")
     is_locked = Column(Boolean, nullable=False, default=False)
-    created_at = Column(
-        TIMESTAMP(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     last_login = Column(TIMESTAMP(timezone=True))
     date_of_birth = Column(Date)
 
@@ -32,7 +30,5 @@ class User(Base):
             "is_locked": self.is_locked,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "last_login": self.last_login.isoformat() if self.last_login else None,
-            "date_of_birth": (
-                self.date_of_birth.isoformat() if self.date_of_birth else None
-            ),
+            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
         }

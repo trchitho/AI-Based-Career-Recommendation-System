@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { adminService } from '../../services/adminService';
+import { useEffect, useState } from "react";
+import { adminService } from "../../services/adminService";
 
 const UserManagementPage = () => {
   const [rows, setRows] = useState<any[]>([]);
@@ -7,20 +7,23 @@ const UserManagementPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const data = await adminService.listUsers();
       setRows(data);
     } catch (e: any) {
-      setError(e?.response?.data?.detail || e?.message || 'Failed');
+      setError(e?.response?.data?.detail || e?.message || "Failed");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
-  const setRole = async (id: string, role: 'admin' | 'user' | 'manager') => {
+  const setRole = async (id: string, role: "admin" | "user" | "manager") => {
     await adminService.updateUser(id, { role });
     load();
   };
@@ -48,19 +51,41 @@ const UserManagementPage = () => {
                 <td className="px-3 py-2">{u.full_name}</td>
                 <td className="px-3 py-2">{u.role}</td>
                 <td className="px-3 py-2">
-                  <span className={`px-2 py-1 rounded text-xs ${u.is_locked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                    {u.is_locked ? 'Locked' : 'Active'}
+                  <span
+                    className={`px-2 py-1 rounded text-xs ${u.is_locked ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
+                  >
+                    {u.is_locked ? "Locked" : "Active"}
                   </span>
                 </td>
                 <td className="px-3 py-2 space-x-2">
-                  <button className="px-2 py-1 bg-gray-200 rounded" onClick={()=>setRole(u.id,'user')}>User</button>
-                  <button className="px-2 py-1 bg-purple-200 rounded" onClick={()=>setRole(u.id,'manager')}>Manager</button>
-                  <button className="px-2 py-1 bg-green-500 text-white rounded" onClick={()=>setRole(u.id,'admin')}>Admin</button>
                   <button
-                    className={`px-2 py-1 rounded ${u.is_locked ? 'bg-green-200' : 'bg-red-200'}`}
-                    onClick={async ()=>{ await adminService.updateUser(u.id, { is_locked: !u.is_locked }); load(); }}
+                    className="px-2 py-1 bg-gray-200 rounded"
+                    onClick={() => setRole(u.id, "user")}
                   >
-                    {u.is_locked ? 'Unlock' : 'Lock'}
+                    User
+                  </button>
+                  <button
+                    className="px-2 py-1 bg-purple-200 rounded"
+                    onClick={() => setRole(u.id, "manager")}
+                  >
+                    Manager
+                  </button>
+                  <button
+                    className="px-2 py-1 bg-green-500 text-white rounded"
+                    onClick={() => setRole(u.id, "admin")}
+                  >
+                    Admin
+                  </button>
+                  <button
+                    className={`px-2 py-1 rounded ${u.is_locked ? "bg-green-200" : "bg-red-200"}`}
+                    onClick={async () => {
+                      await adminService.updateUser(u.id, {
+                        is_locked: !u.is_locked,
+                      });
+                      load();
+                    }}
+                  >
+                    {u.is_locked ? "Unlock" : "Lock"}
                   </button>
                 </td>
               </tr>

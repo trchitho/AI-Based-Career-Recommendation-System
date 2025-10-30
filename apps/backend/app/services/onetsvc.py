@@ -7,16 +7,16 @@ from typing import Any, Dict, Optional
 
 import httpx
 from httpx import (
-    HTTPStatusError,
-    ReadTimeout,
     ConnectError,
+    HTTPStatusError,
     NetworkError,
+    ReadTimeout,
 )
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
 
 
@@ -96,9 +96,7 @@ class OnetService:
             )
         ),
     )
-    def _fetch_json(
-        self, path: str, params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def _fetch_json(self, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Fetch with retry/backoff — dùng cho trường hợp 'bắt buộc'."""
         r = self.client.get(path, params=params or {})
         r.raise_for_status()
@@ -127,9 +125,7 @@ class OnetService:
                         f"Unexpected content type for {path}: {r.headers.get('Content-Type')}"
                     )
             return r.json()
-        raise httpx.HTTPStatusError(
-            f"{r.status_code} for {r.url}", request=r.request, response=r
-        )
+        raise httpx.HTTPStatusError(f"{r.status_code} for {r.url}", request=r.request, response=r)
 
     def _fetch_json_optional(
         self, path: str, params: Optional[Dict[str, Any]] = None

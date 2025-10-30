@@ -3,17 +3,17 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import socket
 import sys
-import re
 from datetime import date
 from pathlib import Path
 from typing import Any, Iterable
 
 import httpx
 import psycopg
-from psycopg.rows import dict_row
 from dotenv import load_dotenv
+from psycopg.rows import dict_row
 
 from ..services.onetsvc import OnetService
 
@@ -95,9 +95,7 @@ def _slugify(title: str, code: str) -> str:
     import unicodedata
 
     s = "".join(
-        c
-        for c in unicodedata.normalize("NFKD", title or "")
-        if not unicodedata.combining(c)
+        c for c in unicodedata.normalize("NFKD", title or "") if not unicodedata.combining(c)
     )
     s = re.sub(r"[^a-zA-Z0-9]+", "-", s).strip("-").lower()
     return f"{s}-{code}"
@@ -268,9 +266,7 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
     if len(tasks) < MIN_TASKS and short_desc:
         import re
 
-        sents = [
-            s.strip() for s in re.split(r"(?<=[\.\!\?])\s+", short_desc) if s.strip()
-        ]
+        sents = [s.strip() for s in re.split(r"(?<=[\.\!\?])\s+", short_desc) if s.strip()]
         for s in sents:
             if len(tasks) >= MIN_TASKS:
                 break
@@ -364,17 +360,13 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
             return v["text"]
         return v or ""
 
-    job_zone = (
-        _safe_get(edu_obj, "job_zone", "title") or edu_obj.get("job_zone") or None
-    )
+    job_zone = _safe_get(edu_obj, "job_zone", "title") or edu_obj.get("job_zone") or None
     education = _join_text_list(edu_obj.get("education"))
     training = _join_text_list(edu_obj.get("training"))
 
     # =================== Outlook ===================
     growth_label = _safe_get(out_obj, "growth", "text") or out_obj.get("growth") or ""
-    openings_est = _parse_int(
-        _safe_get(out_obj, "openings", "text") or out_obj.get("openings")
-    )
+    openings_est = _parse_int(_safe_get(out_obj, "openings", "text") or out_obj.get("openings"))
     outlook_md = out_obj.get("summary") or ""
 
     # =================== Interests (top_interest -> one-hot) ===================
@@ -411,9 +403,7 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
         cur.execute(UPSERT_PREP, (code, job_zone, education, training, today))
 
         # outlook
-        cur.execute(
-            UPSERT_OUTLOOK, (code, outlook_md, growth_label, openings_est, today)
-        )
+        cur.execute(UPSERT_OUTLOOK, (code, outlook_md, growth_label, openings_est, today))
 
         # interests
         if riasec:
@@ -465,9 +455,7 @@ def _print(msg: str):
 
 def main():
     parser = argparse.ArgumentParser(description="ETL O*NET => Postgres for 'see more'")
-    parser.add_argument(
-        "--code", type=str, help="Single O*NET/SOC code (e.g., 15-1254.00)"
-    )
+    parser.add_argument("--code", type=str, help="Single O*NET/SOC code (e.g., 15-1254.00)")
     parser.add_argument(
         "--stdin",
         action="store_true",

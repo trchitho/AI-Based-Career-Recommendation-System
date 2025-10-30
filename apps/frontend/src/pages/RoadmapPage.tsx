@@ -1,18 +1,22 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { roadmapService } from '../services/roadmapService';
-import { Roadmap } from '../types/roadmap';
-import RoadmapTimelineComponent from '../components/roadmap/RoadmapTimelineComponent';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { roadmapService } from "../services/roadmapService";
+import { useAppSettings } from "../contexts/AppSettingsContext";
+import { Roadmap } from "../types/roadmap";
+import RoadmapTimelineComponent from "../components/roadmap/RoadmapTimelineComponent";
 
 const RoadmapPage = () => {
   const { careerId } = useParams<{ careerId: string }>();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const app = useAppSettings();
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [completingMilestone, setCompletingMilestone] = useState<string | null>(null);
+  const [completingMilestone, setCompletingMilestone] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (careerId) {
@@ -29,8 +33,8 @@ const RoadmapPage = () => {
       const data = await roadmapService.getRoadmap(careerId);
       setRoadmap(data);
     } catch (err) {
-      console.error('Error fetching roadmap:', err);
-      setError('Failed to load learning roadmap. Please try again.');
+      console.error("Error fetching roadmap:", err);
+      setError("Failed to load learning roadmap. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -48,8 +52,9 @@ const RoadmapPage = () => {
       // Refresh roadmap to get updated progress
       await fetchRoadmap();
     } catch (err: any) {
-      console.error('Error completing milestone:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to mark milestone as complete.';
+      console.error("Error completing milestone:", err);
+      const errorMessage =
+        err.response?.data?.message || "Failed to mark milestone as complete.";
       setError(errorMessage);
     } finally {
       setCompletingMilestone(null);
@@ -59,7 +64,7 @@ const RoadmapPage = () => {
   const getProgressPercentage = () => {
     if (!roadmap?.userProgress) return 0;
     const percentage = roadmap.userProgress.progress_percentage;
-    return typeof percentage === 'number' ? percentage : 0;
+    return typeof percentage === "number" ? percentage : 0;
   };
 
   const getCompletedCount = () => {
@@ -74,28 +79,33 @@ const RoadmapPage = () => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate("/dashboard")}
                 className="text-xl font-bold text-gray-900 hover:text-indigo-700 focus:outline-none"
                 aria-label="Go to Dashboard"
               >
-                Career Recommendation System
+                {app.app_title || "Career Recommendation System"}
               </button>
             </div>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate("/dashboard")}
                 className="text-sm text-gray-700 hover:text-gray-900"
               >
                 Dashboard
               </button>
               <button
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate("/profile")}
                 className="text-sm text-gray-700 hover:text-gray-900"
               >
                 Profile
               </button>
-              <span className="text-sm text-gray-700">{user?.firstName || user?.email}</span>
-              <button onClick={logout} className="text-sm text-gray-700 hover:text-gray-900">
+              <span className="text-sm text-gray-700">
+                {user?.firstName || user?.email}
+              </span>
+              <button
+                onClick={logout}
+                className="text-sm text-gray-700 hover:text-gray-900"
+              >
                 Logout
               </button>
             </div>
@@ -141,16 +151,21 @@ const RoadmapPage = () => {
                   Back
                 </button>
 
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{roadmap.careerTitle}</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                  {roadmap.careerTitle}
+                </h2>
                 <p className="text-gray-600 mb-4">Learning Roadmap</p>
 
                 {/* Progress Overview */}
                 <div className="bg-white shadow rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Your Progress</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Your Progress
+                      </h3>
                       <p className="text-sm text-gray-600">
-                        {getCompletedCount()} of {roadmap.milestones.length} milestones completed
+                        {getCompletedCount()} of {roadmap.milestones.length}{" "}
+                        milestones completed
                       </p>
                     </div>
                     <div className="text-right">
@@ -169,10 +184,16 @@ const RoadmapPage = () => {
                   </div>
 
                   <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-                    <span>⏱️ Estimated Total Duration: {roadmap.estimatedTotalDuration}</span>
+                    <span>
+                      ⏱️ Estimated Total Duration:{" "}
+                      {roadmap.estimatedTotalDuration}
+                    </span>
                     {roadmap.userProgress && (
                       <span>
-                        Started: {new Date(roadmap.userProgress.started_at).toLocaleDateString()}
+                        Started:{" "}
+                        {new Date(
+                          roadmap.userProgress.started_at,
+                        ).toLocaleDateString()}
                       </span>
                     )}
                   </div>
@@ -181,7 +202,9 @@ const RoadmapPage = () => {
 
               {/* Timeline */}
               <div className="bg-white shadow rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Learning Path</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">
+                  Learning Path
+                </h3>
                 <RoadmapTimelineComponent
                   milestones={roadmap.milestones}
                   userProgress={roadmap.userProgress}

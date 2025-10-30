@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-# --- dotenv (optional, for local/CI)
+# dotenv (optional)
 try:
     from dotenv import load_dotenv  # type: ignore
 
@@ -19,16 +19,13 @@ try:
 except Exception:
     pass
 
-# --- DB Session (SQLAlchemy sync)
-from sqlalchemy.orm import sessionmaker
+# DB Session (SQLAlchemy sync)
 from app.core.db import engine, test_connection
+from sqlalchemy.orm import sessionmaker
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
-# -------------------------
-# Helpers for env handling
-# -------------------------
 def _split_csv_env(value: str | None, default: str) -> list[str]:
     raw = (value or default).strip()
     return [item.strip() for item in raw.split(",") if item.strip()]
@@ -41,12 +38,8 @@ def _bool_env(name: str, default: bool = False) -> bool:
     return v.strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
-# -------------------------
-# Lifespan: warm-up checks
-# -------------------------
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # DB connectivity check (non-fatal)
     try:
         test_connection()
     except Exception as e:
@@ -54,53 +47,32 @@ async def lifespan(_: FastAPI):
     yield
 
 
-# -------------------------
-# App factory
-# -------------------------
 def create_app() -> FastAPI:
     app = FastAPI(
-        title=os.getenv("API_TITLE", "NCKH API"),
+        title="NCKH API",
         version=os.getenv("API_VERSION", "0.1.0"),
         docs_url=os.getenv("DOCS_URL", "/docs"),
         redoc_url=os.getenv("REDOC_URL", "/redoc"),
         lifespan=lifespan,
     )
 
-    # ===== CORS (no duplicate keys) =====
-    # If you want to allow all: set ALLOW_ALL_ORIGINS=1
-    allow_all = _bool_env("ALLOW_ALL_ORIGINS", True)
-    if allow_all:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_credentials=_bool_env("ALLOW_CREDENTIALS", True),
-            allow_methods=["*"],
-            allow_headers=["*"],
-            expose_headers=["*"],
-            max_age=600,
-        )
-    else:
-        origins: Iterable[str] = _split_csv_env(
-            os.getenv("ALLOWED_ORIGINS"), default="http://localhost:3000"
-        )
-        allow_headers = _split_csv_env(
-            os.getenv("ALLOWED_HEADERS"), default="Authorization, Content-Type"
-        )
-        allow_methods = _split_csv_env(
-            os.getenv("ALLOWED_METHODS"), default="GET,POST,PUT,PATCH,DELETE,OPTIONS"
-        )
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=list(origins),
-            allow_credentials=_bool_env("ALLOW_CREDENTIALS", True),
-            allow_methods=list(allow_methods),
-            allow_headers=list(allow_headers),
-            expose_headers=["*"],
-            max_age=600,
-        )
-    # ====================================
+    # CORS
+    origins: Iterable[str] = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000")
+    allow_headers = _split_csv_env(os.getenv("ALLOWED_HEADERS"), "*, Authorization, Content-Type")
+    allow_methods = _split_csv_env(os.getenv("ALLOWED_METHODS"), "*")
+    allow_credentials = _bool_env("ALLOW_CREDENTIALS", True)
 
-    # DB session per-request middleware (commit/rollback/close)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=list(origins),
+        allow_credentials=allow_credentials,
+        allow_methods=list(allow_methods),
+        allow_headers=list(allow_headers),
+        expose_headers=["*"],
+        max_age=600,
+    )
+
+    # DB session per-request
     @app.middleware("http")
     async def db_session_middleware(request: Request, call_next):
         db = SessionLocal()
@@ -124,138 +96,118 @@ def create_app() -> FastAPI:
     def root():
         return RedirectResponse(url=app.docs_url or "/docs")
 
-    # -------------------------
-    # Routers (safe import)
-    # -------------------------
-    # BFF
+    # Routers (để bên trong cho an toàn import)
+    # BFF (nếu có)
     try:
-        from app.bff.router import router as bff_router
+        from .bff import router as bff_router
 
-        app.include_router(bff_router, prefix="/bff", tags=["bff"])
+        app.include_router(bff_router.router)
     except Exception as e:
         print("ℹ️  Skip BFF router:", repr(e))
 
     # Auth / Users
-    try:
-        from app.modules.users.router_auth import router as auth_router
-        from app.modules.users.routers_users import router as users_router
+    from .modules.users.router_auth import router as auth_router
+    from .modules.users.routers_users import router as users_router
 
-        app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
-        app.include_router(users_router, prefix="/api/users", tags=["users"])
-    except Exception as e:
-        print("ℹ️  Skip users/auth routers:", repr(e))
+    app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
+    app.include_router(users_router, prefix="/api/users", tags=["users"])
 
     # Content
+    from .modules.content import routes_blog as blog_router
+    from .modules.content import routes_careers as careers_router
+    from .modules.content import routes_comments as comments_router
+    from .modules.content import routes_essays as essays_router
+
+    app.include_router(careers_router.router, prefix="/api/careers", tags=["careers"])
+    app.include_router(blog_router.router, prefix="/api/blog", tags=["blog"])
+    app.include_router(comments_router.router, prefix="/api/comments", tags=["comments"])
+    app.include_router(essays_router.router, prefix="/api/essays", tags=["essays"])
+
+    # Assessments (nếu đã thêm)
     try:
-        from app.modules.content import routes_careers as careers_router
-        from app.modules.content import routes_blog as blog_router
-        from app.modules.content import routes_comments as comments_router
-        from app.modules.content import routes_essays as essays_router
+        from .modules.assessments import routes_assessments as assess_router
 
-        app.include_router(
-            careers_router.router, prefix="/api/careers", tags=["careers"]
-        )
-        app.include_router(blog_router.router, prefix="/api/blog", tags=["blog"])
-        app.include_router(
-            comments_router.router, prefix="/api/comments", tags=["comments"]
-        )
-        app.include_router(essays_router.router, prefix="/api/essays", tags=["essays"])
-    except Exception as e:
-        print("ℹ️  Skip content routers:", repr(e))
-
-    # Assessments
-    try:
-        from app.modules.assessments import routes_assessments as assess_router
-
-        app.include_router(
-            assess_router.router, prefix="/api/assessments", tags=["assessments"]
-        )
+        app.include_router(assess_router.router, prefix="/api/assessments", tags=["assessments"])
     except Exception as e:
         print("ℹ️  Skip assessments router:", repr(e))
 
-    # Admin
+    # Admin (dashboard, careers, questions, skills)
     try:
-        from app.modules.admin import routes_admin as admin_router
+        from .modules.admin import routes_admin as admin_router
 
         app.include_router(admin_router.router, prefix="/api/admin", tags=["admin"])
     except Exception as e:
-        print("ℹ️  Skip admin router:", repr(e))
+        print("??  Skip admin router:", repr(e))
 
-    # System public
+    # Public system settings (no auth)
     try:
-        from app.modules.system import routes_public as system_public
+        from .modules.system import routes_public as system_public
 
         app.include_router(system_public.router, prefix="/api/app", tags=["app"])
     except Exception as e:
-        print("ℹ️  Skip system public router:", repr(e))
+        print("??  Skip system public router:", repr(e))
 
-    # Auth tokens & Google OAuth
+    # Auth tokens (verify/reset)
     try:
-        from app.modules.auth import routes_tokens as auth_tokens
-        from app.modules.auth import routes_google as auth_google
+        from .modules.auth import routes_google as auth_google
+        from .modules.auth import routes_tokens as auth_tokens
 
         app.include_router(auth_tokens.router, prefix="/api/auth", tags=["auth"])
         app.include_router(auth_google.router, prefix="/api/auth", tags=["auth"])
     except Exception as e:
-        print("ℹ️  Skip auth tokens/google:", repr(e))
+        print("??  Skip auth tokens router:", repr(e))
 
-    # Profile extras
+    # Profile extras (goals/skills/journey)
     try:
-        from app.modules.users import routes_profile as profile_router
+        from .modules.users import routes_profile as profile_router
 
-        app.include_router(
-            profile_router.router, prefix="/api/profile", tags=["profile"]
-        )
+        app.include_router(profile_router.router, prefix="/api/profile", tags=["profile"])
     except Exception as e:
-        print("ℹ️  Skip profile router:", repr(e))
+        print("??  Skip profile router:", repr(e))
 
-    # WebSocket notifications
+    # WS notifications
     try:
-        from app.modules.realtime import ws_notifications as ws_notifs
+        from .modules.realtime import ws_notifications as ws_notifs
 
         app.include_router(ws_notifs.router)
     except Exception as e:
-        print("ℹ️  Skip ws notifications:", repr(e))
+        print("??  Skip ws notifications:", repr(e))
 
-    # Search (Elastic / fallback)
+    # Search API (Elastic or fallback)
     try:
-        from app.modules.search import routes_search as search_router
+        from .modules.search import routes_search as search_router
 
         app.include_router(search_router.router, prefix="/api/search", tags=["search"])
     except Exception as e:
-        print("ℹ️  Skip search router:", repr(e))
+        print("??  Skip search router:", repr(e))
 
-    # Graph (Neo4j)
+    # Graph API (Neo4j) - sync
     try:
-        from app.modules.graph import routes_graph as graph_router
+        from .modules.graph import routes_graph as graph_router
 
         app.include_router(graph_router.router, prefix="/api/graph", tags=["graph"])
     except Exception as e:
-        print("ℹ️  Skip graph router:", repr(e))
+        print("??  Skip graph router:", repr(e))
 
-    # Recommendation (AI layer)
+    # Recommendation API (AI layer integration)
     try:
-        from app.modules.recommendation import routes_recommendations as rec_router
+        from .modules.recommendation import routes_recommendations as rec_router
 
         app.include_router(
             rec_router.router, prefix="/api/recommendations", tags=["recommendations"]
         )
     except Exception as e:
-        print("ℹ️  Skip recommendations router:", repr(e))
+        print("??  Skip recommendations router:", repr(e))
 
-    # Notifications (REST)
+    # Notifications
     try:
-        from app.modules.notifications import routes_notifications as notif_router
+        from .modules.notifications import routes_notifications as notif_router
 
-        app.include_router(
-            notif_router.router, prefix="/api/notifications", tags=["notifications"]
-        )
+        app.include_router(notif_router.router, prefix="/api/notifications", tags=["notifications"])
     except Exception as e:
-        print("ℹ️  Skip notifications router:", repr(e))
+        print("??  Skip notifications router:", repr(e))
 
     return app
 
 
-# Uvicorn entrypoint:
-# uvicorn app.main:app --reload --port 8000
 app = create_app()

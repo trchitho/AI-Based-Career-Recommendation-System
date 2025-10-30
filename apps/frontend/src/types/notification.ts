@@ -1,7 +1,11 @@
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'LEARNING_REMINDER' | 'ESSAY_FEEDBACK' | 'SYSTEM_UPDATE' | 'MILESTONE_ACHIEVEMENT';
+  type:
+    | "LEARNING_REMINDER"
+    | "ESSAY_FEEDBACK"
+    | "SYSTEM_UPDATE"
+    | "MILESTONE_ACHIEVEMENT";
   title: string;
   message: string;
   link?: string;

@@ -1,25 +1,31 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { assessmentService } from '../services/assessmentService';
-import { AssessmentResults, CareerRecommendation } from '../types/results';
-import RIASECSpiderChart from '../components/results/RIASECSpiderChart';
-import BigFiveBarChart from '../components/results/BigFiveBarChart';
-import CareerRecommendationsDisplay from '../components/results/CareerRecommendationsDisplay';
-import { feedbackService } from '../services/feedbackService';
-import api from '../lib/api';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { assessmentService } from "../services/assessmentService";
+import { AssessmentResults, CareerRecommendation } from "../types/results";
+import RIASECSpiderChart from "../components/results/RIASECSpiderChart";
+import BigFiveBarChart from "../components/results/BigFiveBarChart";
+import CareerRecommendationsDisplay from "../components/results/CareerRecommendationsDisplay";
+import { feedbackService } from "../services/feedbackService";
+import api from "../lib/api";
+import { useAppSettings } from "../contexts/AppSettingsContext";
 
 const ResultsPage = () => {
   const { assessmentId } = useParams<{ assessmentId: string }>();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const app = useAppSettings();
   const [results, setResults] = useState<AssessmentResults | null>(null);
-  const [careerRecommendations, setCareerRecommendations] = useState<CareerRecommendation[]>([]);
+  const [careerRecommendations, setCareerRecommendations] = useState<
+    CareerRecommendation[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'summary' | 'detailed' | 'recommendations'>('summary');
+  const [activeTab, setActiveTab] = useState<
+    "summary" | "detailed" | "recommendations"
+  >("summary");
   const [fbRating, setFbRating] = useState<number | null>(null);
-  const [fbComment, setFbComment] = useState('');
+  const [fbComment, setFbComment] = useState("");
   const [fbDone, setFbDone] = useState(false);
 
   useEffect(() => {
@@ -38,46 +44,66 @@ const ResultsPage = () => {
       const resultsData = await assessmentService.getResults(assessmentId);
       setResults(resultsData);
 
-      // Fetch career details for recommendations
-      if (resultsData.career_recommendations && resultsData.career_recommendations.length > 0) {
-        const careerPromises = resultsData.career_recommendations.map((careerId: string) =>
-          api.get(`/api/careers/${careerId}`)
+      // Prefer backend-preloaded careers
+      if (
+        resultsData.career_recommendations_full &&
+        resultsData.career_recommendations_full.length > 0
+      ) {
+        const careers: CareerRecommendation[] =
+          resultsData.career_recommendations_full.map(
+            (c: any, index: number) => ({
+              id: c.id,
+              slug: c.slug,
+              title: c.title,
+              description: c.description,
+              matchPercentage: 95 - index * 5,
+              required_skills: c.required_skills,
+              salary_range: c.salary_range,
+              industry_category: c.industry_category,
+            }),
+          );
+        setCareerRecommendations(careers);
+      } else if (
+        resultsData.career_recommendations &&
+        resultsData.career_recommendations.length > 0
+      ) {
+        // Dynamically fetch career details from backend (no hardcoded placeholders)
+        const careerPromises = resultsData.career_recommendations.map(
+          (careerId: string) => api.get(`/api/careers/${careerId}`),
         );
-
-        const careerResponses = await Promise.all(careerPromises);
-        const careers: CareerRecommendation[] = careerResponses.map((response, index) => {
-          const career = response.data;
-          // Calculate match percentage based on position (first is highest)
-          const matchPercentage = 95 - index * 5;
-
-          return {
-            id: career.id,
-            title: career.title,
-            description: career.description,
-            matchPercentage,
-            required_skills: career.required_skills,
-            salary_range: career.salary_range,
-            industry_category: career.industry_category,
-          };
-        });
-
+        const careerResponses = await Promise.allSettled(careerPromises);
+        const careers: CareerRecommendation[] = careerResponses
+          .filter((r: any) => r.status === "fulfilled")
+          .map((r: any, index: number) => {
+            const career = r.value.data;
+            return {
+              id: career.id,
+              slug: career.slug,
+              title: career.title,
+              description: career.description,
+              matchPercentage: 95 - index * 5,
+              required_skills: career.required_skills,
+              salary_range: career.salary_range,
+              industry_category: career.industry_category,
+            } as CareerRecommendation;
+          });
         setCareerRecommendations(careers);
       }
     } catch (err) {
-      console.error('Error fetching results:', err);
-      setError('Failed to load assessment results. Please try again.');
+      console.error("Error fetching results:", err);
+      setError("Failed to load assessment results. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -88,28 +114,33 @@ const ResultsPage = () => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate("/dashboard")}
                 className="text-xl font-bold text-gray-900 hover:text-indigo-700 focus:outline-none"
                 aria-label="Go to Dashboard"
               >
-                Career Recommendation System
+                {app.app_title || "Career Recommendation System"}
               </button>
             </div>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate("/dashboard")}
                 className="text-sm text-gray-700 hover:text-gray-900"
               >
                 Dashboard
               </button>
               <button
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate("/profile")}
                 className="text-sm text-gray-700 hover:text-gray-900"
               >
                 Profile
               </button>
-              <span className="text-sm text-gray-700">{user?.firstName || user?.email}</span>
-              <button onClick={logout} className="text-sm text-gray-700 hover:text-gray-900">
+              <span className="text-sm text-gray-700">
+                {user?.firstName || user?.email}
+              </span>
+              <button
+                onClick={logout}
+                className="text-sm text-gray-700 hover:text-gray-900"
+              >
                 Logout
               </button>
             </div>
@@ -135,39 +166,43 @@ const ResultsPage = () => {
             <div>
               {/* Header */}
               <div className="mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Assessment Results</h2>
-                <p className="text-gray-600">Completed on {formatDate(results.completed_at)}</p>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                  Your Assessment Results
+                </h2>
+                <p className="text-gray-600">
+                  Completed on {formatDate(results.completed_at)}
+                </p>
               </div>
 
               {/* Tab Navigation */}
               <div className="mb-6 border-b border-gray-200">
                 <nav className="flex space-x-8">
                   <button
-                    onClick={() => setActiveTab('summary')}
+                    onClick={() => setActiveTab("summary")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === 'summary'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      activeTab === "summary"
+                        ? "border-indigo-600 text-indigo-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
                     Summary
                   </button>
                   <button
-                    onClick={() => setActiveTab('detailed')}
+                    onClick={() => setActiveTab("detailed")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === 'detailed'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      activeTab === "detailed"
+                        ? "border-indigo-600 text-indigo-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
                     Detailed Analysis
                   </button>
                   <button
-                    onClick={() => setActiveTab('recommendations')}
+                    onClick={() => setActiveTab("recommendations")}
                     className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === 'recommendations'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      activeTab === "recommendations"
+                        ? "border-indigo-600 text-indigo-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
                     Career Recommendations
@@ -176,22 +211,31 @@ const ResultsPage = () => {
               </div>
 
               {/* Tab Content */}
-              {activeTab === 'summary' && (
+              {activeTab === "summary" && (
                 <div className="space-y-6">
                   <div className="bg-white shadow rounded-lg p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Overview</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                      Overview
+                    </h3>
                     <p className="text-gray-700 mb-4">
-                      Your assessment has been analyzed using scientifically-validated methods to
-                      understand your career interests and personality traits.
+                      Your assessment has been analyzed using
+                      scientifically-validated methods to understand your career
+                      interests and personality traits.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-indigo-900 mb-2">Top Career Interest</h4>
+                        <h4 className="font-semibold text-indigo-900 mb-2">
+                          Top Career Interest
+                        </h4>
                         <p className="text-indigo-700">
                           {(() => {
-                            const topRiasec = Object.entries(results.riasec_scores)
-                              .sort((a, b) => b[1] - a[1])[0];
-                            return topRiasec ? topRiasec[0].charAt(0).toUpperCase() + topRiasec[0].slice(1) : 'N/A';
+                            const topRiasec = Object.entries(
+                              results.riasec_scores,
+                            ).sort((a, b) => b[1] - a[1])[0];
+                            return topRiasec
+                              ? topRiasec[0].charAt(0).toUpperCase() +
+                                  topRiasec[0].slice(1)
+                              : "N/A";
                           })()}
                         </p>
                       </div>
@@ -201,9 +245,13 @@ const ResultsPage = () => {
                         </h4>
                         <p className="text-blue-700">
                           {(() => {
-                            const topBigFive = Object.entries(results.big_five_scores)
-                              .sort((a, b) => b[1] - a[1])[0];
-                            return topBigFive ? topBigFive[0].charAt(0).toUpperCase() + topBigFive[0].slice(1) : 'N/A';
+                            const topBigFive = Object.entries(
+                              results.big_five_scores,
+                            ).sort((a, b) => b[1] - a[1])[0];
+                            return topBigFive
+                              ? topBigFive[0].charAt(0).toUpperCase() +
+                                  topBigFive[0].slice(1)
+                              : "N/A";
                           })()}
                         </p>
                       </div>
@@ -212,75 +260,102 @@ const ResultsPage = () => {
 
                   {results.essay_analysis && (
                     <div className="bg-white shadow rounded-lg p-6">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">Essay Insights</h3>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                        Essay Insights
+                      </h3>
                       {results.essay_analysis.key_insights &&
                         results.essay_analysis.key_insights.length > 0 && (
                           <div className="mb-4">
-                            <h4 className="font-medium text-gray-700 mb-2">Key Insights:</h4>
+                            <h4 className="font-medium text-gray-700 mb-2">
+                              Key Insights:
+                            </h4>
                             <ul className="list-disc list-inside space-y-1">
-                              {results.essay_analysis.key_insights.map((insight, index) => (
-                                <li key={index} className="text-gray-600">
-                                  {insight}
-                                </li>
-                              ))}
+                              {results.essay_analysis.key_insights.map(
+                                (insight, index) => (
+                                  <li key={index} className="text-gray-600">
+                                    {insight}
+                                  </li>
+                                ),
+                              )}
                             </ul>
                           </div>
                         )}
-                      {results.essay_analysis.themes && results.essay_analysis.themes.length > 0 && (
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Identified Themes:</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {results.essay_analysis.themes.map((theme, index) => (
-                              <span
-                                key={index}
-                                className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full"
-                              >
-                                {theme}
-                              </span>
-                            ))}
+                      {results.essay_analysis.themes &&
+                        results.essay_analysis.themes.length > 0 && (
+                          <div>
+                            <h4 className="font-medium text-gray-700 mb-2">
+                              Identified Themes:
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {results.essay_analysis.themes.map(
+                                (theme, index) => (
+                                  <span
+                                    key={index}
+                                    className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full"
+                                  >
+                                    {theme}
+                                  </span>
+                                ),
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   )}
                 </div>
               )}
 
-              {activeTab === 'detailed' && (
+              {activeTab === "detailed" && (
                 <div className="space-y-6">
                   <RIASECSpiderChart scores={results.riasec_scores} />
                   <BigFiveBarChart scores={results.big_five_scores} />
                 </div>
               )}
 
-              {activeTab === 'recommendations' && (
-                <CareerRecommendationsDisplay recommendations={careerRecommendations} />
+              {activeTab === "recommendations" && (
+                <CareerRecommendationsDisplay
+                  recommendations={careerRecommendations}
+                />
               )}
 
               {/* Quick Feedback */}
               {!fbDone && (
                 <div className="mt-8 bg-white shadow rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Rate Your Results</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Rate Your Results
+                  </h3>
                   <div className="flex items-center space-x-2 mb-3">
-                    {[1,2,3,4,5].map(v => (
-                      <button key={v} onClick={() => setFbRating(v)} className={`w-8 h-8 rounded-full border ${fbRating===v? 'bg-indigo-600 text-white border-indigo-600':'border-gray-300 text-gray-700'}`}>{v}</button>
+                    {[1, 2, 3, 4, 5].map((v) => (
+                      <button
+                        key={v}
+                        onClick={() => setFbRating(v)}
+                        className={`w-8 h-8 rounded-full border ${fbRating === v ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-700"}`}
+                      >
+                        {v}
+                      </button>
                     ))}
                   </div>
                   <textarea
                     className="w-full border rounded px-3 py-2"
                     placeholder="Optional comment"
                     value={fbComment}
-                    onChange={(e)=>setFbComment(e.target.value)}
+                    onChange={(e) => setFbComment(e.target.value)}
                   />
                   <div className="mt-3 flex justify-end">
                     <button
                       disabled={!fbRating}
-                      onClick={async ()=>{
+                      onClick={async () => {
                         if (!assessmentId || !fbRating) return;
                         try {
-                          await feedbackService.submit(assessmentId, fbRating, fbComment);
+                          await feedbackService.submit(
+                            assessmentId,
+                            fbRating,
+                            fbComment,
+                          );
                           setFbDone(true);
-                        } catch (e) { console.error(e); }
+                        } catch (e) {
+                          console.error(e);
+                        }
                       }}
                       className="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-50"
                     >

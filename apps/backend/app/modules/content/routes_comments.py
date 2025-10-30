@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Request, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
 from ...core.jwt import require_user
-from .models import Comment, BlogPost
+from .models import BlogPost, Comment
 
 router = APIRouter()
 

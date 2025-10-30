@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import { adminService } from '../../services/adminService';
-import { Question, QuestionFormData } from '../../types/admin';
+import { useState, useEffect } from "react";
+import { adminService } from "../../services/adminService";
+import { Question, QuestionFormData } from "../../types/admin";
 
 const QuestionManagementPage = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterTestType, setFilterTestType] = useState<string>('');
-  const [filterActive, setFilterActive] = useState<string>('all');
+  const [filterTestType, setFilterTestType] = useState<string>("");
+  const [filterActive, setFilterActive] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -18,14 +18,15 @@ const QuestionManagementPage = () => {
   const loadQuestions = async () => {
     try {
       setLoading(true);
-      const isActive = filterActive === 'all' ? undefined : filterActive === 'active';
+      const isActive =
+        filterActive === "all" ? undefined : filterActive === "active";
       const data = await adminService.getAllQuestions(
         filterTestType || undefined,
-        isActive
+        isActive,
       );
       setQuestions(data);
     } catch (error) {
-      console.error('Error loading questions:', error);
+      console.error("Error loading questions:", error);
     } finally {
       setLoading(false);
     }
@@ -47,8 +48,8 @@ const QuestionManagementPage = () => {
       await loadQuestions();
       setDeleteConfirm(null);
     } catch (error) {
-      console.error('Error deleting question:', error);
-      alert('Failed to delete question');
+      console.error("Error deleting question:", error);
+      alert("Failed to delete question");
     }
   };
 
@@ -59,8 +60,8 @@ const QuestionManagementPage = () => {
       });
       await loadQuestions();
     } catch (error) {
-      console.error('Error updating question:', error);
-      alert('Failed to update question');
+      console.error("Error updating question:", error);
+      alert("Failed to update question");
     }
   };
 
@@ -78,7 +79,9 @@ const QuestionManagementPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Question Management</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Question Management
+        </h1>
         <button
           onClick={handleCreate}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -155,7 +158,9 @@ const QuestionManagementPage = () => {
               {questions.map((question) => (
                 <tr key={question.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 line-clamp-2">{question.text}</div>
+                    <div className="text-sm text-gray-900 line-clamp-2">
+                      {question.text}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
@@ -166,18 +171,20 @@ const QuestionManagementPage = () => {
                     {question.dimension}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {question.question_type === 'multiple_choice' ? 'Multiple Choice' : 'Scale'}
+                    {question.question_type === "multiple_choice"
+                      ? "Multiple Choice"
+                      : "Scale"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       onClick={() => handleToggleActive(question)}
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
                         question.is_active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {question.is_active ? 'Active' : 'Inactive'}
+                      {question.is_active ? "Active" : "Inactive"}
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -241,20 +248,37 @@ interface QuestionFormModalProps {
   onSuccess: () => void;
 }
 
-const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose, onSuccess }) => {
+const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
+  question,
+  onClose,
+  onSuccess,
+}) => {
   const [formData, setFormData] = useState<QuestionFormData>({
-    text: question?.text || '',
-    testType: question?.test_type || 'RIASEC',
-    dimension: question?.dimension || '',
-    questionType: question?.question_type || 'scale',
+    text: question?.text || "",
+    testType: question?.test_type || "RIASEC",
+    dimension: question?.dimension || "",
+    questionType: question?.question_type || "scale",
     options: question?.options || [],
     scaleRange: question?.scale_range || { min: 1, max: 5 },
   });
-  const [optionInput, setOptionInput] = useState('');
+  const [optionInput, setOptionInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const riasecDimensions = ['realistic', 'investigative', 'artistic', 'social', 'enterprising', 'conventional'];
-  const bigFiveDimensions = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
+  const riasecDimensions = [
+    "realistic",
+    "investigative",
+    "artistic",
+    "social",
+    "enterprising",
+    "conventional",
+  ];
+  const bigFiveDimensions = [
+    "openness",
+    "conscientiousness",
+    "extraversion",
+    "agreeableness",
+    "neuroticism",
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,8 +291,8 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
       }
       onSuccess();
     } catch (error) {
-      console.error('Error saving question:', error);
-      alert('Failed to save question');
+      console.error("Error saving question:", error);
+      alert("Failed to save question");
     } finally {
       setSubmitting(false);
     }
@@ -280,7 +304,7 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
         ...formData,
         options: [...(formData.options || []), optionInput.trim()],
       });
-      setOptionInput('');
+      setOptionInput("");
     }
   };
 
@@ -294,14 +318,15 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
     setFormData(newFormData);
   };
 
-  const availableDimensions = formData.testType === 'RIASEC' ? riasecDimensions : bigFiveDimensions;
+  const availableDimensions =
+    formData.testType === "RIASEC" ? riasecDimensions : bigFiveDimensions;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            {question ? 'Edit Question' : 'Add Question'}
+            {question ? "Edit Question" : "Add Question"}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -311,7 +336,9 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
               </label>
               <textarea
                 value={formData.text}
-                onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, text: e.target.value })
+                }
                 required
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -328,8 +355,8 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      testType: e.target.value as 'RIASEC' | 'BIG_FIVE',
-                      dimension: '',
+                      testType: e.target.value as "RIASEC" | "BIG_FIVE",
+                      dimension: "",
                     })
                   }
                   disabled={!!question}
@@ -347,9 +374,9 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
                 <select
                   value={formData.dimension}
                   onChange={(e) => {
-                    const newFormData: QuestionFormData = { 
-                      ...formData, 
-                      dimension: e.target.value
+                    const newFormData: QuestionFormData = {
+                      ...formData,
+                      dimension: e.target.value,
                     };
                     if (formData.options) {
                       newFormData.options = formData.options;
@@ -378,7 +405,7 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    questionType: e.target.value as 'multiple_choice' | 'scale',
+                    questionType: e.target.value as "multiple_choice" | "scale",
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -388,7 +415,7 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
               </select>
             </div>
 
-            {formData.questionType === 'scale' ? (
+            {formData.questionType === "scale" ? (
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -439,7 +466,9 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
                     type="text"
                     value={optionInput}
                     onChange={(e) => setOptionInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addOption())}
+                    onKeyPress={(e) =>
+                      e.key === "Enter" && (e.preventDefault(), addOption())
+                    }
                     placeholder="Add an option..."
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -484,7 +513,7 @@ const QuestionFormModal: React.FC<QuestionFormModalProps> = ({ question, onClose
                 disabled={submitting}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                {submitting ? 'Saving...' : question ? 'Update' : 'Create'}
+                {submitting ? "Saving..." : question ? "Update" : "Create"}
               </button>
             </div>
           </form>

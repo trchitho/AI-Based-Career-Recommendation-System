@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import { adminService } from '../../services/adminService';
-import { Career, CareerFormData } from '../../types/admin';
+import { useState, useEffect } from "react";
+import { adminService } from "../../services/adminService";
+import { Career, CareerFormData } from "../../types/admin";
 
 const CareerManagementPage = () => {
   const [careers, setCareers] = useState<Career[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingCareer, setEditingCareer] = useState<Career | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -18,10 +18,12 @@ const CareerManagementPage = () => {
   const loadCareers = async () => {
     try {
       setLoading(true);
-      const data = await adminService.getAllCareers(filterCategory || undefined);
+      const data = await adminService.getAllCareers(
+        filterCategory || undefined,
+      );
       setCareers(data);
     } catch (error) {
-      console.error('Error loading careers:', error);
+      console.error("Error loading careers:", error);
     } finally {
       setLoading(false);
     }
@@ -43,8 +45,8 @@ const CareerManagementPage = () => {
       await loadCareers();
       setDeleteConfirm(null);
     } catch (error) {
-      console.error('Error deleting career:', error);
-      alert('Failed to delete career');
+      console.error("Error deleting career:", error);
+      alert("Failed to delete career");
     }
   };
 
@@ -59,12 +61,15 @@ const CareerManagementPage = () => {
     loadCareers();
   };
 
-  const filteredCareers = careers.filter((career) =>
-    career.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    career.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCareers = careers.filter(
+    (career) =>
+      career.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      career.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const categories = Array.from(new Set(careers.map((c) => c.industry_category).filter(Boolean)));
+  const categories = Array.from(
+    new Set(careers.map((c) => c.industry_category).filter(Boolean)),
+  );
 
   return (
     <div className="space-y-6">
@@ -144,16 +149,20 @@ const CareerManagementPage = () => {
               {filteredCareers.map((career) => (
                 <tr key={career.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{career.title}</div>
-                    <div className="text-sm text-gray-500 line-clamp-2">{career.description}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {career.title}
+                    </div>
+                    <div className="text-sm text-gray-500 line-clamp-2">
+                      {career.description}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {career.industry_category || 'N/A'}
+                    {career.industry_category || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {career.salary_range?.min && career.salary_range?.max
-                      ? `${career.salary_range.currency || '$'}${career.salary_range.min.toLocaleString()} - ${career.salary_range.currency || '$'}${career.salary_range.max.toLocaleString()}`
-                      : 'N/A'}
+                      ? `${career.salary_range.currency || "$"}${career.salary_range.min.toLocaleString()} - ${career.salary_range.currency || "$"}${career.salary_range.max.toLocaleString()}`
+                      : "N/A"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {career.required_skills?.length || 0} skills
@@ -219,13 +228,17 @@ interface CareerFormModalProps {
   onSuccess: () => void;
 }
 
-const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSuccess }) => {
+const CareerFormModal: React.FC<CareerFormModalProps> = ({
+  career,
+  onClose,
+  onSuccess,
+}) => {
   const [formData, setFormData] = useState<CareerFormData>({
-    title: career?.title || '',
-    description: career?.description || '',
+    title: career?.title || "",
+    description: career?.description || "",
     requiredSkills: career?.required_skills || [],
-    salaryRange: career?.salary_range || { min: 0, max: 0, currency: 'USD' },
-    industryCategory: career?.industry_category || '',
+    salaryRange: career?.salary_range || { min: 0, max: 0, currency: "USD" },
+    industryCategory: career?.industry_category || "",
     riasecProfile: career?.riasec_profile || {
       realistic: 0,
       investigative: 0,
@@ -235,7 +248,7 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
       conventional: 0,
     },
   });
-  const [skillInput, setSkillInput] = useState('');
+  const [skillInput, setSkillInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -249,20 +262,23 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
       }
       onSuccess();
     } catch (error) {
-      console.error('Error saving career:', error);
-      alert('Failed to save career');
+      console.error("Error saving career:", error);
+      alert("Failed to save career");
     } finally {
       setSubmitting(false);
     }
   };
 
   const addSkill = () => {
-    if (skillInput.trim() && !formData.requiredSkills.includes(skillInput.trim())) {
+    if (
+      skillInput.trim() &&
+      !formData.requiredSkills.includes(skillInput.trim())
+    ) {
       setFormData({
         ...formData,
         requiredSkills: [...formData.requiredSkills, skillInput.trim()],
       });
-      setSkillInput('');
+      setSkillInput("");
     }
   };
 
@@ -278,7 +294,7 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
       <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            {career ? 'Edit Career' : 'Add Career'}
+            {career ? "Edit Career" : "Add Career"}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -289,7 +305,9 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -301,7 +319,9 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 required
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -315,7 +335,9 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
               <input
                 type="text"
                 value={formData.industryCategory}
-                onChange={(e) => setFormData({ ...formData, industryCategory: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, industryCategory: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -331,7 +353,10 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      salaryRange: { ...formData.salaryRange, min: parseInt(e.target.value) || 0 },
+                      salaryRange: {
+                        ...formData.salaryRange,
+                        min: parseInt(e.target.value) || 0,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -347,7 +372,10 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      salaryRange: { ...formData.salaryRange, max: parseInt(e.target.value) || 0 },
+                      salaryRange: {
+                        ...formData.salaryRange,
+                        max: parseInt(e.target.value) || 0,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -363,7 +391,10 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      salaryRange: { ...formData.salaryRange, currency: e.target.value },
+                      salaryRange: {
+                        ...formData.salaryRange,
+                        currency: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -380,7 +411,9 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
                   type="text"
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), addSkill())
+                  }
                   placeholder="Add a skill..."
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -455,7 +488,7 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({ career, onClose, onSu
                 disabled={submitting}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                {submitting ? 'Saving...' : career ? 'Update' : 'Create'}
+                {submitting ? "Saving..." : career ? "Update" : "Create"}
               </button>
             </div>
           </form>

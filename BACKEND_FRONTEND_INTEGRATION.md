@@ -163,4 +163,3 @@ All routes require admin role (`require_admin`). The UI calls these for dashboar
   - Recommendations → call AI-Core service and return ranked careers with scores.
 - Add real feedback endpoints and persist ratings from the UI.
 - Expand roadmap generation and progress tracking rules.
-

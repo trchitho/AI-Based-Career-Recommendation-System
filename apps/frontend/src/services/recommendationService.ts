@@ -1,4 +1,4 @@
-import api from '../lib/api';
+import api from "../lib/api";
 
 export interface RecommendationItem {
   career_id: string;
@@ -6,9 +6,10 @@ export interface RecommendationItem {
 }
 
 export const recommendationService = {
-  async generate(essay?: string): Promise<{ recommendations: RecommendationItem[]; source?: string }>{
-    const res = await api.post('/api/recommendations/generate', { essay });
+  async generate(
+    essay?: string,
+  ): Promise<{ recommendations: RecommendationItem[]; source?: string }> {
+    const res = await api.post("/api/recommendations/generate", { essay });
     return res.data;
   },
 };
-

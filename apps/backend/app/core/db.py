@@ -1,8 +1,9 @@
 # apps/backend/app/core/db.py
-from sqlalchemy import create_engine, text, event
-from sqlalchemy.orm import declarative_base
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.orm import declarative_base
 
 # Nạp .env (ưu tiên .env, fallback .env.example)
 env_path = os.path.join(os.path.dirname(__file__), "../../.env")
@@ -46,6 +47,5 @@ try:
                     cur.execute("SET client_encoding TO 'UTF8';")
             except Exception:
                 pass
-
 except Exception:
     pass

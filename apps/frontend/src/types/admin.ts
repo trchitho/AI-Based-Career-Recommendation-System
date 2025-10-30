@@ -91,7 +91,7 @@ export interface Skill {
 export interface LearningResource {
   title: string;
   url: string;
-  type: 'course' | 'article' | 'video' | 'book';
+  type: "course" | "article" | "video" | "book";
 }
 
 export interface SkillFormData {
@@ -106,9 +106,9 @@ export interface SkillFormData {
 export interface Question {
   id: string;
   text: string;
-  test_type: 'RIASEC' | 'BIG_FIVE';
+  test_type: "RIASEC" | "BIG_FIVE";
   dimension: string;
-  question_type: 'multiple_choice' | 'scale';
+  question_type: "multiple_choice" | "scale";
   options?: string[];
   scale_range?: {
     min: number;
@@ -121,9 +121,9 @@ export interface Question {
 
 export interface QuestionFormData {
   text: string;
-  testType: 'RIASEC' | 'BIG_FIVE';
+  testType: "RIASEC" | "BIG_FIVE";
   dimension: string;
-  questionType: 'multiple_choice' | 'scale';
+  questionType: "multiple_choice" | "scale";
   options?: string[];
   scaleRange?: {
     min: number;

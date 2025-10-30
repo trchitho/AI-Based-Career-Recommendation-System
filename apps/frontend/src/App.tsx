@@ -1,30 +1,35 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { SocketProvider } from './contexts/SocketContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import AdminRoute from './components/AdminRoute';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { SocketProvider } from "./contexts/SocketContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 // Pages
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import ProfilePage from './pages/ProfilePage';
-import AssessmentPage from './pages/AssessmentPage';
-import ResultsPage from './pages/ResultsPage';
-import RoadmapPage from './pages/RoadmapPage';
-import AdminDashboardPage from './pages/admin/AdminDashboardPage';
-import CareersPage from './pages/CareersPage';
-import CareerDetailPage from './pages/CareerDetailPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import VerifyEmailPage from './pages/VerifyEmailPage';
-import EssayInputPage from './pages/EssayInputPage';
-import RecommendationsPage from './pages/RecommendationsPage';
-import ChatSummaryPage from './pages/ChatSummaryPage';
-import ChatPage from './pages/ChatPage';
-import OAuthCallbackPage from './pages/OAuthCallbackPage';
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
+import ProfilePage from "./pages/ProfilePage";
+import AssessmentPage from "./pages/AssessmentPage";
+import ResultsPage from "./pages/ResultsPage";
+import RoadmapPage from "./pages/RoadmapPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import CareersPage from "./pages/CareersPage";
+import CareerDetailPage from "./pages/CareerDetailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import EssayInputPage from "./pages/EssayInputPage";
+import RecommendationsPage from "./pages/RecommendationsPage";
+import ChatSummaryPage from "./pages/ChatSummaryPage";
+import ChatPage from "./pages/ChatPage";
+import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -38,120 +43,120 @@ function App() {
       <Router>
         <AuthProvider>
           <SocketProvider>
-          <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<RootRedirect />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot" element={<ForgotPasswordPage />} />
-          <Route path="/reset" element={<ResetPasswordPage />} />
-          <Route path="/verify" element={<VerifyEmailPage />} />
-          <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<RootRedirect />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot" element={<ForgotPasswordPage />} />
+              <Route path="/reset" element={<ResetPasswordPage />} />
+              <Route path="/verify" element={<VerifyEmailPage />} />
+              <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
-          {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/careers"
-            element={
-              <ProtectedRoute>
-                <CareersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/careers/:idOrSlug"
-            element={
-              <ProtectedRoute>
-                <CareerDetailPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessment"
-            element={
-              <ProtectedRoute>
-                <AssessmentPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/essay"
-            element={
-              <ProtectedRoute>
-                <EssayInputPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/recommendations"
-            element={
-              <ProtectedRoute>
-                <RecommendationsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chat/summary"
-            element={
-              <ProtectedRoute>
-                <ChatSummaryPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chat"
-            element={
-              <ProtectedRoute>
-                <ChatPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/results/:assessmentId"
-            element={
-              <ProtectedRoute>
-                <ResultsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/careers/:careerId/roadmap"
-            element={
-              <ProtectedRoute>
-                <RoadmapPage />
-              </ProtectedRoute>
-            }
-          />
+              {/* Protected routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/careers"
+                element={
+                  <ProtectedRoute>
+                    <CareersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/careers/:idOrSlug"
+                element={
+                  <ProtectedRoute>
+                    <CareerDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/assessment"
+                element={
+                  <ProtectedRoute>
+                    <AssessmentPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/essay"
+                element={
+                  <ProtectedRoute>
+                    <EssayInputPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/recommendations"
+                element={
+                  <ProtectedRoute>
+                    <RecommendationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat/summary"
+                element={
+                  <ProtectedRoute>
+                    <ChatSummaryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <ChatPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/results/:assessmentId"
+                element={
+                  <ProtectedRoute>
+                    <ResultsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/careers/:careerId/roadmap"
+                element={
+                  <ProtectedRoute>
+                    <RoadmapPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Admin routes */}
-          <Route
-            path="/admin/*"
-            element={
-              <AdminRoute>
-                <AdminDashboardPage />
-              </AdminRoute>
-            }
-          />
+              {/* Admin routes */}
+              <Route
+                path="/admin/*"
+                element={
+                  <AdminRoute>
+                    <AdminDashboardPage />
+                  </AdminRoute>
+                }
+              />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </SocketProvider>
         </AuthProvider>
       </Router>

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import api from '../lib/api';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import api from "../lib/api";
 
 export interface AppSettings {
   id: number;
@@ -14,22 +14,24 @@ export interface AppSettings {
 const defaultSettings: AppSettings = {
   id: 1,
   logo_url: null,
-  app_title: 'CareerBridge AI',
-  app_name: 'CareerBridge',
-  footer_html: '© 2025 CareerBridge AI',
+  app_title: "CareerBridge AI",
+  app_name: "CareerBridge",
+  footer_html: "© 2025 CareerBridge AI",
 };
 
 const AppSettingsContext = createContext<AppSettings>(defaultSettings);
 
 export const useAppSettings = () => useContext(AppSettingsContext);
 
-export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const resp = await api.get('/api/app/settings');
+        const resp = await api.get("/api/app/settings");
         setSettings({ ...defaultSettings, ...(resp.data || {}) });
       } catch {
         // keep defaults
@@ -39,7 +41,8 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <AppSettingsContext.Provider value={settings}>{children}</AppSettingsContext.Provider>
+    <AppSettingsContext.Provider value={settings}>
+      {children}
+    </AppSettingsContext.Provider>
   );
 };
-

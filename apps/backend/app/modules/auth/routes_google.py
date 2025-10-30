@@ -1,19 +1,18 @@
-from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import text
-from sqlalchemy import select
-import os
 import json
+import os
 import secrets
 import urllib.parse
 import urllib.request
 
-from ..users.models import User
-from ..auth.models import RefreshToken
-from ...core.jwt import create_access_token, refresh_expiry_dt
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import RedirectResponse
+from sqlalchemy import select, text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
+from ...core.jwt import create_access_token, refresh_expiry_dt
+from ..auth.models import RefreshToken
+from ..users.models import User
 
 router = APIRouter()
 
@@ -32,9 +31,7 @@ def _env(name: str, default: str | None = None) -> str:
 
 
 def _backend_callback_url(request: Request) -> str:
-    return os.getenv(
-        "GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback"
-    )
+    return os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback")
 
 
 @router.get("/google/login")
@@ -56,16 +53,12 @@ def google_login(request: Request, redirect: str | None = None):
         "prompt": "consent",
         "state": state,
     }
-    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(
-        params
-    )
+    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
     return RedirectResponse(url)
 
 
 @router.get("/google/callback")
-def google_callback(
-    request: Request, code: str | None = None, state: str | None = None
-):
+def google_callback(request: Request, code: str | None = None, state: str | None = None):
     if not code:
         raise HTTPException(status_code=400, detail="Missing code")
     client_id = _env("GOOGLE_CLIENT_ID")
@@ -108,8 +101,9 @@ def google_callback(
         raise HTTPException(status_code=400, detail="Email not available from Google")
 
     session: Session = _db(request)
-    from ...core.security import hash_password
     from datetime import datetime
+
+    from ...core.security import hash_password
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
@@ -161,10 +155,7 @@ def google_callback(
     # Issue app tokens
     access = create_access_token({"sub": str(u.id), "role": u.role})
     rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
+        user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False
     )
     session.add(rt)
     session.commit()

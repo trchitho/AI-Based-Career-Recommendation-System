@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import MainLayout from '../components/layout/MainLayout';
-import { careerService, CareerItem } from '../services/careerService';
+import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import MainLayout from "../components/layout/MainLayout";
+import { careerService, CareerItem } from "../services/careerService";
 
 const CareerDetailPage = () => {
   const { idOrSlug } = useParams();
@@ -27,10 +27,19 @@ const CareerDetailPage = () => {
         {loading && <div>Loading...</div>}
         {!loading && item && (
           <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{item.title}</h1>
-            <p className="text-gray-700 dark:text-gray-300">{item.description || item.short_desc}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {item.title}
+            </h1>
+            <p className="text-gray-700 dark:text-gray-300">
+              {item.description || item.short_desc}
+            </p>
             <div className="pt-4">
-              <Link to={`/careers/${item.id}/roadmap`} className="inline-block px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">View Roadmap</Link>
+              <Link
+                to={`/careers/${item.id}/roadmap`}
+                className="inline-block px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700"
+              >
+                View Roadmap
+              </Link>
             </div>
           </div>
         )}
@@ -40,4 +49,3 @@ const CareerDetailPage = () => {
 };
 
 export default CareerDetailPage;
-

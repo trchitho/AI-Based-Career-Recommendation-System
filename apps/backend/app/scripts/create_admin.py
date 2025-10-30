@@ -1,8 +1,10 @@
 import os
+
 from sqlalchemy.orm import sessionmaker
+
 from ..core.db import engine
-from ..modules.users.models import User
 from ..core.security import hash_password
+from ..modules.users.models import User
 
 
 def main():

@@ -1,45 +1,47 @@
-import { useNavigate } from 'react-router-dom';
-import { RoadmapProgress } from '../../types/profile';
+import { useNavigate } from "react-router-dom";
+import { RoadmapProgress } from "../../types/profile";
 
 interface DevelopmentProgressSectionProps {
   developmentProgress: RoadmapProgress[];
 }
 
-const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgressSectionProps) => {
+const DevelopmentProgressSection = ({
+  developmentProgress,
+}: DevelopmentProgressSectionProps) => {
   const navigate = useNavigate();
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const getProgressColor = (percentage: number) => {
-    if (percentage >= 75) return 'bg-green-500';
-    if (percentage >= 50) return 'bg-blue-500';
-    if (percentage >= 25) return 'bg-yellow-500';
-    return 'bg-gray-400';
+    if (percentage >= 75) return "bg-green-500";
+    if (percentage >= 50) return "bg-blue-500";
+    if (percentage >= 25) return "bg-yellow-500";
+    return "bg-gray-400";
   };
 
   const getCurrentMilestone = (progress: RoadmapProgress) => {
     if (!progress.completed_milestones || !progress.milestones) {
-      return 'No active milestone';
+      return "No active milestone";
     }
     const completedCount = progress.completed_milestones.length;
     if (completedCount >= progress.milestones.length) {
-      return 'All milestones completed!';
+      return "All milestones completed!";
     }
     const nextMilestone = progress.milestones.find(
-      (m) => !progress.completed_milestones.includes(m.order.toString())
+      (m) => !progress.completed_milestones.includes(m.order.toString()),
     );
-    return nextMilestone ? nextMilestone.skillName : 'No active milestone';
+    return nextMilestone ? nextMilestone.skillName : "No active milestone";
   };
 
   const getCompletedMilestonesText = (progress: RoadmapProgress) => {
     if (!progress.completed_milestones || !progress.milestones) {
-      return '0 of 0 milestones';
+      return "0 of 0 milestones";
     }
     return `${progress.completed_milestones.length} of ${progress.milestones.length} milestones`;
   };
@@ -47,7 +49,9 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-900">Development Progress</h3>
+        <h3 className="text-xl font-semibold text-gray-900">
+          Development Progress
+        </h3>
       </div>
 
       {developmentProgress.length === 0 ? (
@@ -56,10 +60,11 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
             You haven't started any learning roadmaps yet.
           </p>
           <p className="text-sm text-gray-400 mb-4">
-            Complete an assessment and explore career recommendations to begin your learning journey.
+            Complete an assessment and explore career recommendations to begin
+            your learning journey.
           </p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate("/dashboard")}
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
           >
             Go to Dashboard
@@ -78,7 +83,7 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
                     {progress.career_title}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    Started {formatDate(progress.started_at)} • Last updated{' '}
+                    Started {formatDate(progress.started_at)} • Last updated{" "}
                     {formatDate(progress.last_updated_at)}
                   </p>
                 </div>
@@ -97,13 +102,17 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
                     Overall Progress
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
-                    {(typeof progress.progress_percentage === 'number' ? progress.progress_percentage : 0).toFixed(0)}%
+                    {(typeof progress.progress_percentage === "number"
+                      ? progress.progress_percentage
+                      : 0
+                    ).toFixed(0)}
+                    %
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className={`h-3 rounded-full transition-all duration-300 ${getProgressColor(
-                      progress.progress_percentage || 0
+                      progress.progress_percentage || 0,
                     )}`}
                     style={{ width: `${progress.progress_percentage || 0}%` }}
                   ></div>
@@ -159,28 +168,32 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
               </div>
 
               {/* Recent Milestones */}
-              {progress.completed_milestones && progress.milestones && progress.completed_milestones.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-xs font-medium text-gray-500 mb-2">
-                    Recently Completed
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {progress.milestones
-                      .filter((m) =>
-                        progress.completed_milestones.includes(m.order.toString())
-                      )
-                      .slice(-3)
-                      .map((milestone) => (
-                        <span
-                          key={milestone.order}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200"
-                        >
-                          ✓ {milestone.skillName}
-                        </span>
-                      ))}
+              {progress.completed_milestones &&
+                progress.milestones &&
+                progress.completed_milestones.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-xs font-medium text-gray-500 mb-2">
+                      Recently Completed
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {progress.milestones
+                        .filter((m) =>
+                          progress.completed_milestones.includes(
+                            m.order.toString(),
+                          ),
+                        )
+                        .slice(-3)
+                        .map((milestone) => (
+                          <span
+                            key={milestone.order}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200"
+                          >
+                            ✓ {milestone.skillName}
+                          </span>
+                        ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           ))}
         </div>

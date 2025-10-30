@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 interface EssayModalComponentProps {
   onSubmit: (essayText: string) => void;
@@ -6,8 +6,12 @@ interface EssayModalComponentProps {
   loading?: boolean;
 }
 
-const EssayModalComponent = ({ onSubmit, onSkip, loading = false }: EssayModalComponentProps) => {
-  const [essayText, setEssayText] = useState('');
+const EssayModalComponent = ({
+  onSubmit,
+  onSkip,
+  loading = false,
+}: EssayModalComponentProps) => {
+  const [essayText, setEssayText] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   // Keep essay lightweight; backend accepts any non-empty content
@@ -17,7 +21,9 @@ const EssayModalComponent = ({ onSubmit, onSkip, loading = false }: EssayModalCo
 
   const handleSubmit = () => {
     if (!isValid) {
-      setError(`Essay must be at least ${MIN_CHARS} characters. You have ${charCount}.`);
+      setError(
+        `Essay must be at least ${MIN_CHARS} characters. You have ${charCount}.`,
+      );
       return;
     }
 
@@ -38,8 +44,8 @@ const EssayModalComponent = ({ onSubmit, onSkip, loading = false }: EssayModalCo
             Optional: Share Your Career Aspirations
           </h3>
           <p className="text-sm text-gray-600 mt-2">
-            Tell us about your career goals, interests, and what motivates you. This helps us provide
-            more personalized recommendations.
+            Tell us about your career goals, interests, and what motivates you.
+            This helps us provide more personalized recommendations.
           </p>
         </div>
 
@@ -51,7 +57,10 @@ const EssayModalComponent = ({ onSubmit, onSkip, loading = false }: EssayModalCo
           )}
 
           <div className="mb-4">
-            <label htmlFor="essay" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="essay"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Your Response
             </label>
             <textarea
@@ -68,7 +77,11 @@ const EssayModalComponent = ({ onSubmit, onSkip, loading = false }: EssayModalCo
             <div className="text-sm">
               <span
                 className={`font-medium ${
-                  isValid ? 'text-green-600' : charCount > 0 ? 'text-yellow-600' : 'text-gray-500'
+                  isValid
+                    ? "text-green-600"
+                    : charCount > 0
+                      ? "text-yellow-600"
+                      : "text-gray-500"
                 }`}
               >
                 {charCount} / {MIN_CHARS} characters
@@ -105,7 +118,7 @@ const EssayModalComponent = ({ onSubmit, onSkip, loading = false }: EssayModalCo
             disabled={!isValid || loading}
             className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Submitting...' : 'Submit Essay'}
+            {loading ? "Submitting..." : "Submit Essay"}
           </button>
         </div>
       </div>

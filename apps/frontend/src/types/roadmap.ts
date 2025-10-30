@@ -1,7 +1,7 @@
 export interface LearningResource {
   title: string;
   url: string;
-  type: 'course' | 'article' | 'video' | 'book';
+  type: "course" | "article" | "video" | "book";
 }
 
 export interface Milestone {

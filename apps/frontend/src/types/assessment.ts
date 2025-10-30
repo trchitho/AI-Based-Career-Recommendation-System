@@ -1,8 +1,8 @@
 export interface Question {
   id: string;
-  test_type: 'RIASEC' | 'BIG_FIVE';
+  test_type: "RIASEC" | "BIG_FIVE";
   question_text: string;
-  question_type: 'MULTIPLE_CHOICE' | 'SCALE';
+  question_type: "MULTIPLE_CHOICE" | "SCALE";
   options?: string[];
   dimension?: string;
   order_index: number;

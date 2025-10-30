@@ -1,5 +1,5 @@
-import api from '../lib/api';
-import { Notification } from '../types/notification';
+import api from "../lib/api";
+import { Notification } from "../types/notification";
 
 export const notificationService = {
   async getNotifications(userId: string): Promise<Notification[]> {
@@ -7,7 +7,7 @@ export const notificationService = {
       const response = await api.get(`/api/notifications/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
       throw error;
     }
   },
@@ -16,7 +16,7 @@ export const notificationService = {
     try {
       await api.put(`/api/notifications/${notificationId}/read`);
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
       throw error;
     }
   },
@@ -25,7 +25,7 @@ export const notificationService = {
     try {
       await api.put(`/api/notifications/${userId}/read-all`);
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      console.error("Error marking all notifications as read:", error);
       throw error;
     }
   },
