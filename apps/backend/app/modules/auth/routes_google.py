@@ -125,7 +125,13 @@ def google_callback(request: Request, code: str | None = None, state: str | None
             session.rollback()
             session.execute(
                 text(
-                    "SELECT setval(pg_get_serial_sequence('core.users','id'), COALESCE((SELECT MAX(id) FROM core.users)+1,1), false)"
+                    (
+                        "SELECT setval("
+                        "pg_get_serial_sequence('core.users','id'), "
+                        "COALESCE((SELECT MAX(id) FROM core.users) + 1, 1), "
+                        "false"
+                        ")"
+                    )
                 )
             )
             session.commit()
@@ -160,13 +166,8 @@ def google_callback(request: Request, code: str | None = None, state: str | None
     session.add(rt)
     session.commit()
 
-    # Redirect back to FE with tokens in query (dev-friendly)
-    try:
-        st = json.loads(urllib.parse.unquote(state or "")) if state else {}
-    except Exception:
-        st = {}
-    fe_redirect = st.get("redirect") or os.getenv(
-        "FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback"
-    )
-    loc = f"{fe_redirect}?access_token={urllib.parse.quote(access)}&refresh_token={urllib.parse.quote(rt.token)}"
+    fe_redirect = os.environ.get("FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback")
+    access_q = urllib.parse.quote(access)
+    refresh_q = urllib.parse.quote(rt.token)
+    loc = f"{fe_redirect}?access_token={access_q}&refresh_token={refresh_q}"
     return RedirectResponse(loc)

@@ -1,4 +1,3 @@
-# apps/backend/app/api/bff_career.py
 from __future__ import annotations
 
 import json
@@ -12,6 +11,7 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from psycopg.rows import dict_row
 
+# Load .env ở root project
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 DATABASE_URL = os.getenv("DATABASE_URL")
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -37,28 +37,43 @@ def _fetch_sections(conn: psycopg.Connection, code: str) -> Dict[str, Any]:
             SELECT onet_code, title_en AS title, short_desc_en AS short_desc
             FROM core.careers
             WHERE onet_code=%s
-        """,
+            """,
             (code,),
         )
         header = cur.fetchone()
         if not header:
             raise HTTPException(status_code=404, detail="Career not found")
 
-        # Sections
+        # Sections (bẻ dòng để pass E501)
         cur.execute(
-            "SELECT task_text, importance FROM core.career_tasks WHERE onet_code=%s ORDER BY id ASC",
+            (
+                "SELECT task_text, importance "
+                "FROM core.career_tasks "
+                "WHERE onet_code=%s "
+                "ORDER BY id ASC"
+            ),
             (code,),
         )
         tasks = cur.fetchall()
 
         cur.execute(
-            "SELECT category, name, hot_flag FROM core.career_technology WHERE onet_code=%s ORDER BY id ASC",
+            (
+                "SELECT category, name, hot_flag "
+                "FROM core.career_technology "
+                "WHERE onet_code=%s "
+                "ORDER BY id ASC"
+            ),
             (code,),
         )
         techs = cur.fetchall()
 
         cur.execute(
-            "SELECT ksa_type, name, category, level, importance FROM core.career_ksas WHERE onet_code=%s ORDER BY id ASC",
+            (
+                "SELECT ksa_type, name, category, level, importance "
+                "FROM core.career_ksas "
+                "WHERE onet_code=%s "
+                "ORDER BY id ASC"
+            ),
             (code,),
         )
         ksas = cur.fetchall()
@@ -67,24 +82,36 @@ def _fetch_sections(conn: psycopg.Connection, code: str) -> Dict[str, Any]:
         abilities = [x for x in ksas if x["ksa_type"] == "ability"]
 
         cur.execute(
-            "SELECT job_zone, education, training FROM core.career_prep WHERE onet_code=%s",
+            ("SELECT job_zone, education, training FROM core.career_prep WHERE onet_code=%s"),
             (code,),
         )
         prep = cur.fetchone()
 
         cur.execute(
-            "SELECT area, median_annual, currency, timespan FROM core.career_wages_us WHERE onet_code=%s ORDER BY id ASC",
+            (
+                "SELECT area, median_annual, currency, timespan "
+                "FROM core.career_wages_us "
+                "WHERE onet_code=%s "
+                "ORDER BY id ASC"
+            ),
             (code,),
         )
         wages = cur.fetchall()
 
         cur.execute(
-            "SELECT summary_md, growth_label, openings_est FROM core.career_outlook WHERE onet_code=%s",
+            (
+                "SELECT summary_md, growth_label, openings_est "
+                "FROM core.career_outlook "
+                "WHERE onet_code=%s"
+            ),
             (code,),
         )
         outlook = cur.fetchone()
 
-        cur.execute("SELECT r,i,a,s,e,c FROM core.career_interests WHERE onet_code=%s", (code,))
+        cur.execute(
+            ("SELECT r,i,a,s,e,c FROM core.career_interests WHERE onet_code=%s"),
+            (code,),
+        )
         ints = cur.fetchone()
 
     dto = {
@@ -115,12 +142,13 @@ def _fetch_sections(conn: psycopg.Connection, code: str) -> Dict[str, Any]:
 async def get_career(onet_code: str):
     r = await _get_redis()
     cache_key = f"career:{onet_code}"
-    c = await r.get(cache_key)
-    if c:
-        return json.loads(c)
+    cached = await r.get(cache_key)
+    if cached:
+        return json.loads(cached)
 
     if not DATABASE_URL:
         raise HTTPException(status_code=500, detail="Missing DATABASE_URL")
+
     with psycopg.connect(DATABASE_URL) as conn:
         dto = _fetch_sections(conn, onet_code)
 

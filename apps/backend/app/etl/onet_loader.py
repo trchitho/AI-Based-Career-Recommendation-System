@@ -46,12 +46,6 @@ VALUES (%s, %s, %s, %s, 'ONET', %s)
 ON CONFLICT DO NOTHING;
 """
 
-UPSERT_KSAS = """
-INSERT INTO core.career_ksas(onet_code, ksa_type, name, category, level, importance, source, fetched_at)
-VALUES (%s, %s, %s, %s, %s, %s, 'ONET', %s)
-ON CONFLICT DO NOTHING;
-"""
-
 UPSERT_PREP = """
 INSERT INTO core.career_prep(onet_code, job_zone, education, training, source, fetched_at)
 VALUES (%s, %s, %s, %s, 'ONET', %s)
@@ -63,22 +57,34 @@ ON CONFLICT (onet_code) DO UPDATE SET
   fetched_at= EXCLUDED.fetched_at;
 """
 
+UPSERT_KSAS = """
+INSERT INTO core.career_ksas (
+    onet_code, ksa_type, name, category, level, importance, source, fetched_at
+)
+VALUES (%s, %s, %s, %s, %s, %s, 'ONET', %s)
+ON CONFLICT DO NOTHING;
+"""
+
 UPSERT_WAGES = """
-INSERT INTO core.career_wages_us(onet_code, area, median_annual, currency, timespan, source, fetched_at)
+INSERT INTO core.career_wages_us (
+    onet_code, area, median_annual, currency, timespan, source, fetched_at
+)
 VALUES (%s, %s, %s, %s, %s, 'ONET', %s)
 ON CONFLICT DO NOTHING;
 """
 
 UPSERT_OUTLOOK = """
-INSERT INTO core.career_outlook(onet_code, summary_md, growth_label, openings_est, source, fetched_at)
+INSERT INTO core.career_outlook (
+    onet_code, summary_md, growth_label, openings_est, source, fetched_at
+)
 VALUES (%s, %s, %s, %s, 'ONET', %s)
 ON CONFLICT (onet_code) DO UPDATE SET
-  summary_md   = EXCLUDED.summary_md,
-  growth_label = EXCLUDED.growth_label,
-  openings_est = EXCLUDED.openings_est,
-  source       = EXCLUDED.source,
-  fetched_at   = EXCLUDED.fetched_at;
+    summary_md = EXCLUDED.summary_md,
+    growth_label = EXCLUDED.growth_label,
+    openings_est = EXCLUDED.openings_est,
+    fetched_at = EXCLUDED.fetched_at;
 """
+
 
 UPSERT_INTERESTS = """
 INSERT INTO core.career_interests(onet_code, r,i,a,s,e,c, source, fetched_at)
@@ -180,8 +186,8 @@ def _riasec_one_hot(top_interest: str | None):
 def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -> None:
     """
     Fetch all sections from O*NET MNM WS for a SOC and UPSERT into core.* tables.
-    - Tasks: thu thập từ nhiều khóa MNM (task/duty/responsibility/activity) + fallback từ what_they_do
-      để đảm bảo đủ 5 tasks (importance vẫn NULL ở MNM).
+    - Tasks: thu thập từ nhiều khóa MNM (task/duty/responsibility/activity)
+    + fallback từ what_they_do để đảm bảo đủ 5 tasks (importance vẫn NULL ở MNM).
     """
     # --- 1) Fetch từ MNM ---
     ov_obj = svc.get_overview(code)  # title, what_they_do, on_the_job.task (sample)

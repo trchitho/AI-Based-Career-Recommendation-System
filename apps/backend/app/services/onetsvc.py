@@ -26,13 +26,9 @@ class OnetError(Exception):
 
 class OnetService:
     """
-    Thin client for O*NET Web Services (MNM flavor).
-    - Base URL lấy từ ONET_WS_BASE (vd: https://services.onetcenter.org) — KHÔNG cần /ws ở cuối.
-    - Basic Auth: ONET_WS_USER / ONET_WS_PASS
-    - Tất cả route MNM trả về dạng JSON; với 400/401/403/404/422 => coi như không có dữ liệu -> {}.
     - Có 2 chế độ fetch:
-        * _fetch_json   : có retry/backoff cho lỗi mạng/HTTP (dùng khi dữ liệu “bắt buộc”).
-        * _fetch_json_once + _fetch_json_optional : 1 phát, optional cho các section hay vắng dữ liệu.
+    * _fetch_json: có retry/backoff cho lỗi mạng/HTTP (dùng khi dữ liệu “bắt buộc”).
+    * _fetch_json_once + _fetch_json_optional: 1 phát, optional cho section hay vắng dữ liệu.
     """
 
     def __init__(

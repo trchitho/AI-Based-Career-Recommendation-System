@@ -16,7 +16,7 @@ else:
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError(
-        "DATABASE_URL environment variable is not set. Please set it in your environment or .env file."
+        "DATABASE_URL is not set. Please define it in your environment or .env file."
     )
 
 # Engine dùng chung
