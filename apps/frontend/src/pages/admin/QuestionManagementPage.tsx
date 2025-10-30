@@ -10,10 +10,13 @@ const QuestionManagementPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     loadQuestions();
-  }, [filterTestType, filterActive]);
+  }, [filterTestType, filterActive, page, pageSize]);
 
   const loadQuestions = async () => {
     try {
@@ -21,9 +24,11 @@ const QuestionManagementPage = () => {
       const isActive = filterActive === 'all' ? undefined : filterActive === 'active';
       const data = await adminService.getAllQuestions(
         filterTestType || undefined,
-        isActive
+        isActive,
+        { page, pageSize }
       );
-      setQuestions(data);
+      setQuestions(data.items || []);
+      setTotal(data.total || 0);
     } catch (error) {
       console.error('Error loading questions:', error);
     } finally {
@@ -89,7 +94,7 @@ const QuestionManagementPage = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Test Type
@@ -117,6 +122,21 @@ const QuestionManagementPage = () => {
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
+          </div>
+          <div className="flex items-end">
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                className="px-3 py-2 rounded border bg-white/80 disabled:opacity-50"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >Prev</button>
+              <span className="text-sm text-gray-600">Page {page} / {Math.max(1, Math.ceil(total / pageSize))}</span>
+              <button
+                className="px-3 py-2 rounded border bg-white/80 disabled:opacity-50"
+                disabled={page >= Math.max(1, Math.ceil(total / pageSize))}
+                onClick={() => setPage((p) => p + 1)}
+              >Next</button>
+            </div>
           </div>
         </div>
       </div>

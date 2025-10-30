@@ -20,7 +20,6 @@ import CareerDetailPage from './pages/CareerDetailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
-import EssayInputPage from './pages/EssayInputPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import ChatSummaryPage from './pages/ChatSummaryPage';
 import ChatPage from './pages/ChatPage';
@@ -87,14 +86,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <AssessmentPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/essay"
-            element={
-              <ProtectedRoute>
-                <EssayInputPage />
               </ProtectedRoute>
             }
           />

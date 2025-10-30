@@ -5,12 +5,17 @@ const UserManagementPage = () => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [q, setQ] = useState('');
 
   const load = async () => {
     setLoading(true); setError(null);
     try {
-      const data = await adminService.listUsers();
-      setRows(data);
+      const data = await adminService.listUsers({ page, pageSize, q: q.trim() || undefined });
+      setRows(data.items || []);
+      setTotal(data.total || 0);
     } catch (e: any) {
       setError(e?.response?.data?.detail || e?.message || 'Failed');
     } finally {
@@ -18,7 +23,7 @@ const UserManagementPage = () => {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [page, pageSize, q]);
 
   const setRole = async (id: string, role: 'admin' | 'user' | 'manager') => {
     await adminService.updateUser(id, { role });
@@ -27,7 +32,15 @@ const UserManagementPage = () => {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Users</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Users</h2>
+        <input
+          value={q}
+          onChange={(e)=>{ setPage(1); setQ(e.target.value); }}
+          placeholder="Search by email/name..."
+          className="px-3 py-2 border rounded bg-white/80 dark:bg-gray-800/50 border-gray-300 dark:border-gray-700 text-sm"
+        />
+      </div>
       {loading && <div>Loading...</div>}
       {error && <div className="text-red-700">{error}</div>}
       {!loading && !error && (
@@ -67,6 +80,21 @@ const UserManagementPage = () => {
             ))}
           </tbody>
         </table>
+      )}
+      {!loading && !error && (
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <button
+            className="px-3 py-2 rounded border bg-white/80 dark:bg-gray-800/50 disabled:opacity-50"
+            disabled={page <= 1}
+            onClick={()=>setPage(p=>Math.max(1,p-1))}
+          >Prev</button>
+          <span className="text-sm text-gray-600 dark:text-gray-300">Page {page} / {Math.max(1, Math.ceil(total / pageSize))}</span>
+          <button
+            className="px-3 py-2 rounded border bg-white/80 dark:bg-gray-800/50 disabled:opacity-50"
+            disabled={page >= Math.max(1, Math.ceil(total / pageSize))}
+            onClick={()=>setPage(p=>p+1)}
+          >Next</button>
+        </div>
       )}
     </div>
   );

@@ -24,6 +24,12 @@ def list_careers(session: Session, q: str | None, category_id: int | None, limit
         stmt = stmt.where(or_(title_expr.ilike(like), Career.slug.ilike(like)))
     stmt = stmt.order_by(Career.created_at.desc()).limit(limit).offset(offset)
     rows = session.execute(stmt).all()
+    # total count with same filter
+    count_stmt = select(func.count()).select_from(Career)
+    if q:
+        like = f"%{q.lower()}%"
+        count_stmt = count_stmt.where(or_(title_expr.ilike(like), Career.slug.ilike(like)))
+    total = session.execute(count_stmt).scalar() or 0
     out: list[dict] = []
     for rid, slug, title, sdesc, onet, c_at, u_at in rows:
         if not title:
@@ -38,7 +44,7 @@ def list_careers(session: Session, q: str | None, category_id: int | None, limit
             "created_at": c_at.isoformat() if c_at else None,
             "updated_at": u_at.isoformat() if u_at else None,
         })
-    return out
+    return {"items": out, "total": int(total), "limit": limit, "offset": offset}
 
 
 def get_career(session: Session, id_or_slug: str):

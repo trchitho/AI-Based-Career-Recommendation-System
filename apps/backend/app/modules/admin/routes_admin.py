@@ -161,11 +161,29 @@ def _career_to_client(c: Career) -> dict:
 
 
 @router.get("/careers")
-def list_careers(request: Request, industryCategory: str | None = Query(None)):
+def list_careers(
+    request: Request,
+    industryCategory: str | None = Query(None),  # placeholder; not filtered in current schema
+    q: str | None = Query(None, description="search by title/slug"),
+    limit: int = Query(20, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
     _ = require_admin(request)
     session = _db(request)
-    rows = session.execute(select(Career).order_by(Career.created_at.desc())).scalars().all()
-    return [_career_to_client(c) for c in rows]
+    from sqlalchemy import or_, func as safunc
+
+    stmt = select(Career)
+    if q:
+        like = f"%{q.lower()}%"
+        # title via dto columns
+        from sqlalchemy import func
+        title_expr = func.coalesce(Career.title_vi, Career.title_en)
+        stmt = stmt.where(or_(title_expr.ilike(like), Career.slug.ilike(like)))
+
+    total = session.execute(select(safunc.count(Career.id)).select_from(stmt.subquery())).scalar() or 0
+    rows = session.execute(stmt.order_by(Career.created_at.desc()).limit(limit).offset(offset)).scalars().all()
+    items = [_career_to_client(c) for c in rows]
+    return {"items": items, "total": int(total), "limit": limit, "offset": offset}
 
 
 @router.get("/careers/{career_id}")
@@ -311,19 +329,35 @@ def _question_to_client(q: AssessmentQuestion, test_type: str) -> dict:
 
 
 @router.get("/questions")
-def list_questions(request: Request, testType: str | None = Query(None), isActive: bool | None = Query(None)):
+def list_questions(
+    request: Request,
+    testType: str | None = Query(None),
+    isActive: bool | None = Query(None),  # placeholder; AssessmentQuestion chưa có cột is_active
+    limit: int = Query(20, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
     _ = require_admin(request)
     session = _db(request)
-    out: list[dict] = []
-    forms = session.execute(
-        select(AssessmentForm).where(AssessmentForm.form_type == testType) if testType else select(AssessmentForm)
-    ).scalars().all()
-    for f in forms:
-        rows = session.execute(
-            select(AssessmentQuestion).where(AssessmentQuestion.form_id == f.id).order_by(AssessmentQuestion.question_no.asc())
-        ).scalars().all()
-        out.extend([_question_to_client(q, f.form_type) for q in rows])
-    return out
+
+    # Base query join form to get form_type
+    base = select(AssessmentQuestion, AssessmentForm.form_type).join(
+        AssessmentForm, AssessmentForm.id == AssessmentQuestion.form_id
+    )
+    if testType:
+        base = base.where(AssessmentForm.form_type == testType)
+    # isActive is not applied (no column); kept for forward compatibility
+
+    total = session.execute(
+        select(func.count()).select_from(base.subquery())
+    ).scalar() or 0
+
+    rows = session.execute(
+        base.order_by(AssessmentQuestion.form_id.asc(), AssessmentQuestion.question_no.asc())
+            .limit(limit).offset(offset)
+    ).all()
+
+    items = [_question_to_client(q, ftype) for (q, ftype) in rows]
+    return {"items": items, "total": int(total), "limit": limit, "offset": offset}
 
 
 @router.get("/questions/{question_id}")
@@ -399,11 +433,29 @@ def delete_question(request: Request, question_id: int):
 
 # ----- User Management (by admin) -----
 @router.get("/users")
-def list_users(request: Request):
+def list_users(
+    request: Request,
+    q: str | None = Query(None, description="search by email or full_name"),
+    limit: int = Query(20, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
     _ = require_admin(request)
     session = _db(request)
-    rows = session.execute(select(User).order_by(User.created_at.desc())).scalars().all()
-    return [
+    stmt = select(User)
+    if q:
+        like = f"%{q.lower()}%"
+        stmt = stmt.where(
+            func.lower(User.email).like(like) | func.lower(User.full_name).like(like)
+        )
+    total = session.execute(select(func.count(User.id)).select_from(stmt.subquery())).scalar() or 0
+    rows = (
+        session.execute(
+            stmt.order_by(User.created_at.desc()).limit(limit).offset(offset)
+        )
+        .scalars()
+        .all()
+    )
+    items = [
         {
             "id": str(u.id),
             "email": u.email,
@@ -414,6 +466,7 @@ def list_users(request: Request):
         }
         for u in rows
     ]
+    return {"items": items, "total": int(total), "limit": limit, "offset": offset}
 
 
 @router.post("/users")
