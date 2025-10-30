@@ -33,9 +33,9 @@ def _profile_dict(u: User) -> dict:
         {
             "first_name": first,
             "last_name": last,
-            "date_of_birth": u.date_of_birth.isoformat()
-            if getattr(u, "date_of_birth", None)
-            else None,
+            "date_of_birth": (
+                u.date_of_birth.isoformat() if getattr(u, "date_of_birth", None) else None
+            ),
             "last_login_at": d.get("last_login"),
         }
     )
