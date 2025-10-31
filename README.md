@@ -25,7 +25,7 @@ Modules: assessment · nlu · retrieval · recommendation · search · auth · c
     ↓
 AI-Core: PhoBERT (RIASEC/BigFive) · vi-SBERT (retrieval) · NeuMF/MLP (ranking) · Bandit (RL)
     ↓
-PostgreSQL + pgvector  ·  (Neo4j/ElasticSearch khi cần)
+PostgreSQL + pgvector  ·  (Neo4j khi cần)
 ```
 
 * **BFF** gom dữ liệu theo màn hình FE, giảm số call và ẩn phức tạp backend.
@@ -111,14 +111,6 @@ ALLOWED_ORIGINS=http://localhost:3000
 ```
 
 (Các biến về DB/pgvector/Neo4j… theo hướng dẫn trong nhánh `setup/database-env`.)
-
-**Tích hợp AI-Core**
-
-```bash
-pip install -e ./packages/ai-core   # BE import trực tiếp ai_core
-```
-
-* `modules/nlu` gọi PhoBERT; `modules/retrieval` gọi truy vấn **pgvector**; `modules/recommendation` gọi NeuMF/MLP.
 
 ---
 
@@ -236,22 +228,3 @@ pages/(Home|Assessment|EssayInput|Results|Careers|CareerDetail|Profile|Recommend
 services/*.ts
 types/*.ts
 ```
-
-### AI-Core (rút gọn)
-
-```
-packages/ai-core/
-  src/{nlp,retrieval,training,recsys,utils,api}
-  data/{catalog,raw,processed,nlp,embeddings}
-  models/{riasec_phobert,big5_phobert,vi_sbert}
-  tests/*  tools/*  configs/*
-```
-
----
-
-## 10) DB design & dữ liệu mẫu
-
-* ERD và ràng buộc 24 bảng `core` (users, assessments, essays, careers + nhóm O*NET, blog/comments/reactions…) và 3 bảng `ai` đã mô tả đầy đủ.
-* Có **bộ dữ liệu mẫu** cho toàn bộ bảng để seed/dev test.
-
----
