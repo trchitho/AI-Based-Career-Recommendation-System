@@ -67,9 +67,9 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
         </div>
       ) : (
         <div className="space-y-6">
-          {developmentProgress.map((progress, idx) => (
+          {developmentProgress.map((progress) => (
             <div
-              key={progress.id || progress.roadmap_id || `${progress.career_id}-${idx}`}
+              key={progress.id}
               className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start mb-4">
