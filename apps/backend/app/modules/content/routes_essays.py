@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Request, Query, status
+from fastapi import APIRouter, Query, Request, status
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from ...core.jwt import require_user
 from .models import Essay
 
@@ -36,17 +37,9 @@ def create_essay(request: Request, payload: EssayCreate):
 
 
 @router.get("/me")
-def list_my_essays(
-    request: Request, limit: int = Query(20, ge=1, le=100), offset: int = Query(0, ge=0)
-):
+def list_my_essays(request: Request, limit: int = Query(20, ge=1, le=100), offset: int = Query(0, ge=0)):
     session = _db(request)
     user_id = require_user(request)
-    stmt = (
-        select(Essay)
-        .where(Essay.user_id == user_id)
-        .order_by(Essay.created_at.desc())
-        .limit(limit)
-        .offset(offset)
-    )
+    stmt = select(Essay).where(Essay.user_id == user_id).order_by(Essay.created_at.desc()).limit(limit).offset(offset)
     rows = session.execute(stmt).scalars().all()
     return [e.to_dict() for e in rows]

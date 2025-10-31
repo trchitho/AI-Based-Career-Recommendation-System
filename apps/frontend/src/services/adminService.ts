@@ -34,9 +34,16 @@ export const adminService = {
   },
 
   // Career Management
-  async getAllCareers(industryCategory?: string): Promise<Career[]> {
-    const params = industryCategory ? `?industryCategory=${industryCategory}` : '';
-    const response = await api.get(`/api/admin/careers${params}`);
+  async getAllCareers(
+    industryCategory?: string,
+    opts?: { page?: number; pageSize?: number; q?: string }
+  ): Promise<{ items: Career[]; total: number; limit: number; offset: number }> {
+    const page = opts?.page ?? 1;
+    const pageSize = opts?.pageSize ?? 20;
+    const offset = (page - 1) * pageSize;
+    const q = opts?.q ? `&q=${encodeURIComponent(opts.q)}` : '';
+    const ic = industryCategory ? `&industryCategory=${encodeURIComponent(industryCategory)}` : '';
+    const response = await api.get(`/api/admin/careers?limit=${pageSize}&offset=${offset}${q}${ic}`);
     return response.data;
   },
 
@@ -111,11 +118,18 @@ export const adminService = {
   },
 
   // Question Management
-  async getAllQuestions(testType?: string, isActive?: boolean): Promise<Question[]> {
+  async getAllQuestions(
+    testType?: string,
+    isActive?: boolean,
+    opts?: { page?: number; pageSize?: number }
+  ): Promise<{ items: Question[]; total: number; limit: number; offset: number }> {
     const params = new URLSearchParams();
     if (testType) params.append('testType', testType);
     if (isActive !== undefined) params.append('isActive', isActive.toString());
-
+    const page = opts?.page ?? 1;
+    const pageSize = opts?.pageSize ?? 20;
+    params.append('limit', String(pageSize));
+    params.append('offset', String((page - 1) * pageSize));
     const response = await api.get(`/api/admin/questions?${params.toString()}`);
     return response.data;
   },
@@ -153,8 +167,12 @@ export const adminService = {
   },
 
   // Users Management
-  async listUsers(): Promise<any[]> {
-    const res = await api.get('/api/admin/users');
+  async listUsers(params?: { page?: number; pageSize?: number; q?: string }): Promise<{ items: any[]; total: number; limit: number; offset: number }> {
+    const page = params?.page ?? 1;
+    const pageSize = params?.pageSize ?? 10;
+    const offset = (page - 1) * pageSize;
+    const q = params?.q ? `&q=${encodeURIComponent(params.q)}` : '';
+    const res = await api.get(`/api/admin/users?limit=${pageSize}&offset=${offset}${q}`);
     return res.data;
   },
   async createUser(data: { email: string; password: string; full_name?: string; role?: 'admin' | 'user' | 'manager' }): Promise<any> {

@@ -1,8 +1,8 @@
 # apps/backend/app/core/jwt.py
 import os
 import time
-from typing import Any, Dict
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
 
 from fastapi import HTTPException, Request
 
@@ -17,9 +17,7 @@ JWT_ACCESS_EXPIRES_MIN = int(os.getenv("JWT_ACCESS_EXPIRES_MIN", "60"))
 JWT_REFRESH_EXPIRES_DAYS = int(os.getenv("JWT_REFRESH_EXPIRES_DAYS", "30"))
 
 
-def create_access_token(
-    payload: Dict[str, Any], expires_minutes: int | None = None
-) -> str:
+def create_access_token(payload: Dict[str, Any], expires_minutes: int | None = None) -> str:
     # payload ví dụ: {"sub": "123", "role": "admin"}
     exp_min = expires_minutes if expires_minutes is not None else JWT_ACCESS_EXPIRES_MIN
     to_encode = {**payload, "exp": int(time.time()) + exp_min * 60}

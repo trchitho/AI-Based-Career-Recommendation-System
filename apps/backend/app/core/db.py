@@ -1,8 +1,9 @@
 # apps/backend/app/core/db.py
-from sqlalchemy import create_engine, text, event
-from sqlalchemy.orm import declarative_base
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.orm import declarative_base
 
 # Nạp .env (ưu tiên .env, fallback .env.example)
 env_path = os.path.join(os.path.dirname(__file__), "../../.env")
@@ -14,9 +15,8 @@ else:
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise RuntimeError(
-        "DATABASE_URL environment variable is not set. Please set it in your environment or .env file."
-    )
+    raise RuntimeError(("DATABASE_URL environment variable is not set. " "Please set it in your environment or .env file."))
+
 
 # Engine dùng chung
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)

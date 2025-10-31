@@ -8,11 +8,13 @@ import BigFiveBarChart from '../components/results/BigFiveBarChart';
 import CareerRecommendationsDisplay from '../components/results/CareerRecommendationsDisplay';
 import { feedbackService } from '../services/feedbackService';
 import api from '../lib/api';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 
 const ResultsPage = () => {
   const { assessmentId } = useParams<{ assessmentId: string }>();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const app = useAppSettings();
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [careerRecommendations, setCareerRecommendations] = useState<CareerRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,29 +40,40 @@ const ResultsPage = () => {
       const resultsData = await assessmentService.getResults(assessmentId);
       setResults(resultsData);
 
-      // Fetch career details for recommendations
-      if (resultsData.career_recommendations && resultsData.career_recommendations.length > 0) {
+      // Prefer backend-preloaded careers
+      if (resultsData.career_recommendations_full && resultsData.career_recommendations_full.length > 0) {
+        const careers: CareerRecommendation[] = resultsData.career_recommendations_full.map((c: any, index: number) => ({
+          id: c.id,
+          slug: c.slug,
+          title: c.title,
+          description: c.description,
+          matchPercentage: 95 - index * 5,
+          required_skills: c.required_skills,
+          salary_range: c.salary_range,
+          industry_category: c.industry_category,
+        }));
+        setCareerRecommendations(careers);
+      } else if (resultsData.career_recommendations && resultsData.career_recommendations.length > 0) {
+        // Dynamically fetch career details from backend (no hardcoded placeholders)
         const careerPromises = resultsData.career_recommendations.map((careerId: string) =>
           api.get(`/api/careers/${careerId}`)
         );
-
-        const careerResponses = await Promise.all(careerPromises);
-        const careers: CareerRecommendation[] = careerResponses.map((response, index) => {
-          const career = response.data;
-          // Calculate match percentage based on position (first is highest)
-          const matchPercentage = 95 - index * 5;
-
-          return {
-            id: career.id,
-            title: career.title,
-            description: career.description,
-            matchPercentage,
-            required_skills: career.required_skills,
-            salary_range: career.salary_range,
-            industry_category: career.industry_category,
-          };
-        });
-
+        const careerResponses = await Promise.allSettled(careerPromises);
+        const careers: CareerRecommendation[] = careerResponses
+          .filter((r: any) => r.status === 'fulfilled')
+          .map((r: any, index: number) => {
+            const career = r.value.data;
+            return {
+              id: career.id,
+              slug: career.slug,
+              title: career.title,
+              description: career.description,
+              matchPercentage: 95 - index * 5,
+              required_skills: career.required_skills,
+              salary_range: career.salary_range,
+              industry_category: career.industry_category,
+            } as CareerRecommendation;
+          });
         setCareerRecommendations(careers);
       }
     } catch (err) {
@@ -92,7 +105,7 @@ const ResultsPage = () => {
                 className="text-xl font-bold text-gray-900 hover:text-indigo-700 focus:outline-none"
                 aria-label="Go to Dashboard"
               >
-                Career Recommendation System
+                {app.app_title || 'Career Recommendation System'}
               </button>
             </div>
             <div className="flex items-center space-x-4">

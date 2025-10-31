@@ -78,9 +78,12 @@ uvicorn app.main:app --reload --port 8000
 
 ---
 
-## 5️⃣ Docker Dev 
+## 5️⃣ Docker Dev (nếu cần toàn bộ stack)
 
-- Đọc cách cài đặt DB ở nhánh Database_SetUp
+```bash
+cd infra
+docker compose -f docker-compose.dev.yml up -d
+```
 
 ---
 
@@ -211,4 +214,3 @@ infra/
 README.md
 CONTRIBUTING.md
 ```
-

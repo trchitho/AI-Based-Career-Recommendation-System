@@ -10,16 +10,20 @@ const CareerManagementPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingCareer, setEditingCareer] = useState<Career | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     loadCareers();
-  }, [filterCategory]);
+  }, [filterCategory, page, pageSize, searchTerm]);
 
   const loadCareers = async () => {
     try {
       setLoading(true);
-      const data = await adminService.getAllCareers(filterCategory || undefined);
-      setCareers(data);
+      const data = await adminService.getAllCareers(filterCategory || undefined, { page, pageSize, q: searchTerm.trim() || undefined });
+      setCareers(data.items || []);
+      setTotal(data.total || 0);
     } catch (error) {
       console.error('Error loading careers:', error);
     } finally {
@@ -59,11 +63,7 @@ const CareerManagementPage = () => {
     loadCareers();
   };
 
-  const filteredCareers = careers.filter((career) =>
-    career.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    career.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  const filteredCareers = careers; // server-side filter by q
   const categories = Array.from(new Set(careers.map((c) => c.industry_category).filter(Boolean)));
 
   return (
@@ -88,7 +88,7 @@ const CareerManagementPage = () => {
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setPage(1); setSearchTerm(e.target.value); }}
               placeholder="Search careers..."
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
@@ -198,6 +198,23 @@ const CareerManagementPage = () => {
               <p className="text-gray-500">No careers found</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && (
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <button
+            className="px-3 py-2 rounded border bg-white/80 disabled:opacity-50"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >Prev</button>
+          <span className="text-sm text-gray-600">Page {page} / {Math.max(1, Math.ceil(total / pageSize))}</span>
+          <button
+            className="px-3 py-2 rounded border bg-white/80 disabled:opacity-50"
+            disabled={page >= Math.max(1, Math.ceil(total / pageSize))}
+            onClick={() => setPage((p) => p + 1)}
+          >Next</button>
         </div>
       )}
 

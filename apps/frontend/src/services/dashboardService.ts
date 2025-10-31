@@ -33,26 +33,19 @@ export const dashboardService = {
           const resultsResponse = await api.get(`/api/assessments/${latestAssessment.id}/results`);
           const results = resultsResponse.data;
 
-          if (results.career_recommendations && results.career_recommendations.length > 0) {
-            // Fetch career details for top recommendations (limit to 3 for dashboard)
-            const careerPromises = results.career_recommendations
+          if (results.career_recommendations_full && results.career_recommendations_full.length > 0) {
+            topCareerSuggestions = results.career_recommendations_full
               .slice(0, 3)
-              .map((careerId: string) => api.get(`/api/careers/${careerId}`));
-
-            const careerResponses = await Promise.all(careerPromises);
-            
-            topCareerSuggestions = careerResponses.map((response: any, index: number) => {
-              const career = response.data;
-              // Calculate match percentage based on position (first is highest)
-              const matchPercentage = 95 - (index * 5);
-              
-              return {
-                id: career.id,
-                title: career.title,
-                matchPercentage,
-                description: career.description,
-              };
-            });
+              .map((c: any, index: number) => ({
+                id: c.id,
+                slug: c.slug,
+                title: c.title,
+                description: c.description,
+                matchPercentage: 95 - (index * 5),
+              } as CareerSuggestion));
+          } else {
+            // No preloaded careers; do not fallback to per-id fetch to avoid 404 noise.
+            // Leave topCareerSuggestions empty; UI will show analyzing state.
           }
         } catch (error) {
           console.error('Error fetching career recommendations:', error);

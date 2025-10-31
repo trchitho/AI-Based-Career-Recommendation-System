@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Any, Optional
+
 import os
+from typing import Any, Optional
 
 try:
     from elasticsearch import Elasticsearch  # type: ignore

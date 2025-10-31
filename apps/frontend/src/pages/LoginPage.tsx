@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 import api from '../lib/api';
 
 const LoginPage = () => {
@@ -14,6 +15,7 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const app = useAppSettings();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +57,7 @@ const LoginPage = () => {
                 </svg>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">
-                CareerBridge <span className="text-purple-600 dark:text-purple-400">AI</span>
+                {app.app_title || 'CareerBridge AI'}
               </span>
             </div>
             <div className="flex items-center space-x-4">

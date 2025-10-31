@@ -1,16 +1,16 @@
 # apps/backend/app/api/bff_career.py
 from __future__ import annotations
-from pathlib import Path
-from dotenv import load_dotenv
 
-import os
 import json
+import os
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import psycopg
-from psycopg.rows import dict_row
-from fastapi import APIRouter, HTTPException
 import redis.asyncio as redis
+from dotenv import load_dotenv
+from fastapi import APIRouter, HTTPException
+from psycopg.rows import dict_row
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -84,9 +84,7 @@ def _fetch_sections(conn: psycopg.Connection, code: str) -> Dict[str, Any]:
         )
         outlook = cur.fetchone()
 
-        cur.execute(
-            "SELECT r,i,a,s,e,c FROM core.career_interests WHERE onet_code=%s", (code,)
-        )
+        cur.execute("SELECT r,i,a,s,e,c FROM core.career_interests WHERE onet_code=%s", (code,))
         ints = cur.fetchone()
 
     dto = {
@@ -108,9 +106,7 @@ def _fetch_sections(conn: psycopg.Connection, code: str) -> Dict[str, Any]:
             "outlook": outlook,
             "interests": ints,
         },
-        "source": [
-            {"name": "O*NET Web Services", "version": "30.x", "license": "CC BY 4.0"}
-        ],
+        "source": [{"name": "O*NET Web Services", "version": "30.x", "license": "CC BY 4.0"}],
     }
     return dto
 

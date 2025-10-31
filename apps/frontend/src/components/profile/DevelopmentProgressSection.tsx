@@ -67,9 +67,9 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
         </div>
       ) : (
         <div className="space-y-6">
-          {developmentProgress.map((progress) => (
+          {developmentProgress.map((progress, idx) => (
             <div
-              key={progress.id}
+              key={progress.id || progress.roadmap_id || `${progress.career_id}-${progress.last_updated_at || progress.started_at || idx}`}
               className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start mb-4">
@@ -172,7 +172,7 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
                       .slice(-3)
                       .map((milestone) => (
                         <span
-                          key={milestone.order}
+                          key={`${progress.career_id}-${milestone.order}`}
                           className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200"
                         >
                           ✓ {milestone.skillName}

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 import api from '../lib/api';
 
 const RegisterPage = () => {
@@ -17,6 +18,7 @@ const RegisterPage = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const app = useAppSettings();
 
   const validatePassword = (pwd: string) => {
     if (pwd.length < 8) {
@@ -92,7 +94,7 @@ const RegisterPage = () => {
                 </svg>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">
-                CareerBridge <span className="text-purple-600 dark:text-purple-400">AI</span>
+                {app.app_title || 'CareerBridge AI'}
               </span>
             </div>
             <div className="flex items-center space-x-4">
