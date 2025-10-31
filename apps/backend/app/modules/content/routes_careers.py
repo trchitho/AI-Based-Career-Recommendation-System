@@ -5,8 +5,10 @@ from . import service_careers as svc
 
 router = APIRouter()
 
+
 def _db(request: Request) -> Session:
     return request.state.db
+
 
 @router.get("")
 def list_careers(
@@ -18,6 +20,7 @@ def list_careers(
 ):
     session = _db(request)
     return svc.list_careers(session, q, category_id, limit, offset)
+
 
 @router.get("/{id_or_slug}")
 def get_career(request: Request, id_or_slug: str):

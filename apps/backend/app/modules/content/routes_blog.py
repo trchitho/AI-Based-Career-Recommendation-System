@@ -5,8 +5,10 @@ from .models import BlogPost
 
 router = APIRouter()
 
+
 def _db(request: Request) -> Session:
     return request.state.db
+
 
 @router.get("")
 def list_posts(
@@ -19,15 +21,19 @@ def list_posts(
         select(BlogPost)
         .where(BlogPost.status == "Published")
         .order_by(BlogPost.published_at.desc().nullslast())
-        .limit(limit).offset(offset)
+        .limit(limit)
+        .offset(offset)
     )
     rows = session.execute(stmt).scalars().all()
     return [p.to_dict() for p in rows]
 
+
 @router.get("/{slug}")
 def get_post_by_slug(request: Request, slug: str):
     session = _db(request)
-    obj = session.execute(select(BlogPost).where(BlogPost.slug == slug)).scalar_one_or_none()
+    obj = session.execute(
+        select(BlogPost).where(BlogPost.slug == slug)
+    ).scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Post not found")
     return obj.to_dict()

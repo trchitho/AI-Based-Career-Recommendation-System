@@ -3,7 +3,6 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from ..users.models import User
 from ..assessments.models import AssessmentForm, AssessmentQuestion, Assessment
-from ...core.db import engine
 from sqlalchemy import text
 from ..content.models import Career, CareerKSA, BlogPost, Comment
 from ..system.models import AppSettings
@@ -26,12 +25,21 @@ def dashboard_metrics(request: Request):
     total_users = session.execute(select(func.count(User.id))).scalar() or 0
     total_assessments = session.execute(select(func.count(Assessment.id))).scalar() or 0
     # recent 7 days
-    recent_assessments = session.execute(text("""
+    recent_assessments = (
+        session.execute(
+            text(
+                """
         SELECT COUNT(*) FROM core.assessments 
         WHERE created_at >= now() - interval '7 days'
-    """)).scalar() or 0
+    """
+            )
+        ).scalar()
+        or 0
+    )
     completed_assessments = total_assessments
-    completion_rate = float((completed_assessments / total_users) * 100) if total_users else 0.0
+    completion_rate = (
+        float((completed_assessments / total_users) * 100) if total_users else 0.0
+    )
 
     return {
         "totalUsers": total_users,
@@ -74,7 +82,12 @@ def ai_metrics(_: Request):
 
 
 @router.get("/feedback")
-def user_feedback(request: Request, startDate: str | None = None, endDate: str | None = None, minRating: int | None = None):
+def user_feedback(
+    request: Request,
+    startDate: str | None = None,
+    endDate: str | None = None,
+    minRating: int | None = None,
+):
     _ = require_admin(request)
     session = _db(request)
 
@@ -96,10 +109,18 @@ def user_feedback(request: Request, startDate: str | None = None, endDate: str |
     if minRating is not None:
         stmt = stmt.where(UserFeedback.rating >= minRating)
     if startDate:
-        stmt = stmt.where(UserFeedback.created_at >= text("CAST(:sd AS timestamp with time zone)")).params(sd=startDate)
+        stmt = stmt.where(
+            UserFeedback.created_at >= text("CAST(:sd AS timestamp with time zone)")
+        ).params(sd=startDate)
     if endDate:
-        stmt = stmt.where(UserFeedback.created_at <= text("CAST(:ed AS timestamp with time zone)")).params(ed=endDate)
-    rows = session.execute(stmt.order_by(UserFeedback.created_at.desc()).limit(200)).scalars().all()
+        stmt = stmt.where(
+            UserFeedback.created_at <= text("CAST(:ed AS timestamp with time zone)")
+        ).params(ed=endDate)
+    rows = (
+        session.execute(stmt.order_by(UserFeedback.created_at.desc()).limit(200))
+        .scalars()
+        .all()
+    )
     return [
         {
             "id": str(x.id),
@@ -120,7 +141,12 @@ def get_settings(request: Request):
     session = _db(request)
     s = session.get(AppSettings, 1)
     if not s:
-        s = AppSettings(id=1, app_title="CareerBridge AI", app_name="CareerBridge", footer_html="© 2025 CareerBridge AI")
+        s = AppSettings(
+            id=1,
+            app_title="CareerBridge AI",
+            app_name="CareerBridge",
+            footer_html="© 2025 CareerBridge AI",
+        )
         session.add(s)
         session.commit()
         session.refresh(s)
@@ -154,7 +180,14 @@ def _career_to_client(c: Career) -> dict:
         "required_skills": [],
         "salary_range": {"min": 0, "max": 0, "currency": "VND"},
         "industry_category": "",
-        "riasec_profile": {"realistic": 0, "investigative": 0, "artistic": 0, "social": 0, "enterprising": 0, "conventional": 0},
+        "riasec_profile": {
+            "realistic": 0,
+            "investigative": 0,
+            "artistic": 0,
+            "social": 0,
+            "enterprising": 0,
+            "conventional": 0,
+        },
         "created_at": c.created_at.isoformat() if c.created_at else None,
         "updated_at": c.updated_at.isoformat() if c.updated_at else None,
     }
@@ -163,7 +196,9 @@ def _career_to_client(c: Career) -> dict:
 @router.get("/careers")
 def list_careers(
     request: Request,
-    industryCategory: str | None = Query(None),  # placeholder; not filtered in current schema
+    industryCategory: str | None = Query(
+        None
+    ),  # placeholder; not filtered in current schema
     q: str | None = Query(None, description="search by title/slug"),
     limit: int = Query(20, ge=1, le=200),
     offset: int = Query(0, ge=0),
@@ -177,11 +212,23 @@ def list_careers(
         like = f"%{q.lower()}%"
         # title via dto columns
         from sqlalchemy import func
+
         title_expr = func.coalesce(Career.title_vi, Career.title_en)
         stmt = stmt.where(or_(title_expr.ilike(like), Career.slug.ilike(like)))
 
-    total = session.execute(select(safunc.count(Career.id)).select_from(stmt.subquery())).scalar() or 0
-    rows = session.execute(stmt.order_by(Career.created_at.desc()).limit(limit).offset(offset)).scalars().all()
+    total = (
+        session.execute(
+            select(safunc.count(Career.id)).select_from(stmt.subquery())
+        ).scalar()
+        or 0
+    )
+    rows = (
+        session.execute(
+            stmt.order_by(Career.created_at.desc()).limit(limit).offset(offset)
+        )
+        .scalars()
+        .all()
+    )
     items = [_career_to_client(c) for c in rows]
     return {"items": items, "total": int(total), "limit": limit, "offset": offset}
 
@@ -251,7 +298,11 @@ def _ksa_to_client(s: CareerKSA) -> dict:
 def list_skills(request: Request):
     _ = require_admin(request)
     session = _db(request)
-    rows = session.execute(select(CareerKSA).order_by(CareerKSA.id.desc()).limit(200)).scalars().all()
+    rows = (
+        session.execute(select(CareerKSA).order_by(CareerKSA.id.desc()).limit(200))
+        .scalars()
+        .all()
+    )
     return [_ksa_to_client(x) for x in rows]
 
 
@@ -275,7 +326,15 @@ def create_skill(request: Request, payload: dict):
     if not name:
         raise HTTPException(status_code=400, detail="name is required")
 
-    s = CareerKSA(onet_code="custom", ksa_type=category or "skill", name=name, category=description, level=None, importance=None, source="custom")
+    s = CareerKSA(
+        onet_code="custom",
+        ksa_type=category or "skill",
+        name=name,
+        category=description,
+        level=None,
+        importance=None,
+        source="custom",
+    )
     session.add(s)
     session.commit()
     session.refresh(s)
@@ -332,7 +391,9 @@ def _question_to_client(q: AssessmentQuestion, test_type: str) -> dict:
 def list_questions(
     request: Request,
     testType: str | None = Query(None),
-    isActive: bool | None = Query(None),  # placeholder; AssessmentQuestion chưa có cột is_active
+    isActive: bool | None = Query(
+        None
+    ),  # placeholder; AssessmentQuestion chưa có cột is_active
     limit: int = Query(20, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
@@ -347,13 +408,16 @@ def list_questions(
         base = base.where(AssessmentForm.form_type == testType)
     # isActive is not applied (no column); kept for forward compatibility
 
-    total = session.execute(
-        select(func.count()).select_from(base.subquery())
-    ).scalar() or 0
+    total = (
+        session.execute(select(func.count()).select_from(base.subquery())).scalar() or 0
+    )
 
     rows = session.execute(
-        base.order_by(AssessmentQuestion.form_id.asc(), AssessmentQuestion.question_no.asc())
-            .limit(limit).offset(offset)
+        base.order_by(
+            AssessmentQuestion.form_id.asc(), AssessmentQuestion.question_no.asc()
+        )
+        .limit(limit)
+        .offset(offset)
     ).all()
 
     items = [_question_to_client(q, ftype) for (q, ftype) in rows]
@@ -383,16 +447,32 @@ def create_question(request: Request, payload: dict):
     if not text:
         raise HTTPException(status_code=400, detail="text is required")
 
-    form = session.execute(select(AssessmentForm).where(AssessmentForm.form_type == test_type)).scalar_one_or_none()
+    form = session.execute(
+        select(AssessmentForm).where(AssessmentForm.form_type == test_type)
+    ).scalar_one_or_none()
     if not form:
-        form = AssessmentForm(form_type=test_type, title=f"{test_type} form", code=f"{test_type}-default")
+        form = AssessmentForm(
+            form_type=test_type, title=f"{test_type} form", code=f"{test_type}-default"
+        )
         session.add(form)
         session.flush()
 
-    max_no = session.execute(
-        select(func.coalesce(func.max(AssessmentQuestion.question_no), 0)).where(AssessmentQuestion.form_id == form.id)
-    ).scalar() or 0
-    q = AssessmentQuestion(form_id=form.id, question_no=max_no + 1, question_key=dimension, prompt=text, options_json=options or None, reverse_score=False)
+    max_no = (
+        session.execute(
+            select(func.coalesce(func.max(AssessmentQuestion.question_no), 0)).where(
+                AssessmentQuestion.form_id == form.id
+            )
+        ).scalar()
+        or 0
+    )
+    q = AssessmentQuestion(
+        form_id=form.id,
+        question_no=max_no + 1,
+        question_key=dimension,
+        prompt=text,
+        options_json=options or None,
+        reverse_score=False,
+    )
     session.add(q)
     session.commit()
     session.refresh(q)
@@ -428,6 +508,7 @@ def delete_question(request: Request, question_id: int):
     session.commit()
     return {"status": "ok"}
 
+
 # ----- Users Management -----
 
 
@@ -447,7 +528,12 @@ def list_users(
         stmt = stmt.where(
             func.lower(User.email).like(like) | func.lower(User.full_name).like(like)
         )
-    total = session.execute(select(func.count(User.id)).select_from(stmt.subquery())).scalar() or 0
+    total = (
+        session.execute(
+            select(func.count(User.id)).select_from(stmt.subquery())
+        ).scalar()
+        or 0
+    )
     rows = (
         session.execute(
             stmt.order_by(User.created_at.desc()).limit(limit).offset(offset)
@@ -484,10 +570,18 @@ def create_user(request: Request, payload: dict):
         raise HTTPException(status_code=400, detail="email and password are required")
     if role not in {"admin", "user"}:
         raise HTTPException(status_code=400, detail="Invalid role")
-    exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    exists = session.execute(
+        select(User).where(User.email == email)
+    ).scalar_one_or_none()
     if exists:
         raise HTTPException(status_code=400, detail="Email already registered")
-    u = User(email=email, password_hash=hash_password(password), full_name=full_name, role=role, is_locked=False)
+    u = User(
+        email=email,
+        password_hash=hash_password(password),
+        full_name=full_name,
+        role=role,
+        is_locked=False,
+    )
     session.add(u)
     session.commit()
     session.refresh(u)
@@ -506,6 +600,7 @@ def update_user(request: Request, user_id: int, payload: dict):
     session = _db(request)
     from ..users.models import User
     from ...core.security import hash_password
+
     u = session.get(User, user_id)
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
@@ -530,12 +625,22 @@ def update_user(request: Request, user_id: int, payload: dict):
         "is_locked": u.is_locked,
     }
 
+
 # ----- Blog Management (CRUD) -----
 @router.get("/blog")
 def admin_list_posts(request: Request, limit: int = 50, offset: int = 0):
     _ = require_admin(request)
     session = _db(request)
-    rows = session.execute(select(BlogPost).order_by(BlogPost.created_at.desc()).limit(limit).offset(offset)).scalars().all()
+    rows = (
+        session.execute(
+            select(BlogPost)
+            .order_by(BlogPost.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        .scalars()
+        .all()
+    )
     return [p.to_dict() for p in rows]
 
 
@@ -586,7 +691,16 @@ def admin_delete_post(request: Request, post_id: int):
 def admin_list_comments(request: Request, limit: int = 100, offset: int = 0):
     _ = require_admin(request)
     session = _db(request)
-    rows = session.execute(select(Comment).order_by(Comment.created_at.desc()).limit(limit).offset(offset)).scalars().all()
+    rows = (
+        session.execute(
+            select(Comment)
+            .order_by(Comment.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        .scalars()
+        .all()
+    )
     return [c.to_dict() for c in rows]
 
 

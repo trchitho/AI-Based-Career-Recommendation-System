@@ -59,14 +59,16 @@ def seed_form(session, form_file: Path):
         session.flush()
     # add questions
     for q in data.get("questions", []):
-        session.add(AssessmentQuestion(
-            form_id=form.id,
-            question_no=q.get("question_no"),
-            question_key=q.get("question_key"),
-            prompt=q.get("prompt"),
-            options_json=q.get("options_json"),
-            reverse_score=bool(q.get("reverse_score")),
-        ))
+        session.add(
+            AssessmentQuestion(
+                form_id=form.id,
+                question_no=q.get("question_no"),
+                question_key=q.get("question_key"),
+                prompt=q.get("prompt"),
+                options_json=q.get("options_json"),
+                reverse_score=bool(q.get("reverse_score")),
+            )
+        )
     session.commit()
 
 
@@ -74,7 +76,9 @@ def main():
     ap = argparse.ArgumentParser(description="Seed bulk data into DB from JSON files")
     ap.add_argument("--careers", type=Path, help="JSON file list of careers")
     ap.add_argument("--ksas", type=Path, help="JSON file list of KSAs")
-    ap.add_argument("--form", type=Path, help="JSON file of an assessment form + questions")
+    ap.add_argument(
+        "--form", type=Path, help="JSON file of an assessment form + questions"
+    )
     args = ap.parse_args()
 
     Session = sessionmaker(bind=engine, autocommit=False, autoflush=False)

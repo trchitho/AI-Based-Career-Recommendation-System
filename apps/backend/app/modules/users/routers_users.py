@@ -9,6 +9,7 @@ from ..assessments.models import Assessment
 
 router = APIRouter()
 
+
 def _db(req: Request) -> Session:
     return req.state.db
 
@@ -27,13 +28,20 @@ def _split_name(full_name: str | None) -> tuple[str | None, str | None]:
 def _profile_dict(u: User) -> dict:
     first, last = _split_name(u.full_name)
     d = u.to_dict()
-    d.update({
-        "first_name": first,
-        "last_name": last,
-        "date_of_birth": u.date_of_birth.isoformat() if getattr(u, 'date_of_birth', None) else None,
-        "last_login_at": d.get("last_login"),
-    })
+    d.update(
+        {
+            "first_name": first,
+            "last_name": last,
+            "date_of_birth": (
+                u.date_of_birth.isoformat()
+                if getattr(u, "date_of_birth", None)
+                else None
+            ),
+            "last_login_at": d.get("last_login"),
+        }
+    )
     return d
+
 
 @router.get("/me")
 def get_me(request: Request):
@@ -43,6 +51,7 @@ def get_me(request: Request):
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
     return _profile_dict(u)
+
 
 @router.patch("/me")
 def update_me(request: Request, payload: dict):
@@ -72,7 +81,10 @@ def update_me(request: Request, payload: dict):
             try:
                 u.date_of_birth = date.fromisoformat(str(dob))
             except Exception:
-                raise HTTPException(status_code=400, detail="Invalid date_of_birth (expected YYYY-MM-DD)")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid date_of_birth (expected YYYY-MM-DD)",
+                )
     session.commit()
     session.refresh(u)
     return _profile_dict(u)
@@ -82,9 +94,15 @@ def update_me(request: Request, payload: dict):
 @router.get("/{user_id}/history")
 def get_history(request: Request, user_id: int):
     session = _db(request)
-    rows = session.execute(
-        select(Assessment).where(Assessment.user_id == user_id).order_by(Assessment.created_at.desc())
-    ).scalars().all()
+    rows = (
+        session.execute(
+            select(Assessment)
+            .where(Assessment.user_id == user_id)
+            .order_by(Assessment.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
 
     def _map_riasec(s: dict | None) -> dict | None:
         if not isinstance(s, dict):
@@ -149,13 +167,15 @@ def get_history(request: Request, user_id: int):
             test_types.append("BIG_FIVE")
         if not test_types:
             test_types = [a.a_type]
-        history.append({
-            "id": str(a.id),
-            "completed_at": a.created_at.isoformat() if a.created_at else None,
-            "test_types": test_types,
-            "riasec_scores": riasec_scores,
-            "big_five_scores": big5_scores,
-        })
+        history.append(
+            {
+                "id": str(a.id),
+                "completed_at": a.created_at.isoformat() if a.created_at else None,
+                "test_types": test_types,
+                "riasec_scores": riasec_scores,
+                "big_five_scores": big5_scores,
+            }
+        )
     return history
 
 

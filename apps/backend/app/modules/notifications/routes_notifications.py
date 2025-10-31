@@ -19,9 +19,15 @@ def list_notifications(request: Request, user_id: int):
         # chỉ cho phép đọc thông báo của chính mình (đơn giản)
         raise HTTPException(status_code=403, detail="Forbidden")
     session = _db(request)
-    rows = session.execute(
-        select(Notification).where(Notification.user_id == user_id).order_by(Notification.created_at.desc())
-    ).scalars().all()
+    rows = (
+        session.execute(
+            select(Notification)
+            .where(Notification.user_id == user_id)
+            .order_by(Notification.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
     return [n.to_dict() for n in rows]
 
 
@@ -67,6 +73,7 @@ def create_notification(request: Request, payload: dict):
     session.commit()
     try:
         import anyio
+
         anyio.from_thread.run(manager.send, uid, n.to_dict())
     except Exception:
         pass

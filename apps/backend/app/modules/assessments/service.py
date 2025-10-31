@@ -40,7 +40,9 @@ def get_questions(
         session.execute(
             select(AssessmentQuestion)
             .where(AssessmentQuestion.form_id.in_(form_ids))
-            .order_by(AssessmentQuestion.form_id.asc(), AssessmentQuestion.question_no.asc())
+            .order_by(
+                AssessmentQuestion.form_id.asc(), AssessmentQuestion.question_no.asc()
+            )
         )
         .scalars()
         .all()
@@ -54,7 +56,7 @@ def get_questions(
             item["order_index"] = idx
 
     if per_dim and per_dim > 0:
-        dims = ("RIASEC" if test_type == "RIASEC" else "OCEAN")
+        dims = "RIASEC" if test_type == "RIASEC" else "OCEAN"
         cap: dict[str, int] = {d: 0 for d in dims}
         sel: list[dict] = []
         for it in out:
@@ -80,7 +82,7 @@ def get_questions(
 def save_assessment(session: Session, user_id: int, payload: dict) -> int:
     test_types = payload.get("testTypes") or []
     responses = payload.get("responses") or []
-    a_type_client = (test_types[0] if test_types else "RIASEC")
+    a_type_client = test_types[0] if test_types else "RIASEC"
     a_type = _normalize_type(a_type_client)
 
     # Accumulate scores per dimension for both tests
@@ -125,7 +127,7 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             big5_acc[dim].append(val)
 
     def _avg_map(acc: dict[str, list[float]]) -> dict[str, float]:
-        return {k: (round(sum(v)/len(v), 3) if v else 0.0) for k, v in acc.items()}
+        return {k: (round(sum(v) / len(v), 3) if v else 0.0) for k, v in acc.items()}
 
     scores_payload = {
         "riasec": _avg_map(riasec_acc),
@@ -187,9 +189,13 @@ def build_results(session: Session, assessment_id: int) -> dict:
     if not obj:
         raise ValueError("Assessment not found")
 
-    resp_rows = session.execute(
-        select(AssessmentResponse).where(AssessmentResponse.assessment_id == obj.id)
-    ).scalars().all()
+    resp_rows = (
+        session.execute(
+            select(AssessmentResponse).where(AssessmentResponse.assessment_id == obj.id)
+        )
+        .scalars()
+        .all()
+    )
 
     riasec_map = {
         "R": "realistic",
@@ -213,7 +219,11 @@ def build_results(session: Session, assessment_id: int) -> dict:
     for r in resp_rows:
         key = (r.question_key or "").strip().upper()
         try:
-            val = float(r.score_value) if r.score_value is not None else float(r.answer_raw)
+            val = (
+                float(r.score_value)
+                if r.score_value is not None
+                else float(r.answer_raw)
+            )
         except Exception:
             val = None
         if val is None:
@@ -250,7 +260,10 @@ def build_results(session: Session, assessment_id: int) -> dict:
 
     # Suggest top 3 careers (placeholder): pick first 3 existing IDs to avoid 404/500
     from ..content.models import Career  # local import to avoid cycles
-    rec_rows = session.execute(select(Career.id).order_by(Career.id.asc()).limit(3)).all()
+
+    rec_rows = session.execute(
+        select(Career.id).order_by(Career.id.asc()).limit(3)
+    ).all()
     rec_ids = [str(cid) for (cid,) in rec_rows]
 
     # Preload minimal career details to avoid FE N+1 calls
@@ -272,12 +285,14 @@ def build_results(session: Session, assessment_id: int) -> dict:
                 for rid, slug, tvi, ten, sdesc_vn, sdesc_en in rows:
                     title = tvi or ten or ((slug or "").replace("-", " ").title())
                     sdesc = sdesc_vn or sdesc_en or ""
-                    careers_full.append({
-                        "id": str(rid),
-                        "title": title,
-                        "description": sdesc,
-                        "slug": slug,
-                    })
+                    careers_full.append(
+                        {
+                            "id": str(rid),
+                            "title": title,
+                            "description": sdesc,
+                            "slug": slug,
+                        }
+                    )
     except Exception:
         pass
 
@@ -288,13 +303,22 @@ def build_results(session: Session, assessment_id: int) -> dict:
         "big_five_scores": big_five_scores,
         "career_recommendations": rec_ids,
         "career_recommendations_full": careers_full,
-        "completed_at": obj.created_at.isoformat() if getattr(obj, "created_at", None) else None,
+        "completed_at": (
+            obj.created_at.isoformat() if getattr(obj, "created_at", None) else None
+        ),
     }
 
 
-def save_feedback(session: Session, user_id: int, assessment_id: int, rating: int, comment: str | None):
+def save_feedback(
+    session: Session, user_id: int, assessment_id: int, rating: int, comment: str | None
+):
     if rating < 1 or rating > 5:
         raise ValueError("rating must be 1..5")
-    fb = UserFeedback(user_id=user_id, assessment_id=assessment_id, rating=rating, comment=(comment or None))
+    fb = UserFeedback(
+        user_id=user_id,
+        assessment_id=assessment_id,
+        rating=rating,
+        comment=(comment or None),
+    )
     session.add(fb)
     session.commit()
