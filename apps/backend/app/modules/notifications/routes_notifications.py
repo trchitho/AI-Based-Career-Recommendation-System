@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
+
 from ...core.jwt import require_user
-from .models import Notification
 from ..realtime.ws_notifications import manager
+from .models import Notification
 
 router = APIRouter()
 
@@ -20,11 +21,7 @@ def list_notifications(request: Request, user_id: int):
         raise HTTPException(status_code=403, detail="Forbidden")
     session = _db(request)
     rows = (
-        session.execute(
-            select(Notification)
-            .where(Notification.user_id == user_id)
-            .order_by(Notification.created_at.desc())
-        )
+        session.execute(select(Notification).where(Notification.user_id == user_id).order_by(Notification.created_at.desc()))
         .scalars()
         .all()
     )
@@ -50,9 +47,7 @@ def mark_all_read(request: Request, user_id: int):
     if auth_user != user_id:
         raise HTTPException(status_code=403, detail="Forbidden")
     session = _db(request)
-    session.execute(
-        update(Notification).where(Notification.user_id == user_id).values(is_read=True)
-    )
+    session.execute(update(Notification).where(Notification.user_id == user_id).values(is_read=True))
     session.commit()
     return {"status": "ok", "user_id": str(user_id)}
 

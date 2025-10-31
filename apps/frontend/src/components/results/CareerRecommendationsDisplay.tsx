@@ -8,9 +8,12 @@ interface CareerRecommendationsDisplayProps {
 const CareerRecommendationsDisplay = ({ recommendations }: CareerRecommendationsDisplayProps) => {
   const navigate = useNavigate();
 
-  const handleViewRoadmap = (careerId: string) => {
-    navigate(`/careers/${careerId}/roadmap`);
+  const handleViewRoadmap = (careerId: string, slug?: string) => {
+    const key = slug || careerId;
+    navigate(`/careers/${key}/roadmap`);
   };
+
+  const prettify = (s?: string) => (s ? s.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()) : '');
 
   const getMatchColor = (percentage: number) => {
     if (percentage >= 80) return 'text-green-600 bg-green-100';
@@ -47,7 +50,7 @@ const CareerRecommendationsDisplay = ({ recommendations }: CareerRecommendations
                     <span className="text-indigo-600 font-bold text-lg">#{index + 1}</span>
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900">{career.title}</h4>
+                    <h4 className="text-lg font-semibold text-gray-900">{career.title || prettify(career.slug)}</h4>
                     {career.industry_category && (
                       <p className="text-xs text-gray-500">{career.industry_category}</p>
                     )}
@@ -90,7 +93,7 @@ const CareerRecommendationsDisplay = ({ recommendations }: CareerRecommendations
               )}
 
               <button
-                onClick={() => handleViewRoadmap(career.id)}
+                onClick={() => handleViewRoadmap(career.id, career.slug)}
                 className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors font-medium"
               >
                 View Learning Roadmap

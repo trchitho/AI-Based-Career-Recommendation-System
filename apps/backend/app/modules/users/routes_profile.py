@@ -1,10 +1,8 @@
-from fastapi import APIRouter, Request, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-from ...core.jwt import require_user
+from fastapi import APIRouter, HTTPException, Request
+from sqlalchemy import BigInteger, Column, Text, select
+from sqlalchemy.orm import Session, registry
 
-from sqlalchemy.orm import registry
-from sqlalchemy import Column, BigInteger, Text
+from ...core.jwt import require_user
 
 mapper_registry = registry()
 
@@ -48,9 +46,7 @@ def _db(req: Request) -> Session:
 def list_goals(request: Request):
     uid = require_user(request)
     session = _db(request)
-    rows = (
-        session.execute(select(UserGoal).where(UserGoal.user_id == uid)).scalars().all()
-    )
+    rows = session.execute(select(UserGoal).where(UserGoal.user_id == uid)).scalars().all()
     return [{"id": str(g.id), "goal_text": g.goal_text} for g in rows]
 
 
@@ -84,11 +80,7 @@ def delete_goal(request: Request, goal_id: int):
 def list_skills(request: Request):
     uid = require_user(request)
     session = _db(request)
-    rows = (
-        session.execute(select(UserSkillMap).where(UserSkillMap.user_id == uid))
-        .scalars()
-        .all()
-    )
+    rows = session.execute(select(UserSkillMap).where(UserSkillMap.user_id == uid)).scalars().all()
     return [{"skill_name": r.skill_name, "level": r.level} for r in rows]
 
 
@@ -101,9 +93,7 @@ def upsert_skill(request: Request, payload: dict):
     if not name:
         raise HTTPException(status_code=400, detail="skill_name required")
     existing = session.execute(
-        select(UserSkillMap).where(
-            UserSkillMap.user_id == uid, UserSkillMap.skill_name == name
-        )
+        select(UserSkillMap).where(UserSkillMap.user_id == uid, UserSkillMap.skill_name == name)
     ).scalar_one_or_none()
     if existing:
         existing.level = level
@@ -118,9 +108,7 @@ def delete_skill(request: Request, skill_name: str):
     uid = require_user(request)
     session = _db(request)
     r = session.execute(
-        select(UserSkillMap).where(
-            UserSkillMap.user_id == uid, UserSkillMap.skill_name == skill_name
-        )
+        select(UserSkillMap).where(UserSkillMap.user_id == uid, UserSkillMap.skill_name == skill_name)
     ).scalar_one_or_none()
     if not r:
         raise HTTPException(status_code=404, detail="Not found")
@@ -133,14 +121,8 @@ def delete_skill(request: Request, skill_name: str):
 def list_journey(request: Request):
     uid = require_user(request)
     session = _db(request)
-    rows = (
-        session.execute(select(CareerJourney).where(CareerJourney.user_id == uid))
-        .scalars()
-        .all()
-    )
-    return [
-        {"id": str(j.id), "title": j.title, "description": j.description} for j in rows
-    ]
+    rows = session.execute(select(CareerJourney).where(CareerJourney.user_id == uid)).scalars().all()
+    return [{"id": str(j.id), "title": j.title, "description": j.description} for j in rows]
 
 
 @router.post("/journey")

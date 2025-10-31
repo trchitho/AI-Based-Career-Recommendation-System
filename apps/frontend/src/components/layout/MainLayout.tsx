@@ -64,12 +64,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   {t('nav.assessment')}
                 </Link>
                 <Link
-                  to="/essay"
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  Essay
-                </Link>
-                <Link
                   to="/recommendations"
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
                 >

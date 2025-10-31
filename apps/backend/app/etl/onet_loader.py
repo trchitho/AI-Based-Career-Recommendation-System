@@ -3,17 +3,17 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import socket
 import sys
-import re
 from datetime import date
 from pathlib import Path
 from typing import Any, Iterable
 
 import httpx
 import psycopg
-from psycopg.rows import dict_row
 from dotenv import load_dotenv
+from psycopg.rows import dict_row
 
 from ..services.onetsvc import OnetService
 
@@ -46,12 +46,6 @@ VALUES (%s, %s, %s, %s, 'ONET', %s)
 ON CONFLICT DO NOTHING;
 """
 
-UPSERT_KSAS = """
-INSERT INTO core.career_ksas(onet_code, ksa_type, name, category, level, importance, source, fetched_at)
-VALUES (%s, %s, %s, %s, %s, %s, 'ONET', %s)
-ON CONFLICT DO NOTHING;
-"""
-
 UPSERT_PREP = """
 INSERT INTO core.career_prep(onet_code, job_zone, education, training, source, fetched_at)
 VALUES (%s, %s, %s, %s, 'ONET', %s)
@@ -63,21 +57,33 @@ ON CONFLICT (onet_code) DO UPDATE SET
   fetched_at= EXCLUDED.fetched_at;
 """
 
+UPSERT_KSAS = """
+INSERT INTO core.career_ksas(
+    onet_code, ksa_type, name, category, level, importance, source, fetched_at
+)
+VALUES (%s, %s, %s, %s, %s, %s, 'ONET', %s)
+ON CONFLICT DO NOTHING;
+"""
+
 UPSERT_WAGES = """
-INSERT INTO core.career_wages_us(onet_code, area, median_annual, currency, timespan, source, fetched_at)
+INSERT INTO core.career_wages_us(
+    onet_code, area, median_annual, currency, timespan, source, fetched_at
+)
 VALUES (%s, %s, %s, %s, %s, 'ONET', %s)
 ON CONFLICT DO NOTHING;
 """
 
 UPSERT_OUTLOOK = """
-INSERT INTO core.career_outlook(onet_code, summary_md, growth_label, openings_est, source, fetched_at)
+INSERT INTO core.career_outlook(
+    onet_code, summary_md, growth_label, openings_est, source, fetched_at
+)
 VALUES (%s, %s, %s, %s, 'ONET', %s)
 ON CONFLICT (onet_code) DO UPDATE SET
-  summary_md   = EXCLUDED.summary_md,
-  growth_label = EXCLUDED.growth_label,
-  openings_est = EXCLUDED.openings_est,
-  source       = EXCLUDED.source,
-  fetched_at   = EXCLUDED.fetched_at;
+    summary_md = EXCLUDED.summary_md,
+    growth_label = EXCLUDED.growth_label,
+    openings_est = EXCLUDED.openings_est,
+    source = EXCLUDED.source,
+    fetched_at = EXCLUDED.fetched_at;
 """
 
 UPSERT_INTERESTS = """
@@ -94,11 +100,7 @@ ON CONFLICT (onet_code) DO UPDATE SET
 def _slugify(title: str, code: str) -> str:
     import unicodedata
 
-    s = "".join(
-        c
-        for c in unicodedata.normalize("NFKD", title or "")
-        if not unicodedata.combining(c)
-    )
+    s = "".join(c for c in unicodedata.normalize("NFKD", title or "") if not unicodedata.combining(c))
     s = re.sub(r"[^a-zA-Z0-9]+", "-", s).strip("-").lower()
     return f"{s}-{code}"
 
@@ -182,9 +184,12 @@ def _riasec_one_hot(top_interest: str | None):
 def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -> None:
     """
     Fetch all sections from O*NET MNM WS for a SOC and UPSERT into core.* tables.
-    - Tasks: thu thập từ nhiều khóa MNM (task/duty/responsibility/activity) + fallback từ what_they_do
-      để đảm bảo đủ 5 tasks (importance vẫn NULL ở MNM).
+
+    - Tasks: thu thập từ nhiều khóa MNM (task/duty/responsibility/activity)
+    + fallback từ what_they_do để đảm bảo đủ 5 tasks
+    (importance vẫn NULL ở MNM).
     """
+
     # --- 1) Fetch từ MNM ---
     ov_obj = svc.get_overview(code)  # title, what_they_do, on_the_job.task (sample)
     kn_obj = svc.get_knowledge(code)
@@ -268,9 +273,7 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
     if len(tasks) < MIN_TASKS and short_desc:
         import re
 
-        sents = [
-            s.strip() for s in re.split(r"(?<=[\.\!\?])\s+", short_desc) if s.strip()
-        ]
+        sents = [s.strip() for s in re.split(r"(?<=[\.\!\?])\s+", short_desc) if s.strip()]
         for s in sents:
             if len(tasks) >= MIN_TASKS:
                 break
@@ -364,17 +367,13 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
             return v["text"]
         return v or ""
 
-    job_zone = (
-        _safe_get(edu_obj, "job_zone", "title") or edu_obj.get("job_zone") or None
-    )
+    job_zone = _safe_get(edu_obj, "job_zone", "title") or edu_obj.get("job_zone") or None
     education = _join_text_list(edu_obj.get("education"))
     training = _join_text_list(edu_obj.get("training"))
 
     # =================== Outlook ===================
     growth_label = _safe_get(out_obj, "growth", "text") or out_obj.get("growth") or ""
-    openings_est = _parse_int(
-        _safe_get(out_obj, "openings", "text") or out_obj.get("openings")
-    )
+    openings_est = _parse_int(_safe_get(out_obj, "openings", "text") or out_obj.get("openings"))
     outlook_md = out_obj.get("summary") or ""
 
     # =================== Interests (top_interest -> one-hot) ===================
@@ -411,9 +410,7 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
         cur.execute(UPSERT_PREP, (code, job_zone, education, training, today))
 
         # outlook
-        cur.execute(
-            UPSERT_OUTLOOK, (code, outlook_md, growth_label, openings_est, today)
-        )
+        cur.execute(UPSERT_OUTLOOK, (code, outlook_md, growth_label, openings_est, today))
 
         # interests
         if riasec:
@@ -425,9 +422,7 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
 
 def _iter_codes_from_db(conn: psycopg.Connection) -> Iterable[str]:
     with conn.cursor(row_factory=dict_row) as cur:
-        cur.execute(
-            "SELECT onet_code FROM core.careers WHERE onet_code IS NOT NULL ORDER BY onet_code"
-        )
+        cur.execute("SELECT onet_code FROM core.careers WHERE onet_code IS NOT NULL ORDER BY onet_code")
         for row in cur.fetchall():
             yield row["onet_code"]
 
@@ -465,9 +460,7 @@ def _print(msg: str):
 
 def main():
     parser = argparse.ArgumentParser(description="ETL O*NET => Postgres for 'see more'")
-    parser.add_argument(
-        "--code", type=str, help="Single O*NET/SOC code (e.g., 15-1254.00)"
-    )
+    parser.add_argument("--code", type=str, help="Single O*NET/SOC code (e.g., 15-1254.00)")
     parser.add_argument(
         "--stdin",
         action="store_true",

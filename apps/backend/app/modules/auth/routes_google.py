@@ -1,19 +1,18 @@
-from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import text
-from sqlalchemy import select
-import os
 import json
+import os
 import secrets
 import urllib.parse
 import urllib.request
 
-from ..users.models import User
-from ..auth.models import RefreshToken
-from ...core.jwt import create_access_token, refresh_expiry_dt
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import RedirectResponse
+from sqlalchemy import select, text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
+from ...core.jwt import create_access_token, refresh_expiry_dt
+from ..auth.models import RefreshToken
+from ..users.models import User
 
 router = APIRouter()
 
@@ -32,19 +31,14 @@ def _env(name: str, default: str | None = None) -> str:
 
 
 def _backend_callback_url(request: Request) -> str:
-    return os.getenv(
-        "GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback"
-    )
+    return os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback")
 
 
 @router.get("/google/login")
 def google_login(request: Request, redirect: str | None = None):
     client_id = _env("GOOGLE_CLIENT_ID")
     callback = _backend_callback_url(request)
-    state_payload = {
-        "redirect": redirect
-        or os.getenv("FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback")
-    }
+    state_payload = {"redirect": redirect or os.getenv("FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback")}
     state = urllib.parse.quote(json.dumps(state_payload))
 
     params = {
@@ -56,16 +50,12 @@ def google_login(request: Request, redirect: str | None = None):
         "prompt": "consent",
         "state": state,
     }
-    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(
-        params
-    )
+    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
     return RedirectResponse(url)
 
 
 @router.get("/google/callback")
-def google_callback(
-    request: Request, code: str | None = None, state: str | None = None
-):
+def google_callback(request: Request, code: str | None = None, state: str | None = None):
     if not code:
         raise HTTPException(status_code=400, detail="Missing code")
     client_id = _env("GOOGLE_CLIENT_ID")
@@ -108,8 +98,9 @@ def google_callback(
         raise HTTPException(status_code=400, detail="Email not available from Google")
 
     session: Session = _db(request)
-    from ...core.security import hash_password
     from datetime import datetime
+
+    from ...core.security import hash_password
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
@@ -129,9 +120,16 @@ def google_callback(
         except IntegrityError:
             # In case the sequence for core.users is out of sync, fix it and retry once
             session.rollback()
+            # 128: câu SQL dài -> chia nhỏ
             session.execute(
                 text(
-                    "SELECT setval(pg_get_serial_sequence('core.users','id'), COALESCE((SELECT MAX(id) FROM core.users)+1,1), false)"
+                    (
+                        "SELECT setval("
+                        "pg_get_serial_sequence('core.users','id'), "
+                        "COALESCE((SELECT MAX(id) FROM core.users)+1, 1), "
+                        "false"
+                        ")"
+                    )
                 )
             )
             session.commit()
@@ -174,8 +172,6 @@ def google_callback(
         st = json.loads(urllib.parse.unquote(state or "")) if state else {}
     except Exception:
         st = {}
-    fe_redirect = st.get("redirect") or os.getenv(
-        "FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback"
-    )
+    fe_redirect = st.get("redirect") or os.getenv("FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback")
     loc = f"{fe_redirect}?access_token={urllib.parse.quote(access)}&refresh_token={urllib.parse.quote(rt.token)}"
     return RedirectResponse(loc)

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { roadmapService } from '../services/roadmapService';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 import { Roadmap } from '../types/roadmap';
 import RoadmapTimelineComponent from '../components/roadmap/RoadmapTimelineComponent';
 
@@ -9,6 +10,7 @@ const RoadmapPage = () => {
   const { careerId } = useParams<{ careerId: string }>();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const app = useAppSettings();
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +80,7 @@ const RoadmapPage = () => {
                 className="text-xl font-bold text-gray-900 hover:text-indigo-700 focus:outline-none"
                 aria-label="Go to Dashboard"
               >
-                Career Recommendation System
+                {app.app_title || 'Career Recommendation System'}
               </button>
             </div>
             <div className="flex items-center space-x-4">

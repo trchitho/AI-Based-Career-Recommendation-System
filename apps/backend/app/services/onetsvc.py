@@ -7,16 +7,16 @@ from typing import Any, Dict, Optional
 
 import httpx
 from httpx import (
-    HTTPStatusError,
-    ReadTimeout,
     ConnectError,
+    HTTPStatusError,
     NetworkError,
+    ReadTimeout,
 )
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
 
 
@@ -31,8 +31,8 @@ class OnetService:
     - Basic Auth: ONET_WS_USER / ONET_WS_PASS
     - Tất cả route MNM trả về dạng JSON; với 400/401/403/404/422 => coi như không có dữ liệu -> {}.
     - Có 2 chế độ fetch:
-        * _fetch_json   : có retry/backoff cho lỗi mạng/HTTP (dùng khi dữ liệu “bắt buộc”).
-        * _fetch_json_once + _fetch_json_optional : 1 phát, optional cho các section hay vắng dữ liệu.
+      * _fetch_json: có retry/backoff cho lỗi mạng/HTTP (dùng khi dữ liệu “bắt buộc”).
+      * _fetch_json_once + _fetch_json_optional: 1 phát, optional cho section hay vắng dữ liệu.
     """
 
     def __init__(
@@ -96,9 +96,7 @@ class OnetService:
             )
         ),
     )
-    def _fetch_json(
-        self, path: str, params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def _fetch_json(self, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Fetch with retry/backoff — dùng cho trường hợp 'bắt buộc'."""
         r = self.client.get(path, params=params or {})
         r.raise_for_status()
@@ -107,14 +105,10 @@ class OnetService:
             try:
                 return r.json()
             except Exception:
-                raise OnetError(
-                    f"Unexpected content type for {path}: {r.headers.get('Content-Type')}"
-                )
+                raise OnetError(f"Unexpected content type for {path}: {r.headers.get('Content-Type')}")
         return r.json()
 
-    def _fetch_json_once(
-        self, path: str, params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def _fetch_json_once(self, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """1 phát, không retry — dùng cho optional sections để phản hồi nhanh."""
         r = self.client.get(path, params=params or {})
         if 200 <= r.status_code < 300:
@@ -123,17 +117,11 @@ class OnetService:
                 try:
                     return r.json()
                 except Exception:
-                    raise OnetError(
-                        f"Unexpected content type for {path}: {r.headers.get('Content-Type')}"
-                    )
+                    raise OnetError(f"Unexpected content type for {path}: {r.headers.get('Content-Type')}")
             return r.json()
-        raise httpx.HTTPStatusError(
-            f"{r.status_code} for {r.url}", request=r.request, response=r
-        )
+        raise httpx.HTTPStatusError(f"{r.status_code} for {r.url}", request=r.request, response=r)
 
-    def _fetch_json_optional(
-        self, path: str, params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    def _fetch_json_optional(self, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Optional fetch:
         - 400/401/403/404/422 -> coi như không có dữ liệu (return {})

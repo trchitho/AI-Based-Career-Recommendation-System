@@ -184,7 +184,7 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
               <p className="text-sm text-gray-600 mb-3">
                 {t('assessment.rateFrom')}
               </p>
-              <div className="flex justify-between items-center">
+              <div className="grid grid-cols-5 gap-2 justify-items-center items-center">
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button
                     key={value}
@@ -199,10 +199,12 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
                   </button>
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-gray-500 px-2">
-                <span>{t('assessment.stronglyDisagree')}</span>
-                <span>{t('assessment.neutral')}</span>
-                <span>{t('assessment.stronglyAgree')}</span>
+              <div className="grid grid-cols-5 text-xs text-gray-500 px-2 mt-1">
+                <span className="text-left">{t('assessment.stronglyDisagree')}</span>
+                <span></span>
+                <span className="text-center">{t('assessment.neutral')}</span>
+                <span></span>
+                <span className="text-right">{t('assessment.stronglyAgree')}</span>
               </div>
             </div>
           )}

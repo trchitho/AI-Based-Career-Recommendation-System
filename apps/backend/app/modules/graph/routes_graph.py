@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Request, HTTPException
-from .neo4j_client import get_driver
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from ..content.models import Career, CareerKSA
+from .neo4j_client import get_driver
 
 router = APIRouter()
 
@@ -50,7 +51,7 @@ def sync_career_skills(request: Request):
             s.run(
                 "MERGE (c:Career {id:$cid}) SET c.title=$title",
                 cid=str(c.id),
-                title=c.title,
+                title=c.to_dict().get("title"),
             )
             # MERGE Skill node
             s.run(
