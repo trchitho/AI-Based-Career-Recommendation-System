@@ -48,11 +48,6 @@ pip install pre-commit
 pre-commit install
 ```
 
-Hoặc frontend:
-
-```bash
-npm i && npx simple-git-hooks
-```
 
 ---
 
@@ -78,16 +73,7 @@ uvicorn app.main:app --reload --port 8000
 
 ---
 
-## 5️⃣ Docker Dev (nếu cần toàn bộ stack)
-
-```bash
-cd infra
-docker compose -f docker-compose.dev.yml up -d
-```
-
----
-
-## 6️⃣ Quy tắc Pull Request
+## 5 Quy tắc Pull Request
 
 - PR nhỏ, sống ≤ 3 ngày.
 - Phải pass CI: **FE - CI**, **BE - CI**, **Integration**.
@@ -102,60 +88,10 @@ docker compose -f docker-compose.dev.yml up -d
 - [ ] Có update docs nếu đổi API
 - [ ] Build chạy được local
 
----
-
-## 7️⃣ Test & Integration
-
-### FE
-
-```bash
-npm run build && npm run typecheck
-```
-
-### BE
-
-```bash
-pytest
-```
-
-### Integration (Contract FE↔BFF)
-
-Chạy tự động qua `.github/workflows/integration.yml`:
-
-- BE export OpenAPI
-- FE generate types, `tsc --noEmit` để verify schema khớp.
 
 ---
 
-## 8️⃣ Environment Files
-
-### FE `.env.example`
-
-```env
-NEXT_PUBLIC_API_BASE=http://localhost:8000
-```
-
-### BE `.env.example`
-
-```env
-DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
-AI_MODELS_DIR=packages/ai-core/models
-```
-
----
-
-## 9️⃣ Review Rules
-
-| Module           | Reviewer chính                   | Phụ trách                  |
-| ---------------- | -------------------------------- | -------------------------- |
-| **FE (Next.js)** | Thuong, Thien, Tho, Thinh, Duong | UI/UX, React Query         |
-| **BE (FastAPI)** | Thuong, Thien, Tho, Thinh, Duong | API, pgvector, BFF         |
-| **AI-core**      | Tho, Thinh                       | NLP, PhoBERT, NeuMF        |
-| **CI/CD**        | Tho                              | GitHub Actions, Deployment |
-
----
-
-## 🔟 Feature Merge Flow
+## 6 Feature Merge Flow
 
 ```bash
 git checkout main
@@ -170,7 +106,7 @@ git push -u origin feat/new-feature
 
 ---
 
-## 11️⃣ Sau khi merge
+## 7 Sau khi merge
 
 ```bash
 git checkout main
@@ -180,7 +116,7 @@ git branch -d feat/new-feature
 
 ---
 
-## 12️⃣ Reporting Bugs
+## 8 Reporting Bugs
 
 Tạo issue dạng:
 
@@ -193,24 +129,8 @@ Screenshot:
 
 ---
 
-## 13️⃣ Security
+## 9 Security
 
 - Không commit secret/token.
 - Không push `.env`, `.pem`, `.key`.
 - Review kỹ khi thay đổi AI model hoặc DB config.
-
----
-
-## 🧠 Quy ước đường dẫn chuẩn
-
-```
-apps/
-  frontend/
-  backend/
-packages/
-  ai-core/
-infra/
-.github/workflows/
-README.md
-CONTRIBUTING.md
-```
