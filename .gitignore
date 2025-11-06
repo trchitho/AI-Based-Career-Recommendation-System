@@ -1,0 +1,111 @@
+# -------------------
+# Python
+# -------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+src/ai_core.egg-info/
+
+# Logs & Debug
+*.log
+*.out
+*.err
+
+# Byte-compiled / cache / checkpoints
+*.pkl
+*.joblib
+*.h5
+*.ckpt
+*.pth
+*.pt
+
+# pytest / Ruff cache
+.pytest_cache/
+.ruff_cache/
+
+# -------------------
+# Jupyter Notebook
+# -------------------
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+*.ipynb_bak
+*.ipynb.old
+
+# -------------------
+# Datasets & Models
+# -------------------
+dataset/
+datasets/
+*.csv
+*.tsv
+*.jsonl
+*.xlsx
+*.parquet
+*.zip
+*.tar.gz
+*.rar
+
+models/
+checkpoints/
+saved_models/
+
+# -------------------
+# IDE / Editors
+# -------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -------------------
+# System
+# -------------------
+.DS_Store
+Thumbs.db
+
+.gemini/
+gha-creds-*.json
+
+# -------------------
+# Tests
+# -------------------
+tests/__pycache__/
+
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json
+
+# --- project data & big artifacts ---
+data/raw/
+data/embeddings/
+data/processed/
+data/catalog/
+data/nlp/
+*.npy
+*.index
+*.ttl
+
+# data & artifacts
+data/
+# allow a few large artifacts tracked by LFS
+!data/.gitignore
+*.npy
+*.index
+*.ttl
