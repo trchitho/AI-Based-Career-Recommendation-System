@@ -1,0 +1,15 @@
+﻿model_name: vinai/phobert-base
+max_length: 256
+batch_size: 2
+num_epochs: 5
+lr: 2e-5
+weight_decay: 0.01
+warmup_ratio: 0.1
+seed: 42
+task: big5
+freeze_base: false
+train_file: data/nlp/train_big5.csv
+val_file:   data/nlp/val_big5.csv
+test_file:  data/nlp/test_big5.csv
+label_names: [O, C, E, A, N]
+output_dir: models/big5_phobert

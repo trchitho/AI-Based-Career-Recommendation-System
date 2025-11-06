@@ -1,0 +1,32 @@
+# Versioning để sau này đổi schema còn kiểm soát
+version: 1
+
+# Một bản ghi người dùng (1 essay + điểm test tương ứng)
+record:
+  user_id: int              # id ẩn danh
+  language: str             # "vi" | "en"
+  essay_text: str           # bài tự luận
+
+  # Điểm test RIASEC (0..1), cho phép thiếu (null) nếu user chưa làm test
+  riasec_scores:
+    R: float?               # realistic
+    I: float?
+    A: float?
+    S: float?
+    E: float?
+    C: float?
+
+  # Điểm Big Five (0..1), cho phép thiếu
+  big5_scores:
+    O: float?               # Openness
+    C: float?
+    E: float?
+    A: float?
+    N: float?
+
+  # Nhãn mục tiêu (tuỳ chọn): danh sách nghề người dùng chọn/quan tâm
+  target_jobs: list[str]?
+
+  # Metadata
+  created_at: str?          # ISO datetime
+  source: str?              # survey/form/import
