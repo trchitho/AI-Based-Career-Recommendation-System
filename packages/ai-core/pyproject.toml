@@ -32,6 +32,58 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ai-core"
 version = "0.1.0"
+description = "AI core for Career Recommendation (RIASEC + Big Five + Retrieval + NeuMF)"
+requires-python = ">=3.11,<3.13"
+
+# 🔥 Dependencies sẽ được cài tự động khi pip install -e .
+# (Không cần chạy riêng requirements.txt)
+dependencies = [
+  "numpy>=1.24",
+  "scikit-learn>=1.3",
+  "tqdm>=4.66",
+  # NLP backbone
+  "transformers>=4.41",
+  "accelerate>=0.27",
+  "sentencepiece>=0.1.99",
+  # API
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+  "pydantic>=2.6",
+  # Postgres
+  "psycopg[binary]>=3.1",
+]
+
+[project.optional-dependencies]
+# Dùng khi dev nội bộ
+dev = [
+  "black>=24.3.0",
+  "ruff>=0.4.0",
+  "pytest>=7.0",
+  "ipykernel>=6.29",
+  "mypy>=1.8",
+]
+# Nếu chỉ chạy API inference
+api = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+  "psycopg[binary]>=3.1",
+  "python-dotenv>=1.0",
+]
+# Nếu tập trung NLP/encode
+nlp = [
+  "transformers>=4.41",
+  "accelerate>=0.27",
+  "sentencepiece>=0.1.99",
+]
+# Nếu sau này thêm thư viện recsys khác
+recsys = [
+  # "faiss-cpu>=1.8.0.post1",  # (tuỳ OS, nếu cần)
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+
+# Bảo đảm setuptools tìm thấy gói ai_core trong thư mục src/
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["ai_core*"]
