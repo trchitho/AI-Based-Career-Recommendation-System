@@ -26,15 +26,7 @@ src/ai_core.egg-info/
 *.out
 *.err
 
-# Byte-compiled / cache / checkpoints
-*.pkl
-*.joblib
-*.h5
-*.ckpt
-*.pth
-*.pt
-
-# pytest / Ruff cache
+# Caches
 .pytest_cache/
 .ruff_cache/
 
@@ -47,7 +39,7 @@ src/ai_core.egg-info/
 *.ipynb.old
 
 # -------------------
-# Datasets & Models
+# Datasets & Models (generic)
 # -------------------
 dataset/
 datasets/
@@ -59,9 +51,11 @@ datasets/
 *.zip
 *.tar.gz
 *.rar
-
-models/
+*.npy
+*.index
+*.ttl
 checkpoints/
+models/
 saved_models/
 
 # -------------------
@@ -78,34 +72,11 @@ saved_models/
 .DS_Store
 Thumbs.db
 
+# Credentials / misc
 .gemini/
 gha-creds-*.json
 
 # -------------------
-# Tests
+# Project data (LOCAL ONLY)
 # -------------------
-tests/__pycache__/
-
-# gemini-cli settings
-.gemini/
-
-# GitHub App credentials
-gha-creds-*.json
-
-# --- project data & big artifacts ---
-data/raw/
-data/embeddings/
-data/processed/
-data/catalog/
-data/nlp/
-*.npy
-*.index
-*.ttl
-
-# data & artifacts
-data/
-# allow a few large artifacts tracked by LFS
-!data/.gitignore
-*.npy
-*.index
-*.ttl
+/data/
