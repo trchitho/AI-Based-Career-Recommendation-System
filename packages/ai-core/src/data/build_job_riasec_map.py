@@ -45,7 +45,7 @@ def read_titles(titles_path: Path | None) -> dict[str, str]:
         raise FileNotFoundError(f"Titles file not found: {titles_path}")
 
     with titles_path.open("r", encoding="utf-8", newline="") as f:
-        rdr = csv.DictReader(f, delimiter="\t")
+        rdr = csv.DictReader(f, delimiter="\t", skipinitialspace=True)
         # Be lenient on header names (some releases vary slightly)
         # Try to find columns case-insensitively.
         headers = {h.lower(): h for h in rdr.fieldnames or []}
@@ -75,7 +75,7 @@ def read_interests(interests_path: Path, normalize: bool = True) -> dict[str, di
 
     soc2vec: dict[str, dict[str, float]] = {}
     with interests_path.open("r", encoding="utf-8", newline="") as f:
-        rdr = csv.DictReader(f, delimiter="\t")
+        rdr = csv.DictReader(f, delimiter="\t", skipinitialspace=True)
         # Expected headers:
         # 'O*NET-SOC Code', 'Element ID', 'Element Name', 'Scale ID', 'Data Value', 'Date', 'Domain Source'
         headers = {h.lower(): h for h in rdr.fieldnames or []}
