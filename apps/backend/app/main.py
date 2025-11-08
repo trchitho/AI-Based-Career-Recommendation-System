@@ -193,7 +193,8 @@ def create_app() -> FastAPI:
     try:
         from .modules.recommendation import routes_recommendations as rec_router
 
-        app.include_router(rec_router.router, prefix="/api/recommendations", tags=["recommendations"])
+        # routes_recommendations đã có prefix /api/recommendations
+        app.include_router(rec_router.router, tags=["recommendations"])
     except Exception as e:
         print("??  Skip recommendations router:", repr(e))
 
