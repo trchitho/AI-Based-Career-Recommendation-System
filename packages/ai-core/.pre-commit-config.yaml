@@ -1,0 +1,26 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff (lint + fix)
+        entry: ruff check --fix
+        language: system
+        types: [python]
+
+      - id: black
+        name: black (format)
+        entry: black
+        language: system
+        types: [python]
+
+      - id: isort
+        name: isort (sort imports)
+        entry: isort
+        language: system
+        types: [python]
+
+      - id: nbstripout
+        name: nbstripout (strip notebook outputs)
+        entry: nbstripout
+        language: system
+        files: \.ipynb$

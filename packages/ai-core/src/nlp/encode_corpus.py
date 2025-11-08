@@ -1,0 +1,83 @@
+import json
+from pathlib import Path
+
+import numpy as np
+import torch
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+from transformers import AutoModel, AutoTokenizer
+
+from src.training.dataset_jsonl import JsonlRegDataset
+
+
+def mean_pool(last_hidden_state, attention_mask):
+    mask = attention_mask.unsqueeze(-1)
+    return (last_hidden_state * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1e-6)
+
+
+def load_cfg(ckpt_dir: Path):
+    import yaml
+
+    cfg = yaml.safe_load((Path("configs/nlp.yaml")).read_text(encoding="utf-8"))
+    # Dùng model_name từ file để đồng bộ (phòng đổi config)
+    model_name = (ckpt_dir / "tokenizer_name.txt").read_text(encoding="utf-8").strip()
+    cfg["model_name"] = model_name
+    return cfg
+
+
+def encode_split(split_path: Path, model_name: str, max_length: int, batch_size: int, device: str):
+    tok = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModel.from_pretrained(model_name).to(device)
+    model.eval()
+
+    # dataset chỉ cần tokenizer; task không quan trọng ở đây, ta tạo nhãn giả
+    class PlainDataset(JsonlRegDataset):
+        def __init__(self, path, tokenizer, max_length):
+            # dùng task riasec cho hợp lệ mask/labels nhưng không dùng
+            super().__init__(path, tokenizer, "riasec", max_length)
+
+        def __getitem__(self, i):
+            item = super().__getitem__(i)
+            return {"input_ids": item["input_ids"], "attention_mask": item["attention_mask"]}
+
+    ds = PlainDataset(split_path, tok, max_length)
+    dl = DataLoader(ds, batch_size=batch_size, shuffle=False)
+
+    embs = []
+    with torch.no_grad():
+        for batch in tqdm(dl, desc=f"Encode {split_path.name}"):
+            input_ids = batch["input_ids"].to(device)
+            attn = batch["attention_mask"].to(device)
+            out = model(input_ids=input_ids, attention_mask=attn)
+            pooled = mean_pool(out.last_hidden_state, attn)  # [B, H]
+            embs.append(pooled.cpu().numpy())
+    embs = np.vstack(embs) if embs else np.zeros((0, model.config.hidden_size), dtype=np.float32)
+    return embs
+
+
+def main():
+    ckpt_dir = Path("models/riasec_phobert")  # hoặc big5_phobert, tuỳ bạn muốn dùng backbone nào
+    cfg = load_cfg(ckpt_dir)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    out_dir = Path("data/embeddings")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    splits = {
+        "train": Path("data/processed/train.jsonl"),
+        "val": Path("data/processed/val.jsonl"),
+        "test": Path("data/processed/test.jsonl"),
+    }
+    for name, p in splits.items():
+        embs = encode_split(p, cfg["model_name"], cfg["max_length"], cfg["batch_size"], device)
+        np.save(out_dir / f"{name}_embeddings.npy", embs)
+        # Lưu index (user_id, language…) để tra ngược
+        rows = [json.loads(line) for line in p.read_text(encoding="utf-8").splitlines()]
+        index = [{"user_id": r["user_id"], "language": r["language"]} for r in rows]
+        (out_dir / f"{name}_index.json").write_text(
+            json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        print(f"[OK] {name}: {embs.shape} -> {out_dir / (name + '_embeddings.npy')}")
+
+
+if __name__ == "__main__":
+    main()
