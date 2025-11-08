@@ -1,0 +1,37 @@
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+src_paths = ["src", "tests"]
+
+[tool.ruff]
+line-length = 150
+target-version = "py311"
+# Nếu muốn CI bỏ qua notebook để khỏi dính lint ipynb:
+exclude = ["data/", ".venv/", "notebooks/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-q"
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-core"
+version = "0.1.0"
+
+[tool.setuptools]
+package-dir = {"" = "src"}

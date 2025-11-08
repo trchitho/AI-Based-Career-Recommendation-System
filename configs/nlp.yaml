@@ -1,0 +1,15 @@
+﻿model_name: vinai/phobert-base
+max_length: 256
+batch_size: 2
+num_epochs: 5
+lr: 2e-5
+weight_decay: 0.01
+warmup_ratio: 0.1
+seed: 42
+task: riasec
+freeze_base: false
+train_file: data/nlp/train_riasec.csv
+val_file:   data/nlp/val_riasec.csv
+test_file:  data/nlp/test_riasec.csv
+label_names: [R, I, A, S, E, C]
+output_dir: models/riasec_phobert
