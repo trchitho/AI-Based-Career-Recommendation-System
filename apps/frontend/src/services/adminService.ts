@@ -194,6 +194,15 @@ export const adminService = {
     return res.data;
   },
 
+  async uploadMedia(file: File): Promise<{ url: string; path: string; filename: string }> {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await api.post('/api/admin/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
+
   // Blog Management
   async listPosts(): Promise<any[]> {
     const res = await api.get('/api/admin/blog');

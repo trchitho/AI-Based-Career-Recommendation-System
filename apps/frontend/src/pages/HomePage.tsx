@@ -196,22 +196,12 @@ const HomePage = () => {
 
             {/* Footer */}
             <footer className="relative z-10 border-t border-gray-300 dark:border-gray-800 mt-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center">
-                        <div className="flex items-center space-x-2 mb-4 md:mb-0">
-                            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                            </div>
-                            <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                CareerBridge <span className="text-purple-600 dark:text-purple-400">AI</span>
-                            </span>
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-500 text-sm">
-                            © 2025 CareerBridge AI. All rights reserved.
-                        </p>
-                    </div>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm text-gray-800 dark:text-gray-100 text-left">
+                    {app.footer_html ? (
+                        <div className="app-footer" dangerouslySetInnerHTML={{ __html: app.footer_html }} />
+                    ) : (
+                        <div>© 2025 CareerBridge AI</div>
+                    )}
                 </div>
             </footer>
         </div>
