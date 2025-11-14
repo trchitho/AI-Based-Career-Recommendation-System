@@ -1,13 +1,11 @@
 import os
-from pathlib import Path
-
 from dotenv import load_dotenv
+from pathlib import Path
 
 # --- Load .env ---
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # tới thư mục /backend
 ENV_PATH = BASE_DIR / ".env"
 load_dotenv(ENV_PATH)
-
 
 class Settings:
     # Database & Services
@@ -31,6 +29,5 @@ class Settings:
 
     # AI models or extra configs
     AI_MODELS_DIR = os.getenv("AI_MODELS_DIR")
-
 
 settings = Settings()

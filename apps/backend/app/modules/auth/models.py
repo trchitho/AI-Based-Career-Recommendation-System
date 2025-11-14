@@ -1,5 +1,4 @@
-from sqlalchemy import TIMESTAMP, BigInteger, Boolean, Column, Text, func
-
+from sqlalchemy import Column, BigInteger, Text, Boolean, TIMESTAMP, func
 from ...core.db import Base
 
 
@@ -13,3 +12,4 @@ class RefreshToken(Base):
     expires_at = Column(TIMESTAMP(timezone=True), nullable=False)
     revoked = Column(Boolean, default=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+

@@ -1,4 +1,4 @@
-# apps/backend/app/bff/router.py
+﻿# apps/backend/app/bff/router.py
 from fastapi import APIRouter
 
 router = APIRouter(prefix="/bff")

@@ -1,11 +1,10 @@
-import argparse
 import json
+import argparse
 from pathlib import Path
-
-from app.core.db import engine
-from app.modules.assessments.models import AssessmentForm, AssessmentQuestion
-from app.modules.content.models import Career, CareerKSA
 from sqlalchemy.orm import sessionmaker
+from app.core.db import engine
+from app.modules.content.models import Career, CareerKSA
+from app.modules.assessments.models import AssessmentForm, AssessmentQuestion
 
 
 def seed_careers(session, careers_file: Path):
@@ -60,16 +59,14 @@ def seed_form(session, form_file: Path):
         session.flush()
     # add questions
     for q in data.get("questions", []):
-        session.add(
-            AssessmentQuestion(
-                form_id=form.id,
-                question_no=q.get("question_no"),
-                question_key=q.get("question_key"),
-                prompt=q.get("prompt"),
-                options_json=q.get("options_json"),
-                reverse_score=bool(q.get("reverse_score")),
-            )
-        )
+        session.add(AssessmentQuestion(
+            form_id=form.id,
+            question_no=q.get("question_no"),
+            question_key=q.get("question_key"),
+            prompt=q.get("prompt"),
+            options_json=q.get("options_json"),
+            reverse_score=bool(q.get("reverse_score")),
+        ))
     session.commit()
 
 

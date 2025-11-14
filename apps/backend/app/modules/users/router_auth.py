@@ -1,27 +1,24 @@
 # apps/backend/app/modules/users/router_auth.py
-import os
-import secrets
-from datetime import datetime, timezone
-
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Request, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ...core.jwt import create_access_token, refresh_expiry_dt
-from ...core.security import hash_password, verify_password
-from ..auth.models import RefreshToken
 from .models import User
+from ...core.security import hash_password, verify_password
+from ...core.jwt import create_access_token, refresh_expiry_dt
+from ..auth.models import RefreshToken
+from datetime import datetime, timezone
+import secrets
+import os
 
 router = APIRouter()
-
 
 # ---------- Schemas ----------
 class RegisterPayload(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=256)
     full_name: str | None = None
-
 
 class LoginPayload(BaseModel):
     email: EmailStr
@@ -31,11 +28,9 @@ class LoginPayload(BaseModel):
 class AdminRegisterPayload(RegisterPayload):
     admin_signup_secret: str = Field(min_length=6)
 
-
 # ---------- Helpers ----------
 def _db(req: Request) -> Session:
     return req.state.db
-
 
 # ---------- Routes ----------
 @router.post("/register", status_code=status.HTTP_201_CREATED)
@@ -67,17 +62,11 @@ def register(request: Request, payload: RegisterPayload):
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
     # issue refresh token
-    rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
-    )
+    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
     session.add(rt)
     session.commit()
     session.refresh(u)
     return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
-
 
 @router.post("/login")
 def login(request: Request, payload: LoginPayload):
@@ -100,12 +89,7 @@ def login(request: Request, payload: LoginPayload):
         session.rollback()
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
-    rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
-    )
+    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
     session.add(rt)
     session.commit()
     return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
@@ -142,12 +126,7 @@ def register_admin(request: Request, payload: AdminRegisterPayload):
     session.refresh(u)
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
-    rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
-    )
+    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
     session.add(rt)
     session.commit()
     return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
@@ -183,7 +162,6 @@ def logout(request: Request, payload: dict):
         session.commit()
     return {"status": "ok"}
 
-
 # tiện test Postman
 @router.post("/create-test-user")
 def create_test_user(request: Request):
@@ -193,11 +171,7 @@ def create_test_user(request: Request):
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if u:
-        return {
-            "message": "Test user already exists",
-            "email": email,
-            "password": password,
-        }
+        return {"message": "Test user already exists", "email": email, "password": password}
 
     u = User(
         email=email,

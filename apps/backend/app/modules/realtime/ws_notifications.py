@@ -1,7 +1,5 @@
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from typing import Dict, Set
-
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-
 from ...core.jwt import decode_token
 
 router = APIRouter()
@@ -51,3 +49,4 @@ async def ws_notifications(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(uid, websocket)
+

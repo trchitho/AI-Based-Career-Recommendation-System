@@ -1,7 +1,11 @@
-from sqlalchemy import TIMESTAMP, BigInteger, Column, Numeric, Text, func
+from datetime import datetime
+from typing import Optional
+from sqlalchemy import (
+    Column, BigInteger, Text, Integer, Boolean, TIMESTAMP, Numeric, func, JSON
+)
 
+from sqlalchemy.orm import Mapped, mapped_column
 from ...core.db import Base
-
 
 # bảng core.career_categories
 class CareerCategory(Base):
@@ -11,22 +15,21 @@ class CareerCategory(Base):
     name = Column(Text, nullable=False, unique=True)
     parent_id = Column(BigInteger)
 
-
 # bảng core.careers
 class Career(Base):
     __tablename__ = "careers"
     __table_args__ = {"schema": "core"}
-    id = Column(BigInteger, primary_key=True)
-    slug = Column(Text, nullable=False, unique=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    slug: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     # Some DBs have title_vi/title_en instead of a generic title
-    title_vi = Column(Text)
-    title_en = Column(Text)
+    title_vi: Mapped[Optional[str]] = mapped_column(Text)
+    title_en: Mapped[Optional[str]] = mapped_column(Text)
     # Many DBs store short descriptions in localized columns
-    short_desc_en = Column(Text)
-    short_desc_vn = Column(Text)
-    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    onet_code = Column(Text, unique=True)
+    short_desc_en: Mapped[Optional[str]] = mapped_column(Text)
+    short_desc_vn: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
+    onet_code: Mapped[Optional[str]] = mapped_column(Text, unique=True)
 
     def to_dict(self) -> dict:
         # Fallback title from slug if localized titles are missing
@@ -43,7 +46,6 @@ class Career(Base):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
-
 
 # bảng core.blog_posts
 class BlogPost(Base):
@@ -67,11 +69,10 @@ class BlogPost(Base):
             "slug": self.slug,
             "content_md": self.content_md,
             "status": self.status,
-            "published_at": (self.published_at.isoformat() if self.published_at else None),
+            "published_at": self.published_at.isoformat() if self.published_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
-
 
 # bảng core.comments
 class Comment(Base):
@@ -96,7 +97,6 @@ class Comment(Base):
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
-
 # bảng core.essays
 class Essay(Base):
     __tablename__ = "essays"
@@ -118,12 +118,11 @@ class Essay(Base):
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
-
 # bảng core.career_ksas (skills)
 class CareerKSA(Base):
     __tablename__ = "career_ksas"
     __table_args__ = {"schema": "core"}
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     onet_code = Column(Text, nullable=False)
     ksa_type = Column(Text, nullable=False)
     name = Column(Text, nullable=False)

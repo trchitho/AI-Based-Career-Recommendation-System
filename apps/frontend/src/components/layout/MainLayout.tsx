@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../ThemeToggle';
@@ -12,9 +12,19 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   const { user, logout } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const app = useAppSettings();
+
+  const navLinks = [
+    { to: '/dashboard', label: t('nav.dashboard') },
+    { to: '/assessment', label: t('nav.assessment') },
+    { to: '/blog', label: 'Blog' },
+    { to: '/careers', label: 'Careers' },
+    { to: '/profile', label: t('nav.profile') },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -35,7 +45,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-8">
-              <Link to="/dashboard" className="flex items-center space-x-3">
+              <Link to="/home" className="flex items-center space-x-3">
                 {app.logo_url ? (
                   <img src={app.logo_url} alt={app.app_name || 'Logo'} className="h-10 w-auto rounded" />
                 ) : (
@@ -51,42 +61,50 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               </Link>
 
               <div className="hidden md:flex space-x-1">
-                <Link
-                  to="/dashboard"
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  {t('nav.dashboard')}
-                </Link>
-                <Link
-                  to="/assessment"
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  {t('nav.assessment')}
-                </Link>
-                <Link
-                  to="/recommendations"
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  Recommendations
-                </Link>
-                <Link
-                  to="/careers"
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  Careers
-                </Link>
-                <Link
-                  to="/profile"
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  {t('nav.profile')}
-                </Link>
+                {navLinks.map((link) => {
+                  const isActive = location.pathname.startsWith(link.to);
+                  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+                    if (isActive) {
+                      event.preventDefault();
+                    }
+                  };
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      onClick={handleClick}
+                      className={`group relative px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                        isActive
+                          ? 'text-purple-600 dark:text-purple-200'
+                          : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1">
+                        {link.label}
+                      </span>
+                      <span
+                        className={`pointer-events-none absolute left-3 right-3 -bottom-1 h-0.5 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 transition-transform duration-300 origin-center ${
+                          isActive ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100'
+                        }`}
+                        style={{ willChange: 'transform, opacity' }}
+                      />
+                    </Link>
+                  );
+                })}
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
               <LanguageSwitcher />
               <ThemeToggle />
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="hidden md:inline-flex items-center px-3 py-2 rounded-lg border border-purple-400/40 text-purple-600 dark:text-purple-200 hover:bg-purple-500/10 transition-colors text-sm font-medium"
+                >
+                  Admin
+                </Link>
+              )}
               <span className="text-gray-700 dark:text-gray-300 text-sm hidden sm:block">
                 {user?.email}
               </span>
@@ -111,9 +129,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
       {/* Footer */}
       <footer className="relative z-10 mt-12 border-t border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/50 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-gray-600 dark:text-gray-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-gray-700 dark:text-gray-100 text-left">
           {app.footer_html ? (
-            <div dangerouslySetInnerHTML={{ __html: app.footer_html }} />
+             <div className="app-footer" dangerouslySetInnerHTML={{ __html: app.footer_html }} />
           ) : (
             <div>© 2025 CareerBridge AI</div>
           )}

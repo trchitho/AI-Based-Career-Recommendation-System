@@ -1,7 +1,6 @@
 from __future__ import annotations
-
-import os
 from typing import Any, Optional
+import os
 
 try:
     from elasticsearch import Elasticsearch  # type: ignore
@@ -22,3 +21,4 @@ def get_es_client() -> Optional[Any]:
         return Elasticsearch(**opts)
     except Exception:
         return None
+

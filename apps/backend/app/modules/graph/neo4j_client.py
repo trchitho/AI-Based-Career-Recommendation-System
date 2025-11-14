@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from typing import Optional
 import os
 
 try:
@@ -18,3 +18,4 @@ def get_driver():
         return GraphDatabase.driver(url, auth=(user, pwd))
     except Exception:
         return None
+

@@ -1,6 +1,5 @@
 # apps/backend/app/core/security.py
 from passlib.hash import pbkdf2_sha256
-
 try:
     import bcrypt as pybcrypt  # python-bcrypt package
 except Exception:  # pragma: no cover
