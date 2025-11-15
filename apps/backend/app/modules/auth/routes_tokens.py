@@ -15,7 +15,7 @@ mapper_registry = registry()
 
 
 @mapper_registry.mapped
-class AuthToken:
+from sqlalchemy.orm import Session as ORMSession
     __tablename__ = "auth_tokens"
     __table_args__ = {"schema": "core"}
     id = Column(BigInteger, primary_key=True)
