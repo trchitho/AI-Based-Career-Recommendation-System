@@ -63,16 +63,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               <div className="hidden md:flex space-x-1">
                 {navLinks.map((link) => {
                   const isActive = location.pathname.startsWith(link.to);
-                  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-                    if (isActive) {
-                      event.preventDefault();
-                    }
-                  };
                   return (
                     <Link
                       key={link.to}
                       to={link.to}
-                      onClick={handleClick}
                       className={`group relative px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                         isActive
                           ? 'text-purple-600 dark:text-purple-200'
