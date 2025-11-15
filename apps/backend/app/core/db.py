@@ -15,20 +15,19 @@ else:
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise RuntimeError(("DATABASE_URL environment variable is not set. " "Please set it in your environment or .env file."))
-
+    raise RuntimeError("DATABASE_URL environment variable is not set. Please set it in your environment or .env file.")
 
 # Engine dùng chung
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
-# 🔴 Base dùng chung cho tất cả models (cái bạn đang thiếu)
+# Base dùng chung cho tất cả models (cái bạn đang thiếu)
 Base = declarative_base()
 
 
 def test_connection():
     with engine.connect() as conn:
         result = conn.execute(text("SELECT now();"))
-        print("✅ DB Connected:", result.scalar())
+        print("DB Connected:", result.scalar())
 
 
 # Ensure UTF-8 client encoding for all connections (Vietnamese content)

@@ -1,3 +1,6 @@
+import logging
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, Text, func, select, text
 from sqlalchemy.orm import Session, registry
@@ -7,6 +10,8 @@ from ..assessments.models import Assessment, AssessmentForm, AssessmentQuestion
 from ..content.models import BlogPost, Career, CareerKSA, Comment
 from ..system.models import AppSettings
 from ..users.models import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -50,10 +55,8 @@ def dashboard_metrics(request: Request):
 
 
 @router.get("/ai-metrics")
-def ai_metrics(_: Request):
-    # allow only admin
-    # using Request not necessary here, but keep signature consistent
-    # We won't compute real metrics yet
+def ai_metrics(request: Request):
+    _ = require_admin(request)
     return {
         "totalRecommendations": 0,
         "avgRecommendationsPerAssessment": 0,
@@ -293,24 +296,49 @@ def create_skill(request: Request, payload: dict):
     _ = require_admin(request)
     session = _db(request)
     name = (payload.get("name") or "").strip()
-    category = payload.get("category") or ""
-    description = payload.get("description") or ""
+    category = (payload.get("category") or "").strip()
+    description = (payload.get("description") or "").strip()
     if not name:
         raise HTTPException(status_code=400, detail="name is required")
 
-    s = CareerKSA(
-        onet_code="custom",
-        ksa_type=category or "skill",
-        name=name,
-        category=description,
-        level=None,
-        importance=None,
-        source="custom",
-    )
-    session.add(s)
-    session.commit()
-    session.refresh(s)
-    return {"skill": _ksa_to_client(s)}
+    requested_onet = (payload.get("onet_code") or "GENERIC").strip() or "GENERIC"
+    if requested_onet.upper() == "GENERIC":
+        exists_career = session.execute(select(Career).where(Career.onet_code == "GENERIC")).scalar_one_or_none()
+        if not exists_career:
+            base_slug = "generic-skill"
+            slug = base_slug
+            i = 1
+            while session.execute(select(Career).where(Career.slug == slug)).scalar_one_or_none() is not None:
+                i += 1
+                slug = f"{base_slug}-{i}"
+            c = Career(
+                slug=slug,
+                onet_code="GENERIC",
+                title_vi="Kỹ năng chung",
+                title_en="Generic Skills",
+                short_desc_vn="Nhóm kỹ năng tổng quát",
+                short_desc_en="Generic skill bucket",
+            )
+            session.add(c)
+            session.flush()
+    try:
+        s = CareerKSA(
+            onet_code=requested_onet,
+            ksa_type=category or "skill",
+            name=name,
+            category=description,
+            level=None,
+            importance=None,
+            source="custom",
+        )
+        session.add(s)
+        session.commit()
+        session.refresh(s)
+        return {"skill": _ksa_to_client(s)}
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to create skill: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail="Failed to create skill")
 
 
 @router.put("/skills/{skill_id}")
@@ -326,9 +354,14 @@ def update_skill(request: Request, skill_id: int, payload: dict):
         s.ksa_type = payload.get("category") or s.ksa_type
     if "description" in payload:
         s.category = payload.get("description") or s.category
-    session.commit()
-    session.refresh(s)
-    return {"skill": _ksa_to_client(s)}
+    try:
+        session.commit()
+        session.refresh(s)
+        return {"skill": _ksa_to_client(s)}
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to update skill {skill_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail="Failed to update skill")
 
 
 @router.delete("/skills/{skill_id}")
@@ -580,13 +613,28 @@ def admin_list_posts(request: Request, limit: int = 50, offset: int = 0):
 
 @router.post("/blog")
 def admin_create_post(request: Request, payload: dict):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     title = (payload.get("title") or "").strip()
-    slug = (payload.get("slug") or "").strip() or "-".join(title.lower().split())
-    content_md = payload.get("content_md") or ""
-    status = payload.get("status") or "Draft"
-    p = BlogPost(title=title, slug=slug, content_md=content_md, status=status)
+    if not title:
+        raise HTTPException(status_code=400, detail="title is required")
+    content_md = (payload.get("content_md") or payload.get("content") or "").strip()
+    if not content_md:
+        raise HTTPException(status_code=400, detail="content is required")
+    slug = (payload.get("slug") or "").strip() or "-".join(title.lower().split())[:120]
+    status = (payload.get("status") or "Draft").strip() or "Draft"
+    published_at = datetime.now(timezone.utc) if status.lower() == "published" else None
+    exists = session.execute(select(BlogPost).where(BlogPost.slug == slug)).scalar_one_or_none()
+    if exists:
+        slug = f"{slug}-{int(datetime.now(timezone.utc).timestamp())}"
+    p = BlogPost(
+        author_id=admin_id,
+        title=title,
+        slug=slug,
+        content_md=content_md,
+        status=status,
+        published_at=published_at,
+    )
     session.add(p)
     session.commit()
     session.refresh(p)
@@ -602,7 +650,12 @@ def admin_update_post(request: Request, post_id: int, payload: dict):
         raise HTTPException(status_code=404, detail="Post not found")
     for field in ("title", "slug", "content_md", "status"):
         if field in payload:
-            setattr(p, field, payload[field])
+            setattr(p, field, payload[field] or getattr(p, field))
+    status = (p.status or "").strip()
+    if status.lower() == "published" and not p.published_at:
+        p.published_at = datetime.now(timezone.utc)
+    if status.lower() != "published":
+        p.published_at = None
     session.commit()
     session.refresh(p)
     return p.to_dict()

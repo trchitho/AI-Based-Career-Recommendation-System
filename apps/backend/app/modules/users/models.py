@@ -30,5 +30,5 @@ class User(Base):
             "is_locked": self.is_locked,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "last_login": self.last_login.isoformat() if self.last_login else None,
-            "date_of_birth": (self.date_of_birth.isoformat() if self.date_of_birth else None),
+            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
         }

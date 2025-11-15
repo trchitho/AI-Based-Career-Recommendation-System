@@ -64,7 +64,7 @@ const RegisterPage = () => {
 
     try {
       await register(email, password, firstName, lastName);
-      navigate('/dashboard');
+      navigate('/home');
     } catch (err: any) {
       const backendMsg = err?.response?.data?.detail || err?.response?.data?.message;
       const genericMsg = err?.message;

@@ -67,12 +67,7 @@ def register(request: Request, payload: RegisterPayload):
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
     # issue refresh token
-    rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
-    )
+    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
     session.add(rt)
     session.commit()
     session.refresh(u)
@@ -100,12 +95,7 @@ def login(request: Request, payload: LoginPayload):
         session.rollback()
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
-    rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
-    )
+    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
     session.add(rt)
     session.commit()
     return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
@@ -142,12 +132,7 @@ def register_admin(request: Request, payload: AdminRegisterPayload):
     session.refresh(u)
 
     token = create_access_token({"sub": str(u.id), "role": u.role})
-    rt = RefreshToken(
-        user_id=u.id,
-        token=secrets.token_urlsafe(48),
-        expires_at=refresh_expiry_dt(),
-        revoked=False,
-    )
+    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
     session.add(rt)
     session.commit()
     return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
@@ -193,11 +178,7 @@ def create_test_user(request: Request):
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if u:
-        return {
-            "message": "Test user already exists",
-            "email": email,
-            "password": password,
-        }
+        return {"message": "Test user already exists", "email": email, "password": password}
 
     u = User(
         email=email,

@@ -27,8 +27,7 @@ const LoginPage = () => {
       if ((u as any)?.role === 'admin') {
         navigate('/admin');
       } else {
-        // Người dùng thường: chuyển tới trang bắt đầu làm bài test
-        navigate('/dashboard');
+        navigate('/home');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');

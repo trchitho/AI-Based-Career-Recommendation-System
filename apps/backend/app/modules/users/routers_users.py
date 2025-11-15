@@ -33,7 +33,7 @@ def _profile_dict(u: User) -> dict:
         {
             "first_name": first,
             "last_name": last,
-            "date_of_birth": (u.date_of_birth.isoformat() if getattr(u, "date_of_birth", None) else None),
+            "date_of_birth": u.date_of_birth.isoformat() if getattr(u, "date_of_birth", None) else None,
             "last_login_at": d.get("last_login"),
         }
     )
@@ -78,10 +78,7 @@ def update_me(request: Request, payload: dict):
             try:
                 u.date_of_birth = date.fromisoformat(str(dob))
             except Exception:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid date_of_birth (expected YYYY-MM-DD)",
-                )
+                raise HTTPException(status_code=400, detail="Invalid date_of_birth (expected YYYY-MM-DD)")
     session.commit()
     session.refresh(u)
     return _profile_dict(u)

@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -20,15 +20,14 @@ import CareerDetailPage from './pages/CareerDetailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
-import RecommendationsPage from './pages/RecommendationsPage';
+import BlogPage from './pages/BlogPage';
 import ChatSummaryPage from './pages/ChatSummaryPage';
 import ChatPage from './pages/ChatPage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
-  const { user } = useAuth();
-  return user ? <Navigate to="/assessment" replace /> : <HomePage />;
+  return <Navigate to="/home" replace />;
 };
 
 function App() {
@@ -90,10 +89,10 @@ function App() {
             }
           />
           <Route
-            path="/recommendations"
+            path="/blog"
             element={
               <ProtectedRoute>
-                <RecommendationsPage />
+                <BlogPage />
               </ProtectedRoute>
             }
           />

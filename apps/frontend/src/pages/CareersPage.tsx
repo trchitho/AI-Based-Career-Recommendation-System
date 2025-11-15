@@ -29,7 +29,12 @@ const CareersPage = () => {
     const run = async () => {
       setLoading(true);
       try {
-        const resp = await careerService.list({ page, pageSize, q: q.trim() || undefined });
+        const query = q.trim();
+        const resp = await careerService.list({
+          page,
+          pageSize,
+          ...(query && { q: query }),
+        });
         setItems(resp.items);
         setTotal(resp.total);
       } finally {
@@ -60,7 +65,7 @@ const CareersPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((c) => (
-              <Link key={c.id} to={`/careers/${(c as any).slug || c.id}`} className="block bg-white dark:bg-gray-800 p-5 rounded-xl shadow hover:shadow-lg transition">
+              <Link key={c.id} to={`/careers/${(c as any).slug || c.id}/roadmap`} className="block bg-white dark:bg-gray-800 p-5 rounded-xl shadow hover:shadow-lg transition">
                 <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">{c.title}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{c.short_desc || c.description || 'No description'}</p>
               </Link>
