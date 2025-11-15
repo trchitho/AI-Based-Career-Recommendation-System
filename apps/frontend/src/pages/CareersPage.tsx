@@ -36,12 +36,6 @@ const CareersPage = () => {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages) return;
-    setPage(newPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32">
