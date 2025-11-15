@@ -8,6 +8,22 @@ import { Roadmap } from '../types/roadmap';
 import RoadmapTimelineComponent from '../components/roadmap/RoadmapTimelineComponent';
 import { careerService } from '../services/careerService';
 
+/**
+ * Formats salary range display text with proper null/undefined handling
+ */
+const formatSalaryRange = (min: number | null | undefined, max: number | null | undefined): string => {
+  // If both values are null/undefined, return default range
+  if (min == null && max == null) {
+    return '0 triệu - 20.9 triệu';
+  }
+  
+  // Format with proper fallbacks: use 0 only if min is null/undefined, preserve max value
+  const minValue = min ?? 0;
+  const maxValue = max ?? 0;
+  
+  return `${minValue} triệu - ${maxValue} triệu`;
+};
+
 const RoadmapPage = () => {
   const { careerId } = useParams<{ careerId: string }>();
   const navigate = useNavigate();
@@ -280,7 +296,9 @@ const RoadmapPage = () => {
                   <div className="bg-white border border-blue-200 rounded-b-xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="text-center">
                       <div className="text-gray-500">Khoảng lương phổ biến</div>
-                      <div className="text-orange-500 text-3xl font-extrabold mt-2">{(() => { const ov=(roadmap as any).overview; const min=ov?.salaryMin; const max=ov?.salaryMax; return (min||max)?`${min||0} triệu - ${max||0} triệu`:'0 triệu - 20.9 triệu'; })()}</div>
+                      <div className="text-orange-500 text-3xl font-extrabold mt-2">
+                        {formatSalaryRange((roadmap as any).overview?.salaryMin, (roadmap as any).overview?.salaryMax)}
+                      </div>
                     </div>
                     <div className="text-center">
                       <div className="text-gray-500">Mức lương trung bình</div>
