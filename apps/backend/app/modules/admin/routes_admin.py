@@ -1,13 +1,12 @@
+import importlib.util as _importlib_util
 import logging
+import secrets
 from datetime import datetime, timezone
+from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, Text, func, select, text
 from sqlalchemy.orm import Session, registry
-import os
-import secrets
-from pathlib import Path
-import importlib.util as _importlib_util
 
 from ...core.jwt import require_admin
 from ..assessments.models import Assessment, AssessmentForm, AssessmentQuestion
@@ -276,7 +275,6 @@ _has_multipart = _importlib_util.find_spec("multipart") is not None
 
 # ----- File Upload (admin only) -----
 if _has_multipart:
-    from fastapi import UploadFile, File  # import lazily to avoid dependency error when missing
 
     @router.post("/upload")
     def upload_media(request: Request, file: UploadFile = File(...)):
@@ -319,7 +317,9 @@ if _has_multipart:
             url = str(request.base_url) + f"static/uploads/{fname}"
 
         return {"url": str(url), "path": f"/static/uploads/{fname}", "filename": fname}
+
 else:
+
     @router.post("/upload")
     def upload_media_unavailable(request: Request):
         _ = require_admin(request)
