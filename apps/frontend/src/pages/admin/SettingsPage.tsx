@@ -63,7 +63,7 @@ const SettingsPage = () => {
     try {
       const data = await adminService.getSettings();
       setForm(data);
-       // Attempt to parse a layout snapshot if footer_html was generated previously
+      // Attempt to parse a layout snapshot if footer_html was generated previously
       try {
         const markerStart = '<!--layout:';
         const markerEnd = ':layout-->';
@@ -96,7 +96,6 @@ const SettingsPage = () => {
       setError(e?.response?.data?.detail || e?.message || 'Failed');
     }
   };
-
   const save = async (e: React.FormEvent) => { e.preventDefault(); await doSave(); };
 
   const generatedHtml = useMemo(() => {
