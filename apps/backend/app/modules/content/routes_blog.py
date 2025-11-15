@@ -1,14 +1,18 @@
-from fastapi import APIRouter, HTTPException, Query, Request
-from sqlalchemy import select, func
-from sqlalchemy.orm import Session
-from .models import BlogPost
-from ...core.jwt import require_user
 from datetime import datetime, timezone
+
+from fastapi import APIRouter, HTTPException, Query, Request
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from ...core.jwt import require_user
+from .models import BlogPost
 
 router = APIRouter()
 
+
 def _db(request: Request) -> Session:
     return request.state.db
+
 
 @router.get("")
 def list_posts(
@@ -19,14 +23,9 @@ def list_posts(
     session = _db(request)
     base = select(BlogPost).where(BlogPost.status == "Published")
     total = session.execute(select(func.count()).select_from(base.subquery())).scalar() or 0
-    rows = (
-        session.execute(
-            base.order_by(BlogPost.published_at.desc().nullslast()).limit(limit).offset(offset)
-        )
-        .scalars()
-        .all()
-    )
+    rows = session.execute(base.order_by(BlogPost.published_at.desc().nullslast()).limit(limit).offset(offset)).scalars().all()
     return {"items": [p.to_dict() for p in rows], "total": int(total), "limit": limit, "offset": offset}
+
 
 @router.get("/{slug}")
 def get_post_by_slug(request: Request, slug: str):

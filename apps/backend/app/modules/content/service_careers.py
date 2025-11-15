@@ -1,9 +1,10 @@
 from __future__ import annotations
-from sqlalchemy import select, or_, func
+
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
-from .models import Career
+
 from ..roadmap.models import Roadmap, RoadmapMilestone, UserProgress
-from ...core.jwt import require_user
+from .models import Career
 
 
 def list_careers(session: Session, q: str | None, category_id: int | None, limit: int, offset: int):
@@ -34,16 +35,18 @@ def list_careers(session: Session, q: str | None, category_id: int | None, limit
     for rid, slug, title, sdesc, onet, c_at, u_at in rows:
         if not title:
             title = (slug or "").replace("-", " ").title()
-        out.append({
-            "id": str(rid),
-            "slug": slug,
-            "title": title or "",
-            "short_desc": sdesc or "",
-            "description": (sdesc or ""),
-            "onet_code": onet,
-            "created_at": c_at.isoformat() if c_at else None,
-            "updated_at": u_at.isoformat() if u_at else None,
-        })
+        out.append(
+            {
+                "id": str(rid),
+                "slug": slug,
+                "title": title or "",
+                "short_desc": sdesc or "",
+                "description": (sdesc or ""),
+                "onet_code": onet,
+                "created_at": c_at.isoformat() if c_at else None,
+                "updated_at": u_at.isoformat() if u_at else None,
+            }
+        )
     return {"items": out, "total": int(total), "limit": limit, "offset": offset}
 
 
@@ -68,6 +71,7 @@ def get_career(session: Session, id_or_slug: str):
         return session.execute(select(*cols).where(where_clause)).first()
 
     from sqlalchemy import and_  # noqa: F401
+
     where = (Career.id == int(id_or_slug)) if id_or_slug.isdigit() else (Career.slug == id_or_slug)
 
     row = None
@@ -130,27 +134,48 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
         session.add(roadmap)
         session.flush()
         demo_ms = [
-            (1, "Fundamentals", "Nắm vững kiến thức nền tảng", "2 weeks",
-             [{"title": "CS50 Lecture 1", "url": "https://cs50.harvard.edu/", "type": "course"}]),
-            (2, "Tools & Workflow", "Làm quen công cụ và quy trình", "1 week",
-             [{"title": "Git Handbook", "url": "https://guides.github.com/", "type": "article"}]),
-            (3, "Project", "Thực hành dự án nhỏ", "2 weeks",
-             [{"title": "Build a Todo App", "url": "https://example.com/todo", "type": "video"}]),
+            (
+                1,
+                "Fundamentals",
+                "Nắm vững kiến thức nền tảng",
+                "2 weeks",
+                [{"title": "CS50 Lecture 1", "url": "https://cs50.harvard.edu/", "type": "course"}],
+            ),
+            (
+                2,
+                "Tools & Workflow",
+                "Làm quen công cụ và quy trình",
+                "1 week",
+                [{"title": "Git Handbook", "url": "https://guides.github.com/", "type": "article"}],
+            ),
+            (
+                3,
+                "Project",
+                "Thực hành dự án nhỏ",
+                "2 weeks",
+                [{"title": "Build a Todo App", "url": "https://example.com/todo", "type": "video"}],
+            ),
         ]
         for order_no, skill_name, desc, est, res in demo_ms:
-            session.add(RoadmapMilestone(
-                roadmap_id=roadmap.id,
-                order_no=order_no,
-                skill_name=skill_name,
-                description=desc,
-                estimated_duration=est,
-                resources_json=res,
-            ))
+            session.add(
+                RoadmapMilestone(
+                    roadmap_id=roadmap.id,
+                    order_no=order_no,
+                    skill_name=skill_name,
+                    description=desc,
+                    estimated_duration=est,
+                    resources_json=res,
+                )
+            )
         session.commit()
 
-    ms = session.execute(
-        select(RoadmapMilestone).where(RoadmapMilestone.roadmap_id == roadmap.id).order_by(RoadmapMilestone.order_no.asc())
-    ).scalars().all()
+    ms = (
+        session.execute(
+            select(RoadmapMilestone).where(RoadmapMilestone.roadmap_id == roadmap.id).order_by(RoadmapMilestone.order_no.asc())
+        )
+        .scalars()
+        .all()
+    )
     milestones = [
         {
             "order": m.order_no or 0,
@@ -225,6 +250,7 @@ def complete_milestone(session: Session, user_id: int, id_or_slug: str, mileston
     up.completed_milestones = list(completed)
     comps = up.milestone_completions or {}
     from datetime import datetime
+
     comps[str(milestone_id)] = comps.get(str(milestone_id)) or datetime.utcnow().isoformat()
     up.milestone_completions = comps
 

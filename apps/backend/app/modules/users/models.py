@@ -1,8 +1,9 @@
 # apps/backend/app/modules/users/models.py
-from sqlalchemy import Column, BigInteger, Text, Boolean, TIMESTAMP, func, Date
+from sqlalchemy import TIMESTAMP, BigInteger, Boolean, Column, Date, Text, func
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
+
 
 class User(Base):
     __tablename__ = "users"

@@ -1,12 +1,11 @@
-from fastapi import APIRouter, Request, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import select, delete
+from fastapi import APIRouter, HTTPException, Request
+from sqlalchemy import BigInteger, Column, Text, select
+from sqlalchemy.orm import Session, registry
+
 from ...core.jwt import require_user
 
-from sqlalchemy.orm import registry
-from sqlalchemy import Column, BigInteger, Text, TIMESTAMP
-
 mapper_registry = registry()
+
 
 @mapper_registry.mapped
 class UserGoal:
@@ -93,7 +92,9 @@ def upsert_skill(request: Request, payload: dict):
     level = (payload.get("level") or "").strip() or None
     if not name:
         raise HTTPException(status_code=400, detail="skill_name required")
-    existing = session.execute(select(UserSkillMap).where(UserSkillMap.user_id == uid, UserSkillMap.skill_name == name)).scalar_one_or_none()
+    existing = session.execute(
+        select(UserSkillMap).where(UserSkillMap.user_id == uid, UserSkillMap.skill_name == name)
+    ).scalar_one_or_none()
     if existing:
         existing.level = level
     else:
@@ -106,7 +107,9 @@ def upsert_skill(request: Request, payload: dict):
 def delete_skill(request: Request, skill_name: str):
     uid = require_user(request)
     session = _db(request)
-    r = session.execute(select(UserSkillMap).where(UserSkillMap.user_id == uid, UserSkillMap.skill_name == skill_name)).scalar_one_or_none()
+    r = session.execute(
+        select(UserSkillMap).where(UserSkillMap.user_id == uid, UserSkillMap.skill_name == skill_name)
+    ).scalar_one_or_none()
     if not r:
         raise HTTPException(status_code=404, detail="Not found")
     session.delete(r)
@@ -135,4 +138,3 @@ def add_journey(request: Request, payload: dict):
     session.commit()
     session.refresh(j)
     return {"id": str(j.id), "title": j.title, "description": j.description}
-

@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Request, HTTPException
+from datetime import date
+
+from fastapi import APIRouter, HTTPException, Request
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .models import User
-from ...core.jwt import require_user, require_admin  # hàm decode JWT → trả user_id
-from datetime import date
-from sqlalchemy import select
+from ...core.jwt import require_admin, require_user  # hàm decode JWT → trả user_id
 from ..assessments.models import Assessment
+from .models import User
 
 router = APIRouter()
+
 
 def _db(req: Request) -> Session:
     return req.state.db
@@ -27,13 +29,16 @@ def _split_name(full_name: str | None) -> tuple[str | None, str | None]:
 def _profile_dict(u: User) -> dict:
     first, last = _split_name(u.full_name)
     d = u.to_dict()
-    d.update({
-        "first_name": first,
-        "last_name": last,
-        "date_of_birth": u.date_of_birth.isoformat() if getattr(u, 'date_of_birth', None) else None,
-        "last_login_at": d.get("last_login"),
-    })
+    d.update(
+        {
+            "first_name": first,
+            "last_name": last,
+            "date_of_birth": u.date_of_birth.isoformat() if getattr(u, "date_of_birth", None) else None,
+            "last_login_at": d.get("last_login"),
+        }
+    )
     return d
+
 
 @router.get("/me")
 def get_me(request: Request):
@@ -43,6 +48,7 @@ def get_me(request: Request):
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
     return _profile_dict(u)
+
 
 @router.patch("/me")
 def update_me(request: Request, payload: dict):
@@ -82,9 +88,11 @@ def update_me(request: Request, payload: dict):
 @router.get("/{user_id}/history")
 def get_history(request: Request, user_id: int):
     session = _db(request)
-    rows = session.execute(
-        select(Assessment).where(Assessment.user_id == user_id).order_by(Assessment.created_at.desc())
-    ).scalars().all()
+    rows = (
+        session.execute(select(Assessment).where(Assessment.user_id == user_id).order_by(Assessment.created_at.desc()))
+        .scalars()
+        .all()
+    )
 
     def _map_riasec(s: dict | None) -> dict | None:
         if not isinstance(s, dict):
@@ -149,13 +157,15 @@ def get_history(request: Request, user_id: int):
             test_types.append("BIG_FIVE")
         if not test_types:
             test_types = [a.a_type]
-        history.append({
-            "id": str(a.id),
-            "completed_at": a.created_at.isoformat() if a.created_at else None,
-            "test_types": test_types,
-            "riasec_scores": riasec_scores,
-            "big_five_scores": big5_scores,
-        })
+        history.append(
+            {
+                "id": str(a.id),
+                "completed_at": a.created_at.isoformat() if a.created_at else None,
+                "test_types": test_types,
+                "riasec_scores": riasec_scores,
+                "big_five_scores": big5_scores,
+            }
+        )
     return history
 
 

@@ -1,8 +1,9 @@
 # apps/backend/app/core/db.py
-from sqlalchemy import create_engine, text, event
-from sqlalchemy.orm import declarative_base
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.orm import declarative_base
 
 # Nạp .env (ưu tiên .env, fallback .env.example)
 env_path = os.path.join(os.path.dirname(__file__), "../../.env")
@@ -22,18 +23,21 @@ engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 # Base dùng chung cho tất cả models (cái bạn đang thiếu)
 Base = declarative_base()
 
+
 def test_connection():
     with engine.connect() as conn:
         result = conn.execute(text("SELECT now();"))
         print("DB Connected:", result.scalar())
 
+
 # Ensure UTF-8 client encoding for all connections (Vietnamese content)
 try:
+
     @event.listens_for(engine, "connect")
     def _set_client_encoding(dbapi_connection, connection_record):
         try:
             # psycopg2 connection supports this method
-            dbapi_connection.set_client_encoding('UTF8')
+            dbapi_connection.set_client_encoding("UTF8")
         except Exception:
             # Fallback at SQL level
             try:
@@ -41,5 +45,6 @@ try:
                     cur.execute("SET client_encoding TO 'UTF8';")
             except Exception:
                 pass
+
 except Exception:
     pass

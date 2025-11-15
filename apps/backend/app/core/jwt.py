@@ -1,8 +1,8 @@
 # apps/backend/app/core/jwt.py
 import os
 import time
-from typing import Any, Dict
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
 
 from fastapi import HTTPException, Request
 
@@ -16,6 +16,7 @@ JWT_ALG = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_ACCESS_EXPIRES_MIN = int(os.getenv("JWT_ACCESS_EXPIRES_MIN", "60"))
 JWT_REFRESH_EXPIRES_DAYS = int(os.getenv("JWT_REFRESH_EXPIRES_DAYS", "30"))
 
+
 def create_access_token(payload: Dict[str, Any], expires_minutes: int | None = None) -> str:
     # payload ví dụ: {"sub": "123", "role": "admin"}
     exp_min = expires_minutes if expires_minutes is not None else JWT_ACCESS_EXPIRES_MIN
@@ -26,6 +27,7 @@ def create_access_token(payload: Dict[str, Any], expires_minutes: int | None = N
 def refresh_expiry_dt() -> datetime:
     return datetime.now(timezone.utc) + timedelta(days=JWT_REFRESH_EXPIRES_DAYS)
 
+
 def decode_token(token: str) -> Dict[str, Any]:
     try:
         return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALG])
@@ -34,11 +36,13 @@ def decode_token(token: str) -> Dict[str, Any]:
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+
 def _get_bearer_token(request: Request) -> str:
     auth = request.headers.get("Authorization") or ""
     if not auth.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing Bearer token")
     return auth.split(" ", 1)[1].strip()
+
 
 def require_user(request: Request) -> int:
     token = _get_bearer_token(request)

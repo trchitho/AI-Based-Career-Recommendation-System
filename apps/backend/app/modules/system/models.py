@@ -1,4 +1,5 @@
-from sqlalchemy import Column, BigInteger, Text, TIMESTAMP, func
+from sqlalchemy import TIMESTAMP, BigInteger, Column, Text, func
+
 from ...core.db import Base
 
 
@@ -24,4 +25,3 @@ class AppSettings(Base):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "updated_by": self.updated_by,
         }
-

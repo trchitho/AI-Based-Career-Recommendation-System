@@ -1,5 +1,6 @@
-from sqlalchemy import Column, BigInteger, Text, Integer, TIMESTAMP, func
+from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
+
 from ...core.db import Base
 
 
@@ -41,4 +42,3 @@ class UserProgress(Base):
     progress_percentage = Column(Text)  # allow numeric string for simplicity
     started_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     last_updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-

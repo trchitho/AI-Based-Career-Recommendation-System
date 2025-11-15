@@ -1,24 +1,27 @@
 # apps/backend/app/modules/users/router_auth.py
-from fastapi import APIRouter, Request, HTTPException, status
+import os
+import secrets
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .models import User
-from ...core.security import hash_password, verify_password
 from ...core.jwt import create_access_token, refresh_expiry_dt
+from ...core.security import hash_password, verify_password
 from ..auth.models import RefreshToken
-from datetime import datetime, timezone
-import secrets
-import os
+from .models import User
 
 router = APIRouter()
+
 
 # ---------- Schemas ----------
 class RegisterPayload(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=256)
     full_name: str | None = None
+
 
 class LoginPayload(BaseModel):
     email: EmailStr
@@ -28,9 +31,11 @@ class LoginPayload(BaseModel):
 class AdminRegisterPayload(RegisterPayload):
     admin_signup_secret: str = Field(min_length=6)
 
+
 # ---------- Helpers ----------
 def _db(req: Request) -> Session:
     return req.state.db
+
 
 # ---------- Routes ----------
 @router.post("/register", status_code=status.HTTP_201_CREATED)
@@ -67,6 +72,7 @@ def register(request: Request, payload: RegisterPayload):
     session.commit()
     session.refresh(u)
     return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
+
 
 @router.post("/login")
 def login(request: Request, payload: LoginPayload):
@@ -161,6 +167,7 @@ def logout(request: Request, payload: dict):
         rt.revoked = True
         session.commit()
     return {"status": "ok"}
+
 
 # tiện test Postman
 @router.post("/create-test-user")

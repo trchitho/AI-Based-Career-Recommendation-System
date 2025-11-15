@@ -1,19 +1,18 @@
-from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import text
-from sqlalchemy import select
-import os
 import json
+import os
 import secrets
 import urllib.parse
 import urllib.request
 
-from ..users.models import User
-from ..auth.models import RefreshToken
-from ...core.jwt import create_access_token, refresh_expiry_dt
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import RedirectResponse
+from sqlalchemy import select, text
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
+from ...core.jwt import create_access_token, refresh_expiry_dt
+from ..auth.models import RefreshToken
+from ..users.models import User
 
 router = APIRouter()
 
@@ -63,14 +62,18 @@ def google_callback(request: Request, code: str | None = None, state: str | None
     client_secret = _env("GOOGLE_CLIENT_SECRET")
     callback = _backend_callback_url(request)
 
-    data = urllib.parse.urlencode({
-        "code": code,
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "redirect_uri": callback,
-        "grant_type": "authorization_code",
-    }).encode("utf-8")
-    req = urllib.request.Request("https://oauth2.googleapis.com/token", data=data, headers={"Content-Type": "application/x-www-form-urlencoded"})
+    data = urllib.parse.urlencode(
+        {
+            "code": code,
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": callback,
+            "grant_type": "authorization_code",
+        }
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        "https://oauth2.googleapis.com/token", data=data, headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
     with urllib.request.urlopen(req, timeout=10) as resp:
         token_payload = json.loads(resp.read().decode("utf-8"))
 
@@ -93,8 +96,9 @@ def google_callback(request: Request, code: str | None = None, state: str | None
         raise HTTPException(status_code=400, detail="Email not available from Google")
 
     session: Session = _db(request)
-    from ...core.security import hash_password
     from datetime import datetime
+
+    from ...core.security import hash_password
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
@@ -114,7 +118,17 @@ def google_callback(request: Request, code: str | None = None, state: str | None
         except IntegrityError:
             # In case the sequence for core.users is out of sync, fix it and retry once
             session.rollback()
-            session.execute(text("SELECT setval(pg_get_serial_sequence('core.users','id'), COALESCE((SELECT MAX(id) FROM core.users)+1,1), false)"))
+            session.execute(
+                text(
+                    """
+                    SELECT setval(
+                        pg_get_serial_sequence('core.users', 'id'),
+                        COALESCE((SELECT MAX(id) FROM core.users) + 1, 1),
+                        false
+                    )
+                    """
+                )
+            )
             session.commit()
             session.add(u)
             session.commit()
@@ -123,11 +137,14 @@ def google_callback(request: Request, code: str | None = None, state: str | None
         # Update avatar/name best-effort
         changed = False
         if full_name and u.full_name != full_name:
-            u.full_name = full_name; changed = True
+            u.full_name = full_name
+            changed = True
         if avatar and u.avatar_url != avatar:
-            u.avatar_url = avatar; changed = True
+            u.avatar_url = avatar
+            changed = True
         # Always update last_login on Google auth
         from datetime import datetime, timezone
+
         u.last_login = datetime.now(timezone.utc)
         changed = True
         try:

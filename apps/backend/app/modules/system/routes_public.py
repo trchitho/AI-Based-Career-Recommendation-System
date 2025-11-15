@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request
 from sqlalchemy.orm import Session
+
 from .models import AppSettings
 
 router = APIRouter()
@@ -25,4 +26,3 @@ def public_settings(request: Request):
             "updated_by": None,
         }
     return s.to_dict()
-
