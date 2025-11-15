@@ -20,8 +20,8 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
     career.title ||
     ((career as any).slug
       ? String((career as any).slug)
-        .replace(/-/g, ' ')
-        .replace(/\b\w/g, (m) => m.toUpperCase())
+          .replace(/-/g, ' ')
+          .replace(/\b\w/g, (m) => m.toUpperCase())
       : '');
 
   return (
@@ -32,17 +32,19 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
     >
       <div>
         <div className="flex items-start justify-between mb-4">
-
-          {/* 🔧 SỬA 1: Giảm cỡ chữ tiêu đề (từ text-lg → text-base) + font-semibold thay vì font-bold */}
-          <h3 className="text-base font-semibold text-gray-900 dark:text-white 
-                         group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
+          <h3
+            className="text-base font-semibold text-gray-900 dark:text-white 
+                       group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors"
+          >
             {displayTitle}
           </h3>
 
           <div className="flex flex-col items-end">
-            <span className="text-3xl font-bold text-transparent bg-clip-text 
+            <span
+              className="text-3xl font-bold text-transparent bg-clip-text 
                              bg-gradient-to-r from-purple-500 to-purple-700 
-                             dark:from-purple-400 dark:to-purple-600">
+                             dark:from-purple-400 dark:to-purple-600"
+            >
               {career.matchPercentage}%
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-500">
@@ -65,7 +67,6 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
         </p>
       </div>
 
-      {/* 🔧 SỬA 2: Giữ nút nằm cố định dưới cùng bằng mt-auto */}
       <button
         onClick={handleViewRoadmap}
         className="mt-auto w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 px-4 rounded-lg 

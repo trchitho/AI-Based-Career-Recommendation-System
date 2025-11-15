@@ -26,9 +26,7 @@
     "results": "Results",
     "roadmap": "Roadmap",
     "profile": "Profile",
-    "admin": "Admin",
-    "recommendations": "Recommendations",
-    "careers": "Careers"
+    "admin": "Admin"
   },
   "auth": {
     "login": "Login",
