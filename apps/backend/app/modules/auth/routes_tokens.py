@@ -19,7 +19,6 @@ from sqlalchemy.orm import Session as ORMSession
     __table_args__ = {"schema": "core"}
     id = Column(BigInteger, primary_key=True)
     token = Column(Text)
-    ttype = Column(Text)
     expires_at = Column(TIMESTAMP(timezone=True))
     used_at = Column(TIMESTAMP(timezone=True))
 
