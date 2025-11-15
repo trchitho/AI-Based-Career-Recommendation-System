@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { roadmapService } from '../services/roadmapService';
 import { useAppSettings } from '../contexts/AppSettingsContext';
@@ -10,6 +11,7 @@ import { careerService } from '../services/careerService';
 const RoadmapPage = () => {
   const { careerId } = useParams<{ careerId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const app = useAppSettings();
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
@@ -123,11 +125,12 @@ const RoadmapPage = () => {
                   <div className="lg:col-span-3">
                     <h1 className="text-3xl font-extrabold text-gray-900 mb-4">{(roadmap.careerTitle || '').toUpperCase()}</h1>
                     <div className="flex flex-wrap items-center gap-6 mb-6">
-                      {['THỰC TẬP SINH','NHÂN VIÊN','TRƯỞNG PHÒNG','GIÁM ĐỐC','GIÁM ĐỐC\nĐIỀU HÀNH'].map((label, idx) => {
+                      {['intern', 'employee', 'manager', 'director', 'ceo'].map((stage, idx) => {
                         const completed = (roadmap.userProgress?.completed_milestones?.length || 0) > idx;
+                        const label = t(`roadmap.careerStages.${stage}`);
                         return (
                           <div key={idx} className={`relative flex items-center justify-center w-28 h-28 rounded-full border-4 text-center leading-tight px-2 ${completed ? 'bg-indigo-600 text-white border-indigo-200' : 'bg-blue-100 text-blue-900 border-blue-300'}`}>
-                            <span className="text-xs font-bold whitespace-pre-line">{label}</span>
+                            <span className="text-xs font-bold">{label}</span>
                           </div>
                         );
                       })}

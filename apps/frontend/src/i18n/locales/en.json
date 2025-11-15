@@ -203,7 +203,14 @@
     "markComplete": "Mark as Complete",
     "duration": "Duration",
     "skills": "Skills to Learn",
-    "resources": "Resources"
+    "resources": "Resources",
+    "careerStages": {
+      "intern": "INTERN",
+      "employee": "EMPLOYEE",
+      "manager": "MANAGER",
+      "director": "DIRECTOR",
+      "ceo": "CHIEF EXECUTIVE OFFICER"
+    }
   },
   "profile": {
     "title": "Profile",
