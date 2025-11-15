@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session as ORMSession
 from sqlalchemy.orm import registry
 
 from ..users.models import User
-
+from sqlalchemy import Column, BigInteger, Text, TIMESTAMP
 router = APIRouter()
 
 mapper_registry = registry()
