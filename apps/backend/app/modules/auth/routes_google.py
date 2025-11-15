@@ -31,6 +31,7 @@ def _env(name: str, default: str | None = None) -> str:
 
 
 def _backend_callback_url(request: Request) -> str:
+    # giữ nguyên như file cũ
     return os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback")
 
 
@@ -38,6 +39,7 @@ def _backend_callback_url(request: Request) -> str:
 def google_login(request: Request, redirect: str | None = None):
     client_id = _env("GOOGLE_CLIENT_ID")
     callback = _backend_callback_url(request)
+
     state_payload = {"redirect": redirect or os.getenv("FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback")}
     state = urllib.parse.quote(json.dumps(state_payload))
 
@@ -58,6 +60,7 @@ def google_login(request: Request, redirect: str | None = None):
 def google_callback(request: Request, code: str | None = None, state: str | None = None):
     if not code:
         raise HTTPException(status_code=400, detail="Missing code")
+
     client_id = _env("GOOGLE_CLIENT_ID")
     client_secret = _env("GOOGLE_CLIENT_SECRET")
     callback = _backend_callback_url(request)
@@ -71,8 +74,11 @@ def google_callback(request: Request, code: str | None = None, state: str | None
             "grant_type": "authorization_code",
         }
     ).encode("utf-8")
+
     req = urllib.request.Request(
-        "https://oauth2.googleapis.com/token", data=data, headers={"Content-Type": "application/x-www-form-urlencoded"}
+        "https://oauth2.googleapis.com/token",
+        data=data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
     with urllib.request.urlopen(req, timeout=10) as resp:
         token_payload = json.loads(resp.read().decode("utf-8"))
@@ -92,11 +98,14 @@ def google_callback(request: Request, code: str | None = None, state: str | None
     email = (ui.get("email") or "").strip().lower()
     full_name = ui.get("name") or None
     avatar = ui.get("picture") or None
+
     if not email:
         raise HTTPException(status_code=400, detail="Email not available from Google")
 
     session: Session = _db(request)
-    from datetime import datetime
+
+    # giữ nguyên local import như cũ
+    from datetime import datetime, timezone
 
     from ...core.security import hash_password
 
@@ -143,8 +152,6 @@ def google_callback(request: Request, code: str | None = None, state: str | None
             u.avatar_url = avatar
             changed = True
         # Always update last_login on Google auth
-        from datetime import datetime, timezone
-
         u.last_login = datetime.now(timezone.utc)
         changed = True
         try:
@@ -155,7 +162,12 @@ def google_callback(request: Request, code: str | None = None, state: str | None
 
     # Issue app tokens
     access = create_access_token({"sub": str(u.id), "role": u.role})
-    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
+    rt = RefreshToken(
+        user_id=u.id,
+        token=secrets.token_urlsafe(48),
+        expires_at=refresh_expiry_dt(),
+        revoked=False,
+    )
     session.add(rt)
     session.commit()
 
@@ -164,6 +176,7 @@ def google_callback(request: Request, code: str | None = None, state: str | None
         st = json.loads(urllib.parse.unquote(state or "")) if state else {}
     except Exception:
         st = {}
+
     fe_redirect = st.get("redirect") or os.getenv("FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback")
     loc = f"{fe_redirect}?access_token={urllib.parse.quote(access)}&refresh_token={urllib.parse.quote(rt.token)}"
     return RedirectResponse(loc)

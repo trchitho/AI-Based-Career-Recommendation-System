@@ -1,32 +1,31 @@
 import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Annotated  # noqa: F401  # (giữ lại nếu sau này dùng)
 
-from app.core.db import get_db  # noqa: F401
-from app.core.security import create_access_token, create_refresh_token  # noqa: F401
-from app.modules.users.models import User
-from fastapi import APIRouter, Depends, HTTPException, Request, status  # noqa: F401
+from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Text, select
 from sqlalchemy.orm import Session as ORMSession
 from sqlalchemy.orm import registry
 
+from ..users.models import User
+
 router = APIRouter()
 
+# Lightweight model for auth_tokens to avoid circular imports
 mapper_registry = registry()
 
 
-# Lightweight mapping cho bảng core.auth_tokens để tránh circular import
 @mapper_registry.mapped
 class AuthToken:
     __tablename__ = "auth_tokens"
     __table_args__ = {"schema": "core"}
 
+    # GIỮ ĐÚNG ĐỊNH NGHĨA NHƯ FILE CŨ (không thêm nullable)
     id = Column(BigInteger, primary_key=True)
-    user_id = Column(BigInteger, nullable=False)
-    token = Column(Text, nullable=False)
-    ttype = Column(Text, nullable=False)
-    expires_at = Column(TIMESTAMP(timezone=True), nullable=False)
-    used_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    user_id = Column(BigInteger)
+    token = Column(Text)
+    ttype = Column(Text)
+    expires_at = Column(TIMESTAMP(timezone=True))
+    used_at = Column(TIMESTAMP(timezone=True))
 
 
 def _db(req: Request) -> ORMSession:
