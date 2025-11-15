@@ -1,26 +1,32 @@
 import secrets
+from datetime import datetime, timedelta, timezone
+from typing import Annotated  # noqa: F401  # (giữ lại nếu sau này dùng)
 
-from fastapi import APIRouter, HTTPException, Request
+from app.core.db import get_db  # noqa: F401
+from app.core.security import create_access_token, create_refresh_token  # noqa: F401
+from app.modules.users.models import User
+from fastapi import APIRouter, Depends, HTTPException, Request, status  # noqa: F401
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Text, select
 from sqlalchemy.orm import Session as ORMSession
-
-# Lightweight model for auth_tokens to avoid circular imports
 from sqlalchemy.orm import registry
 
-from ..users.models import User
-from sqlalchemy import Column, BigInteger, Text, TIMESTAMP
 router = APIRouter()
 
 mapper_registry = registry()
 
 
+# Lightweight mapping cho bảng core.auth_tokens để tránh circular import
 @mapper_registry.mapped
-from sqlalchemy.orm import Session as ORMSession
+class AuthToken:
+    __tablename__ = "auth_tokens"
     __table_args__ = {"schema": "core"}
+
     id = Column(BigInteger, primary_key=True)
-    token = Column(Text)
-    expires_at = Column(TIMESTAMP(timezone=True))
-    used_at = Column(TIMESTAMP(timezone=True))
+    user_id = Column(BigInteger, nullable=False)
+    token = Column(Text, nullable=False)
+    ttype = Column(Text, nullable=False)
+    expires_at = Column(TIMESTAMP(timezone=True), nullable=False)
+    used_at = Column(TIMESTAMP(timezone=True), nullable=True)
 
 
 def _db(req: Request) -> ORMSession:
@@ -46,10 +52,12 @@ def request_verify(request: Request, payload: dict):
     email = (payload.get("email") or "").strip().lower()
     if not email:
         raise HTTPException(status_code=400, detail="email is required")
+
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
         # to prevent user enumeration, act as success
         return {"status": "ok"}
+
     token = _issue_token(session, u.id, "verify_email", minutes=60)
     # TODO: send email. For now, return token in dev
     return {"status": "ok", "dev_token": token}
@@ -61,11 +69,17 @@ def verify_email(request: Request, payload: dict):
     token = (payload.get("token") or "").strip()
     if not token:
         raise HTTPException(status_code=400, detail="token is required")
+
     tok = session.execute(
-        select(AuthToken).where(AuthToken.token == token, AuthToken.ttype == "verify_email")
+        select(AuthToken).where(
+            AuthToken.token == token,
+            AuthToken.ttype == "verify_email",
+        )
     ).scalar_one_or_none()
+
     if not tok or tok.used_at is not None or tok.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="invalid or expired token")
+
     tok.used_at = datetime.now(timezone.utc)
     session.commit()
     return {"status": "verified"}
@@ -75,9 +89,12 @@ def verify_email(request: Request, payload: dict):
 def forgot_password(request: Request, payload: dict):
     session = _db(request)
     email = (payload.get("email") or "").strip().lower()
+
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
+        # không lộ thông tin user tồn tại hay không
         return {"status": "ok"}
+
     token = _issue_token(session, u.id, "reset_password", minutes=30)
     return {"status": "ok", "dev_token": token}
 
@@ -87,16 +104,24 @@ def reset_password(request: Request, payload: dict):
     session = _db(request)
     token = (payload.get("token") or "").strip()
     new_pw = payload.get("new_password")
+
     if not token or not new_pw:
         raise HTTPException(status_code=400, detail="token and new_password required")
+
     tok = session.execute(
-        select(AuthToken).where(AuthToken.token == token, AuthToken.ttype == "reset_password")
+        select(AuthToken).where(
+            AuthToken.token == token,
+            AuthToken.ttype == "reset_password",
+        )
     ).scalar_one_or_none()
+
     if not tok or tok.used_at is not None or tok.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="invalid or expired token")
+
     u = session.get(User, tok.user_id)
     if not u:
         raise HTTPException(status_code=404, detail="user not found")
+
     from ...core.security import hash_password
 
     u.password_hash = hash_password(new_pw)

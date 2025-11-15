@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Optional
 
-    Column, BigInteger, Text, TIMESTAMP, Numeric, func
+from sqlalchemy import TIMESTAMP, BigInteger, Column, Numeric, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...core.db import Base
