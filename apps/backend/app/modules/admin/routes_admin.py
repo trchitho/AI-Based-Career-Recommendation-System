@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -9,6 +10,8 @@ from ..assessments.models import Assessment, AssessmentForm, AssessmentQuestion
 from ..content.models import BlogPost, Career, CareerKSA, Comment
 from ..system.models import AppSettings
 from ..users.models import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -334,7 +337,8 @@ def create_skill(request: Request, payload: dict):
         return {"skill": _ksa_to_client(s)}
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, detail=f"Failed to create skill: {e}")
+        logger.error(f"Failed to create skill: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail="Failed to create skill")
 
 
 @router.put("/skills/{skill_id}")
@@ -356,7 +360,8 @@ def update_skill(request: Request, skill_id: int, payload: dict):
         return {"skill": _ksa_to_client(s)}
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=400, detail=f"Failed to update skill: {e}")
+        logger.error(f"Failed to update skill {skill_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail="Failed to update skill")
 
 
 @router.delete("/skills/{skill_id}")
