@@ -1,10 +1,7 @@
-import importlib.util as _importlib_util
 import logging
-import secrets
 from datetime import datetime, timezone
-from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
+from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, Text, func, select, text
 from sqlalchemy.orm import Session, registry
 
@@ -230,12 +227,12 @@ def create_career(request: Request, payload: dict):
     _ = require_admin(request)
     session = _db(request)
     title = (payload.get("title") or "").strip()
-    description = str(payload.get("description") or "")
+    description = payload.get("description") or ""
     if not title:
         raise HTTPException(status_code=400, detail="title is required")
 
     slug = "-".join(title.lower().split())[:100]
-    c = Career(title_vi=title, slug=slug, short_desc_vn=description[:160])
+    c = Career(title_vi=title, slug=slug, short_desc_vn=(description or "")[:160])
     session.add(c)
     session.commit()
     session.refresh(c)
@@ -252,8 +249,8 @@ def update_career(request: Request, career_id: int, payload: dict):
     if "title" in payload and payload["title"]:
         c.title_vi = payload["title"].strip()
     if "description" in payload:
-        desc = str(payload.get("description") or "")
-        c.short_desc_vn = desc[:160]
+        desc = payload.get("description") or ""
+        c.short_desc_vn = (desc or "")[:160]
     session.commit()
     session.refresh(c)
     return {"career": _career_to_client(c)}
@@ -269,61 +266,6 @@ def delete_career(request: Request, career_id: int):
     session.delete(c)
     session.commit()
     return {"status": "ok"}
-
-
-_has_multipart = _importlib_util.find_spec("multipart") is not None
-
-# ----- File Upload (admin only) -----
-if _has_multipart:
-
-    @router.post("/upload")
-    def upload_media(request: Request, file: UploadFile = File(...)):
-        _ = require_admin(request)
-        content_type = (file.content_type or "").lower()
-        allowed = {
-            "image/png",
-            "image/jpeg",
-            "image/jpg",
-            "image/gif",
-            "image/webp",
-            "image/svg+xml",
-        }
-        if content_type not in allowed:
-            raise HTTPException(status_code=400, detail=f"Unsupported content_type: {content_type}")
-
-        # Resolve static uploads directory: app/static/uploads
-        base_dir = Path(__file__).resolve().parents[3] / "app" / "static" / "uploads"
-        base_dir.mkdir(parents=True, exist_ok=True)
-
-        # Safe filename
-        ext = Path(file.filename or "").suffix.lower() or ".bin"
-        rand = secrets.token_hex(8)
-        fname = f"{rand}{ext}"
-        target = base_dir / fname
-
-        # Save
-        with target.open("wb") as f:
-            while True:
-                chunk = file.file.read(1024 * 1024)
-                if not chunk:
-                    break
-                f.write(chunk)
-
-        # Build absolute URL using mounted static named 'static'
-        try:
-            url = request.url_for("static", path=f"uploads/{fname}")
-        except Exception:
-            # Fallback to base url + /static
-            url = str(request.base_url) + f"static/uploads/{fname}"
-
-        return {"url": str(url), "path": f"/static/uploads/{fname}", "filename": fname}
-
-else:
-
-    @router.post("/upload")
-    def upload_media_unavailable(request: Request):
-        _ = require_admin(request)
-        raise HTTPException(status_code=500, detail="Upload disabled: install python-multipart on server")
 
 
 # ----- Skills CRUD (map to career_ksas) -----

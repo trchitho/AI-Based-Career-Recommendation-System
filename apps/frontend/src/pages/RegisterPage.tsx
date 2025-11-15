@@ -266,12 +266,8 @@ const RegisterPage = () => {
 
       {/* Footer (standalone) */}
       <footer className="relative z-10 border-t border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/50 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-gray-700 dark:text-gray-100 text-left">
-          {app.footer_html ? (
-            <div className="app-footer" dangerouslySetInnerHTML={{ __html: app.footer_html }} />
-          ) : (
-            <div>© 2025 CareerBridge AI</div>
-          )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-sm text-gray-600 dark:text-gray-400">
+          © 2025 CareerBridge AI
         </div>
       </footer>
     </div>

@@ -28,7 +28,7 @@ const RecommendationsPage = () => {
   return (
     <MainLayout>
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300 p-5">Career Recommendations</h1>
+        <h1 className="text-2xl font-bold mb-6">Career Recommendations</h1>
         {loading && <div>Loading...</div>}
         {error && <div className="text-red-700">{error}</div>}
         {!loading && !error && (

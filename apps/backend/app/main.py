@@ -81,15 +81,6 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("  Skip mounting /static:", repr(e))
 
-    # Static files (for uploaded media)
-    try:
-        here = os.path.dirname(__file__)
-        static_dir = os.path.abspath(os.path.join(here, "static"))
-        os.makedirs(static_dir, exist_ok=True)
-        app.mount("/static", StaticFiles(directory=static_dir), name="static")
-    except Exception as e:
-        print("ℹ️  Skip mounting /static:", repr(e))
-
     # DB session per-request
     @app.middleware("http")
     async def db_session_middleware(request: Request, call_next):
