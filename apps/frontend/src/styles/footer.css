@@ -1,0 +1,40 @@
+/* Global footer content styling for injected HTML */
+.app-footer {
+  color: #111827; /* gray-900 for light */
+  text-align: left;
+  line-height: 1.6;
+}
+
+.dark .app-footer {
+  color: #ffffff; /* white on dark */
+}
+
+.app-footer a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.dark .app-footer a {
+  color: #dbeafe; /* light indigo */
+}
+
+.app-footer h1,
+.app-footer h2,
+.app-footer h3,
+.app-footer h4,
+.app-footer h5 {
+  color: inherit;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.app-footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.app-footer li {
+  margin: 6px 0;
+}
+
