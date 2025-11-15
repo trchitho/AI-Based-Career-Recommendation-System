@@ -118,6 +118,28 @@ const SettingsPage = () => {
     setShowPreview(true);
   };
 
+  const save = async (e: React.FormEvent) => { e.preventDefault(); await doSave(); };
+
+  const generatedHtml = useMemo(() => {
+    if (!footer || !footer.columns?.length) return '';
+    const html = layoutToHtml(footer);
+    // Embed the layout JSON as an HTML comment for later editing
+    return `<!--layout:${JSON.stringify(footer)}:layout-->` + html;
+  }, [footer]);
+
+  const addColumn = () => setFooter((f) => ({ ...f, columns: [...f.columns, { title: 'New Column', items: [] }] }));
+  const removeColumn = (idx: number) => setFooter((f) => ({ ...f, columns: f.columns.filter((_, i) => i !== idx) }));
+  const updateColumnTitle = (idx: number, title: string) => setFooter((f) => ({ ...f, columns: f.columns.map((c, i) => i === idx ? { ...c, title } : c) }));
+  const addItem = (cIdx: number) => setFooter((f) => ({ ...f, columns: f.columns.map((c, i) => i === cIdx ? { ...c, items: [...c.items, { label: 'Item', href: '' }] } : c) }));
+  const removeItem = (cIdx: number, iIdx: number) => setFooter((f) => ({ ...f, columns: f.columns.map((c, i) => i === cIdx ? { ...c, items: c.items.filter((_, j) => j !== iIdx) } : c) }));
+  const updateItem = (cIdx: number, iIdx: number, patch: Partial<FooterItem>) => setFooter((f) => ({ ...f, columns: f.columns.map((c, i) => i === cIdx ? { ...c, items: c.items.map((it, j) => j === iIdx ? { ...it, ...patch } : it) } : c) }));
+
+  const applyGeneratedToForm = () => {
+    if (!generatedHtml) return;
+    setForm((s: any) => ({ ...s, footer_html: generatedHtml }));
+    setShowPreview(true);
+  };
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">App Settings</h2>

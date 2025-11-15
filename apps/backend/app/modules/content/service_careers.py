@@ -139,39 +139,21 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
                 "Fundamentals",
                 "Nắm vững kiến thức nền tảng",
                 "2 weeks",
-                [
-                    {
-                        "title": "CS50 Lecture 1",
-                        "url": "https://cs50.harvard.edu/",
-                        "type": "course",
-                    }
-                ],
+                [{"title": "CS50 Lecture 1", "url": "https://cs50.harvard.edu/", "type": "course"}],
             ),
             (
                 2,
                 "Tools & Workflow",
                 "Làm quen công cụ và quy trình",
                 "1 week",
-                [
-                    {
-                        "title": "Git Handbook",
-                        "url": "https://guides.github.com/",
-                        "type": "article",
-                    }
-                ],
+                [{"title": "Git Handbook", "url": "https://guides.github.com/", "type": "article"}],
             ),
             (
                 3,
                 "Project",
                 "Thực hành dự án nhỏ",
                 "2 weeks",
-                [
-                    {
-                        "title": "Build a Todo App",
-                        "url": "https://example.com/todo",
-                        "type": "video",
-                    }
-                ],
+                [{"title": "Build a Todo App", "url": "https://example.com/todo", "type": "video"}],
             ),
         ]
         for order_no, skill_name, desc, est, res in demo_ms:
@@ -218,10 +200,10 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
             "roadmap_id": str(up.roadmap_id),
             "completed_milestones": up.completed_milestones or [],
             "milestone_completions": up.milestone_completions or {},
-            "current_milestone_id": (str(up.current_milestone_id) if up.current_milestone_id else None),
+            "current_milestone_id": str(up.current_milestone_id) if up.current_milestone_id else None,
             "progress_percentage": float(up.progress_percentage or 0),
             "started_at": up.started_at.isoformat() if up.started_at else None,
-            "last_updated_at": (up.last_updated_at.isoformat() if up.last_updated_at else None),
+            "last_updated_at": up.last_updated_at.isoformat() if up.last_updated_at else None,
         }
 
     return {
@@ -276,8 +258,4 @@ def complete_milestone(session: Session, user_id: int, id_or_slug: str, mileston
     total_count = len(total) or 1
     up.progress_percentage = f"{round(len(completed) * 100 / total_count, 2)}"
     session.commit()
-    return {
-        "status": "ok",
-        "completed": up.completed_milestones,
-        "progress": up.progress_percentage,
-    }
+    return {"status": "ok", "completed": up.completed_milestones, "progress": up.progress_percentage}

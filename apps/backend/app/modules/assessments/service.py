@@ -291,18 +291,13 @@ def build_results(session: Session, assessment_id: int) -> dict:
         "big_five_scores": big_five_scores,
         "career_recommendations": rec_ids,
         "career_recommendations_full": careers_full,
-        "completed_at": (obj.created_at.isoformat() if getattr(obj, "created_at", None) else None),
+        "completed_at": obj.created_at.isoformat() if getattr(obj, "created_at", None) else None,
     }
 
 
 def save_feedback(session: Session, user_id: int, assessment_id: int, rating: int, comment: str | None):
     if rating < 1 or rating > 5:
         raise ValueError("rating must be 1..5")
-    fb = UserFeedback(
-        user_id=user_id,
-        assessment_id=assessment_id,
-        rating=rating,
-        comment=(comment or None),
-    )
+    fb = UserFeedback(user_id=user_id, assessment_id=assessment_id, rating=rating, comment=(comment or None))
     session.add(fb)
     session.commit()

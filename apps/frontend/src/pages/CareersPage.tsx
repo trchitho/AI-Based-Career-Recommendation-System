@@ -16,7 +16,12 @@ const CareersPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const resp = await careerService.list({ page, pageSize, q: q.trim() || undefined });
+        const query = q.trim();
+        const resp = await careerService.list({
+          page,
+          pageSize,
+          ...(query && { q: query }),
+        });
         setItems(resp.items);
         setTotal(resp.total);
         window.scrollTo({ top: 0, behavior: 'smooth' });

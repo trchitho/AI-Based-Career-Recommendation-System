@@ -10,8 +10,8 @@ const OAuthCallbackPage = () => {
     const refresh = params.get('refresh_token');
     if (access) localStorage.setItem('accessToken', access);
     if (refresh) localStorage.setItem('refreshToken', refresh);
-    // Go to dashboard after login
-    navigate('/dashboard', { replace: true });
+    // Go to home after login
+    navigate('/home', { replace: true });
   }, [navigate]);
 
   return (

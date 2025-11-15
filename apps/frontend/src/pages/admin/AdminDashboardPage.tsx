@@ -6,9 +6,11 @@ import MetricCard from '../../components/admin/MetricCard';
 
 // Import admin pages
 import CareerManagementPage from './CareerManagementPage.tsx';
+import RoadmapEditorPage from './RoadmapEditorPage';
 import SkillManagementPage from './SkillManagementPage.tsx';
 import QuestionManagementPage from './QuestionManagementPage.tsx';
 import AIMonitoringPage from './AIMonitoringPage.tsx';
+import BlogManagementPage from './BlogManagementPage.tsx';
 import UserManagementPage from './UserManagementPage';
 import SettingsPage from './SettingsPage';
 
@@ -117,6 +119,16 @@ const AdminDashboardPage = () => {
                   Questions
                 </Link>
                 <Link
+                  to="/admin/posts"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                    isActive('/admin/posts')
+                      ? 'border-blue-500 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  }`}
+                >
+                  Posts
+                </Link>
+                <Link
                   to="/admin/ai-monitoring"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                     isActive('/admin/ai-monitoring')
@@ -155,8 +167,10 @@ const AdminDashboardPage = () => {
             }
           />
           <Route path="careers" element={<CareerManagementPage />} />
+          <Route path="roadmaps/:careerId" element={<RoadmapEditorPage />} />
           <Route path="skills" element={<SkillManagementPage />} />
           <Route path="questions" element={<QuestionManagementPage />} />
+          <Route path="posts" element={<BlogManagementPage />} />
           <Route path="ai-monitoring" element={<AIMonitoringPage />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="settings" element={<SettingsPage />} />

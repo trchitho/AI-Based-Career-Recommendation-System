@@ -220,9 +220,10 @@ const SkillFormModal: React.FC<SkillFormModalProps> = ({ skill, onClose, onSucce
         await adminService.createSkill(formData);
       }
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving skill:', error);
-      alert('Failed to save skill');
+      const msg = error?.response?.data?.detail || error?.message || 'Failed to save skill';
+      alert(msg);
     } finally {
       setSubmitting(false);
     }

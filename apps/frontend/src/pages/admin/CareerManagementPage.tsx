@@ -165,6 +165,12 @@ const CareerManagementPage = () => {
                     >
                       Edit
                     </button>
+                    <a
+                      href={`/admin/roadmaps/${career.id}`}
+                      className="text-purple-600 hover:text-purple-900 mr-4"
+                    >
+                      Edit Roadmap
+                    </a>
                     {deleteConfirm === career.id ? (
                       <span className="space-x-2">
                         <button

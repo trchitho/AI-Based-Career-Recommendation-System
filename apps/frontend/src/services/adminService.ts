@@ -193,6 +193,14 @@ export const adminService = {
     const res = await api.put('/api/admin/settings', payload);
     return res.data;
   },
+   async uploadMedia(file: File): Promise<{ url: string; path: string; filename: string }> {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await api.post('/api/admin/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
 
   async uploadMedia(file: File): Promise<{ url: string; path: string; filename: string }> {
     const fd = new FormData();
@@ -225,5 +233,20 @@ export const adminService = {
   },
   async deleteComment(commentId: string): Promise<void> {
     await api.delete(`/api/admin/comments/${commentId}`);
+  },
+
+  // Roadmap Management
+  async getRoadmapByCareer(careerId: string): Promise<{ id: string | null; careerId: string; title: string; milestones: any[] }> {
+    const res = await api.get(`/api/admin/roadmaps/${careerId}`);
+    return res.data;
+  },
+  async upsertRoadmap(
+    careerId: string,
+    payload: { title?: string; milestones: Array<{ order?: number; skillName: string; description?: string; estimatedDuration?: string; resources?: any[] }> }
+  ): Promise<any> {
+    const res = await api.post(`/api/admin/roadmaps/${careerId}`,
+      payload
+    );
+    return res.data.roadmap;
   },
 };

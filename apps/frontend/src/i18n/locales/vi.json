@@ -202,10 +202,17 @@
     "completed": "Hoàn thành",
     "inProgress": "Đang tiến hành",
     "notStarted": "Chưa bắt đầu",
-    "markComplete": "Đánh dấu là hoàn thành",
-    "duration": "Khoảng thời gian",
-    "skills": "Kỹ năng học",
-    "resources": "Tài nguyên"
+    "markComplete": "Đánh dấu hoàn thành",
+    "duration": "Thời lượng",
+    "skills": "Kỹ năng cần học",
+    "resources": "Tài nguyên",
+    "careerStages": {
+      "intern": "THỰC TẬP SINH",
+      "employee": "NHÂN VIÊN",
+      "manager": "TRƯỞNG PHÒNG",
+      "director": "GIÁM ĐỐC",
+      "ceo": "GIÁM ĐỐC ĐIỀU HÀNH"
+    }
   },
   "profile": {
     "title": "Hồ sơ",

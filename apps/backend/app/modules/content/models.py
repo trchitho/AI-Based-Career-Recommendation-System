@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Optional
 
@@ -71,7 +73,7 @@ class BlogPost(Base):
             "slug": self.slug,
             "content_md": self.content_md,
             "status": self.status,
-            "published_at": (self.published_at.isoformat() if self.published_at else None),
+            "published_at": self.published_at.isoformat() if self.published_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -127,7 +129,7 @@ class Essay(Base):
 class CareerKSA(Base):
     __tablename__ = "career_ksas"
     __table_args__ = {"schema": "core"}
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     onet_code = Column(Text, nullable=False)
     ksa_type = Column(Text, nullable=False)
     name = Column(Text, nullable=False)
