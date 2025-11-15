@@ -19,7 +19,6 @@ from sqlalchemy.orm import Session as ORMSession
     __tablename__ = "auth_tokens"
     __table_args__ = {"schema": "core"}
     id = Column(BigInteger, primary_key=True)
-    user_id = Column(BigInteger)
     token = Column(Text)
     ttype = Column(Text)
     expires_at = Column(TIMESTAMP(timezone=True))
