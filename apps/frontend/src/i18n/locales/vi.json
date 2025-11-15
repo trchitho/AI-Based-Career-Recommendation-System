@@ -203,7 +203,14 @@
     "markComplete": "Đánh dấu hoàn thành",
     "duration": "Thời lượng",
     "skills": "Kỹ năng cần học",
-    "resources": "Tài nguyên"
+    "resources": "Tài nguyên",
+    "careerStages": {
+      "intern": "THỰC TẬP SINH",
+      "employee": "NHÂN VIÊN",
+      "manager": "TRƯỞNG PHÒNG",
+      "director": "GIÁM ĐỐC",
+      "ceo": "GIÁM ĐỐC ĐIỀU HÀNH"
+    }
   },
   "profile": {
     "title": "Hồ sơ",
