@@ -1,4 +1,4 @@
-# src/nlp/encode_jobs.py
+﻿# src/nlp/encode_jobs.py
 from __future__ import annotations
 
 import argparse
@@ -20,31 +20,31 @@ def strip_accents_lower(s: str) -> str:
         return ""
     s = unicodedata.normalize("NFD", s)
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    # FIX: "đ/Đ" -> "d/D"
-    s = s.replace("đ", "d").replace("Đ", "D")
+    # FIX: "Ä‘/Ä" -> "d/D"
+    s = s.replace("Ä‘", "d").replace("Ä", "D")
     return s.lower()
 
 
 def _strip_accents_lower_ascii(s: str) -> str:
-    # Dùng khi cần biến thể không dấu
+    # DÃ¹ng khi cáº§n biáº¿n thá»ƒ khÃ´ng dáº¥u
     if not s:
         return ""
     s = unicodedata.normalize("NFD", s)
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    s = s.replace("đ", "d").replace("Đ", "D")
+    s = s.replace("Ä‘", "d").replace("Ä", "D")
     return s.lower()
 
 
 def _lower_keep_diacritics(s: str) -> str:
-    # Giữ dấu: chỉ chuẩn hoá & lower, KHÔNG bỏ dấu
+    # Giá»¯ dáº¥u: chá»‰ chuáº©n hoÃ¡ & lower, KHÃ”NG bá» dáº¥u
     if not s:
         return ""
-    # NFC để gộp ký tự tổ hợp về dạng tiêu chuẩn (đảm bảo đồng nhất 'ố', 'ộ',...)
+    # NFC Ä‘á»ƒ gá»™p kÃ½ tá»± tá»• há»£p vá» dáº¡ng tiÃªu chuáº©n (Ä‘áº£m báº£o Ä‘á»“ng nháº¥t 'á»‘', 'á»™',...)
     return unicodedata.normalize("NFC", s).lower()
 
 
 def _split_words_keep_unicode(s: str) -> list[str]:
-    # Tách theo ký tự "không phải chữ/số" nhưng giữ nguyên chữ có dấu (dùng .isalnum() hỗ trợ Unicode)
+    # TÃ¡ch theo kÃ½ tá»± "khÃ´ng pháº£i chá»¯/sá»‘" nhÆ°ng giá»¯ nguyÃªn chá»¯ cÃ³ dáº¥u (dÃ¹ng .isalnum() há»— trá»£ Unicode)
     buf = []
     for ch in s:
         buf.append(ch if ch.isalnum() else " ")
@@ -54,20 +54,20 @@ def _split_words_keep_unicode(s: str) -> list[str]:
 def tokenize_tags(
     tags_vi: str,
     mode: str = "phrases",  # "phrases" | "words" | "both"
-    collapse_phrase_components: bool = True,  # True: có 'học_chủ_động' thì bỏ 'học','chủ','động'
+    collapse_phrase_components: bool = True,  # True: cÃ³ 'há»c_chá»§_Ä‘á»™ng' thÃ¬ bá» 'há»c','chá»§','Ä‘á»™ng'
     stopwords: (
         list[str] | None
-    ) = None,  # danh sách từ muốn loại (đã lower, có dấu hoặc không dấu tùy emit_ascii_variant)
+    ) = None,  # danh sÃ¡ch tá»« muá»‘n loáº¡i (Ä‘Ã£ lower, cÃ³ dáº¥u hoáº·c khÃ´ng dáº¥u tÃ¹y emit_ascii_variant)
     min_word_len: int = 2,
-    keep_diacritics: bool = True,  # <<< GIỮ DẤU
-    emit_ascii_variant: bool = False,  # <<< THÊM BIẾN THỂ KHÔNG DẤU (tùy chọn)
+    keep_diacritics: bool = True,  # <<< GIá»® Dáº¤U
+    emit_ascii_variant: bool = False,  # <<< THÃŠM BIáº¾N THá»‚ KHÃ”NG Dáº¤U (tÃ¹y chá»n)
 ) -> list[str]:
     """
-    Trả về danh sách token từ tags_vi. Hỗ trợ:
-      - keep_diacritics=True: token có dấu (ví dụ 'học_chủ_động', 'quản_lý')
-      - emit_ascii_variant=True: thêm cả biến thể không dấu song song ('hoc_chu_dong', 'quan_ly')
-      - mode: 'phrases' (mặc định gọn), 'words', hoặc 'both'
-      - collapse_phrase_components: nếu đã có cụm thì bỏ từ đơn bê  n trong cụm
+    Tráº£ vá» danh sÃ¡ch token tá»« tags_vi. Há»— trá»£:
+      - keep_diacritics=True: token cÃ³ dáº¥u (vÃ­ dá»¥ 'há»c_chá»§_Ä‘á»™ng', 'quáº£n_lÃ½')
+      - emit_ascii_variant=True: thÃªm cáº£ biáº¿n thá»ƒ khÃ´ng dáº¥u song song ('hoc_chu_dong', 'quan_ly')
+      - mode: 'phrases' (máº·c Ä‘á»‹nh gá»n), 'words', hoáº·c 'both'
+      - collapse_phrase_components: náº¿u Ä‘Ã£ cÃ³ cá»¥m thÃ¬ bá» tá»« Ä‘Æ¡n bÃª  n trong cá»¥m
     """
     if not tags_vi:
         return []
@@ -82,7 +82,7 @@ def tokenize_tags(
         seg = seg.strip()
         if not seg:
             continue
-        ws = _split_words_keep_unicode(seg)  # vẫn giữ dấu trong từ
+        ws = _split_words_keep_unicode(seg)  # váº«n giá»¯ dáº¥u trong tá»«
         ws = [w for w in ws if len(w) >= min_word_len and w not in stop]
         if not ws:
             continue
@@ -96,12 +96,12 @@ def tokenize_tags(
             out.append(tok)
             seen.add(tok)
 
-    # 1) Thêm cụm
+    # 1) ThÃªm cá»¥m
     if mode in ("both", "phrases"):
         for ph in phrases:
             add(ph)
 
-    # 2) Thêm từ đơn (nếu cần)
+    # 2) ThÃªm tá»« Ä‘Æ¡n (náº¿u cáº§n)
     if mode in ("both", "words"):
         if collapse_phrase_components and phrases:
             comp = set()
@@ -114,7 +114,7 @@ def tokenize_tags(
             for w in words_all:
                 add(w)
 
-    # 3) Thêm biến thể không dấu (tuỳ chọn)
+    # 3) ThÃªm biáº¿n thá»ƒ khÃ´ng dáº¥u (tuá»³ chá»n)
     if emit_ascii_variant:
         ascii_seen = set()
 
@@ -137,8 +137,8 @@ def _norm_key(k: str) -> str:
 
 def read_catalog(path: str) -> list[dict[str, Any]]:
     """
-    Đọc catalog .csv (utf-8-sig) hoặc .json/.jsonl (utf-8).
-    Chuẩn hoá khóa cột, nuốt BOM.
+    Äá»c catalog .csv (utf-8-sig) hoáº·c .json/.jsonl (utf-8).
+    Chuáº©n hoÃ¡ khÃ³a cá»™t, nuá»‘t BOM.
     """
     p = Path(path)
     ext = p.suffix.lower()
@@ -152,15 +152,15 @@ def read_catalog(path: str) -> list[dict[str, Any]]:
         with p.open("r", encoding="utf-8") as f:
             data = json.load(f)
         if not isinstance(data, list):
-            raise ValueError("JSON phải là list các object")
+            raise ValueError("JSON pháº£i lÃ  list cÃ¡c object")
         rows = [{_norm_key(k): v for k, v in (r or {}).items()} for r in data]
     else:
-        raise ValueError(f"Định dạng catalog không hỗ trợ: {ext}")
+        raise ValueError(f"Äá»‹nh dáº¡ng catalog khÃ´ng há»— trá»£: {ext}")
     return rows
 
 
 def get_col(row: dict[str, Any], *candidates: str) -> str:
-    """Lấy giá trị cột đầu tiên tồn tại trong candidates, dạng string sạch."""
+    """Láº¥y giÃ¡ trá»‹ cá»™t Ä‘áº§u tiÃªn tá»“n táº¡i trong candidates, dáº¡ng string sáº¡ch."""
     for c in candidates:
         if c in row and row[c] is not None:
             return str(row[c]).strip()
@@ -186,8 +186,8 @@ def row_to_text(
     include_tags: bool = False,
 ) -> str:
     """
-    Tạo câu đầu vào encoder từ các cột *_vi (fallback sang cột chung).
-    Có thể thêm skills/tags để tăng tín hiệu.
+    Táº¡o cÃ¢u Ä‘áº§u vÃ o encoder tá»« cÃ¡c cá»™t *_vi (fallback sang cá»™t chung).
+    CÃ³ thá»ƒ thÃªm skills/tags Ä‘á»ƒ tÄƒng tÃ­n hiá»‡u.
     """
     title = get_col(row, "title_vi", "title")
     desc = get_col(row, "description_vi", "description")
@@ -200,7 +200,7 @@ def row_to_text(
     if desc:
         parts.append(desc)
     if include_skills and skills:
-        parts.append(f"Kỹ năng: {skills}. Kỹ năng quan trọng: {skills}")
+        parts.append(f"Ká»¹ nÄƒng: {skills}. Ká»¹ nÄƒng quan trá»ng: {skills}")
     if include_tags and tags:
         parts.append(f"Tags: {tags}")
 
@@ -210,19 +210,19 @@ def row_to_text(
 # ---------- Model / encoding ----------
 def resolve_model_name(model_arg: str) -> str:
     """
-    - Nếu model_arg là thư mục → đọc tokenizer_name.txt bên trong.
-    - Nếu không → coi như HF model id trực tiếp.
+    - Náº¿u model_arg lÃ  thÆ° má»¥c â†’ Ä‘á»c tokenizer_name.txt bÃªn trong.
+    - Náº¿u khÃ´ng â†’ coi nhÆ° HF model id trá»±c tiáº¿p.
     """
     p = Path(model_arg)
     if p.is_dir():
         tnf = p / "tokenizer_name.txt"
         if not tnf.exists():
             raise FileNotFoundError(
-                f"Model dir '{model_arg}' không có tokenizer_name.txt; hãy tạo file chứa 1 dòng HF model id."
+                f"Model dir '{model_arg}' khÃ´ng cÃ³ tokenizer_name.txt; hÃ£y táº¡o file chá»©a 1 dÃ²ng HF model id."
             )
         name = tnf.read_text(encoding="utf-8").strip()
         if not name:
-            raise ValueError(f"tokenizer_name.txt rỗng trong '{model_arg}'")
+            raise ValueError(f"tokenizer_name.txt rá»—ng trong '{model_arg}'")
         return name
     return model_arg
 
@@ -232,11 +232,11 @@ def choose_device(device_arg: str) -> str:
         return "cuda" if torch.cuda.is_available() else "cpu"
     if device_arg in ("cuda", "cpu", "mps"):
         return device_arg
-    raise ValueError("--device chỉ nhận: auto|cuda|cpu|mps")
+    raise ValueError("--device chá»‰ nháº­n: auto|cuda|cpu|mps")
 
 
 def mean_pool(last_hidden_state: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
-    """Mean pooling với mask."""
+    """Mean pooling vá»›i mask."""
     mask = attention_mask.unsqueeze(-1).type_as(last_hidden_state)  # [B, T, 1]
     summed = (last_hidden_state * mask).sum(dim=1)  # [B, H]
     counts = mask.sum(dim=1).clamp(min=1e-9)  # [B, 1]
@@ -282,10 +282,10 @@ def main():
     # I/O & model
     ap.add_argument("--catalog", required=True, help="Path CSV/JSON jobs catalog.")
     ap.add_argument(
-        "--model", required=True, help="HF model id hoặc thư mục chứa tokenizer_name.txt"
+        "--model", required=True, help="HF model id hoáº·c thÆ° má»¥c chá»©a tokenizer_name.txt"
     )
-    ap.add_argument("--model_name", default=None, help="Nếu set, ưu tiên dùng HF model id này.")
-    ap.add_argument("--device", default="auto", help="auto|cuda|cpu|mps (mặc định: auto)")
+    ap.add_argument("--model_name", default=None, help="Náº¿u set, Æ°u tiÃªn dÃ¹ng HF model id nÃ y.")
+    ap.add_argument("--device", default="auto", help="auto|cuda|cpu|mps (máº·c Ä‘á»‹nh: auto)")
 
     # text building
     ap.add_argument("--include_skills", action="store_true")
@@ -306,17 +306,17 @@ def main():
     ap.add_argument("--tag_mode", default="both", choices=["phrases", "words", "both"])
     ap.add_argument("--collapse_phrase_components", action="store_true")
     ap.add_argument("--min_word_len", type=int, default=2)
-    ap.add_argument("--tag_stopwords", default="", help="Đường dẫn .txt: mỗi dòng 1 stopword")
+    ap.add_argument("--tag_stopwords", default="", help="ÄÆ°á»ng dáº«n .txt: má»—i dÃ²ng 1 stopword")
     ap.add_argument(
-        "--tag_preview_n", type=int, default=20, help="Số token hiển thị ở sample preview"
+        "--tag_preview_n", type=int, default=20, help="Sá»‘ token hiá»ƒn thá»‹ á»Ÿ sample preview"
     )
     ap.add_argument(
-        "--tag_keep_diacritics", action="store_true", help="Sinh tag_tokens có dấu (Unicode)"
+        "--tag_keep_diacritics", action="store_true", help="Sinh tag_tokens cÃ³ dáº¥u (Unicode)"
     )
     ap.add_argument(
         "--tag_emit_ascii_variant",
         action="store_true",
-        help="Sinh thêm biến thể không dấu song song",
+        help="Sinh thÃªm biáº¿n thá»ƒ khÃ´ng dáº¥u song song",
     )
 
     args = ap.parse_args()
@@ -329,7 +329,7 @@ def main():
     tok = AutoTokenizer.from_pretrained(model_name, use_fast=True)
     mdl = AutoModel.from_pretrained(model_name).to(device).eval()
 
-    # 3) Load stopwords (nếu có)
+    # 3) Load stopwords (náº¿u cÃ³)
     stopwords: list[str] = []
     if args.tag_stopwords:
         sp = Path(args.tag_stopwords)
@@ -341,7 +341,7 @@ def main():
     # 4) Read catalog
     rows = read_catalog(args.catalog)
     if not rows:
-        raise SystemExit("[ERR] Catalog rỗng.")
+        raise SystemExit("[ERR] Catalog rá»—ng.")
 
     texts: list[str] = []
     metas: list[dict[str, Any]] = []
@@ -349,7 +349,7 @@ def main():
     # 5) Build texts + metas
     for r in rows:
         text = row_to_text(r, include_skills=args.include_skills, include_tags=args.include_tags)
-        job_id = get_col(r, "job_id", "soc", "id")  # linh hoạt nhưng ưu tiên job_id
+        job_id = get_col(r, "job_id", "soc", "id")  # linh hoáº¡t nhÆ°ng Æ°u tiÃªn job_id
         tags_vi = get_col(r, "tags_vi", "tags")
 
         tag_tokens = tokenize_tags(
@@ -402,7 +402,7 @@ def main():
         preview = full[: max(1, args.tag_preview_n)]
         smp["tag_tokens_preview"] = preview
         smp["tag_tokens_count"] = len(full)
-        if "tag_tokens" in smp:  # tránh in quá dài
+        if "tag_tokens" in smp:  # trÃ¡nh in quÃ¡ dÃ i
             del smp["tag_tokens"]
         print("[Sample meta]:", json.dumps(smp, ensure_ascii=False))
 

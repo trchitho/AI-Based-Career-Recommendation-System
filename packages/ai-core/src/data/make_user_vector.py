@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import json
 from pathlib import Path
 
@@ -7,7 +7,7 @@ import numpy as np
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--user_id", type=int, required=True, help="User ID cần trích xuất")
+    parser.add_argument("--user_id", type=int, required=True, help="User ID cáº§n trÃ­ch xuáº¥t")
     parser.add_argument(
         "--embeddings",
         type=str,
@@ -25,11 +25,11 @@ def main():
     )
     args = parser.parse_args()
 
-    # Load dữ liệu
+    # Load dá»¯ liá»‡u
     embs = np.load(args.embeddings)
     index = json.loads(Path(args.index).read_text(encoding="utf-8"))
 
-    # Tìm vị trí user
+    # TÃ¬m vá»‹ trÃ­ user
     pos = None
     for i, rec in enumerate(index):
         if str(rec["user_id"]) == str(args.user_id):
@@ -37,13 +37,13 @@ def main():
             break
 
     if pos is None:
-        raise ValueError(f"User ID {args.user_id} không tồn tại trong {args.index}")
+        raise ValueError(f"User ID {args.user_id} khÃ´ng tá»“n táº¡i trong {args.index}")
 
-    # Lấy vector tương ứng
+    # Láº¥y vector tÆ°Æ¡ng á»©ng
     user_vector = embs[pos]
     np.save(args.out, user_vector)
 
-    print(f"[OK] Xuất user_id={args.user_id} -> {args.out} (shape {user_vector.shape})")
+    print(f"[OK] Xuáº¥t user_id={args.user_id} -> {args.out} (shape {user_vector.shape})")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# src/data/form_to_processed.py
+﻿# src/data/form_to_processed.py
 import json
 import re
 from pathlib import Path
@@ -22,19 +22,19 @@ def contains_all(haystack: str, *frags: str) -> bool:
 
 
 def find_col_by_fragments(columns, *frags, required=True):
-    """Tìm cột chứa TẤT CẢ các mẩu chuỗi (không phân biệt hoa/thường, bỏ space thừa)."""
+    """TÃ¬m cá»™t chá»©a Táº¤T Cáº¢ cÃ¡c máº©u chuá»—i (khÃ´ng phÃ¢n biá»‡t hoa/thÆ°á»ng, bá» space thá»«a)."""
     for c in columns:
         if contains_all(c, *frags):
             return c
     if required:
-        raise KeyError(f"Không tìm thấy cột khớp với: {frags}")
+        raise KeyError(f"KhÃ´ng tÃ¬m tháº¥y cá»™t khá»›p vá»›i: {frags}")
     return None
 
 
 def find_group_by_fragments(columns, fragment_pairs, used):
     """
-    Tìm 2 cột cho 1 trait dựa vào list các mẩu chuỗi (mỗi phần tử là tuple các từ khóa).
-    Mỗi lần match xong loại cột đó khỏi pool để tránh trùng.
+    TÃ¬m 2 cá»™t cho 1 trait dá»±a vÃ o list cÃ¡c máº©u chuá»—i (má»—i pháº§n tá»­ lÃ  tuple cÃ¡c tá»« khÃ³a).
+    Má»—i láº§n match xong loáº¡i cá»™t Ä‘Ã³ khá»i pool Ä‘á»ƒ trÃ¡nh trÃ¹ng.
     """
     cols = []
     pool = [c for c in columns if c not in used]
@@ -68,19 +68,19 @@ def join_jobs(x):
 df = pd.read_csv(INPUT_CSV, encoding="utf-8-sig")
 
 # ============== Detect ESSAY / JOBS columns ==============
-ESSAY_COL = find_col_by_fragments(df.columns, "Hãy viết một đoạn ngắn", "sở thích", "điểm mạnh")
-JOBS_COL = find_col_by_fragments(df.columns, "Nghề nghiệp", "quan tâm")
+ESSAY_COL = find_col_by_fragments(df.columns, "HÃ£y viáº¿t má»™t Ä‘oáº¡n ngáº¯n", "sá»Ÿ thÃ­ch", "Ä‘iá»ƒm máº¡nh")
+JOBS_COL = find_col_by_fragments(df.columns, "Nghá» nghiá»‡p", "quan tÃ¢m")
 
 # ============== Detect RIASEC + Big Five columns ==============
-# Dò theo các "mẩu" ngắn gọn khớp template đã dùng. Bạn có thể đổi từ khóa nếu form khác.
+# DÃ² theo cÃ¡c "máº©u" ngáº¯n gá»n khá»›p template Ä‘Ã£ dÃ¹ng. Báº¡n cÃ³ thá»ƒ Ä‘á»•i tá»« khÃ³a náº¿u form khÃ¡c.
 used_cols = set()
 
-# RIASEC (6 traits, mỗi trait 2 câu)
+# RIASEC (6 traits, má»—i trait 2 cÃ¢u)
 R_cols = find_group_by_fragments(
     df.columns,
     [
-        ("sửa chữa", "lắp ráp"),
-        ("làm việc ngoài trời",),
+        ("sá»­a chá»¯a", "láº¯p rÃ¡p"),
+        ("lÃ m viá»‡c ngoÃ i trá»i",),
     ],
     used_cols,
 )
@@ -88,8 +88,8 @@ R_cols = find_group_by_fragments(
 I_cols = find_group_by_fragments(
     df.columns,
     [
-        ("nghiên cứu", "vấn đề phức tạp"),
-        ("giải quyết", "khoa học"),
+        ("nghiÃªn cá»©u", "váº¥n Ä‘á» phá»©c táº¡p"),
+        ("giáº£i quyáº¿t", "khoa há»c"),
     ],
     used_cols,
 )
@@ -97,8 +97,8 @@ I_cols = find_group_by_fragments(
 A_cols = find_group_by_fragments(
     df.columns,
     [
-        ("vẽ, viết",),  # nếu tiêu đề của bạn không có dấu phẩy, đổi thành ("vẽ", "viết")
-        ("nghệ thuật", "âm nhạc"),
+        ("váº½, viáº¿t",),  # náº¿u tiÃªu Ä‘á» cá»§a báº¡n khÃ´ng cÃ³ dáº¥u pháº©y, Ä‘á»•i thÃ nh ("váº½", "viáº¿t")
+        ("nghá»‡ thuáº­t", "Ã¢m nháº¡c"),
     ],
     used_cols,
 )
@@ -106,8 +106,8 @@ A_cols = find_group_by_fragments(
 S_cols = find_group_by_fragments(
     df.columns,
     [
-        ("giúp đỡ", "lắng nghe"),
-        ("hoạt động cộng đồng",),
+        ("giÃºp Ä‘á»¡", "láº¯ng nghe"),
+        ("hoáº¡t Ä‘á»™ng cá»™ng Ä‘á»“ng",),
     ],
     used_cols,
 )
@@ -115,8 +115,8 @@ S_cols = find_group_by_fragments(
 E_cols = find_group_by_fragments(
     df.columns,
     [
-        ("lãnh đạo", "điều phối"),
-        ("thuyết phục", "đàm phán"),
+        ("lÃ£nh Ä‘áº¡o", "Ä‘iá»u phá»‘i"),
+        ("thuyáº¿t phá»¥c", "Ä‘Ã m phÃ¡n"),
     ],
     used_cols,
 )
@@ -124,18 +124,18 @@ E_cols = find_group_by_fragments(
 C_cols = find_group_by_fragments(
     df.columns,
     [
-        ("lập kế hoạch", "tài liệu"),
-        ("quy trình", "quy định"),
+        ("láº­p káº¿ hoáº¡ch", "tÃ i liá»‡u"),
+        ("quy trÃ¬nh", "quy Ä‘á»‹nh"),
     ],
     used_cols,
 )
 
-# Big Five (5 traits, mỗi trait 2 câu)
+# Big Five (5 traits, má»—i trait 2 cÃ¢u)
 O_cols = find_group_by_fragments(
     df.columns,
     [
-        ("tò mò", "ý tưởng mới"),
-        ("thử nghiệm", "cách tiếp cận"),
+        ("tÃ² mÃ²", "Ã½ tÆ°á»Ÿng má»›i"),
+        ("thá»­ nghiá»‡m", "cÃ¡ch tiáº¿p cáº­n"),
     ],
     used_cols,
 )
@@ -143,8 +143,8 @@ O_cols = find_group_by_fragments(
 C5_cols = find_group_by_fragments(
     df.columns,
     [
-        ("hoàn thành công việc", "đúng hạn"),
-        ("kế hoạch chi tiết",),
+        ("hoÃ n thÃ nh cÃ´ng viá»‡c", "Ä‘Ãºng háº¡n"),
+        ("káº¿ hoáº¡ch chi tiáº¿t",),
     ],
     used_cols,
 )
@@ -152,8 +152,8 @@ C5_cols = find_group_by_fragments(
 E5_cols = find_group_by_fragments(
     df.columns,
     [
-        ("bắt chuyện", "người lạ"),
-        ("tràn đầy năng lượng", "nhiều người"),
+        ("báº¯t chuyá»‡n", "ngÆ°á»i láº¡"),
+        ("trÃ n Ä‘áº§y nÄƒng lÆ°á»£ng", "nhiá»u ngÆ°á»i"),
     ],
     used_cols,
 )
@@ -161,8 +161,8 @@ E5_cols = find_group_by_fragments(
 A5_cols = find_group_by_fragments(
     df.columns,
     [
-        ("quan tâm", "cảm xúc"),
-        ("hợp tác", "cạnh tranh"),
+        ("quan tÃ¢m", "cáº£m xÃºc"),
+        ("há»£p tÃ¡c", "cáº¡nh tranh"),
     ],
     used_cols,
 )
@@ -170,13 +170,13 @@ A5_cols = find_group_by_fragments(
 N_cols = find_group_by_fragments(
     df.columns,
     [
-        ("lo lắng", "việc nhỏ"),
-        ("căng thẳng", "áp lực"),
+        ("lo láº¯ng", "viá»‡c nhá»"),
+        ("cÄƒng tháº³ng", "Ã¡p lá»±c"),
     ],
     used_cols,
 )
 
-# In ra để bạn kiểm tra cột nào được map (có thể comment dòng dưới)
+# In ra Ä‘á»ƒ báº¡n kiá»ƒm tra cá»™t nÃ o Ä‘Æ°á»£c map (cÃ³ thá»ƒ comment dÃ²ng dÆ°á»›i)
 print("[MAP] R:", R_cols)
 print("[MAP] I:", I_cols)
 print("[MAP] A:", A_cols)
@@ -222,7 +222,7 @@ df["E"] = df[E_cols].mean(axis=1)
 df["C"] = df[C_cols].mean(axis=1)
 
 df["O"] = df[O_cols].mean(axis=1)
-df["C2"] = df[C5_cols].mean(axis=1)  # Big Five C -> C2 để không đè C của RIASEC
+df["C2"] = df[C5_cols].mean(axis=1)  # Big Five C -> C2 Ä‘á»ƒ khÃ´ng Ä‘Ã¨ C cá»§a RIASEC
 df["E2"] = df[E5_cols].mean(axis=1)
 df["A2"] = df[A5_cols].mean(axis=1)
 df["N"] = df[N_cols].mean(axis=1)

@@ -1,4 +1,4 @@
-# src/data/build_jobs_translated.py
+﻿# src/data/build_jobs_translated.py
 import argparse
 import csv
 import json
@@ -15,7 +15,7 @@ from tqdm import tqdm
 DEF_IN = Path("data/catalog/jobs.csv")
 DEF_OUT_JSONL = Path("data/processed/unified_vi.jsonl")
 DEF_OUT_CSV = Path("data/catalog/jobs_translated.csv")
-DEF_GLOSSARY = Path("data/processed/job_alias_en2vi.json")  # EN->VI mapping (ưu tiên cho Title)
+DEF_GLOSSARY = Path("data/processed/job_alias_en2vi.json")  # EN->VI mapping (Æ°u tiÃªn cho Title)
 DEF_CACHE = Path("data/processed/mt_cache.jsonl")
 DEF_RIASEC_MAP = Path("data/processed/job_riasec_map.json")
 DEF_SKILL_TRANS = Path("data/catalog/skill_trans_vi.json")  # EN->VI cho skills
@@ -24,7 +24,7 @@ ENGINE_NLLB = "nllb"
 ENGINE_OPUS = "opus"
 
 DEF_NLLB_MODEL = "facebook/nllb-200-distilled-600M"  # eng_Latn -> vie_Latn
-DEF_OPUS_MODEL = "Helsinki-NLP/opus-mt-en-vi"  # dùng >>vie<<
+DEF_OPUS_MODEL = "Helsinki-NLP/opus-mt-en-vi"  # dÃ¹ng >>vie<<
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -44,7 +44,7 @@ def load_glossary(glossary_path: Path) -> dict[str, str]:
 def apply_glossary(text: str, glossary: dict[str, str]) -> str:
     if not text:
         return ""
-    # thay thế theo ranh giới từ; không phân biệt hoa thường
+    # thay tháº¿ theo ranh giá»›i tá»«; khÃ´ng phÃ¢n biá»‡t hoa thÆ°á»ng
     for en, vi in glossary.items():
         text = re.sub(rf"\b{re.escape(en)}\b", vi, text, flags=re.IGNORECASE)
     return text
@@ -107,12 +107,12 @@ def load_input_records(in_path: Path) -> list[dict[str, Any]]:
     if suf == ".csv":
         with in_path.open("r", encoding="utf-8-sig", newline="") as f:
             reader = csv.DictReader(f)
-            # strip toàn bộ header để tránh " job_id   "
+            # strip toÃ n bá»™ header Ä‘á»ƒ trÃ¡nh " job_id   "
             if reader.fieldnames:
                 reader.fieldnames = [(h or "").strip() for h in reader.fieldnames]
 
             for r in reader:
-                # strip thêm lần nữa với key/value
+                # strip thÃªm láº§n ná»¯a vá»›i key/value
                 r = {(k or "").strip(): (v or "") for k, v in r.items()}
 
                 job_id = r.get("job_id") or r.get("id") or r.get("code") or ""
@@ -237,7 +237,7 @@ class NLLBTranslator(Translator):
 
 class OpusTranslator(Translator):
     def __init__(self, model_name: str = DEF_OPUS_MODEL):
-        # chỉ khởi tạo nếu thật sự cần fallback
+        # chá»‰ khá»Ÿi táº¡o náº¿u tháº­t sá»± cáº§n fallback
         from transformers import MarianMTModel, MarianTokenizer
 
         self.tok = MarianTokenizer.from_pretrained(model_name)
@@ -272,7 +272,7 @@ class OpusTranslator(Translator):
 
 def make_translators(engine: str):
     engine = (engine or ENGINE_NLLB).lower().strip()
-    # Chỉ dựng primary; fallback để lazy-init
+    # Chá»‰ dá»±ng primary; fallback Ä‘á»ƒ lazy-init
     if engine == ENGINE_OPUS:
         return OpusTranslator(), None
     else:
@@ -282,14 +282,14 @@ def make_translators(engine: str):
 def ensure_fallback(current_fallback, primary_engine):
     if current_fallback is not None:
         return current_fallback
-    # tạo ngược với primary khi thật sự cần
+    # táº¡o ngÆ°á»£c vá»›i primary khi tháº­t sá»± cáº§n
     if isinstance(primary_engine, NLLBTranslator):
-        return OpusTranslator()  # cần sentencepiece CHỈ nếu vào đây
+        return OpusTranslator()  # cáº§n sentencepiece CHá»ˆ náº¿u vÃ o Ä‘Ã¢y
     else:
         return NLLBTranslator()
 
 
-# Tách câu nhẹ → dịch rồi ghép
+# TÃ¡ch cÃ¢u nháº¹ â†’ dá»‹ch rá»“i ghÃ©p
 _SENT_SPLIT = re.compile(r"(?<=[\.\?\!;:])\s+(?=[A-Z])")
 
 
@@ -331,10 +331,10 @@ def main():
     ap.add_argument("--desc-batch-size", type=int, default=16)
     args = ap.parse_args()
 
-    # Glossary cho Title + apply lên Description
+    # Glossary cho Title + apply lÃªn Description
     glossary = load_glossary(args.glossary_path)
 
-    # Từ điển kỹ năng EN->VI
+    # Tá»« Ä‘iá»ƒn ká»¹ nÄƒng EN->VI
     skills_trans_map = {}
     if args.skills_trans_path.exists():
         skills_trans_map = json.loads(args.skills_trans_path.read_text(encoding="utf-8"))
@@ -351,7 +351,7 @@ def main():
         t = (r.get("title_en") or "").strip()
         if t and (t not in glossary) and (t not in cache):
             titles_to_mt.append(t)
-    # unique giữ thứ tự
+    # unique giá»¯ thá»© tá»±
     seen = set()
     titles_to_mt = [x for x in titles_to_mt if not (x in seen or seen.add(x))]
 
@@ -408,7 +408,7 @@ def main():
         en = (r.get("description_en") or "").strip()
         r["description_vi"] = apply_glossary(cache.get(en, ""), glossary)
 
-    # --- Skills: NO MT — map qua skill_trans_vi.json; thiếu thì giữ EN ---
+    # --- Skills: NO MT â€” map qua skill_trans_vi.json; thiáº¿u thÃ¬ giá»¯ EN ---
     for r in records:
         skills_en = r.get("skills_en") or []
         out: list[str] = []
@@ -418,25 +418,25 @@ def main():
             if not s_norm:
                 continue
             vi = skills_trans_lower.get(s_norm.lower())  # map case-insensitive
-            label = (vi or s_norm).strip()  # nếu không có bản dịch -> giữ EN
+            label = (vi or s_norm).strip()  # náº¿u khÃ´ng cÃ³ báº£n dá»‹ch -> giá»¯ EN
             if label and label not in seen:
                 seen.add(label)
                 out.append(label)
         r["skills_vi"] = out
 
-    # --- RIASEC centroid --- (ƯU TIÊN từ CSV riasec_vector; rồi mới fallback map)
+    # --- RIASEC centroid --- (Æ¯U TIÃŠN tá»« CSV riasec_vector; rá»“i má»›i fallback map)
     riasec_map = {}
     if args.riasec_map_path.exists():
         riasec_map = json.loads(args.riasec_map_path.read_text(encoding="utf-8"))
 
     for r in records:
-        # 1) Ưu tiên dữ liệu có sẵn từ CSV (chuỗi JSON ví dụ: "[0.18, 0.46, ...]")
+        # 1) Æ¯u tiÃªn dá»¯ liá»‡u cÃ³ sáºµn tá»« CSV (chuá»—i JSON vÃ­ dá»¥: "[0.18, 0.46, ...]")
         raw_vec = (r.get("riasec_vec_src") or "").strip()
         if raw_vec:
             r["riasec_centroid_json"] = raw_vec
             continue
 
-        # 2) Fallback map theo job_id nếu CSV không có
+        # 2) Fallback map theo job_id náº¿u CSV khÃ´ng cÃ³
         jid = r.get("job_id_en") or r.get("job_id") or ""
         vec = riasec_map.get(jid)
         r["riasec_centroid_json"] = json.dumps(vec) if vec else ""

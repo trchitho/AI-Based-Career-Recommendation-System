@@ -1,4 +1,4 @@
-# src/data/silver_labels.py
+﻿# src/data/silver_labels.py
 import json
 import unicodedata
 from pathlib import Path
@@ -13,7 +13,7 @@ def norm(s: str) -> str:
     if not s:
         return ""
     s = unicodedata.normalize("NFKD", s)
-    s = "".join(ch for ch in s if not unicodedata.combining(ch))  # bỏ dấu
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))  # bá» dáº¥u
     return s.strip().lower()
 
 
@@ -58,7 +58,7 @@ def main():
     alias = {}
     if ALIAS.exists():
         raw_alias = json.loads(ALIAS.read_text(encoding="utf-8"))
-        # chuẩn hóa key VI (bên trái)
+        # chuáº©n hÃ³a key VI (bÃªn trÃ¡i)
         alias = {norm(k): v for k, v in raw_alias.items()}
 
     with IN_PATH.open("r", encoding="utf-8") as fin, OUT_PATH.open("w", encoding="utf-8") as fout:

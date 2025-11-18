@@ -1,4 +1,4 @@
-import json
+﻿import json
 from pathlib import Path
 from typing import Any
 
@@ -33,7 +33,7 @@ class JsonlRegDataset(Dataset):
         y = []
         m = []
         if label_dict is None:
-            # Không có nhãn -> mask 0 hết
+            # KhÃ´ng cÃ³ nhÃ£n -> mask 0 háº¿t
             for _ in dims:
                 y.append(0.0)
                 m.append(0.0)

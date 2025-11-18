@@ -39,8 +39,8 @@ class RankRes(BaseModel):
 @router.post("/rank", response_model=RankRes)
 def rank(req: RankReq):
     """
-    1️⃣ Nếu có candidate_ids → rank trực tiếp bằng model MLP.
-    2️⃣ Nếu không → dùng query_emb để truy xuất Top-N từ pgvector rồi rerank.
+    Nếu có candidate_ids → rank trực tiếp bằng model MLP.
+    Nếu không → dùng query_emb để truy xuất Top-N từ pgvector rồi rerank.
     """
     cand_ids: Optional[List[str]] = req.candidate_ids
 

@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 from pathlib import Path
 
 import numpy as np
@@ -13,9 +13,9 @@ def mean_pool(last_hidden_state, attention_mask):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--text", type=str, required=True, help="Essay text cần encode")
+    parser.add_argument("--text", type=str, required=True, help="Essay text cáº§n encode")
     parser.add_argument(
-        "--model", type=str, default="models/riasec_phobert", help="Checkpoint đã fine-tune"
+        "--model", type=str, default="models/riasec_phobert", help="Checkpoint Ä‘Ã£ fine-tune"
     )
     parser.add_argument(
         "--out", type=str, default="data/embeddings/user_vector.npy", help="File output .npy"
@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--max_length", type=int, default=256)
     args = parser.parse_args()
 
-    # đọc tên backbone từ tokenizer_name.txt
+    # Ä‘á»c tÃªn backbone tá»« tokenizer_name.txt
     model_name = (Path(args.model) / "tokenizer_name.txt").read_text().strip()
 
     tok = AutoTokenizer.from_pretrained(model_name)

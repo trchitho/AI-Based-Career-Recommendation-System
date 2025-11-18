@@ -1,4 +1,4 @@
-# src/data/merge_tag_vocab.py
+﻿# src/data/merge_tag_vocab.py
 import json
 import re
 from pathlib import Path
@@ -25,7 +25,7 @@ def main():
             for sk in info.get("skills_en", []):
                 skills_en.add(normalize_skill(sk))
     else:
-        print(f"[WARN] Không thấy {ONET_PATH}, bỏ qua O*NET.")
+        print(f"[WARN] KhÃ´ng tháº¥y {ONET_PATH}, bá» qua O*NET.")
 
     if ESCO_PATH.exists():
         esco = json.loads(ESCO_PATH.read_text(encoding="utf-8"))
@@ -33,7 +33,7 @@ def main():
             for sk in info.get("skills_en", []):
                 skills_en.add(normalize_skill(sk))
     else:
-        print(f"[INFO] Không thấy {ESCO_PATH}, bỏ qua ESCO (không bắt buộc).")
+        print(f"[INFO] KhÃ´ng tháº¥y {ESCO_PATH}, bá» qua ESCO (khÃ´ng báº¯t buá»™c).")
 
     tag_vocab = {"domains_vi": sorted(domains_vi), "skills_en": sorted(skills_en)}
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,4 @@
-# packages/ai-core/src/recsys/neumf/dataset.py
+﻿# packages/ai-core/src/recsys/neumf/dataset.py
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -6,9 +6,9 @@ from torch.utils.data import Dataset
 
 class PairDataset(Dataset):
     """
-    Mỗi phần tử là (user_id, job_id, label).
+    Má»—i pháº§n tá»­ lÃ  (user_id, job_id, label).
     user_feats[u]: {"text": np(768), "riasec": np(6), "big5": np(5)}
-    item_feats[i]: {"text": np(768), "riasec": np(6)}  # riasec có thể vắng → zeros(6)
+    item_feats[i]: {"text": np(768), "riasec": np(6)}  # riasec cÃ³ thá»ƒ váº¯ng â†’ zeros(6)
     """
 
     def __init__(self, pairs, user_feats, item_feats):

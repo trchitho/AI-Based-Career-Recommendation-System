@@ -1,4 +1,4 @@
-# src/data/esco_io.py
+﻿# src/data/esco_io.py
 from __future__ import annotations
 
 import os
@@ -6,17 +6,17 @@ import os
 import pandas as pd
 from pandas.errors import ParserError
 
-# ====== Đường dẫn mặc định (có thể đổi ở nơi gọi) ======
+# ====== ÄÆ°á»ng dáº«n máº·c Ä‘á»‹nh (cÃ³ thá»ƒ Ä‘á»•i á»Ÿ nÆ¡i gá»i) ======
 ESCO_DIR = "data/raw/esco"
 
 
 # ====== Helpers cho IO CSV ESCO ======
 def read_esco_csv_robust(path: str) -> pd.DataFrame:
     """
-    Đọc CSV ESCO an toàn:
-      - thử C-engine (nhanh)
-      - nếu ParserError -> engine='python' + sep=None
-      - nếu vẫn lỗi -> on_bad_lines='skip'
+    Äá»c CSV ESCO an toÃ n:
+      - thá»­ C-engine (nhanh)
+      - náº¿u ParserError -> engine='python' + sep=None
+      - náº¿u váº«n lá»—i -> on_bad_lines='skip'
     """
     try:
         return pd.read_csv(path, dtype=str, na_filter=False, encoding="utf-8")
@@ -48,7 +48,7 @@ def read_esco_csv_robust(path: str) -> pd.DataFrame:
 
 
 def _strip_df_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Chuẩn hoá tên cột: bỏ khoảng trắng đầu/cuối."""
+    """Chuáº©n hoÃ¡ tÃªn cá»™t: bá» khoáº£ng tráº¯ng Ä‘áº§u/cuá»‘i."""
     df = df.copy()
     df.columns = [str(c).strip() for c in df.columns]
     return df
@@ -57,15 +57,15 @@ def _strip_df_columns(df: pd.DataFrame) -> pd.DataFrame:
 # ====== ISCO tree ======
 def load_isco_tree() -> dict | None:
     """
-    Đọc cây ISCO từ ISCOGroups_en.csv.
-    Trả về dict:
+    Äá»c cÃ¢y ISCO tá»« ISCOGroups_en.csv.
+    Tráº£ vá» dict:
       {
         "by_uri": { uri: {"label":..,"notation":..,"broader":..}, ... },
         "by_notation": { "2":"uri_major_2", "25":"uri_submajor_25", "251":"...", "2512":"..." }
       }
 
-    Lưu ý: nếu file chỉ có cột 'code' (không có 'notation'/'broader'), ta vẫn xây được cây
-    bằng cách dùng 'code' làm notation và suy luận broader theo tiền tố.
+    LÆ°u Ã½: náº¿u file chá»‰ cÃ³ cá»™t 'code' (khÃ´ng cÃ³ 'notation'/'broader'), ta váº«n xÃ¢y Ä‘Æ°á»£c cÃ¢y
+    báº±ng cÃ¡ch dÃ¹ng 'code' lÃ m notation vÃ  suy luáº­n broader theo tiá»n tá»‘.
     """
     path = os.path.join(ESCO_DIR, "ISCOGroups_en.csv")
     if not os.path.exists(path):
@@ -73,15 +73,15 @@ def load_isco_tree() -> dict | None:
 
     df = _strip_df_columns(read_esco_csv_robust(path))
 
-    # Ưu tiên các tên cột chuẩn; nếu không có thì dò theo tên gần giống
+    # Æ¯u tiÃªn cÃ¡c tÃªn cá»™t chuáº©n; náº¿u khÃ´ng cÃ³ thÃ¬ dÃ² theo tÃªn gáº§n giá»‘ng
     cols = {c.lower(): c for c in df.columns}
     uri_col = cols.get("concepturi") or "conceptUri"
     label_col = cols.get("preferredlabel") or "preferredLabel"
-    # có thể là 'notation' hoặc 'code'
+    # cÃ³ thá»ƒ lÃ  'notation' hoáº·c 'code'
     note_col = cols.get("notation") or cols.get("code")
-    broad_col = cols.get("broader")  # có thể không tồn tại
+    broad_col = cols.get("broader")  # cÃ³ thá»ƒ khÃ´ng tá»“n táº¡i
 
-    # Chuẩn hoá tối thiểu
+    # Chuáº©n hoÃ¡ tá»‘i thiá»ƒu
     for c in [uri_col, label_col, note_col] if note_col else [uri_col, label_col]:
         if c in df.columns:
             df[c] = df[c].astype(str).strip()
@@ -92,7 +92,7 @@ def load_isco_tree() -> dict | None:
     by_uri: dict[str, dict[str, str]] = {}
     by_note: dict[str, str] = {}
 
-    # Map cơ bản
+    # Map cÆ¡ báº£n
     for _, r in df.iterrows():
         u = r.get(uri_col, "") or ""
         if not u:
@@ -104,7 +104,7 @@ def load_isco_tree() -> dict | None:
         if note:
             by_note[note] = u
 
-    # Nếu chưa có broader, suy luận theo tiền tố 'notation'
+    # Náº¿u chÆ°a cÃ³ broader, suy luáº­n theo tiá»n tá»‘ 'notation'
     def parent_code(cd: str) -> str:
         cd = (cd or "").strip()
         if len(cd) == 4:
@@ -115,7 +115,7 @@ def load_isco_tree() -> dict | None:
             return cd[:1]
         return ""
 
-    # Nếu file có sẵn cột broader thì ghi đè (ưu tiên dữ liệu nguồn)
+    # Náº¿u file cÃ³ sáºµn cá»™t broader thÃ¬ ghi Ä‘Ã¨ (Æ°u tiÃªn dá»¯ liá»‡u nguá»“n)
     if broad_col and broad_col in df.columns:
         for _, r in df.iterrows():
             u = (r.get(uri_col, "") or "").strip()
@@ -127,7 +127,7 @@ def load_isco_tree() -> dict | None:
 
 
 def _walk_isco_path_from_uri(uri: str, tree_by_uri: dict[str, dict[str, str]]) -> list[str]:
-    """Leo cây broader từ một URI → danh sách tag theo thứ tự major → … → unit."""
+    """Leo cÃ¢y broader tá»« má»™t URI â†’ danh sÃ¡ch tag theo thá»© tá»± major â†’ â€¦ â†’ unit."""
     path, seen = [], set()
     u = (uri or "").strip()
     while u and (u in tree_by_uri) and (u not in seen):
@@ -144,7 +144,7 @@ def _walk_isco_path_from_uri(uri: str, tree_by_uri: dict[str, dict[str, str]]) -
 
 def build_isco_tags_from_value(val: str, isco_tree: dict | None) -> list[str]:
     """
-    val: có thể là URI ('http…') hoặc mã 'code' (vd '2512' hay '2512|2521').
+    val: cÃ³ thá»ƒ lÃ  URI ('httpâ€¦') hoáº·c mÃ£ 'code' (vd '2512' hay '2512|2521').
     """
     if not isco_tree or val is None:
         return []
@@ -164,7 +164,7 @@ def build_isco_tags_from_value(val: str, isco_tree: dict | None) -> list[str]:
 
 # ====== ESCO occupations/skills/relations ======
 def detect_isco_col_in_occupations(occ_df: pd.DataFrame) -> str | None:
-    """Tìm cột có chữ 'isco' trong occupations_en.csv; ưu tiên tên chứa group/uri/code."""
+    """TÃ¬m cá»™t cÃ³ chá»¯ 'isco' trong occupations_en.csv; Æ°u tiÃªn tÃªn chá»©a group/uri/code."""
     cols = [c for c in occ_df.columns if "isco" in c.lower()]
     if not cols:
         return None
@@ -180,14 +180,14 @@ def detect_isco_col_in_occupations(occ_df: pd.DataFrame) -> str | None:
 
 def load_esco_csv() -> tuple[pd.DataFrame, pd.DataFrame, dict, dict, str, str, str | None]:
     """
-    Trả về:
-      - esco_occ      : DataFrame gọn (conceptUri, preferredLabel, [isco?], title_norm)
-      - esco_occ_full : DataFrame đầy đủ occupations (để tra cứu cột ISCO hay cột khác)
+    Tráº£ vá»:
+      - esco_occ      : DataFrame gá»n (conceptUri, preferredLabel, [isco?], title_norm)
+      - esco_occ_full : DataFrame Ä‘áº§y Ä‘á»§ occupations (Ä‘á»ƒ tra cá»©u cá»™t ISCO hay cá»™t khÃ¡c)
       - essential_map : dict occupationUri -> [skill names] (essential)
       - optional_map  : dict occupationUri -> [skill names] (optional)
-      - esco_title_col: tên cột tiêu đề nghề trong ESCO
-      - occ_uri_col   : tên cột URI nghề trong ESCO
-      - isco_col      : tên cột ISCO tìm thấy (hoặc None)
+      - esco_title_col: tÃªn cá»™t tiÃªu Ä‘á» nghá» trong ESCO
+      - occ_uri_col   : tÃªn cá»™t URI nghá» trong ESCO
+      - isco_col      : tÃªn cá»™t ISCO tÃ¬m tháº¥y (hoáº·c None)
     """
     occ = _strip_df_columns(read_esco_csv_robust(os.path.join(ESCO_DIR, "occupations_en.csv")))
     skills = _strip_df_columns(read_esco_csv_robust(os.path.join(ESCO_DIR, "skills_en.csv")))
@@ -195,7 +195,7 @@ def load_esco_csv() -> tuple[pd.DataFrame, pd.DataFrame, dict, dict, str, str, s
         read_esco_csv_robust(os.path.join(ESCO_DIR, "occupationSkillRelations_en.csv"))
     )
 
-    # Xác định tên cột chính (chịu được lệch hoa/thường/khoảng trắng)
+    # XÃ¡c Ä‘á»‹nh tÃªn cá»™t chÃ­nh (chá»‹u Ä‘Æ°á»£c lá»‡ch hoa/thÆ°á»ng/khoáº£ng tráº¯ng)
     occ_uri_col = "conceptUri" if "conceptUri" in occ.columns else occ.columns[0]
     occ_title_col = "preferredLabel" if "preferredLabel" in occ.columns else occ.columns[1]
 
@@ -206,7 +206,7 @@ def load_esco_csv() -> tuple[pd.DataFrame, pd.DataFrame, dict, dict, str, str, s
     rel_skill = "skillUri"
     rel_type = "relationType"
 
-    # Map skillUri -> tên kỹ năng
+    # Map skillUri -> tÃªn ká»¹ nÄƒng
     skill_name = dict(zip(skills[skill_uri], skills[skill_label], strict=False))
 
     def collect_skills(df: pd.DataFrame, kind: str) -> dict:
@@ -220,17 +220,17 @@ def load_esco_csv() -> tuple[pd.DataFrame, pd.DataFrame, dict, dict, str, str, s
     essential_map = collect_skills(rel, "essential")
     optional_map = collect_skills(rel, "optional")
 
-    # Phát hiện cột ISCO trên bản FULL occupations
+    # PhÃ¡t hiá»‡n cá»™t ISCO trÃªn báº£n FULL occupations
     isco_col = detect_isco_col_in_occupations(occ)
 
-    # Bản gọn để match tiêu đề + (nếu có) giữ luôn cột ISCO cho tiện
+    # Báº£n gá»n Ä‘á»ƒ match tiÃªu Ä‘á» + (náº¿u cÃ³) giá»¯ luÃ´n cá»™t ISCO cho tiá»‡n
     keep_cols = [occ_uri_col, occ_title_col]
     if isco_col and isco_col not in keep_cols:
         keep_cols.append(isco_col)
 
     occ_small = occ[keep_cols].copy()
 
-    # Chuẩn hoá tiêu đề thường hoá để fuzzy
+    # Chuáº©n hoÃ¡ tiÃªu Ä‘á» thÆ°á»ng hoÃ¡ Ä‘á»ƒ fuzzy
     def _normalize_title(s: str) -> str:
         import unicodedata
 

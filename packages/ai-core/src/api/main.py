@@ -1,4 +1,4 @@
-# src/api/main.py  (giữ nguyên phần import hiện có)
+﻿# src/api/main.py  (giá»¯ nguyÃªn pháº§n import hiá»‡n cÃ³)
 import json
 import os
 from pathlib import Path
@@ -12,64 +12,72 @@ from transformers import AutoModel, AutoTokenizer
 
 app = FastAPI()
 
+# ---------------- CONFIG (read-once, no override later) ----------------
+DB_URL      = os.getenv("DATABASE_URL", "postgresql://postgres:123456@localhost:5433/career_ai")
+RETR_TABLE  = os.getenv("RETR_TABLE", "ai.retrieval_jobs_ensbert")
+IVF_PROBES  = int(os.getenv("IVF_PROBES", "32"))
+MODEL_DIR   = os.getenv("RETR_MODEL_DIR", "models/en_sbert_768")
+MODEL_PATH  = Path(MODEL_DIR)
+tok_name_file = MODEL_PATH / "tokenizer_name.txt"
 
+def _read_model_name(p: Path) -> str:
+    # đọc với utf-8-sig để tự loại BOM; thêm phòng thủ cho U+FEFF rơi vãi
+    text = p.read_text(encoding="utf-8-sig").strip()
+    return text.lstrip("\ufeff").strip()
+
+if tok_name_file.exists():
+    MODEL_NAME = _read_model_name(tok_name_file)
+else:
+    MODEL_NAME = MODEL_PATH.as_posix()
+
+print(f"[BOOT] RETR_TABLE={RETR_TABLE} | MODEL_DIR={MODEL_DIR} | MODEL_NAME={MODEL_NAME}")
+
+
+# ---------------- Utilities ----------------
+def encode_text(text: str) -> list[float]:
+    """Encode 1 câu thành vector (L2-normalize)."""
+    tok = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True)
+    mdl = AutoModel.from_pretrained(MODEL_NAME).eval().to("cuda" if torch.cuda.is_available() else "cpu")
+    device = next(mdl.parameters()).device
+
+    with torch.no_grad():
+        inputs = tok(text, return_tensors="pt", truncation=True, max_length=256).to(device)
+        out = mdl(**inputs).last_hidden_state  # [1, L, H]
+        vec = out.mean(dim=1).squeeze(0)       # mean pooling
+        v = vec / (vec.norm(p=2) + 1e-12)
+        return v.detach().cpu().numpy().astype("float32").tolist()
+
+# ---------------- Endpoints ----------------
 @app.get("/")
 def root():
-    return {
-        "ok": True,
-        "service": "career-retrieval",
-        "endpoints": ["/search", "/health", "/ai/infer_user_traits"],
-    }
+    return {"ok": True, "service": "career-retrieval", "endpoints": ["/search", "/health", "/ai/infer_user_traits"]}
 
+@app.get("/debug/config")
+def debug_cfg():
+    return {
+        "retr_table": RETR_TABLE,
+        "model_dir": MODEL_DIR,
+        "database_url": DB_URL,
+        "ivf_probes": str(IVF_PROBES),
+    }
 
 @app.get("/health")
 def health():
     return {"status": "up"}
 
-
-# --- cấu hình ---
-DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres:123456@localhost:5433/career_ai")
-TABLE = "retrieval_jobs_visbert_data"
-
-# ===== Retrieval vi-SBERT (giữ nguyên) =====
-MODEL_DIR = Path("models/vi_sbert")
-MODEL_NAME = (MODEL_DIR / "tokenizer_name.txt").read_text().strip()
-TOK = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True)
-MDL = (
-    AutoModel.from_pretrained(MODEL_NAME).eval().to("cuda" if torch.cuda.is_available() else "cpu")
-)
-DEVICE = next(MDL.parameters()).device
-
-
-def mean_pool(last_hidden_state, attention_mask):
-    m = attention_mask.unsqueeze(-1).type_as(last_hidden_state)
-    return (last_hidden_state * m).sum(1) / m.sum(1).clamp(min=1e-9)
-
-
-def encode_text(text: str, max_length: int = 256, normalize: bool = True) -> list[float]:
-    enc = TOK([text], padding=True, truncation=True, max_length=max_length, return_tensors="pt").to(
-        DEVICE
-    )
-    with torch.no_grad():
-        v = mean_pool(MDL(**enc).last_hidden_state, enc["attention_mask"])
-        if normalize:
-            v = torch.nn.functional.normalize(v, p=2, dim=1)
-    return v[0].cpu().tolist()
-
-
+from pydantic import BaseModel
 class SearchReq(BaseModel):
     text: str | None = None
     vector: list[float] | None = None
     topk: int = 10
-    allowed_tokens: list[str] | None = None
-
+    allowed_tokens: list[str] | None = None  # optional filter on tag_tokens
 
 @app.post("/search")
 def search(req: SearchReq):
     if req.text:
         q = encode_text(req.text)
     elif req.vector:
-        x = np.array(req.vector, dtype="float32")
+        x = np.asarray(req.vector, dtype="float32")
         x = x / (np.linalg.norm(x) + 1e-12)
         q = x.tolist()
     else:
@@ -78,12 +86,14 @@ def search(req: SearchReq):
     qlit = "[" + ",".join(f"{float(x):.8f}" for x in q) + "]"
 
     with psycopg2.connect(DB_URL) as conn, conn.cursor() as cur:
-        cur.execute("SET ivfflat.probes = %s;", (10,))
+        # set probes (IVFFLAT)
+        cur.execute("SET ivfflat.probes = %s;", (IVF_PROBES,))
+
         if req.allowed_tokens:
             sql = f"""
             WITH cand AS (
               SELECT job_id, title, tag_tokens, (embedding <=> %s::vector) AS dist
-              FROM {TABLE}
+              FROM {RETR_TABLE}
               ORDER BY embedding <=> %s::vector
               LIMIT %s
             )
@@ -97,18 +107,27 @@ def search(req: SearchReq):
         else:
             sql = f"""
             SELECT job_id, title, (embedding <=> %s::vector) AS dist
-            FROM {TABLE}
+            FROM {RETR_TABLE}
             ORDER BY embedding <=> %s::vector
             LIMIT %s;
             """
             cur.execute(sql, (qlit, qlit, req.topk))
+
         rows = cur.fetchall()
 
-    hits = [
-        {"job_id": jid, "title": title, "score": float(1.0 - dist)} for (jid, title, dist) in rows
-    ]
+    hits = [{"job_id": jid, "title": title, "score": float(1.0 - dist)} for (jid, title, dist) in rows]
     return {"topk": req.topk, "results": hits}
 
+
+def mean_pool(last_hidden_state, attention_mask):
+    m = attention_mask.unsqueeze(-1).type_as(last_hidden_state)
+    return (last_hidden_state * m).sum(1) / m.sum(1).clamp(min=1e-9)
+
+class SearchReq(BaseModel):
+    text: str | None = None
+    vector: list[float] | None = None
+    topk: int = 10
+    allowed_tokens: list[str] | None = None
 
 # ============ (NEW) PhoBERT online inference cho essay ============
 
@@ -123,7 +142,7 @@ PHO_DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def _load_phobert():
     global PHO_TOK, PHO_BACKBONE
     if not PHO_NAME_FILE.exists():
-        # fallback an toàn
+        # fallback an toÃ n
         backbone_name = "vinai/phobert-base"
     else:
         backbone_name = PHO_NAME_FILE.read_text(encoding="utf-8").strip()
@@ -215,7 +234,7 @@ class InferRes(BaseModel):
 def infer_user_traits(req: InferReq):
     text = (req.essay_text or "").strip()
     if len(text) < 5:
-        raise HTTPException(status_code=422, detail="essay_text quá ngắn")
+        raise HTTPException(status_code=422, detail="essay_text quÃ¡ ngáº¯n")
 
     emb = encode_essay_768(text)
     pred_r, pred_b = _predict_traits(text)
@@ -237,7 +256,7 @@ def infer_user_traits(req: InferReq):
             (req.user_id, emb_lit),
         )
 
-        # 2) (tuỳ) ai.user_trait_preds nếu có head
+        # 2) (tùy) ai.user_trait_preds nếu có head
         if pred_r is not None and pred_b is not None:
             cur.execute(
                 """

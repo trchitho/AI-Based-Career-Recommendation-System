@@ -1,4 +1,4 @@
-# src/retrieval/pgvector_load.py
+﻿# src/retrieval/pgvector_load.py
 import argparse
 import json
 import os
@@ -17,9 +17,9 @@ load_dotenv()
 
 def infer_tokens_from_tags(tags: str) -> list[str]:
     """
-    Sinh tokens từ chuỗi tags_vi dạng 'abc|def ghi|x-y'
-    - hạ chữ, bỏ dấu, thay khoảng trắng = _
-    - lọc kí tự còn lại [a-z0-9_]
+    Sinh tokens tá»« chuá»—i tags_vi dáº¡ng 'abc|def ghi|x-y'
+    - háº¡ chá»¯, bá» dáº¥u, thay khoáº£ng tráº¯ng = _
+    - lá»c kÃ­ tá»± cÃ²n láº¡i [a-z0-9_]
     """
     tokens = []
     if not tags:
@@ -52,15 +52,15 @@ def get_db_url(cli_db_url: str | None) -> str:
 
 def main():
     ap = argparse.ArgumentParser("Load vi-SBERT embeddings/meta into Postgres (pgvector)")
-    # --db_url giờ là tùy chọn
+    # --db_url giá» lÃ  tÃ¹y chá»n
     ap.add_argument("--db_url", default=None, help="Override DATABASE_URL (optional)")
     ap.add_argument("--table", default="retrieval_jobs_visbert")
     ap.add_argument("--idx_json", required=True, help="data/embeddings/jobs_index_visbert.json")
     ap.add_argument("--emb_npy", required=True, help="data/embeddings/jobs_embeddings_visbert.npy")
     ap.add_argument(
-        "--normalize", action="store_true", help="L2-normalize trước khi insert (cosine)"
+        "--normalize", action="store_true", help="L2-normalize trÆ°á»›c khi insert (cosine)"
     )
-    ap.add_argument("--truncate", action="store_true", help="TRUNCATE table trước khi nạp")
+    ap.add_argument("--truncate", action="store_true", help="TRUNCATE table trÆ°á»›c khi náº¡p")
     args = ap.parse_args()
 
     db_url = get_db_url(args.db_url)
@@ -78,8 +78,8 @@ def main():
         title = m.get("title")
         tags_vi = (
             m.get("tags_vi") or m.get("skills") or ""
-        )  # fallback từ 'skills' nếu thiếu tags_vi
-        tag_tokens = m.get("tag_tokens")  # có thể là list hoặc None
+        )  # fallback tá»« 'skills' náº¿u thiáº¿u tags_vi
+        tag_tokens = m.get("tag_tokens")  # cÃ³ thá»ƒ lÃ  list hoáº·c None
 
         if (not tag_tokens) and tags_vi:
             tag_tokens = infer_tokens_from_tags(tags_vi)
@@ -89,7 +89,7 @@ def main():
                 m.get("job_id"),
                 title,
                 tags_vi,
-                tag_tokens or [],  # luôn là list
+                tag_tokens or [],  # luÃ´n lÃ  list
                 m.get("riasec_centroid") or None,
                 list(map(float, v.tolist())),
             )

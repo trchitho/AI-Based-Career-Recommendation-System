@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Build job_riasec_map.json from O*NET Interests.txt
 - Reads tab-delimited O*NET Interests file (OI scale -> R,I,A,S,E,C scores)

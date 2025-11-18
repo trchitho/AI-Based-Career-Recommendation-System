@@ -1,4 +1,4 @@
-"""
+﻿"""
 Build VI->EN alias map for search/graph by inverting EN->VI (canonical O*NET titles),
 and optionally merging user-provided VI aliases.
 
@@ -95,7 +95,7 @@ def main():
             continue
         vi2en[vi] = en
 
-    # merge extra (overwrite để ưu tiên chỉnh tay)
+    # merge extra (overwrite Ä‘á»ƒ Æ°u tiÃªn chá»‰nh tay)
     for vi, en in extra.items():
         vi, en = (vi or "").strip(), (en or "").strip()
         if not vi or not en:

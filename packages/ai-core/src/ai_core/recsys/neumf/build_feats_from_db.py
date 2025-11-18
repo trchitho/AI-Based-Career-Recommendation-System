@@ -1,3 +1,5 @@
+﻿from __future__ import annotations
+
 import argparse
 import json
 from pathlib import Path
@@ -8,29 +10,36 @@ import psycopg
 
 # ========= SQL =========
 
-# 1) User embeddings (ưu tiên bảng này nếu user có ở cả 2 nơi)
+# 1) User embeddings (ưu tiên nếu user có ở cả 2 nơi)
 SQL_USER_UE = """
 SELECT ue.user_id::text, ue.emb, COALESCE(ue.source, 'essay') AS source
 FROM ai.user_embeddings ue;
 """
 
-# 2) Quick text embeddings (fallback khi user không có ở bảng 1)
-#   NOTE: Nếu tên bảng khác, đổi lại cho khớp schema của bạn
+# 2) Quick text embeddings (fallback)
 SQL_USER_QTE = """
 SELECT qe.user_id::text, qe.emb, COALESCE(qe.source, 'essay') AS source
 FROM ai.quick_text_embeddings qe;
 """
 
-# Hướng A (career_id làm key item):
+# Hướng A (career_id làm key item) – chỉ dùng cột có thật: title_vi, title_en
 SQL_ITEM_BY_CAREER_ID = """
-SELECT c.id::text AS item_id, c.onet_code::text, ce.emb
+SELECT
+  c.id::text        AS item_id,
+  c.onet_code::text AS onet_code,
+  ce.emb,
+  COALESCE(c.title_vi, c.title_en) AS title
 FROM core.careers c
 JOIN ai.career_embeddings ce ON ce.career_id = c.id;
 """
 
-# Hướng B (onet_code làm key item):
+# Hướng B (onet_code làm key item) – chỉ dùng cột có thật: title_vi, title_en
 SQL_ITEM_BY_ONET = """
-SELECT c.onet_code::text AS item_id, c.onet_code::text, ce.emb
+SELECT
+  c.onet_code::text AS item_id,
+  c.onet_code::text AS onet_code,
+  ce.emb,
+  COALESCE(c.title_vi, c.title_en) AS title
 FROM core.careers c
 JOIN ai.career_embeddings ce ON ce.career_id = c.id;
 """
@@ -50,17 +59,13 @@ WHERE a_type IN ('RIASEC', 'BigFive');
 
 # ========= Utils =========
 
-
 def table_exists(conn, schema: str, table: str) -> bool:
     with conn.cursor() as cur:
         cur.execute(
-            """
-            SELECT to_regclass(%s) IS NOT NULL
-        """,
+            "SELECT to_regclass(%s) IS NOT NULL",
             (f"{schema}.{table}",),
         )
         return cur.fetchone()[0]
-
 
 def vec_to_list(v):
     """Parse pgvector -> list[float]. Hỗ trợ list/tuple/ndarray/bytes/str."""
@@ -76,13 +81,11 @@ def vec_to_list(v):
     parts = [p.strip() for p in s.replace("\n", "").split(",") if p.strip()]
     return [float(p) for p in parts]
 
-
 def to_float_list_from_scores(scores_val: Any, expected_len: int) -> list[float]:
     """
     Chấp nhận list/tuple, dict (RIASEC:R,I,A,S,E,C; BigFive:O,C,E,A,N) hoặc JSON text.
-    Normalize về [0,1]: nếu có giá trị >1 coi như thang 0..100 và chia 100; sau đó clip 0..1.
+    Normalize về [0,1]: nếu có giá trị >1 coi như 0..100 và chia 100; sau đó clip 0..1.
     """
-
     def _normalize(lst: list[float]) -> list[float]:
         if any(abs(x) > 1.0 for x in lst):
             lst = [x / 100.0 for x in lst]
@@ -120,9 +123,7 @@ def to_float_list_from_scores(scores_val: Any, expected_len: int) -> list[float]
 
     return [0.0] * expected_len
 
-
 # ========= Main =========
-
 
 def main():
     ap = argparse.ArgumentParser()
@@ -136,7 +137,7 @@ def main():
         "--item_id_mode",
         choices=["career_id", "onet_code"],
         default="career_id",
-        help="Hướng A: career_id (số) hoặc Hướng B: onet_code (chuỗi) làm khóa item.",
+        help="Chọn key item: career_id (số) hoặc onet_code (chuỗi).",
     )
     ap.add_argument(
         "--use_assessments",
@@ -146,10 +147,9 @@ def main():
     args = ap.parse_args()
 
     with psycopg.connect(args.db) as conn:
-        conn.autocommit = True  # <<< THÊM DÒNG NÀY
-        # 1) Nguồn embedding người dùng:
-        #    - Lấy từ quick_text_embeddings trước (làm base)
-        #    - Sau đó lấy từ user_embeddings và GHI ĐÈ (ưu tiên)
+        conn.autocommit = True
+
+        # 1) user_feats
         user_feats: dict[str, dict[str, Any]] = {}
 
         # 1.1) quick_text_embeddings (base)
@@ -161,11 +161,10 @@ def main():
                         "text": np.array(vec_to_list(emb), dtype=np.float32).tolist(),
                         "riasec": [0, 0, 0, 0, 0, 0],
                         "big5": [0, 0, 0, 0, 0],
-                        "source": source or "essay",  # "quick" / "essay" tùy bạn lưu
+                        "source": source or "essay",
                     }
             except Exception:
-                # Nếu bảng quick_text_embeddings chưa tồn tại, bỏ qua
-                pass
+                pass  # bảng có thể chưa tồn tại
 
         # 1.2) user_embeddings (override)
         with conn.cursor() as cur:
@@ -178,7 +177,7 @@ def main():
                     "source": source or "essay",
                 }
 
-        # 2) Điểm test người dùng (tùy chọn)
+        # 2) điểm test (optional)
         if args.use_assessments:
             with conn.cursor() as cur:
                 cur.execute(SQL_USER_SCORES)
@@ -196,7 +195,7 @@ def main():
                 elif a_type == "BigFive":
                     user_feats[uid]["big5"] = to_float_list_from_scores(scores, 5)
 
-        # 3) Item features (text + riasec)
+        # 3) item_feats (text + riasec + title)
         onet_to_riasec: dict[str, list[float]] = {}
         with conn.cursor() as cur:
             cur.execute(SQL_JOB_RIASEC)
@@ -208,10 +207,11 @@ def main():
         item_feats: dict[str, dict[str, Any]] = {}
         with conn.cursor() as cur:
             cur.execute(sql_item)
-            for item_id, onet, emb in cur.fetchall():
+            for item_id, onet, emb, title in cur.fetchall():
                 item_feats[str(item_id)] = {
-                    "text": np.array(vec_to_list(emb), dtype=np.float32).tolist(),
+                    "text":   np.array(vec_to_list(emb), dtype=np.float32).tolist(),
                     "riasec": onet_to_riasec.get(onet, [0, 0, 0, 0, 0, 0]),
+                    "title":  title or "",
                 }
 
     # 4) Ghi file

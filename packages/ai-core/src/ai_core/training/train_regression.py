@@ -1,4 +1,4 @@
-# src/training/train_regression.py
+﻿# src/training/train_regression.py
 import argparse
 import math
 import random
@@ -24,7 +24,7 @@ def set_seed(seed: int):
 
 
 def masked_mse(pred, target, mask):
-    # pred/target: [B, D], mask: [B, D] với 1.0 cho nhãn có thật, 0.0 cho thiếu
+    # pred/target: [B, D], mask: [B, D] vá»›i 1.0 cho nhÃ£n cÃ³ tháº­t, 0.0 cho thiáº¿u
     diff = (pred - target) ** 2
     diff = diff * mask
     denom = mask.sum().clamp(min=1.0)
@@ -44,7 +44,7 @@ def load_yaml(path: Path):
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
-# Ép kiểu an toàn để YAML có "2e-5" hay "256" dạng chuỗi vẫn chạy
+# Ã‰p kiá»ƒu an toÃ n Ä‘á»ƒ YAML cÃ³ "2e-5" hay "256" dáº¡ng chuá»—i váº«n cháº¡y
 def as_float(x, default):
     try:
         return float(x)
@@ -54,7 +54,7 @@ def as_float(x, default):
 
 def as_int(x, default):
     try:
-        # Chuỗi số thực nhưng là số nguyên (vd "256.0") cũng xử lý
+        # Chuá»—i sá»‘ thá»±c nhÆ°ng lÃ  sá»‘ nguyÃªn (vd "256.0") cÅ©ng xá»­ lÃ½
         v = float(x)
         return int(v)
     except Exception:
@@ -73,7 +73,7 @@ def as_bool(x, default):
 
 
 def get_cfg(cfg_raw: dict):
-    # Đọc/ép kiểu tất cả field cần dùng
+    # Äá»c/Ã©p kiá»ƒu táº¥t cáº£ field cáº§n dÃ¹ng
     out = {}
     out["model_name"] = cfg_raw.get("model_name", "vinai/phobert-base")
     out["max_length"] = as_int(cfg_raw.get("max_length", 256), 256)
@@ -86,7 +86,7 @@ def get_cfg(cfg_raw: dict):
     out["task"] = cfg_raw.get("task", "riasec")
     out["freeze_base"] = as_bool(cfg_raw.get("freeze_base", False), False)
     out["output_dir"] = cfg_raw.get("output_dir", "models/riasec_phobert")
-    # Kiểm tra hợp lệ task
+    # Kiá»ƒm tra há»£p lá»‡ task
     if out["task"] not in TASK2CFG:
         raise ValueError(f"Unsupported task: {out['task']} (valid: {list(TASK2CFG.keys())})")
     return out
@@ -107,7 +107,7 @@ def main():
     set_seed(cfg["seed"])
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # Một số tokenizer (vd PhoBERT) có thể cần use_fast=False nếu lỗi, bật dòng dưới nếu gặp trục trặc:
+    # Má»™t sá»‘ tokenizer (vd PhoBERT) cÃ³ thá»ƒ cáº§n use_fast=False náº¿u lá»—i, báº­t dÃ²ng dÆ°á»›i náº¿u gáº·p trá»¥c tráº·c:
     tokenizer = AutoTokenizer.from_pretrained(cfg["model_name"])
 
     out_dim = len(TASK2CFG[cfg["task"]]["dims"])
@@ -122,7 +122,7 @@ def main():
 
     optim = AdamW(model.parameters(), lr=cfg["lr"], weight_decay=cfg["weight_decay"])
 
-    # total_steps theo số batch (ceil) * epochs
+    # total_steps theo sá»‘ batch (ceil) * epochs
     steps_per_epoch = math.ceil(len(dl_tr))
     total_steps = cfg["num_epochs"] * steps_per_epoch
 
@@ -197,7 +197,7 @@ def main():
                 print("Early stopping.")
                 break
 
-    # Lưu tokenizer name & task để encode sau này dùng cho khớp
+    # LÆ°u tokenizer name & task Ä‘á»ƒ encode sau nÃ y dÃ¹ng cho khá»›p
     (output_dir / "tokenizer_name.txt").write_text(cfg["model_name"], encoding="utf-8")
     (output_dir / "task.txt").write_text(cfg["task"], encoding="utf-8")
     print("Done training.")

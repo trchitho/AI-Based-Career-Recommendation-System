@@ -1,4 +1,4 @@
-# src/retrieval/build_mini_index.py
+﻿# src/retrieval/build_mini_index.py
 import argparse
 import json
 import re
@@ -14,15 +14,15 @@ def strip_accents_lower(s: str) -> str:
         return ""
     s = unicodedata.normalize("NFD", s)
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    # map đ/Đ -> d/D
-    s = s.replace("đ", "d").replace("Đ", "D")
+    # map Ä‘/Ä -> d/D
+    s = s.replace("Ä‘", "d").replace("Ä", "D")
     return s.lower()
 
 
 def tokenize_allow_list(s: str):
     """
-    Chuẩn hoá allowed_tags: chấp nhận 'cntt|du lieu|ml|bi' hoặc 'cong_nghe_thong_tin|du_lieu|may_hoc'
-    Trả về set gồm cả cụm và từ con (ASCII, lower).
+    Chuáº©n hoÃ¡ allowed_tags: cháº¥p nháº­n 'cntt|du lieu|ml|bi' hoáº·c 'cong_nghe_thong_tin|du_lieu|may_hoc'
+    Tráº£ vá» set gá»“m cáº£ cá»¥m vÃ  tá»« con (ASCII, lower).
     """
     if not s:
         return set()
@@ -36,7 +36,7 @@ def tokenize_allow_list(s: str):
         if not seg_spaces:
             continue
         words = seg_spaces.split()
-        # thêm cụm dạng underscore + từng từ con
+        # thÃªm cá»¥m dáº¡ng underscore + tá»«ng tá»« con
         parts.append("_".join(words))
         parts.extend(words)
     return set(parts)
@@ -44,11 +44,11 @@ def tokenize_allow_list(s: str):
 
 def expand_meta_token_variants(tok: str):
     """
-    Nhận 1 token từ meta (có thể có dấu và '_'), trả về set biến thể để so khớp:
-      - ascii_underscore: bỏ dấu + giữ '_'  (vd: 'dữ_liệu' -> 'du_lieu')
-      - ascii_spaces:     bỏ dấu + '_'->' ' (vd: 'du lieu')
-      - words:            tách theo '_'     (vd: {'du','lieu'})
-    Tất cả ở dạng ASCII lower để so khớp với allowed set.
+    Nháº­n 1 token tá»« meta (cÃ³ thá»ƒ cÃ³ dáº¥u vÃ  '_'), tráº£ vá» set biáº¿n thá»ƒ Ä‘á»ƒ so khá»›p:
+      - ascii_underscore: bá» dáº¥u + giá»¯ '_'  (vd: 'dá»¯_liá»‡u' -> 'du_lieu')
+      - ascii_spaces:     bá» dáº¥u + '_'->' ' (vd: 'du lieu')
+      - words:            tÃ¡ch theo '_'     (vd: {'du','lieu'})
+    Táº¥t cáº£ á»Ÿ dáº¡ng ASCII lower Ä‘á»ƒ so khá»›p vá»›i allowed set.
     """
     if not tok:
         return set()
@@ -77,19 +77,19 @@ def main():
     ap.add_argument(
         "--allowed_tags",
         required=True,
-        help="VD: 'cntt|du lieu|ml|bi' hoặc 'cong_nghe_thong_tin|du_lieu'",
+        help="VD: 'cntt|du lieu|ml|bi' hoáº·c 'cong_nghe_thong_tin|du_lieu'",
     )
     ap.add_argument("--index_out", required=True)
     ap.add_argument("--meta_out", required=True)
     ap.add_argument("--emb_out", required=True)
     ap.add_argument(
-        "--min_match", type=int, default=1, help="Cần tối thiểu bao nhiêu token khớp (mặc định 1)"
+        "--min_match", type=int, default=1, help="Cáº§n tá»‘i thiá»ƒu bao nhiÃªu token khá»›p (máº·c Ä‘á»‹nh 1)"
     )
     ap.add_argument(
         "--soc_prefixes",
         type=str,
         default="",
-        help="VD: '15-' hoặc '15-|11-3021'. Nếu set, chỉ giữ job_id bắt đầu bằng 1 trong các prefix",
+        help="VD: '15-' hoáº·c '15-|11-3021'. Náº¿u set, chá»‰ giá»¯ job_id báº¯t Ä‘áº§u báº±ng 1 trong cÃ¡c prefix",
     )
     args = ap.parse_args()
 
@@ -101,13 +101,13 @@ def main():
 
     allow = tokenize_allow_list(args.allowed_tags)
     if not allow:
-        raise SystemExit("[ERR] allowed_tags trống sau khi chuẩn hoá")
+        raise SystemExit("[ERR] allowed_tags trá»‘ng sau khi chuáº©n hoÃ¡")
 
     soc_prefixes = [p.strip() for p in (args.soc_prefixes or "").split("|") if p.strip()]
 
     keep_idx = []
     for i, m in enumerate(metas):
-        # 1) SOC filter (nếu có)
+        # 1) SOC filter (náº¿u cÃ³)
         if soc_prefixes:
             jid = (m.get("job_id") or "").strip()
             if not any(jid.startswith(p) for p in soc_prefixes):
@@ -135,10 +135,10 @@ def main():
             keep_idx.append(i)
 
     if not keep_idx:
-        print("[WARN] Không tìm thấy bản ghi nào khớp allowed_tags (và/hoặc soc_prefixes).")
+        print("[WARN] KhÃ´ng tÃ¬m tháº¥y báº£n ghi nÃ o khá»›p allowed_tags (vÃ /hoáº·c soc_prefixes).")
         for j in range(min(5, len(metas))):
             print("SAMPLE tag_tokens:", metas[j].get("tag_tokens"))
-        raise SystemExit("[ERR] Kết quả rỗng sau lọc")
+        raise SystemExit("[ERR] Káº¿t quáº£ rá»—ng sau lá»c")
 
     X_sub = X[keep_idx].copy()
     faiss.normalize_L2(X_sub)

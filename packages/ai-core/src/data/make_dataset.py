@@ -1,4 +1,4 @@
-# src/data/make_dataset.py
+﻿# src/data/make_dataset.py
 import csv
 import json
 import os
@@ -7,17 +7,17 @@ from typing import Any
 
 from src.utils.clean_text import basic_clean, valid_min_length
 
-# ---- Chọn file CSV đầu vào (ưu tiên file đã xử lý) ----
+# ---- Chá»n file CSV Ä‘áº§u vÃ o (Æ°u tiÃªn file Ä‘Ã£ xá»­ lÃ½) ----
 CANDIDATES = [
-    Path("data/processed/responses_processed.csv"),  # ← ưu tiên
+    Path("data/processed/responses_processed.csv"),  # â† Æ°u tiÃªn
     Path("data/raw/form_responses.csv"),
 ]
 RAW_CSV = next((p for p in CANDIDATES if p.exists()), CANDIDATES[0])
 
 OUT_PATH = Path("data/processed/train.jsonl")
 
-# Ngưỡng tối thiểu ký tự essay sau làm sạch (override bằng env MIN_CHARS)
-MIN_CHARS = int(os.getenv("MIN_CHARS", "10"))  # bootstrap để không bị 0 records
+# NgÆ°á»¡ng tá»‘i thiá»ƒu kÃ½ tá»± essay sau lÃ m sáº¡ch (override báº±ng env MIN_CHARS)
+MIN_CHARS = int(os.getenv("MIN_CHARS", "10"))  # bootstrap Ä‘á»ƒ khÃ´ng bá»‹ 0 records
 
 
 def parse_float(x: str) -> float | None:
@@ -64,8 +64,8 @@ def to_record(row: dict[str, str]) -> dict[str, Any] | None:
 def main():
     if not RAW_CSV.exists():
         raise FileNotFoundError(
-            "Không tìm thấy file CSV. Hãy đặt 1 trong các file sau:\n"
-            "- data/processed/responses_processed.csv (khuyên dùng)\n"
+            "KhÃ´ng tÃ¬m tháº¥y file CSV. HÃ£y Ä‘áº·t 1 trong cÃ¡c file sau:\n"
+            "- data/processed/responses_processed.csv (khuyÃªn dÃ¹ng)\n"
             "- data/raw/responses.csv\n"
             "- data/raw/form_responses.csv\n"
         )
@@ -75,7 +75,7 @@ def main():
     skipped_short = 0
     skipped_other = 0
 
-    # Dùng utf-8-sig để an toàn với file export từ Google Sheets
+    # DÃ¹ng utf-8-sig Ä‘á»ƒ an toÃ n vá»›i file export tá»« Google Sheets
     with (
         RAW_CSV.open("r", encoding="utf-8-sig", newline="") as f_in,
         OUT_PATH.open("w", encoding="utf-8") as f_out,
