@@ -83,15 +83,15 @@ const CareersPage = () => {
 
         {/* 🧭 Pagination */}
         <div className="flex items-center justify-center gap-3 mt-10 mb-8 w-fit mx-auto px-4 py-3 
-                rounded-lg bg-white/10 dark:bg-gray-900/30 border border-purple-400/30 shadow-md">
+                  rounded-lg bg-white/10 dark:bg-gray-900/30 border border-purple-400/30 shadow-md">
           {/* Nút Prev */}
           <button
             className="px-4 py-2 rounded-md border text-sm font-medium
-               bg-gray-200 text-gray-800
-               dark:bg-gray-700 dark:text-gray-200
-               hover:bg-gray-300 dark:hover:bg-gray-600
-               active:scale-95
-               disabled:opacity-50 transition-all duration-200"
+                bg-gray-200 text-gray-800
+                dark:bg-gray-700 dark:text-gray-200
+                hover:bg-gray-300 dark:hover:bg-gray-600
+                active:scale-95
+                disabled:opacity-50 transition-all duration-200"
             disabled={page <= 1 || loading}
             onClick={() => setPage(page - 1)}
           >
@@ -106,10 +106,10 @@ const CareersPage = () => {
           {/* Nút Next */}
           <button
             className="px-4 py-2 rounded-md border text-sm font-semibold
-               bg-gradient-to-b from-purple-500 to-purple-700 text-white
-               hover:from-purple-400 hover:to-purple-600
-               active:scale-95
-               disabled:opacity-50 transition-all duration-200"
+                bg-gradient-to-b from-purple-500 to-purple-700 text-white
+                hover:from-purple-400 hover:to-purple-600
+                active:scale-95
+                disabled:opacity-50 transition-all duration-200"
             disabled={page >= totalPages || loading}
             onClick={() => setPage(page + 1)}
           >

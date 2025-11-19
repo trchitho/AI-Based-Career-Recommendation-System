@@ -98,20 +98,27 @@ const DashboardPage = () => {
                     {dashboardData.latestAssessmentId && (
                       <button
                         onClick={handleViewResults}
-                        className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition-all duration-200 flex items-center space-x-2 border border-purple-500/30"
+                        className="
+                          px-4 py-2 rounded-lg font-medium
+                          bg-purple-100 hover:bg-purple-200 
+                          text-purple-700 border border-purple-300 
+                          shadow-sm transition-all
+                        "
                       >
-                        <span>{t('dashboard.careerSuggestions.viewAll')}</span>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
+                        {t('dashboard.careerSuggestions.viewAll')}
                       </button>
                     )}
                     {/* Retake assessment */}
                     <button
                       onClick={() => navigate('/assessment')}
-                      className="px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-lg transition-all duration-200 border border-indigo-500/30"
+                      className="
+                        px-4 py-2 rounded-lg font-medium
+                        bg-indigo-100 hover:bg-indigo-200
+                        text-indigo-700 border border-indigo-300
+                        shadow-sm transition-all
+                      "
                     >
-                      Retake Assessment
+                      {t("assessment.retake")}
                     </button>
                   </div>
                 </div>

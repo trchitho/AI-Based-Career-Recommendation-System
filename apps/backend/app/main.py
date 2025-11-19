@@ -7,7 +7,6 @@ from typing import Iterable
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
 
 # dotenv (optional)
 try:
@@ -72,23 +71,6 @@ def create_app() -> FastAPI:
         expose_headers=["*"],
         max_age=600,
     )
-    # Static files (for uploaded media)
-    try:
-        here = os.path.dirname(__file__)
-        static_dir = os.path.abspath(os.path.join(here, "static"))
-        os.makedirs(static_dir, exist_ok=True)
-        app.mount("/static", StaticFiles(directory=static_dir), name="static")
-    except Exception as e:
-        print("  Skip mounting /static:", repr(e))
-
-    # Static files (for uploaded media)
-    try:
-        here = os.path.dirname(__file__)
-        static_dir = os.path.abspath(os.path.join(here, "static"))
-        os.makedirs(static_dir, exist_ok=True)
-        app.mount("/static", StaticFiles(directory=static_dir), name="static")
-    except Exception as e:
-        print("ℹ️  Skip mounting /static:", repr(e))
 
     # DB session per-request
     @app.middleware("http")
@@ -121,7 +103,7 @@ def create_app() -> FastAPI:
 
         app.include_router(bff_router.router)
     except Exception as e:
-        print(" Skip BFF router:", repr(e))
+        print("ℹ️  Skip BFF router:", repr(e))
 
     # Auth / Users
     from .modules.users.router_auth import router as auth_router

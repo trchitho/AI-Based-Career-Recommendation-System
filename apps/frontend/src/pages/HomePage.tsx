@@ -18,7 +18,7 @@ const HomePage = () => {
         logout();
         navigate('/login');
     };
-    
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900 relative overflow-hidden transition-colors duration-300">
             {/* Animated background particles */}
@@ -243,7 +243,7 @@ const HomePage = () => {
 
             {/* Footer */}
             <footer className="relative z-10 border-t border-gray-300 dark:border-gray-800 mt-20">
-                
+
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm text-gray-800 dark:text-gray-100 text-left">
                     {app.footer_html ? (
                         <div className="app-footer" dangerouslySetInnerHTML={{ __html: app.footer_html }} />
