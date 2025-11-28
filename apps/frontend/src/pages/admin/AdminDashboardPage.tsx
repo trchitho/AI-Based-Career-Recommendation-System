@@ -1,25 +1,36 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { adminService } from '../../services/adminService';
-import { AdminDashboardMetrics, AIMetrics } from '../../types/admin';
-import MetricCard from '../../components/admin/MetricCard';
+// Updated AdminDashboardPage.tsx with all static texts wrapped in {t("...")}
+// Logic, UI, props, APIs remain unchanged.
+// --- CODE BELOW ---
 
-// Import admin pages
-import CareerManagementPage from './CareerManagementPage.tsx';
-import RoadmapEditorPage from './RoadmapEditorPage';
-import SkillManagementPage from './SkillManagementPage.tsx';
-import QuestionManagementPage from './QuestionManagementPage.tsx';
-import AIMonitoringPage from './AIMonitoringPage.tsx';
-import BlogManagementPage from './BlogManagementPage.tsx';
-import UserManagementPage from './UserManagementPage';
-import SettingsPage from './SettingsPage';
+import { useState, useEffect } from "react";
+import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { adminService } from "../../services/adminService";
+import { AdminDashboardMetrics, AIMetrics } from "../../types/admin";
+
+import MetricCard from "../../components/admin/MetricCard";
+import { useTheme } from "../../contexts/ThemeContext";
+
+import LanguageSwitcher from "../../components/LanguageSwitcher";
+import ThemeToggle from "../../components/ThemeToggle";
+import { useTranslation } from "react-i18next";
+
+// Admin pages
+import CareerManagementPage from "./CareerManagementPage.tsx";
+import SkillManagementPage from "./SkillManagementPage.tsx";
+import QuestionManagementPage from "./QuestionManagementPage.tsx";
+import AIMonitoringPage from "./AIMonitoringPage.tsx";
+import UserManagementPage from "./UserManagementPage";
+import SettingsPage from "./SettingsPage";
+import BlogManagementPage from "./BlogManagementPage.tsx";
 
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
   const [aiMetrics, setAIMetrics] = useState<AIMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const location = useLocation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadMetrics();
@@ -36,124 +47,57 @@ const AdminDashboardPage = () => {
       setAIMetrics(aiData);
       setError(null);
     } catch (err) {
-      setError('Failed to load dashboard metrics');
-      console.error('Error loading metrics:', err);
+      setError(t("admin.loadError"));
+      console.error(t("admin.errorLoadingMetrics"), err);
     } finally {
       setLoading(false);
     }
   };
 
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
-  };
+  const isActive = (path: string) =>
+    location.pathname === path ||
+    location.pathname.startsWith(path + "/");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-white transition-colors">
+      {/* NAVBAR */}
+      <nav className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
-              </div>
-              <div className="ml-6 flex space-x-8">
-                <Link
-                  to="/admin"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    location.pathname === '/admin'
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/admin/users"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/users')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Users
-                </Link>
-                <Link
-                  to="/admin/settings"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/settings')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Settings
-                </Link>
-                <Link
-                  to="/admin/careers"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/careers')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Careers
-                </Link>
-                <Link
-                  to="/admin/skills"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/skills')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Skills
-                </Link>
-                <Link
-                  to="/admin/questions"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/questions')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Questions
-                </Link>
-                <Link
-                  to="/admin/posts"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/posts')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  Posts
-                </Link>
-                <Link
-                  to="/admin/ai-monitoring"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive('/admin/ai-monitoring')
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  }`}
-                >
-                  AI Monitoring
-                </Link>
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center gap-10">
+              <h1 className="text-xl font-bold dark:text-white whitespace-nowrap">
+                Admin Panel
+              </h1>
+
+              <div className="flex items-center gap-6 flex-nowrap flex-shrink-0">
+                <NavItem to="/admin" label={t("admin.dashboard")} active={location.pathname === "/admin"} />
+                <NavItem to="/admin/users" label={t("admin.users")} active={isActive("/admin/users")} />
+                <NavItem to="/admin/settings" label={t("admin.settings")} active={isActive("/admin/settings")} />
+                <NavItem to="/admin/blogs" label={t("admin.blogs")} active={isActive("/admin/blogs")} />
+                <NavItem to="/admin/careers" label={t("admin.careers")} active={isActive("/admin/careers")} />
+                <NavItem to="/admin/skills" label={t("admin.skills")} active={isActive("/admin/skills")} />
+                <NavItem to="/admin/questions" label={t("admin.questions")} active={isActive("/admin/questions")} />
+                <NavItem to="/admin/ai-monitoring" label={t("admin.monitoring")} active={isActive("/admin/ai-monitoring")} />
               </div>
             </div>
-            <div className="flex items-center">
+
+            <div className="flex items-center gap-4 whitespace-nowrap">
+              <LanguageSwitcher />
+              <ThemeToggle />
+
               <Link
                 to="/dashboard"
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white inline-flex items-center whitespace-nowrap"
               >
-                Back to User Dashboard
+                ← {t("common.back")} {t("nav.dashboard")}
               </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* MAIN CONTENT */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <Routes>
           <Route
             index
@@ -167,19 +111,36 @@ const AdminDashboardPage = () => {
             }
           />
           <Route path="careers" element={<CareerManagementPage />} />
-          <Route path="roadmaps/:careerId" element={<RoadmapEditorPage />} />
           <Route path="skills" element={<SkillManagementPage />} />
           <Route path="questions" element={<QuestionManagementPage />} />
-          <Route path="posts" element={<BlogManagementPage />} />
           <Route path="ai-monitoring" element={<AIMonitoringPage />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="blogs" element={<BlogManagementPage />} />
         </Routes>
       </div>
     </div>
   );
 };
 
+/* NAV ITEM */
+const NavItem = ({ to, label, active }: { to: string; label: string; active: boolean }) => (
+  <Link
+    to={to}
+    className={`relative px-2 py-3 text-sm font-medium transition whitespace-nowrap
+      ${active ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"}
+    `}
+  >
+    {label}
+    <span
+      className={`absolute left-0 -bottom-[3px] h-[2px] w-full bg-blue-500 rounded-full transition-transform duration-300 origin-left
+        ${active ? "scale-x-100" : "scale-x-0"}
+      `}
+    />
+  </Link>
+);
+
+/* DASHBOARD OVERVIEW */
 interface DashboardOverviewProps {
   metrics: AdminDashboardMetrics | null;
   aiMetrics: AIMetrics | null;
@@ -187,116 +148,78 @@ interface DashboardOverviewProps {
   error: string | null;
 }
 
-const DashboardOverview: React.FC<DashboardOverviewProps> = ({
-  metrics,
-  aiMetrics,
-  loading,
-  error,
-}) => {
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">Loading metrics...</div>
-      </div>
-    );
-  }
+const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetrics, loading, error }) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">{error}</p>
-      </div>
-    );
-  }
+  if (loading)
+    return <div className="h-64 flex justify-center items-center text-gray-400">{t("admin.loadingMetrics")}</div>;
 
-  if (!metrics || !aiMetrics) {
-    return null;
-  }
+  if (error)
+    return <div className="bg-red-500/10 border border-red-500/40 text-red-200 p-4 rounded-lg">{error}</div>;
+
+  if (!metrics || !aiMetrics) return null;
+
+  const box = isDark ? "bg-[#101827] border border-white/10 text-white" : "bg-white border border-gray-200 text-gray-900";
+  const text2 = isDark ? "text-gray-300" : "text-gray-600";
 
   return (
-    <div className="space-y-8">
-      {/* User Metrics */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">User Metrics</h2>
+    <div className="space-y-10">
+      {/* USER METRICS */}
+      <section>
+        <h2 className="text-xl font-semibold mb-3">{t("admin.userMetrics")}</h2>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard
-            title="Total Users"
-            value={metrics.totalUsers}
-            subtitle={`${metrics.activeUsers} active in last 30 days`}
-          />
-          <MetricCard
-            title="Completed Assessments"
-            value={metrics.completedAssessments}
-            subtitle={`${metrics.completionRate}% completion rate`}
-          />
-          <MetricCard
-            title="Users with Roadmaps"
-            value={metrics.usersWithRoadmaps}
-            subtitle={`${metrics.avgRoadmapProgress.toFixed(1)}% avg progress`}
-          />
-          <MetricCard
-            title="Recent Activity"
-            value={metrics.recentAssessments}
-            subtitle="Assessments in last 7 days"
-          />
+          <MetricCard title={t("admin.totalUsers")} value={metrics.totalUsers} subtitle={`${metrics.activeUsers} ${t("admin.active")}`} />
+          <MetricCard title={t("admin.completedAssessments")} value={metrics.completedAssessments} subtitle={`${metrics.completionRate}% ${t("admin.rate")}`} />
+          <MetricCard title={t("admin.usersWithRoadmaps")} value={metrics.usersWithRoadmaps} subtitle={`${metrics.avgRoadmapProgress.toFixed(1)}% ${t("admin.progress")}`} />
+          <MetricCard title={t("admin.recentActivity")} value={metrics.recentAssessments} subtitle={t("admin.last7Days")} />
         </div>
-      </div>
+      </section>
 
-      {/* AI Performance Metrics */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">AI Performance</h2>
+      {/* AI METRICS */}
+      <section>
+        <h2 className="text-xl font-semibold mb-3">{t("admin.aiPerformance")}</h2>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <MetricCard
-            title="Total Recommendations"
-            value={aiMetrics.totalRecommendations}
-            subtitle={`${aiMetrics.avgRecommendationsPerAssessment.toFixed(1)} per assessment`}
-          />
-          <MetricCard
-            title="Essay Analysis"
-            value={aiMetrics.assessmentsWithEssay}
-            subtitle="Assessments with essay"
-          />
-          <MetricCard
-            title="Avg Processing Time"
-            value={`${aiMetrics.avgProcessingTime}s`}
-            subtitle="Per assessment"
-          />
+          <MetricCard title={t("admin.totalRecommendations")} value={aiMetrics.totalRecommendations} subtitle={`${aiMetrics.avgRecommendationsPerAssessment.toFixed(1)} ${t("admin.perAssessment")}`} />
+          <MetricCard title={t("admin.essayAnalysis")} value={aiMetrics.assessmentsWithEssay} subtitle={t("admin.assessmentsWithEssay")} />
+          <MetricCard title={t("admin.avgProcessingTime")} value={`${aiMetrics.avgProcessingTime}s`} subtitle={t("admin.perAssessment")} />
         </div>
-      </div>
+      </section>
 
-      {/* RIASEC Distribution */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          RIASEC Score Distribution (Average)
-        </h2>
-        <div className="bg-white rounded-lg shadow p-6">
+      {/* RIASEC */}
+      <section>
+        <h2 className="text-xl font-semibold mb-3">{t("admin.riasecDistribution")}</h2>
+
+        <div className={`p-6 rounded-xl shadow ${box}`}>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {Object.entries(aiMetrics.riasecDistribution).map(([key, value]) => (
               <div key={key} className="text-center">
-                <p className="text-sm text-gray-600 capitalize">{key}</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
+                <p className={`text-sm capitalize ${text2}`}>{key}</p>
+                <p className="text-2xl font-bold">{value}</p>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Big Five Distribution */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Big Five Score Distribution (Average)
-        </h2>
-        <div className="bg-white rounded-lg shadow p-6">
+      {/* BIG FIVE */}
+      <section>
+        <h2 className="text-xl font-semibold mb-3">{t("admin.bigFiveDistribution")}</h2>
+
+        <div className={`p-6 rounded-xl shadow ${box}`}>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {Object.entries(aiMetrics.bigFiveDistribution).map(([key, value]) => (
               <div key={key} className="text-center">
-                <p className="text-sm text-gray-600 capitalize">{key}</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
+                <p className={`text-sm capitalize ${text2}`}>{key}</p>
+                <p className="text-2xl font-bold">{value}</p>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

@@ -29,8 +29,7 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
         assessmentService.getQuestions('RIASEC'),
         assessmentService.getQuestions('BIG_FIVE'),
       ]);
-      
-      // Combine and sort by order_index
+
       const combined = [...riasec, ...bigFive].sort((a, b) => a.order_index - b.order_index);
       setAllQuestions(combined);
     } catch (err) {
@@ -62,15 +61,13 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
   };
 
   const handleSubmit = () => {
-    // Validate all questions are answered
     const unansweredQuestions = allQuestions.filter(q => !responses.has(q.id));
-    
+
     if (unansweredQuestions.length > 0) {
       setError(`Please answer all questions. ${unansweredQuestions.length} question(s) remaining.`);
       return;
     }
 
-    // Convert responses to array format
     const responseArray: QuestionResponse[] = Array.from(responses.entries()).map(
       ([questionId, answer]) => ({
         questionId,
@@ -99,15 +96,15 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
       </div>
     );
   }
 
   if (error && allQuestions.length === 0) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <p className="text-red-800 mb-4">{error}</p>
+      <div className="bg-red-900/20 border border-red-700 rounded-xl p-6">
+        <p className="text-red-300 mb-4">{error}</p>
         <button
           onClick={fetchQuestions}
           className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
@@ -121,85 +118,91 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
   const currentQuestion = allQuestions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === allQuestions.length - 1;
 
-  if (!currentQuestion) {
-    return null;
-  }
+  if (!currentQuestion) return null;
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
+
       {/* Progress Bar */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-300">
             {t('assessment.question')} {currentQuestionIndex + 1} {t('assessment.of')} {allQuestions.length}
           </span>
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-300">
             {responses.size} {t('assessment.answered')}
           </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+
+        <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-2">
           <div
-            className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+            className="bg-purple-500 h-2 rounded-full transition-all duration-300"
             style={{ width: `${getProgress()}%` }}
           ></div>
         </div>
       </div>
 
       {error && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <p className="text-yellow-800 text-sm">{error}</p>
+        <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4 mb-6">
+          <p className="text-yellow-300 text-sm">{error}</p>
         </div>
       )}
 
-      {/* Question Card */}
-      <div className="bg-white shadow-lg rounded-lg p-8 mb-6">
-        <div className="mb-2">
-          <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
-            {currentQuestion.test_type === 'RIASEC' ? t('assessment.careerInterest') : t('assessment.personality')}
-          </span>
-        </div>
+      {/* Card */}
+      <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-700/50 shadow-xl rounded-2xl p-8 mb-6">
 
-        <h3 className="text-xl font-semibold text-gray-900 mb-6">
+        <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full 
+                         bg-purple-200 dark:bg-purple-500/20 
+                         text-purple-800 dark:text-purple-300">
+          {currentQuestion.test_type === 'RIASEC'
+            ? t('assessment.careerInterest')
+            : t('assessment.personality')}
+        </span>
+
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-4 mb-8">
           {currentQuestion.question_text}
         </h3>
 
         {/* Answer Options */}
-        <div className="space-y-3">
-          {currentQuestion.question_type === 'MULTIPLE_CHOICE' && Array.isArray(currentQuestion.options) ? (
+        <div className="space-y-4">
+          {currentQuestion.question_type === 'MULTIPLE_CHOICE' ? (
             currentQuestion.options.map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleAnswer(option)}
-                className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
-                  getCurrentAnswer() === option
-                    ? 'border-indigo-600 bg-indigo-50 text-indigo-900'
-                    : 'border-gray-200 hover:border-indigo-300 text-gray-700'
-                }`}
+                className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all 
+                ${getCurrentAnswer() === option
+                    ? 'border-purple-500 bg-purple-500/20 text-purple-300'
+                    : 'border-gray-300 dark:border-gray-700 hover:border-purple-400 text-gray-800 dark:text-gray-300'
+                  }`}
               >
                 {option}
               </button>
             ))
           ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600 mb-3">
+            <div>
+              <p className="text-sm text-gray-700 dark:text-gray-400 mb-4">
                 {t('assessment.rateFrom')}
               </p>
-              <div className="grid grid-cols-5 gap-2 justify-items-center items-center">
+
+              <div className="grid grid-cols-5 gap-4 justify-items-center items-center">
+
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button
                     key={value}
                     onClick={() => handleAnswer(value)}
-                    className={`w-16 h-16 rounded-full border-2 font-semibold transition-all ${
-                      getCurrentAnswer() === value
-                        ? 'border-indigo-600 bg-indigo-600 text-white scale-110'
-                        : 'border-gray-300 hover:border-indigo-400 text-gray-700'
-                    }`}
+                    className={`w-16 h-16 rounded-full border-2 font-bold transition-all
+                    ${getCurrentAnswer() === value
+                        ? 'border-purple-500 bg-purple-500 text-white scale-110 shadow-lg'
+                        : 'border-gray-400 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-purple-400'
+                      }`}
                   >
                     {value}
                   </button>
                 ))}
               </div>
-              <div className="grid grid-cols-5 text-xs text-gray-500 px-2 mt-1">
+
+              <div className="grid grid-cols-5 text-xs text-gray-500 dark:text-gray-400 px-2 mt-2">
                 <span className="text-left">{t('assessment.stronglyDisagree')}</span>
                 <span></span>
                 <span className="text-center">{t('assessment.neutral')}</span>
@@ -213,9 +216,10 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
 
       {/* Navigation Buttons */}
       <div className="flex justify-between items-center">
+
         <button
           onClick={onCancel}
-          className="px-6 py-2 text-gray-700 hover:text-gray-900"
+          className="px-6 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
         >
           {t('common.cancel')}
         </button>
@@ -224,7 +228,9 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
           <button
             onClick={handlePrevious}
             disabled={currentQuestionIndex === 0}
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-xl 
+            hover:bg-gray-400 dark:hover:bg-gray-600 
+            disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('common.previous')}
           </button>
@@ -233,14 +239,15 @@ const CareerTestComponent = ({ onComplete, onCancel }: CareerTestComponentProps)
             <button
               onClick={handleNext}
               disabled={!isCurrentQuestionAnswered()}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 
+              disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('common.next')}
             </button>
           ) : (
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700"
             >
               {t('assessment.submitAssessment')}
             </button>

@@ -75,10 +75,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return profileResponse.data as User;
       }
     } catch (error: any) {
-      const msg = error?.response?.data?.detail || error?.response?.data?.message || error?.message;
-      console.error('Login failed:', msg || error);
-      throw new Error(msg || 'Login failed');
+
+      // Nếu BE trả lỗi (401, 404, 403...) → giữ nguyên lỗi gốc
+      if (error.response) {
+        return Promise.reject(error);
+      }
+
+      // Nếu server không phản hồi
+      return Promise.reject({
+        response: {
+          status: 0,
+          data: { detail: "Không thể kết nối server" }
+        }
+      });
     }
+
   };
 
   const register = async (email: string, password: string, firstName?: string, lastName?: string) => {
