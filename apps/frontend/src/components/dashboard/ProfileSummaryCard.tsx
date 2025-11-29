@@ -18,10 +18,10 @@ const ProfileSummaryCard: React.FC<ProfileSummaryCardProps> = ({ profile }) => {
   });
 
   return (
-    <div className="bg-white dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-gray-700/50 p-6 shadow-xl transition-colors duration-300">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-lg transition-colors duration-300">
       <div className="flex items-center space-x-4">
         <div className="flex-shrink-0">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/50">
+          <div className="h-16 w-16 rounded-2xl bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center shadow-lg">
             <span className="text-2xl font-bold text-white">
               {displayName.charAt(0).toUpperCase()}
             </span>

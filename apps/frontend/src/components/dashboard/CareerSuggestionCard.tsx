@@ -26,35 +26,32 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
 
   return (
     <div
-      className="bg-white dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-200 
-                 dark:border-gray-700/50 p-6 hover:border-purple-500/50 transition-all duration-300 
-                 shadow-xl hover:shadow-purple-500/20 group flex flex-col justify-between min-h-[340px]"
+      className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 
+                 dark:border-gray-700 p-6 hover:border-[#4A7C59] dark:hover:border-green-600 transition-all duration-300 
+                 shadow-lg hover:shadow-xl group flex flex-col justify-between min-h-[340px]"
     >
       <div>
         <div className="flex items-start justify-between mb-4">
 
-          {/* 🔧 SỬA 1: Giảm cỡ chữ tiêu đề (từ text-lg → text-base) + font-semibold thay vì font-bold */}
           <h3 className="text-base font-semibold text-gray-900 dark:text-white 
-                         group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
+                         group-hover:text-[#4A7C59] dark:group-hover:text-green-400 transition-colors">
             {displayTitle}
           </h3>
 
           <div className="flex flex-col items-end">
-            <span className="text-3xl font-bold text-transparent bg-clip-text 
-                             bg-gradient-to-r from-purple-500 to-purple-700 
-                             dark:from-purple-400 dark:to-purple-600">
+            <span className="text-3xl font-bold text-[#4A7C59] dark:text-green-500">
               {career.matchPercentage}%
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {t('dashboard.careerSuggestions.match')}
             </span>
           </div>
         </div>
 
         <div className="mb-4">
-          <div className="w-full bg-gray-200 dark:bg-gray-700/50 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-purple-500 to-purple-600 h-2.5 rounded-full transition-all duration-500 shadow-lg shadow-purple-500/50"
+              className="bg-[#4A7C59] dark:bg-green-600 h-2.5 rounded-full transition-all duration-500"
               style={{ width: `${career.matchPercentage}%` }}
             />
           </div>
@@ -65,12 +62,11 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
         </p>
       </div>
 
-      {/* 🔧 SỬA 2: Giữ nút nằm cố định dưới cùng bằng mt-auto */}
       <button
         onClick={handleViewRoadmap}
-        className="mt-auto w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 px-4 rounded-lg 
-                   hover:from-purple-600 hover:to-purple-700 transition-all duration-200 text-sm font-medium 
-                   shadow-lg hover:shadow-purple-500/50 flex items-center justify-center space-x-2"
+        className="mt-auto w-full bg-[#4A7C59] dark:bg-green-600 text-white py-3 px-4 rounded-lg 
+                   hover:bg-[#3d6449] dark:hover:bg-green-700 transition-all duration-200 text-sm font-medium 
+                   shadow-lg flex items-center justify-center space-x-2"
       >
         <span>{t('dashboard.progress.viewRoadmap')}</span>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

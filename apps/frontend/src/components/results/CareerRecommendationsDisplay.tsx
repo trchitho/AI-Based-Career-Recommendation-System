@@ -23,17 +23,17 @@ const CareerRecommendationsDisplay = ({ recommendations }: CareerRecommendations
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Your Top Career Matches
       </h3>
-      <p className="text-sm text-gray-600 mb-6">
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
         Based on your assessment results, here are careers that align with your interests and personality.
       </p>
 
       {recommendations.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">
+        <div className="text-center py-8 bg-gray-50 dark:bg-gray-900 rounded-lg">
+          <p className="text-gray-600 dark:text-gray-400">
             Career recommendations are being generated. Please check back shortly.
           </p>
         </div>
@@ -42,17 +42,17 @@ const CareerRecommendationsDisplay = ({ recommendations }: CareerRecommendations
           {recommendations.map((career, index) => (
             <div
               key={career.id}
-              className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
+              className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 hover:shadow-lg transition-shadow bg-white dark:bg-gray-800"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
-                    <span className="text-indigo-600 font-bold text-lg">#{index + 1}</span>
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#E8DCC8] dark:bg-green-900/30 flex items-center justify-center mr-3">
+                    <span className="text-[#4A7C59] dark:text-green-400 font-bold text-lg">#{index + 1}</span>
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900">{career.title || prettify(career.slug)}</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{career.title || prettify(career.slug)}</h4>
                     {career.industry_category && (
-                      <p className="text-xs text-gray-500">{career.industry_category}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{career.industry_category}</p>
                     )}
                   </div>
                 </div>
@@ -61,7 +61,7 @@ const CareerRecommendationsDisplay = ({ recommendations }: CareerRecommendations
                 </div>
               </div>
 
-              <p className="text-gray-700 mb-4">{career.description}</p>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">{career.description}</p>
 
               {career.salary_range && (
                 <div className="mb-3">
@@ -94,7 +94,7 @@ const CareerRecommendationsDisplay = ({ recommendations }: CareerRecommendations
 
               <button
                 onClick={() => handleViewRoadmap(career.id, career.slug)}
-                className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors font-medium"
+                className="w-full px-4 py-2 bg-[#4A7C59] dark:bg-green-600 text-white rounded-lg hover:bg-[#3d6449] dark:hover:bg-green-700 transition-colors font-medium"
               >
                 View Learning Roadmap
               </button>

@@ -7,7 +7,7 @@ interface Props {
 
 const HomeCTA: React.FC<Props> = ({ isAuthenticated }) => {
     return (
-        <section className="mt-32 bg-gradient-to-r from-purple-100 to-purple-200 dark:from-purple-500/20 dark:to-purple-600/20 rounded-3xl border border-purple-300 dark:border-purple-500/30 p-12 text-center shadow-2xl">
+        <section className="mt-32 bg-gradient-to-r from-[#E8DCC8] to-[#D4C4B0] dark:from-gray-800 dark:to-gray-700 rounded-3xl border border-gray-300 dark:border-gray-600 p-12 text-center shadow-xl">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
                 Sẵn sàng khám phá nghề nghiệp lý tưởng?
             </h2>
@@ -18,7 +18,7 @@ const HomeCTA: React.FC<Props> = ({ isAuthenticated }) => {
 
             <Link
                 to={isAuthenticated ? "/dashboard" : "/assessment"}
-                className="px-10 py-5 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-bold text-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-2xl hover:shadow-purple-500/50"
+                className="inline-block px-10 py-5 bg-[#4A7C59] dark:bg-green-600 text-white rounded-xl font-bold text-xl hover:bg-[#3d6449] dark:hover:bg-green-700 transition-all duration-200 shadow-xl"
             >
                 {isAuthenticated ? "Tiếp tục hành trình" : "Bắt đầu miễn phí"}
             </Link>

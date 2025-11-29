@@ -18,9 +18,9 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-          <p className="font-semibold text-gray-900">{payload[0].payload.fullName}</p>
-          <p className="text-indigo-600 font-bold">{payload[0].value.toFixed(1)}</p>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+          <p className="font-semibold text-gray-900 dark:text-white">{payload[0].payload.fullName}</p>
+          <p className="text-[#4A7C59] dark:text-green-400 font-bold">{payload[0].value.toFixed(1)}</p>
         </div>
       );
     }
@@ -28,9 +28,9 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">RIASEC Career Interest Profile</h3>
-      <p className="text-sm text-gray-600 mb-6">
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">RIASEC Career Interest Profile</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
         Your scores across six career interest dimensions. Higher scores indicate stronger alignment.
       </p>
 
@@ -49,8 +49,8 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
           <Radar
             name="Score"
             dataKey="score"
-            stroke="#4f46e5"
-            fill="#4f46e5"
+            stroke="#4A7C59"
+            fill="#4A7C59"
             fillOpacity={0.6}
           />
           <Tooltip content={<CustomTooltip />} />
@@ -59,9 +59,9 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         {data.map((item) => (
-          <div key={item.dimension} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm font-medium text-gray-700">{item.fullName}</span>
-            <span className="text-sm font-bold text-indigo-600">{item.score.toFixed(0)}</span>
+          <div key={item.dimension} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.fullName}</span>
+            <span className="text-sm font-bold text-[#4A7C59] dark:text-green-400">{item.score.toFixed(0)}</span>
           </div>
         ))}
       </div>

@@ -29,9 +29,9 @@ const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Big Five Personality Traits</h3>
-      <p className="text-sm text-gray-600 mb-6">
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Big Five Personality Traits</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
         Your personality profile across five key dimensions. Scores indicate the strength of each trait.
       </p>
 

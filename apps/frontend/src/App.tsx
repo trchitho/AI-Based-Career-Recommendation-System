@@ -9,7 +9,6 @@ import AdminRoute from './components/AdminRoute';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import AssessmentPage from './pages/AssessmentPage';
 import ResultsPage from './pages/ResultsPage';
@@ -21,9 +20,11 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import BlogPage from './pages/BlogPage';
+import BlogDetailPage from './pages/BlogDetailPage';
 import ChatSummaryPage from './pages/ChatSummaryPage';
 import ChatPage from './pages/ChatPage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
+import PricingPage from './pages/PricingPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -46,15 +47,12 @@ function App() {
           <Route path="/reset" element={<ResetPasswordPage />} />
           <Route path="/verify" element={<VerifyEmailPage />} />
           <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
 
           {/* Protected routes */}
           <Route
             path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
+            element={<Navigate to="/assessment" replace />}
           />
           <Route
             path="/profile"
@@ -93,6 +91,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <BlogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/blog/:slug"
+            element={
+              <ProtectedRoute>
+                <BlogDetailPage />
               </ProtectedRoute>
             }
           />
