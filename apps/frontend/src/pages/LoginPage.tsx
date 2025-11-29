@@ -6,6 +6,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useAppSettings } from '../contexts/AppSettingsContext';
 import api from '../lib/api';
+import AppLogo from '../components/common/AppLogo';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -46,22 +47,15 @@ const LoginPage = () => {
   return (
     <div
       className="min-h-screen flex flex-col 
-      bg-gradient-to-br from-[#faf7ff] via-[#f8f5ff] to-[#efe8ff]
-      dark:from-[#0e0b18] dark:via-[#120f23] dark:to-[#1b1533]
+      bg-[#F5EFE7] dark:bg-gray-900
       transition-colors duration-300"
     >
 
-      {/* Background bubbles */}
+      {/* Decorative circles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-[28rem] h-[28rem] -top-40 -left-40 
-          bg-purple-400/30 rounded-full blur-[100px] animate-pulse"></div>
-
-        <div className="absolute w-[26rem] h-[26rem] -bottom-40 -right-40 
-          bg-purple-500/30 rounded-full blur-[120px] animate-pulse delay-1000"></div>
-
-        <div className="absolute w-[22rem] h-[22rem] top-1/2 left-1/2 
-          -translate-x-1/2 -translate-y-1/2 bg-purple-300/20 
-          rounded-full blur-[90px] animate-pulse delay-500"></div>
+        <div className="absolute w-64 h-64 -top-32 -left-32 bg-[#E8DCC8] dark:bg-gray-800 rounded-full opacity-50"></div>
+        <div className="absolute w-96 h-96 top-20 right-10 bg-[#D4C4B0] dark:bg-gray-800 rounded-full opacity-30"></div>
+        <div className="absolute w-48 h-48 bottom-20 left-1/4 bg-[#E8DCC8] dark:bg-gray-800 rounded-full opacity-40"></div>
       </div>
 
       {/* Navbar */}
@@ -75,32 +69,7 @@ const LoginPage = () => {
 
             {/* LEFT — Logo + Title */}
             <div className="flex items-center space-x-3">
-
-              {/* If logo exist → show logo from admin */}
-              {app.logo_url ? (
-                <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg bg-white flex items-center justify-center">
-                  <img
-                    src={app.logo_url}
-                    alt={app.app_title || "Logo"}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              ) : (
-                /* Default purple icon when no logo uploaded */
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 
-            rounded-xl flex items-center justify-center shadow-md">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-              )}
-
-              {/* App Title */}
-              <span className="text-xl font-semibold text-gray-900 dark:text-white">
-                {app.app_title || 'CareerBridge AI'}
-              </span>
+              <AppLogo size="md" showText={true} linkTo="/home" />
             </div>
 
             {/* RIGHT — Language + Theme Toggle */}
@@ -119,24 +88,7 @@ const LoginPage = () => {
 
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          {app.logo_url ? (
-            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg bg-white flex items-center justify-center">
-              <img
-                src={app.logo_url}
-                alt={app.app_title || "Logo"}
-                className="w-full h-full object-contain"
-              />
-            </div>
-          ) : (
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 
-      rounded-2xl flex items-center justify-center shadow-xl shadow-purple-400/40">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-          )}
+          <AppLogo size="lg" showText={false} linkTo={null} />
         </div>
 
 
@@ -181,7 +133,7 @@ const LoginPage = () => {
                   border border-gray-300 dark:border-gray-700
                   rounded-xl text-gray-900 dark:text-white 
                   placeholder-gray-400
-                  focus:ring-2 focus:ring-purple-500 
+                  focus:ring-2 focus:ring-[#4A7C59] dark:focus:ring-green-600
                   outline-none transition"
               />
             </div>
@@ -203,7 +155,7 @@ const LoginPage = () => {
                   border border-gray-300 dark:border-gray-700
                   rounded-xl text-gray-900 dark:text-white
                   placeholder-gray-400
-                  focus:ring-2 focus:ring-purple-500 
+                  focus:ring-2 focus:ring-[#4A7C59] dark:focus:ring-green-600
                   outline-none transition"
               />
 
@@ -240,10 +192,9 @@ const LoginPage = () => {
               type="submit"
               disabled={loading}
               className="w-full py-3 px-4
-                bg-gradient-to-r from-purple-500 to-purple-600
+                bg-[#4A7C59] dark:bg-green-600
                 text-white rounded-xl font-semibold
-                shadow-lg shadow-purple-500/30
-                hover:shadow-purple-600/40
+                shadow-lg hover:bg-[#3d6449] dark:hover:bg-green-700
                 transition-all duration-200 disabled:opacity-50"
             >
               {loading ? t('common.loading') : t('auth.signIn')}
@@ -252,7 +203,7 @@ const LoginPage = () => {
             <p className="text-center text-sm text-gray-600 dark:text-gray-400">
               {t('auth.noAccount')}{' '}
               <Link to="/register"
-                className="font-semibold text-purple-600 hover:text-purple-500">
+                className="font-semibold text-[#4A7C59] dark:text-green-400 hover:text-[#3d6449] dark:hover:text-green-500">
                 {t('auth.signUp')}
               </Link>
             </p>

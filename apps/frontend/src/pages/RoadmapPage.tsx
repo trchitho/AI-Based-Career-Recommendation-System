@@ -1,21 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../contexts/AuthContext';
+import { useParams } from 'react-router-dom';
 import { roadmapService } from '../services/roadmapService';
 import { careerService } from '../services/careerService';
-import { useAppSettings } from '../contexts/AppSettingsContext';
 import RoadmapTimelineComponent from '../components/roadmap/RoadmapTimelineComponent';
 import { Roadmap } from '../types/roadmap';
+import MainLayout from '../components/layout/MainLayout';
 
 const RoadmapPage = () => {
     const { careerId } = useParams<{ careerId: string }>();
-    const navigate = useNavigate();
-    const { t } = useTranslation();
-    const { user, logout } = useAuth();
-    const app = useAppSettings();
-
-    const isDark = app.theme === "dark";
 
     const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
     const [loading, setLoading] = useState(true);
@@ -60,193 +52,200 @@ const RoadmapPage = () => {
     };
 
     return (
-        <div
-            className={`
-                relative min-h-screen transition-all duration-300
-                ${isDark ? "bg-[#111827] text-gray-100" : "bg-gray-50 text-gray-900"}
-            `}
-        >
+        <MainLayout>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-            {/* TOP NAV */}
-            <nav
-                className={`
-                    w-full border-b transition-all duration-300
-                    ${isDark
-                        ? "bg-[#111827] border-[#1F2937]"
-                        : "bg-white border-gray-200 shadow-sm"
-                    }
-                `}
-            >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-
-                    {/* BACK + TITLE */}
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className={`
-                                px-3 py-1.5 rounded-lg text-sm transition
-                                ${isDark
-                                    ? "text-gray-300 hover:text-white hover:bg-gray-700/50"
-                                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                                }
-                            `}
-                        >
-                            ← Back
-                        </button>
-
-                        <span
-                            onClick={() => navigate('/dashboard')}
-                            className={`
-                                cursor-pointer text-xl font-bold
-                                ${isDark
-                                    ? "text-gray-100 hover:text-purple-300"
-                                    : "text-gray-900 hover:text-purple-700"
-                                }
-                            `}
-                        >
-                            {app.app_title || 'CareerBridge AI'}
-                        </span>
+                {loading && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#4A7C59] dark:border-green-600 mb-4"></div>
+                        <p className="text-gray-500 dark:text-gray-400">Loading roadmap...</p>
                     </div>
+                )}
 
-                    {/* USER */}
-                    <div className="flex items-center gap-4">
-                        <span className={isDark ? "text-gray-300" : "text-gray-700"}>
-                            {user?.firstName || user?.email}
-                        </span>
-
-                        <button
-                            onClick={logout}
-                            className={`
-                                text-sm px-3 py-1.5 rounded-lg transition
-                                ${isDark
-                                    ? "text-gray-300 hover:text-red-400 hover:bg-gray-700/50"
-                                    : "text-gray-700 hover:text-red-600 hover:bg-gray-100"
-                                }
-                            `}
-                        >
-                            Logout
-                        </button>
+                {error && (
+                    <div className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-xl p-6 text-center">
+                        <p className="text-red-800 dark:text-red-300 font-semibold">{error}</p>
                     </div>
-                </div>
-            </nav>
+                )}
 
-            {/* MAIN */}
-            <main className="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="px-4 py-6">
+                {!loading && roadmap && (
+                    <>
+                        {/* Header Card */}
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
+                            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                                {roadmap.careerTitle}
+                            </h1>
 
-                    {/* HEADER CARD */}
-                    {!loading && roadmap && (
-                        <section className="mb-8">
-                            <div
-                                className={`
-                                    rounded-xl p-6 transition-all duration-300
-                                    ${isDark
-                                        ? "bg-[#1F2937] border border-[#374151]"
-                                        : "bg-white border border-gray-200 shadow"
-                                    }
-                                `}
-                            >
-                                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            {/* Career Stages - Simplified */}
+                            <div className="flex flex-wrap justify-center gap-4 mb-8">
+                                {[
+                                    { stage: 'intern', label: 'THỰC TẬP SINH' },
+                                    { stage: 'employee', label: 'TRỢ LÝ' },
+                                    { stage: 'manager', label: 'NHÂN VIÊN' },
+                                    { stage: 'director', label: 'CHUYÊN VIÊN' },
+                                    { stage: 'ceo', label: 'TRƯỞNG PHÒNG' },
+                                    { stage: 'executive', label: 'GIÁM ĐỐC' },
+                                ].map((item, idx) => {
+                                    const completed = (roadmap.userProgress?.completed_milestones?.length || 0) > idx * 2;
+                                    const isCurrent = idx === Math.floor((roadmap.userProgress?.completed_milestones?.length || 0) / 2);
 
-                                    {/* LEFT */}
-                                    <div className="lg:col-span-3">
-                                        <h1 className="text-3xl font-extrabold mb-4">
-                                            {roadmap.careerTitle?.toUpperCase()}
-                                        </h1>
-
-                                        {/* STAGES */}
-                                        <div className="flex flex-wrap items-center gap-6 mb-6">
-                                            {['intern', 'employee', 'manager', 'director', 'ceo'].map((stage, idx) => {
-                                                const completed =
-                                                    (roadmap.userProgress?.completed_milestones?.length || 0) > idx;
-                                                const label = t(`roadmap.careerStages.${stage}`);
-
-                                                return (
-                                                    <div
-                                                        key={idx}
-                                                        className={`
-                                                            flex items-center justify-center
-                                                            w-28 h-28 rounded-full px-2 border-4 text-center
-                                                            font-bold text-xs
-                                                            ${completed
-                                                                ? "bg-indigo-600 text-white border-indigo-300"
-                                                                : isDark
-                                                                    ? "bg-[#1E2530] text-gray-200 border-[#2E3745]"
-                                                                    : "bg-blue-100 text-blue-900 border-blue-300"
-                                                            }
-                                                        `}
-                                                    >
-                                                        {label}
+                                    return (
+                                        <div key={idx} className="relative flex flex-col items-center">
+                                            {/* Circle - Green theme only */}
+                                            <div className={`relative w-24 h-24 rounded-full flex items-center justify-center shadow-md transition-all ${
+                                                completed 
+                                                    ? 'bg-[#4A7C59] dark:bg-green-600' 
+                                                    : isCurrent 
+                                                        ? 'bg-[#4A7C59]/30 dark:bg-green-600/30 ring-2 ring-[#4A7C59] dark:ring-green-500' 
+                                                        : 'bg-gray-200 dark:bg-gray-700'
+                                            }`}>
+                                                <div className="text-center">
+                                                    <div className={`font-bold text-xs leading-tight px-2 ${
+                                                        completed || isCurrent 
+                                                            ? 'text-white' 
+                                                            : 'text-gray-600 dark:text-gray-400'
+                                                    }`}>
+                                                        {item.label}
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {/* DESCRIPTION */}
-                                        {careerDesc && (
-                                            <div className="space-y-3">
-                                                <p className={showFullDesc ? "" : "line-clamp-4"}>
-                                                    {careerDesc}
-                                                </p>
-
-                                                <button
-                                                    onClick={() => setShowFullDesc(!showFullDesc)}
-                                                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-                                                >
-                                                    {showFullDesc ? "Thu gọn" : "Xem đầy đủ nội dung"}
-                                                </button>
+                                                </div>
+                                                {completed && (
+                                                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-md">
+                                                        <svg className="w-4 h-4 text-[#4A7C59] dark:text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-
-                                    {/* RIGHT INFO BOXES */}
-                                    <aside className="space-y-4 lg:col-span-1">
-
-                                        <div
-                                            className={`
-                                                rounded-xl p-4
-                                                ${isDark
-                                                    ? "bg-[#1F2937] border border-[#374151]"
-                                                    : "bg-white border"
-                                                }
-                                            `}
-                                        >
-                                            <div className="text-orange-500 font-bold mb-1">KINH NGHIỆM</div>
-                                            <div>{roadmap.overview?.experienceText || "6 tháng - 1 năm"}</div>
+                                            {/* Level text */}
+                                            <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 font-medium">
+                                                Level {idx + 1}
+                                            </div>
+                                            {/* Arrow - centered between circles */}
+                                            {idx < 5 && (
+                                                <div className="absolute -right-5 top-1/2 transform -translate-y-1/2 flex items-center">
+                                                    <svg className="w-4 h-4 text-[#4A7C59] dark:text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            )}
                                         </div>
+                                    );
+                                })}
+                            </div>
 
-                                        <div
-                                            className={`
-                                                rounded-xl p-4
-                                                ${isDark
-                                                    ? "bg-[#1F2937] border border-[#374151]"
-                                                    : "bg-white border"
-                                                }
-                                            `}
+                            {/* Description */}
+                            {careerDesc && (
+                                <div className="mt-6">
+                                    <p className={`text-gray-700 dark:text-gray-300 leading-relaxed ${showFullDesc ? '' : 'line-clamp-3'}`}>
+                                        {careerDesc}
+                                    </p>
+                                    {careerDesc.length > 200 && (
+                                        <button
+                                            onClick={() => setShowFullDesc(!showFullDesc)}
+                                            className="mt-3 text-[#4A7C59] dark:text-green-400 font-semibold hover:underline"
                                         >
-                                            <div className="text-orange-500 font-bold mb-1">BẰNG CẤP</div>
-                                            <div>{roadmap.overview?.degreeText || "Cao đẳng, Đại học"}</div>
-                                        </div>
+                                            {showFullDesc ? 'Show less' : 'Read more'}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
 
-                                    </aside>
+                            {/* Info Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                <div className="bg-[#E8DCC8] dark:bg-gray-700 rounded-xl p-4">
+                                    <div className="text-[#4A7C59] dark:text-green-400 font-bold text-sm mb-1">EXPERIENCE</div>
+                                    <div className="text-gray-900 dark:text-white">{(roadmap as any).overview?.experienceText || '6 months - 1 year'}</div>
+                                </div>
+                                <div className="bg-[#E8DCC8] dark:bg-gray-700 rounded-xl p-4">
+                                    <div className="text-[#4A7C59] dark:text-green-400 font-bold text-sm mb-1">EDUCATION</div>
+                                    <div className="text-gray-900 dark:text-white">{(roadmap as any).overview?.degreeText || 'College, University'}</div>
                                 </div>
                             </div>
-                        </section>
-                    )}
+                        </div>
 
-                    {/* TIMELINE */}
-                    {!loading && roadmap && (
-                        <div
-                            className={`
-                                rounded-xl p-6
-                                ${isDark
-                                    ? "bg-[#1F2937] border border-[#374151]"
-                                    : "bg-white shadow border border-gray-200"
-                                }
-                            `}
-                        >
-                            <h3 className="text-xl font-semibold mb-6">Learning Path</h3>
+                        {/* Job Requirements */}
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Job Requirements</h3>
+                            
+                            <div className="space-y-3">
+                                <div className="flex items-start">
+                                    <svg className="w-5 h-5 text-[#4A7C59] dark:text-green-400 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <p className="text-gray-700 dark:text-gray-300">Strong communication and interpersonal skills</p>
+                                </div>
+                                <div className="flex items-start">
+                                    <svg className="w-5 h-5 text-[#4A7C59] dark:text-green-400 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <p className="text-gray-700 dark:text-gray-300">Ability to work independently and as part of a team</p>
+                                </div>
+                                <div className="flex items-start">
+                                    <svg className="w-5 h-5 text-[#4A7C59] dark:text-green-400 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <p className="text-gray-700 dark:text-gray-300">Problem-solving and analytical thinking abilities</p>
+                                </div>
+                                <div className="flex items-start">
+                                    <svg className="w-5 h-5 text-[#4A7C59] dark:text-green-400 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <p className="text-gray-700 dark:text-gray-300">Adaptability and willingness to learn new technologies</p>
+                                </div>
+                            </div>
+                        </div>
 
+                        {/* Skills Progress */}
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Skills Development Progress</h3>
+                            
+                            <div className="space-y-6">
+                                {[
+                                    { name: 'Technical Skills', progress: 75, time: '9-12 months' },
+                                    { name: 'Communication', progress: 60, time: '6-9 months' },
+                                    { name: 'Leadership', progress: 40, time: '12-18 months' },
+                                    { name: 'Project Management', progress: 30, time: '18-24 months' },
+                                    { name: 'Strategic Thinking', progress: 20, time: '24-36 months' },
+                                ].map((skill, idx) => (
+                                    <div key={idx}>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{skill.name}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-medium text-[#4A7C59] dark:text-green-400">{skill.progress}%</span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400">{skill.time}</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                                            <div 
+                                                className="h-full bg-[#4A7C59] dark:bg-green-600 transition-all duration-500 rounded-full"
+                                                style={{ width: `${skill.progress}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Salary Range - Simplified */}
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Average Salary Range</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-[#E8DCC8] dark:bg-gray-700 rounded-xl p-6 text-center border border-gray-300 dark:border-gray-600">
+                                    <div className="text-sm mb-2 text-gray-600 dark:text-gray-400 font-semibold">Entry Level</div>
+                                    <div className="text-3xl font-bold text-gray-900 dark:text-white">$40K - $60K</div>
+                                    <div className="text-xs mt-2 text-gray-500 dark:text-gray-400">Per year</div>
+                                </div>
+                                <div className="bg-[#4A7C59] dark:bg-green-600 rounded-xl p-6 text-center border border-[#4A7C59] dark:border-green-600">
+                                    <div className="text-sm mb-2 text-white/90 font-semibold">Senior Level</div>
+                                    <div className="text-3xl font-bold text-white">$80K - $120K</div>
+                                    <div className="text-xs mt-2 text-white/80">Per year</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Learning Timeline */}
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Detailed Learning Path</h3>
                             <RoadmapTimelineComponent
                                 milestones={roadmap.milestones}
                                 userProgress={roadmap.userProgress}
@@ -254,11 +253,10 @@ const RoadmapPage = () => {
                                 completingMilestone={completingMilestone}
                             />
                         </div>
-                    )}
-
-                </div>
-            </main>
-        </div>
+                    </>
+                )}
+            </div>
+        </MainLayout>
     );
 };
 

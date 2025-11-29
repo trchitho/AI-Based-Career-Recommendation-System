@@ -6,6 +6,7 @@ import ThemeToggle from "../components/ThemeToggle";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import api from "../lib/api";
+import AppLogo from "../components/common/AppLogo";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
@@ -73,10 +74,15 @@ const RegisterPage = () => {
   return (
     <div
       className="min-h-screen flex flex-col 
-      bg-gradient-to-br from-[#faf7ff] via-[#f8f5ff] to-[#efe8ff]
-      dark:from-[#0e0b18] dark:via-[#120f23] dark:to-[#1b1533]
-      transition-colors duration-300"
+      bg-[#F5EFE7] dark:bg-gray-900
+      transition-colors duration-300 relative overflow-hidden"
     >
+      {/* Decorative circles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-64 h-64 -top-32 -left-32 bg-[#E8DCC8] dark:bg-gray-800 rounded-full opacity-50"></div>
+        <div className="absolute w-96 h-96 top-20 right-10 bg-[#D4C4B0] dark:bg-gray-800 rounded-full opacity-30"></div>
+        <div className="absolute w-48 h-48 bottom-20 left-1/4 bg-[#E8DCC8] dark:bg-gray-800 rounded-full opacity-40"></div>
+      </div>
 
       {/* Navbar */}
       <nav className="sticky top-0 z-[999999] 
@@ -86,23 +92,7 @@ const RegisterPage = () => {
 
           {/* Logo */}
           <div className="flex items-center gap-3">
-            {app.logo_url ? (
-              <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg bg-white flex items-center justify-center">
-                <img src={app.logo_url} className="w-full h-full object-contain" />
-              </div>
-            ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 
-                rounded-xl flex items-center justify-center shadow-md">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-            )}
-
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
-              {app.app_title || "CareerBridge AI"}
-            </span>
+            <AppLogo size="md" showText={true} linkTo="/home" />
           </div>
 
           {/* Language + Theme */}
@@ -118,19 +108,7 @@ const RegisterPage = () => {
 
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          {app.logo_url ? (
-            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg bg-white flex items-center justify-center">
-              <img src={app.logo_url} className="w-full h-full object-contain" />
-            </div>
-          ) : (
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 
-              rounded-2xl flex items-center justify-center shadow-xl shadow-purple-400/40">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-          )}
+          <AppLogo size="lg" showText={false} linkTo={null} />
         </div>
 
         <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-white mb-1">
@@ -173,7 +151,7 @@ const RegisterPage = () => {
                     border border-gray-300 dark:border-gray-700
                     rounded-xl text-gray-900 dark:text-white 
                     placeholder-gray-400
-                    focus:ring-2 focus:ring-purple-500 
+                    focus:ring-2 focus:ring-[#4A7C59] dark:focus:ring-green-600
                     outline-none transition"
                 />
               </div>
@@ -193,7 +171,7 @@ const RegisterPage = () => {
                     border border-gray-300 dark:border-gray-700
                     rounded-xl text-gray-900 dark:text-white 
                     placeholder-gray-400
-                    focus:ring-2 focus:ring-purple-500 
+                    focus:ring-2 focus:ring-[#4A7C59] dark:focus:ring-green-600
                     outline-none transition"
                 />
               </div>
@@ -216,7 +194,7 @@ const RegisterPage = () => {
                   border border-gray-300 dark:border-gray-700
                   rounded-xl text-gray-900 dark:text-white 
                   placeholder-gray-400
-                  focus:ring-2 focus:ring-purple-500 
+                  focus:ring-2 focus:ring-[#4A7C59] dark:focus:ring-green-600
                   outline-none transition"
               />
             </div>
@@ -238,7 +216,7 @@ const RegisterPage = () => {
                   border border-gray-300 dark:border-gray-700
                   rounded-xl text-gray-900 dark:text-white 
                   placeholder-gray-400
-                  focus:ring-2 focus:ring-purple-500 
+                  focus:ring-2 focus:ring-[#4A7C59] dark:focus:ring-green-600
                   outline-none transition"
               />
 
@@ -246,7 +224,7 @@ const RegisterPage = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-3 text-gray-500 dark:text-gray-300"
+                className="absolute right-4 top-11 text-gray-500 dark:text-gray-300"
               >
                 {showPassword ? (
                   // 👁 MẮT ĐANG MỞ
@@ -287,14 +265,14 @@ const RegisterPage = () => {
                   border border-gray-300 dark:border-gray-700
                   rounded-xl text-gray-900 dark:text-white 
                   placeholder-gray-400
-                  focus:ring-2 focus:ring-purple-500 
+                  focus:ring-2 focus:ring-[#4A7C59] dark:focus:ring-green-600
                   outline-none transition"
               />
 
               <button
                 type="button"
                 onClick={() => setShowConfirmPwd(!showConfirmPwd)}
-                className="absolute right-4 top-3 text-gray-500 dark:text-gray-300"
+                className="absolute right-4 top-11 text-gray-500 dark:text-gray-300"
               >
                 {showConfirmPwd ? (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,10 +299,10 @@ const RegisterPage = () => {
               type="submit"
               disabled={loading}
               className="w-full py-3 
-                bg-gradient-to-r from-purple-500 to-purple-600
+                bg-[#4A7C59] dark:bg-green-600
                 text-white rounded-xl font-semibold
-                shadow-lg shadow-purple-500/30
-                hover:shadow-purple-600/40
+                shadow-lg hover:bg-[#3d6449] dark:hover:bg-green-700
+                disabled:opacity-50 disabled:cursor-not-allowed
                 transition-all"
             >
               {loading ? t("common.loading") : t("auth.signUp")}
@@ -333,7 +311,7 @@ const RegisterPage = () => {
             {/* Login Link */}
             <p className="text-center text-sm text-gray-600 dark:text-gray-400">
               {t("auth.hasAccount")}{" "}
-              <Link to="/login" className="font-semibold text-purple-600 hover:text-purple-500">
+              <Link to="/login" className="font-semibold text-[#4A7C59] dark:text-green-400 hover:text-[#3d6449] dark:hover:text-green-500">
                 {t("auth.signIn")}
               </Link>
             </p>
