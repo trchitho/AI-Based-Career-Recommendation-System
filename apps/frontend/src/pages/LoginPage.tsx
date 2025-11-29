@@ -13,6 +13,9 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [verifyMsg, setVerifyMsg] = useState('');
+  const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
+  const [devToken, setDevToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
@@ -23,6 +26,9 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setVerifyMsg('');
+    setVerifyUrl(null);
+    setDevToken(null);
     setLoading(true);
 
     try {
@@ -33,16 +39,28 @@ const LoginPage = () => {
       const status = err?.response?.status;
       const detail = err?.response?.data?.detail;
 
-      if (status === 404) setError("Email không tồn tại");
-      else if (status === 401) setError("Sai mật khẩu");
-      else if (status === 403) setError("Tài khoản đã bị khóa");
-      else if (!status || status === 0) setError("Không thể kết nối server");
+      if (detail && typeof detail === 'object') {
+        if (detail?.verification_required || detail?.verificationRequired) {
+          setVerifyMsg(detail?.message || 'Please verify your email to continue.');
+          setVerifyUrl(detail?.verify_url || detail?.verifyUrl || null);
+          setDevToken(detail?.dev_token || detail?.devToken || null);
+          return;
+        }
+        if (detail?.message) {
+          setError(detail.message);
+          return;
+        }
+      }
+
+      if (status === 404) setError("Email not found");
+      else if (status === 401) setError("Incorrect password");
+      else if (status === 403) setError(typeof detail === 'string' ? detail : "Account is locked");
+      else if (!status || status === 0) setError("Cannot reach server");
       else setError(detail || "Login failed. Please try again.");
     } finally {
-      setLoading(false);   // QUAN TRỌNG: tắt loading dù có lỗi hay không
+      setLoading(false);
     }
   };
-
 
   return (
     <div
@@ -67,12 +85,12 @@ const LoginPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
 
-            {/* LEFT — Logo + Title */}
+            {/* LEFT – Logo + Title */}
             <div className="flex items-center space-x-3">
               <AppLogo size="md" showText={true} linkTo="/home" />
             </div>
 
-            {/* RIGHT — Language + Theme Toggle */}
+            {/* RIGHT – Language + Theme Toggle */}
             <div className="flex items-center space-x-4">
               <LanguageSwitcher />
               <ThemeToggle />
@@ -108,6 +126,28 @@ const LoginPage = () => {
           border border-white/50 dark:border-gray-700/50"
         >
           <form className="space-y-6" onSubmit={handleSubmit}>
+
+            {verifyMsg && (
+              <div className="rounded-lg bg-green-100/60 dark:bg-green-500/10 
+                border border-green-300 dark:border-green-500/50 p-3">
+                <p className="text-sm text-green-700 dark:text-green-300">{verifyMsg}</p>
+                {verifyUrl && (
+                  <a
+                    href={verifyUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-block text-sm font-semibold text-[#2f6f46] dark:text-green-400 underline"
+                  >
+                    Open verification link
+                  </a>
+                )}
+                {devToken && (
+                  <div className="mt-2 text-xs text-green-800 dark:text-green-200 break-words">
+                    Dev token (SMTP off): {devToken}
+                  </div>
+                )}
+              </div>
+            )}
 
             {error && (
               <div className="rounded-lg bg-red-100/60 dark:bg-red-500/10 
@@ -207,6 +247,12 @@ const LoginPage = () => {
                 {t('auth.signUp')}
               </Link>
             </p>
+
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+              <Link to="/forgot" className="font-semibold text-[#4A7C59] dark:text-green-400 hover:text-[#3d6449] dark:hover:text-green-500">
+                {t('auth.forgotPassword') || 'Forgot password?'}
+              </Link>
+            </p>
           </form>
 
           {/* Divider */}
@@ -256,7 +302,7 @@ const LoginPage = () => {
           {app.footer_html ? (
             <div dangerouslySetInnerHTML={{ __html: app.footer_html }} />
           ) : (
-            <div>© 2025 CareerBridge AI</div>
+            <div>Ac 2025 CareerBridge AI</div>
           )}
         </div>
       </footer>

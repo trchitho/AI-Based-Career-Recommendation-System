@@ -1,48 +1,35 @@
-import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request
-from sqlalchemy import TIMESTAMP, BigInteger, Column, Text, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session as ORMSession
-from sqlalchemy.orm import registry
 
 from ..users.models import User
+from ...core.email_utils import build_verify_url, send_email
+from ...core.email_verifier import is_deliverable_email
+from .token_utils import AuthToken, get_valid_token, issue_token
+from .verification import DEFAULT_VERIFY_MINUTES, send_verification_email
 
 router = APIRouter()
-
-# Lightweight model for auth_tokens to avoid circular imports
-mapper_registry = registry()
-
-
-@mapper_registry.mapped
-class AuthToken:
-    __tablename__ = "auth_tokens"
-    __table_args__ = {"schema": "core"}
-
-    # GIỮ ĐÚNG ĐỊNH NGHĨA NHƯ FILE CŨ (không thêm nullable)
-    id = Column(BigInteger, primary_key=True)
-    user_id = Column(BigInteger)
-    token = Column(Text)
-    ttype = Column(Text)
-    expires_at = Column(TIMESTAMP(timezone=True))
-    used_at = Column(TIMESTAMP(timezone=True))
 
 
 def _db(req: Request) -> ORMSession:
     return req.state.db
 
 
-def _issue_token(session: ORMSession, user_id: int, ttype: str, minutes: int = 30) -> str:
-    tok = AuthToken(
-        user_id=user_id,
-        token=secrets.token_urlsafe(48),
-        ttype=ttype,
-        expires_at=datetime.now(timezone.utc) + timedelta(minutes=minutes),
-        used_at=None,
-    )
-    session.add(tok)
-    session.commit()
-    return tok.token
+def _reset_url(token: str) -> str:
+    # Prefer dedicated reset URL if provided, otherwise reuse FRONTEND_BASE_URL
+    import os
+
+    tmpl = os.getenv("FRONTEND_RESET_URL")
+    if tmpl:
+        if "{token}" in tmpl:
+            return tmpl.format(token=token)
+        base = tmpl.rstrip("/")
+        sep = "&" if "?" in base else "?"
+        return f"{base}{sep}token={token}"
+    base = os.getenv("FRONTEND_BASE_URL") or "http://localhost:3000"
+    return f"{base.rstrip('/')}/reset?token={token}"
 
 
 @router.post("/request-verify")
@@ -52,14 +39,25 @@ def request_verify(request: Request, payload: dict):
     if not email:
         raise HTTPException(status_code=400, detail="email is required")
 
+    ok, reason = is_deliverable_email(email)
+    if not ok:
+        raise HTTPException(status_code=400, detail=f"Email is not deliverable: {reason}")
+
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
         # to prevent user enumeration, act as success
         return {"status": "ok"}
 
-    token = _issue_token(session, u.id, "verify_email", minutes=60)
-    # TODO: send email. For now, return token in dev
-    return {"status": "ok", "dev_token": token}
+    if getattr(u, "is_email_verified", False):
+        return {"status": "ok", "message": "already verified"}
+
+    info = send_verification_email(session, u, minutes=DEFAULT_VERIFY_MINUTES)
+    if not info.get("sent"):
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+        )
+    return {"status": "ok", "verify_url": info.get("verify_url")}
 
 
 @router.post("/verify")
@@ -69,19 +67,23 @@ def verify_email(request: Request, payload: dict):
     if not token:
         raise HTTPException(status_code=400, detail="token is required")
 
-    tok = session.execute(
-        select(AuthToken).where(
-            AuthToken.token == token,
-            AuthToken.ttype == "verify_email",
-        )
-    ).scalar_one_or_none()
-
-    if not tok or tok.used_at is not None or tok.expires_at < datetime.now(timezone.utc):
+    tok = get_valid_token(session, token, "verify_email")
+    if not tok:
         raise HTTPException(status_code=400, detail="invalid or expired token")
 
+    u = session.get(User, tok.user_id)
+    if not u:
+        raise HTTPException(status_code=404, detail="user not found")
+
     tok.used_at = datetime.now(timezone.utc)
+    try:
+        u.is_email_verified = True
+        u.email_verified_at = datetime.now(timezone.utc)
+    except Exception:
+        # Field missing in schema; keep best-effort token update
+        pass
     session.commit()
-    return {"status": "verified"}
+    return {"status": "verified", "email": getattr(u, "email", None)}
 
 
 @router.post("/forgot")
@@ -91,11 +93,26 @@ def forgot_password(request: Request, payload: dict):
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
-        # không lộ thông tin user tồn tại hay không
+        # khA'ng l��T thA'ng tin user t��"n t���i hay khA'ng
         return {"status": "ok"}
 
-    token = _issue_token(session, u.id, "reset_password", minutes=30)
-    return {"status": "ok", "dev_token": token}
+    token = issue_token(session, u.id, "reset_password", minutes=30)
+    reset_url = _reset_url(token)
+
+    body = (
+        f"Hi {u.full_name or 'there'},\n\n"
+        "We received a request to reset your password. If this was you, please use the link below:\n\n"
+        f"Reset link: {reset_url}\n"
+        f"Reset code: {token}\n\n"
+        "If you did not request this, you can ignore this email."
+    )
+    sent, err, _ = send_email(u.email, "Reset your password", body)
+    if not sent:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to send reset email. Please check SMTP settings. ({err})",
+        )
+    return {"status": "ok"}
 
 
 @router.post("/reset")

@@ -119,6 +119,8 @@ def google_callback(request: Request, code: str | None = None, state: str | None
             avatar_url=avatar,
             role="user",
             is_locked=False,
+            is_email_verified=True,
+            email_verified_at=datetime.now(timezone.utc),
         )
         try:
             session.add(u)
@@ -150,6 +152,10 @@ def google_callback(request: Request, code: str | None = None, state: str | None
             changed = True
         if avatar and u.avatar_url != avatar:
             u.avatar_url = avatar
+            changed = True
+        if not getattr(u, "is_email_verified", False):
+            u.is_email_verified = True
+            u.email_verified_at = datetime.now(timezone.utc)
             changed = True
         # Always update last_login on Google auth
         u.last_login = datetime.now(timezone.utc)

@@ -10,7 +10,9 @@ from sqlalchemy.orm import Session
 
 from ...core.jwt import create_access_token, refresh_expiry_dt
 from ...core.security import hash_password, verify_password
+from ...core.email_verifier import is_deliverable_email
 from ..auth.models import RefreshToken
+from ..auth.verification import DEFAULT_VERIFY_MINUTES, send_verification_email
 from .models import User
 
 router = APIRouter()
@@ -37,6 +39,16 @@ def _db(req: Request) -> Session:
     return req.state.db
 
 
+def _verification_response(u: User, info: dict, message: str) -> dict:
+    resp = {
+        "status": "verification_required",
+        "message": message,
+        "user": u.to_dict(),
+        "verify_url": info.get("verify_url"),
+    }
+    return resp
+
+
 # ---------- Routes ----------
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(request: Request, payload: RegisterPayload):
@@ -45,12 +57,24 @@ def register(request: Request, payload: RegisterPayload):
     password = payload.password
     full_name = payload.full_name
 
-    # email đã tồn tại?
+    ok, reason = is_deliverable_email(email)
+    if not ok:
+        raise HTTPException(status_code=400, detail=f"Email is not deliverable: {reason}")
+
     exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        if getattr(exists, "is_email_verified", False):
+            raise HTTPException(status_code=400, detail="Email already registered")
+        info = send_verification_email(session, exists, minutes=DEFAULT_VERIFY_MINUTES)
+        if not info.get("sent"):
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+            )
+        return _verification_response(
+            exists, info, "Email already registered but not verified. A new verification email was sent."
+        )
 
-    # (Đã được Pydantic validate min/max length, nhưng vẫn có thể kiểm tra bổ sung)
     if not (8 <= len(password) <= 256):
         raise HTTPException(status_code=400, detail="Password length must be 8..256")
 
@@ -60,18 +84,20 @@ def register(request: Request, payload: RegisterPayload):
         full_name=full_name,
         role="user",
         is_locked=False,
+        is_email_verified=False,
+        email_verified_at=None,
     )
     session.add(u)
     session.commit()
     session.refresh(u)
 
-    token = create_access_token({"sub": str(u.id), "role": u.role})
-    # issue refresh token
-    rt = RefreshToken(user_id=u.id, token=secrets.token_urlsafe(48), expires_at=refresh_expiry_dt(), revoked=False)
-    session.add(rt)
-    session.commit()
-    session.refresh(u)
-    return {"access_token": token, "refresh_token": rt.token, "user": u.to_dict()}
+    info = send_verification_email(session, u, minutes=DEFAULT_VERIFY_MINUTES)
+    if not info.get("sent"):
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+        )
+    return _verification_response(u, info, "Verification email sent. Please confirm to activate your account.")
 
 
 @router.post("/login")
@@ -80,59 +106,51 @@ def login(request: Request, payload: LoginPayload):
     email = payload.email.strip().lower()
     password = payload.password
 
-    # --- Kiểm tra email tồn tại ---
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
-        raise HTTPException(
-            status_code=404,
-            detail="Email không tồn tại"
-        )
+        raise HTTPException(status_code=404, detail="Email not found")
 
-    # --- Kiểm tra mật khẩu ---
     if not verify_password(password, u.password_hash):
-        raise HTTPException(
-            status_code=401,
-            detail="Sai mật khẩu"
-        )
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # --- Kiểm tra nếu tài khoản bị khóa ---
     if getattr(u, "is_locked", False):
-        raise HTTPException(
-            status_code=403,
-            detail="Tài khoản đã bị khóa"
-        )
+        raise HTTPException(status_code=403, detail="Account is locked")
 
-    # --- Cập nhật thời gian đăng nhập ---
+    if not getattr(u, "is_email_verified", False):
+        info = send_verification_email(session, u, minutes=DEFAULT_VERIFY_MINUTES)
+        if not info.get("sent"):
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+            )
+        detail = {
+            "message": "Email not verified. Please check your inbox to continue.",
+            "verification_required": True,
+            "verify_url": info.get("verify_url"),
+        }
+        raise HTTPException(status_code=403, detail=detail)
+
     try:
         u.last_login = datetime.now(timezone.utc)
         session.commit()
     except Exception:
         session.rollback()
 
-    # --- Tạo access token ---
-    token = create_access_token({
-        "sub": str(u.id),
-        "role": u.role
-    })
-
-    # --- Tạo refresh token ---
+    token = create_access_token({"sub": str(u.id), "role": u.role})
     rt = RefreshToken(
         user_id=u.id,
         token=secrets.token_urlsafe(48),
         expires_at=refresh_expiry_dt(),
-        revoked=False
+        revoked=False,
     )
     session.add(rt)
     session.commit()
 
-    # --- Trả về thông tin đăng nhập ---
     return {
         "access_token": token,
         "refresh_token": rt.token,
-        "user": u.to_dict()
+        "user": u.to_dict(),
     }
-
-
 
 
 @router.post("/register-admin", status_code=status.HTTP_201_CREATED)
@@ -148,18 +166,25 @@ def register_admin(request: Request, payload: AdminRegisterPayload):
     password = payload.password
     full_name = payload.full_name
 
+    ok, reason = is_deliverable_email(email)
+    if not ok:
+        raise HTTPException(status_code=400, detail=f"Email is not deliverable: {reason}")
+
     exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
         raise HTTPException(status_code=400, detail="Email already registered")
     if not (8 <= len(password) <= 256):
         raise HTTPException(status_code=400, detail="Password length must be 8..256")
 
+    now = datetime.now(timezone.utc)
     u = User(
         email=email,
         password_hash=hash_password(password),
         full_name=full_name,
         role="admin",
         is_locked=False,
+        is_email_verified=True,
+        email_verified_at=now,
     )
     session.add(u)
     session.commit()
@@ -185,7 +210,6 @@ def refresh_token(request: Request, payload: dict):
     if rt.expires_at and rt.expires_at < now:
         raise HTTPException(status_code=401, detail="Refresh token expired")
 
-    # Create new access token; keep RT (or rotate if needed)
     new_access = create_access_token({"sub": str(rt.user_id), "role": "user"})
     return {"access_token": new_access}
 
@@ -203,7 +227,6 @@ def logout(request: Request, payload: dict):
     return {"status": "ok"}
 
 
-# tiện test Postman
 @router.post("/create-test-user")
 def create_test_user(request: Request):
     session = _db(request)
@@ -214,12 +237,15 @@ def create_test_user(request: Request):
     if u:
         return {"message": "Test user already exists", "email": email, "password": password}
 
+    now = datetime.now(timezone.utc)
     u = User(
         email=email,
         password_hash=hash_password(password),
         full_name="Admin Test",
         role="admin",
         is_locked=False,
+        is_email_verified=True,
+        email_verified_at=now,
     )
     session.add(u)
     session.commit()

@@ -20,6 +20,8 @@ const RegisterPage = () => {
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [devToken, setDevToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
@@ -38,6 +40,8 @@ const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setInfo("");
+    setDevToken(null);
 
     if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       setError("Please enter a valid email address");
@@ -57,7 +61,12 @@ const RegisterPage = () => {
 
     setLoading(true);
     try {
-      await register(email, password, firstName, lastName);
+      const result = await register(email, password, firstName, lastName);
+      if (result?.verificationRequired) {
+        setInfo(result.message || "Please verify your email to continue.");
+        setDevToken(result.devToken || null);
+        return;
+      }
       navigate("/home");
     } catch (err: any) {
       setError(
@@ -125,6 +134,18 @@ const RegisterPage = () => {
           border border-white/50 dark:border-gray-700/50">
 
           <form className="space-y-6" onSubmit={handleSubmit}>
+
+            {info && (
+              <div className="rounded-lg bg-green-100/70 dark:bg-green-500/10 
+                border border-green-300 dark:border-green-500/50 p-3">
+                <p className="text-sm text-green-700 dark:text-green-300">{info}</p>
+                {devToken && (
+                  <div className="mt-2 text-xs text-green-800 dark:text-green-200 break-words">
+                    Dev token (SMTP off): {devToken}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Error */}
             {error && (

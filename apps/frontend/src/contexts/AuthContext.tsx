@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import api from '../lib/api';
 
 interface User {
@@ -7,13 +7,22 @@ interface User {
   firstName?: string;
   lastName?: string;
   role?: string; // 'admin' | 'user' | 'manager'
+  is_email_verified?: boolean;
+}
+
+interface RegisterResult {
+  verificationRequired: boolean;
+  message?: string;
+  verifyUrl?: string;
+  devToken?: string;
+  user?: User | null;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
-  register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<void>;
+  register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<RegisterResult>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -38,7 +47,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
     const initAuth = async () => {
       const token = localStorage.getItem('accessToken');
       if (token) {
@@ -65,7 +73,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (access_token) localStorage.setItem('accessToken', access_token);
       if (refresh_token) localStorage.setItem('refreshToken', refresh_token);
 
-      // Use returned user if available; otherwise fetch
       if (userPayload) {
         setUser(userPayload);
         return userPayload as User;
@@ -75,21 +82,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return profileResponse.data as User;
       }
     } catch (error: any) {
-
-      // Nếu BE trả lỗi (401, 404, 403...) → giữ nguyên lỗi gốc
-      if (error.response) {
+      if (error?.response) {
+        const detail = error?.response?.data?.detail;
+        if (detail && typeof detail === 'object') {
+          return Promise.reject({ response: { status: error.response.status, data: detail } });
+        }
         return Promise.reject(error);
       }
 
-      // Nếu server không phản hồi
       return Promise.reject({
         response: {
           status: 0,
-          data: { detail: "Không thể kết nối server" }
+          data: { detail: "KhA'ng th��� k���t n��`i server" }
         }
       });
     }
-
   };
 
   const register = async (email: string, password: string, firstName?: string, lastName?: string) => {
@@ -99,18 +106,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         password,
         full_name: [firstName, lastName].filter(Boolean).join(' ') || undefined,
       });
-      const { access_token, refresh_token, user: userPayload } = response.data;
+      const data = response.data;
+      const { access_token, refresh_token, user: userPayload } = data;
 
-      if (access_token) localStorage.setItem('accessToken', access_token);
-      if (refresh_token) localStorage.setItem('refreshToken', refresh_token);
+      // If BE still returns tokens (e.g., admin flow), keep existing behavior
+      if (access_token && refresh_token) {
+        if (access_token) localStorage.setItem('accessToken', access_token);
+        if (refresh_token) localStorage.setItem('refreshToken', refresh_token);
 
-      // Use returned user if available; otherwise fetch
-      if (userPayload) {
-        setUser(userPayload);
-      } else {
-        const profileResponse = await api.get('/api/users/me');
-        setUser(profileResponse.data);
+        if (userPayload) {
+          setUser(userPayload);
+          return { verificationRequired: false, user: userPayload as User };
+        } else {
+          const profileResponse = await api.get('/api/users/me');
+          setUser(profileResponse.data);
+          return { verificationRequired: false, user: profileResponse.data as User };
+        }
       }
+
+      // Verification-first flow
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      setUser(null);
+      return {
+        verificationRequired: true,
+        message: data?.message || 'Please verify your email to activate your account.',
+        verifyUrl: data?.verify_url,
+        devToken: data?.dev_token,
+        user: data?.user || null,
+      } as RegisterResult;
     } catch (error: any) {
       const msg = error?.response?.data?.detail || error?.response?.data?.message || error?.message;
       console.error('Registration failed:', msg || error);

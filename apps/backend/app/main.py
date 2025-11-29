@@ -7,6 +7,7 @@ from typing import Iterable
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from sqlalchemy import text
 
 # dotenv (optional)
 try:
@@ -43,7 +44,34 @@ async def lifespan(_: FastAPI):
     try:
         test_connection()
     except Exception as e:
-        print("⚠️  DB connection check failed:", repr(e))
+        print("�s��,?  DB connection check failed:", repr(e))
+
+    # Best-effort lightweight migration for email verification columns
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    """
+                    ALTER TABLE core.users
+                    ADD COLUMN IF NOT EXISTS is_email_verified boolean DEFAULT FALSE,
+                    ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
+                    """
+                )
+            )
+            conn.execute(
+                text(
+                    """
+                    UPDATE core.users
+                    SET is_email_verified = TRUE,
+                        email_verified_at = COALESCE(email_verified_at, NOW())
+                    WHERE is_email_verified IS NULL;
+                    """
+                )
+            )
+            conn.commit()
+    except Exception as e:
+        print("Skip email verification auto-migration:", repr(e))
+
     yield
 
 
@@ -96,14 +124,14 @@ def create_app() -> FastAPI:
     def root():
         return RedirectResponse(url=app.docs_url or "/docs")
 
-    # Routers (để bên trong cho an toàn import)
-    # BFF (nếu có)
+    # Routers (�`��� bA�n trong cho an toA�n import)
+    # BFF (n���u cA3)
     try:
         from .bff import router as bff_router
 
         app.include_router(bff_router.router)
     except Exception as e:
-        print("ℹ️  Skip BFF router:", repr(e))
+        print("�,1�,?  Skip BFF router:", repr(e))
 
     # Auth / Users
     from .modules.users.router_auth import router as auth_router
@@ -123,13 +151,13 @@ def create_app() -> FastAPI:
     app.include_router(comments_router.router, prefix="/api/comments", tags=["comments"])
     app.include_router(essays_router.router, prefix="/api/essays", tags=["essays"])
 
-    # Assessments (nếu đã thêm)
+    # Assessments (n���u �`A� thA�m)
     try:
         from .modules.assessments import routes_assessments as assess_router
 
         app.include_router(assess_router.router, prefix="/api/assessments", tags=["assessments"])
     except Exception as e:
-        print("ℹ️  Skip assessments router:", repr(e))
+        print("�,1�,?  Skip assessments router:", repr(e))
 
     # Admin (dashboard, careers, questions, skills)
     try:
