@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
@@ -37,11 +37,11 @@ const HomePage = () => {
                             <AppLogo size="sm" showText={true} linkTo="/home" />
                             {isAuthenticated && (
                                 <div className="hidden md:flex space-x-1">
-                                    <Link to="/assessment" className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200">Assessment</Link>
-                                    <Link to="/blog" className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200">Blog</Link>
-                                    <Link to="/careers" className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200">Careers</Link>
-                                    <Link to="/profile" className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200">Profile</Link>
-                                    <Link to="/pricing" className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200">Pricing</Link>
+                                    <NavLink to="/assessment" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Assessment</NavLink>
+                                    <NavLink to="/blog" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Blog</NavLink>
+                                    <NavLink to="/careers" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Careers</NavLink>
+                                    <NavLink to="/profile" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Profile</NavLink>
+                                    <NavLink to="/pricing" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Pricing</NavLink>
                                 </div>
                             )}
                         </div>

@@ -56,7 +56,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   <NavLink
                     key={item.to}
                     to={item.to}
-                    className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+                    className={({ isActive }) =>
+                      `px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                        isActive
+                          ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium'
+                          : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'
+                      }`
+                    }
                   >
                     {item.label}
                   </NavLink>
