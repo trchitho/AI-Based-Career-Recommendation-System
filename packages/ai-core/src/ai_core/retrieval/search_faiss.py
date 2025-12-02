@@ -29,11 +29,11 @@ def resolve_model_name(model_arg: str | None) -> str | None:
         tnf = p / "tokenizer_name.txt"
         if not tnf.exists():
             raise FileNotFoundError(
-                f"Model dir '{model_arg}' thiáº¿u tokenizer_name.txt; táº¡o file chá»©a 1 dÃ²ng HF model id."
+                f"Model dir '{model_arg}' thiếu tokenizer_name.txt; tạo file chứa 1 dòng HF model id."
             )
         name = tnf.read_text(encoding="utf-8").strip()
         if not name:
-            raise ValueError(f"tokenizer_name.txt rá»—ng trong '{model_arg}'")
+            raise ValueError(f"tokenizer_name.txt rỗng trong '{model_arg}'")
         return name
     return model_arg
 
@@ -79,13 +79,13 @@ _TAG_SPLIT_RE = re.compile(r"[|/,&]+|\s+|[^0-9A-Za-zÃ€-á»¹]+")
 def strip_accents(s: str) -> str:
     s = unicodedata.normalize("NFD", s or "")
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    # >>> FIX QUAN TRá»ŒNG: chuáº©n hoÃ¡ 'Ä‘/Ä' -> 'd/D'
+    # >>> FIX QUAN TRỌNG: chuẩn hoá 'đ/Đ' -> 'd/D'
     s = s.replace("Ä‘", "d").replace("Ä", "D")
     return s
 
 
 def tokenize_tags(s: str) -> list[str]:
-    # tÃ¡ch bá»Ÿi | / , & khoáº£ng tráº¯ng vÃ  kÃ½ tá»± khÃ´ng chá»¯/khÃ´ng sá»‘
+    # tách bởi | / , & khoảng trắng và ký tự không chữ/không số
     toks = _TAG_SPLIT_RE.split(s or "")
     toks = [strip_accents(t.lower()).strip() for t in toks if t and t.strip()]
     return toks
@@ -99,22 +99,22 @@ def main():
     ap.add_argument("--topk", type=int, default=5)
 
     # Query nguá»“n
-    ap.add_argument("--query_vector", type=str, default=None, help="ÄÆ°á»ng dáº«n .npy [D] hoáº·c [1,D]")
+    ap.add_argument("--query_vector", type=str, default=None, help="Đường dẫn .npy [D] hoặc [1,D]")
     ap.add_argument(
         "--query_text",
         type=str,
         nargs="*",
         default=None,
-        help="Má»™t hoáº·c nhiá»u cÃ¢u: --query_text 'backend' 'phÃ¢n tÃ­ch dá»¯ liá»‡u'",
+        help="Một hoặc nhiều câu: --query_text 'backend' 'phân tích dữ liệu'",
     )
     ap.add_argument(
-        "--model", type=str, default=None, help="HF id / folder (báº¯t buá»™c náº¿u dÃ¹ng --query_text)"
+        "--model", type=str, default=None, help="HF id / folder (bắt buộc nếu dùng --query_text)"
     )
 
     # Encode params
-    ap.add_argument("--max_length", type=int, default=256, help="Äá»™ dÃ i cáº¯t cÃ¢u truy váº¥n")
+    ap.add_argument("--max_length", type=int, default=256, help="Độ dài cắt câu truy vấn")
     ap.add_argument(
-        "--no_norm", action="store_true", help="KhÃ´ng L2-normalize query (khÃ´ng khuyáº¿n nghá»‹)"
+        "--no_norm", action="store_true", help="Không L2-normalize query (không khuyến nghị)"
     )
 
     # Lá»c theo tags
@@ -122,7 +122,7 @@ def main():
         "--allowed_tags",
         type=str,
         default=None,
-        help="VD: 'CNTT|Dá»¯ liá»‡u|ML|BI' ; chá»‰ tráº£ káº¿t quáº£ cÃ³ Ã­t nháº¥t 1 tag nÃ y (so khá»›p má»m, bá» dáº¥u).",
+        help="VD: 'CNTT|Dữ liệu|ML|BI' ; chỉ trả kết quả có ít nhất 1 tag này (so khớp mềm, bỏ dấu).",
     )
 
     # Over-fetch trÆ°á»›c khi lá»c
@@ -130,16 +130,16 @@ def main():
         "--fetch_k",
         type=int,
         default=None,
-        help="Sá»‘ lÆ°á»£ng á»©ng viÃªn láº¥y tá»« FAISS trÆ°á»›c khi lá»c tags. Máº·c Ä‘á»‹nh: max(topk*5, 100).",
+        help="Số lượng ứng viên lấy từ FAISS trước khi lọc tags. Mặc định: max(topk*5, 100).",
     )
 
     # Debug
     ap.add_argument(
-        "--debug_tags", action="store_true", help="In debug khi lá»c tags lÃ m rá»—ng káº¿t quáº£."
+        "--debug_tags", action="store_true", help="In debug khi lọc tags làm rỗng kết quả."
     )
 
     # Xuáº¥t JSON
-    ap.add_argument("--as_json", action="store_true", help="In káº¿t quáº£ dáº¡ng JSON")
+    ap.add_argument("--as_json", action="store_true", help="In kết quả dạng JSON")
     args = ap.parse_args()
 
     # Load index & meta
@@ -147,7 +147,7 @@ def main():
     metas = load_jobs_index(args.jobs_meta)
     if len(metas) != index.ntotal:
         print(
-            f"[WARN] Sá»‘ meta ({len(metas)}) != index.ntotal ({index.ntotal}). Check láº¡i thá»© tá»± & dá»¯ liá»‡u."
+            f"[WARN] Số meta ({len(metas)}) != index.ntotal ({index.ntotal}). Kiểm tra lại thứ tự & dữ liệu."
         )
 
     # Parse allowed tags
@@ -155,7 +155,7 @@ def main():
     if args.allowed_tags:
         allowed_set = set(tokenize_tags(args.allowed_tags))
         if not allowed_set:
-            print("[WARN] allowed_tags sau chuáº©n hoÃ¡ rá»—ng â†’ bá» lá»c.")
+            print("[WARN] allowed_tags sau chuẩn hoá rỗng → bỏ lọc.")
 
     # Chuáº©n bá»‹ query vectors
     if args.query_vector:
@@ -167,7 +167,7 @@ def main():
         query_texts = None
     elif args.query_text:
         if not args.model:
-            raise ValueError("--model lÃ  báº¯t buá»™c khi dÃ¹ng --query_text")
+            raise ValueError("--model là bắt buộc khi dùng --query_text")
         model_name = resolve_model_name(args.model)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         queries = encode_queries(
@@ -179,14 +179,14 @@ def main():
         )
         query_texts = args.query_text
     else:
-        raise ValueError("Cáº§n --query_vector hoáº·c --query_text (kÃ¨m --model)")
+        raise ValueError("Cần --query_vector hoặc --query_text (kèm --model)")
 
     # Search tá»«ng query
     all_outputs = []
     for qi in range(queries.shape[0]):
         q = queries[qi : qi + 1, :]
 
-        # Over-fetch Ä‘á»§ lá»›n Ä‘á»ƒ lá»c
+        # Over-fetch đủ lớn để lọc
         default_fetch = max(args.topk * 5, 100)
         fetch_k = args.fetch_k if args.fetch_k and args.fetch_k > 0 else default_fetch
         fetch_k = min(fetch_k, index.ntotal)
@@ -202,24 +202,24 @@ def main():
             if i < 0:
                 continue
             if allowed_set:
-                # Æ¯U TIÃŠN tag_tokens náº¿u cÃ³; náº¿u khÃ´ng, fallback vá» tags (raw)
+                # ƯU TIÊN tag_tokens nếu có; nếu không, fallback về tags (raw)
                 tt = metas[i].get("tag_tokens")
                 if isinstance(tt, list) and tt:
-                    # Chuáº©n hoÃ¡ vá» ASCII (bá» dáº¥u + Ä‘->d) vÃ  tÃ¡ch thÃ nh token Ä‘á»ƒ so khá»›p má»m
+                    # Chuẩn hoá về ASCII (bỏ dấu + đ->d) và tách thành token để so khớp mềm
                     candidate_tokens = set()
                     for tok in tt:
                         ascii_tok = strip_accents(tok.lower())
-                        # thÃªm cáº£ biáº¿n thá»ƒ thay '_' thÃ nh ' ' rá»“i tÃ¡ch tá»«
+                        # thêm cả biến thể thay '_' thành ' ' rồi tách từ
                         ascii_tok_sp = ascii_tok.replace("_", " ")
                         candidate_tokens.update(t for t in _TAG_SPLIT_RE.split(ascii_tok_sp) if t)
-                        # giá»¯ luÃ´n cá»¥m underscore (vd: 'cong_nghe_thong_tin')
+                        # giữ luôn cụm underscore (vd: 'cong_nghe_thong_tin')
                         if ascii_tok:
                             candidate_tokens.add(ascii_tok)
                 else:
                     raw = metas[i].get("tags") or ""
                     candidate_tokens = set(tokenize_tags(raw))
 
-                # chá»‰ nháº­n náº¿u share Ã­t nháº¥t 1 token vá»›i allowed_set
+                # chỉ nhận nếu share ít nhất 1 token với allowed_set
                 if allowed_set.isdisjoint(candidate_tokens):
                     dropped_by_tags += 1
                     continue
@@ -228,11 +228,11 @@ def main():
             if len(cand) >= args.topk:
                 break
 
-        # Náº¿u sau lá»c rá»—ng â†’ cáº£nh bÃ¡o rÃµ rÃ ng
+        # Nếu sau lọc rỗng → cảnh báo rõ ràng
         if not cand and allowed_set:
-            print("[WARN] KhÃ´ng cÃ³ káº¿t quáº£ sau khi lá»c allowed_tags.")
+            print("[WARN] Không có kết quả sau khi lọc allowed_tags.")
             if args.debug_tags:
-                # In vÃ i á»©ng viÃªn top-k trÆ°á»›c lá»c Ä‘á»ƒ xem tag cÃ³ gÃ¬
+                # In vài ứng viên top-k trước lọc để xem tag có gì
                 peek = list(zip(idxs[0][:10], sims[0][:10], strict=False))
                 print(f"[DEBUG] allowed_set = {sorted(allowed_set)}")
                 for j, (ii, sc) in enumerate(peek, 1):

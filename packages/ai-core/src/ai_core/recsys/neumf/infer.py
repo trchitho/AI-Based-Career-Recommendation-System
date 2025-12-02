@@ -19,7 +19,7 @@ def load_json(p: Path):
 
 
 def load_titles_from_item_feats(item_feats_path: Path) -> Dict[str, str]:
-    """Ưu tiên lấy title từ item_feats.json (mỗi item: {"title": "...", ...})."""
+    """Ưu tiên lấy title từ `item_feats.json` (mỗi item: {"title": "...", ...})."""
     titles: Dict[str, str] = {}
     if not item_feats_path.exists():
         return titles
@@ -32,7 +32,7 @@ def load_titles_from_item_feats(item_feats_path: Path) -> Dict[str, str]:
                 if t:
                     titles[str(jid)] = str(t)
     except Exception:
-        # không chặn pipeline nếu thiếu title
+        # không bắt buộc — nếu thiếu title thì bỏ qua
         pass
     return titles
 
@@ -62,7 +62,7 @@ def main():
     ap.add_argument("--item_feats", default="data/processed/item_feats.json")
     ap.add_argument("--user_id", required=True, help="User ID (string hoặc int; key trong user_feats.json)")
     ap.add_argument("--topk", type=int, default=20)
-    ap.add_argument("--candidates", nargs="*", help="Optional: list job_id (O*NET code) để chấm điểm")
+    ap.add_argument("--candidates", nargs="*", help="Tùy chọn: danh sách job_id (O*NET code) để chấm điểm")
     ap.add_argument(
         "--catalog_csv",
         default="data/catalog/jobs.csv",
@@ -95,7 +95,7 @@ def main():
     cand: List[str] = args.candidates or list(it.keys())
     cand = [j for j in cand if j in it]
     if not cand:
-        print("[WARN] item_feats rỗng hoặc candidates không khớp key item_feats.", flush=True)
+        print("[WARN] item_feats rỗng hoặc danh sách candidates không khớp key trong item_feats.", flush=True)
         print("[HINT] Kiểm tra định dạng job_id (O*NET code) và rebuild item_feats.", flush=True)
         return
 
@@ -117,7 +117,7 @@ def main():
 
     ranked = sorted(zip(cand, scores), key=lambda x: float(x[1]), reverse=True)[: args.topk]
 
-    # Title map: ưu tiên item_feats → fallback catalog CSV
+    # Title map: ưu tiên item_feats, fallback sang catalog CSV
     title_map = load_titles_from_item_feats(item_feats_path) or load_titles_from_catalog(catalog_path)
 
     if args.verbose:

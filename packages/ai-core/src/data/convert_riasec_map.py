@@ -9,14 +9,14 @@ from typing import Any
 
 
 def norm_title(s: str) -> str:
-    """Chuáº©n hoÃ¡ nháº¹ Ä‘á»ƒ khá»›p title tá»‘t hÆ¡n (khÃ´ng phÃ¡ vá»¡ meaning)."""
+    """Chuẩn hoá nhẹ để khớp title tốt hơn (không phá vỡ meaning)."""
     s = (s or "").strip()
     s = re.sub(r"\s+", " ", s)
     return s
 
 
 def load_title_to_id(jobs_csv: Path) -> dict[str, str]:
-    """Äá»c jobs.csv â†’ map title_en â†’ job_id (Æ°u tiÃªn cá»™t 'title_en', fallback 'title')."""
+    """Đọc jobs.csv → map title_en → job_id (ưu tiên cột 'title_en', fallback 'title')."""
     title2id: dict[str, str] = {}
     with jobs_csv.open("r", encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
@@ -29,7 +29,7 @@ def load_title_to_id(jobs_csv: Path) -> dict[str, str]:
 
 
 def vec_dict_to_list(v: Any) -> list[float]:
-    """Nháº­n vec dáº¡ng dict {R,I,A,S,E,C} hoáº·c list, tráº£ vá» list [R,I,A,S,E,C]."""
+    """Nhận vec dạng dict {R,I,A,S,E,C} hoặc list, trả về list [R,I,A,S,E,C]."""
     if isinstance(v, dict):
         return [
             float(v.get("R", 0.0)),
@@ -52,16 +52,16 @@ def convert(
     fuzzy_cutoff: float = 0.92,
 ) -> tuple[int, list[tuple[str, str]]]:
     """
-    Tráº£ vá» (sá»‘ lÆ°á»£ng ghi Ä‘Æ°á»£c, danh sÃ¡ch miss [(title, gá»£i_Ã½)]).
+    Trả về (số lượng ghi được, danh sách miss [(title, gợi ý)]).
 
-    - fuzzy=True: thá»­ dÃ¹ng difflib Ä‘á»ƒ gá»£i Ã½ khá»›p gáº§n nháº¥t khi khÃ´ng tÃ¬m Ä‘Æ°á»£c exact match.
-    - fuzzy_cutoff: ngÆ°á»¡ng tÆ°Æ¡ng tá»± (0..1), cÃ ng cao thÃ¬ cÃ ng kháº¯t khe.
+    - fuzzy=True: dùng difflib để gợi ý khớp gần nhất khi không tìm được exact match.
+    - fuzzy_cutoff: ngưỡng tương tự (0..1), càng cao thì càng khắt khe.
     """
     title2id = load_title_to_id(jobs_csv)
     if not title2id:
-        raise RuntimeError(f"No titleâ†’id mapping found from {jobs_csv}")
+        raise RuntimeError(f"No title→id mapping found from {jobs_csv}")
 
-    # Ä‘á»c map theo title
+    # Đọc map theo title
     in_obj = json.loads(map_in.read_text(encoding="utf-8"))
     out_obj: dict[str, list[float]] = {}
     misses: list[tuple[str, str]] = []
@@ -72,13 +72,13 @@ def convert(
         t = norm_title(str(raw_title))
         jid = title2id.get(t)
         if not jid and fuzzy:
-            # gá»£i Ã½ gáº§n nháº¥t
+            # Gợi ý gần nhất
             cand = difflib.get_close_matches(t, all_titles, n=1, cutoff=fuzzy_cutoff)
             if cand:
                 suggest = cand[0]
                 jid = title2id.get(suggest)
                 if jid:
-                    # ghi chÃº miss nhÆ°ng cÃ³ gá»£i Ã½
+                    # Ghi chú miss nhưng có gợi ý
                     misses.append((raw_title, f"~ {suggest} -> {jid}"))
         if not jid:
             misses.append((raw_title, "NOT FOUND"))
@@ -94,13 +94,13 @@ def convert(
 
 def main():
     ap = argparse.ArgumentParser(
-        description="Convert RIASEC map keyed by title â†’ map keyed by job_id."
+        description="Convert RIASEC map keyed by title → map keyed by job_id."
     )
     ap.add_argument(
         "--jobs_csv",
         type=Path,
         default=Path("data/catalog/jobs.csv"),
-        help="CSV cÃ³ cá»™t job_id & title_en (fallback title).",
+        help="CSV c ct job_id & title_en (fallback title).",
     )
     ap.add_argument(
         "--map_in",
@@ -117,13 +117,13 @@ def main():
     ap.add_argument(
         "--fuzzy",
         action="store_true",
-        help="Báº­t khá»›p gáº§n Ä‘Ãºng báº±ng difflib khi khÃ´ng tÃ¬m tháº¥y exact match.",
+        help="Bật khớp gần đúng bằng difflib khi không tìm thấy exact match.",
     )
     ap.add_argument(
         "--fuzzy_cutoff",
         type=float,
         default=0.92,
-        help="NgÆ°á»¡ng tÆ°Æ¡ng tá»± khi fuzzy-match (0..1). Máº·c Ä‘á»‹nh 0.92.",
+        help="Ngưỡng tương tự khi fuzzy-match (0..1). Mặc định 0.92.",
     )
     args = ap.parse_args()
 

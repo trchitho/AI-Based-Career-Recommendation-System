@@ -19,7 +19,7 @@ def load_cfg(ckpt_dir: Path):
     import yaml
 
     cfg = yaml.safe_load((Path("configs/nlp.yaml")).read_text(encoding="utf-8"))
-    # DÃ¹ng model_name tá»« file Ä‘á»ƒ Ä‘á»“ng bá»™ (phÃ²ng Ä‘á»•i config)
+    # Dùng model_name từ file để đồng bộ (phòng đổi config)
     model_name = (ckpt_dir / "tokenizer_name.txt").read_text(encoding="utf-8").strip()
     cfg["model_name"] = model_name
     return cfg
@@ -30,10 +30,10 @@ def encode_split(split_path: Path, model_name: str, max_length: int, batch_size:
     model = AutoModel.from_pretrained(model_name).to(device)
     model.eval()
 
-    # dataset chá»‰ cáº§n tokenizer; task khÃ´ng quan trá»ng á»Ÿ Ä‘Ã¢y, ta táº¡o nhÃ£n giáº£
+    # dataset chỉ cần tokenizer; task không quan trọng ở đây, ta tạo nhãn giả
     class PlainDataset(JsonlRegDataset):
         def __init__(self, path, tokenizer, max_length):
-            # dÃ¹ng task riasec cho há»£p lá»‡ mask/labels nhÆ°ng khÃ´ng dÃ¹ng
+            # dùng task RIASEC cho hợp lệ mask/labels nhưng không dùng
             super().__init__(path, tokenizer, "riasec", max_length)
 
         def __getitem__(self, i):
@@ -56,7 +56,7 @@ def encode_split(split_path: Path, model_name: str, max_length: int, batch_size:
 
 
 def main():
-    ckpt_dir = Path("models/riasec_phobert")  # hoáº·c big5_phobert, tuá»³ báº¡n muá»‘n dÃ¹ng backbone nÃ o
+    ckpt_dir = Path("models/riasec_phobert")  # hoặc big5_phobert, tuỳ bạn muốn dùng backbone nào
     cfg = load_cfg(ckpt_dir)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     out_dir = Path("data/embeddings")
@@ -70,7 +70,7 @@ def main():
     for name, p in splits.items():
         embs = encode_split(p, cfg["model_name"], cfg["max_length"], cfg["batch_size"], device)
         np.save(out_dir / f"{name}_embeddings.npy", embs)
-        # LÆ°u index (user_id, languageâ€¦) Ä‘á»ƒ tra ngÆ°á»£c
+        # Lưu index (user_id, language…) để tra ngược
         rows = [json.loads(line) for line in p.read_text(encoding="utf-8").splitlines()]
         index = [{"user_id": r["user_id"], "language": r["language"]} for r in rows]
         (out_dir / f"{name}_index.json").write_text(

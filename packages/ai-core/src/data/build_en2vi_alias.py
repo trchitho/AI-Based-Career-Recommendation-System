@@ -43,35 +43,35 @@ DEF_OPUS_MODEL = "Helsinki-NLP/opus-mt-en-vi"  # target via >>vie<< or forced_bo
 
 # A small, high-quality seed for skills
 CORE_SKILLS: dict[str, str] = {
-    "Active Listening": "Láº¯ng nghe tÃ­ch cá»±c",
-    "Speaking": "Giao tiáº¿p nÃ³i",
-    "Reading Comprehension": "Äá»c hiá»ƒu",
-    "Writing": "Viáº¿t",
-    "Critical Thinking": "TÆ° duy pháº£n biá»‡n",
-    "Complex Problem Solving": "Giáº£i quyáº¿t váº¥n Ä‘á» phá»©c táº¡p",
-    "Judgment and Decision Making": "PhÃ¡n Ä‘oÃ¡n & ra quyáº¿t Ä‘á»‹nh",
-    "Systems Analysis": "PhÃ¢n tÃ­ch há»‡ thá»‘ng",
-    "Systems Evaluation": "ÄÃ¡nh giÃ¡ há»‡ thá»‘ng",
-    "Monitoring": "GiÃ¡m sÃ¡t",
-    "Coordination": "Äiá»u phá»‘i",
-    "Negotiation": "ÄÃ m phÃ¡n",
-    "Social Perceptiveness": "Nháº¡y bÃ©n xÃ£ há»™i",
-    "Time Management": "Quáº£n lÃ½ thá»i gian",
-    "Service Orientation": "Äá»‹nh hÆ°á»›ng dá»‹ch vá»¥",
-    "Instructing": "HÆ°á»›ng dáº«n",
-    "Learning Strategies": "Chiáº¿n lÆ°á»£c há»c táº­p",
-    "Management of Personnel Resources": "Quáº£n lÃ½ nguá»“n nhÃ¢n lá»±c",
-    "Management of Financial Resources": "Quáº£n lÃ½ nguá»“n lá»±c tÃ i chÃ­nh",
-    "Management of Material Resources": "Quáº£n lÃ½ nguá»“n lá»±c váº­t cháº¥t",
-    "Operations Analysis": "PhÃ¢n tÃ­ch váº­n hÃ nh",
-    "Mathematics": "ToÃ¡n há»c",
-    "Programming": "Láº­p trÃ¬nh",
-    "Quality Control Analysis": "PhÃ¢n tÃ­ch kiá»ƒm soÃ¡t cháº¥t lÆ°á»£ng",
-    "Operation Monitoring": "GiÃ¡m sÃ¡t váº­n hÃ nh",
-    "Operation and Control": "Váº­n hÃ nh & Ä‘iá»u khiá»ƒn",
-    "Troubleshooting": "Kháº¯c phá»¥c sá»± cá»‘",
-    "Equipment Maintenance": "Báº£o trÃ¬ thiáº¿t bá»‹",
-    "Equipment Selection": "Lá»±a chá»n thiáº¿t bá»‹",
+    "Active Listening": "Lắng nghe tích cực",
+    "Speaking": "Giao tiếp nói",
+    "Reading Comprehension": "Đọc hiểu",
+    "Writing": "Viết",
+    "Critical Thinking": "Tư duy phản biện",
+    "Complex Problem Solving": "Giải quyết vấn đề phức tạp",
+    "Judgment and Decision Making": "Phán đoán & ra quyết định",
+    "Systems Analysis": "Phân tích hệ thống",
+    "Systems Evaluation": "Đánh giá hệ thống",
+    "Monitoring": "Giám sát",
+    "Coordination": "Điều phối",
+    "Negotiation": "Đàm phán",
+    "Social Perceptiveness": "Nhạy bén xã hội",
+    "Time Management": "Quản lý thời gian",
+    "Service Orientation": "Định hướng dịch vụ",
+    "Instructing": "Hướng dẫn",
+    "Learning Strategies": "Chiến lược học tập",
+    "Management of Personnel Resources": "Quản lý nguồn nhân lực",
+    "Management of Financial Resources": "Quản lý nguồn lực tài chính",
+    "Management of Material Resources": "Quản lý nguồn lực vật chất",
+    "Operations Analysis": "Phân tích vận hành",
+    "Mathematics": "Toán học",
+    "Programming": "Lập trình",
+    "Quality Control Analysis": "Phân tích kiểm soát chất lượng",
+    "Operation Monitoring": "Giám sát vận hành",
+    "Operation and Control": "Vận hành & điều khiển",
+    "Troubleshooting": "Khắc phục sự cố",
+    "Equipment Maintenance": "Bảo trì thiết bị",
+    "Equipment Selection": "Lựa chọn thiết bị",
 }
 
 
@@ -158,7 +158,7 @@ def load_existing(out_path: Path) -> dict[str, str]:
 
 
 # ---------------- Sanity check ----------------
-_VI_CHARS = "Äƒáº±áº¯áº³áºµáº·Ã¢áº§áº¥áº©áº«áº­Ä‘Ãªá»áº¿á»ƒá»…á»‡Ã´á»“á»‘á»•á»—á»™Æ¡á»á»›á»Ÿá»¡á»£Æ°á»«á»©á»­á»¯á»±Ã¡Ã áº£Ã£áº¡Ã©Ã¨áº»áº½áº¹Ã­Ã¬á»‰Ä©á»‹Ã³Ã²á»Ãµá»ÃºÃ¹á»§Å©á»¥Ã½á»³á»·á»¹á»µ"
+_VI_CHARS = ""
 
 
 def looks_suspicious_vi(s: str) -> bool:
@@ -383,10 +383,10 @@ def main():
                 continue
         missing_skills.append(s)
 
-    # ------ MERGE (Ä‘Ãºng thá»© tá»± Æ°u tiÃªn) ------
-    merged: dict[str, str] = dict(en2vi_existing)  # giá»¯ báº£n dá»‹ch thá»§ cÃ´ng trÆ°á»›c
-    merged.update(out_pairs)  # thÃªm cÃ¡c báº£n dá»‹ch má»›i (titles + skills MT/CORE)
-    # luÃ´n Ä‘áº£m báº£o CORE_SKILLS cÃ³ máº·t (nhÆ°ng KHÃ”NG ghi Ä‘Ã¨ náº¿u Ä‘Ã£ cÃ³)
+    # ------ MERGE (theo thứ tự ưu tiên) ------
+    merged: dict[str, str] = dict(en2vi_existing)  # giữ bản dịch thủ công trước
+    merged.update(out_pairs)  # thêm các bản dịch mới (titles + skills MT/CORE)
+    # luôn đảm bảo CORE_SKILLS có mặt (nhưng KHÔNG ghi đè nếu đã có)
     for en, vi in CORE_SKILLS.items():
         if en not in merged:
             merged[en] = vi
@@ -398,7 +398,7 @@ def main():
         f"[OK] EN->VI glossary written: {args.out_en2vi} (total={len(merged)}, added_now={len(out_pairs)})"
     )
 
-    # report missing skills (Ä‘á»ƒ báº¡n bá»• sung tay dáº§n)
+    # report missing skills (để bạn bổ sung tay dần)
     if missing_skills:
         DEF_MISSING.parent.mkdir(parents=True, exist_ok=True)
         DEF_MISSING.write_text(

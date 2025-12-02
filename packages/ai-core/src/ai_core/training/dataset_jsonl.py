@@ -33,7 +33,7 @@ class JsonlRegDataset(Dataset):
         y = []
         m = []
         if label_dict is None:
-            # KhÃ´ng cÃ³ nhÃ£n -> mask 0 háº¿t
+            # Không có nhãn -> mask 0 hết
             for _ in dims:
                 y.append(0.0)
                 m.append(0.0)

@@ -43,9 +43,9 @@ def main():
     import argparse
 
     ap = argparse.ArgumentParser()
-    ap.add_argument("--overwrite", action="store_true", help="Ghi Ä‘Ã¨ vÃ o jobs_vi.csv")
+    ap.add_argument("--overwrite", action="store_true", help="Ghi đè vào jobs_vi.csv")
     ap.add_argument(
-        "--fallback_text", action="store_true", help="Text matching khi khÃ´ng map O*NET"
+        "--fallback_text", action="store_true", help="Text matching khi không map O*NET"
     )
     args = ap.parse_args()
 
@@ -56,10 +56,10 @@ def main():
     vocab = load_json_or_empty(VOCAB_PATH)
     trans = load_json_or_empty(TRANS_PATH)
 
-    # READ: force comma CSV (bá» sniff Ä‘á»ƒ trÃ¡nh hiá»ƒu nháº§m delimiter = space)
+    # READ: force comma CSV (bỏ sniff để tránh hiểu nhầm delimiter = space)
     with JOBS_IN.open(encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f, delimiter=",", quotechar='"', skipinitialspace=True)
-        # Ã‰p Ä‘Ãºng header mong Ä‘á»£i: náº¿u thiáº¿u cá»™t nÃ o thÃ¬ thÃªm sau
+        # Áp dụng header mong đợi: nếu thiếu cột nào thì thêm sau
         rows = [norm_row_keys(r) for r in reader]
 
     # Ghi file

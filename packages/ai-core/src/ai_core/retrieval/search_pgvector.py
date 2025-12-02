@@ -50,18 +50,18 @@ def encode_queries(
 
 # ---------- Query expansion (VI) ----------
 def expand_query_vi(q: str) -> str:
-    """ThÃªm Ã­t tá»« khÃ³a ká»¹ nÄƒng phá»• biáº¿n Ä‘á»ƒ tÄƒng recall nhÆ°ng khÃ´ng lÃ m lá»‡ch Ã½ gá»‘c."""
+    """Thêm ít từ khoá kỹ năng phổ biến để tăng recall nhưng không làm lệch ý gốc."""
     q_low = q.lower()
     extra = []
-    if "trá»±c quan hÃ³a" in q_low or "truc quan hoa" in q_low:
+    if "trực quan hoá" in q_low or "truc quan hoa" in q_low:
         extra += ["BI", "dashboard", "PowerBI", "Tableau"]
-    if "khoa há»c dá»¯ liá»‡u" in q_low or "khoa hoc du lieu" in q_low:
+    if "khoa học dữ liệu" in q_low or "khoa hoc du lieu" in q_low:
         extra += ["data science", "ML", "machine learning"]
-    if "cÆ¡ sá»Ÿ dá»¯ liá»‡u" in q_low or "co so du lieu" in q_low or "sql" in q_low:
+    if "cơ sở dữ liệu" in q_low or "co so du lieu" in q_low or "sql" in q_low:
         extra += ["database", "ETL"]
-    if "an ninh thÃ´ng tin" in q_low or "security" in q_low or "infosec" in q_low:
+    if "an ninh thông tin" in q_low or "security" in q_low or "infosec" in q_low:
         extra += ["infosec", "pentest"]
-    if "quáº£n trá»‹ há»‡ thá»‘ng" in q_low or "sysadmin" in q_low or "devops" in q_low:
+    if "quản trị hệ thống" in q_low or "sysadmin" in q_low or "devops" in q_low:
         extra += ["linux", "automation"]
     if extra:
         q = f"{q} " + " ".join(extra)
@@ -85,32 +85,32 @@ def get_db_url(cli_db_url: str | None) -> str:
 # ---------- Main ----------
 def main():
     ap = argparse.ArgumentParser("Search with pgvector (cosine + tag/SOC filters + hybrid score)")
-    # nguá»“n DB
+    # nguồn DB
     ap.add_argument("--db_url", default=None, help="Override DATABASE_URL (optional)")
     ap.add_argument("--table", default="retrieval_jobs_visbert")
 
-    # tham sá»‘ tÃ¬m kiáº¿m
+    # tham số tìm kiếm
     ap.add_argument("--topk", type=int, default=10)
     ap.add_argument(
-        "--fetch_k", type=int, default=None, help="Overfetch trÆ°á»›c lá»c; máº·c Ä‘á»‹nh max(topk*5, 100)"
+        "--fetch_k", type=int, default=None, help="Overfetch trước lọc; mặc định max(topk*5, 100)"
     )
     ap.add_argument("--probes", type=int, default=10, help="ivfflat.probes")
 
-    # nguá»“n truy váº¥n
+    # nguồn truy vấn
     ap.add_argument("--query_text", nargs="*", default=None)
     ap.add_argument("--query_vector", default=None)
-    ap.add_argument("--model", default="models/vi_sbert", help="folder chá»©a tokenizer_name.txt")
+    ap.add_argument("--model", default="models/vi_sbert", help="folder chứa tokenizer_name.txt")
     ap.add_argument("--max_length", type=int, default=256)
     ap.add_argument("--no_norm", action="store_true")
 
-    # lá»c domain
+    # lọc domain
     ap.add_argument(
         "--allowed_tokens", nargs="*", default=None, help="VD: cong_nghe_thong_tin du_lieu ml bi"
     )
     ap.add_argument(
-        "--soc_prefix", default="", help="VD: 15- cho Computer & Mathematical; rá»—ng Ä‘á»ƒ bá» qua"
+        "--soc_prefix", default="", help="VD: 15- cho Computer & Mathematical; rỗng để bỏ qua"
     )
-    ap.add_argument("--min_match", type=int, default=0, help="YÃªu cáº§u tá»‘i thiá»ƒu sá»‘ tag trÃ¹ng")
+    ap.add_argument("--min_match", type=int, default=0, help="Yêu cầu tối thiểu số tag trùng")
 
     # hybrid score
     ap.add_argument("--alpha", type=float, default=0.75)
@@ -118,13 +118,13 @@ def main():
     ap.add_argument("--gamma", type=float, default=0.10)
     ap.add_argument("--user_riasec", nargs="*", type=float, default=None, help="6 sá»‘ [R,I,A,S,E,C]")
     ap.add_argument(
-        "--min_score", type=float, default=None, help="NgÆ°á»¡ng final_score; bá» qua náº¿u khÃ´ng Ä‘áº·t"
+        "--min_score", type=float, default=None, help="Ngưỡng final_score; bỏ qua nếu không đạt"
     )
 
     args = ap.parse_args()
     db_url = get_db_url(args.db_url)
 
-    # chuáº©n bá»‹ vector truy váº¥n
+    # chuẩn bị vector truy vấn
     if args.query_text:
         texts = [expand_query_vi(t) for t in args.query_text]
         Q = encode_queries(
@@ -137,11 +137,11 @@ def main():
         if not args.no_norm:
             Q = (Q / np.linalg.norm(Q, axis=1, keepdims=True)).astype("float32")
     else:
-        raise SystemExit("Cáº§n --query_text (kÃ¨m --model) hoáº·c --query_vector")
+        raise SystemExit("Cần --query_text (kèm --model) hoặc --query_vector")
 
     fetch_k = args.fetch_k if (args.fetch_k and args.fetch_k > 0) else max(args.topk * 5, 100)
     user_r = args.user_riasec if (args.user_riasec and len(args.user_riasec) == 6) else None
-    # náº¿u khÃ´ng cÃ³ vector ngÆ°á»i dÃ¹ng thÃ¬ táº¯t gamma
+    # nếu không có vector người dùng thì tắt gamma
     gamma = args.gamma if user_r is not None else 0.0
 
     qlit = to_pgvector_literal(Q[0])
@@ -151,7 +151,7 @@ def main():
 
         t0 = time.perf_counter()
 
-        # ---- CTE: láº¥y candidates theo cosine, rá»“i lá»c, cá»™ng Ä‘iá»ƒm hybrid ----
+        # ---- CTE: lấy candidates theo cosine, rồi lọc, cộng điểm hybrid ----
         if (
             args.allowed_tokens
             or args.soc_prefix
@@ -159,7 +159,7 @@ def main():
             or gamma > 0.0
             or args.beta > 0.0
         ):
-            # Truy váº¥n cÃ³ hybrid score (alpha/beta/gamma) + lá»c SOC, tag, min_match
+            # Truy vấn có hybrid score (alpha/beta/gamma) + lọc SOC, tag, min_match
             sql = f"""
             WITH cand AS (
               SELECT job_id, title, tag_tokens, riasec_centroid,
@@ -250,7 +250,7 @@ def main():
                 )
 
         else:
-            # Truy váº¥n cÆ¡ báº£n (chá»‰ cosine)
+            # Truy vấn cơ bản (chỉ cosine)
             sql = f"""
             SELECT job_id, title, (embedding <=> %s::vector) AS dist
             FROM {args.table}

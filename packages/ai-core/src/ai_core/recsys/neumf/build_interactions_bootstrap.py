@@ -18,7 +18,7 @@ JOIN ai.career_embeddings ce ON ce.career_id = c.id;
 
 
 def vec(v):
-    # Há»— trá»£ nhiá»u dáº¡ng: list/tuple/ndarray/bytes/str tá»« pgvector
+    # Hỗ trợ nhiều dạng: list/tuple/ndarray/bytes/str từ pgvector
     import numpy as np
 
     if v is None:
@@ -27,7 +27,7 @@ def vec(v):
         return [float(x) for x in v]
     if isinstance(v, (bytes, bytearray)):
         v = v.decode("utf-8", errors="ignore")
-    s = str(v).strip().strip("()[]{}")  # bÃ³c dáº¥u [](){} náº¿u stringify
+    s = str(v).strip().strip("()[]{}")  # bỏ được [](){} nếu stringify
     if not s:
         return []
     parts = [p.strip() for p in s.replace("\n", "").split(",") if p.strip() != ""]
@@ -45,8 +45,8 @@ def cosine(a, b):
 def main():
     ap = argparse.ArgumentParser(description="Bootstrap interactions (job_id = onet_code)")
     ap.add_argument("--db", required=True, help="Postgres URL")
-    ap.add_argument("--topn", type=int, default=5, help="positives per user")
-    ap.add_argument("--neg_per_pos", type=int, default=4, help="negatives per positive")
+    ap.add_argument("--topn", type=int, default=5, help="số positives cho mỗi user")
+    ap.add_argument("--neg_per_pos", type=int, default=4, help="số negatives cho mỗi positive")
     ap.add_argument("--out", default="ai-core/data/processed/interactions.csv")
     args = ap.parse_args()
 
@@ -72,7 +72,7 @@ def main():
     header = ("user_id", "job_id", "label", "ts")
     data_rows = []
 
-    # 2) Build positives (Top-N cosine) + negatives (random tá»« pháº§n cÃ²n láº¡i)
+    # 2) Build positives (Top-N cosine) + negatives (random từ phần còn lại)
     for uid, uemb in users:
         scored = [(iid, cosine(uemb, iemb)) for iid, iemb in items]
         scored.sort(key=lambda x: x[1], reverse=True)
@@ -82,14 +82,14 @@ def main():
         for iid in pos_ids:
             data_rows.append((uid, iid, 1, now))
 
-        # negatives (khÃ´ng trÃ¹ng positives)
+        # negatives (không trùng positives)
         neg_pool = [iid for iid, _ in scored[args.topn :]]
         random.shuffle(neg_pool)
         neg_need = args.topn * args.neg_per_pos
         for iid in neg_pool[:neg_need]:
             data_rows.append((uid, iid, 0, now))
 
-    # 3) Sáº¯p xáº¿p á»•n Ä‘á»‹nh: positives trÆ°á»›c, negatives sau; má»—i nhÃ³m tÄƒng dáº§n theo (user_id, job_id)
+    # 3) Sắp xếp nhóm: positives trước, negatives sau; mỗi nhóm tăng dần theo (user_id, job_id)
     positives = [r for r in data_rows if r[2] == 1]
     negatives = [r for r in data_rows if r[2] == 0]
     positives.sort(key=lambda x: (x[0], x[1]))  # (user_id asc, job_id asc)
@@ -104,7 +104,7 @@ def main():
         w = csv.writer(f)
         w.writerows(rows)
 
-    print(f"[OK] interactions â†’ {out_path} (users={len(users)}, items={len(items)})")
+    print(f"[OK] interactions → {out_path} (users={len(users)}, items={len(items)})")
 
 
 if __name__ == "__main__":

@@ -8,26 +8,26 @@ from collections import defaultdict
 from pathlib import Path
 
 SOC_MAJOR_TO_DOMAIN_VI = {
-    "11": "Quáº£n lÃ½",
-    "13": "Kinh doanh/TÃ i chÃ­nh",
-    "15": "CNTT/Dá»¯ liá»‡u",
-    "17": "Ká»¹ sÆ°",
-    "19": "Khoa há»c tá»± nhiÃªn",
-    "21": "XÃ£ há»™i há»c/TÆ° váº¥n",
-    "25": "GiÃ¡o dá»¥c/ÄÃ o táº¡o",
-    "27": "Nghá»‡ thuáº­t/Thiáº¿t káº¿",
-    "29": "Y táº¿",
-    "31": "ChÄƒm sÃ³c sá»©c khoáº» há»— trá»£",
-    "33": "An ninh/Cá»©u hoáº£",
-    "35": "Dá»‹ch vá»¥ Äƒn uá»‘ng",
-    "37": "Dá»n dáº¹p/Báº£o trÃ¬",
-    "39": "Dá»‹ch vá»¥ cÃ¡ nhÃ¢n",
-    "41": "BÃ¡n hÃ ng",
-    "43": "HÃ nh chÃ­nh/VÄƒn phÃ²ng",
-    "47": "XÃ¢y dá»±ng",
-    "49": "Sá»­a chá»¯a/Láº¯p Ä‘áº·t",
-    "51": "Sáº£n xuáº¥t",
-    "53": "Váº­n táº£i/Kho váº­n",
+    "11": "Quản lý",
+    "13": "Kinh doanh/Tài chính",
+    "15": "CNTT/Dữ liệu",
+    "17": "Kỹ sư",
+    "19": "Khoa học tự nhiên",
+    "21": "Xã hội học/Tư vấn",
+    "25": "Giáo dục/Đào tạo",
+    "27": "Nghệ thuật/Thiết kế",
+    "29": "Y tế",
+    "31": "Chăm sóc sức khỏe hỗ trợ",
+    "33": "An ninh/Cứu hoả",
+    "35": "Dịch vụ ăn uống",
+    "37": "Dọn dẹp/Bảo trì",
+    "39": "Dịch vụ cá nhân",
+    "41": "Bán hàng",
+    "43": "Hành chính/Văn phòng",
+    "47": "Xây dựng",
+    "49": "Sửa chữa/Lắp đặt",
+    "51": "Sản xuất",
+    "53": "Vận tải/Kho vận",
 }
 
 COL_SOC = ["o*net-soc code", "onet-soc code", "o*net-soc", "o*net soc code"]
@@ -163,12 +163,12 @@ def main():
 
     p = Path(args.skills_path)
     if not p.exists():
-        print(f"[ERR] KhÃ´ng tháº¥y file: {p}")
+        print(f"[ERR] Không thấy file: {p}")
         sys.exit(1)
 
     rows = load_onet_skills(p)
     if not rows:
-        print("[ERR] File rá»—ng/khÃ´ng parse Ä‘Æ°á»£c.")
+        print("[ERR] File rỗng/không parse được.")
         sys.exit(1)
 
     scan_scales(rows)
@@ -177,14 +177,14 @@ def main():
         rows, args.imp_threshold, args.topn, accept, not args.no_scale_guard
     )
     if not soc2skills:
-        print("[WARN] KhÃ´ng rÃºt Ä‘Æ°á»£c ká»¹ nÄƒng nÃ o. Thá»­ --imp_threshold 2.5 hoáº·c --no_scale_guard.")
+        print("[WARN] Không rút được kỹ năng nào. Thử --imp_threshold 2.5 hoặc --no_scale_guard.")
         sys.exit(1)
 
     onet_tags = {}
     for soc, skills in soc2skills.items():
         soc_std = clean_soc(soc)
         major = soc_std.split("-")[0]
-        domain_vi = SOC_MAJOR_TO_DOMAIN_VI.get(major, "KhÃ¡c")
+        domain_vi = SOC_MAJOR_TO_DOMAIN_VI.get(major, "Khác")
         onet_tags[soc_std] = {"domain_vi": domain_vi, "skills_en": sorted(set(skills))}
 
     outp = Path(args.out)

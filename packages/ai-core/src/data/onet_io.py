@@ -10,17 +10,17 @@ ONET_DIR = "data/raw/onet"
 
 def read_onet_tsv(name: str) -> pd.DataFrame:
     path = os.path.join(ONET_DIR, name)
-    # TSV vá»›i dtype=str, giá»¯ nguyÃªn ná»™i dung
+    # TSV với dtype=str, giữ nguyên nội dung
     return pd.read_csv(path, sep="\t", dtype=str, quoting=3, encoding="utf-8", na_filter=False)
 
 
 def load_onet_core() -> pd.DataFrame:
     """
-    Occupation Data.txt â†’ cá»™t chÃ­nh:
+        Occupation Data.txt — cột chính:
       - job_id (O*NET-SOC Code)
       - title
       - Description
-      - title_norm (dÃ nh cho matching)
+      - title_norm (dành cho matching)
     """
     occ = read_onet_tsv("Occupation Data.txt")
     cols = {c.lower().strip(): c for c in occ.columns}
@@ -33,7 +33,7 @@ def load_onet_core() -> pd.DataFrame:
     )
     core["job_id"] = core["job_id"].astype(str).str.strip()
     core = core.drop_duplicates(subset=["job_id"])
-    # normalize á»Ÿ build_jobs_catalog qua matchers.normalize_title
+    # Normalize ở build_jobs_catalog qua matchers.normalize_title
     core["title_norm"] = (
         core["title"]
         .str.lower()
@@ -47,8 +47,8 @@ def load_onet_core() -> pd.DataFrame:
 
 def load_onet_riasec() -> pd.DataFrame:
     """
-    Interests.txt â†’ pivot 6 cá»™t R,I,A,S,E,C trong [0..1].
-    Æ¯u tiÃªn Scale ID = OI, fallback IH náº¿u khÃ´ng cÃ³ OI.
+    Interests.txt → pivot 6 cột R, I, A, S, E, C trong [0..1].
+    Ưu tiên Scale ID = OI, fallback IH nếu không có OI.
     """
     inter = read_onet_tsv("Interests.txt")
     cols = {c.lower().strip(): c for c in inter.columns}
@@ -114,18 +114,18 @@ def load_onet_skills(topn=15, min_importance=50):
 
     df = skills[[code, elname, scale, val]].copy()
 
-    # Chuáº©n hÃ³a sá»‘ (náº¿u cÃ³ dáº¥u pháº©y tháº­p phÃ¢n)
+    # Chuẩn hóa số (nếu có dấu phẩy thập phân)
     df[val] = df[val].astype(str).str.replace(",", ".", regex=False)
     df[val] = pd.to_numeric(df[val], errors="coerce").fillna(0.0)
 
-    # Lá»c Ä‘Ãºng thang Importance (IM) â€” CHÃš Ã thÃªm .strip()
+    # Lọc đúng thang Importance (IM) — chú ý thêm .strip()
     df[scale] = df[scale].astype(str).str.strip().str.upper()
     df = df[df[scale] == "IM"]
 
-    # NgÆ°á»¡ng min_importance (vá»›i IM thÆ°á»ng lÃ  thang 0..5; báº¡n Ä‘ang truyá»n 0 nÃªn OK)
+    # Ngưỡng min_importance (với IM thường là thang 0..5; bạn đang truyền 0 nên OK)
     df = df[df[val] >= float(min_importance)]
 
-    # Láº¥y top-N theo giÃ¡ trá»‹ quan trá»ng nháº¥t
+    # Lấy top-N theo giá trị quan trọng nhất
     df["rank"] = df.groupby(code)[val].rank(method="first", ascending=False)
     df = df[df["rank"] <= topn]
 
@@ -136,6 +136,6 @@ def load_onet_skills(topn=15, min_importance=50):
         .rename(columns={code: "job_id", elname: "skills_onet"})
     )
 
-    # chuáº©n hÃ³a job_id
+    # Chuẩn hóa job_id
     agg["job_id"] = agg["job_id"].astype(str).str.strip()
     return agg

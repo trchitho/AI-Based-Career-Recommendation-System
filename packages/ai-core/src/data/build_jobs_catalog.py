@@ -24,7 +24,7 @@ def main():
         "--max_fuzzy_candidates",
         type=int,
         default=300,
-        help="Giới hạn ứng viên fuzzy sau bước blocking (để nhanh và ổn định)",
+        help="Giới hạn ứng viên fuzzy sau bước blocking (nhanh và nhẹ)",
     )
     parser.add_argument(
         "--exact_only",
@@ -51,7 +51,7 @@ def main():
     onet = core.merge(riasec, on="job_id", how="left").merge(onet_sk, on="job_id", how="left")
     onet["job_id"] = onet["job_id"].astype(str).str.strip()
 
-    # Chuẩn hoá 6 cột RIASEC để không có NaN và nằm trong [0..1]
+    # Chuẩn hoá 6 cột RIASEC, không có NaN và nằm trong [0..1]
     dims = ["R", "I", "A", "S", "E", "C"]
     for d in dims:
         if d not in onet.columns:
@@ -90,17 +90,17 @@ def main():
             max_candidates=args.max_fuzzy_candidates,
         )
 
-    # Chuáº©n bá»‹ tra cá»©u nhanh: title_norm -> occupation URI
+    # Chuẩn bị tra cứu nhanh: title_norm -> occupation URI
     esco_title_norm_to_uri = dict(zip(esco_occ["title_norm"], esco_occ[occ_uri_col], strict=False))
 
-    # (Tiá»‡n lá»£i) Táº¡o index theo occupation URI Ä‘á»ƒ láº¥y dÃ²ng ESCO nhanh khi gáº¯n ISCO
+    # (Tiện lợi) Tạo index theo occupation URI để lấy dòng ESCO nhanh khi gắn ISCO
     occ_by_uri = esco_occ.set_index(occ_uri_col, drop=False)
 
-    # Náº¡p cÃ¢y ISCO (náº¿u báº­t cá»): tráº£ vá» {"by_uri": {...}, "by_notation": {...}}
+    # Nạp cây ISCO (nếu bật cờ): trả về {"by_uri": {...}, "by_notation": {...}}
     isco_tree = load_isco_tree() if args.add_isco_tags else None
 
     # -------------------------------------------------------------
-    # 3) GhÃ©p ká»¹ nÄƒng tá»« ESCO + Gáº¯n ISCO tags (náº¿u cÃ³ dá»¯ liá»‡u)
+    # 3) Ghép kỹ năng từ ESCO + Gắn ISCO tags (nếu có dữ liệu)
     # -------------------------------------------------------------
     skills_ess, skills_opt, tags = [], [], []
 
@@ -110,11 +110,11 @@ def main():
         occ_uri_val = esco_title_norm_to_uri.get(norm) if norm else None
 
         if occ_uri_val:
-            # Ká»¹ nÄƒng
+            # Kỹ năng
             en = essential_map.get(occ_uri_val, [])
             op = optional_map.get(occ_uri_val, [])
 
-            # ------ ISCO tags (an toÃ n) ------
+            # ------ ISCO tags (an toàn) ------
             if isco_tree is not None:
                 tg = []
                 if isco_tree is not None:
@@ -126,12 +126,12 @@ def main():
                         and (isco_col in occ_by_uri.columns)
                     ):
                         cell = occ_by_uri.loc[occ_uri_val, isco_col]
-                        # cell cÃ³ thá»ƒ lÃ  Series náº¿u index khÃ´ng unique â†’ láº¥y giÃ¡ trá»‹ Ä‘áº§u
+                        # cell có thể là Series nếu index không unique → lấy giá trị đầu
                         if isinstance(cell, pd.Series):
                             cell = cell.iloc[0]
                         isco_value = str(cell).strip() if pd.notna(cell) else None
 
-                    # Æ¯u tiÃªn gáº¯n theo mÃ£ (code) trong CSV; náº¿u khÃ´ng cÃ³ thÃ¬ fallback leo tá»« chÃ­nh occupation URI
+                    # Ưu tiên gắn theo mã (code) trong CSV; nếu không có thì fallback leo từ chính occupation URI
                     tg = build_isco_tags_from_value(isco_value, isco_tree) if isco_value else []
                     if not tg and occ_uri_val:
                         tg = build_isco_tags_from_value(occ_uri_val, isco_tree)
@@ -146,8 +146,8 @@ def main():
     onet["skills_esco_optional"] = skills_opt
     onet["tags"] = tags
 
-    # --- Fallback: nghá» .xx mÆ°á»£n ká»¹ nÄƒng tá»« nghá» gá»‘c .00 náº¿u thiáº¿u ---
-    # Táº¡o map base_code -> skills_onet tá»« báº£ng onet_sk gá»‘c
+    # --- Fallback: nghề .xx mượn kỹ năng từ nghề gốc .00 nếu thiếu ---
+    # Tạo map base_code -> skills_onet từ bảng onet_sk gốc
     def _base_code(s: str) -> str:
         s = str(s or "").strip()
         return s.split(".")[0] if "." in s else s
@@ -159,7 +159,7 @@ def main():
         .to_dict()
     )
 
-    # Náº¿u skills_onet hiá»‡n khÃ´ng pháº£i list (NaN/None/""), mÆ°á»£n tá»« base
+    # Nếu skills_onet hiện không phải list (NaN/None/""), mượn từ base
     def _borrow_if_missing(job_id, val):
         if isinstance(val, list) and len(val) > 0:
             return val
@@ -171,13 +171,13 @@ def main():
     ]
 
     # -------------------------------------------------------------
-    # 4) Há»£p nháº¥t skills: ESCO essential -> O*NET -> ESCO optional
+    # 4) Hợp nhất skills: ESCO essential -> O*NET -> ESCO optional
     # -------------------------------------------------------------
     def merge_skills(row):
         s = []
 
         def add_unique(xs):
-            # xs cÃ³ thá»ƒ lÃ  list / NaN / str (JSON list) -> chuáº©n hoÃ¡ vá» list rá»“i thÃªm khÃ´ng trÃ¹ng
+            # xs có thể là list / NaN / str (JSON list) -> chuẩn hoá về list rồi thêm không trùng
             if isinstance(xs, list):
                 it = xs
             elif pd.isna(xs):
@@ -202,7 +202,7 @@ def main():
     onet["skills"] = onet.apply(merge_skills, axis=1)
 
     # -------------------------------------------------------------
-    # 5) RIASEC vector 6 chiá»u (JSON), xuáº¥t CSV
+    # 5) RIASEC vector 6 chiều (JSON), xuất CSV
     # -------------------------------------------------------------
     def to_vec(row):
         vals = [float(row[d]) for d in dims]
@@ -210,13 +210,13 @@ def main():
 
     onet["riasec_vector"] = onet.apply(to_vec, axis=1)
 
-    # Chuáº©n hoÃ¡ tÃªn cá»™t mÃ´ táº£ vÃ  chá»n cá»™t xuáº¥t
+    # Chuẩn hoá tên cột mô tả và chọn cột xuất
     onet = onet.rename(columns={"Description": "description"})
     out = onet[["job_id", "title", "description", "skills", "riasec_vector"]].copy()
 
-    # skills: join ; Ä‘á»ƒ CSV-friendly. tags: giá»¯ list JSON Ä‘á»ƒ dá»… parse ngÆ°á»£c (tuá»³ báº¡n)
+    # skills: join ; để CSV-friendly. tags: giữ list JSON để dễ parse ngược (tuỳ bạn)
     out["skills"] = out["skills"].apply(lambda xs: ";".join(xs))
-    # Náº¿u muá»‘n join tags luÃ´n: báº­t dÃ²ng dÆ°á»›i
+    # Nếu muốn join tags luôn: bật dòng dưới
     # out["tags"] = out["tags"].apply(lambda xs: ";".join(xs))
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)

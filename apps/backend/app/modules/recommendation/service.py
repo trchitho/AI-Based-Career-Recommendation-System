@@ -1,46 +1,90 @@
 from __future__ import annotations
 
-from typing import List, Sequence
-from ai_core.recsys.neumf.infer import Ranker
-from app.core.db import pool
+from typing import List, Dict, Any
 
-# Lấy Top-N ứng viên từ pgvector bằng L2 order; log cosine để debug/giải thích
-SQL_RETRIEVE = """
-SELECT c.id::text AS career_id, c.title_vi, q.score
-FROM (
-   SELECT r.job_id,
-          1 - (r.emb <=> %s) AS score,   -- cosine similarity (để log)
-          row_number() OVER (ORDER BY r.emb <-> %s) AS rnk
-   FROM ai.retrieval_jobs_visbert r
-) q
-JOIN core.careers c ON c.onet_code = q.job_id
-WHERE q.rnk <= %s;
-"""
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 
 class RecService:
-    def __init__(
+    """
+    MVP: dùng SQL trực tiếp trên core.careers.
+    Không còn phụ thuộc ai_core / NeuMF để tránh ImportError.
+    """
+
+    def generate_for_user(
         self,
-        model_path: str = "packages/ai-core/models/recsys_mlp/best.pt",
-        user_feats: str = "packages/ai-core/data/processed/user_feats.json",
-        item_feats: str = "packages/ai-core/data/processed/item_feats.json",
-    ) -> None:
-        self.ranker = Ranker(model_path=model_path, user_feats=user_feats, item_feats=item_feats)
+        session: Session,
+        user_id: str | None = None,
+        topk: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Gợi ý đơn giản: lấy top nghề từ core.careers theo id tăng dần.
+        Sau này thay bằng NeuMF/Bandit.
+        """
+        sql = text(
+            """
+            SELECT id,
+                   onet_code,
+                   title_vi,
+                   short_desc_vn
+            FROM core.careers
+            ORDER BY id
+            LIMIT :k
+            """
+        )
+        rows = session.execute(sql, {"k": topk}).mappings().all()
 
-    def retrieve_candidates(self, query_vec: Sequence[float], topn: int = 50) -> list[dict]:
-        if not isinstance(query_vec, (list, tuple)) or len(query_vec) != 768:
-            raise ValueError("query_emb must be a 768-dim vector")
-        if not (1 <= topn <= 200):
-            raise ValueError("topn must be in [1..200]")
+        results: List[Dict[str, Any]] = []
+        for r in rows:
+            results.append(
+                {
+                    "career_id": r["onet_code"] or str(r["id"]),
+                    "title_vi": r["title_vi"],
+                    "short_desc_vi": r["short_desc_vn"],  # map về field FE đang dùng
+                    "score": 1.0,  # placeholder
+                }
+            )
+        return results
 
-        with pool.connection() as conn, conn.cursor() as cur:
-            cur.execute(SQL_RETRIEVE, (list(query_vec), list(query_vec), topn))
-            rows = cur.fetchall()  # [(career_id, title_vi, score_retr), ...]
-        return [{"career_id": r[0], "title": r[1], "score_retr": float(r[2])} for r in rows]
+    def retrieve_candidates(
+        self,
+        session: Session,
+        query_emb: List[float],
+        topn: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """
+        Dùng bảng ai.retrieval_jobs_visbert + vector_cosine_ops.
+        Hiện chưa dùng trong FE, chỉ chuẩn bị trước.
+        """
+        if not query_emb:
+            raise ValueError("query_emb is empty")
 
-    def rerank(self, user_id: str, cand_ids: List[str], topk: int = 10) -> list[dict]:
-        if not cand_ids:
-            return []
-        if topk <= 0:
-            topk = 10
-        scored = self.ranker.infer_scores(user_id, cand_ids)  # [(id, score)]
-        return [{"career_id": cid, "score": sc} for cid, sc in scored[:topk]]
+        dim = len(query_emb)
+        if dim != 768:
+            raise ValueError(f"Expected 768-dim embedding, got {dim}")
+
+        emb_literal = "[" + ",".join(str(float(x)) for x in query_emb) + "]"
+
+        sql = text(
+            """
+            SELECT job_id AS career_id,
+                   title_vi,
+                   description_vi,
+                   1 - (embedding <=> :emb::vector) AS score
+            FROM ai.retrieval_jobs_visbert
+            ORDER BY embedding <=> :emb::vector
+            LIMIT :n
+            """
+        )
+        rows = session.execute(sql, {"emb": emb_literal, "n": topn}).mappings().all()
+
+        return [
+            {
+                "career_id": r["career_id"],
+                "title_vi": r["title_vi"],
+                "description_vi": r["description_vi"],
+                "score": float(r["score"]),
+            }
+            for r in rows
+        ]

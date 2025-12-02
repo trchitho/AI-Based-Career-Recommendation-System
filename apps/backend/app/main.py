@@ -206,6 +206,14 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("??  Skip notifications router:", repr(e))
 
+    # User profile (traits, goals, skills, journey)
+    try:
+        from .modules.user_profile import router as user_profile_router
+
+        app.include_router(user_profile_router.router, prefix="/api/users", tags=["users"])
+    except Exception as e:
+        print("??  Skip user profile router:", repr(e))
+
     return app
 
 

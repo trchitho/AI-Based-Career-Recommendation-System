@@ -48,10 +48,10 @@ def extract_text(d: dict):
 
 
 def get_label_dict(row: dict, task_cfg: dict):
-    # thá»­ láº§n lÆ°á»£t cÃ¡c á»©ng viÃªn nhÃ¡nh nhÃ£n
+    # Thử lần lượt các ứng viên nhãn
     for key in task_cfg["candidates"]:
         if "." in key:
-            # vÃ­ dá»¥ 'labels.riasec'
+            # ví dụ 'labels.riasec'
             a, b = key.split(".", 1)
             if isinstance(row.get(a), dict) and isinstance(row[a].get(b), dict):
                 return row[a][b]
@@ -59,13 +59,13 @@ def get_label_dict(row: dict, task_cfg: dict):
             v = row.get(key)
             if isinstance(v, dict):
                 return v
-    return None  # khÃ´ng tÃ¬m tháº¥y
+    return None  # không tìm thấy
 
 
 def to_df(objs, task: str, task_cfg: dict):
     dims = task_cfg["dims"]
     data = {"text": [extract_text(o) for o in objs]}
-    # khá»Ÿi táº¡o cá»™t nhÃ£n = None
+    # khởi tạo cột nhãn = None
     for d in dims:
         data[d] = [None] * len(objs)
 
@@ -79,11 +79,11 @@ def to_df(objs, task: str, task_cfg: dict):
 
     df = pd.DataFrame(data)
 
-    # Ã©p float, cho phÃ©p NaN â†’ masked MSE sáº½ tá»± mask
+    # Ép float, cho phép NaN — masked MSE sẽ tự mask
     for d in dims:
         df[d] = pd.to_numeric(df[d], errors="coerce")
 
-    # náº¿u phÃ¡t hiá»‡n max > 1 â†’ hiá»ƒu lÃ  0â€“100, scale vá» [0,1]
+    # nếu phát hiện max > 1 hiểu là 0-100, scale về [0,1]
     mx = pd.concat([df[d] for d in dims], axis=1).max().max()
     if pd.notna(mx) and mx > 1.0:
         for d in dims:

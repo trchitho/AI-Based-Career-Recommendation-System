@@ -95,7 +95,7 @@ def main():
             continue
         vi2en[vi] = en
 
-    # merge extra (overwrite Ä‘á»ƒ Æ°u tiÃªn chá»‰nh tay)
+    # merge extra (overwrite — ưu tiên chỉnh tay)
     for vi, en in extra.items():
         vi, en = (vi or "").strip(), (en or "").strip()
         if not vi or not en:

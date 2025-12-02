@@ -30,12 +30,12 @@ def load_pairs(path_csv: Path):
 
 
 def load_feats_json(path_json: Path):
-    # JSON: {"<user_or_job_id>": {"text":[...768], "riasec":[6], "big5":[5]?}}
+    # JSON: {"<user_or_job_id>": {"text": [...768], "riasec": [...6], "big5": [...5]?}}
     return json.loads(path_json.read_text(encoding="utf-8"))
 
 
 def collate_pairs(pairs, user_feats, item_feats):
-    # Lá»c cáº·p há»£p lá»‡ (Ä‘á»§ feature)
+    # Lọc cặp hợp lệ (có feature)
     clean = []
     for u, j, y in pairs:
         if str(u) in user_feats and j in item_feats:
@@ -106,7 +106,7 @@ def main():
     out = Path(args.out_dir)
     out.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), out / "best.pt")
-    print(f"[OK] Saved model â†’ {out / 'best.pt'}")
+    print(f"[OK] Saved model → {out / 'best.pt'}")
 
 
 if __name__ == "__main__":

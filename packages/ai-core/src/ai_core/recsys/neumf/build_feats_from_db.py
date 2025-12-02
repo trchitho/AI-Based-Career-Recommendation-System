@@ -22,7 +22,7 @@ SELECT qe.user_id::text, qe.emb, COALESCE(qe.source, 'essay') AS source
 FROM ai.quick_text_embeddings qe;
 """
 
-# Hướng A (career_id làm key item) – chỉ dùng cột có thật: title_vi, title_en
+# Hàng A (career_id làm key item) — chỉ dùng cột có thật: title_vi, title_en
 SQL_ITEM_BY_CAREER_ID = """
 SELECT
   c.id::text        AS item_id,
@@ -33,7 +33,7 @@ FROM core.careers c
 JOIN ai.career_embeddings ce ON ce.career_id = c.id;
 """
 
-# Hướng B (onet_code làm key item) – chỉ dùng cột có thật: title_vi, title_en
+# Hàng B (onet_code làm key item) — chỉ dùng cột có thật: title_vi, title_en
 SQL_ITEM_BY_ONET = """
 SELECT
   c.onet_code::text AS item_id,

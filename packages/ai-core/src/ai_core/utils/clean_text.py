@@ -6,7 +6,7 @@ MULTISPACE_RE = re.compile(r"\s+")
 
 
 def normalize_unicode(text: str) -> str:
-    # chuáº©n hoÃ¡ tá»• há»£p dáº¥u tiáº¿ng Viá»‡t
+    # chuẩn hoá tổ hợp dấu tiếng Việt
     return unicodedata.normalize("NFC", text)
 
 
@@ -20,8 +20,8 @@ def basic_clean(text: str) -> str:
     text = normalize_unicode(text)
     text = text.replace("\u200b", "")  # zero-width
     text = strip_urls(text)
-    # bá» kÃ½ tá»± láº¡/emoji (Ä‘Æ¡n giáº£n): giá»¯ láº¡i chá»¯, sá»‘, dáº¥u cÃ¢u cÆ¡ báº£n
-    text = re.sub(r"[^0-9A-Za-zÃ€-á»¹.,:;!?()'\-\s]", " ", text)
+    # bỏ ký tự lạ/emoji (đơn giản): giữ lại chữ, số, dấu câu cơ bản
+    text = re.sub(r"[^0-9A-Za-zÀ-ỹ.,:;!?()'\-\s]", " ", text)
     text = MULTISPACE_RE.sub(" ", text).strip()
     return text
 
@@ -30,6 +30,6 @@ def valid_min_length(text: str, min_chars: int = 10) -> bool:
     return len(text) >= min_chars
 
 
-# normalize_unicode(NFC): há»£p nháº¥t kÃ½ tá»± + dáº¥u â†’ trÃ¡nh sai khi tokenization.
-# zero-width: kÃ½ tá»± vÃ´ hÃ¬nh gÃ¢y lá»—i.
-# min_chars: essay quÃ¡ ngáº¯n thÆ°á»ng vÃ´ Ã­ch Ä‘á»ƒ train.
+# normalize_unicode(NFC): hợp nhất ký tự + dấu, tránh sai khi tokenization.
+# zero-width: ký tự vô hình gây lỗi.
+# min_chars: essay quá ngắn thường vô ích khi train.

@@ -15,11 +15,13 @@ const ResultsPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const app = useAppSettings();
+
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [careerRecommendations, setCareerRecommendations] = useState<CareerRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'summary' | 'detailed' | 'recommendations'>('summary');
+
   const [fbRating, setFbRating] = useState<number | null>(null);
   const [fbComment, setFbComment] = useState('');
   const [fbDone, setFbDone] = useState(false);
@@ -28,6 +30,7 @@ const ResultsPage = () => {
     if (assessmentId) {
       fetchResults();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId]);
 
   const fetchResults = async () => {
@@ -40,23 +43,25 @@ const ResultsPage = () => {
       const resultsData = await assessmentService.getResults(assessmentId);
       setResults(resultsData);
 
-      // Prefer backend-preloaded careers
+      // Ưu tiên career_recommendations_full nếu BE đã pre-enrich
       if (resultsData.career_recommendations_full && resultsData.career_recommendations_full.length > 0) {
-        const careers: CareerRecommendation[] = resultsData.career_recommendations_full.map((c: any, index: number) => ({
-          id: c.id,
-          slug: c.slug,
-          title: c.title,
-          description: c.description,
-          matchPercentage: 95 - index * 5,
-          required_skills: c.required_skills,
-          salary_range: c.salary_range,
-          industry_category: c.industry_category,
-        }));
+        const careers: CareerRecommendation[] = resultsData.career_recommendations_full.map(
+          (c: any, index: number) => ({
+            id: c.id,
+            slug: c.slug,
+            title: c.title,
+            description: c.description,
+            matchPercentage: 95 - index * 5,
+            required_skills: c.required_skills,
+            salary_range: c.salary_range,
+            industry_category: c.industry_category,
+          }),
+        );
         setCareerRecommendations(careers);
       } else if (resultsData.career_recommendations && resultsData.career_recommendations.length > 0) {
-        // Dynamically fetch career details from backend (no hardcoded placeholders)
+        // Nếu chỉ có list id → fetch chi tiết từng career
         const careerPromises = resultsData.career_recommendations.map((careerId: string) =>
-          api.get(`/api/careers/${careerId}`)
+          api.get(`/api/careers/${careerId}`),
         );
         const careerResponses = await Promise.allSettled(careerPromises);
         const careers: CareerRecommendation[] = careerResponses
@@ -96,6 +101,7 @@ const ResultsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Top Nav */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
@@ -121,8 +127,13 @@ const ResultsPage = () => {
               >
                 Profile
               </button>
-              <span className="text-sm text-gray-700">{user?.firstName || user?.email}</span>
-              <button onClick={logout} className="text-sm text-gray-700 hover:text-gray-900">
+              <span className="text-sm text-gray-700">
+                {user?.firstName || user?.email}
+              </span>
+              <button
+                onClick={logout}
+                className="text-sm text-gray-700 hover:text-gray-900"
+              >
                 Logout
               </button>
             </div>
@@ -130,11 +141,12 @@ const ResultsPage = () => {
         </div>
       </nav>
 
+      {/* Main */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {loading && (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
             </div>
           )}
 
@@ -148,11 +160,17 @@ const ResultsPage = () => {
             <div>
               {/* Header */}
               <div className="mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Assessment Results</h2>
-                <p className="text-gray-600">Completed on {formatDate(results.completed_at)}</p>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                  Your Assessment Results
+                </h2>
+                {results.completed_at && (
+                  <p className="text-gray-600">
+                    Completed on {formatDate(results.completed_at)}
+                  </p>
+                )}
               </div>
 
-              {/* Tab Navigation */}
+              {/* Tabs */}
               <div className="mb-6 border-b border-gray-200">
                 <nav className="flex space-x-8">
                   <button
@@ -188,23 +206,29 @@ const ResultsPage = () => {
                 </nav>
               </div>
 
-              {/* Tab Content */}
+              {/* TAB: Summary */}
               {activeTab === 'summary' && (
                 <div className="space-y-6">
                   <div className="bg-white shadow rounded-lg p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Overview</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                      Overview
+                    </h3>
                     <p className="text-gray-700 mb-4">
                       Your assessment has been analyzed using scientifically-validated methods to
                       understand your career interests and personality traits.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-indigo-900 mb-2">Top Career Interest</h4>
+                        <h4 className="font-semibold text-indigo-900 mb-2">
+                          Top Career Interest
+                        </h4>
                         <p className="text-indigo-700">
                           {(() => {
                             const topRiasec = Object.entries(results.riasec_scores)
                               .sort((a, b) => b[1] - a[1])[0];
-                            return topRiasec ? topRiasec[0].charAt(0).toUpperCase() + topRiasec[0].slice(1) : 'N/A';
+                            return topRiasec
+                              ? topRiasec[0].charAt(0).toUpperCase() + topRiasec[0].slice(1)
+                              : 'N/A';
                           })()}
                         </p>
                       </div>
@@ -216,7 +240,9 @@ const ResultsPage = () => {
                           {(() => {
                             const topBigFive = Object.entries(results.big_five_scores)
                               .sort((a, b) => b[1] - a[1])[0];
-                            return topBigFive ? topBigFive[0].charAt(0).toUpperCase() + topBigFive[0].slice(1) : 'N/A';
+                            return topBigFive
+                              ? topBigFive[0].charAt(0).toUpperCase() + topBigFive[0].slice(1)
+                              : 'N/A';
                           })()}
                         </p>
                       </div>
@@ -225,11 +251,15 @@ const ResultsPage = () => {
 
                   {results.essay_analysis && (
                     <div className="bg-white shadow rounded-lg p-6">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">Essay Insights</h3>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                        Essay Insights
+                      </h3>
                       {results.essay_analysis.key_insights &&
                         results.essay_analysis.key_insights.length > 0 && (
                           <div className="mb-4">
-                            <h4 className="font-medium text-gray-700 mb-2">Key Insights:</h4>
+                            <h4 className="font-medium text-gray-700 mb-2">
+                              Key Insights:
+                            </h4>
                             <ul className="list-disc list-inside space-y-1">
                               {results.essay_analysis.key_insights.map((insight, index) => (
                                 <li key={index} className="text-gray-600">
@@ -239,26 +269,31 @@ const ResultsPage = () => {
                             </ul>
                           </div>
                         )}
-                      {results.essay_analysis.themes && results.essay_analysis.themes.length > 0 && (
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Identified Themes:</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {results.essay_analysis.themes.map((theme, index) => (
-                              <span
-                                key={index}
-                                className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full"
-                              >
-                                {theme}
-                              </span>
-                            ))}
+
+                      {results.essay_analysis.themes &&
+                        results.essay_analysis.themes.length > 0 && (
+                          <div>
+                            <h4 className="font-medium text-gray-700 mb-2">
+                              Identified Themes:
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {results.essay_analysis.themes.map((theme, index) => (
+                                <span
+                                  key={index}
+                                  className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full"
+                                >
+                                  {theme}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   )}
                 </div>
               )}
 
+              {/* TAB: Detailed */}
               {activeTab === 'detailed' && (
                 <div className="space-y-6">
                   <RIASECSpiderChart scores={results.riasec_scores} />
@@ -266,6 +301,7 @@ const ResultsPage = () => {
                 </div>
               )}
 
+              {/* TAB: Recommendations */}
               {activeTab === 'recommendations' && (
                 <CareerRecommendationsDisplay recommendations={careerRecommendations} />
               )}
@@ -273,27 +309,41 @@ const ResultsPage = () => {
               {/* Quick Feedback */}
               {!fbDone && (
                 <div className="mt-8 bg-white shadow rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Rate Your Results</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Rate Your Results
+                  </h3>
                   <div className="flex items-center space-x-2 mb-3">
-                    {[1,2,3,4,5].map(v => (
-                      <button key={v} onClick={() => setFbRating(v)} className={`w-8 h-8 rounded-full border ${fbRating===v? 'bg-indigo-600 text-white border-indigo-600':'border-gray-300 text-gray-700'}`}>{v}</button>
+                    {[1, 2, 3, 4, 5].map((v) => (
+                      <button
+                        key={v}
+                        onClick={() => setFbRating(v)}
+                        className={`w-8 h-8 rounded-full border ${
+                          fbRating === v
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : 'border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        {v}
+                      </button>
                     ))}
                   </div>
                   <textarea
                     className="w-full border rounded px-3 py-2"
                     placeholder="Optional comment"
                     value={fbComment}
-                    onChange={(e)=>setFbComment(e.target.value)}
+                    onChange={(e) => setFbComment(e.target.value)}
                   />
                   <div className="mt-3 flex justify-end">
                     <button
                       disabled={!fbRating}
-                      onClick={async ()=>{
+                      onClick={async () => {
                         if (!assessmentId || !fbRating) return;
                         try {
                           await feedbackService.submit(assessmentId, fbRating, fbComment);
                           setFbDone(true);
-                        } catch (e) { console.error(e); }
+                        } catch (e) {
+                          console.error(e);
+                        }
                       }}
                       className="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-50"
                     >

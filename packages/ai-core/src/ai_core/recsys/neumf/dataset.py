@@ -6,9 +6,10 @@ from torch.utils.data import Dataset
 
 class PairDataset(Dataset):
     """
-    Má»—i pháº§n tá»­ lÃ  (user_id, job_id, label).
-    user_feats[u]: {"text": np(768), "riasec": np(6), "big5": np(5)}
-    item_feats[i]: {"text": np(768), "riasec": np(6)}  # riasec cÃ³ thá»ƒ váº¯ng â†’ zeros(6)
+    Mỗi phần tử là (user_id, job_id, label).
+    `user_feats[u]`: {"text": np(768), "riasec": np(6), "big5": np(5)}
+    `item_feats[i]`: {"text": np(768), "riasec": np(6)}
+    # Riasec của item có thể vắng, dùng zeros(6) làm fallback
     """
 
     def __init__(self, pairs, user_feats, item_feats):

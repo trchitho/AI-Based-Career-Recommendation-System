@@ -22,19 +22,19 @@ def contains_all(haystack: str, *frags: str) -> bool:
 
 
 def find_col_by_fragments(columns, *frags, required=True):
-    """TÃ¬m cá»™t chá»©a Táº¤T Cáº¢ cÃ¡c máº©u chuá»—i (khÃ´ng phÃ¢n biá»‡t hoa/thÆ°á»ng, bá» space thá»«a)."""
+    """Tìm cột chứa TẤT CẢ các mẫu chuỗi (không phân biệt hoa/thường, bỏ space thừa)."""
     for c in columns:
         if contains_all(c, *frags):
             return c
     if required:
-        raise KeyError(f"KhÃ´ng tÃ¬m tháº¥y cá»™t khá»›p vá»›i: {frags}")
+        raise KeyError(f"Không tìm thấy cột khớp với: {frags}")
     return None
 
 
 def find_group_by_fragments(columns, fragment_pairs, used):
     """
-    TÃ¬m 2 cá»™t cho 1 trait dá»±a vÃ o list cÃ¡c máº©u chuá»—i (má»—i pháº§n tá»­ lÃ  tuple cÃ¡c tá»« khÃ³a).
-    Má»—i láº§n match xong loáº¡i cá»™t Ä‘Ã³ khá»i pool Ä‘á»ƒ trÃ¡nh trÃ¹ng.
+    Tìm 2 cột cho 1 trait dựa vào list các mẫu chuỗi (mỗi phần tử là tuple các từ khoá).
+    Mỗi lần match xong loại cột khỏi pool để tránh trùng.
     """
     cols = []
     pool = [c for c in columns if c not in used]
@@ -68,19 +68,19 @@ def join_jobs(x):
 df = pd.read_csv(INPUT_CSV, encoding="utf-8-sig")
 
 # ============== Detect ESSAY / JOBS columns ==============
-ESSAY_COL = find_col_by_fragments(df.columns, "HÃ£y viáº¿t má»™t Ä‘oáº¡n ngáº¯n", "sá»Ÿ thÃ­ch", "Ä‘iá»ƒm máº¡nh")
-JOBS_COL = find_col_by_fragments(df.columns, "Nghá» nghiá»‡p", "quan tÃ¢m")
+ESSAY_COL = find_col_by_fragments(df.columns, "Hy vit mt on ngn", "s thch", "im mnh")
+JOBS_COL = find_col_by_fragments(df.columns, "Nghề nghip", "quan tâm")
 
 # ============== Detect RIASEC + Big Five columns ==============
-# DÃ² theo cÃ¡c "máº©u" ngáº¯n gá»n khá»›p template Ä‘Ã£ dÃ¹ng. Báº¡n cÃ³ thá»ƒ Ä‘á»•i tá»« khÃ³a náº¿u form khÃ¡c.
+# Dựa theo các "mẫu" ngắn gọn khớp template đã dùng. Bạn có thể đổi từ khoá nếu form khác.
 used_cols = set()
 
-# RIASEC (6 traits, má»—i trait 2 cÃ¢u)
+# RIASEC (6 traits, mỗi trait 2 câu)
 R_cols = find_group_by_fragments(
     df.columns,
     [
-        ("sá»­a chá»¯a", "láº¯p rÃ¡p"),
-        ("lÃ m viá»‡c ngoÃ i trá»i",),
+        ("sửa chữa", "lắp ráp"),
+        ("làm vic ngoài trời",),
     ],
     used_cols,
 )
@@ -88,8 +88,8 @@ R_cols = find_group_by_fragments(
 I_cols = find_group_by_fragments(
     df.columns,
     [
-        ("nghiÃªn cá»©u", "váº¥n Ä‘á» phá»©c táº¡p"),
-        ("giáº£i quyáº¿t", "khoa há»c"),
+        ("nghin cu", "vn  phc tp"),
+        ("giải quyết", "khoa học"),
     ],
     used_cols,
 )
@@ -97,8 +97,8 @@ I_cols = find_group_by_fragments(
 A_cols = find_group_by_fragments(
     df.columns,
     [
-        ("váº½, viáº¿t",),  # náº¿u tiÃªu Ä‘á» cá»§a báº¡n khÃ´ng cÃ³ dáº¥u pháº©y, Ä‘á»•i thÃ nh ("váº½", "viáº¿t")
-        ("nghá»‡ thuáº­t", "Ã¢m nháº¡c"),
+        ("v, vit",),  # nếu tiêu đề của bạn không có dấu phụ, đổi thành ("v", "vit")
+        ("nghệ thuật", "âm nhạc"),
     ],
     used_cols,
 )
@@ -106,8 +106,8 @@ A_cols = find_group_by_fragments(
 S_cols = find_group_by_fragments(
     df.columns,
     [
-        ("giÃºp Ä‘á»¡", "láº¯ng nghe"),
-        ("hoáº¡t Ä‘á»™ng cá»™ng Ä‘á»“ng",),
+        ("gip ", "lng nghe"),
+        ("hoạt động cộng đồng",),
     ],
     used_cols,
 )
@@ -115,8 +115,8 @@ S_cols = find_group_by_fragments(
 E_cols = find_group_by_fragments(
     df.columns,
     [
-        ("lÃ£nh Ä‘áº¡o", "Ä‘iá»u phá»‘i"),
-        ("thuyáº¿t phá»¥c", "Ä‘Ã m phÃ¡n"),
+        ("lãnh ạo", "iều phi"),
+        ("thuyết phục", "đàm phán"),
     ],
     used_cols,
 )
@@ -124,18 +124,18 @@ E_cols = find_group_by_fragments(
 C_cols = find_group_by_fragments(
     df.columns,
     [
-        ("láº­p káº¿ hoáº¡ch", "tÃ i liá»‡u"),
-        ("quy trÃ¬nh", "quy Ä‘á»‹nh"),
+        ("lập kế hoạch", "tài liệu"),
+        ("quy trnh", "quy nh"),
     ],
     used_cols,
 )
 
-# Big Five (5 traits, má»—i trait 2 cÃ¢u)
+# Big Five (5 traits, mỗi trait 2 câu)
 O_cols = find_group_by_fragments(
     df.columns,
     [
-        ("tÃ² mÃ²", "Ã½ tÆ°á»Ÿng má»›i"),
-        ("thá»­ nghiá»‡m", "cÃ¡ch tiáº¿p cáº­n"),
+        ("t m", " tng mi"),
+        ("thử nghiệm", "cách tiếp cận"),
     ],
     used_cols,
 )
@@ -143,8 +143,8 @@ O_cols = find_group_by_fragments(
 C5_cols = find_group_by_fragments(
     df.columns,
     [
-        ("hoÃ n thÃ nh cÃ´ng viá»‡c", "Ä‘Ãºng háº¡n"),
-        ("káº¿ hoáº¡ch chi tiáº¿t",),
+        ("hon thnh cng vic", "ng hn"),
+        ("kế hoạch chi tiết",),
     ],
     used_cols,
 )
@@ -152,8 +152,8 @@ C5_cols = find_group_by_fragments(
 E5_cols = find_group_by_fragments(
     df.columns,
     [
-        ("báº¯t chuyá»‡n", "ngÆ°á»i láº¡"),
-        ("trÃ n Ä‘áº§y nÄƒng lÆ°á»£ng", "nhiá»u ngÆ°á»i"),
+        ("bắt chuyn", "người lạ"),
+        ("tràn ầy nng lượng", "nhiều người"),
     ],
     used_cols,
 )
@@ -161,8 +161,8 @@ E5_cols = find_group_by_fragments(
 A5_cols = find_group_by_fragments(
     df.columns,
     [
-        ("quan tÃ¢m", "cáº£m xÃºc"),
-        ("há»£p tÃ¡c", "cáº¡nh tranh"),
+        ("quan tm", "cm xc"),
+        ("hợp tác", "cạnh tranh"),
     ],
     used_cols,
 )
@@ -170,13 +170,13 @@ A5_cols = find_group_by_fragments(
 N_cols = find_group_by_fragments(
     df.columns,
     [
-        ("lo láº¯ng", "viá»‡c nhá»"),
-        ("cÄƒng tháº³ng", "Ã¡p lá»±c"),
+        ("lo lắng", "vic nhỏ"),
+        ("căng thẳng", "áp lực"),
     ],
     used_cols,
 )
 
-# In ra Ä‘á»ƒ báº¡n kiá»ƒm tra cá»™t nÃ o Ä‘Æ°á»£c map (cÃ³ thá»ƒ comment dÃ²ng dÆ°á»›i)
+# In ra để bạn kiểm tra cột nào được map (có thể comment dòng dưới)
 print("[MAP] R:", R_cols)
 print("[MAP] I:", I_cols)
 print("[MAP] A:", A_cols)
@@ -222,7 +222,7 @@ df["E"] = df[E_cols].mean(axis=1)
 df["C"] = df[C_cols].mean(axis=1)
 
 df["O"] = df[O_cols].mean(axis=1)
-df["C2"] = df[C5_cols].mean(axis=1)  # Big Five C -> C2 Ä‘á»ƒ khÃ´ng Ä‘Ã¨ C cá»§a RIASEC
+df["C2"] = df[C5_cols].mean(axis=1)  # Big Five C -> C2 — không trùng C của RIASEC
 df["E2"] = df[E5_cols].mean(axis=1)
 df["A2"] = df[A5_cols].mean(axis=1)
 df["N"] = df[N_cols].mean(axis=1)
