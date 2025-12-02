@@ -1,7 +1,6 @@
 # apps/backend/app/etl/onet_enrich_ksas.py
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime
 from typing import Iterable
 
