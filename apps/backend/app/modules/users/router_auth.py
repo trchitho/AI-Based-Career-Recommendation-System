@@ -3,14 +3,14 @@ import os
 import secrets
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ...core.email_verifier import is_deliverable_email
 from ...core.jwt import create_access_token, refresh_expiry_dt
 from ...core.security import hash_password, verify_password
-from ...core.email_verifier import is_deliverable_email
 from ..auth.models import RefreshToken
 from ..auth.verification import DEFAULT_VERIFY_MINUTES, send_verification_email
 from .models import User
@@ -49,9 +49,17 @@ def _verification_response(u: User, info: dict, message: str) -> dict:
     return resp
 
 
+def _generic_register_response() -> dict:
+    """Return a generic response to prevent user enumeration attacks."""
+    return {
+        "status": "ok",
+        "message": "If this email is not already registered, a verification email will be sent.",
+    }
+
+
 # ---------- Routes ----------
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(request: Request, payload: RegisterPayload):
+def register(request: Request, payload: RegisterPayload, background_tasks: BackgroundTasks):
     session = _db(request)
     email = payload.email.strip().lower()
     password = payload.password
@@ -63,17 +71,11 @@ def register(request: Request, payload: RegisterPayload):
 
     exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
-        if getattr(exists, "is_email_verified", False):
-            raise HTTPException(status_code=400, detail="Email already registered")
-        info = send_verification_email(session, exists, minutes=DEFAULT_VERIFY_MINUTES)
-        if not info.get("sent"):
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
-            )
-        return _verification_response(
-            exists, info, "Email already registered but not verified. A new verification email was sent."
-        )
+        # Return the same response regardless of verification status to prevent user enumeration.
+        # If the user is unverified, silently send a verification email in the background.
+        if not getattr(exists, "is_email_verified", False):
+            background_tasks.add_task(send_verification_email, session, exists, DEFAULT_VERIFY_MINUTES)
+        return _generic_register_response()
 
     if not (8 <= len(password) <= 256):
         raise HTTPException(status_code=400, detail="Password length must be 8..256")
