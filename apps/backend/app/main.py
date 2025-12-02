@@ -64,7 +64,7 @@ async def lifespan(_: FastAPI):
                     UPDATE core.users
                     SET is_email_verified = FALSE,
                         email_verified_at = COALESCE(email_verified_at, NOW())
-                    WHERE is_email_verified = FALSE OR is_email_verified IS NULL;
+                    WHERE is_email_verified IS NULL OR is_email_verified = FALSE;
                     """
                 )
             )
