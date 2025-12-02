@@ -157,8 +157,6 @@ packages/ai-core/
 
 ```bash
 cd packages/ai-core
-python -m venv .venv
-. .venv/Scripts/activate
 pip install -r requirements.txt
 uvicorn src.api.main:app --reload --port 9000
 ```
@@ -222,5 +220,3 @@ npm run dev
 * Tối ưu pipeline encode + pgvector refresh
 
 ---
-
-Bạn chọn bản nào?
