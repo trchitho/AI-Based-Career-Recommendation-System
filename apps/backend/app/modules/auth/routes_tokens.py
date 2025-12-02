@@ -44,13 +44,11 @@ def request_verify(request: Request, payload: dict):
         raise HTTPException(status_code=400, detail=f"Email is not deliverable: {reason}")
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
-    if not u:
-        # to prevent user enumeration, act as success
+    if not u or getattr(u, "is_email_verified", False):
+        # Silent success for both cases to prevent user enumeration
         return {"status": "ok"}
 
-    if getattr(u, "is_email_verified", False):
-        return {"status": "ok", "message": "already verified"}
-
+    # Only send email if user exists and is not verified
     info = send_verification_email(session, u, minutes=DEFAULT_VERIFY_MINUTES)
     if not info.get("sent"):
         raise HTTPException(
