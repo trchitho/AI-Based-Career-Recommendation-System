@@ -30,8 +30,9 @@ def _ensure_env_loaded() -> None:
                     k, v = line.split("=", 1)
                     if k and v and os.getenv(k) is None:
                         os.environ[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            # Failed to load .env file manually; ignoring as environment may already be set.
+            print(f"[email_utils] Could not load .env file: {type(e).__name__}: {e}")
 
 
 def _bool_env(name: str, default: bool = True) -> bool:
