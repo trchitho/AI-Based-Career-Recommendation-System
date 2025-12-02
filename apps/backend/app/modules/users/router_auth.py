@@ -65,7 +65,13 @@ def _generic_register_response() -> dict:
 
 
 def _send_verification_email_background(user_id: int, email: str, minutes: int) -> None:
-    """Send verification email in background task with its own database session."""
+    """Send verification email in background task with its own database session.
+
+    Note: We always commit the verification token even if email sending fails.
+    This allows the user to retry verification without creating duplicate tokens.
+    The race condition where a user is deleted between scheduling and execution
+    is handled by the None check.
+    """
     session = _SessionLocal()
     try:
         user = session.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
@@ -73,6 +79,7 @@ def _send_verification_email_background(user_id: int, email: str, minutes: int) 
             logger.warning("User %d not found for verification email", user_id)
             return
         info = send_verification_email(session, user, minutes=minutes)
+        # Commit token even if email fails - allows retry without duplicate tokens
         session.commit()
         if not info.get("sent"):
             logger.error("Failed to send verification email for user %s: %s", email, info.get("error"))
