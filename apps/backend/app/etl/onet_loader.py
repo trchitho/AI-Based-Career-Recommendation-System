@@ -28,12 +28,7 @@ from datetime import datetime, timezone
 from psycopg import Connection, sql
 
 from apps.backend.app.services.onetsvc import get_onet_service  # factory bạn đã có
-from apps.backend.app.etl.online_parsers import (
-    parse_work_activities_online,
-    parse_dwas_online,
-    parse_work_context_online,
-    parse_education_pct_online,
-)
+# Removed unused imports from apps.backend.app.etl.online_parsers
 
 # --- UPSERT cho 4 bảng Online ---
 
