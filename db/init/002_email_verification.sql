@@ -3,9 +3,9 @@ ALTER TABLE core.users
     ADD COLUMN IF NOT EXISTS is_email_verified boolean DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
 
--- Backfill existing accounts to keep them accessible
+-- Backfill existing accounts - set to FALSE for security, requiring verification
 UPDATE core.users
 SET
-    is_email_verified = TRUE,
+    is_email_verified = FALSE,
     email_verified_at = COALESCE(email_verified_at, NOW())
-WHERE is_email_verified IS NULL;
+WHERE is_email_verified IS FALSE OR is_email_verified IS NULL;

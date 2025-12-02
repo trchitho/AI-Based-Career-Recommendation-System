@@ -18,6 +18,7 @@ def _ensure_env_loaded() -> None:
         if os.path.exists(env_path):
             loaded = load_dotenv(env_path)
     except Exception:
+        # Ignore errors from dotenv loading; fallback manual loading is handled below.
         pass
 
     if not loaded and os.path.exists(env_path):
@@ -30,8 +31,9 @@ def _ensure_env_loaded() -> None:
                     k, v = line.split("=", 1)
                     if k and v and os.getenv(k) is None:
                         os.environ[k] = v
-        except Exception:
-            pass
+        except Exception as e:
+            # Failed to load .env file manually; ignoring as environment may already be set.
+            print(f"[email_utils] Could not load .env file: {type(e).__name__}: {e}")
 
 
 def _bool_env(name: str, default: bool = True) -> bool:
@@ -62,7 +64,7 @@ def send_email(to_email: str, subject: str, body: str) -> Tuple[bool, str | None
         print(f"[email] To: {to_email}")
         print(f"[email] Subject: {subject}")
         print(f"[email] Body:\n{body}")
-        return False, msg, False
+        return False, msg, True
 
     message = EmailMessage()
     message["From"] = sender or "no-reply@example.com"
