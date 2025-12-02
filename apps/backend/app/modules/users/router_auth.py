@@ -7,8 +7,9 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
+from ...core.db import engine
 from ...core.email_verifier import is_deliverable_email
 from ...core.jwt import create_access_token, refresh_expiry_dt
 from ...core.security import hash_password, verify_password
@@ -19,6 +20,9 @@ from .models import User
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Session factory for background tasks
+_SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
 # ---------- Schemas ----------
@@ -60,14 +64,23 @@ def _generic_register_response() -> dict:
     }
 
 
-def _send_verification_email_with_logging(session: Session, user: User, minutes: int) -> None:
-    """Send verification email with error logging for background task execution."""
+def _send_verification_email_background(user_id: int, email: str, minutes: int) -> None:
+    """Send verification email in background task with its own database session."""
+    session = _SessionLocal()
     try:
+        user = session.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
+        if user is None:
+            logger.warning("User %d not found for verification email", user_id)
+            return
         info = send_verification_email(session, user, minutes=minutes)
+        session.commit()
         if not info.get("sent"):
-            logger.error("Failed to send verification email for user %s: %s", user.email, info.get("error"))
+            logger.error("Failed to send verification email for user %s: %s", email, info.get("error"))
     except Exception:
-        logger.exception("Exception while sending verification email for user %s", user.email)
+        session.rollback()
+        logger.exception("Exception while sending verification email for user %s", email)
+    finally:
+        session.close()
 
 
 # ---------- Routes ----------
@@ -87,7 +100,7 @@ def register(request: Request, payload: RegisterPayload, background_tasks: Backg
         # Return the same response regardless of verification status to prevent user enumeration.
         # If the user is unverified, silently send a verification email in the background.
         if not getattr(exists, "is_email_verified", False):
-            background_tasks.add_task(_send_verification_email_with_logging, session, exists, DEFAULT_VERIFY_MINUTES)
+            background_tasks.add_task(_send_verification_email_background, exists.id, exists.email, DEFAULT_VERIFY_MINUTES)
         return _generic_register_response()
 
     if not (8 <= len(password) <= 256):
@@ -107,7 +120,7 @@ def register(request: Request, payload: RegisterPayload, background_tasks: Backg
     session.refresh(u)
 
     # Send email in background to maintain consistent response timing and prevent enumeration attacks
-    background_tasks.add_task(_send_verification_email_with_logging, session, u, DEFAULT_VERIFY_MINUTES)
+    background_tasks.add_task(_send_verification_email_background, u.id, u.email, DEFAULT_VERIFY_MINUTES)
     return _generic_register_response()
 
 
