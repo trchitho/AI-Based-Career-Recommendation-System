@@ -59,12 +59,18 @@ def register(request: Request, payload: RegisterPayload):
 
     ok, reason = is_deliverable_email(email)
     if not ok:
-        raise HTTPException(status_code=400, detail=f"Email is not deliverable: {reason}")
+        raise HTTPException(
+            status_code=400,
+            detail={"message": f"Email is not deliverable: {reason}", "error_code": "EMAIL_NOT_DELIVERABLE"},
+        )
 
     exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
         if getattr(exists, "is_email_verified", False):
-            raise HTTPException(status_code=400, detail="Email already registered")
+            raise HTTPException(
+                status_code=400,
+                detail={"message": "Email already registered", "error_code": "EMAIL_ALREADY_REGISTERED"},
+            )
         info = send_verification_email(session, exists, minutes=DEFAULT_VERIFY_MINUTES)
         if not info.get("sent"):
             raise HTTPException(
@@ -168,11 +174,17 @@ def register_admin(request: Request, payload: AdminRegisterPayload):
 
     ok, reason = is_deliverable_email(email)
     if not ok:
-        raise HTTPException(status_code=400, detail=f"Email is not deliverable: {reason}")
+        raise HTTPException(
+            status_code=400,
+            detail={"message": f"Email is not deliverable: {reason}", "error_code": "EMAIL_NOT_DELIVERABLE"},
+        )
 
     exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(
+            status_code=400,
+            detail={"message": "Email already registered", "error_code": "EMAIL_ALREADY_REGISTERED"},
+        )
     if not (8 <= len(password) <= 256):
         raise HTTPException(status_code=400, detail="Password length must be 8..256")
 
