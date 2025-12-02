@@ -104,11 +104,17 @@ def register(request: Request, payload: RegisterPayload, background_tasks: Backg
 
     exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
-        # Return the same response regardless of verification status to prevent user enumeration.
-        # If the user is unverified, silently send a verification email in the background.
-        if not getattr(exists, "is_email_verified", False):
-            background_tasks.add_task(_send_verification_email_background, exists.id, exists.email, DEFAULT_VERIFY_MINUTES)
-        return _generic_register_response()
+        if getattr(exists, "is_email_verified", False):
+            raise HTTPException(status_code=400, detail="Email already registered")
+        info = send_verification_email(session, exists, minutes=DEFAULT_VERIFY_MINUTES)
+        if not info.get("sent"):
+            raise HTTPException(
+                status_code=500,
+                detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
+            )
+        return _verification_response(
+            exists, info, "Email already registered but not verified. A new verification email was sent."
+        )
 
     if not (8 <= len(password) <= 256):
         raise HTTPException(status_code=400, detail="Password length must be 8..256")
@@ -126,9 +132,13 @@ def register(request: Request, payload: RegisterPayload, background_tasks: Backg
     session.commit()
     session.refresh(u)
 
-    # Send email in background to maintain consistent response timing and prevent enumeration attacks
-    background_tasks.add_task(_send_verification_email_background, u.id, u.email, DEFAULT_VERIFY_MINUTES)
-    return _generic_register_response()
+    info = send_verification_email(session, u, minutes=DEFAULT_VERIFY_MINUTES)
+    if not info.get("sent"):
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
+        )
+    return _verification_response(u, info, "Verification email sent. Please confirm to activate your account.")
 
 
 @router.post("/login")
@@ -152,7 +162,7 @@ def login(request: Request, payload: LoginPayload):
         if not info.get("sent"):
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+                detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
             )
         detail = {
             "message": "Email not verified. Please check your inbox to continue.",

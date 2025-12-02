@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return Promise.reject({
         response: {
           status: 0,
-          data: { detail: "KhA'ng th��� k���t n��`i server" }
+          data: { detail: "Không thể kết nối server" }
         }
       });
     }
@@ -111,8 +111,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // If BE still returns tokens (e.g., admin flow), keep existing behavior
       if (access_token && refresh_token) {
-        if (access_token) localStorage.setItem('accessToken', access_token);
-        if (refresh_token) localStorage.setItem('refreshToken', refresh_token);
+        localStorage.setItem('accessToken', access_token);
+        localStorage.setItem('refreshToken', refresh_token);
 
         if (userPayload) {
           setUser(userPayload);

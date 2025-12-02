@@ -302,7 +302,7 @@ const LoginPage = () => {
           {app.footer_html ? (
             <div dangerouslySetInnerHTML={{ __html: app.footer_html }} />
           ) : (
-            <div>Ac 2025 CareerBridge AI</div>
+            <div>© 2025 CareerBridge AI</div>
           )}
         </div>
       </footer>
