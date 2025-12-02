@@ -17,16 +17,59 @@
     "filter": "Lọc",
     "logout": "Đăng xuất",
     "tryAgain": "Thử lại",
-    "never": "Chưa bao giờ"
+    "never": "Không bao giờ",
+    "remove": "Xóa",
+    "save": "Lưu",
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "search": "Tìm kiếm",
+    "allCategories": "Tất cả danh mục",
+    "notAvailable": "Không có",
+    "actions": "Hành động",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "add": "Thêm",
+    "saving": "Đang lưu...",
+    "update": "Cập nhật",
+    "create": "Tạo mới"
+  },
+  "settings": {
+    "pageTitle": "Cài đặt hệ thống",
+    "logoUrlPlaceholder": "Đường dẫn logo",
+    "logoBrowse": "Chọn",
+    "logoUploading": "Đang tải lên...",
+    "appTitlePlaceholder": "Tiêu đề ứng dụng",
+    "appNamePlaceholder": "Tên ứng dụng",
+    "footerHtmlLabel": "Footer HTML",
+    "footerHtmlPlaceholder": "Nhập HTML footer...",
+    "footerBuilderTitle": "Trình tạo Footer",
+    "footerBuilderDesc": "Tạo layout footer với các cột và liên kết.",
+    "newColumn": "Cột mới",
+    "columnTitlePlaceholder": "Tiêu đề cột...",
+    "item": "Mục",
+    "itemLabelPlaceholder": "Tên mục...",
+    "itemUrlPlaceholder": "Địa chỉ URL...",
+    "addItem": "Thêm mục",
+    "addColumn": "Thêm cột",
+    "applyToFooterHtml": "Áp dụng vào Footer HTML",
+    "preview": "Xem trước",
+    "hidePreview": "Ẩn xem trước",
+    "noPreview": "Không có nội dung xem trước",
+    "saved": "Đã lưu cài đặt"
   },
   "nav": {
     "home": "Trang chủ",
     "dashboard": "Bảng điều khiển",
-    "assessment": "Đánh giá",
+    "assessment": "Bài đánh giá",
     "results": "Kết quả",
     "roadmap": "Lộ trình",
     "profile": "Hồ sơ",
-    "admin": "Quản trị"
+    "admin": "Quản trị",
+    "recommendations": "Gợi ý nghề nghiệp",
+    "careers": "Nghề nghiệp",
+    "blogs": "Bài viết"
   },
   "auth": {
     "login": "Đăng nhập",
@@ -44,99 +87,104 @@
     "welcomeBack": "Chào mừng trở lại",
     "createAccount": "Tạo tài khoản của bạn",
     "loginSubtitle": "Đăng nhập để tiếp tục hành trình nghề nghiệp",
-    "registerSubtitle": "Bắt đầu khám phá nghề nghiệp phù hợp với bạn"
+    "registerSubtitle": "Bắt đầu khám phá nghề nghiệp cá nhân hóa"
   },
   "home": {
     "hero": {
-      "title": "Khám Phá Con Đường Sự Nghiệp Hoàn Hảo",
-      "subtitle": "Đánh giá tính cách bằng AI và gợi ý nghề nghiệp cá nhân hóa để định hướng hành trình chuyên nghiệp của bạn",
+      "title": "Khám Phá Con Đường Nghề Nghiệp Hoàn Hảo",
+      "subtitle": "Đánh giá tính cách dựa trên AI và gợi ý nghề nghiệp phù hợp dành riêng cho bạn",
       "cta": "Bắt đầu đánh giá",
       "learnMore": "Tìm hiểu thêm"
     },
     "features": {
-      "title": "Tại sao chọn nền tảng của chúng tôi",
+      "title": "Tại Sao Chọn Nền Tảng Của Chúng Tôi",
       "assessment": {
-        "title": "Đánh giá khoa học",
-        "description": "Bài kiểm tra tính cách RIASEC và Big Five dựa trên nghiên cứu tâm lý học"
+        "title": "Đánh Giá Khoa Học",
+        "description": "Bài test RIASEC và Big Five được chứng minh bởi nghiên cứu tâm lý"
       },
       "ai": {
-        "title": "Phân tích bằng AI",
-        "description": "Thuật toán tiên tiến phân tích câu trả lời để đưa ra gợi ý nghề nghiệp chính xác"
+        "title": "Phân Tích Bằng AI",
+        "description": "Thuật toán tiên tiến giúp đưa ra gợi ý nghề nghiệp chính xác"
       },
       "roadmap": {
-        "title": "Lộ trình học tập",
-        "description": "Hướng dẫn từng bước được cá nhân hóa để đạt được mục tiêu nghề nghiệp"
+        "title": "Lộ Trình Học Tập",
+        "description": "Hướng dẫn từng bước giúp bạn đạt mục tiêu nghề nghiệp"
       },
       "tracking": {
-        "title": "Theo dõi tiến độ",
-        "description": "Giám sát sự phát triển và ăn mừng các cột mốc quan trọng"
+        "title": "Theo Dõi Tiến Độ",
+        "description": "Theo dõi sự phát triển và thành tựu của bạn"
       }
     },
     "howItWorks": {
-      "title": "Cách thức hoạt động",
+      "title": "Cách Hoạt Động",
       "step1": {
-        "title": "Làm bài đánh giá",
-        "description": "Hoàn thành các bài kiểm tra tính cách và sở thích toàn diện"
+        "title": "Làm Bài Đánh Giá",
+        "description": "Hoàn thành bài test tính cách và sở thích"
       },
       "step2": {
-        "title": "Nhận gợi ý",
-        "description": "Nhận các đề xuất nghề nghiệp được AI tùy chỉnh cho bạn"
+        "title": "Nhận Gợi Ý",
+        "description": "AI phân tích và đưa ra các nghề nghiệp phù hợp với bạn"
       },
       "step3": {
-        "title": "Theo lộ trình",
-        "description": "Truy cập các lộ trình học tập cá nhân hóa để đạt mục tiêu"
+        "title": "Theo Lộ Trình Học",
+        "description": "Tiếp cận lộ trình học tập cá nhân hóa"
       },
       "step4": {
-        "title": "Theo dõi tiến độ",
-        "description": "Giám sát sự phát triển và thành tích của bạn theo thời gian"
+        "title": "Theo Dõi Tiến Trình",
+        "description": "Theo dõi sự phát triển của bạn theo thời gian"
       }
     }
   },
   "dashboard": {
     "title": "Bảng điều khiển",
     "welcome": "Chào mừng trở lại",
-    "overview": "Theo dõi hành trình phát triển nghề nghiệp của bạn",
-    "loading": "Đang tải dữ liệu bảng điều khiển...",
-    "error": "Không thể tải dữ liệu bảng điều khiển. Vui lòng thử lại.",
+    "overview": "Theo dõi hành trình phát triển nghề nghiệp",
+    "loading": "Đang tải dữ liệu...",
+    "error": "Không thể tải dữ liệu. Vui lòng thử lại.",
+    "stats": {
+      "assessmentsCompleted": "Bài đánh giá đã hoàn thành",
+      "activeRoadmaps": "Lộ trình đang hoạt động",
+      "milestonesAchieved": "Mốc đã đạt"
+    },
     "noAssessment": {
-      "title": "Bắt đầu hành trình nghề nghiệp của bạn",
-      "description": "Làm bài đánh giá đầu tiên để nhận gợi ý nghề nghiệp cá nhân hóa và khám phá tiềm năng của bạn.",
+      "title": "Bắt Đầu Hành Trình Nghề Nghiệp",
+      "description": "Hãy làm bài đánh giá đầu tiên để nhận gợi ý nghề nghiệp cá nhân hóa.",
       "cta": "Làm bài đánh giá",
-      "subtitle": "Khám phá những nghề nghiệp phù hợp với tính cách và sở thích của bạn"
+      "subtitle": "Khám phá nghề nghiệp phù hợp với tính cách và sở thích"
     },
     "profileSummary": {
-      "title": "Tóm tắt hồ sơ",
-      "assessmentsTaken": "Số bài đánh giá đã làm",
+      "title": "Tóm Tắt Hồ Sơ",
+      "assessmentsTaken": "Số bài đánh giá",
       "completionRate": "Tỷ lệ hoàn thành",
       "lastActivity": "Hoạt động gần nhất",
       "memberSince": "Thành viên từ",
-      "viewProfile": "Xem hồ sơ đầy đủ"
+      "viewProfile": "Xem hồ sơ"
     },
     "careerSuggestions": {
-      "title": "Gợi ý nghề nghiệp",
+      "title": "Gợi Ý Nghề Nghiệp",
       "subtitle": "Dựa trên kết quả đánh giá của bạn",
-      "viewAll": "Xem kết quả đầy đủ",
-      "noSuggestions": "Hoàn thành bài đánh giá để xem gợi ý nghề nghiệp",
+      "viewAll": "Xem tất cả",
+      "noSuggestions": "Hãy làm bài đánh giá để nhận gợi ý nghề nghiệp",
       "match": "Phù hợp",
-      "analyzing": "Bài đánh giá của bạn đang được phân tích. Gợi ý nghề nghiệp sẽ xuất hiện sớm!"
+      "analyzing": "Hệ thống đang phân tích. Gợi ý sẽ xuất hiện sớm!"
     },
     "recentActivity": {
-      "title": "Hoạt động gần đây",
-      "noActivity": "Không có hoạt động gần đây",
-      "assessmentCompleted": "Đã hoàn thành đánh giá",
+      "title": "Hoạt Động Gần Đây",
+      "noActivity": "Không có hoạt động",
+      "assessmentCompleted": "Đã hoàn thành bài đánh giá",
       "profileUpdated": "Đã cập nhật hồ sơ",
-      "milestoneCompleted": "Đã hoàn thành cột mốc"
+      "milestoneCompleted": "Đã hoàn thành mốc"
     },
     "progress": {
-      "title": "Tiến độ của bạn",
+      "title": "Tiến Độ Của Bạn",
       "overallProgress": "Tiến độ tổng thể",
       "skillsDeveloped": "Kỹ năng đã phát triển",
-      "milestonesCompleted": "Cột mốc đã hoàn thành",
+      "milestonesCompleted": "Mốc đã hoàn thành",
       "hoursLearned": "Giờ học",
-      "viewRoadmap": "Xem lộ trình học tập"
+      "viewRoadmap": "Xem lộ trình"
     },
     "quickActions": {
-      "title": "Hành động nhanh",
+      "title": "Thao Tác Nhanh",
       "takeAssessment": "Làm bài đánh giá",
       "viewResults": "Xem kết quả",
       "updateProfile": "Cập nhật hồ sơ",
@@ -144,22 +192,22 @@
     }
   },
   "assessment": {
-    "title": "Đánh giá nghề nghiệp",
-    "subtitle": "Khám phá con đường sự nghiệp lý tưởng với thông tin chi tiết từ AI",
-    "discoverPath": "Khám phá con đường sự nghiệp lý tưởng của bạn",
-    "comprehensiveDesc": "Bài đánh giá toàn diện này kết hợp hai bài kiểm tra được xác thực khoa học để giúp bạn hiểu về sở thích nghề nghiệp và đặc điểm tính cách của mình:",
-    "riasec": "Bài kiểm tra sở thích nghề nghiệp RIASEC",
-    "riasecDesc": "Xác định sở thích của bạn qua sáu chủ đề nghề nghiệp: Thực tế, Nghiên cứu, Nghệ thuật, Xã hội, Kinh doanh và Thông thường.",
-    "bigFive": "Đánh giá tính cách Big Five",
-    "bigFiveDesc": "Đo lường tính cách của bạn qua năm khía cạnh: Cởi mở, Tận tâm, Hướng ngoại, Dễ chịu và Bất ổn cảm xúc.",
-    "whatToExpect": "Những gì cần biết",
-    "duration": "Mất khoảng 15-20 phút để hoàn thành",
-    "honestAnswers": "Trả lời trung thực - không có câu trả lời đúng hay sai",
-    "optionalEssay": "Bài luận tùy chọn để có thông tin cá nhân hóa",
-    "tailoredRecommendations": "Nhận gợi ý nghề nghiệp phù hợp với hồ sơ của bạn",
-    "startAssessment": "Bắt đầu đánh giá",
+    "title": "Bài đánh giá nghề nghiệp",
+    "subtitle": "Khám phá con đường nghề nghiệp lý tưởng bằng AI",
+    "discoverPath": "Khám phá con đường nghề nghiệp lý tưởng",
+    "comprehensiveDesc": "Bài đánh giá bao gồm hai bộ test khoa học:",
+    "riasec": "Test Sở Thích Nghề Nghiệp RIASEC",
+    "riasecDesc": "Xác định sở thích dựa trên 6 nhóm tính cách.",
+    "bigFive": "Test Tính Cách Big Five",
+    "bigFiveDesc": "Đo lường tính cách dựa trên 5 yếu tố.",
+    "whatToExpect": "Bạn sẽ trải nghiệm",
+    "duration": "Khoảng 15–20 phút",
+    "honestAnswers": "Hãy trả lời trung thực — không có đúng hay sai",
+    "optionalEssay": "Bài luận tùy chọn",
+    "tailoredRecommendations": "Gợi ý cá nhân hóa",
+    "startAssessment": "Bắt đầu",
     "question": "Câu hỏi",
-    "of": "của",
+    "of": "trên",
     "answered": "đã trả lời",
     "stronglyDisagree": "Hoàn toàn không đồng ý",
     "disagree": "Không đồng ý",
@@ -168,42 +216,65 @@
     "stronglyAgree": "Hoàn toàn đồng ý",
     "careerInterest": "Sở thích nghề nghiệp",
     "personality": "Tính cách",
-    "rateFrom": "Đánh giá từ 1 (Hoàn toàn không đồng ý) đến 5 (Hoàn toàn đồng ý)",
-    "submitAssessment": "Gửi bài đánh giá",
-    "submitEssay": "Gửi bài luận",
-    "essayPrompt": "Hãy cho chúng tôi biết về nguyện vọng và mục tiêu nghề nghiệp của bạn",
-    "essayPlaceholder": "Viết ít nhất 100 ký tự về sở thích nghề nghiệp, mục tiêu và điều gì thúc đẩy bạn...",
-    "processingResults": "Đang xử lý kết quả của bạn",
-    "analyzingResponses": "AI của chúng tôi đang phân tích câu trả lời và tạo gợi ý nghề nghiệp cá nhân hóa...",
-    "completing": "Đang hoàn thành đánh giá",
-    "submitting": "Đang gửi..."
+    "rateFrom": "Đánh giá từ 1 đến 5",
+    "submitAssessment": "Nộp bài đánh giá",
+    "submitEssay": "Nộp bài luận",
+    "essayPrompt": "Hãy chia sẻ mục tiêu nghề nghiệp của bạn",
+    "essayPlaceholder": "Viết ít nhất 100 ký tự...",
+    "processingResults": "Đang xử lý kết quả...",
+    "analyzingResponses": "AI đang phân tích...",
+    "completing": "Hoàn tất...",
+    "submitting": "Đang gửi...",
+    "retake": "Làm lại bài đánh giá"
   },
   "results": {
-    "title": "Kết quả đánh giá của bạn",
+    "title": "Kết Quả Đánh Giá",
     "completedOn": "Hoàn thành vào",
     "summary": "Tóm tắt",
     "detailed": "Phân tích chi tiết",
     "recommendations": "Gợi ý nghề nghiệp",
-    "topInterest": "Sở thích nghề nghiệp hàng đầu",
-    "dominantTrait": "Đặc điểm tính cách nổi bật",
-    "essayInsights": "Thông tin từ bài luận",
-    "keyInsights": "Thông tin chính",
-    "themes": "Chủ đề được xác định",
-    "matchPercentage": "Phù hợp",
+    "topInterest": "Sở thích nổi bật",
+    "dominantTrait": "Đặc điểm nổi bật",
+    "essayInsights": "Phân tích bài luận",
+    "keyInsights": "Nhận định chính",
+    "themes": "Nhóm tính cách",
+    "matchPercentage": "Mức độ phù hợp",
     "viewDetails": "Xem chi tiết",
-    "failedToLoad": "Không thể tải kết quả đánh giá. Vui lòng thử lại."
+    "failedToLoad": "Không thể tải kết quả"
   },
   "roadmap": {
-    "title": "Lộ trình học tập",
-    "selectCareer": "Chọn nghề nghiệp",
-    "milestones": "Cột mốc",
-    "completed": "Đã hoàn thành",
-    "inProgress": "Đang thực hiện",
-    "notStarted": "Chưa bắt đầu",
-    "markComplete": "Đánh dấu hoàn thành",
-    "duration": "Thời lượng",
-    "skills": "Kỹ năng cần học",
-    "resources": "Tài nguyên"
+    "learningPath": "Lộ trình học tập",
+    "status": {
+      "current": "Đang học",
+      "completed": "Đã hoàn thành"
+    },
+    "estimatedDuration": "Thời gian dự kiến",
+    "resources": "Tài nguyên học tập",
+    "actions": {
+      "markComplete": "Đánh dấu hoàn thành",
+      "marking": "Đang đánh dấu..."
+    },
+    "completedOn": "Hoàn thành vào",
+    "steps": {
+      "1": {
+        "stepLabel": "Bước 1",
+        "title": "Nền tảng",
+        "description": "Nắm vững các khái niệm cơ bản.",
+        "duration": "2 tuần"
+      },
+      "2": {
+        "stepLabel": "Bước 2",
+        "title": "Công cụ & Quy trình",
+        "description": "Học công cụ và quy trình làm việc.",
+        "duration": "1 tuần"
+      },
+      "3": {
+        "stepLabel": "Bước 3",
+        "title": "Dự án",
+        "description": "Thực hành với dự án thực tế.",
+        "duration": "2 tuần"
+      }
+    }
   },
   "profile": {
     "title": "Hồ sơ",
@@ -213,10 +284,10 @@
     "editProfile": "Chỉnh sửa hồ sơ",
     "dateOfBirth": "Ngày sinh",
     "memberSince": "Thành viên từ",
-    "assessmentsTaken": "Số bài đánh giá đã làm",
+    "assessmentsTaken": "Số bài đánh giá",
     "viewResults": "Xem kết quả",
     "compareAssessments": "So sánh đánh giá",
-    "noAssessments": "Chưa có bài đánh giá nào"
+    "noAssessments": "Chưa có bài đánh giá"
   },
   "admin": {
     "dashboard": "Bảng điều khiển quản trị",
@@ -225,16 +296,218 @@
     "skills": "Kỹ năng",
     "questions": "Câu hỏi",
     "monitoring": "Giám sát AI",
-    "totalUsers": "Tổng người dùng",
-    "totalCareers": "Tổng nghề nghiệp",
-    "totalAssessments": "Tổng đánh giá",
-    "systemHealth": "Tình trạng hệ thống"
+    "totalUsers": "Tổng số người dùng",
+    "totalCareers": "Tổng số nghề nghiệp",
+    "totalAssessments": "Tổng số bài đánh giá",
+    "systemHealth": "Tình trạng hệ thống",
+    "settings": "Cài đặt",
+    "blogs": "Bài viết",
+    "loadError": "Không thể tải dữ liệu",
+    "errorLoadingMetrics": "Lỗi khi tải dữ liệu admin",
+    "loadingMetrics": "Đang tải dữ liệu...",
+    "userMetrics": "Thống kê người dùng",
+    "active": "Hoạt động",
+    "completedAssessments": "Bài đánh giá đã hoàn thành",
+    "rate": "Tỷ lệ",
+    "usersWithRoadmaps": "Người dùng có lộ trình",
+    "progress": "Tiến độ",
+    "recentActivity": "Hoạt động gần đây",
+    "last7Days": "7 ngày qua",
+    "aiPerformance": "Hiệu suất AI",
+    "totalRecommendations": "Tổng gợi ý",
+    "perAssessment": "mỗi bài đánh giá",
+    "essayAnalysis": "Phân tích bài luận",
+    "assessmentsWithEssay": "Bài đánh giá có bài luận",
+    "avgProcessingTime": "Thời gian xử lý trung bình",
+    "riasecDistribution": "Phân bố RIASEC",
+    "bigFiveDistribution": "Phân bố Big Five",
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "actions": "Hành động",
+    "prev": "Trước",
+    "next": "Sau",
+    "page": "Trang",
+    "user": {
+      "managementTitle": "Quản lý người dùng",
+      "search": "Tìm theo email / tên...",
+      "email": "Email",
+      "fullName": "Họ và tên",
+      "role": "Vai trò",
+      "locked": "Khóa",
+      "activeStatus": "Đang hoạt động",
+      "lockedStatus": "Đã khóa",
+      "roleUser": "Người dùng",
+      "roleManager": "Quản lý",
+      "roleAdmin": "Quản trị",
+      "unlock": "Mở khóa",
+      "lock": "Khóa"
+    }
   },
   "notifications": {
     "title": "Thông báo",
     "markAllRead": "Đánh dấu tất cả đã đọc",
     "noNotifications": "Không có thông báo",
-    "milestoneCompleted": "Đã hoàn thành cột mốc!",
+    "milestoneCompleted": "Đã hoàn thành một mốc mới!",
     "newRecommendation": "Có gợi ý nghề nghiệp mới"
+  },
+  "blog": {
+    "managePosts": "Quản lý bài viết",
+    "newPost": "Tạo bài viết mới",
+    "titlePlaceholder": "Tiêu đề...",
+    "slugPlaceholder": "Đường dẫn (slug)...",
+    "statusDraft": "Bản nháp",
+    "statusPublished": "Đã xuất bản",
+    "contentPlaceholder": "Nội dung markdown...",
+    "creating": "Đang tạo...",
+    "createPost": "Tạo bài viết",
+    "allPosts": "Tất cả bài viết",
+    "loading": "Đang tải...",
+    "colTitle": "Tiêu đề",
+    "colSlug": "Slug",
+    "colStatus": "Trạng thái",
+    "colPublished": "Ngày xuất bản",
+    "colActions": "Hành động",
+    "edit": "Chỉnh sửa",
+    "publish": "Xuất bản",
+    "unpublish": "Gỡ xuất bản",
+    "delete": "Xóa",
+    "confirmDelete": "Bạn có chắc muốn xóa bài viết này?",
+    "editPost": "Chỉnh sửa bài viết",
+    "saving": "Đang lưu...",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "loadFailed": "Không thể tải danh sách bài viết",
+    "createFailed": "Không thể tạo bài viết",
+    "updateFailed": "Không thể cập nhật bài viết",
+    "deleteFailed": "Không thể xóa bài viết",
+    "statusUpdateFailed": "Không thể cập nhật trạng thái"
+  },
+  "career": {
+    "managementTitle": "Quản lý ngành nghề",
+    "addCareer": "Thêm ngành nghề",
+    "searchPlaceholder": "Tìm kiếm ngành nghề...",
+    "filterByCategory": "Lọc theo danh mục",
+    "loading": "Đang tải danh sách...",
+    "title": "Tên ngành nghề",
+    "description": "Mô tả",
+    "category": "Danh mục",
+    "salaryRange": "Mức lương",
+    "skills": "Kỹ năng",
+    "skillsCount": "kỹ năng",
+    "roadmap": "Lộ trình",
+    "noResults": "Không tìm thấy ngành nghề nào",
+    "editCareer": "Chỉnh sửa ngành nghề",
+    "minSalary": "Lương tối thiểu",
+    "maxSalary": "Lương tối đa",
+    "currency": "Tiền tệ",
+    "requiredSkills": "Kỹ năng yêu cầu",
+    "addSkillPlaceholder": "Thêm kỹ năng...",
+    "riasec": "Hồ sơ RIASEC",
+    "riasecDistribution": "Biểu đồ RIASEC",
+    "riasec": {
+      "realistic": "Thực tế (R)",
+      "investigative": "Nghiên cứu (I)",
+      "artistic": "Nghệ thuật (A)",
+      "social": "Xã hội (S)",
+      "enterprising": "Quản lý (E)",
+      "conventional": "Quy ước (C)"
+    },
+    "saveFailed": "Không thể lưu ngành nghề",
+    "deleteFailed": "Không thể xóa ngành nghề"
+  },
+  "pagination": {
+    "prev": "Trước",
+    "next": "Tiếp",
+    "page": "Trang"
+  },
+  "skill": {
+    "management": "Quản lý kỹ năng",
+    "add": "Thêm kỹ năng",
+    "edit": "Chỉnh sửa kỹ năng",
+    "search": "Tìm kiếm kỹ năng",
+    "searchPlaceholder": "Nhập tên, mô tả hoặc danh mục",
+    "name": "Tên kỹ năng",
+    "description": "Mô tả",
+    "category": "Danh mục",
+    "levels": "Các mức độ thành thạo",
+    "levelPlaceholder": "Thêm mức độ (VD: Cơ bản)",
+    "levelCount": "mức độ",
+    "resources": "Tài nguyên học tập",
+    "resourceCount": "tài nguyên",
+    "resourceTitle": "Tiêu đề tài nguyên",
+    "resourceURL": "Liên kết tài nguyên",
+    "addResource": "Thêm tài nguyên",
+    "resourceType": {
+      "course": "Khóa học",
+      "article": "Bài viết",
+      "video": "Video",
+      "book": "Sách"
+    },
+    "errorLoading": "Không tải được danh sách kỹ năng.",
+    "errorDelete": "Xóa kỹ năng thất bại.",
+    "errorSave": "Lưu kỹ năng thất bại."
+  },
+  "question": {
+    "managementTitle": "Quản lý câu hỏi",
+    "addQuestion": "Thêm câu hỏi",
+    "testType": "Loại bài trắc nghiệm",
+    "allTypes": "Tất cả loại",
+    "status": "Trạng thái",
+    "allStatus": "Tất cả",
+    "active": "Đang sử dụng",
+    "inactive": "Không sử dụng",
+    "dimension": "Chiều đo",
+    "type": "Loại câu hỏi",
+    "multipleChoice": "Trắc nghiệm",
+    "scale": "Thang điểm",
+    "addOption": "Thêm lựa chọn",
+    "removeOption": "Xoá",
+    "minValue": "Giá trị nhỏ nhất",
+    "maxValue": "Giá trị lớn nhất",
+    "errorLoading": "Không tải được danh sách câu hỏi.",
+    "errorDelete": "Xoá câu hỏi thất bại.",
+    "errorSave": "Lưu câu hỏi thất bại."
+  },
+  "ai": {
+    "performanceMonitoring": "Giám sát hiệu suất AI",
+    "loadingMetrics": "Đang tải dữ liệu...",
+    "failedToLoadMetrics": "Không tải được số liệu AI.",
+    "errorLoadingMetrics": "Lỗi khi tải số liệu AI.",
+    "errorLoadingFeedback": "Lỗi khi tải phản hồi người dùng.",
+    "performanceMetrics": "Chỉ số hiệu suất",
+    "totalRecommendations": "Tổng số gợi ý",
+    "perAssessment": "mỗi bài đánh giá",
+    "essayAnalysis": "Phân tích bài viết",
+    "assessmentsAnalyzed": "Bài đánh giá đã phân tích",
+    "avgProcessingTime": "Thời gian xử lý trung bình",
+    "errorRate": "Tỷ lệ lỗi",
+    "last30Days": "30 ngày gần nhất",
+    "riasecDistribution": "Phân bố RIASEC",
+    "bigFiveDistribution": "Phân bố Big Five",
+    "userFeedback": "Phản hồi người dùng",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "minRating": "Xếp hạng tối thiểu",
+    "allRatings": "Tất cả mức",
+    "stars": "sao",
+    "applyFilters": "Áp dụng bộ lọc",
+    "loadingFeedback": "Đang tải phản hồi...",
+    "user": "Người dùng",
+    "rating": "Đánh giá",
+    "comment": "Bình luận",
+    "date": "Ngày",
+    "actions": "Hành động",
+    "viewDetails": "Xem chi tiết",
+    "flag": "Gắn cờ",
+    "noFeedback": "Chưa có phản hồi",
+    "feedbackAppearsWhenUsersRate": "Phản hồi sẽ xuất hiện khi người dùng gửi đánh giá.",
+    "systemHealth": "Tình trạng hệ thống",
+    "serviceStatus": "Trạng thái dịch vụ",
+    "allSystemsOperational": "Tất cả hệ thống đang hoạt động ổn định.",
+    "responseTime": "Thời gian phản hồi",
+    "avg": "Trung bình",
+    "target": "Mục tiêu",
+    "successRate": "Tỷ lệ thành công",
+    "successRateMessage": "Tỷ lệ thành công nằm trong ngưỡng mong đợi."
   }
 }

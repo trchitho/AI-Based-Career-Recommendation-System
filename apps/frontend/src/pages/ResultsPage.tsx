@@ -9,6 +9,7 @@ import CareerRecommendationsDisplay from '../components/results/CareerRecommenda
 import { feedbackService } from '../services/feedbackService';
 import api from '../lib/api';
 import { useAppSettings } from '../contexts/AppSettingsContext';
+import AppLogo from '../components/common/AppLogo';
 
 const ResultsPage = () => {
   const { assessmentId } = useParams<{ assessmentId: string }>();
@@ -100,40 +101,28 @@ const ResultsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Nav */}
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen bg-[#F5EFE7] dark:bg-gray-900">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="text-xl font-bold text-gray-900 hover:text-indigo-700 focus:outline-none"
-                aria-label="Go to Dashboard"
-              >
-                {app.app_title || 'Career Recommendation System'}
-              </button>
+              <AppLogo size="sm" showText={true} linkTo="/dashboard" />
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="text-sm text-gray-700 hover:text-gray-900"
+                className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               >
                 Dashboard
               </button>
               <button
                 onClick={() => navigate('/profile')}
-                className="text-sm text-gray-700 hover:text-gray-900"
+                className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               >
                 Profile
               </button>
-              <span className="text-sm text-gray-700">
-                {user?.firstName || user?.email}
-              </span>
-              <button
-                onClick={logout}
-                className="text-sm text-gray-700 hover:text-gray-900"
-              >
+              <span className="text-sm text-gray-700 dark:text-gray-300">{user?.firstName || user?.email}</span>
+              <button onClick={logout} className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
                 Logout
               </button>
             </div>
@@ -146,59 +135,62 @@ const ResultsPage = () => {
         <div className="px-4 py-6 sm:px-0">
           {loading && (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4A7C59] dark:border-green-600"></div>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-800">{error}</p>
+            <div className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg p-4 mb-6">
+              <p className="text-red-800 dark:text-red-300">{error}</p>
             </div>
           )}
 
           {!loading && !error && results && (
             <div>
               {/* Header */}
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  Your Assessment Results
-                </h2>
-                {results.completed_at && (
-                  <p className="text-gray-600">
-                    Completed on {formatDate(results.completed_at)}
-                  </p>
-                )}
+              <div className="mb-8 bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Your Personality type report is ready!</h2>
+                    <p className="text-gray-600 dark:text-gray-400">Completed on {formatDate(results.completed_at)}</p>
+                  </div>
+                  <div className="w-16 h-16 bg-[#4A7C59] dark:bg-green-600 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
-              {/* Tabs */}
-              <div className="mb-6 border-b border-gray-200">
-                <nav className="flex space-x-8">
+              {/* Tab Navigation */}
+              <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                <nav className="flex space-x-1 p-2">
                   <button
                     onClick={() => setActiveTab('summary')}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-colors ${
                       activeTab === 'summary'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'bg-[#4A7C59] dark:bg-green-600 text-white'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
                     Summary
                   </button>
                   <button
                     onClick={() => setActiveTab('detailed')}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-colors ${
                       activeTab === 'detailed'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'bg-[#4A7C59] dark:bg-green-600 text-white'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
                     Detailed Analysis
                   </button>
                   <button
                     onClick={() => setActiveTab('recommendations')}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-colors ${
                       activeTab === 'recommendations'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'bg-[#4A7C59] dark:bg-green-600 text-white'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
                     Career Recommendations
@@ -209,20 +201,16 @@ const ResultsPage = () => {
               {/* TAB: Summary */}
               {activeTab === 'summary' && (
                 <div className="space-y-6">
-                  <div className="bg-white shadow rounded-lg p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                      Overview
-                    </h3>
-                    <p className="text-gray-700 mb-4">
+                  <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Overview</h3>
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
                       Your assessment has been analyzed using scientifically-validated methods to
                       understand your career interests and personality traits.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-indigo-900 mb-2">
-                          Top Career Interest
-                        </h4>
-                        <p className="text-indigo-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-[#E8F5E9] dark:bg-green-900/20 border-2 border-[#4A7C59] dark:border-green-600 rounded-xl p-6">
+                        <h4 className="font-bold text-[#4A7C59] dark:text-green-400 mb-3 text-lg">Top Career Interest</h4>
+                        <p className="text-[#2E5C3E] dark:text-green-300 text-xl font-semibold">
                           {(() => {
                             const topRiasec = Object.entries(results.riasec_scores)
                               .sort((a, b) => b[1] - a[1])[0];
@@ -232,11 +220,11 @@ const ResultsPage = () => {
                           })()}
                         </p>
                       </div>
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-blue-900 mb-2">
+                      <div className="bg-[#FFF3E0] dark:bg-yellow-900/20 border-2 border-[#E8B86D] dark:border-yellow-600 rounded-xl p-6">
+                        <h4 className="font-bold text-[#E8B86D] dark:text-yellow-400 mb-3 text-lg">
                           Dominant Personality Trait
                         </h4>
-                        <p className="text-blue-700">
+                        <p className="text-[#C89D4D] dark:text-yellow-300 text-xl font-semibold">
                           {(() => {
                             const topBigFive = Object.entries(results.big_five_scores)
                               .sort((a, b) => b[1] - a[1])[0];
@@ -250,42 +238,36 @@ const ResultsPage = () => {
                   </div>
 
                   {results.essay_analysis && (
-                    <div className="bg-white shadow rounded-lg p-6">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                        Essay Insights
-                      </h3>
+                    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Essay Insights</h3>
                       {results.essay_analysis.key_insights &&
                         results.essay_analysis.key_insights.length > 0 && (
-                          <div className="mb-4">
-                            <h4 className="font-medium text-gray-700 mb-2">
-                              Key Insights:
-                            </h4>
-                            <ul className="list-disc list-inside space-y-1">
+                          <div className="mb-6">
+                            <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">Key Insights:</h4>
+                            <ul className="space-y-2">
                               {results.essay_analysis.key_insights.map((insight, index) => (
-                                <li key={index} className="text-gray-600">
-                                  {insight}
+                                <li key={index} className="flex items-start">
+                                  <svg className="w-5 h-5 text-[#4A7C59] dark:text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                  <span className="text-gray-700 dark:text-gray-300">{insight}</span>
                                 </li>
                               ))}
                             </ul>
                           </div>
                         )}
-
-                      {results.essay_analysis.themes &&
-                        results.essay_analysis.themes.length > 0 && (
-                          <div>
-                            <h4 className="font-medium text-gray-700 mb-2">
-                              Identified Themes:
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {results.essay_analysis.themes.map((theme, index) => (
-                                <span
-                                  key={index}
-                                  className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full"
-                                >
-                                  {theme}
-                                </span>
-                              ))}
-                            </div>
+                      {results.essay_analysis.themes && results.essay_analysis.themes.length > 0 && (
+                        <div>
+                          <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">Identified Themes:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {results.essay_analysis.themes.map((theme, index) => (
+                              <span
+                                key={index}
+                                className="px-4 py-2 bg-[#E8F5E9] dark:bg-green-900/30 text-[#4A7C59] dark:text-green-400 text-sm font-medium rounded-full border border-[#4A7C59]/30 dark:border-green-600/30"
+                              >
+                                {theme}
+                              </span>
+                            ))}
                           </div>
                         )}
                     </div>
@@ -308,19 +290,18 @@ const ResultsPage = () => {
 
               {/* Quick Feedback */}
               {!fbDone && (
-                <div className="mt-8 bg-white shadow rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    Rate Your Results
-                  </h3>
-                  <div className="flex items-center space-x-2 mb-3">
-                    {[1, 2, 3, 4, 5].map((v) => (
-                      <button
-                        key={v}
-                        onClick={() => setFbRating(v)}
-                        className={`w-8 h-8 rounded-full border ${
-                          fbRating === v
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'border-gray-300 text-gray-700'
+                <div className="mt-8 bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Rate Your Results</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">How satisfied are you with your personality assessment?</p>
+                  <div className="flex items-center space-x-3 mb-4">
+                    {[1,2,3,4,5].map(v => (
+                      <button 
+                        key={v} 
+                        onClick={() => setFbRating(v)} 
+                        className={`w-12 h-12 rounded-full border-2 font-semibold transition-all ${
+                          fbRating===v
+                            ? 'bg-[#4A7C59] dark:bg-green-600 text-white border-[#4A7C59] dark:border-green-600 scale-110' 
+                            : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-[#4A7C59] dark:hover:border-green-600'
                         }`}
                       >
                         {v}
@@ -328,12 +309,13 @@ const ResultsPage = () => {
                     ))}
                   </div>
                   <textarea
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="Optional comment"
+                    className="w-full border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-4 py-3 focus:border-[#4A7C59] dark:focus:border-green-600 focus:outline-none"
+                    placeholder="Optional comment (tell us what you think)"
+                    rows={3}
                     value={fbComment}
                     onChange={(e) => setFbComment(e.target.value)}
                   />
-                  <div className="mt-3 flex justify-end">
+                  <div className="mt-4 flex justify-end">
                     <button
                       disabled={!fbRating}
                       onClick={async () => {
@@ -345,7 +327,7 @@ const ResultsPage = () => {
                           console.error(e);
                         }
                       }}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-50"
+                      className="px-6 py-3 bg-[#4A7C59] dark:bg-green-600 text-white rounded-lg font-medium hover:bg-[#3d6449] dark:hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       Submit Feedback
                     </button>

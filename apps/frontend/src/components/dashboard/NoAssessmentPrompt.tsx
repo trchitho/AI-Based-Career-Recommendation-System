@@ -9,10 +9,10 @@ const NoAssessmentPrompt: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-500/10 dark:to-purple-600/10 backdrop-blur-xl rounded-2xl border border-purple-300 dark:border-purple-500/30 p-10 text-center shadow-2xl transition-colors duration-300">
+    <div className="bg-gradient-to-br from-[#E8DCC8] to-[#D4C4B0] dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-300 dark:border-gray-600 p-10 text-center shadow-xl transition-colors duration-300">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-purple-500/50">
+          <div className="mx-auto h-20 w-20 bg-[#4A7C59] dark:bg-green-600 rounded-2xl flex items-center justify-center shadow-xl">
             <svg
               className="h-10 w-10 text-white"
               fill="none"
@@ -75,7 +75,7 @@ const NoAssessmentPrompt: React.FC = () => {
         
         <button
           onClick={handleStartAssessment}
-          className="bg-gradient-to-r from-purple-500 to-purple-600 text-white py-4 px-10 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-200 text-lg font-bold shadow-2xl hover:shadow-purple-500/50 flex items-center justify-center space-x-2 mx-auto"
+          className="bg-[#4A7C59] dark:bg-green-600 text-white py-4 px-10 rounded-xl hover:bg-[#3d6449] dark:hover:bg-green-700 transition-all duration-200 text-lg font-bold shadow-xl flex items-center justify-center space-x-2 mx-auto"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />

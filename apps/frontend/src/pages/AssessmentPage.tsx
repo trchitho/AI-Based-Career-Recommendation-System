@@ -176,95 +176,97 @@ const AssessmentPage = () => {
                     </p>
                   </div>
                 </div>
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">{t('assessment.title')}</h2>
+                <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">{t('assessment.subtitle')}</p>
+              </div>
+            
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 mb-6 shadow-xl border border-gray-200 dark:border-gray-700">
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('assessment.discoverPath')}
+                  </h3>
+                  <p className="text-gray-700 dark:text-gray-300 text-lg">
+                    {t('assessment.comprehensiveDesc')}
+                  </p>
+                </div>
 
-                <div className="flex items-start bg-gray-100 dark:bg-gray-700/30 rounded-xl p-5 border border-gray-200 dark:border-gray-600/30">
-                  <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mr-4 shadow-lg shadow-purple-500/50">
-                    <span className="text-white font-bold text-lg">2</span>
+                <div className="space-y-5 mb-8">
+                  {/* RIASEC Test Card */}
+                  <div className="bg-[#E8DCC8] dark:bg-gray-700/50 rounded-xl p-5 border border-[#D4C4B0] dark:border-gray-600 hover:shadow-lg transition-all duration-300">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-4 shadow-md">
+                        <span className="text-white font-bold text-lg">1</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
+                          {t('assessment.riasec')}
+                        </h4>
+                        <p className="text-gray-700 dark:text-gray-300 text-sm">
+                          {t('assessment.riasecDesc')}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
-                      {t('assessment.bigFive')}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {t('assessment.bigFiveDesc')}
-                    </p>
+
+                  {/* Big Five Test Card */}
+                  <div className="bg-[#E8DCC8] dark:bg-gray-700/50 rounded-xl p-5 border border-[#D4C4B0] dark:border-gray-600 hover:shadow-lg transition-all duration-300">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-4 shadow-md">
+                        <span className="text-white font-bold text-lg">2</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
+                          {t('assessment.bigFive')}
+                        </h4>
+                        <p className="text-gray-700 dark:text-gray-300 text-sm">
+                          {t('assessment.bigFiveDesc')}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="bg-purple-100 dark:bg-purple-500/10 border border-purple-300 dark:border-purple-500/30 rounded-xl p-6 mb-8 backdrop-blur-sm">
-                <h4 className="font-bold text-purple-700 dark:text-purple-300 mb-3 flex items-center">
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+              <div className="bg-gradient-to-br from-[#4A7C59]/10 to-[#3d6449]/5 dark:bg-gradient-to-br dark:from-green-900/30 dark:to-green-800/20 border-2 border-[#4A7C59]/30 dark:border-green-600/40 rounded-xl p-6 mb-8 shadow-md">
+                <h4 className="font-bold text-[#2d4a36] dark:text-green-200 text-lg mb-4 flex items-center">
+                  <div className="w-8 h-8 rounded-lg bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 shadow-md">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
                   {t('assessment.whatToExpect')}
                 </h4>
-                <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-                  <li className="flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {t('assessment.duration')}
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">{t('assessment.duration')}</span>
                   </li>
-                  <li className="flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {t('assessment.honestAnswers')}
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">{t('assessment.honestAnswers')}</span>
                   </li>
-                  <li className="flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {t('assessment.optionalEssay')}
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">{t('assessment.optionalEssay')}</span>
                   </li>
-                  <li className="flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {t('assessment.tailoredRecommendations')}
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">{t('assessment.tailoredRecommendations')}</span>
                   </li>
                 </ul>
               </div>
@@ -315,8 +317,8 @@ const AssessmentPage = () => {
                       d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <p className="text-red-400">{error}</p>
-                </div>
+                  <span>{t('assessment.startAssessment')}</span>
+                </button>
               </div>
             )}
 
@@ -358,15 +360,15 @@ const AssessmentPage = () => {
                   />
                 </svg>
               </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                {t('assessment.processingResults')}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                {t('assessment.analyzingResponses')}
+              </p>
             </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-              {t('assessment.processingResults')}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 text-lg">
-              {t('assessment.analyzingResponses')}
-            </p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </MainLayout>
   );

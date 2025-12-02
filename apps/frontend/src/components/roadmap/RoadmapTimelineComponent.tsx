@@ -50,7 +50,7 @@ const RoadmapTimelineComponent = ({
   return (
     <div className="relative">
       {/* Timeline Line */}
-      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
 
       {/* Milestones */}
       <div className="space-y-6">
@@ -66,10 +66,10 @@ const RoadmapTimelineComponent = ({
               <div
                 className={`absolute left-5 top-2 w-6 h-6 rounded-full border-4 ${
                   isCompleted
-                    ? 'bg-green-500 border-green-200'
+                    ? 'bg-[#4A7C59] dark:bg-green-600 border-[#E8F5E9] dark:border-green-300'
                     : isCurrent
-                    ? 'bg-indigo-500 border-indigo-200 animate-pulse'
-                    : 'bg-white border-gray-300'
+                    ? 'bg-[#4A7C59] dark:bg-green-600 border-[#E8DCC8] dark:border-green-300 animate-pulse'
+                    : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
                 }`}
               >
                 {isCompleted && (
@@ -89,12 +89,12 @@ const RoadmapTimelineComponent = ({
 
               {/* Milestone Card */}
               <div
-                className={`bg-white rounded-lg shadow-md border-2 transition-all ${
+                className={`bg-white dark:bg-gray-800 rounded-lg shadow-md border-2 transition-all ${
                   isCurrent
-                    ? 'border-indigo-500'
+                    ? 'border-[#4A7C59] dark:border-green-600 shadow-lg'
                     : isCompleted
-                    ? 'border-green-200'
-                    : 'border-gray-200'
+                    ? 'border-[#E8F5E9] dark:border-green-700'
+                    : 'border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <div
@@ -108,23 +108,26 @@ const RoadmapTimelineComponent = ({
                           Step {milestone.order}
                         </span>
                         {isCurrent && (
-                          <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">
+                          <span className="px-2 py-1 bg-[#E8DCC8] dark:bg-green-900/30 text-[#4A7C59] dark:text-green-400 text-xs font-semibold rounded-full">
                             Current
                           </span>
                         )}
                         {isCompleted && (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                          <span className="px-2 py-1 bg-[#E8F5E9] dark:bg-green-900/30 text-[#4A7C59] dark:text-green-400 text-xs font-semibold rounded-full border border-[#4A7C59]/30 dark:border-green-600/30">
                             Completed
                           </span>
                         )}
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         {milestone.skillName}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-2">{milestone.description}</p>
-                      <p className="text-xs text-gray-500">
-                        ⏱️ Estimated Duration: {milestone.estimatedDuration}
-                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{milestone.description}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Estimated Duration: {milestone.estimatedDuration}</span>
+                      </div>
                     </div>
                     <button className="ml-4 text-gray-400 hover:text-gray-600">
                       <svg
@@ -148,8 +151,8 @@ const RoadmapTimelineComponent = ({
 
                 {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="px-5 pb-5 border-t border-gray-200 pt-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">Learning Resources</h4>
+                  <div className="px-5 pb-5 border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Learning Resources</h4>
                     <div className="space-y-2 mb-4">
                       {milestone.resources.map((resource, idx) => (
                         <a
@@ -157,12 +160,12 @@ const RoadmapTimelineComponent = ({
                           href={resource.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="flex items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         >
                           <span className="text-2xl mr-3">{getResourceIcon(resource.type)}</span>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">{resource.title}</p>
-                            <p className="text-xs text-gray-500 capitalize">{resource.type}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{resource.title}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{resource.type}</p>
                           </div>
                           <svg
                             className="w-4 h-4 text-gray-400"
@@ -188,16 +191,19 @@ const RoadmapTimelineComponent = ({
                           onCompleteMilestone(milestone.order.toString());
                         }}
                         disabled={isCompleting}
-                        className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+                        className="w-full px-4 py-2 bg-[#4A7C59] dark:bg-green-600 text-white rounded-lg hover:bg-[#3d6449] dark:hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-all shadow-sm"
                       >
                         {isCompleting ? 'Marking Complete...' : 'Mark as Complete'}
                       </button>
                     )}
 
                     {isCompleted && userProgress && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <p className="text-sm text-green-800">
-                          ✓ Completed on{' '}
+                      <div className="bg-[#E8F5E9] dark:bg-green-900/20 border border-[#4A7C59]/30 dark:border-green-600/30 rounded-lg p-3">
+                        <p className="text-sm text-[#4A7C59] dark:text-green-400 flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <span>Completed on{' '}
                           {(() => {
                             const completionTimestamp =
                               userProgress.milestone_completions?.[milestone.order.toString()];
@@ -212,6 +218,7 @@ const RoadmapTimelineComponent = ({
                             }
                             return new Date(userProgress.last_updated_at).toLocaleDateString();
                           })()}
+                          </span>
                         </p>
                       </div>
                     )}

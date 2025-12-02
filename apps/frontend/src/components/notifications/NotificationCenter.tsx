@@ -169,7 +169,7 @@ const NotificationCenter = () => {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                className="text-xs text-[#4A7C59] dark:text-green-400 hover:text-[#3d6449] dark:hover:text-green-500 font-medium"
               >
                 Mark all as read
               </button>
@@ -180,7 +180,7 @@ const NotificationCenter = () => {
           <div className="overflow-y-auto flex-1">
             {loading ? (
               <div className="flex justify-center items-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A7C59] dark:border-green-600"></div>
               </div>
             ) : notifications.length === 0 ? (
               <div className="text-center py-8 px-4">
@@ -192,8 +192,8 @@ const NotificationCenter = () => {
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
-                      !notification.is_read ? 'bg-indigo-50' : ''
+                    className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
+                      !notification.is_read ? 'bg-[#E8DCC8] dark:bg-green-900/20' : ''
                     }`}
                   >
                     <div className="flex items-start">
@@ -210,7 +210,7 @@ const NotificationCenter = () => {
                         </p>
                       </div>
                       {!notification.is_read && (
-                        <span className="ml-2 w-2 h-2 bg-indigo-600 rounded-full flex-shrink-0"></span>
+                        <span className="ml-2 w-2 h-2 bg-[#4A7C59] dark:bg-green-500 rounded-full flex-shrink-0"></span>
                       )}
                     </div>
                   </div>

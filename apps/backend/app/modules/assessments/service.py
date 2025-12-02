@@ -1207,11 +1207,6 @@ def save_feedback(
 ) -> None:
     if rating < 1 or rating > 5:
         raise ValueError("rating must be 1..5")
-    fb = UserFeedback(
-        user_id=user_id,
-        assessment_id=assessment_id,
-        rating=rating,
-        comment=(comment or None),
-    )
+    fb = UserFeedback(user_id=user_id, assessment_id=assessment_id, rating=rating, comment=(comment or None))
     session.add(fb)
     session.commit()

@@ -26,9 +26,9 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-          <p className="font-semibold text-gray-900">{payload[0].payload.fullName}</p>
-          <p className="text-indigo-600 font-bold">{payload[0].value.toFixed(1)}</p>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+          <p className="font-semibold text-gray-900 dark:text-white">{payload[0].payload.fullName}</p>
+          <p className="text-[#4A7C59] dark:text-green-400 font-bold">{payload[0].value.toFixed(1)}</p>
         </div>
       );
     }
@@ -59,8 +59,8 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
           <Radar
             name="Score"
             dataKey="score"
-            stroke="#4f46e5"
-            fill="#4f46e5"
+            stroke="#4A7C59"
+            fill="#4A7C59"
             fillOpacity={0.6}
           />
           <Tooltip content={<CustomTooltip />} />

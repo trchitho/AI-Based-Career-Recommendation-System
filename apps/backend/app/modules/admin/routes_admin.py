@@ -1,4 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query, Request
+import importlib.util as _importlib_util
+import logging
+import secrets
+from datetime import datetime, timezone
+from pathlib import Path
+
+from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, Text, func, select, text
 from sqlalchemy.orm import Session, registry
 
@@ -7,6 +13,8 @@ from ..assessments.models import Assessment, AssessmentForm, AssessmentQuestion
 from ..content.models import BlogPost, Career, CareerKSA, Comment
 from ..system.models import AppSettings
 from ..users.models import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -50,10 +58,8 @@ def dashboard_metrics(request: Request):
 
 
 @router.get("/ai-metrics")
-def ai_metrics(_: Request):
-    # allow only admin
-    # using Request not necessary here, but keep signature consistent
-    # We won't compute real metrics yet
+def ai_metrics(request: Request):
+    _ = require_admin(request)
     return {
         "totalRecommendations": 0,
         "avgRecommendationsPerAssessment": 0,
@@ -224,12 +230,12 @@ def create_career(request: Request, payload: dict):
     _ = require_admin(request)
     session = _db(request)
     title = (payload.get("title") or "").strip()
-    description = payload.get("description") or ""
+    description = str(payload.get("description") or "")
     if not title:
         raise HTTPException(status_code=400, detail="title is required")
 
     slug = "-".join(title.lower().split())[:100]
-    c = Career(title_vi=title, slug=slug, short_desc_vn=(description or "")[:160])
+    c = Career(title_vi=title, slug=slug, short_desc_vn=description[:160])
     session.add(c)
     session.commit()
     session.refresh(c)
@@ -246,8 +252,8 @@ def update_career(request: Request, career_id: int, payload: dict):
     if "title" in payload and payload["title"]:
         c.title_vi = payload["title"].strip()
     if "description" in payload:
-        desc = payload.get("description") or ""
-        c.short_desc_vn = (desc or "")[:160]
+        desc = str(payload.get("description") or "")
+        c.short_desc_vn = desc[:160]
     session.commit()
     session.refresh(c)
     return {"career": _career_to_client(c)}
@@ -263,6 +269,61 @@ def delete_career(request: Request, career_id: int):
     session.delete(c)
     session.commit()
     return {"status": "ok"}
+
+
+_has_multipart = _importlib_util.find_spec("multipart") is not None
+
+# ----- File Upload (admin only) -----
+if _has_multipart:
+
+    @router.post("/upload")
+    def upload_media(request: Request, file: UploadFile = File(...)):
+        _ = require_admin(request)
+        content_type = (file.content_type or "").lower()
+        allowed = {
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/gif",
+            "image/webp",
+            "image/svg+xml",
+        }
+        if content_type not in allowed:
+            raise HTTPException(status_code=400, detail=f"Unsupported content_type: {content_type}")
+
+        # Resolve static uploads directory: app/static/uploads
+        base_dir = Path(__file__).resolve().parents[3] / "app" / "static" / "uploads"
+        base_dir.mkdir(parents=True, exist_ok=True)
+
+        # Safe filename
+        ext = Path(file.filename or "").suffix.lower() or ".bin"
+        rand = secrets.token_hex(8)
+        fname = f"{rand}{ext}"
+        target = base_dir / fname
+
+        # Save
+        with target.open("wb") as f:
+            while True:
+                chunk = file.file.read(1024 * 1024)
+                if not chunk:
+                    break
+                f.write(chunk)
+
+        # Build absolute URL using mounted static named 'static'
+        try:
+            url = request.url_for("static", path=f"uploads/{fname}")
+        except Exception:
+            # Fallback to base url + /static
+            url = str(request.base_url) + f"static/uploads/{fname}"
+
+        return {"url": str(url), "path": f"/static/uploads/{fname}", "filename": fname}
+
+else:
+
+    @router.post("/upload")
+    def upload_media_unavailable(request: Request):
+        _ = require_admin(request)
+        raise HTTPException(status_code=500, detail="Upload disabled: install python-multipart on server")
 
 
 # ----- Skills CRUD (map to career_ksas) -----
@@ -293,24 +354,49 @@ def create_skill(request: Request, payload: dict):
     _ = require_admin(request)
     session = _db(request)
     name = (payload.get("name") or "").strip()
-    category = payload.get("category") or ""
-    description = payload.get("description") or ""
+    category = (payload.get("category") or "").strip()
+    description = (payload.get("description") or "").strip()
     if not name:
         raise HTTPException(status_code=400, detail="name is required")
 
-    s = CareerKSA(
-        onet_code="custom",
-        ksa_type=category or "skill",
-        name=name,
-        category=description,
-        level=None,
-        importance=None,
-        source="custom",
-    )
-    session.add(s)
-    session.commit()
-    session.refresh(s)
-    return {"skill": _ksa_to_client(s)}
+    requested_onet = (payload.get("onet_code") or "GENERIC").strip() or "GENERIC"
+    if requested_onet.upper() == "GENERIC":
+        exists_career = session.execute(select(Career).where(Career.onet_code == "GENERIC")).scalar_one_or_none()
+        if not exists_career:
+            base_slug = "generic-skill"
+            slug = base_slug
+            i = 1
+            while session.execute(select(Career).where(Career.slug == slug)).scalar_one_or_none() is not None:
+                i += 1
+                slug = f"{base_slug}-{i}"
+            c = Career(
+                slug=slug,
+                onet_code="GENERIC",
+                title_vi="Kỹ năng chung",
+                title_en="Generic Skills",
+                short_desc_vn="Nhóm kỹ năng tổng quát",
+                short_desc_en="Generic skill bucket",
+            )
+            session.add(c)
+            session.flush()
+    try:
+        s = CareerKSA(
+            onet_code=requested_onet,
+            ksa_type=category or "skill",
+            name=name,
+            category=description,
+            level=None,
+            importance=None,
+            source="custom",
+        )
+        session.add(s)
+        session.commit()
+        session.refresh(s)
+        return {"skill": _ksa_to_client(s)}
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to create skill: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail="Failed to create skill")
 
 
 @router.put("/skills/{skill_id}")
@@ -326,9 +412,14 @@ def update_skill(request: Request, skill_id: int, payload: dict):
         s.ksa_type = payload.get("category") or s.ksa_type
     if "description" in payload:
         s.category = payload.get("description") or s.category
-    session.commit()
-    session.refresh(s)
-    return {"skill": _ksa_to_client(s)}
+    try:
+        session.commit()
+        session.refresh(s)
+        return {"skill": _ksa_to_client(s)}
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to update skill {skill_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail="Failed to update skill")
 
 
 @router.delete("/skills/{skill_id}")
@@ -493,6 +584,8 @@ def list_users(
             "full_name": u.full_name,
             "role": u.role,
             "is_locked": u.is_locked,
+            "is_email_verified": getattr(u, "is_email_verified", False),
+            "email_verified_at": u.email_verified_at.isoformat() if getattr(u, "email_verified_at", None) else None,
             "created_at": u.created_at.isoformat() if u.created_at else None,
         }
         for u in rows
@@ -517,13 +610,26 @@ def create_user(request: Request, payload: dict):
         raise HTTPException(status_code=400, detail="Invalid role")
     exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(
+            status_code=400,
+            detail={"message": "Email already registered", "error_code": "EMAIL_ALREADY_REGISTERED"},
+        )
+    from ...core.email_verifier import is_deliverable_email
+
+    ok, reason = is_deliverable_email(email)
+    if not ok:
+        raise HTTPException(
+            status_code=400,
+            detail={"message": f"Email is not deliverable: {reason}", "error_code": "EMAIL_NOT_DELIVERABLE"},
+        )
     u = User(
         email=email,
         password_hash=hash_password(password),
         full_name=full_name,
         role=role,
         is_locked=False,
+        is_email_verified=True,
+        email_verified_at=datetime.now(timezone.utc),
     )
     session.add(u)
     session.commit()
@@ -580,13 +686,28 @@ def admin_list_posts(request: Request, limit: int = 50, offset: int = 0):
 
 @router.post("/blog")
 def admin_create_post(request: Request, payload: dict):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     title = (payload.get("title") or "").strip()
-    slug = (payload.get("slug") or "").strip() or "-".join(title.lower().split())
-    content_md = payload.get("content_md") or ""
-    status = payload.get("status") or "Draft"
-    p = BlogPost(title=title, slug=slug, content_md=content_md, status=status)
+    if not title:
+        raise HTTPException(status_code=400, detail="title is required")
+    content_md = (payload.get("content_md") or payload.get("content") or "").strip()
+    if not content_md:
+        raise HTTPException(status_code=400, detail="content is required")
+    slug = (payload.get("slug") or "").strip() or "-".join(title.lower().split())[:120]
+    status = (payload.get("status") or "Draft").strip() or "Draft"
+    published_at = datetime.now(timezone.utc) if status.lower() == "published" else None
+    exists = session.execute(select(BlogPost).where(BlogPost.slug == slug)).scalar_one_or_none()
+    if exists:
+        slug = f"{slug}-{int(datetime.now(timezone.utc).timestamp())}"
+    p = BlogPost(
+        author_id=admin_id,
+        title=title,
+        slug=slug,
+        content_md=content_md,
+        status=status,
+        published_at=published_at,
+    )
     session.add(p)
     session.commit()
     session.refresh(p)
@@ -602,7 +723,12 @@ def admin_update_post(request: Request, post_id: int, payload: dict):
         raise HTTPException(status_code=404, detail="Post not found")
     for field in ("title", "slug", "content_md", "status"):
         if field in payload:
-            setattr(p, field, payload[field])
+            setattr(p, field, payload[field] or getattr(p, field))
+    status = (p.status or "").strip()
+    if status.lower() == "published" and not p.published_at:
+        p.published_at = datetime.now(timezone.utc)
+    if status.lower() != "published":
+        p.published_at = None
     session.commit()
     session.refresh(p)
     return p.to_dict()

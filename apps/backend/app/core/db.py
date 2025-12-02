@@ -25,14 +25,14 @@ if not DATABASE_URL:
 # Engine dùng chung
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
-# Base dùng chung cho tất cả models
+# Base dùng chung cho tất cả models (cái bạn đang thiếu)
 Base = declarative_base()
 
 
 def test_connection():
     with engine.connect() as conn:
         result = conn.execute(text("SELECT now();"))
-        print("✅ DB Connected:", result.scalar())
+        print("DB Connected:", result.scalar())
 
 
 # Ensure UTF-8 client encoding for all connections (Vietnamese content)

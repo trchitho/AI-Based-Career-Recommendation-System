@@ -19,12 +19,7 @@ def search_careers(request: Request, q: str, limit: int = 20):
         try:
             resp = es.search(
                 index="careers",
-                query={
-                    "multi_match": {
-                        "query": q,
-                        "fields": ["title^2", "short_desc", "content_md"],
-                    }
-                },
+                query={"multi_match": {"query": q, "fields": ["title^2", "short_desc", "content_md"]}},
                 size=limit,
             )
             hits = resp.get("hits", {}).get("hits", [])

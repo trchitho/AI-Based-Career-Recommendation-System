@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -9,7 +9,6 @@ import AdminRoute from './components/AdminRoute';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import AssessmentPage from './pages/AssessmentPage';
 import ResultsPage from './pages/ResultsPage';
@@ -20,15 +19,16 @@ import CareerDetailPage from './pages/CareerDetailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
-import RecommendationsPage from './pages/RecommendationsPage';
+import BlogPage from './pages/BlogPage';
+import BlogDetailPage from './pages/BlogDetailPage';
 import ChatSummaryPage from './pages/ChatSummaryPage';
 import ChatPage from './pages/ChatPage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
+import PricingPage from './pages/PricingPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
-  const { user } = useAuth();
-  return user ? <Navigate to="/assessment" replace /> : <HomePage />;
+  return <Navigate to="/home" replace />;
 };
 
 function App() {
@@ -47,15 +47,12 @@ function App() {
           <Route path="/reset" element={<ResetPasswordPage />} />
           <Route path="/verify" element={<VerifyEmailPage />} />
           <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
 
           {/* Protected routes */}
           <Route
             path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
+            element={<Navigate to="/assessment" replace />}
           />
           <Route
             path="/profile"
@@ -90,10 +87,18 @@ function App() {
             }
           />
           <Route
-            path="/recommendations"
+            path="/blog"
             element={
               <ProtectedRoute>
-                <RecommendationsPage />
+                <BlogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/blog/:slug"
+            element={
+              <ProtectedRoute>
+                <BlogDetailPage />
               </ProtectedRoute>
             }
           />

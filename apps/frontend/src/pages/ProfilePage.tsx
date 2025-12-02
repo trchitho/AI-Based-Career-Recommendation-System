@@ -4,7 +4,6 @@ import { profileService } from '../services/profileService';
 import { ProfileData } from '../types/profile';
 import ProfileInfoSection from '../components/profile/ProfileInfoSection.tsx';
 import AssessmentHistorySection from '../components/profile/AssessmentHistorySection.tsx';
-import DevelopmentProgressSection from '../components/profile/DevelopmentProgressSection.tsx';
 import MainLayout from '../components/layout/MainLayout';
 
 const ProfilePage = () => {
@@ -20,11 +19,9 @@ const ProfilePage = () => {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      setError(null);
       const data = await profileService.getProfileData();
       setProfileData(data);
-    } catch (err) {
-      console.error('Error loading profile:', err);
+    } catch {
       setError('Failed to load profile data. Please try again.');
     } finally {
       setLoading(false);
@@ -42,50 +39,57 @@ const ProfilePage = () => {
 
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">My Profile</h2>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">Manage your account and track your progress</p>
-        </div>
+      <div className="min-h-screen bg-[#F5EFE7] dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
 
-        {loading && (
-          <div className="flex justify-center items-center py-20">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          {/* PAGE HEADER */}
+          <div className="mb-10">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4A7C59] to-[#3d6449] flex items-center justify-center shadow-lg">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
+              </div>
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
+                  My Profile
+                </h1>
+                <p className="text-lg text-gray-600 dark:text-gray-400">
+                  Manage your account and track your career journey
+                </p>
               </div>
             </div>
           </div>
-        )}
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-4 mb-6 backdrop-blur-sm">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-red-400">{error}</p>
+          {/* LOADING */}
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#4A7C59] dark:border-green-600 mb-4"></div>
+              <p className="text-gray-500 dark:text-gray-400">Loading your profile...</p>
             </div>
-          </div>
-        )}
+          )}
 
-        {!loading && !error && profileData && (
-          <div className="space-y-6">
-            <ProfileInfoSection
-              profile={profileData.profile}
-              onUpdate={handleProfileUpdate}
-            />
-            <AssessmentHistorySection
-              assessmentHistory={profileData.assessmentHistory}
-            />
-            <DevelopmentProgressSection
-              developmentProgress={profileData.developmentProgress || []}
-            />
-          </div>
-        )}
+          {/* ERROR */}
+          {error && (
+            <div className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-xl p-6 mb-6 shadow-lg">
+              <div className="flex items-center">
+                <svg className="w-6 h-6 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-red-800 dark:text-red-300 font-semibold">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* MAIN CONTENT */}
+          {!loading && !error && profileData && (
+            <div className="space-y-8">
+              <ProfileInfoSection profile={profileData.profile} onUpdate={handleProfileUpdate} />
+              <AssessmentHistorySection assessmentHistory={profileData.assessmentHistory} />
+            </div>
+          )}
+
+        </div>
       </div>
     </MainLayout>
   );
