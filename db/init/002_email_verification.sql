@@ -6,6 +6,5 @@ ALTER TABLE core.users
 -- Backfill existing accounts to keep them accessible
 UPDATE core.users
 SET
-    is_email_verified = TRUE,
-    email_verified_at = COALESCE(email_verified_at, NOW())
+    is_email_verified = FALSE
 WHERE is_email_verified IS NULL;
