@@ -8,4 +8,10 @@ python-dotenv==1.0.1
 passlib[bcrypt]==1.7.4
 PyJWT==2.9.0
 websockets==11.0.3
+
+loguru
+asyncpg
+httpx
+requests
+
 python-multipart==0.0.9

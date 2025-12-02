@@ -51,6 +51,27 @@ class Career(Base):
         }
 
 
+# bảng core.essay_prompts
+class EssayPrompt(Base):
+    __tablename__ = "essay_prompts"
+    __table_args__ = {"schema": "core"}
+
+    id = Column(BigInteger, primary_key=True)
+    title = Column(Text, nullable=False)
+    prompt_text = Column(Text, nullable=False)
+    lang = Column(Text, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "prompt_text": self.prompt_text,
+            "lang": self.lang,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 # bảng core.blog_posts
 class BlogPost(Base):
     __tablename__ = "blog_posts"

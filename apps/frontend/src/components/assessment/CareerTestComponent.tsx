@@ -29,11 +29,34 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
       const [riasec, bigFive] = await Promise.all([
         assessmentService.getQuestions('RIASEC'),
-        assessmentService.getQuestions('BIG_FIVE'),
+        assessmentService.getQuestions('BIGFIVE'),
       ]);
 
-      const combined = [...riasec, ...bigFive].sort((a, b) => a.order_index - b.order_index);
-      setAllQuestions(combined);
+      // Optional: validate độ dài
+      // if (riasec.length !== 18 || bigFive.length !== 15) console.warn('Unexpected question counts');
+
+      // Round-robin xen kẽ 2 list
+      const rQueue = [...riasec];
+      const bQueue = [...bigFive];
+      const combined: Question[] = [];
+
+      while (rQueue.length > 0 || bQueue.length > 0) {
+        if (rQueue.length > 0) {
+          combined.push(rQueue.shift()!);
+        }
+        if (bQueue.length > 0) {
+          combined.push(bQueue.shift()!);
+        }
+      }
+
+      // Gán lại order_index theo thứ tự hiển thị
+      const finalQuestions = combined.map((q, idx) => ({
+        ...q,
+        order_index: idx + 1,
+      }));
+
+      setAllQuestions(finalQuestions);
+
     } catch (err) {
       console.error('Error fetching questions:', err);
       setError(t('assessment.failedToLoad') || 'Failed to load assessment questions. Please try again.');

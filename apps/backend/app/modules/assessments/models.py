@@ -9,11 +9,11 @@ class AssessmentForm(Base):
     __table_args__ = {"schema": "core"}
 
     id = Column(BigInteger, primary_key=True)
-    code = Column(Text)
-    title = Column(Text)
-    form_type = Column(Text, nullable=False)
-    lang = Column(Text)
-    version = Column(Text)
+    code = Column(Text, nullable=False)
+    title = Column(Text, nullable=False)
+    form_type = Column(Text, nullable=False)  # 'RIASEC' | 'BigFive'
+    lang = Column(Text, nullable=True)
+    version = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
 
@@ -27,17 +27,22 @@ class AssessmentQuestion(Base):
     question_key = Column(Text)
     prompt = Column(Text, nullable=False)
     options_json = Column(JSONB)
-    reverse_score = Column(Boolean)
+    reverse_score = Column(Boolean, default=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
-    def to_client(self):
-        # Normalize options: only expose list options; structured objects (e.g., scale descriptors)
-        # should be treated as SCALE questions on the FE.
-        opts = self.options_json if isinstance(self.options_json, list) else None
+    def to_client(self) -> dict:
+        opts_src = self.options_json or {}
+        opts = None
+        if isinstance(opts_src, list):
+            opts = opts_src
+        elif isinstance(opts_src, dict) and "options" in opts_src:
+            opts = opts_src["options"]
+
         qtype = "MULTIPLE_CHOICE" if opts else "SCALE"
+
         return {
             "id": str(self.id),
-            "test_type": None,  # filled at service level if needed
+            "test_type": None,  # fill ở service
             "question_text": self.prompt,
             "question_type": qtype,
             "options": opts,
@@ -52,8 +57,18 @@ class Assessment(Base):
 
     id = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger, nullable=False)
-    a_type = Column(Text, nullable=False)  # DB enum; map as text
+    a_type = Column(Text, nullable=False)          # 'RIASEC' | 'BigFive'
     scores = Column(JSONB, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    session_id = Column(BigInteger)                # <<< THÊM DÒNG NÀY
+
+
+class AssessmentSession(Base):
+    __tablename__ = "assessment_sessions"
+    __table_args__ = {"schema": "core"}
+
+    id = Column(BigInteger, primary_key=True)
+    user_id = Column(BigInteger, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
 

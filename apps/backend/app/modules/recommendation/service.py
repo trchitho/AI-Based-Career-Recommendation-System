@@ -1,49 +1,90 @@
 from __future__ import annotations
 
-import http.client
-import json
-import os
-from urllib.parse import urlparse
+from typing import List, Dict, Any
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from ..assessments.models import Assessment
 
+class RecService:
+    """
+    MVP: dùng SQL trực tiếp trên core.careers.
+    Không còn phụ thuộc ai_core / NeuMF để tránh ImportError.
+    """
 
-def _latest_assessment(session: Session, user_id: int) -> Assessment | None:
-    from sqlalchemy import desc
+    def generate_for_user(
+        self,
+        session: Session,
+        user_id: str | None = None,
+        topk: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Gợi ý đơn giản: lấy top nghề từ core.careers theo id tăng dần.
+        Sau này thay bằng NeuMF/Bandit.
+        """
+        sql = text(
+            """
+            SELECT id,
+                   onet_code,
+                   title_vi,
+                   short_desc_vn
+            FROM core.careers
+            ORDER BY id
+            LIMIT :k
+            """
+        )
+        rows = session.execute(sql, {"k": topk}).mappings().all()
 
-    return session.query(Assessment).filter(Assessment.user_id == user_id).order_by(desc(Assessment.created_at)).first()
-
-
-def generate(session: Session, user_id: int, essay: str | None = None) -> dict:
-    a = _latest_assessment(session, user_id)
-    base = {"user_id": user_id, "scores": a.scores if a else {}, "essay": essay}
-
-    ai_url = os.getenv("AI_SERVICE_URL")
-    if ai_url:
-        try:
-            u = urlparse(ai_url)
-            conn = http.client.HTTPConnection(u.hostname, u.port or 80, timeout=5)
-            conn.request(
-                "POST",
-                "/api/recommend",
-                body=json.dumps(base),
-                headers={"Content-Type": "application/json"},
+        results: List[Dict[str, Any]] = []
+        for r in rows:
+            results.append(
+                {
+                    "career_id": r["onet_code"] or str(r["id"]),
+                    "title_vi": r["title_vi"],
+                    "short_desc_vi": r["short_desc_vn"],  # map về field FE đang dùng
+                    "score": 1.0,  # placeholder
+                }
             )
-            resp = conn.getresponse()
-            if resp.status == 200:
-                data = json.loads(resp.read().decode("utf-8"))
-                return data
-        except Exception:
-            pass
+        return results
 
-    # fallback mock
-    return {
-        "recommendations": [
-            {"career_id": "1", "score": 0.92},
-            {"career_id": "2", "score": 0.88},
-            {"career_id": "3", "score": 0.82},
-        ],
-        "source": "fallback",
-    }
+    def retrieve_candidates(
+        self,
+        session: Session,
+        query_emb: List[float],
+        topn: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """
+        Dùng bảng ai.retrieval_jobs_visbert + vector_cosine_ops.
+        Hiện chưa dùng trong FE, chỉ chuẩn bị trước.
+        """
+        if not query_emb:
+            raise ValueError("query_emb is empty")
+
+        dim = len(query_emb)
+        if dim != 768:
+            raise ValueError(f"Expected 768-dim embedding, got {dim}")
+
+        emb_literal = "[" + ",".join(str(float(x)) for x in query_emb) + "]"
+
+        sql = text(
+            """
+            SELECT job_id AS career_id,
+                   title_vi,
+                   description_vi,
+                   1 - (embedding <=> :emb::vector) AS score
+            FROM ai.retrieval_jobs_visbert
+            ORDER BY embedding <=> :emb::vector
+            LIMIT :n
+            """
+        )
+        rows = session.execute(sql, {"emb": emb_literal, "n": topn}).mappings().all()
+
+        return [
+            {
+                "career_id": r["career_id"],
+                "title_vi": r["title_vi"],
+                "description_vi": r["description_vi"],
+                "score": float(r["score"]),
+            }
+            for r in rows
+        ]

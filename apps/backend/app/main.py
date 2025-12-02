@@ -221,6 +221,7 @@ def create_app() -> FastAPI:
     try:
         from .modules.recommendation import routes_recommendations as rec_router
 
+        # routes_recommendations đã có prefix /api/recommendations
         app.include_router(rec_router.router, prefix="/api/recommendations", tags=["recommendations"])
     except Exception as e:
         print("??  Skip recommendations router:", repr(e))
@@ -232,6 +233,14 @@ def create_app() -> FastAPI:
         app.include_router(notif_router.router, prefix="/api/notifications", tags=["notifications"])
     except Exception as e:
         print("??  Skip notifications router:", repr(e))
+
+    # User profile (traits, goals, skills, journey)
+    try:
+        from .modules.user_profile import router as user_profile_router
+
+        app.include_router(user_profile_router.router, prefix="/api/users", tags=["users"])
+    except Exception as e:
+        print("??  Skip user profile router:", repr(e))
 
     return app
 

@@ -16,11 +16,13 @@ const ResultsPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const app = useAppSettings();
+
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [careerRecommendations, setCareerRecommendations] = useState<CareerRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'summary' | 'detailed' | 'recommendations'>('summary');
+
   const [fbRating, setFbRating] = useState<number | null>(null);
   const [fbComment, setFbComment] = useState('');
   const [fbDone, setFbDone] = useState(false);
@@ -29,6 +31,7 @@ const ResultsPage = () => {
     if (assessmentId) {
       fetchResults();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId]);
 
   const fetchResults = async () => {
@@ -41,23 +44,25 @@ const ResultsPage = () => {
       const resultsData = await assessmentService.getResults(assessmentId);
       setResults(resultsData);
 
-      // Prefer backend-preloaded careers
+      // Ưu tiên career_recommendations_full nếu BE đã pre-enrich
       if (resultsData.career_recommendations_full && resultsData.career_recommendations_full.length > 0) {
-        const careers: CareerRecommendation[] = resultsData.career_recommendations_full.map((c: any, index: number) => ({
-          id: c.id,
-          slug: c.slug,
-          title: c.title,
-          description: c.description,
-          matchPercentage: 95 - index * 5,
-          required_skills: c.required_skills,
-          salary_range: c.salary_range,
-          industry_category: c.industry_category,
-        }));
+        const careers: CareerRecommendation[] = resultsData.career_recommendations_full.map(
+          (c: any, index: number) => ({
+            id: c.id,
+            slug: c.slug,
+            title: c.title,
+            description: c.description,
+            matchPercentage: 95 - index * 5,
+            required_skills: c.required_skills,
+            salary_range: c.salary_range,
+            industry_category: c.industry_category,
+          }),
+        );
         setCareerRecommendations(careers);
       } else if (resultsData.career_recommendations && resultsData.career_recommendations.length > 0) {
-        // Dynamically fetch career details from backend (no hardcoded placeholders)
+        // Nếu chỉ có list id → fetch chi tiết từng career
         const careerPromises = resultsData.career_recommendations.map((careerId: string) =>
-          api.get(`/api/careers/${careerId}`)
+          api.get(`/api/careers/${careerId}`),
         );
         const careerResponses = await Promise.allSettled(careerPromises);
         const careers: CareerRecommendation[] = careerResponses
@@ -125,6 +130,7 @@ const ResultsPage = () => {
         </div>
       </nav>
 
+      {/* Main */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {loading && (
@@ -192,7 +198,7 @@ const ResultsPage = () => {
                 </nav>
               </div>
 
-              {/* Tab Content */}
+              {/* TAB: Summary */}
               {activeTab === 'summary' && (
                 <div className="space-y-6">
                   <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8">
@@ -208,7 +214,9 @@ const ResultsPage = () => {
                           {(() => {
                             const topRiasec = Object.entries(results.riasec_scores)
                               .sort((a, b) => b[1] - a[1])[0];
-                            return topRiasec ? topRiasec[0].charAt(0).toUpperCase() + topRiasec[0].slice(1) : 'N/A';
+                            return topRiasec
+                              ? topRiasec[0].charAt(0).toUpperCase() + topRiasec[0].slice(1)
+                              : 'N/A';
                           })()}
                         </p>
                       </div>
@@ -220,7 +228,9 @@ const ResultsPage = () => {
                           {(() => {
                             const topBigFive = Object.entries(results.big_five_scores)
                               .sort((a, b) => b[1] - a[1])[0];
-                            return topBigFive ? topBigFive[0].charAt(0).toUpperCase() + topBigFive[0].slice(1) : 'N/A';
+                            return topBigFive
+                              ? topBigFive[0].charAt(0).toUpperCase() + topBigFive[0].slice(1)
+                              : 'N/A';
                           })()}
                         </p>
                       </div>
@@ -259,13 +269,13 @@ const ResultsPage = () => {
                               </span>
                             ))}
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   )}
                 </div>
               )}
 
+              {/* TAB: Detailed */}
               {activeTab === 'detailed' && (
                 <div className="space-y-6">
                   <RIASECSpiderChart scores={results.riasec_scores} />
@@ -273,6 +283,7 @@ const ResultsPage = () => {
                 </div>
               )}
 
+              {/* TAB: Recommendations */}
               {activeTab === 'recommendations' && (
                 <CareerRecommendationsDisplay recommendations={careerRecommendations} />
               )}
@@ -302,17 +313,19 @@ const ResultsPage = () => {
                     placeholder="Optional comment (tell us what you think)"
                     rows={3}
                     value={fbComment}
-                    onChange={(e)=>setFbComment(e.target.value)}
+                    onChange={(e) => setFbComment(e.target.value)}
                   />
                   <div className="mt-4 flex justify-end">
                     <button
                       disabled={!fbRating}
-                      onClick={async ()=>{
+                      onClick={async () => {
                         if (!assessmentId || !fbRating) return;
                         try {
                           await feedbackService.submit(assessmentId, fbRating, fbComment);
                           setFbDone(true);
-                        } catch (e) { console.error(e); }
+                        } catch (e) {
+                          console.error(e);
+                        }
                       }}
                       className="px-6 py-3 bg-[#4A7C59] dark:bg-green-600 text-white rounded-lg font-medium hover:bg-[#3d6449] dark:hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >

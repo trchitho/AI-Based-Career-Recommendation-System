@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+
+import { EssayPrompt, QuestionResponse } from '../types/assessment';
 import CareerTestComponent from '../components/assessment/CareerTestComponent';
 import EssayModalComponent from '../components/assessment/EssayModalComponent';
 import { assessmentService } from '../services/assessmentService';
-import { QuestionResponse } from '../types/assessment';
 import MainLayout from '../components/layout/MainLayout';
 
 type AssessmentStep = 'intro' | 'test' | 'essay' | 'processing';
@@ -12,22 +13,36 @@ type AssessmentStep = 'intro' | 'test' | 'essay' | 'processing';
 const AssessmentPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+
   const [step, setStep] = useState<AssessmentStep>('intro');
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Prompt essay lấy từ DB
+  const [essayPrompt, setEssayPrompt] = useState<EssayPrompt | null>(null);
+
   const handleStartAssessment = () => {
+    setError(null);
     setStep('test');
   };
 
+  const handleCancel = () => {
+    navigate('/dashboard');
+  };
+
+  /**
+   * Khi làm xong test (RIASEC + BigFive) → submit lên BE
+   * BE tạo assessment + session, trả về assessmentId
+   */
   const handleTestComplete = async (responses: QuestionResponse[]) => {
     try {
       setLoading(true);
       setError(null);
 
       const result = await assessmentService.submitAssessment({
-        testTypes: ['RIASEC', 'BIG_FIVE'],
+        testTypes: ['RIASEC', 'BIG_FIVE'], // backend đang normalize BIG_FIVE
         responses,
       });
 
@@ -41,28 +56,72 @@ const AssessmentPage = () => {
     }
   };
 
-  const handleEssaySubmit = async (essayText: string) => {
+  /**
+   * Khi chuyển sang bước essay → gọi BE lấy prompt từ core.essay_prompts
+   */
+  useEffect(() => {
+    if (step !== 'essay') return;
     if (!assessmentId) return;
+
+    let isMounted = true;
+
+    const fetchPrompt = async () => {
+      try {
+        setLoading(true);
+
+        // Hiện DB chắc chắn có lang 'en'
+        const prompt = await assessmentService.getEssayPrompt('en');
+
+        if (isMounted) {
+          setEssayPrompt(prompt);
+        }
+      } catch (err) {
+        console.error('Error fetching essay prompt:', err);
+        // Không cần hiện lỗi to; EssayModalComponent đã có fallback text
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchPrompt();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [step, assessmentId]);
+
+  /**
+   * Submit bài essay (optional). Nếu thành công → sang trạng thái processing
+   * rồi redirect sang trang kết quả theo assessmentId
+   */
+  const handleEssaySubmit = async (essayText: string) => {
+    if (!assessmentId) {
+      // Không có assessmentId thì không cố gắng gắn essay vào test
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
 
+      // ✨ Quan trọng: chỉ gửi các field nằm trong type EssaySubmission
       await assessmentService.submitEssay({
         assessmentId,
         essayText,
+        lang: 'en',                     // hoặc i18n.language nếu bạn muốn
       });
 
       setStep('processing');
-      
-      // Wait a moment then redirect to results
+
       setTimeout(() => {
         navigate(`/results/${assessmentId}`);
       }, 2000);
     } catch (err) {
       console.error('Error submitting essay:', err);
       setError('Failed to submit essay. Redirecting to results...');
-      
+
       setTimeout(() => {
         navigate(`/results/${assessmentId}`);
       }, 2000);
@@ -71,35 +130,50 @@ const AssessmentPage = () => {
     }
   };
 
+  /**
+   * Nếu user bỏ qua essay → vẫn cho xem kết quả RIASEC/BigFive
+   */
   const handleEssaySkip = () => {
     if (assessmentId) {
       navigate(`/results/${assessmentId}`);
     }
   };
 
-  const handleCancel = () => {
-    navigate('/dashboard');
-  };
-
   return (
     <MainLayout>
-      <div className="min-h-screen bg-[#F5EFE7] dark:bg-gray-900 relative overflow-hidden">
-        {/* Decorative circles - matching HomePage */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-64 h-64 -top-32 -left-32 bg-[#E8DCC8] dark:bg-gray-800 rounded-full opacity-50"></div>
-          <div className="absolute w-96 h-96 top-20 right-10 bg-[#D4C4B0] dark:bg-gray-800 rounded-full opacity-30"></div>
-          <div className="absolute w-48 h-48 bottom-20 left-1/4 bg-[#E8DCC8] dark:bg-gray-800 rounded-full opacity-40"></div>
-        </div>
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Bước 1: màn intro */}
+        {step === 'intro' && (
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
+                {t('assessment.title')}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                {t('assessment.subtitle')}
+              </p>
+            </div>
 
-        <div className="relative max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          {step === 'intro' && (
-            <div className="max-w-3xl mx-auto">
-              <div className="text-center mb-10">
-                <div className="inline-block mb-4">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4A7C59] to-[#3d6449] dark:from-green-600 dark:to-green-700 flex items-center justify-center shadow-xl">
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+            <div className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-gray-700/50 p-8 mb-6 shadow-2xl">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                {t('assessment.discoverPath')}
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-8 text-lg">
+                {t('assessment.comprehensiveDesc')}
+              </p>
+
+              <div className="space-y-6 mb-8">
+                <div className="flex items-start bg-gray-100 dark:bg-gray-700/30 rounded-xl p-5 border border-gray-200 dark:border-gray-600/30">
+                  <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mr-4 shadow-lg shadow-purple-500/50">
+                    <span className="text-white font-bold text-lg">1</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
+                      {t('assessment.riasec')}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {t('assessment.riasecDesc')}
+                    </p>
                   </div>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">{t('assessment.title')}</h2>
@@ -197,55 +271,94 @@ const AssessmentPage = () => {
                 </ul>
               </div>
 
-                <button
-                  onClick={handleStartAssessment}
-                  className="w-full px-6 py-4 bg-[#4A7C59] dark:bg-green-600 text-white rounded-xl hover:bg-[#3d6449] dark:hover:bg-green-700 font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center space-x-2"
+              <button
+                onClick={handleStartAssessment}
+                className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 font-bold text-lg shadow-2xl hover:shadow-purple-500/50 transition-all duration-200 flex items-center justify-center space-x-2"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span>{t('assessment.startAssessment')}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Bước 2: làm bài test */}
+        {step === 'test' && (
+          <div>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+              {t('assessment.title')}
+            </h2>
+
+            {error && (
+              <div className="max-w-3xl mx-auto mb-6 bg-red-500/10 border border-red-500/50 rounded-xl p-4 backdrop-blur-sm">
+                <div className="flex items-center">
+                  <svg
+                    className="w-5 h-5 text-red-400 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <span>{t('assessment.startAssessment')}</span>
                 </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {step === 'test' && (
-            <div>
-              {error && (
-                <div className="max-w-3xl mx-auto mb-6 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg p-4">
-                  <div className="flex items-center">
-                    <svg className="w-5 h-5 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-red-600 dark:text-red-400">{error}</p>
-                  </div>
-                </div>
-              )}
-              <CareerTestComponent
-                onComplete={handleTestComplete}
-                onCancel={handleCancel}
-              />
-            </div>
-          )}
-
-          {step === 'essay' && assessmentId && (
-            <EssayModalComponent
-              onSubmit={handleEssaySubmit}
-              onSkip={handleEssaySkip}
-              loading={loading}
+            <CareerTestComponent
+              onComplete={handleTestComplete}
+              onCancel={handleCancel}
             />
-          )}
+          </div>
+        )}
 
-          {step === 'processing' && (
-            <div className="max-w-3xl mx-auto text-center py-20">
-              <div className="relative mb-8">
-                <div className="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-[#4A7C59] dark:border-green-600 mx-auto"></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <svg className="w-8 h-8 text-[#4A7C59] dark:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
+        {/* Bước 3: essay (optional) */}
+        {step === 'essay' && assessmentId && (
+          <EssayModalComponent
+            onSubmit={handleEssaySubmit}
+            onSkip={handleEssaySkip}
+            loading={loading}
+            promptTitle={essayPrompt?.title ?? ''}
+            promptText={essayPrompt?.prompt_text ?? ''}
+          />
+        )}
+
+        {/* Bước 4: processing → redirect sang trang kết quả */}
+        {step === 'processing' && (
+          <div className="max-w-3xl mx-auto text-center py-20">
+            <div className="relative mb-8">
+              <div className="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-purple-500 mx-auto" />
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <svg
+                  className="w-8 h-8 text-purple-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
               </div>
               <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
                 {t('assessment.processingResults')}

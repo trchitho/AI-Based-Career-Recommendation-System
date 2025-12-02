@@ -1,230 +1,222 @@
-🧠 AI-Based Career Recommendation System
+# 🧠 AI-Based Career Recommendation System
 
-*(Hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo)*
+### *(Hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo)*
 
-## 1) Tổng quan
-
-Hệ thống gợi ý nghề dựa trên:
-
-* Kết quả trắc nghiệm **RIASEC** và **Big Five**,
-* Phân tích **essay** bằng **PhoBERT / vi-SBERT**,
-* **Gợi ý kết hợp** với **NeuMF** và **online bandit (RL)**.
-
-**Kiến trúc:** Monorepo gồm Frontend (Next.js), Backend (FastAPI – BFF + modules), và AI-Core (mô hình, embed, ranking). Frontend chỉ gọi **BFF**; BFF điều phối giữa modules/AI-Core/DB để trả về DTO đúng UI.
+Monorepo gồm **Frontend (React/Vite)**, **Backend (FastAPI – BFF)** và **AI-Core (PhoBERT · vi-SBERT · NeuMF · Bandit)**.
+Backend chỉ giao tiếp với Frontend qua **BFF**; mọi logic AI tách ra thành **AI-Core service riêng**.
 
 ---
 
-## 2) Kiến trúc tổng thể
+# 1) Tổng quan
+
+Hệ thống gợi ý nghề nghiệp dựa trên nhiều nguồn dữ liệu:
+
+* **RIASEC** & **Big Five** (từ bài test)
+* **Essay analysis** (PhoBERT/vi-SBERT)
+* **Career embeddings** (pgvector 768D)
+* **Ranking** bằng **NeuMF/MLP**
+* **Online re-ranking** bằng **Thompson Sampling (Bandit)**
+
+**Luồng xử lý tổng quát**
 
 ```
-Frontend (Next.js + Tailwind)
-    ↓ via /bff/*
-Backend (FastAPI BFF)
-    ↓
-Modules: assessment · nlu · retrieval · recommendation · search · auth · content
-    ↓
-AI-Core: PhoBERT (RIASEC/BigFive) · vi-SBERT (retrieval) · NeuMF/MLP (ranking) · Bandit (RL)
-    ↓
-PostgreSQL + pgvector  ·  (Neo4j khi cần)
+Frontend (React + Vite SPA)
+        ↓ via /bff/*
+Backend (FastAPI BFF + Modules)
+        ↓
+AI-Core API (PhoBERT · vi-SBERT · NeuMF · RL)
+        ↓
+PostgreSQL + pgvector + (Neo4j optional)
 ```
-
-* **BFF** gom dữ liệu theo màn hình FE, giảm số call và ẩn phức tạp backend.
-* **AI-Core** cung cấp: chuẩn hóa dữ liệu, train PhoBERT, sinh embedding vi-SBERT, nạp **pgvector**, rank bằng **NeuMF**, online re-rank bằng **Thompson Sampling**.
 
 ---
 
-## 3) Cấu trúc monorepo hiện tại (không có `infra/`)
+# 2) Kiến trúc monorepo
 
 ```
 AI-Based-Career-Recommendation-System/
 ├─ apps/
-│  ├─ backend/   # FastAPI (BFF + modules)
-│  └─ frontend/  # Next.js (App/Pages + services)
+│  ├─ backend/          # FastAPI (BFF + modules)
+│  └─ frontend/         # React + Vite SPA (components, pages, services)
 ├─ packages/
-│  └─ ai-core/   # PhoBERT · vi-SBERT · NeuMF · RL · retrieval/pgvector
-├─ .github/workflows/   # fe-ci.yml · be-ci.yml · integration.yml
-└─ README.md / CONTRIBUTING.md
+│  └─ ai-core/          # AI service (API riêng port 9000)
+├─ .github/workflows/   # FE / BE / AI CI pipelines
+└─ README.md
 ```
 
-* Cấu trúc modules/routers BE và cây FE chi tiết bạn đã thiết kế (bên dưới).
-* AI-Core chứa toàn bộ mã nguồn, dữ liệu, script encode, load **pgvector**, test.
-
-> **Lưu ý:** Mọi thứ liên quan **DB/compose/scripts** đặt ở nhánh: `setup/database-env`. Xem:
-> `https://github.com/trchitho/AI-Based-Career-Recommendation-System/tree/setup/database-env`
+**Nhánh `chore/ai-core-merge`** hợp nhất toàn bộ mã nguồn AI-core cũ → `packages/ai-core`.
 
 ---
 
-## 4) Thành phần chi tiết
+# 3) Thành phần chi tiết
 
-### 4.1 Frontend (Next.js + Tailwind)
+## 3.1 Frontend (React + Vite + Tailwind)
 
-* **Tổ chức domain-first**: `components/`, `pages/`, `services/`, `types/`, `contexts/`.
-* **Router**: hiện tại theo **pages**; có thể chuyển dần sang **App Router** khi ổn định.
-* **Services** chia theo nghiệp vụ: `assessmentService.ts`, `careerService.ts`, `recommendationService.ts`, …
-
-Các thư mục/chức năng đã có:
-
-```
-apps/frontend/src/
-  components/(assessment|results|dashboard|roadmap|admin|layout)/*
-  contexts/(Auth|Socket|Theme|AppSettings).tsx
-  pages/(Home|Assessment|EssayInput|Results|Careers|CareerDetail|Profile|Recommendations|Roadmap|Admin/*)
-  services/*.ts
-  types/*.ts
-```
-
-→ Phần này map 1-1 với BFF endpoints và modules ở BE (bảng ở 4.2).
+* SPA dùng **React Router**
+* Các service gọi API qua `src/services/*`
+* Components chia domain: `assessment`, `results`, `dashboard`, `profile`, `roadmap`, `admin`
+* Contexts: Auth, Theme, Settings, Socket
+* Các trang (pages) map 1–1 với BFF
 
 **ENV (FE)**
 
-```env
-NEXT_PUBLIC_API_BASE=http://localhost:8000
 ```
-
-(Đặt trong `apps/frontend/.env.local` – ví dụ.)
+VITE_API_BASE=http://localhost:8000
+```
 
 ---
 
-### 4.2 Backend (FastAPI Modular + BFF)
+## 3.2 Backend (FastAPI Modular + BFF)
 
-Cây thư mục đã có:
-`app/main.py`, `app/bff/{router.py,dto.py}`, `app/core/{config.py,db.py,jwt.py,security.py}`, `app/modules/*`…
+**Cấu trúc BE**
 
-**Các modules đang khai báo**
+```
+apps/backend/app/
+├─ main.py
+├─ bff/
+│   ├─ router.py    # endpoint theo màn hình FE
+│   └─ dto.py       # kiểu trả về cho FE
+├─ core/
+│   config.py · db.py · jwt.py · security.py
+├─ modules/
+│   auth/ users/ assessments/ content/
+│   recommendation/ search/ graph/ nlu/ retrieval/
+│   realtime/ notifications/ admin/ system/
+├─ scripts/
+│   create_admin.py · seed_bulk.py
+└─ tests/
+```
 
-* `auth`, `users`, `assessments/assessment`, `content` (blog/careers/comments), `recommendation`, `search` (ES client), `graph` (Neo4j), `realtime` (WebSocket), `notifications`, `system`, `admin`, `nlu`, `retrieval` (khởi tạo).
+**Backend xử lý:**
 
-**BFF endpoints (đề xuất/chuẩn hóa theo UI)**
+* Validate & chuẩn hóa dữ liệu
+* Điều phối AI-Core
+* Gọi pgvector search
+* Trả DTO gọn cho FE
 
-* `POST /bff/assessment/submit` → chấm & lưu RIASEC/BigFive.
-* `POST /bff/nlu/essay:analyze` → gọi AI-Core PhoBERT suy luận + (opt) essay_emb.
-* `GET /bff/search/careers?q=&k=` → truy vấn **pgvector** trong Postgres.
-* `POST /bff/recommend/rank` → NeuMF/MLP + (opt) bandit cho Top-K.
-* `GET /bff/catalog/career/:id` → chi tiết nghề (DB + Neo4j).
+**ENV (BE)**
 
-**ENV (BE) – ví dụ**
-
-```env
+```
 DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
-AI_MODELS_DIR=packages/ai-core/models
-ALLOWED_ORIGINS=http://localhost:3000
+AI_CORE_BASE=http://localhost:9000
+ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-(Các biến về DB/pgvector/Neo4j… theo hướng dẫn trong nhánh `setup/database-env`.)
+---
+
+## 3.3 AI-Core (API Service)
+
+AI-Core chạy độc lập như một **service riêng** (port 9000):
+
+```
+packages/ai-core/
+├─ src/ai_core/
+│   ├─ nlp/              # PhoBERT/essay_infer
+│   ├─ retrieval/        # pgvector + FAISS
+│   ├─ recsys/neumf/     # train/infer ranking
+│   ├─ training/         # dataset + regression
+│   ├─ utils/
+│   └─ ...
+└─ src/api/
+    ├─ main.py           # API FastAPI
+    ├─ routes_traits.py
+    ├─ routes_retrieval.py
+    └─ config.py
+```
+
+**AI-Core cung cấp:**
+
+* `/traits/infer` → RIASEC / BigFive từ essay
+* `/retrieval/search_vec` → cosine search pgvector
+* `/rank/infer` → điểm NeuMF
+* Hỗ trợ training, encode corpus, seed dữ liệu
 
 ---
 
-## 5) Database schema & Retrieval (PostgreSQL + pgvector)
+# 4) Database (PostgreSQL + pgvector)
 
-**Thiết kế**: 24 bảng `core` + 3 bảng `ai` (vector 768d), bám sát O*NET và nghiệp vụ hệ thống.
+**Các nhóm bảng chính**
 
-* `core.users`, `assessments`, `assessment_forms/questions/responses`, `essays`, `careers` (+ tags/ksas/tasks/technology/prep/wages/outlook/interests), `blog_posts/comments/reactions`, `audit_logs`…
-* `ai.retrieval_jobs_visbert`, `ai.career_embeddings`, `ai.user_embeddings` (IVF + cosine).
+* `core.users`, `core.assessments`, `core.essays`
+* `core.careers` + 20 bảng phụ (tags/ksas/tasks/etc.)
+* `ai.career_embeddings` (vector 768D)
+* `ai.user_embeddings`
+* `ai.retrieval_jobs_visbert`
 
-**Lưu ý quan trọng**
+**pgvector**
 
-* **pgvector** thay cho FAISS file-based: đồng nhất dữ liệu, dễ backup/restore, truy vấn bằng SQL, vẫn nhanh ở mức ms–tens-ms.
-* Script **encode_jobs / pgvector_load / search_pgvector** nằm trong `packages/ai-core/src/...`.
-
-> Toàn bộ **hướng dẫn cài DB, tạo EXTENSION, seed dữ liệu, chỉ mục vector** đã được đặt ở **nhánh** `setup/database-env` (README, compose, SQL init). Hãy theo nhánh này để dựng môi trường DB cục bộ.
-
----
-
-## 6) AI-Core: Pipeline & mô-đun chính
-
-* **Chuẩn hóa dữ liệu → silver labels** (kết hợp điểm test + centroid nghề).
-* **Train PhoBERT (RIASEC/BigFive)** – regression head (masked MSE).
-* **Sinh embeddings vi-SBERT** và **nạp pgvector**.
-* **Ranking NeuMF/MLP** + **online bandit** cho re-rank theo CTR.
-* **Neo4j** để sinh roadmap/kỹ năng/khóa học (explainability).
+* cosine distance
+* IVF index (tùy chọn)
+* stored embeddings
 
 ---
 
-## 7) Hướng dẫn chạy (Dev)
+# 5) Hướng dẫn chạy (3 terminal – bản chuẩn nhánh `chore/ai-core-merge`)
 
-### Bước 1 — Clone & ENV
+## 🖥 **Terminal 1 – AI-Core Service (port 9000)**
 
 ```bash
-git clone https://github.com/trchitho/AI-Based-Career-Recommendation-System.git
-cd AI-Based-Career-Recommendation-System
-
-# FE
-cp apps/frontend/.env.example apps/frontend/.env.local
-# BE
-cp apps/backend/.env.example apps/backend/.env
+cd packages/ai-core
+pip install -r requirements.txt
+uvicorn src.api.main:app --reload --port 9000
 ```
 
-(Điền biến DB theo nhánh `setup/database-env`.)
+---
 
-### Bước 2 — Dựng CSDL (tham khảo nhánh DB)
-
-* Làm theo hướng dẫn tại:
-  `setup/database-env` → cài Postgres, bật **pgvector**, tạo DB/schema, seed dữ liệu.
-
-### Bước 3 — Chạy Backend
+## 🖥 **Terminal 2 – Backend FastAPI (port 8000)**
 
 ```bash
 cd apps/backend
-python -m venv .venv ; .\.venv\Scripts\activate
+python -m venv .venv
+. .venv/Scripts/activate
+
 pip install -r requirements.txt
+
+# nếu cần development mode cho AI-core
+pip install -e ../../packages/ai-core
+
 uvicorn app.main:app --reload --port 8000
 ```
 
-* Docs: `http://127.0.0.1:8000/docs` (Swagger), health: `/health`.
+---
 
-### Bước 4 — Chạy Frontend
+## 🖥 **Terminal 3 – Frontend (port 5173)**
 
 ```bash
 cd apps/frontend
-npm i
+npm install
 npm run dev
 ```
 
-* Mở: `http://localhost:3000`
+---
+
+# 6) CI / Code style
+
+**FE:** eslint + prettier
+**BE:** ruff + black + pytest
+**AI-Core:** python-ci workflow
 
 ---
 
-## 8) CI/CD & Quy ước
+# 7) Ghi chú quan trọng cho nhánh `chore/ai-core-merge`
 
-* **GitHub Actions**: `fe-ci.yml` (eslint+build), `be-ci.yml` (ruff+black+pytest), `integration.yml` (contract FE↔BFF).
-* **Branching**: `main` bảo vệ; làm việc trên feature branches ngắn; AI phát triển trên nhánh `AI` rồi gộp vào `packages/ai-core`.
-* **Coding style**: FE (eslint+prettier), BE (ruff+black), chỉ commit `.env.example`.
+* Đây là **nhánh hợp nhất AI-core vào monorepo** (theo subtree workflow).
+* AI không còn phát triển ở nhánh `AI` cũ → mọi code AI nằm ở `packages/ai-core`.
+* Backend và Frontend được cập nhật để gọi AI-Core API qua `http://localhost:9000`.
+* Đảm bảo đồng bộ:
+
+  * `apps/backend/app/services/ai_client.py`
+  * `apps/frontend/src/services/traitsService.ts`
+  * `apps/frontend/src/services/retrievalService.ts` (nếu có)
 
 ---
 
-## 9) Phụ lục: Cây mã nguồn chi tiết (đang có)
+# 8) Định hướng tiếp theo
 
-### Backend (từ `apps/backend/app`)
+* Hoàn thiện **Bandit Online**
+* Tích hợp **Neo4j explainability**
+* Chuẩn hóa BFF contract
+* Kết nối frontend App Router (nếu cần)
+* Tối ưu pipeline encode + pgvector refresh
 
-```
-main.py
-bff/{router.py,dto.py}
-core/{config.py,db.py,jwt.py,security.py}
-modules/
-  admin/ routes_admin.py
-  auth/  routes_google.py · routes_tokens.py · models.py
-  users/ routers_users.py · router_auth.py · service.py · repository.py · models.py
-  content/ routes_{blog,careers,comments}.py · service_careers.py · models.py
-  assessments/ routes_assessments.py · service.py · models.py
-  recommendation/ routes_recommendations.py · service.py
-  search/ es_client.py · routes_search.py
-  graph/ neo4j_client.py · routes_graph.py
-  realtime/ ws_notifications.py
-  notifications/ routes_notifications.py · models.py
-  nlu/  (khởi tạo)      retrieval/ (khởi tạo)
-system/ routes_public.py
-scripts/ create_admin.py · seed_bulk.py
-tests/  test_sample.py
-```
-
-### Frontend (từ `apps/frontend/src`)
-
-```
-components/(assessment|results|dashboard|roadmap|admin|layout)/*
-contexts/(Auth|Socket|Theme|AppSettings).tsx
-pages/(Home|Assessment|EssayInput|Results|Careers|CareerDetail|Profile|Recommendations|Roadmap|
-       Login|Register|ForgotPassword|ResetPassword|VerifyEmail|OAuthCallback|
-       Admin/* dashboards)
-services/*.ts
-types/*.ts
-```
+---

@@ -23,6 +23,46 @@ load_dotenv(DOTENV_PATH, override=True)
 
 DB_URL = os.getenv("DATABASE_URL")
 
+
+from datetime import datetime, timezone
+from psycopg import Connection, sql
+
+from apps.backend.app.services.onetsvc import get_onet_service  # factory bạn đã có
+# Removed unused imports from apps.backend.app.etl.online_parsers
+
+# --- UPSERT cho 4 bảng Online ---
+
+UPSERT_WORK_ACTS = """
+INSERT INTO core.career_work_activities (onet_code, activity)
+VALUES (%s, %s)
+ON CONFLICT (onet_code, activity) DO NOTHING;
+"""
+
+UPSERT_DWAS = """
+INSERT INTO core.career_dwas (onet_code, dwa)
+VALUES (%s, %s)
+ON CONFLICT (onet_code, dwa) DO NOTHING;
+"""
+
+UPSERT_WORK_CTX = """
+INSERT INTO core.career_work_context (onet_code, context)
+VALUES (%s, %s)
+ON CONFLICT (onet_code, context) DO NOTHING;
+"""
+
+UPSERT_EDU_PCT = """
+INSERT INTO core.career_education_pct (onet_code, label, pct)
+VALUES (%s, %s, %s)
+ON CONFLICT (onet_code, label)
+DO UPDATE SET
+    pct        = EXCLUDED.pct,
+    fetched_at = now();
+"""
+
+# (wages_us để phase sau – bạn có thể define UPSERT skeleton ở đây nếu muốn)
+
+
+
 # ----------------- UPSERT SQL (khớp schema tài liệu) -----------------
 UPSERT_CAREER = """
 INSERT INTO core.careers (onet_code, slug, title_en, short_desc_en, updated_at)
@@ -179,6 +219,7 @@ def _riasec_one_hot(top_interest: str | None):
     elif t == "Conventional":
         c = 1.0
     return (r, i, a, s, e, c)
+
 
 
 def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -> None:
