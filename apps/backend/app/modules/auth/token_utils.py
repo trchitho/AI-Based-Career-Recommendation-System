@@ -6,7 +6,19 @@ from sqlalchemy import TIMESTAMP, BigInteger, Column, Text, select, update
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import registry
 
-# Lightweight model for auth_tokens to avoid circular imports
+"""
+Lightweight model for auth_tokens to avoid circular imports.
+
+This module defines a minimal SQLAlchemy model for the 'auth_tokens' table using imperative mapping.
+The main reason for this approach is to avoid importing from the main models module, which could
+create a circular dependency when authentication logic needs to access token data.
+
+Trade-offs:
+- Changes to the database schema for 'auth_tokens' must be manually reflected here.
+- This model should only be used for token-related operations to minimize maintenance overhead.
+
+If the schema for 'auth_tokens' changes, update this model accordingly.
+"""
 mapper_registry = registry()
 
 

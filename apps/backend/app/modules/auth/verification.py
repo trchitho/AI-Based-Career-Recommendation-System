@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from typing import Dict
 
 from sqlalchemy.orm import Session

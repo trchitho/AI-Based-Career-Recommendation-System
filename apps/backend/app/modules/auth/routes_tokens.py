@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as ORMSession
 
 from ..users.models import User
-from ...core.email_utils import build_verify_url, send_email
+from ...core.email_utils import send_email
 from ...core.email_verifier import is_deliverable_email
 from .token_utils import AuthToken, get_valid_token, issue_token
 from .verification import DEFAULT_VERIFY_MINUTES, send_verification_email
@@ -44,13 +44,11 @@ def request_verify(request: Request, payload: dict):
         raise HTTPException(status_code=400, detail=f"Email is not deliverable: {reason}")
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
-    if not u:
-        # to prevent user enumeration, act as success
+    if not u or getattr(u, "is_email_verified", False):
+        # Silent success for both cases to prevent user enumeration
         return {"status": "ok"}
 
-    if getattr(u, "is_email_verified", False):
-        return {"status": "ok", "message": "already verified"}
-
+    # Only send email if user exists and is not verified
     info = send_verification_email(session, u, minutes=DEFAULT_VERIFY_MINUTES)
     if not info.get("sent"):
         raise HTTPException(
@@ -93,7 +91,7 @@ def forgot_password(request: Request, payload: dict):
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
-        # khA'ng l��T thA'ng tin user t��"n t���i hay khA'ng
+        # không lộ thông tin user tồn tại hay không
         return {"status": "ok"}
 
     token = issue_token(session, u.id, "reset_password", minutes=30)
@@ -110,7 +108,7 @@ def forgot_password(request: Request, payload: dict):
     if not sent:
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to send reset email. Please check SMTP settings. ({err})",
+            detail=f"Unable to send reset email at this time. Please try again later or contact support. ({err})",
         )
     return {"status": "ok"}
 

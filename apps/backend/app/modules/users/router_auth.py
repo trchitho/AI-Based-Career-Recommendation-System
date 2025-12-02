@@ -1,21 +1,28 @@
 # apps/backend/app/modules/users/router_auth.py
+import logging
 import os
 import secrets
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
+from ...core.db import engine
+from ...core.email_verifier import is_deliverable_email
 from ...core.jwt import create_access_token, refresh_expiry_dt
 from ...core.security import hash_password, verify_password
-from ...core.email_verifier import is_deliverable_email
 from ..auth.models import RefreshToken
 from ..auth.verification import DEFAULT_VERIFY_MINUTES, send_verification_email
 from .models import User
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
+
+# Session factory for background tasks
+_SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
 # ---------- Schemas ----------
@@ -49,9 +56,43 @@ def _verification_response(u: User, info: dict, message: str) -> dict:
     return resp
 
 
+def _generic_register_response() -> dict:
+    """Return a generic response to prevent user enumeration attacks."""
+    return {
+        "status": "ok",
+        "message": "A verification email will be sent if needed.",
+    }
+
+
+def _send_verification_email_background(user_id: int, email: str, minutes: int) -> None:
+    """Send verification email in background task with its own database session.
+
+    Note: We always commit the verification token even if email sending fails.
+    This allows the user to retry verification without creating duplicate tokens.
+    The race condition where a user is deleted between scheduling and execution
+    is handled by the None check.
+    """
+    session = _SessionLocal()
+    try:
+        user = session.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
+        if user is None:
+            logger.warning("User %d not found for verification email", user_id)
+            return
+        info = send_verification_email(session, user, minutes=minutes)
+        # Commit token even if email fails - allows retry without duplicate tokens
+        session.commit()
+        if not info.get("sent"):
+            logger.error("Failed to send verification email for user %s: %s", email, info.get("error"))
+    except Exception:
+        session.rollback()
+        logger.exception("Exception while sending verification email for user %s", email)
+    finally:
+        session.close()
+
+
 # ---------- Routes ----------
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(request: Request, payload: RegisterPayload):
+def register(request: Request, payload: RegisterPayload, background_tasks: BackgroundTasks):
     session = _db(request)
     email = payload.email.strip().lower()
     password = payload.password
@@ -69,7 +110,7 @@ def register(request: Request, payload: RegisterPayload):
         if not info.get("sent"):
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+                detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
             )
         return _verification_response(
             exists, info, "Email already registered but not verified. A new verification email was sent."
@@ -95,7 +136,7 @@ def register(request: Request, payload: RegisterPayload):
     if not info.get("sent"):
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+            detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
         )
     return _verification_response(u, info, "Verification email sent. Please confirm to activate your account.")
 
@@ -121,7 +162,7 @@ def login(request: Request, payload: LoginPayload):
         if not info.get("sent"):
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+                detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
             )
         detail = {
             "message": "Email not verified. Please check your inbox to continue.",

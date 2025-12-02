@@ -14,7 +14,9 @@ const ForgotPasswordPage = () => {
       setError('Please enter your email to receive the reset link.');
       return;
     }
-    setLoading(true); setError(null); setSent(null);
+    setLoading(true);
+    setError(null);
+    setSent(null);
     try {
       const resp = await authTokenService.forgot(email);
       setSent('If this email exists, we have sent instructions.');
