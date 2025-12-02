@@ -13,7 +13,8 @@ def _bool_env(name: str, default: bool = False) -> bool:
 
 REQUIRE_DELIVERABLE = _bool_env("EMAIL_DELIVERABILITY_REQUIRED", True)
 SMTP_PROBE_PORT = int(os.getenv("EMAIL_SMTP_PROBE_PORT", "25"))
-SMTP_PROBE_TIMEOUT = float(os.getenv("EMAIL_SMTP_PROBE_TIMEOUT", "2"))
+SMTP_PROBE_TIMEOUT = float(os.getenv("EMAIL_SMTP_PROBE_TIMEOUT", "5"))
+MAX_MX_HOSTS = int(os.getenv("EMAIL_MAX_MX_HOSTS", "5"))
 
 
 def _mx_hosts(domain: str) -> List[str]:
@@ -38,6 +39,18 @@ def is_deliverable_email(email: str) -> Tuple[bool, str]:
     """
     Best-effort SMTP RCPT probe to detect throwaway/invalid emails.
     Returns (ok, reason).
+
+    Configuration:
+        EMAIL_DELIVERABILITY_REQUIRED: Enable/disable deliverability check (default: True)
+        EMAIL_SMTP_PROBE_PORT: SMTP port to probe (default: 25)
+        EMAIL_SMTP_PROBE_TIMEOUT: Connection timeout in seconds (default: 5)
+        EMAIL_MAX_MX_HOSTS: Maximum number of MX hosts to test (default: 5)
+
+    Note:
+        The function tests up to EMAIL_MAX_MX_HOSTS MX records for the domain,
+        sorted by preference. If all tested hosts are unreachable but subsequent
+        MX hosts would accept mail, this could result in false negatives. Increase
+        EMAIL_MAX_MX_HOSTS if you encounter domains with many MX records.
     """
     if not REQUIRE_DELIVERABLE:
         return True, "deliverability check disabled"
@@ -49,7 +62,7 @@ def is_deliverable_email(email: str) -> Tuple[bool, str]:
 
     hosts = _mx_hosts(domain)
     last_err = "unknown"
-    for host in hosts[:3]:
+    for host in hosts[:MAX_MX_HOSTS]:
         try:
             with smtplib.SMTP(host, SMTP_PROBE_PORT, timeout=SMTP_PROBE_TIMEOUT) as smtp:
                 smtp.ehlo_or_helo_if_needed()
