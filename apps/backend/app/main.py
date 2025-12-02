@@ -124,8 +124,8 @@ def create_app() -> FastAPI:
     def root():
         return RedirectResponse(url=app.docs_url or "/docs")
 
-    # Routers (�`��� bA�n trong cho an toA�n import)
-    # BFF (n���u cA3)
+    # Routers (bên trong cho an toàn import)
+    # BFF (nếu có)
     try:
         from .bff import router as bff_router
 
