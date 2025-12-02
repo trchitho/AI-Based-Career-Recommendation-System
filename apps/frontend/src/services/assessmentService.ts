@@ -4,7 +4,6 @@ import {
   AssessmentSubmission,
   EssaySubmission,
   EssayPrompt,
-  AssessmentResults,
 } from '../types/assessment';
 
 export const assessmentService = {
