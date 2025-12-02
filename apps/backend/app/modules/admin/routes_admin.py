@@ -584,6 +584,8 @@ def list_users(
             "full_name": u.full_name,
             "role": u.role,
             "is_locked": u.is_locked,
+            "is_email_verified": getattr(u, "is_email_verified", False),
+            "email_verified_at": u.email_verified_at.isoformat() if getattr(u, "email_verified_at", None) else None,
             "created_at": u.created_at.isoformat() if u.created_at else None,
         }
         for u in rows
@@ -608,13 +610,26 @@ def create_user(request: Request, payload: dict):
         raise HTTPException(status_code=400, detail="Invalid role")
     exists = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if exists:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(
+            status_code=400,
+            detail={"message": "Email already registered", "error_code": "EMAIL_ALREADY_REGISTERED"},
+        )
+    from ...core.email_verifier import is_deliverable_email
+
+    ok, reason = is_deliverable_email(email)
+    if not ok:
+        raise HTTPException(
+            status_code=400,
+            detail={"message": f"Email is not deliverable: {reason}", "error_code": "EMAIL_NOT_DELIVERABLE"},
+        )
     u = User(
         email=email,
         password_hash=hash_password(password),
         full_name=full_name,
         role=role,
         is_locked=False,
+        is_email_verified=True,
+        email_verified_at=datetime.now(timezone.utc),
     )
     session.add(u)
     session.commit()

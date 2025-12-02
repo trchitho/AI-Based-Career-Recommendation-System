@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import { authTokenService } from '../services/authTokenService';
 
@@ -6,6 +7,13 @@ const VerifyEmailPage = () => {
   const [token, setToken] = useState('');
   const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const t = params.get('token');
+    if (t) setToken(t);
+  }, [location.search]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

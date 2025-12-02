@@ -20,11 +20,15 @@ const RegisterPage = () => {
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [devToken, setDevToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const app = useAppSettings();
 
   const validatePassword = (pwd: string) => {
@@ -35,12 +39,14 @@ const RegisterPage = () => {
     return null;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const runRegister = async (skipNavigate?: boolean) => {
     setError("");
+    setInfo("");
+    setDevToken(null);
+    setAlreadyRegistered(false);
 
     if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      setError("Please enter a valid email address");
+      setError(t("auth.invalidEmail") || "Please enter a valid email address");
       return;
     }
 
@@ -57,18 +63,54 @@ const RegisterPage = () => {
 
     setLoading(true);
     try {
-      await register(email, password, firstName, lastName);
+      const result = await register(email, password, firstName, lastName);
+      if (result?.verificationRequired) {
+        setInfo(result.message || "Please verify your email to continue.");
+        setDevToken(result.devToken || null);
+        return;
+      }
+      if (skipNavigate) {
+        setInfo("Verification email sent. Please check your inbox to continue.");
+        // clear any auto-set tokens so user stays on form
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        return;
+      }
       navigate("/home");
     } catch (err: any) {
-      setError(
-        err?.response?.data?.detail ||
-        err?.response?.data?.message ||
-        err.message ||
-        "Registration failed. Please try again."
-      );
+      const detail = err?.response?.data?.detail;
+      const message = err?.response?.data?.message;
+      const errorCode = typeof detail === "object" ? detail?.error_code : undefined;
+      const detailMessage = typeof detail === "object" ? detail?.message : detail;
+      const raw = detailMessage || message || err?.message || "";
+      let friendly = raw;
+      if (errorCode === "EMAIL_NOT_DELIVERABLE") {
+        friendly = t("auth.emailNotExist") || "Email does not exist, please change to another email!";
+      } else if (errorCode === "EMAIL_ALREADY_REGISTERED") {
+        setAlreadyRegistered(true);
+        setInfo("Account registered successfully, please return to login page!");
+        setError("");
+        return;
+      }
+      setError(friendly || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await runRegister(false);
+  };
+
+  const handleVerifyEmail = async () => {
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setError(t("auth.invalidEmail") || "Please enter a valid email address");
+      return;
+    }
+    setVerifying(true);
+    await runRegister(true);
+    setVerifying(false);
   };
 
   return (
@@ -125,6 +167,23 @@ const RegisterPage = () => {
           border border-white/50 dark:border-gray-700/50">
 
           <form className="space-y-6" onSubmit={handleSubmit}>
+
+            {info && (
+              <div className="rounded-lg bg-green-100/70 dark:bg-green-500/10 
+                border border-green-300 dark:border-green-500/50 p-3">
+                <p className="text-sm text-green-700 dark:text-green-300">{info}</p>
+                {alreadyRegistered && (
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    Go to <Link to="/login" className="underline text-[#2f6f46] dark:text-green-400">Login</Link>
+                  </p>
+                )}
+                {devToken && (
+                  <div className="mt-2 text-xs text-green-800 dark:text-green-200 break-words">
+                    Dev token (SMTP off): {devToken}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Error */}
             {error && (
@@ -183,20 +242,37 @@ const RegisterPage = () => {
                 {t("auth.email")}
               </label>
 
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="block w-full px-4 py-3 
-                  bg-white/70 dark:bg-gray-900/50
-                  border border-gray-300 dark:border-gray-700
-                  rounded-xl text-gray-900 dark:text-white 
-                  placeholder-gray-400
-                  focus:ring-2 focus:ring-[#4A7C59] dark:focus:ring-green-600
-                  outline-none transition"
-              />
+              <div className="flex gap-3">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="block w-full px-4 py-3 
+                    bg-white/70 dark:bg-gray-900/50
+                    border border-gray-300 dark:border-gray-700
+                    rounded-xl text-gray-900 dark:text-white 
+                    placeholder-gray-400
+                    focus:ring-2 focus:ring-[#4A7C59] dark:focus:ring-green-600
+                    outline-none transition"
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyEmail}
+                  disabled={verifying}
+                  className="px-4 py-3 bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-600 dark:to-green-700
+                    text-white rounded-xl font-semibold shadow hover:brightness-110 transition disabled:opacity-50 min-w-[140px]"
+                >
+                  {verifying
+                    ? t("common.sending", {
+                        defaultValue: i18n.language?.startsWith("vi") ? "Đang gửi..." : "Sending...",
+                      })
+                    : t("auth.verifyEmail", {
+                        defaultValue: i18n.language?.startsWith("vi") ? "Xác thực" : "Verify email",
+                      })}
+                </button>
+              </div>
             </div>
 
             {/* PASSWORD */}

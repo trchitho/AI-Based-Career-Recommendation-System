@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from sqlalchemy.orm import sessionmaker
 
@@ -26,6 +27,8 @@ def main():
             full_name=full_name,
             role="admin",
             is_locked=False,
+            is_email_verified=True,
+            email_verified_at=datetime.datetime.now(datetime.timezone.utc),
         )
         session.add(u)
         session.commit()

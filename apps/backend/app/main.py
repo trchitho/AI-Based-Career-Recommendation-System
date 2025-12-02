@@ -7,6 +7,7 @@ from typing import Iterable
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from sqlalchemy import text
 
 # dotenv (optional)
 try:
@@ -44,6 +45,33 @@ async def lifespan(_: FastAPI):
         test_connection()
     except Exception as e:
         print("⚠️  DB connection check failed:", repr(e))
+
+    # Best-effort lightweight migration for email verification columns
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    """
+                    ALTER TABLE core.users
+                    ADD COLUMN IF NOT EXISTS is_email_verified boolean DEFAULT FALSE,
+                    ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
+                    """
+                )
+            )
+            conn.execute(
+                text(
+                    """
+                    UPDATE core.users
+                    SET is_email_verified = FALSE,
+                        email_verified_at = COALESCE(email_verified_at, NOW())
+                    WHERE is_email_verified IS NULL OR is_email_verified = FALSE;
+                    """
+                )
+            )
+            conn.commit()
+    except Exception as e:
+        print("Skip email verification auto-migration:", repr(e))
+
     yield
 
 
@@ -123,7 +151,7 @@ def create_app() -> FastAPI:
     app.include_router(comments_router.router, prefix="/api/comments", tags=["comments"])
     app.include_router(essays_router.router, prefix="/api/essays", tags=["essays"])
 
-    # Assessments (nếu đã thêm)
+    # Assessments (nếu có thêm)
     try:
         from .modules.assessments import routes_assessments as assess_router
 
