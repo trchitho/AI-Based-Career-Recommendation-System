@@ -55,7 +55,7 @@ def request_verify(request: Request, payload: dict):
     if not info.get("sent"):
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+            detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
         )
     return {"status": "ok", "verify_url": info.get("verify_url")}
 
