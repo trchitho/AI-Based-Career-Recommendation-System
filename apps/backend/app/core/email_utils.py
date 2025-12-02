@@ -18,6 +18,7 @@ def _ensure_env_loaded() -> None:
         if os.path.exists(env_path):
             loaded = load_dotenv(env_path)
     except Exception:
+        # Ignore errors from dotenv loading; fallback manual loading is handled below.
         pass
 
     if not loaded and os.path.exists(env_path):

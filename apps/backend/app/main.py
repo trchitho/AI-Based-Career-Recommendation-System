@@ -44,7 +44,7 @@ async def lifespan(_: FastAPI):
     try:
         test_connection()
     except Exception as e:
-        print("�s��,?  DB connection check failed:", repr(e))
+        print("⚠️  DB connection check failed:", repr(e))
 
     # Best-effort lightweight migration for email verification columns
     try:
@@ -62,9 +62,9 @@ async def lifespan(_: FastAPI):
                 text(
                     """
                     UPDATE core.users
-                    SET is_email_verified = TRUE,
+                    SET is_email_verified = FALSE,
                         email_verified_at = COALESCE(email_verified_at, NOW())
-                    WHERE is_email_verified = FALSE OR is_email_verified IS NULL;
+                    WHERE is_email_verified IS NULL OR is_email_verified = FALSE;
                     """
                 )
             )
@@ -124,14 +124,14 @@ def create_app() -> FastAPI:
     def root():
         return RedirectResponse(url=app.docs_url or "/docs")
 
-    # Routers (bên trong cho an toàn import)
+    # Routers (để bên trong cho an toàn import)
     # BFF (nếu có)
     try:
         from .bff import router as bff_router
 
         app.include_router(bff_router.router)
     except Exception as e:
-        print("�,1�,?  Skip BFF router:", repr(e))
+        print("ℹ️  Skip BFF router:", repr(e))
 
     # Auth / Users
     from .modules.users.router_auth import router as auth_router
@@ -151,13 +151,13 @@ def create_app() -> FastAPI:
     app.include_router(comments_router.router, prefix="/api/comments", tags=["comments"])
     app.include_router(essays_router.router, prefix="/api/essays", tags=["essays"])
 
-    # Assessments (n���u �`A� thA�m)
+    # Assessments (nếu có thêm)
     try:
         from .modules.assessments import routes_assessments as assess_router
 
         app.include_router(assess_router.router, prefix="/api/assessments", tags=["assessments"])
     except Exception as e:
-        print("�,1�,?  Skip assessments router:", repr(e))
+        print("ℹ️  Skip assessments router:", repr(e))
 
     # Admin (dashboard, careers, questions, skills)
     try:

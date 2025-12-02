@@ -7,7 +7,6 @@ import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import api from "../lib/api";
 import AppLogo from "../components/common/AppLogo";
-import { authTokenService } from "../services/authTokenService";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");

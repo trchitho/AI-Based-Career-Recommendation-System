@@ -69,7 +69,7 @@ def register(request: Request, payload: RegisterPayload):
         if not info.get("sent"):
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+                detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
             )
         return _verification_response(
             exists, info, "Email already registered but not verified. A new verification email was sent."
@@ -95,7 +95,7 @@ def register(request: Request, payload: RegisterPayload):
     if not info.get("sent"):
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+            detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
         )
     return _verification_response(u, info, "Verification email sent. Please confirm to activate your account.")
 
@@ -121,7 +121,7 @@ def login(request: Request, payload: LoginPayload):
         if not info.get("sent"):
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to send verification email. Please check SMTP settings. ({info.get('error')})",
+                detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
             )
         detail = {
             "message": "Email not verified. Please check your inbox to continue.",

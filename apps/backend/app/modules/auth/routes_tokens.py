@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as ORMSession
 
 from ..users.models import User
-from ...core.email_utils import build_verify_url, send_email
+from ...core.email_utils import send_email
 from ...core.email_verifier import is_deliverable_email
 from .token_utils import AuthToken, get_valid_token, issue_token
 from .verification import DEFAULT_VERIFY_MINUTES, send_verification_email
@@ -93,7 +93,7 @@ def forgot_password(request: Request, payload: dict):
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
-        # khA'ng l��T thA'ng tin user t��"n t���i hay khA'ng
+        # không lộ thông tin user tồn tại hay không
         return {"status": "ok"}
 
     token = issue_token(session, u.id, "reset_password", minutes=30)
@@ -110,7 +110,7 @@ def forgot_password(request: Request, payload: dict):
     if not sent:
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to send reset email. Please check SMTP settings. ({err})",
+            detail=f"Unable to send reset email at this time. Please try again later or contact support. ({err})",
         )
     return {"status": "ok"}
 
