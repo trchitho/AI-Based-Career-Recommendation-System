@@ -80,11 +80,13 @@ const RegisterPage = () => {
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
       const message = err?.response?.data?.message;
-      const raw = detail || message || err?.message || "";
+      const errorCode = typeof detail === "object" ? detail?.error_code : undefined;
+      const detailMessage = typeof detail === "object" ? detail?.message : detail;
+      const raw = detailMessage || message || err?.message || "";
       let friendly = raw;
-      if (typeof raw === "string" && raw.toLowerCase().includes("not deliverable")) {
+      if (errorCode === "EMAIL_NOT_DELIVERABLE") {
         friendly = t("auth.emailNotExist") || "Email does not exist, please change to another email!";
-      } else if (typeof raw === "string" && raw.toLowerCase().includes("already registered")) {
+      } else if (errorCode === "EMAIL_ALREADY_REGISTERED") {
         setAlreadyRegistered(true);
         setInfo("Account registered successfully, please return to login page!");
         setError("");

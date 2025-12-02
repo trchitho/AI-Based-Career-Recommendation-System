@@ -41,7 +41,10 @@ def request_verify(request: Request, payload: dict):
 
     ok, reason = is_deliverable_email(email)
     if not ok:
-        raise HTTPException(status_code=400, detail=f"Email is not deliverable: {reason}")
+        raise HTTPException(
+            status_code=400,
+            detail={"message": f"Email is not deliverable: {reason}", "error_code": "EMAIL_NOT_DELIVERABLE"},
+        )
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u or getattr(u, "is_email_verified", False):
