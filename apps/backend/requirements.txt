@@ -12,4 +12,5 @@ websockets==11.0.3
 loguru
 asyncpg
 httpx
+requests
 
