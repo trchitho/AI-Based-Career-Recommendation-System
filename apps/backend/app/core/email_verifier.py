@@ -13,7 +13,7 @@ def _bool_env(name: str, default: bool = False) -> bool:
 
 REQUIRE_DELIVERABLE = _bool_env("EMAIL_DELIVERABILITY_REQUIRED", True)
 SMTP_PROBE_PORT = int(os.getenv("EMAIL_SMTP_PROBE_PORT", "25"))
-SMTP_PROBE_TIMEOUT = float(os.getenv("EMAIL_SMTP_PROBE_TIMEOUT", "5"))
+SMTP_PROBE_TIMEOUT = float(os.getenv("EMAIL_SMTP_PROBE_TIMEOUT", "2"))
 
 
 def _mx_hosts(domain: str) -> List[str]:
