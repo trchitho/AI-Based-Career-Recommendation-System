@@ -98,7 +98,7 @@ const EssayModalComponent = ({
             type="button"
             onClick={handleSubmit}
             disabled={!isValid || loading}
-            className="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-emerald-700 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? 'Submitting...' : 'Submit Essay'}
           </button>

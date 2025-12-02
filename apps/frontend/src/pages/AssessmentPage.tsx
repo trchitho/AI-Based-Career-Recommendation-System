@@ -280,7 +280,7 @@ const AssessmentPage = () => {
 
               <button
                 onClick={handleStartAssessment}
-                className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 font-bold text-lg shadow-2xl hover:shadow-purple-500/50 transition-all duration-200 flex items-center justify-center space-x-2"
+                className="w-full px-6 py-4 bg-gradient-to-r from-[#4A7C59] to-[#3d6449] text-white rounded-xl hover:from-[#3d6449] hover:to-[#2d4a36] font-bold text-lg shadow-2xl hover:shadow-[#4A7C59]/50 transition-all duration-200 flex items-center justify-center space-x-2"
               >
                 <svg
                   className="w-6 h-6"
