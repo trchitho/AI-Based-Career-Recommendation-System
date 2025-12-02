@@ -5,8 +5,6 @@ from pathlib import Path
 from transformers import AutoModel, AutoTokenizer
 import torch
 
-import psycopg2  # nếu cần type, không dùng trực tiếp ở đây cũng được
-
 # ---- DB & retrieval config ----
 DB_URL      = os.getenv("DATABASE_URL", "postgresql://postgres:123456@localhost:5433/career_ai")
 RETR_TABLE  = os.getenv("RETR_TABLE", "ai.retrieval_jobs_visbert")
