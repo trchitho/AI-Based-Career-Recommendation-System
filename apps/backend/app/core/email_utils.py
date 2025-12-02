@@ -62,7 +62,7 @@ def send_email(to_email: str, subject: str, body: str) -> Tuple[bool, str | None
         print(f"[email] To: {to_email}")
         print(f"[email] Subject: {subject}")
         print(f"[email] Body:\n{body}")
-        return False, msg, False
+        return False, msg, True
 
     message = EmailMessage()
     message["From"] = sender or "no-reply@example.com"
