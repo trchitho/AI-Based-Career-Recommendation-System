@@ -7,7 +7,6 @@ from typing import Iterable
 import asyncpg
 from loguru import logger
 
-from app.services.onet_client_v2 import OnetV2Client
 from app.core.config import settings
 
 
