@@ -36,20 +36,24 @@ const RoadmapPage = () => {
             const perms = await paymentService.getUserPermissions();
             setPermissions(perms);
         } catch (error) {
-            // Silently use mock data when backend is not available
-            // console.error('Failed to load permissions:', error);
+            console.error('Failed to load permissions:', error);
             
-            // TEMPORARY: Use mock data when backend is not available
-            // TODO: Remove this after backend is fixed
-            setPermissions({
-                has_active_subscription: false,
-                can_take_test: true,
-                can_view_all_careers: false,
-                can_view_full_roadmap: false,
-                test_count_this_month: 0,
-                free_test_quota: 5,
-                remaining_free_tests: 5
-            });
+            // Show error message to user
+            if (import.meta.env.MODE === 'production') {
+                setError('Unable to load subscription status. Please check your connection and try again.');
+            } else {
+                // Use mock data in development mode
+                console.warn('Using mock permissions data in development mode');
+                setPermissions({
+                    has_active_subscription: false,
+                    can_take_test: true,
+                    can_view_all_careers: false,
+                    can_view_full_roadmap: false,
+                    test_count_this_month: 0,
+                    free_test_quota: 5,
+                    remaining_free_tests: 5
+                });
+            }
         }
     };
 

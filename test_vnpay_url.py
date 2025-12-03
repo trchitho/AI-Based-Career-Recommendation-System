@@ -6,14 +6,20 @@ Usage: python test_vnpay_url.py
 
 import hashlib
 import hmac
+import os
 import urllib.parse
 from datetime import datetime
 
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 # Config từ .env
-TMN_CODE = "HWNP0DTI"
-HASH_SECRET = "I3703I0A6BU7GFKI79LCIX58PCT1C8U8"
-VNPAY_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-RETURN_URL = "https://madonna-unpreposterous-unnationally.ngrok-free.dev/api/payment/vnpay/callback"
+TMN_CODE = os.getenv("VNPAY_TMN_CODE", "YOUR_TMN_CODE")
+HASH_SECRET = os.getenv("VNPAY_HASH_SECRET", "YOUR_HASH_SECRET")
+VNPAY_URL = os.getenv("VNPAY_URL", "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html")
+RETURN_URL = os.getenv("VNPAY_RETURN_URL", "http://localhost:8000/api/payment/vnpay/callback")
 
 def create_vnpay_url(payment_id: int, amount: float, order_desc: str):
     """Tạo VNPay URL"""

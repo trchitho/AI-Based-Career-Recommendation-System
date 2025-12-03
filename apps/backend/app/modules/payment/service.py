@@ -68,6 +68,7 @@ class PaymentService:
 
         payment = Payment(
             user_id=user_id,
+            plan_id=plan_id,
             payment_method=payment_method,
             amount=plan.price,
             currency='VND',
@@ -101,9 +102,9 @@ class PaymentService:
         if not payment or payment.status != 'completed':
             return None
 
-        # Lấy plan từ payment
+        # Lấy plan từ payment bằng plan_id
         plan = self.db.query(SubscriptionPlan).filter(
-            SubscriptionPlan.price == payment.amount
+            SubscriptionPlan.id == payment.plan_id
         ).first()
         
         if not plan:
