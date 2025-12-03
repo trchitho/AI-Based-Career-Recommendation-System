@@ -16,7 +16,7 @@ const useCounter = (end: number, duration: number = 2000) => {
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting) {
+                if (entry && entry.isIntersecting) {
                     setIsVisible(true);
                     observer.disconnect();
                 }
