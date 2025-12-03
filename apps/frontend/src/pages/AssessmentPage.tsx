@@ -7,6 +7,8 @@ import CareerTestComponent from '../components/assessment/CareerTestComponent';
 import EssayModalComponent from '../components/assessment/EssayModalComponent';
 import { assessmentService } from '../services/assessmentService';
 import MainLayout from '../components/layout/MainLayout';
+import { paymentService, UserPermissions } from '../services/paymentService';
+import { PricingModal } from '../components/payment/PricingModal';
 
 type AssessmentStep = 'intro' | 'test' | 'essay' | 'processing';
 
@@ -23,9 +25,34 @@ const AssessmentPage = () => {
   // Prompt essay lấy từ DB
   const [essayPrompt, setEssayPrompt] = useState<EssayPrompt | null>(null);
 
-  const handleStartAssessment = () => {
+  // Payment integration
+  const [permissions, setPermissions] = useState<UserPermissions | null>(null);
+  const [showPricing, setShowPricing] = useState(false);
+  const [checkingQuota, setCheckingQuota] = useState(false);
+
+  const handleStartAssessment = async () => {
     setError(null);
-    setStep('test');
+    setCheckingQuota(true);
+
+    try {
+      // Check if user can take test
+      const result = await paymentService.checkTestQuota();
+      setPermissions(result.permissions);
+      
+      // If can take test, proceed
+      setStep('test');
+    } catch (err: any) {
+      // User has exceeded free quota
+      if (err.response?.status === 403) {
+        const perms = await paymentService.getUserPermissions();
+        setPermissions(perms);
+        setShowPricing(true);
+      } else {
+        setError('Failed to check test quota. Please try again.');
+      }
+    } finally {
+      setCheckingQuota(false);
+    }
   };
 
   const handleCancel = () => {
@@ -47,6 +74,10 @@ const AssessmentPage = () => {
       });
 
       setAssessmentId(result.assessmentId);
+      
+      // Increment test count for free users
+      await paymentService.incrementTestCount();
+      
       setStep('essay');
     } catch (err) {
       console.error('Error submitting assessment:', err);
@@ -278,24 +309,43 @@ const AssessmentPage = () => {
                 </ul>
               </div>
 
+              {/* Show remaining tests info */}
+              {permissions && !permissions.has_active_subscription && (
+                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                  <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
+                    Bạn còn <span className="font-bold">{permissions.remaining_free_tests}</span> lượt làm test miễn phí trong tháng này
+                  </p>
+                </div>
+              )}
+
               <button
                 onClick={handleStartAssessment}
-                className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 font-bold text-lg shadow-2xl hover:shadow-purple-500/50 transition-all duration-200 flex items-center justify-center space-x-2"
+                disabled={checkingQuota}
+                className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 font-bold text-lg shadow-2xl hover:shadow-purple-500/50 transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                <span>{t('assessment.startAssessment')}</span>
+                {checkingQuota ? (
+                  <>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                    <span>Đang kiểm tra...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    <span>{t('assessment.startAssessment')}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -379,6 +429,13 @@ const AssessmentPage = () => {
           </div>
         )}
       </div>
+
+      {/* Pricing Modal */}
+      <PricingModal
+        isOpen={showPricing}
+        onClose={() => setShowPricing(false)}
+        reason="tests"
+      />
     </MainLayout>
   );
 };

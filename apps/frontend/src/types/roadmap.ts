@@ -6,6 +6,7 @@ export interface LearningResource {
 
 export interface Milestone {
   order: number;
+  level?: number; // Level 1-6, used for payment restrictions
   skillName: string;
   description: string;
   estimatedDuration: string;

@@ -5,6 +5,10 @@ import { careerService } from '../services/careerService';
 import RoadmapTimelineComponent from '../components/roadmap/RoadmapTimelineComponent';
 import { Roadmap } from '../types/roadmap';
 import MainLayout from '../components/layout/MainLayout';
+import { paymentService, UserPermissions } from '../services/paymentService';
+import { PricingModal } from '../components/payment/PricingModal';
+import { UpgradePrompt } from '../components/payment/UpgradePrompt';
+import { SimplePaymentPrompt } from '../components/payment/SimplePaymentPrompt';
 
 const RoadmapPage = () => {
     const { careerId } = useParams<{ careerId: string }>();
@@ -16,9 +20,38 @@ const RoadmapPage = () => {
     const [careerDesc, setCareerDesc] = useState<string>('');
     const [showFullDesc, setShowFullDesc] = useState<boolean>(false);
 
+    // Payment integration
+    const [permissions, setPermissions] = useState<UserPermissions | null>(null);
+    const [showPricing, setShowPricing] = useState(false);
+    const [showSimplePrompt, setShowSimplePrompt] = useState(false);
+    const [selectedLevel, setSelectedLevel] = useState<number>(1);
+
     useEffect(() => {
         if (careerId) fetchRoadmap();
+        loadPermissions();
     }, [careerId]);
+
+    const loadPermissions = async () => {
+        try {
+            const perms = await paymentService.getUserPermissions();
+            setPermissions(perms);
+        } catch (error) {
+            // Silently use mock data when backend is not available
+            // console.error('Failed to load permissions:', error);
+            
+            // TEMPORARY: Use mock data when backend is not available
+            // TODO: Remove this after backend is fixed
+            setPermissions({
+                has_active_subscription: false,
+                can_take_test: true,
+                can_view_all_careers: false,
+                can_view_full_roadmap: false,
+                test_count_this_month: 0,
+                free_test_quota: 5,
+                remaining_free_tests: 5
+            });
+        }
+    };
 
     const fetchRoadmap = async () => {
         if (!careerId) return;
@@ -76,29 +109,66 @@ const RoadmapPage = () => {
                                 {roadmap.careerTitle}
                             </h1>
 
-                            {/* Career Stages - Simplified */}
-                            <div className="flex flex-wrap justify-center gap-4 mb-8">
+                            {/* Career Stages - Clickable */}
+                            <div className="flex flex-wrap justify-center gap-4 mb-8" style={{ scrollMargin: 0 }}>
                                 {[
-                                    { stage: 'intern', label: 'THỰC TẬP SINH' },
-                                    { stage: 'employee', label: 'TRỢ LÝ' },
-                                    { stage: 'manager', label: 'NHÂN VIÊN' },
-                                    { stage: 'director', label: 'CHUYÊN VIÊN' },
-                                    { stage: 'ceo', label: 'TRƯỞNG PHÒNG' },
-                                    { stage: 'executive', label: 'GIÁM ĐỐC' },
+                                    { stage: 'intern', label: 'THỰC TẬP SINH', level: 1 },
+                                    { stage: 'employee', label: 'TRỢ LÝ', level: 2 },
+                                    { stage: 'manager', label: 'NHÂN VIÊN', level: 3 },
+                                    { stage: 'director', label: 'CHUYÊN VIÊN', level: 4 },
+                                    { stage: 'ceo', label: 'TRƯỞNG PHÒNG', level: 5 },
+                                    { stage: 'executive', label: 'GIÁM ĐỐC', level: 6 },
                                 ].map((item, idx) => {
                                     const completed = (roadmap.userProgress?.completed_milestones?.length || 0) > idx * 2;
                                     const isCurrent = idx === Math.floor((roadmap.userProgress?.completed_milestones?.length || 0) / 2);
+                                    const isLocked = permissions && !permissions.can_view_full_roadmap && item.level > 1;
+
+                                    const handleLevelClick = (e: React.MouseEvent) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        
+                                        // Save current scroll position
+                                        const currentScrollY = window.scrollY;
+                                        
+                                        // Debug: Check if locked
+                                        console.log('Level clicked:', item.level, 'isLocked:', isLocked, 'permissions:', permissions);
+                                        
+                                        if (isLocked) {
+                                            // Show simple payment prompt for locked levels - NO SCROLL
+                                            setSelectedLevel(item.level);
+                                            setShowSimplePrompt(true);
+                                            
+                                            // Prevent any scroll by restoring position
+                                            setTimeout(() => {
+                                                window.scrollTo(0, currentScrollY);
+                                            }, 0);
+                                        } else {
+                                            // Scroll to learning timeline section for unlocked levels
+                                            const timelineSection = document.getElementById('learning-timeline');
+                                            if (timelineSection) {
+                                                timelineSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                            }
+                                        }
+                                    };
 
                                     return (
                                         <div key={idx} className="relative flex flex-col items-center">
-                                            {/* Circle - Green theme only */}
-                                            <div className={`relative w-24 h-24 rounded-full flex items-center justify-center shadow-md transition-all ${
+                                            {/* Circle - Clickable */}
+                                            <button
+                                                type="button"
+                                                onClick={handleLevelClick}
+                                                onFocus={(e) => e.currentTarget.blur()}
+                                                className={`relative w-24 h-24 rounded-full flex items-center justify-center shadow-md transition-all cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                                                 completed 
-                                                    ? 'bg-[#4A7C59] dark:bg-green-600' 
+                                                    ? 'bg-[#4A7C59] dark:bg-green-600 hover:bg-[#3d6449] dark:hover:bg-green-700 focus:ring-[#4A7C59]' 
                                                     : isCurrent 
-                                                        ? 'bg-[#4A7C59]/30 dark:bg-green-600/30 ring-2 ring-[#4A7C59] dark:ring-green-500' 
-                                                        : 'bg-gray-200 dark:bg-gray-700'
-                                            }`}>
+                                                        ? 'bg-[#4A7C59]/30 dark:bg-green-600/30 ring-2 ring-[#4A7C59] dark:ring-green-500 hover:bg-[#4A7C59]/40 focus:ring-[#4A7C59]' 
+                                                        : isLocked
+                                                            ? 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-purple-500'
+                                                            : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-gray-400'
+                                            }`}
+                                                title={isLocked ? 'Click để nâng cấp và mở khóa' : 'Click để xem chi tiết'}
+                                            >
                                                 <div className="text-center">
                                                     <div className={`font-bold text-xs leading-tight px-2 ${
                                                         completed || isCurrent 
@@ -115,7 +185,15 @@ const RoadmapPage = () => {
                                                         </svg>
                                                     </div>
                                                 )}
-                                            </div>
+                                                {/* Lock icon for locked levels */}
+                                                {isLocked && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <svg className="w-6 h-6 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </button>
                                             {/* Level text */}
                                             <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 font-medium">
                                                 Level {idx + 1}
@@ -244,18 +322,80 @@ const RoadmapPage = () => {
                         </div>
 
                         {/* Learning Timeline */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                        <div id="learning-timeline" className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700 scroll-mt-20">
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Detailed Learning Path</h3>
-                            <RoadmapTimelineComponent
-                                milestones={roadmap.milestones}
-                                userProgress={roadmap.userProgress}
-                                onCompleteMilestone={handleCompleteMilestone}
-                                completingMilestone={completingMilestone}
-                            />
+                            
+                            {/* Show upgrade banner if user doesn't have subscription */}
+                            {permissions && !permissions.can_view_full_roadmap && roadmap.milestones.some(m => (m.level || 1) > 1) && (
+                                <div className="mb-6">
+                                    <UpgradePrompt
+                                        message="Bạn đang xem Level 1. Nâng cấp để xem toàn bộ 6 levels!"
+                                        onUpgrade={() => setShowPricing(true)}
+                                        variant="banner"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Filter milestones based on permissions */}
+                            {permissions && !permissions.can_view_full_roadmap ? (
+                                <div className="space-y-6">
+                                    {/* Show only Level 1 milestones for free users */}
+                                    <RoadmapTimelineComponent
+                                        milestones={roadmap.milestones.filter(m => (m.level || 1) === 1)}
+                                        userProgress={roadmap.userProgress}
+                                        onCompleteMilestone={handleCompleteMilestone}
+                                        completingMilestone={completingMilestone}
+                                    />
+                                    
+                                    {/* Show locked levels (2-6) with blur */}
+                                    {roadmap.milestones.some(m => (m.level || 1) > 1) && (
+                                        <div className="relative mt-8">
+                                            <div className="blur-sm pointer-events-none opacity-50">
+                                                <RoadmapTimelineComponent
+                                                    milestones={roadmap.milestones.filter(m => (m.level || 1) === 2).slice(0, 2)}
+                                                    userProgress={roadmap.userProgress}
+                                                    onCompleteMilestone={handleCompleteMilestone}
+                                                    completingMilestone={completingMilestone}
+                                                />
+                                            </div>
+                                            <UpgradePrompt
+                                                message="Nâng cấp để mở khóa Level 2-6 và xem toàn bộ lộ trình phát triển nghề nghiệp"
+                                                onUpgrade={() => setShowPricing(true)}
+                                                variant="overlay"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <RoadmapTimelineComponent
+                                    milestones={roadmap.milestones}
+                                    userProgress={roadmap.userProgress}
+                                    onCompleteMilestone={handleCompleteMilestone}
+                                    completingMilestone={completingMilestone}
+                                />
+                            )}
                         </div>
                     </>
                 )}
             </div>
+
+            {/* Simple Payment Prompt - Shows when clicking locked levels */}
+            <SimplePaymentPrompt
+                isOpen={showSimplePrompt}
+                onClose={() => setShowSimplePrompt(false)}
+                onPayment={() => {
+                    setShowSimplePrompt(false);
+                    setShowPricing(true);
+                }}
+                level={selectedLevel}
+            />
+
+            {/* Pricing Modal - Shows full pricing options */}
+            <PricingModal
+                isOpen={showPricing}
+                onClose={() => setShowPricing(false)}
+                reason="roadmap"
+            />
         </MainLayout>
     );
 };

@@ -9,6 +9,9 @@ import CareerRecommendationsDisplay from '../components/results/CareerRecommenda
 import { feedbackService } from '../services/feedbackService';
 import api from '../lib/api';
 import AppLogo from '../components/common/AppLogo';
+import { paymentService, UserPermissions } from '../services/paymentService';
+import { PricingModal } from '../components/payment/PricingModal';
+import { UpgradePrompt } from '../components/payment/UpgradePrompt';
 
 const ResultsPage = () => {
   const { assessmentId } = useParams<{ assessmentId: string }>();
@@ -24,10 +27,33 @@ const ResultsPage = () => {
   const [fbComment, setFbComment] = useState('');
   const [fbDone, setFbDone] = useState(false);
 
+  // Payment integration
+  const [permissions, setPermissions] = useState<UserPermissions | null>(null);
+  const [showPricing, setShowPricing] = useState(false);
+
   useEffect(() => {
     if (assessmentId) fetchResults();
+    loadPermissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId]);
+
+  const loadPermissions = async () => {
+    try {
+      const perms = await paymentService.getUserPermissions();
+      setPermissions(perms);
+    } catch (error) {
+      // Silently use mock data when backend is not available
+      setPermissions({
+        has_active_subscription: false,
+        can_take_test: true,
+        can_view_all_careers: false,
+        can_view_full_roadmap: false,
+        test_count_this_month: 0,
+        free_test_quota: 5,
+        remaining_free_tests: 5
+      });
+    }
+  };
 
   const fetchResults = async () => {
     if (!assessmentId) return;
@@ -260,7 +286,34 @@ const ResultsPage = () => {
 
               {/* TAB: Recommendations */}
               {activeTab === 'recommendations' && (
-                <CareerRecommendationsDisplay recommendations={careerRecommendations} />
+                <div>
+                  {/* Show upgrade banner if user doesn't have subscription */}
+                  {permissions && !permissions.can_view_all_careers && (
+                    <div className="mb-6">
+                      <UpgradePrompt
+                        message={`Bạn đang xem 1/${careerRecommendations.length} nghề nghiệp phù hợp. Nâng cấp để xem tất cả!`}
+                        onUpgrade={() => setShowPricing(true)}
+                        variant="banner"
+                      />
+                    </div>
+                  )}
+
+                  {/* Show only first career for free users */}
+                  {permissions && !permissions.can_view_all_careers ? (
+                    <div className="space-y-6">
+                      <CareerRecommendationsDisplay 
+                        recommendations={careerRecommendations.slice(0, 1)} 
+                      />
+                      <UpgradePrompt
+                        message="Nâng cấp để xem tất cả các nghề nghiệp phù hợp với bạn"
+                        onUpgrade={() => setShowPricing(true)}
+                        variant="card"
+                      />
+                    </div>
+                  ) : (
+                    <CareerRecommendationsDisplay recommendations={careerRecommendations} />
+                  )}
+                </div>
               )}
 
               {/* FEEDBACK */}
@@ -316,6 +369,13 @@ const ResultsPage = () => {
           )}
         </div>
       </main>
+
+      {/* Pricing Modal */}
+      <PricingModal
+        isOpen={showPricing}
+        onClose={() => setShowPricing(false)}
+        reason="careers"
+      />
     </div>
   );
 };
