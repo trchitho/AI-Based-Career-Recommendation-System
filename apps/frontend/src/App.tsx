@@ -24,7 +24,9 @@ import BlogDetailPage from './pages/BlogDetailPage';
 import ChatSummaryPage from './pages/ChatSummaryPage';
 import ChatPage from './pages/ChatPage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
-import PricingPage from './pages/PricingPage';
+import { PricingPage } from './pages/PricingPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import PaymentCallback from './pages/PaymentCallback';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -48,6 +50,8 @@ function App() {
           <Route path="/verify" element={<VerifyEmailPage />} />
           <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
           <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment/callback" element={<PaymentCallback />} />
 
           {/* Protected routes */}
           <Route

@@ -85,7 +85,7 @@ def create_app() -> FastAPI:
     )
 
     # CORS
-    origins: Iterable[str] = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000")
+    origins: Iterable[str] = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000,http://localhost:3001")
     allow_headers = _split_csv_env(os.getenv("ALLOWED_HEADERS"), "*, Authorization, Content-Type")
     allow_methods = _split_csv_env(os.getenv("ALLOWED_METHODS"), "*")
     allow_credentials = _bool_env("ALLOW_CREDENTIALS", True)
@@ -241,6 +241,15 @@ def create_app() -> FastAPI:
         app.include_router(user_profile_router.router, prefix="/api/users", tags=["users"])
     except Exception as e:
         print("??  Skip user profile router:", repr(e))
+
+    # Payment (VNPay, Momo) - Updated with require_user
+    try:
+        from .modules.payment import routes_payment as payment_router
+
+        app.include_router(payment_router.router, prefix="/api/payment", tags=["payment"])
+        print("✅ Payment router loaded successfully")
+    except Exception as e:
+        print("❌ Skip payment router:", repr(e))
 
     return app
 

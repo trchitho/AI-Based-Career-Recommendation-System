@@ -7,6 +7,8 @@ import CareerTestComponent from '../components/assessment/CareerTestComponent';
 import EssayModalComponent from '../components/assessment/EssayModalComponent';
 import { assessmentService } from '../services/assessmentService';
 import MainLayout from '../components/layout/MainLayout';
+import { paymentService, UserPermissions } from '../services/paymentService';
+import { PricingModal } from '../components/payment/PricingModal';
 
 type AssessmentStep = 'intro' | 'test' | 'essay' | 'processing';
 
@@ -23,9 +25,34 @@ const AssessmentPage = () => {
   // Prompt essay lấy từ DB
   const [essayPrompt, setEssayPrompt] = useState<EssayPrompt | null>(null);
 
-  const handleStartAssessment = () => {
+  // Payment integration
+  const [permissions, setPermissions] = useState<UserPermissions | null>(null);
+  const [showPricing, setShowPricing] = useState(false);
+  const [checkingQuota, setCheckingQuota] = useState(false);
+
+  const handleStartAssessment = async () => {
     setError(null);
-    setStep('test');
+    setCheckingQuota(true);
+
+    try {
+      // Check if user can take test
+      const result = await paymentService.checkTestQuota();
+      setPermissions(result.permissions);
+      
+      // If can take test, proceed
+      setStep('test');
+    } catch (err: any) {
+      // User has exceeded free quota
+      if (err.response?.status === 403) {
+        const perms = await paymentService.getUserPermissions();
+        setPermissions(perms);
+        setShowPricing(true);
+      } else {
+        setError('Failed to check test quota. Please try again.');
+      }
+    } finally {
+      setCheckingQuota(false);
+    }
   };
 
   const handleCancel = () => {
@@ -47,6 +74,10 @@ const AssessmentPage = () => {
       });
 
       setAssessmentId(result.assessmentId);
+      
+      // Increment test count for free users
+      await paymentService.incrementTestCount();
+      
       setStep('essay');
     } catch (err) {
       console.error('Error submitting assessment:', err);
@@ -106,11 +137,10 @@ const AssessmentPage = () => {
       setLoading(true);
       setError(null);
 
-      // ✨ Quan trọng: chỉ gửi các field nằm trong type EssaySubmission
       await assessmentService.submitEssay({
         assessmentId,
         essayText,
-        lang: 'en',                     // hoặc i18n.language nếu bạn muốn
+        lang: 'en', // hoặc i18n.language nếu bạn muốn
       });
 
       setStep('processing');
@@ -146,91 +176,75 @@ const AssessmentPage = () => {
         {step === 'intro' && (
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-8">
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">
                 {t('assessment.title')}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
                 {t('assessment.subtitle')}
               </p>
             </div>
 
-            <div className="bg-white/90 dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-gray-700/50 p-8 mb-6 shadow-2xl">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                {t('assessment.discoverPath')}
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300 mb-8 text-lg">
-                {t('assessment.comprehensiveDesc')}
-              </p>
-
-              <div className="space-y-6 mb-8">
-                <div className="flex items-start bg-gray-100 dark:bg-gray-700/30 rounded-xl p-5 border border-gray-200 dark:border-gray-600/30">
-                  <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mr-4 shadow-lg shadow-purple-500/50">
-                    <span className="text-white font-bold text-lg">1</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
-                      {t('assessment.riasec')}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {t('assessment.riasecDesc')}
-                    </p>
-                  </div>
-                </div>
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">{t('assessment.title')}</h2>
-                <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">{t('assessment.subtitle')}</p>
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 mb-6 shadow-xl border border-gray-200 dark:border-gray-700">
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {t('assessment.discoverPath')}
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 text-lg">
+                  {t('assessment.comprehensiveDesc')}
+                </p>
               </div>
-            
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 mb-6 shadow-xl border border-gray-200 dark:border-gray-700">
-                <div className="mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {t('assessment.discoverPath')}
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300 text-lg">
-                    {t('assessment.comprehensiveDesc')}
-                  </p>
-                </div>
 
-                <div className="space-y-5 mb-8">
-                  {/* RIASEC Test Card */}
-                  <div className="bg-[#E8DCC8] dark:bg-gray-700/50 rounded-xl p-5 border border-[#D4C4B0] dark:border-gray-600 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-4 shadow-md">
-                        <span className="text-white font-bold text-lg">1</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
-                          {t('assessment.riasec')}
-                        </h4>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm">
-                          {t('assessment.riasecDesc')}
-                        </p>
-                      </div>
+              <div className="space-y-5 mb-8">
+                {/* RIASEC Test Card */}
+                <div className="bg-[#E8DCC8] dark:bg-gray-700/50 rounded-xl p-5 border border-[#D4C4B0] dark:border-gray-600 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-4 shadow-md">
+                      <span className="text-white font-bold text-lg">1</span>
                     </div>
-                  </div>
-
-                  {/* Big Five Test Card */}
-                  <div className="bg-[#E8DCC8] dark:bg-gray-700/50 rounded-xl p-5 border border-[#D4C4B0] dark:border-gray-600 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-4 shadow-md">
-                        <span className="text-white font-bold text-lg">2</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
-                          {t('assessment.bigFive')}
-                        </h4>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm">
-                          {t('assessment.bigFiveDesc')}
-                        </p>
-                      </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
+                        {t('assessment.riasec')}
+                      </h4>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm">
+                        {t('assessment.riasecDesc')}
+                      </p>
                     </div>
                   </div>
                 </div>
+
+                {/* Big Five Test Card */}
+                <div className="bg-[#E8DCC8] dark:bg-gray-700/50 rounded-xl p-5 border border-[#D4C4B0] dark:border-gray-600 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-4 shadow-md">
+                      <span className="text-white font-bold text-lg">2</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
+                        {t('assessment.bigFive')}
+                      </h4>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm">
+                        {t('assessment.bigFiveDesc')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <div className="bg-gradient-to-br from-[#4A7C59]/10 to-[#3d6449]/5 dark:bg-gradient-to-br dark:from-green-900/30 dark:to-green-800/20 border-2 border-[#4A7C59]/30 dark:border-green-600/40 rounded-xl p-6 mb-8 shadow-md">
                 <h4 className="font-bold text-[#2d4a36] dark:text-green-200 text-lg mb-4 flex items-center">
                   <div className="w-8 h-8 rounded-lg bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 shadow-md">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
                   {t('assessment.whatToExpect')}
@@ -239,56 +253,99 @@ const AssessmentPage = () => {
                   <li className="flex items-start">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
-                    <span className="text-gray-800 dark:text-gray-200 font-medium">{t('assessment.duration')}</span>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">
+                      {t('assessment.duration')}
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
-                    <span className="text-gray-800 dark:text-gray-200 font-medium">{t('assessment.honestAnswers')}</span>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">
+                      {t('assessment.honestAnswers')}
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
-                    <span className="text-gray-800 dark:text-gray-200 font-medium">{t('assessment.optionalEssay')}</span>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">
+                      {t('assessment.optionalEssay')}
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
-                    <span className="text-gray-800 dark:text-gray-200 font-medium">{t('assessment.tailoredRecommendations')}</span>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">
+                      {t('assessment.tailoredRecommendations')}
+                    </span>
                   </li>
                 </ul>
               </div>
 
+              {/* Show remaining tests info */}
+              {permissions && !permissions.has_active_subscription && (
+                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                  <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
+                    Bạn còn <span className="font-bold">{permissions.remaining_free_tests}</span> lượt làm test miễn phí trong tháng này
+                  </p>
+                </div>
+              )}
+
               <button
                 onClick={handleStartAssessment}
-                className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 font-bold text-lg shadow-2xl hover:shadow-purple-500/50 transition-all duration-200 flex items-center justify-center space-x-2"
+                disabled={checkingQuota}
+                className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 font-bold text-lg shadow-2xl hover:shadow-purple-500/50 transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                <span>{t('assessment.startAssessment')}</span>
+                {checkingQuota ? (
+                  <>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                    <span>Đang kiểm tra...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    <span>{t('assessment.startAssessment')}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -317,8 +374,10 @@ const AssessmentPage = () => {
                       d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span>{t('assessment.startAssessment')}</span>
-                </button>
+                  <span className="text-red-400">
+                    {error}
+                  </span>
+                </div>
               </div>
             )}
 
@@ -360,16 +419,23 @@ const AssessmentPage = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                {t('assessment.processingResults')}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
-                {t('assessment.analyzingResponses')}
-              </p>
             </div>
-          )}
-        </div>
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              {t('assessment.processingResults')}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
+              {t('assessment.analyzingResponses')}
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* Pricing Modal */}
+      <PricingModal
+        isOpen={showPricing}
+        onClose={() => setShowPricing(false)}
+        reason="tests"
+      />
     </MainLayout>
   );
 };
