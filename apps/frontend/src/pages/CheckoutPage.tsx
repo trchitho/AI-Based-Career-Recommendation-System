@@ -119,8 +119,8 @@ export const CheckoutPage: React.FC = () => {
     setProcessing(true);
 
     try {
-      // Use ngrok domain for return URL
-      const returnUrl = `https://madonna-unpreposterous-unnationally.ngrok-free.dev/payment/callback`;
+      // Construct return URL dynamically for current environment
+      const returnUrl = `${window.location.origin}/payment/callback`;
       
       const response = await paymentService.createPayment({
         plan_id: plan.id,

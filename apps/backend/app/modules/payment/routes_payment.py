@@ -11,7 +11,6 @@ from .schemas import (
     PaymentResponse,
     SubscriptionPlanResponse,
     UserPermissionsResponse,
-    UserSubscriptionResponse,
 )
 from .service import MomoService, PaymentService, VNPayService
 
@@ -125,12 +124,20 @@ def create_payment(
 
 @router.get("/callback/vnpay")
 def vnpay_callback(
+    request: Request,
     vnp_TxnRef: str,
     vnp_ResponseCode: str,
     vnp_TransactionNo: str = None,
     db: Session = Depends(get_db)
 ):
     """Callback từ VNPay sau khi thanh toán"""
+    # Verify signature
+    vnpay = VNPayService()
+    params = dict(request.query_params)
+    
+    if not vnpay.verify_payment(params):
+        raise HTTPException(status_code=400, detail="Invalid signature")
+    
     service = PaymentService(db)
     
     # Cập nhật trạng thái payment

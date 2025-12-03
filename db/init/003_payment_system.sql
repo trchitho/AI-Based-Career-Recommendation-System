@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS core.user_subscriptions (
 CREATE TABLE IF NOT EXISTS core.payments (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    plan_id BIGINT NOT NULL REFERENCES core.subscription_plans(id),
     subscription_id BIGINT REFERENCES core.user_subscriptions(id),
     payment_method VARCHAR(20) NOT NULL, -- 'vnpay', 'momo'
     amount DECIMAL(10, 2) NOT NULL,
@@ -71,6 +72,7 @@ CREATE TABLE IF NOT EXISTS core.system_config (
 -- =====================================================
 -- INDEXES
 -- =====================================================
+CREATE INDEX idx_subscription_plans_price ON core.subscription_plans(price);
 CREATE INDEX idx_user_subscriptions_user_id ON core.user_subscriptions(user_id);
 CREATE INDEX idx_user_subscriptions_status ON core.user_subscriptions(status);
 CREATE INDEX idx_payments_user_id ON core.payments(user_id);

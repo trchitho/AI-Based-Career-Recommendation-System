@@ -42,6 +42,7 @@ class Payment(Base):
 
     id = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger, nullable=False)
+    plan_id = Column(BigInteger, nullable=False)
     subscription_id = Column(BigInteger)
     payment_method = Column(Text, nullable=False)  # 'vnpay', 'momo'
     amount = Column(Numeric(10, 2), nullable=False)
