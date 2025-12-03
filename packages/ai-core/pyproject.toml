@@ -36,7 +36,7 @@ dependencies = [
     "black>=25.11.0",
     "faiss-cpu>=1.13.0",
     "fastapi>=0.123.4",
-    "googletrans==4.0.0rc1",
+    "googletrans==4.0.0-rc1",
     "isort>=7.0.0",
     "nbstripout>=0.8.2",
     "numpy>=1.26",
