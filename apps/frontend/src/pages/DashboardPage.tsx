@@ -7,7 +7,7 @@ import ProfileSummaryCard from '../components/dashboard/ProfileSummaryCard';
 import CareerSuggestionCard from '../components/dashboard/CareerSuggestionCard';
 import ProgressMetricsCard from '../components/dashboard/ProgressMetricsCard';
 import NoAssessmentPrompt from '../components/dashboard/NoAssessmentPrompt';
-import NotificationCenter from '../components/notifications/NotificationCenter';
+// import NotificationCenter from '../components/notifications/NotificationCenter';
 import MainLayout from '../components/layout/MainLayout';
 
 const DashboardPage = () => {
@@ -88,9 +88,9 @@ const DashboardPage = () => {
 
             <div className="flex items-center gap-4">
               {/* Notification Center with improved style */}
-              <div className="bg-white dark:bg-gray-800 p-2 rounded-full border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+              {/* <div className="bg-white dark:bg-gray-800 p-2 rounded-full border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
                 <NotificationCenter />
-              </div>
+              </div> */}
             </div>
           </div>
 
