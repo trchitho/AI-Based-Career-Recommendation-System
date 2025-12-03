@@ -19,6 +19,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const app = useAppSettings();
 
   const navLinks = [
+    { to: "/dashboard", label: t("nav.dashboard") },
     { to: "/assessment", label: t("nav.assessment") },
     { to: "/blog", label: t("nav.blogs") },
     { to: "/careers", label: t("nav.careers") },
@@ -57,10 +58,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
-                        isActive
-                          ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium'
-                          : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'
+                      `px-3 py-2 text-sm rounded-lg transition-all duration-200 ${isActive
+                        ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'
                       }`
                     }
                   >

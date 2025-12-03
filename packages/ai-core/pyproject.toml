@@ -32,6 +32,31 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ai-core"
 version = "0.1.0"
+dependencies = [
+    "black>=25.11.0",
+    "faiss-cpu>=1.13.0",
+    "fastapi>=0.123.4",
+    "googletrans==4.0.0-rc1",
+    "isort>=7.0.0",
+    "nbstripout>=0.8.2",
+    "numpy>=1.26",
+    "pandas>=2.3.3",
+    "pre-commit>=4.5.0",
+    "psycopg2-binary>=2.9",
+    "psycopg[binary]>=3.1",
+    "pydantic>=2.12.5",
+    "pytest>=9.0.1",
+    "python-dotenv>=1.0",
+    "pyyaml>=6.0.3",
+    "ruff>=0.14.7",
+    "sacremoses>=0.1.1",
+    "scikit-learn>=1.7.2",
+    "sentencepiece>=0.2.1",
+    "torch>=2.2",
+    "tqdm>=4.67.1",
+    "transformers>=4.44",
+    "uvicorn[standard]>=0.38.0",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
+import DashboardPage from './pages/DashboardPage';
 import AssessmentPage from './pages/AssessmentPage';
 import ResultsPage from './pages/ResultsPage';
 import RoadmapPage from './pages/RoadmapPage';
@@ -53,105 +54,109 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/payment/callback" element={<PaymentCallback />} />
 
-          {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={<Navigate to="/assessment" replace />}
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/careers"
-            element={
-              <ProtectedRoute>
-                <CareersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/careers/:idOrSlug"
-            element={
-              <ProtectedRoute>
-                <CareerDetailPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessment"
-            element={
-              <ProtectedRoute>
-                <AssessmentPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/blog"
-            element={
-              <ProtectedRoute>
-                <BlogPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/blog/:slug"
-            element={
-              <ProtectedRoute>
-                <BlogDetailPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chat/summary"
-            element={
-              <ProtectedRoute>
-                <ChatSummaryPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chat"
-            element={
-              <ProtectedRoute>
-                <ChatPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/results/:assessmentId"
-            element={
-              <ProtectedRoute>
-                <ResultsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/careers/:careerId/roadmap"
-            element={
-              <ProtectedRoute>
-                <RoadmapPage />
-              </ProtectedRoute>
-            }
-          />
+              {/* Protected routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/careers"
+                element={
+                  <ProtectedRoute>
+                    <CareersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/careers/:idOrSlug"
+                element={
+                  <ProtectedRoute>
+                    <CareerDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/assessment"
+                element={
+                  <ProtectedRoute>
+                    <AssessmentPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/blog"
+                element={
+                  <ProtectedRoute>
+                    <BlogPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/blog/:slug"
+                element={
+                  <ProtectedRoute>
+                    <BlogDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat/summary"
+                element={
+                  <ProtectedRoute>
+                    <ChatSummaryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute>
+                    <ChatPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/results/:assessmentId"
+                element={
+                  <ProtectedRoute>
+                    <ResultsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/careers/:careerId/roadmap"
+                element={
+                  <ProtectedRoute>
+                    <RoadmapPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Admin routes */}
-          <Route
-            path="/admin/*"
-            element={
-              <AdminRoute>
-                <AdminDashboardPage />
-              </AdminRoute>
-            }
-          />
+              {/* Admin routes */}
+              <Route
+                path="/admin/*"
+                element={
+                  <AdminRoute>
+                    <AdminDashboardPage />
+                  </AdminRoute>
+                }
+              />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </SocketProvider>
         </AuthProvider>
       </Router>

@@ -126,17 +126,32 @@ const ResultsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5EFE7] dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* NAVBAR */}
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <AppLogo size="sm" showText={true} linkTo="/dashboard" />
             <div className="flex items-center space-x-4">
-              <button onClick={() => navigate('/dashboard')} className="nav-btn">Dashboard</button>
-              <button onClick={() => navigate('/profile')} className="nav-btn">Profile</button>
-              <span className="nav-text">{user?.firstName || user?.email}</span>
-              <button onClick={logout} className="nav-btn">Logout</button>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="text-gray-700 dark:text-gray-300 hover:text-[#4A7C59] dark:hover:text-green-400 font-medium transition-colors"
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => navigate('/profile')}
+                className="text-gray-700 dark:text-gray-300 hover:text-[#4A7C59] dark:hover:text-green-400 font-medium transition-colors"
+              >
+                Profile
+              </button>
+              <span className="text-gray-600 dark:text-gray-400">{user?.firstName || user?.email}</span>
+              <button
+                onClick={logout}
+                className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
