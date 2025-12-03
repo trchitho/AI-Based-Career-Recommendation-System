@@ -2,408 +2,289 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import { useAppSettings } from '../contexts/AppSettingsContext';
+// Đã loại bỏ import useAppSettings để tránh cảnh báo unused
 import { useAuth } from '../contexts/AuthContext';
-import AppLogo from '../components/common/AppLogo';
 
 const HomePage = () => {
     const { t } = useTranslation();
-    const app = useAppSettings();
+    // Đã loại bỏ biến 'app' không sử dụng
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
+    // --- LOGIC ---
     const isAuthenticated = Boolean(user);
     const isAdmin = user?.role === 'admin';
+
+    // FIX LỖI TS(2339): Thay vì gọi user.name (không tồn tại), ta lấy tên từ email
+    const displayName = user?.email?.split('@')[0] || 'User';
 
     const handleLogout = () => {
         logout();
         navigate('/login');
     };
 
-    return (
-        <div className="min-h-screen bg-[#F5EFE7] dark:bg-gray-900 relative overflow-hidden transition-colors duration-300">
-            {/* Decorative circles */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute w-64 h-64 -top-32 -left-32 bg-[#E8DCC8] dark:bg-gray-800 rounded-full opacity-50"></div>
-                <div className="absolute w-96 h-96 top-20 right-10 bg-[#D4C4B0] dark:bg-gray-800 rounded-full opacity-30"></div>
-                <div className="absolute w-48 h-48 bottom-20 left-1/4 bg-[#E8DCC8] dark:bg-gray-800 rounded-full opacity-40"></div>
-            </div>
+    // Logic hiển thị menu: Chỉ hiện Dashboard khi đã đăng nhập
+    const navItems = isAuthenticated
+        ? ['Dashboard', 'Assessment', 'Blog', 'Careers', 'Pricing']
+        : ['Assessment', 'Blog', 'Careers', 'Pricing'];
 
-            {/* Navigation */}
-            <nav className="fixed top-0 left-0 right-0 z-[999999] bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex items-center space-x-8">
-                            <AppLogo size="sm" showText={true} linkTo="/home" />
-                            {isAuthenticated && (
-                                <div className="hidden md:flex space-x-1">
-                                    <NavLink to="/assessment" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Assessment</NavLink>
-                                    <NavLink to="/blog" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Blog</NavLink>
-                                    <NavLink to="/careers" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Careers</NavLink>
-                                    <NavLink to="/profile" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Profile</NavLink>
-                                    <NavLink to="/pricing" className={({ isActive }) => `px-4 py-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#4A7C59] dark:bg-green-600 text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-700/50'}`}>Pricing</NavLink>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex items-center space-x-4">
+    // --- DỮ LIỆU MẪU (Testimonials) ---
+    const testimonials = [
+        { name: 'Sarah Nguyen', role: 'Software Engineer', text: "The insights were incredibly accurate. I finally understand why certain careers appeal to me.", initial: 'S', color: 'bg-indigo-500' },
+        { name: 'Michael Chen', role: 'Product Manager', text: "A game-changer for my career planning. The roadmap gave me clear direction.", initial: 'M', color: 'bg-emerald-500' },
+        { name: 'Emily Patel', role: 'UX Designer', text: "Highly recommended for anyone feeling stuck in their current role.", initial: 'E', color: 'bg-purple-500' },
+        { name: 'David Kim', role: 'Data Scientist', text: "The AI analysis is spot on. It helped me pivot my career successfully.", initial: 'D', color: 'bg-blue-500' },
+        { name: 'Lisa Wang', role: 'Marketing Lead', text: "Simple, intuitive, and effective. Best career tool I've used.", initial: 'L', color: 'bg-pink-500' },
+    ];
+    // Tạo mảng lặp để chạy hiệu ứng marquee
+    const row1 = [...testimonials, ...testimonials, ...testimonials];
+    const row2 = [...testimonials].reverse().concat([...testimonials].reverse()).concat([...testimonials].reverse());
+
+    // --- COMPONENT LOGO NỘI BỘ (Để đảm bảo giao diện đẹp mà không phụ thuộc file ngoài) ---
+    const ModernLogo = () => (
+        <Link to="/home" className="flex items-center gap-2 group">
+            {/* Logo Text thuần túy theo phong cách Minimalist của resume.io */}
+            <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
+                career<span className="text-green-500">bridge</span><span className="text-green-500 text-3xl leading-none">.</span>
+            </span>
+        </Link>
+    );
+
+    return (
+        <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 overflow-x-hidden">
+
+            {/* --- CSS INJECTION (Animation & Fonts) --- */}
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+                
+                @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+                @keyframes scroll-reverse { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+                @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+                
+                .animate-scroll { animation: scroll 60s linear infinite; }
+                .animate-scroll-reverse { animation: scroll-reverse 60s linear infinite; }
+                .animate-fade-in-up { animation: fade-in-up 0.8s ease-out forwards; opacity: 0; }
+                
+                .delay-100 { animation-delay: 0.1s; }
+                .delay-200 { animation-delay: 0.2s; }
+                .delay-300 { animation-delay: 0.3s; }
+                
+                .group:hover .animate-scroll, .group:hover .animate-scroll-reverse { animation-play-state: paused; }
+            `}</style>
+
+            {/* --- HEADER --- */}
+            <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm py-5 transition-all duration-300">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                    <div className="flex-shrink-0">
+                        <ModernLogo />
+                    </div>
+
+                    {/* Menu chính giữa */}
+                    <nav className="hidden md:flex items-center gap-8">
+                        {navItems.map((item) => (
+                            <NavLink
+                                key={item}
+                                to={`/${item.toLowerCase()}`}
+                                className={({ isActive }) => `text-[15px] font-medium transition-colors duration-200 ${isActive
+                                    ? 'text-green-600 dark:text-green-400'
+                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                                    }`}
+                            >
+                                {item}
+                            </NavLink>
+                        ))}
+                    </nav>
+
+                    {/* Khu vực bên phải: Auth & Toggle */}
+                    <div className="flex items-center gap-5">
+                        <div className="hidden lg:flex items-center gap-3 pr-3 border-r border-gray-200 dark:border-gray-700">
                             <LanguageSwitcher />
                             <ThemeToggle />
-                            {isAuthenticated ? (
-                                <>
-                                    <span className="text-gray-700 dark:text-gray-300 text-sm hidden sm:block">{user?.email}</span>
-                                    {isAdmin && (
-                                        <Link
-                                            to="/admin"
-                                            className="px-4 py-2 bg-[#4A7C59]/20 dark:bg-green-600/20 text-[#4A7C59] dark:text-green-400 border border-[#4A7C59]/50 dark:border-green-600/50 rounded-lg hover:bg-[#4A7C59]/30 dark:hover:bg-green-600/30 transition-colors text-sm font-medium"
-                                        >
-                                            Admin Dashboard
-                                        </Link>
-                                    )}
-                                    <button
-                                        onClick={handleLogout}
-                                        className="px-4 py-2 bg-gray-200/50 dark:bg-gray-700/50 hover:bg-gray-300/50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg transition-all duration-200 flex items-center space-x-2"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                        </svg>
-                                        <span>{t('common.logout')}</span>
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <Link
-                                        to="/login"
-                                        className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
-                                    >
-                                        {t('auth.signIn')}
-                                    </Link>
-                                    <Link
-                                        to="/assessment"
-                                        className="px-6 py-2 bg-[#4A7C59] dark:bg-green-600 text-white rounded-lg font-medium hover:bg-[#3d6449] dark:hover:bg-green-700 transition-all duration-200 shadow-lg"
-                                    >
-                                        {t('auth.signUp')}
-                                    </Link>
-                                </>
-                            )}
                         </div>
+
+                        {isAuthenticated ? (
+                            <div className="flex items-center gap-3 animate-fade-in-up">
+                                {isAdmin && (
+                                    <Link to="/admin" className="hidden lg:inline-flex px-3 py-1 text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-full dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
+                                        Admin
+                                    </Link>
+                                )}
+                                <div className="flex items-center gap-2 cursor-default">
+                                    <div className="w-9 h-9 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-sm">
+                                        {displayName.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span className="hidden sm:block text-sm font-semibold max-w-[100px] truncate">{displayName}</span>
+                                </div>
+                                <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors" title="Logout">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-3">
+                                <Link to="/login" className="hidden sm:block text-[15px] font-semibold text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full hover:border-gray-400 transition-all">
+                                    {t('auth.signIn')}
+                                </Link>
+                                <Link to="/assessment" className="text-[15px] font-bold bg-green-500 text-white px-6 py-2.5 rounded-full hover:bg-green-600 shadow-lg shadow-green-500/20 hover:-translate-y-0.5 transition-all duration-200">
+                                    Get started
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
-            </nav>
+            </header>
 
-            {/* Hero Section */}
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
-                <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-                    <div>
-                        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-                            Discover <span className="text-[#4A7C59] dark:text-green-500">who you</span><br />
-                            <span className="text-[#4A7C59] dark:text-green-500">truly are</span> with the<br />
-                            Personality test
+            <main>
+                {/* --- HERO SECTION (Style giống ảnh resume.io) --- */}
+                <section className="relative pt-20 pb-32 overflow-hidden bg-white dark:bg-gray-900">
+                    {/* Background Glow tinh tế */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-green-500/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+
+                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        {/* User Avatars & Rating */}
+                        <div className="flex flex-col items-center justify-center gap-2 mb-8 animate-fade-in-up">
+                            <div className="flex items-center gap-3">
+                                <div className="flex -space-x-3">
+                                    {[1, 2, 3, 4, 5].map(i => (
+                                        <img key={i} className="w-10 h-10 rounded-full border-[3px] border-white dark:border-gray-900 object-cover" src={`https://i.pravatar.cc/100?img=${i + 15}`} alt="User" />
+                                    ))}
+                                </div>
+                                <div className="flex flex-col items-start">
+                                    <div className="flex text-green-500 text-sm">★★★★★</div>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Used by 10,000+ users</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Headline: Giống hệt ảnh mẫu */}
+                        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1] animate-fade-in-up delay-100">
+                            Land your dream job with <br className="hidden md:block" />
+                            <span className="text-green-500">AI-powered</span> resumes.
                         </h1>
-                        <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
-                            With this test, you will find out your exact personality type.
+                        <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed max-w-2xl mx-auto font-medium animate-fade-in-up delay-200">
+                            Create, edit and download professional resumes with AI-powered assistance in minutes.
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-4">
+
+                        {/* CTA Buttons */}
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 animate-fade-in-up delay-300">
                             <Link
                                 to={isAuthenticated ? '/dashboard' : '/assessment'}
-                                className="px-8 py-3 bg-[#4A7C59] dark:bg-green-600 text-white rounded-lg font-medium hover:bg-[#3d6449] dark:hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                                className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 text-[17px] font-bold text-white bg-green-500 rounded-full hover:bg-green-600 transition-all shadow-xl shadow-green-500/20 hover:-translate-y-1"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                <span>Male</span>
+                                <span>Get started</span>
+                                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                             </Link>
                             <Link
-                                to={isAuthenticated ? '/dashboard' : '/assessment'}
-                                className="px-8 py-3 bg-[#D4A5A5] dark:bg-pink-400 text-white rounded-lg font-medium hover:bg-[#c89595] dark:hover:bg-pink-500 transition-colors flex items-center justify-center space-x-2"
+                                to="/about"
+                                className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 text-[17px] font-bold text-gray-600 bg-transparent border border-gray-300 rounded-full hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-800 dark:hover:text-white transition-all"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                <span>Female</span>
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>Try demo</span>
                             </Link>
                         </div>
-                    </div>
-                    <div className="relative">
-                        <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-12 h-12 bg-[#4A7C59] dark:bg-green-600 rounded-full flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div className="text-sm text-gray-500 dark:text-gray-400">Total score</div>
-                                        <div className="text-2xl font-bold text-gray-900 dark:text-white">449,995</div>
-                                    </div>
-                                </div>
-                                <div className="flex space-x-2">
-                                    <div className="w-3 h-3 bg-[#4A7C59] dark:bg-green-600 rounded-full"></div>
-                                    <div className="w-3 h-3 bg-[#D4A5A5] dark:bg-pink-400 rounded-full"></div>
-                                    <div className="w-3 h-3 bg-[#7B9EA8] dark:bg-blue-400 rounded-full"></div>
-                                    <div className="w-3 h-3 bg-[#E8B86D] dark:bg-yellow-400 rounded-full"></div>
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Openness</span>
-                                    <div className="flex-1 mx-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#4A7C59] dark:bg-green-600 rounded-full" style={{width: '75%'}}></div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Conscientiousness</span>
-                                    <div className="flex-1 mx-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#D4A5A5] dark:bg-pink-400 rounded-full" style={{width: '60%'}}></div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Extraversion</span>
-                                    <div className="flex-1 mx-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#7B9EA8] dark:bg-blue-400 rounded-full" style={{width: '85%'}}></div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">Agreeableness</span>
-                                    <div className="flex-1 mx-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#E8B86D] dark:bg-yellow-400 rounded-full" style={{width: '70%'}}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                {/* Features Grid */}
-                <div className="grid md:grid-cols-3 gap-8 mt-20">
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                        <div className="w-14 h-14 bg-[#4A7C59] dark:bg-green-600 rounded-xl flex items-center justify-center mb-6">
-                            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Personality Report</h3>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            A highly individualized report with your exact personality type, strengths and weaknesses.
+                        {/* Footer Text nhỏ */}
+                        <p className="mt-16 text-sm text-gray-400 dark:text-gray-500 animate-fade-in-up delay-300">
+                            Trusting by leading brands, including
                         </p>
-                    </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                        <div className="w-14 h-14 bg-[#4A7C59] dark:bg-green-600 rounded-xl flex items-center justify-center mb-6">
-                            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Daily Challenges</h3>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            Exclusive features to help you grow and develop your personality every day.
-                        </p>
-                    </div>
-
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                        <div className="w-14 h-14 bg-[#4A7C59] dark:bg-green-600 rounded-xl flex items-center justify-center mb-6">
-                            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Certificates</h3>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            Upon completion of the test, you will receive a certificate to share on LinkedIn.
-                        </p>
-                    </div>
-                </div>
-
-                {/* How It Works Section */}
-                <div className="mt-32">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">How It Works</h2>
-                        <p className="text-lg text-gray-600 dark:text-gray-400">Three simple steps to discover your personality</p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <div className="relative flex">
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-lg flex-1 flex flex-col">
-                                <div className="w-16 h-16 bg-[#4A7C59] dark:bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <span className="text-2xl font-bold text-white">1</span>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Prepare yourself</h3>
-                                <p className="text-gray-600 dark:text-gray-400 flex-grow">
-                                    Complete our comprehensive assessment covering personality traits and career interests.
-                                </p>
-                            </div>
-                            <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-                                <svg className="w-8 h-8 text-[#4A7C59] dark:text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div className="relative flex">
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-lg flex-1 flex flex-col">
-                                <div className="w-16 h-16 bg-[#4A7C59] dark:bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <span className="text-2xl font-bold text-white">2</span>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Complete the test</h3>
-                                <p className="text-gray-600 dark:text-gray-400 flex-grow">
-                                    Receive insights matched to your unique personality and interests.
-                                </p>
-                            </div>
-                            <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-                                <svg className="w-8 h-8 text-[#4A7C59] dark:text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div className="flex">
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-lg flex-1 flex flex-col">
-                                <div className="w-16 h-16 bg-[#4A7C59] dark:bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <span className="text-2xl font-bold text-white">3</span>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Retrieve your insights</h3>
-                                <p className="text-gray-600 dark:text-gray-400 flex-grow">
-                                    Access your personalized report and start your journey of self-discovery.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Statistics Section */}
-                <div className="mt-32">
-                    <div className="grid md:grid-cols-4 gap-8">
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-lg">
-                            <div className="text-4xl font-bold text-[#4A7C59] dark:text-green-500 mb-2">500K+</div>
-                            <div className="text-gray-600 dark:text-gray-400">Tests Completed</div>
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-lg">
-                            <div className="text-4xl font-bold text-[#4A7C59] dark:text-green-500 mb-2">98%</div>
-                            <div className="text-gray-600 dark:text-gray-400">Satisfaction Rate</div>
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-lg">
-                            <div className="text-4xl font-bold text-[#4A7C59] dark:text-green-500 mb-2">150+</div>
-                            <div className="text-gray-600 dark:text-gray-400">Career Paths</div>
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-lg">
-                            <div className="text-4xl font-bold text-[#4A7C59] dark:text-green-500 mb-2">24/7</div>
-                            <div className="text-gray-600 dark:text-gray-400">AI Support</div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Testimonials Section */}
-                <div className="mt-32">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">What Our Users Say</h2>
-                        <p className="text-lg text-gray-600 dark:text-gray-400">Real stories from people who found their path</p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-                            <div className="flex items-center mb-4">
-                                {[...Array(5)].map((_, i) => (
-                                    <svg key={i} className="w-5 h-5 text-[#E8B86D] dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
+                        {/* Brand Logos (Marquee) */}
+                        <div className="mt-8 border-t border-gray-100 dark:border-gray-800 pt-8 overflow-hidden group">
+                            <div className="flex w-max animate-scroll group-hover:paused">
+                                {[...Array(2)].map((_, setIndex) => (
+                                    <div key={setIndex} className="flex gap-16 px-10 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+                                        {['Instagram', 'Framer', 'Microsoft', 'Huawei', 'Walmart', 'Spotify', 'Airbnb'].map((brand, i) => (
+                                            <span key={i} className="text-2xl font-bold text-gray-500 dark:text-gray-400 cursor-default select-none font-sans">
+                                                {brand}
+                                            </span>
+                                        ))}
+                                    </div>
                                 ))}
                             </div>
-                            <p className="text-gray-700 dark:text-gray-300 mb-6">
-                                "This test helped me understand my strengths and find a career path that truly fits my personality. Highly recommended!"
-                            </p>
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-[#4A7C59] dark:bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                                    SN
-                                </div>
-                                <div className="ml-4">
-                                    <div className="font-semibold text-gray-900 dark:text-white">Sarah Nguyen</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">Software Engineer</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-                            <div className="flex items-center mb-4">
-                                {[...Array(5)].map((_, i) => (
-                                    <svg key={i} className="w-5 h-5 text-[#E8B86D] dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                ))}
-                            </div>
-                            <p className="text-gray-700 dark:text-gray-300 mb-6">
-                                "The insights were incredibly accurate. I finally understand why certain careers appeal to me more than others."
-                            </p>
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-[#D4A5A5] dark:bg-pink-400 rounded-full flex items-center justify-center text-white font-bold">
-                                    MC
-                                </div>
-                                <div className="ml-4">
-                                    <div className="font-semibold text-gray-900 dark:text-white">Michael Chen</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">Marketing Manager</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-                            <div className="flex items-center mb-4">
-                                {[...Array(5)].map((_, i) => (
-                                    <svg key={i} className="w-5 h-5 text-[#E8B86D] dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                ))}
-                            </div>
-                            <p className="text-gray-700 dark:text-gray-300 mb-6">
-                                "A game-changer for my career planning. The personalized roadmap gave me clear direction and actionable steps."
-                            </p>
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-[#7B9EA8] dark:bg-blue-400 rounded-full flex items-center justify-center text-white font-bold">
-                                    EP
-                                </div>
-                                <div className="ml-4">
-                                    <div className="font-semibold text-gray-900 dark:text-white">Emily Patel</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">UX Designer</div>
-                                </div>
-                            </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                {/* CTA Section */}
-                <div className="mt-32 bg-gradient-to-br from-[#4A7C59] to-[#3d6449] dark:from-green-600 dark:to-green-700 rounded-3xl p-12 text-center shadow-2xl relative overflow-hidden">
-                    <div className="absolute inset-0 opacity-10">
-                        <div className="absolute w-64 h-64 -top-32 -left-32 bg-white rounded-full"></div>
-                        <div className="absolute w-96 h-96 top-20 right-10 bg-white rounded-full"></div>
+                {/* --- FEATURES SECTION --- */}
+                <section className="py-24 bg-gray-50 dark:bg-gray-800/50">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="text-center max-w-3xl mx-auto mb-16">
+                            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Features designed for you</h2>
+                            <p className="text-lg text-gray-500 dark:text-gray-400">Everything you need to build a perfect resume and find your career path.</p>
+                        </div>
+                        <div className="grid md:grid-cols-3 gap-8">
+                            {[
+                                { title: 'AI Writer', desc: 'Auto-generate resume content tailored to your industry.', icon: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' },
+                                { title: 'Resume Checker', desc: 'Get real-time feedback to improve your score.', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+                                { title: 'Cover Letters', desc: 'Create matching cover letters in seconds.', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+                            ].map((feature, idx) => (
+                                <div key={idx} className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-xl flex items-center justify-center mb-6">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={feature.icon} /></svg>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{feature.title}</h3>
+                                    <p className="text-gray-500 dark:text-gray-400 leading-relaxed">{feature.desc}</p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                    <div className="relative z-10">
-                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                            Ready to Discover Your Personality?
-                        </h2>
-                        <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
-                            Join thousands who have discovered their true personality type and found their perfect career path.
-                        </p>
-                        <Link
-                            to={isAuthenticated ? '/dashboard' : '/assessment'}
-                            className="inline-flex items-center space-x-2 px-10 py-4 bg-white text-[#4A7C59] dark:text-green-600 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-lg"
-                        >
-                            <span>{isAuthenticated ? 'Continue Your Journey' : 'Start Personality Test'}</span>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                        </Link>
+                </section>
+
+                {/* --- TESTIMONIALS (MARQUEE) --- */}
+                <section className="py-24 bg-white dark:bg-gray-900 overflow-hidden">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center">
+                        <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Loved by users</h2>
                     </div>
-                </div>
-            </div>
 
-            {/* Footer */}
-            <footer className="relative z-10 border-t border-gray-300 dark:border-gray-800 mt-20">
+                    <div className="relative group">
+                        <div className="flex w-max animate-scroll gap-6 mb-6">
+                            {row1.map((item, idx) => (
+                                <div key={`r1-${idx}`} className="w-[380px] bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0">
+                                    <div className="flex items-center mb-4">
+                                        <div className={`w-10 h-10 ${item.color} rounded-full flex items-center justify-center text-white font-bold`}>{item.initial}</div>
+                                        <div className="ml-3">
+                                            <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
+                                            <div className="text-xs text-gray-500">{item.role}</div>
+                                        </div>
+                                        <div className="ml-auto flex text-yellow-400 text-xs">★★★★★</div>
+                                    </div>
+                                    <p className="text-gray-600 dark:text-gray-300 italic text-sm">"{item.text}"</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex w-max animate-scroll-reverse gap-6">
+                            {row2.map((item, idx) => (
+                                <div key={`r2-${idx}`} className="w-[380px] bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0">
+                                    <div className="flex items-center mb-4">
+                                        <div className={`w-10 h-10 ${item.color} rounded-full flex items-center justify-center text-white font-bold`}>{item.initial}</div>
+                                        <div className="ml-3">
+                                            <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
+                                            <div className="text-xs text-gray-500">{item.role}</div>
+                                        </div>
+                                        <div className="ml-auto flex text-yellow-400 text-xs">★★★★★</div>
+                                    </div>
+                                    <p className="text-gray-600 dark:text-gray-300 italic text-sm">"{item.text}"</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm text-gray-800 dark:text-gray-100 text-left">
-                    {app.footer_html ? (
-                        <div className="app-footer" dangerouslySetInnerHTML={{ __html: app.footer_html }} />
-                    ) : (
-                        <div>© 2025 CareerBridge AI</div>
-                    )}
-                </div>
-            </footer>
+                {/* --- FOOTER --- */}
+                <footer className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 py-12">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <div className="flex justify-center mb-6">
+                            <ModernLogo />
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-8 text-sm font-bold text-gray-500 dark:text-gray-400">
+                            <Link to="/about" className="hover:text-green-600">About</Link>
+                            <Link to="/blog" className="hover:text-green-600">Blog</Link>
+                            <Link to="/contact" className="hover:text-green-600">Contact</Link>
+                            <Link to="/privacy" className="hover:text-green-600">Privacy</Link>
+                        </div>
+                        <p className="text-sm text-gray-400">© 2025 CareerBridge AI. All rights reserved.</p>
+                    </div>
+                </footer>
+            </main>
         </div>
     );
 };

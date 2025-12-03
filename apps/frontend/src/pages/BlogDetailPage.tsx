@@ -4,6 +4,9 @@ import MainLayout from '../components/layout/MainLayout';
 import { blogService, BlogPost } from '../services/blogService';
 
 const BlogDetailPage = () => {
+  // ==========================================
+  // 1. LOGIC BLOCK (GIỮ NGUYÊN)
+  // ==========================================
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | null>(null);
@@ -32,34 +35,39 @@ const BlogDetailPage = () => {
     loadPost();
   }, [slug]);
 
+  // ==========================================
+  // 2. NEW DESIGN UI
+  // ==========================================
+
+  // --- LOADING STATE ---
   if (loading) {
     return (
       <MainLayout>
-        <div className="min-h-screen bg-[#F5EFE7] dark:bg-gray-900 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#4A7C59] dark:border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-500 dark:text-gray-400">Loading post...</p>
+        <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center font-['Plus_Jakarta_Sans']">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-16 h-16 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
           </div>
+          <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium">Loading article...</p>
         </div>
       </MainLayout>
     );
   }
 
+  // --- ERROR STATE ---
   if (error || !post) {
     return (
       <MainLayout>
-        <div className="min-h-screen bg-[#F5EFE7] dark:bg-gray-900 flex items-center justify-center">
-          <div className="text-center max-w-md">
-            <div className="w-24 h-24 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+        <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center font-['Plus_Jakarta_Sans'] px-4">
+          <div className="max-w-md w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-3xl p-8 text-center">
+            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600 dark:text-red-400">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Post Not Found</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{error || 'The blog post you are looking for does not exist.'}</p>
+            <p className="text-gray-600 dark:text-gray-300 mb-8">{error || 'The blog post you are looking for does not exist.'}</p>
             <button
               onClick={() => navigate('/blog')}
-              className="px-6 py-3 bg-[#4A7C59] dark:bg-green-600 text-white rounded-lg hover:bg-[#3d6449] dark:hover:bg-green-700 font-semibold transition-colors shadow-lg"
+              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold shadow-lg shadow-green-600/20 transition-all"
             >
               Back to Blog
             </button>
@@ -69,131 +77,138 @@ const BlogDetailPage = () => {
     );
   }
 
+  // --- MAIN CONTENT ---
   return (
     <MainLayout>
-      <div className="min-h-screen bg-[#F5EFE7] dark:bg-gray-900">
-        {/* Hero Section with Featured Image */}
-        <div className="relative h-[400px] bg-gradient-to-br from-[#4A7C59] to-[#3d6449] overflow-hidden">
-          <div className="absolute inset-0 bg-black/20"></div>
+      <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 pb-20">
+
+        {/* Styles Injection */}
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+          @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+          .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; opacity: 0; }
+        `}</style>
+
+        {/* Hero Section with Featured Image (Gradient Fallback) */}
+        <div className="relative h-[450px] bg-gradient-to-br from-green-600 to-teal-700 overflow-hidden">
+          {/* Decorative Pattern */}
+          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+
           <div className="absolute inset-0 flex items-center justify-center">
-            <svg className="w-32 h-32 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+            {/* Icon Placeholder nếu không có ảnh */}
+            <svg className="w-40 h-40 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
           </div>
-          
-          {/* Back Button */}
-          <button
-            onClick={() => navigate('/blog')}
-            className="absolute top-6 left-6 px-4 py-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-900 dark:text-white rounded-lg hover:bg-white dark:hover:bg-gray-800 transition-all shadow-lg flex items-center gap-2 font-semibold"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Blog
-          </button>
+
+          {/* Back Button (Floating Pill) */}
+          <div className="absolute top-8 left-4 md:left-8 z-10">
+            <button
+              onClick={() => navigate('/blog')}
+              className="group px-5 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full hover:bg-white/20 transition-all shadow-lg flex items-center gap-2 font-bold text-sm"
+            >
+              <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Blog
+            </button>
+          </div>
         </div>
 
-        {/* Article Content */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10">
-          <article className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="px-6 md:px-12 py-8 md:py-12">
-              
+        {/* Content Wrapper (Overlapping Hero) */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32 relative z-10 animate-fade-in-up">
+          <article className="bg-white dark:bg-gray-800 rounded-[32px] shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden">
+
+            <div className="px-6 md:px-12 py-10 md:py-14">
+
               {/* Meta Info */}
-              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                {post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric'
-                }) : 'Draft'}
-                <span className="mx-2">•</span>
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {Math.ceil(post.content_md.split(' ').length / 200)} min read
+              <div className="flex flex-wrap items-center gap-4 text-sm font-semibold text-gray-500 dark:text-gray-400 mb-6 uppercase tracking-wider">
+                <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full border border-green-200 dark:border-green-800">
+                  Article
+                </span>
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  {post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Draft'}
+                </div>
+                <div className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  {Math.ceil(post.content_md.split(' ').length / 200)} min read
+                </div>
               </div>
 
               {/* Title */}
-              <h1 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+              <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-8 leading-tight">
                 {post.title}
               </h1>
 
-              {/* Divider */}
-              <div className="w-20 h-1 bg-[#4A7C59] dark:bg-green-600 rounded-full mb-8"></div>
+              {/* Author & Share Row */}
+              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-8 mb-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 font-bold">
+                    A
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-gray-900 dark:text-white">Admin</div>
+                    <div className="text-xs text-gray-500">Author</div>
+                  </div>
+                </div>
 
-              {/* Content */}
-              <div className="prose prose-lg dark:prose-invert max-w-none">
-                <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed text-lg">
+                <div className="flex gap-2">
+                  <button className="w-9 h-9 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-500 hover:bg-green-50 hover:text-green-600 dark:hover:bg-gray-600 transition-colors">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" /></svg>
+                  </button>
+                  <button className="w-9 h-9 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-500 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-gray-600 transition-colors">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Content Body */}
+              <div className="prose prose-lg dark:prose-invert prose-green max-w-none">
+                <div className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                   {post.content_md.split('\n\n').map((paragraph, idx) => (
-                    <p key={idx} className="mb-6">
+                    <p key={idx} className="mb-6 first:first-letter:text-5xl first:first-letter:font-bold first:first-letter:text-green-600 first:first-letter:mr-1 first:first-letter:float-left">
                       {paragraph}
                     </p>
                   ))}
                 </div>
               </div>
 
-              {/* Tags (if available) */}
-              <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex flex-wrap gap-2 mb-6">
-                  <span className="px-4 py-2 bg-[#E8DCC8] dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium">
-                    Career Advice
-                  </span>
-                  <span className="px-4 py-2 bg-[#E8DCC8] dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium">
-                    Professional Development
-                  </span>
-                </div>
-
-                {/* Share Section */}
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Share:</span>
-                    <button className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center transition-colors">
-                      <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                      </svg>
-                    </button>
-                    <button className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center transition-colors">
-                      <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                      </svg>
-                    </button>
-                    <button className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center transition-colors">
-                      <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                      </svg>
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={() => navigate('/blog')}
-                    className="px-6 py-3 bg-[#4A7C59] dark:bg-green-600 text-white rounded-lg hover:bg-[#3d6449] dark:hover:bg-green-700 font-semibold transition-colors shadow-lg"
-                  >
-                    Back to All Posts
-                  </button>
+              {/* Tags Section */}
+              <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex flex-wrap gap-2">
+                  {['Career', 'Development', 'Tips'].map((tag) => (
+                    <span key={tag} className="px-4 py-1.5 bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 rounded-full text-sm font-medium hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400 transition-colors cursor-pointer">
+                      #{tag}
+                    </span>
+                  ))}
                 </div>
               </div>
+
             </div>
           </article>
 
-          {/* Related Posts Section (Optional) */}
-          <div className="mt-12 mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Related Articles</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Placeholder for related posts */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                <div className="h-32 bg-gradient-to-br from-green-600 to-green-700 rounded-lg mb-4"></div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">More Career Tips Coming Soon</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Stay tuned for more insights and advice.</p>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                <div className="h-32 bg-gradient-to-br from-[#4A7C59] to-[#3d6449] rounded-lg mb-4"></div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Explore More Content</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Check back regularly for new articles.</p>
-              </div>
+          {/* Related Posts Placeholder */}
+          <div className="mt-20">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Related Articles</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[1, 2].map((i) => (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:-translate-y-1 transition-transform cursor-pointer group">
+                  <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl mb-4 overflow-hidden relative">
+                    <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors"></div>
+                  </div>
+                  <div className="text-xs text-green-600 font-bold uppercase tracking-wider mb-2">Career Advice</div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-green-600 transition-colors">
+                    The Future of Remote Work {i}
+                  </h3>
+                  <p className="text-gray-500 text-sm line-clamp-2">Explore how remote work is shaping the future landscape of careers...</p>
+                </div>
+              ))}
             </div>
           </div>
+
         </div>
       </div>
     </MainLayout>

@@ -11,6 +11,9 @@ import MainLayout from '../components/layout/MainLayout';
 type AssessmentStep = 'intro' | 'test' | 'essay' | 'processing';
 
 const AssessmentPage = () => {
+  // ==========================================
+  // 1. LOGIC BLOCK (GIỮ NGUYÊN)
+  // ==========================================
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -32,17 +35,13 @@ const AssessmentPage = () => {
     navigate('/dashboard');
   };
 
-  /**
-   * Khi làm xong test (RIASEC + BigFive) → submit lên BE
-   * BE tạo assessment + session, trả về assessmentId
-   */
   const handleTestComplete = async (responses: QuestionResponse[]) => {
     try {
       setLoading(true);
       setError(null);
 
       const result = await assessmentService.submitAssessment({
-        testTypes: ['RIASEC', 'BIG_FIVE'], // backend đang normalize BIG_FIVE
+        testTypes: ['RIASEC', 'BIG_FIVE'],
         responses,
       });
 
@@ -56,9 +55,6 @@ const AssessmentPage = () => {
     }
   };
 
-  /**
-   * Khi chuyển sang bước essay → gọi BE lấy prompt từ core.essay_prompts
-   */
   useEffect(() => {
     if (step !== 'essay') return;
     if (!assessmentId) return;
@@ -68,16 +64,12 @@ const AssessmentPage = () => {
     const fetchPrompt = async () => {
       try {
         setLoading(true);
-
-        // Hiện DB chắc chắn có lang 'en'
         const prompt = await assessmentService.getEssayPrompt('en');
-
         if (isMounted) {
           setEssayPrompt(prompt);
         }
       } catch (err) {
         console.error('Error fetching essay prompt:', err);
-        // Không cần hiện lỗi to; EssayModalComponent đã có fallback text
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -92,15 +84,8 @@ const AssessmentPage = () => {
     };
   }, [step, assessmentId]);
 
-  /**
-   * Submit bài essay (optional). Nếu thành công → sang trạng thái processing
-   * rồi redirect sang trang kết quả theo assessmentId
-   */
   const handleEssaySubmit = async (essayText: string) => {
-    if (!assessmentId) {
-      // Không có assessmentId thì không cố gắng gắn essay vào test
-      return;
-    }
+    if (!assessmentId) return;
 
     try {
       setLoading(true);
@@ -109,7 +94,7 @@ const AssessmentPage = () => {
       await assessmentService.submitEssay({
         assessmentId,
         essayText,
-        lang: 'en', // hoặc i18n.language nếu bạn muốn
+        lang: 'en',
       });
 
       setStep('processing');
@@ -129,255 +114,182 @@ const AssessmentPage = () => {
     }
   };
 
-  /**
-   * Nếu user bỏ qua essay → vẫn cho xem kết quả RIASEC/BigFive
-   */
   const handleEssaySkip = () => {
     if (assessmentId) {
       navigate(`/results/${assessmentId}`);
     }
   };
 
+  // ==========================================
+  // 2. PREMIUM DESIGN UI - SINGLE CARD LAYOUT
+  // ==========================================
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Bước 1: màn intro */}
-        {step === 'intro' && (
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">
-                {t('assessment.title')}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-                {t('assessment.subtitle')}
-              </p>
-            </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-hidden flex flex-col">
 
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 mb-6 shadow-xl border border-gray-200 dark:border-gray-700">
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  {t('assessment.discoverPath')}
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 text-lg">
-                  {t('assessment.comprehensiveDesc')}
-                </p>
-              </div>
+        {/* Background Styles */}
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+          @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+          .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; opacity: 0; }
+          .bg-grid-pattern {
+            background-image: radial-gradient(rgba(74, 124, 89, 0.1) 1px, transparent 1px);
+            background-size: 32px 32px;
+          }
+          .dark .bg-grid-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+          }
+        `}</style>
 
-              <div className="space-y-5 mb-8">
-                {/* RIASEC Test Card */}
-                <div className="bg-[#E8DCC8] dark:bg-gray-700/50 rounded-xl p-5 border border-[#D4C4B0] dark:border-gray-600 hover:shadow-lg transition-all duration-300">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-4 shadow-md">
-                      <span className="text-white font-bold text-lg">1</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
-                        {t('assessment.riasec')}
-                      </h4>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm">
-                        {t('assessment.riasecDesc')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+        {/* --- BACKGROUND LAYERS --- */}
+        <div className="absolute inset-0 bg-grid-pattern pointer-events-none z-0"></div>
+        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-green-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-teal-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
-                {/* Big Five Test Card */}
-                <div className="bg-[#E8DCC8] dark:bg-gray-700/50 rounded-xl p-5 border border-[#D4C4B0] dark:border-gray-600 hover:shadow-lg transition-all duration-300">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-4 shadow-md">
-                      <span className="text-white font-bold text-lg">2</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
-                        {t('assessment.bigFive')}
-                      </h4>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm">
-                        {t('assessment.bigFiveDesc')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        {/* --- MAIN CONTAINER --- */}
+        <div className="flex-1 flex items-center justify-center p-4 md:p-8 relative z-10">
 
-              <div className="bg-gradient-to-br from-[#4A7C59]/10 to-[#3d6449]/5 dark:bg-gradient-to-br dark:from-green-900/30 dark:to-green-800/20 border-2 border-[#4A7C59]/30 dark:border-green-600/40 rounded-xl p-6 mb-8 shadow-md">
-                <h4 className="font-bold text-[#2d4a36] dark:text-green-200 text-lg mb-4 flex items-center">
-                  <div className="w-8 h-8 rounded-lg bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 shadow-md">
-                    <svg
-                      className="w-5 h-5 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  {t('assessment.whatToExpect')}
-                </h4>
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-gray-800 dark:text-gray-200 font-medium">
-                      {t('assessment.duration')}
+          {/* --- STEP 1: INTRO (SINGLE CARD) --- */}
+          {step === 'intro' && (
+            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-[32px] shadow-2xl shadow-green-900/10 dark:shadow-none border border-white/50 dark:border-gray-700 w-full max-w-5xl overflow-hidden flex flex-col md:flex-row animate-fade-in-up min-h-[600px]">
+
+              {/* Left Side: Hero & Info */}
+              <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
+                <div className="mb-8">
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold uppercase tracking-wider mb-4 border border-green-200 dark:border-green-800">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-gray-800 dark:text-gray-200 font-medium">
-                      {t('assessment.honestAnswers')}
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-gray-800 dark:text-gray-200 font-medium">
-                      {t('assessment.optionalEssay')}
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#4A7C59] dark:bg-green-600 flex items-center justify-center mr-3 mt-0.5">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span className="text-gray-800 dark:text-gray-200 font-medium">
-                      {t('assessment.tailoredRecommendations')}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                onClick={handleStartAssessment}
-                className="w-full px-6 py-4 bg-gradient-to-r from-[#4A7C59] to-[#3d6449] text-white rounded-xl hover:from-[#3d6449] hover:to-[#2d4a36] font-bold text-lg shadow-2xl hover:shadow-[#4A7C59]/50 transition-all duration-200 flex items-center justify-center space-x-2"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                <span>{t('assessment.startAssessment')}</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Bước 2: làm bài test */}
-        {step === 'test' && (
-          <div>
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-              {t('assessment.title')}
-            </h2>
-
-            {error && (
-              <div className="max-w-3xl mx-auto mb-6 bg-red-500/10 border border-red-500/50 rounded-xl p-4 backdrop-blur-sm">
-                <div className="flex items-center">
-                  <svg
-                    className="w-5 h-5 text-red-400 mr-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span className="text-red-400">
-                    {error}
+                    AI-Powered Analysis
                   </span>
+                  <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
+                    {t('assessment.title')}
+                  </h1>
+                  <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
+                    {t('assessment.subtitle')}
+                  </p>
+                </div>
+
+                {/* Features List */}
+                <div className="space-y-4 mb-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 dark:text-white">RIASEC Interest Profile</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Discover your work personality type.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 dark:text-white">Big Five Personality Traits</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Understand your core personality dimensions.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button
+                    onClick={handleStartAssessment}
+                    className="group flex-1 inline-flex items-center justify-center px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-lg shadow-xl shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-1 transition-all duration-300"
+                  >
+                    <span>{t('assessment.startAssessment')}</span>
+                    <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                  </button>
+                  <div className="flex items-center justify-center gap-2 text-sm font-semibold text-gray-500 dark:text-gray-400 px-4">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    ~10 Mins
+                  </div>
                 </div>
               </div>
-            )}
 
-            <CareerTestComponent
-              onComplete={handleTestComplete}
-              onCancel={handleCancel}
-            />
-          </div>
-        )}
+              {/* Right Side: Visual / Abstract */}
+              <div className="md:w-5/12 bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 relative hidden md:flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 bg-grid-pattern opacity-50"></div>
+                {/* Abstract Shapes */}
+                <div className="relative w-64 h-64">
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-green-400/20 rounded-full blur-3xl animate-pulse"></div>
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
 
-        {/* Bước 3: essay (optional) */}
-        {step === 'essay' && assessmentId && (
-          <EssayModalComponent
-            onSubmit={handleEssaySubmit}
-            onSkip={handleEssaySkip}
-            loading={loading}
-            promptTitle={essayPrompt?.title ?? ''}
-            promptText={essayPrompt?.prompt_text ?? ''}
-          />
-        )}
-
-        {/* Bước 4: processing → redirect sang trang kết quả */}
-        {step === 'processing' && (
-          <div className="max-w-3xl mx-auto text-center py-20">
-            <div className="relative mb-8">
-              <div className="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-purple-500 mx-auto" />
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <svg
-                  className="w-8 h-8 text-purple-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
+                  {/* Card Visual Representation */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-100 dark:border-gray-700 w-full transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                      <div className="h-2 w-1/3 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+                      <div className="space-y-2">
+                        <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded"></div>
+                        <div className="h-1.5 w-5/6 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                        <div className="h-1.5 w-4/6 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                      </div>
+                      <div className="mt-6 flex justify-between items-end">
+                        <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center text-green-600">
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                        <div className="h-8 w-20 bg-green-600 rounded-lg opacity-20"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-              {t('assessment.processingResults')}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 text-lg">
-              {t('assessment.analyzingResponses')}
-            </p>
-          </div>
-        )}
+          )}
+
+          {/* --- STEP 2: TEST INTERFACE (SINGLE CARD) --- */}
+          {step === 'test' && (
+            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 w-full max-w-5xl p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
+              <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-4">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('assessment.title')}</h2>
+                <button onClick={handleCancel} className="text-sm font-semibold text-gray-500 hover:text-red-500 transition-colors">
+                  Cancel
+                </button>
+              </div>
+
+              {error && (
+                <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-4 rounded-xl text-center text-red-600 dark:text-red-300 font-medium">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex-1">
+                <CareerTestComponent
+                  onComplete={handleTestComplete}
+                  onCancel={handleCancel}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* --- STEP 3: ESSAY MODAL --- */}
+          {step === 'essay' && assessmentId && (
+            <EssayModalComponent
+              onSubmit={handleEssaySubmit}
+              onSkip={handleEssaySkip}
+              loading={loading}
+              promptTitle={essayPrompt?.title ?? ''}
+              promptText={essayPrompt?.prompt_text ?? ''}
+            />
+          )}
+
+          {/* --- STEP 4: PROCESSING (SINGLE CARD) --- */}
+          {step === 'processing' && (
+            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-[32px] shadow-2xl p-16 w-full max-w-2xl text-center animate-fade-in-up border border-white/50 dark:border-gray-700">
+              <div className="relative mb-8 flex justify-center">
+                <div className="w-24 h-24 border-4 border-gray-100 dark:border-gray-700 rounded-full"></div>
+                <div className="absolute w-24 h-24 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center text-green-600 dark:text-green-400">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                </div>
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">{t('assessment.processingResults')}</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">{t('assessment.analyzingResponses')}</p>
+            </div>
+          )}
+
+        </div>
       </div>
     </MainLayout>
   );

@@ -9,12 +9,15 @@ interface SelectedPlan {
 }
 
 const PricingPage = () => {
+  // ==========================================
+  // 1. LOGIC BLOCK (GIỮ NGUYÊN)
+  // ==========================================
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | null>(null);
   const [paymentStep, setPaymentStep] = useState<'form' | 'processing' | 'success'>('form');
-  
+
   // Form states
   const [formData, setFormData] = useState({
     fullName: '',
@@ -91,7 +94,7 @@ const PricingPage = () => {
       navigate('/assessment');
       return;
     }
-    
+
     setSelectedPlan({
       name: planName,
       price: price,
@@ -109,7 +112,7 @@ const PricingPage = () => {
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setPaymentStep('processing');
-    
+
     // Simulate payment processing
     setTimeout(() => {
       setPaymentStep('success');
@@ -136,414 +139,296 @@ const PricingPage = () => {
     });
   };
 
+  // ==========================================
+  // 2. NEW DESIGN UI
+  // ==========================================
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-            Unlock your full potential with our comprehensive career guidance platform
-          </p>
+      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
 
-          {/* Billing Toggle */}
-          <div className="inline-flex items-center bg-gray-100 dark:bg-gray-800 rounded-full p-1">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                billingCycle === 'monthly'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-400'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBillingCycle('yearly')}
-              className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                billingCycle === 'yearly'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-400'
-              }`}
-            >
-              Yearly
-              <span className="ml-2 text-xs bg-green-500 text-white px-2 py-1 rounded-full">
-                Save 17%
-              </span>
-            </button>
+        {/* CSS Injection */}
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+          .bg-dot-pattern {
+            background-image: radial-gradient(#D1D5DB 1px, transparent 1px);
+            background-size: 24px 24px;
+          }
+          .dark .bg-dot-pattern {
+            background-image: radial-gradient(#374151 1px, transparent 1px);
+          }
+          @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+          .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+        `}</style>
+
+        {/* Background Layers */}
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-40"></div>
+        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-green-500/5 dark:bg-green-500/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+          {/* --- HEADER & TOGGLE --- */}
+          <div className="text-center mb-16 animate-fade-in-up">
+            <span className="inline-block py-1.5 px-4 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold tracking-widest uppercase mb-6 border border-green-200 dark:border-green-800">
+              Pricing Plans
+            </span>
+            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
+              Choose Your <span className="text-green-600 dark:text-green-500">Growth Path</span>
+            </h1>
+            <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed mb-10">
+              Unlock your full potential with our comprehensive career guidance platform.
+            </p>
+
+            {/* Billing Toggle */}
+            <div className="inline-flex items-center bg-white dark:bg-gray-800 p-1.5 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all ${billingCycle === 'monthly'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle('yearly')}
+                className={`px-6 py-2.5 rounded-full font-bold text-sm transition-all flex items-center gap-2 ${billingCycle === 'yearly'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+              >
+                Yearly
+                <span className={`text-[10px] px-2 py-0.5 rounded-full ${billingCycle === 'yearly' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700'}`}>
+                  -17%
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {plans.map((plan, index) => (
-            <div
-              key={index}
-              className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-2xl ${
-                plan.popular
-                  ? 'border-[#4A7C59] dark:border-green-600 scale-105'
-                  : 'border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              {/* Popular Badge */}
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-[#4A7C59] dark:bg-green-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
-                    Most Popular
-                  </span>
-                </div>
-              )}
-
-              <div className="p-8">
-                {/* Plan Name */}
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  {plan.name}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
-                  {plan.description}
-                </p>
-
-                {/* Price */}
-                <div className="mb-6">
-                  <div className="flex items-baseline">
-                    <span className="text-5xl font-bold text-gray-900 dark:text-white">
-                      ${plan.price[billingCycle]}
-                    </span>
-                    <span className="text-gray-600 dark:text-gray-400 ml-2">
-                      /{billingCycle === 'monthly' ? 'month' : 'year'}
+          {/* --- PRICING CARDS --- */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 animate-fade-in-up">
+            {plans.map((plan, index) => (
+              <div
+                key={index}
+                className={`relative bg-white dark:bg-gray-800 rounded-[32px] transition-all duration-300 flex flex-col
+                  ${plan.popular
+                    ? 'border-2 border-green-500 shadow-2xl shadow-green-500/20 scale-105 z-10'
+                    : 'border border-gray-200 dark:border-gray-700 shadow-xl hover:shadow-2xl hover:-translate-y-1'
+                  }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg uppercase tracking-wider">
+                      Most Popular
                     </span>
                   </div>
-                  {billingCycle === 'yearly' && plan.price.yearly > 0 && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      ${(plan.price.yearly / 12).toFixed(2)}/month billed annually
-                    </p>
-                  )}
-                </div>
+                )}
 
-                {/* CTA Button */}
-                <button
-                  onClick={() => handleSelectPlan(plan.name, plan.price[billingCycle])}
-                  className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-6 ${
-                    plan.popular
-                      ? 'bg-[#4A7C59] dark:bg-green-600 text-white hover:bg-[#3d6449] dark:hover:bg-green-700 shadow-lg'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  {plan.name === 'Free' ? 'Get Started' : 'Choose Plan'}
-                </button>
-
-                {/* Features */}
-                <div className="space-y-3">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                    What's included:
+                <div className="p-8 flex-grow">
+                  <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">
+                    {plan.name}
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-6 min-h-[40px]">
+                    {plan.description}
                   </p>
-                  {plan.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-start">
-                      <svg
-                        className="w-5 h-5 text-[#4A7C59] dark:text-green-400 mr-3 mt-0.5 flex-shrink-0"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {feature}
+
+                  <div className="mb-8">
+                    <div className="flex items-baseline">
+                      <span className="text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                        ${plan.price[billingCycle]}
+                      </span>
+                      <span className="text-gray-500 dark:text-gray-400 ml-2 font-medium">
+                        /{billingCycle === 'monthly' ? 'mo' : 'yr'}
                       </span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+                    {billingCycle === 'yearly' && plan.price.yearly > 0 && (
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-bold">
+                        Billed ${(plan.price.yearly).toFixed(0)} yearly
+                      </p>
+                    )}
+                  </div>
 
-        {/* FAQ Section */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-8">
-            Frequently Asked Questions
-          </h2>
-          <div className="space-y-4">
-            {[
-              {
-                q: 'Can I change my plan later?',
-                a: 'Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.',
-              },
-              {
-                q: 'Is there a free trial?',
-                a: 'Yes! All paid plans come with a 14-day free trial. No credit card required.',
-              },
-              {
-                q: 'What payment methods do you accept?',
-                a: 'We accept all major credit cards, PayPal, and bank transfers for enterprise plans.',
-              },
-              {
-                q: 'Can I cancel anytime?',
-                a: 'Absolutely! You can cancel your subscription at any time with no cancellation fees.',
-              },
-            ].map((faq, idx) => (
-              <div
-                key={idx}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-              >
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {faq.q}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">{faq.a}</p>
+                  <div className="space-y-4 mb-8">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">What's included</p>
+                    {plan.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-start">
+                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mt-0.5 mr-3">
+                          <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                        <span className="text-sm text-gray-600 dark:text-gray-300 font-medium leading-tight">
+                          {feature}
+                        </span>
+                      </div>
+                    ))}
+                    {plan.limitations.map((limit, idx) => (
+                      <div key={`limit-${idx}`} className="flex items-start opacity-50">
+                        <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center mt-0.5 mr-3">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-tight">
+                          {limit}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-8 pt-0 mt-auto">
+                  <button
+                    onClick={() => handleSelectPlan(plan.name, plan.price[billingCycle])}
+                    className={`w-full py-4 rounded-2xl font-bold text-base transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 ${plan.popular
+                        ? 'bg-green-600 text-white hover:bg-green-700 shadow-green-500/20'
+                        : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90'
+                      }`}
+                  >
+                    {plan.name === 'Free' ? 'Get Started Free' : 'Choose Plan'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* CTA Section */}
-        <div className="mt-16 bg-[#E8DCC8] dark:bg-gray-800 rounded-3xl p-12 text-center shadow-lg">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Still have questions?
-          </h2>
-          <p className="text-lg text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            Our team is here to help you choose the right plan for your needs
-          </p>
-          <button className="px-8 py-3 bg-[#4A7C59] dark:bg-green-600 text-white rounded-xl font-semibold hover:bg-[#3d6449] dark:hover:bg-green-700 transition-all duration-200 shadow-lg">
-            Contact Sales
-          </button>
+          {/* --- FAQ SECTION --- */}
+          <div className="max-w-3xl mx-auto animate-fade-in-up">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
+              Frequently Asked Questions
+            </h2>
+            <div className="grid gap-4">
+              {[
+                { q: 'Can I change my plan later?', a: 'Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.' },
+                { q: 'Is there a free trial?', a: 'Yes! All paid plans come with a 14-day free trial. No credit card required.' },
+                { q: 'What payment methods do you accept?', a: 'We accept all major credit cards, PayPal, and bank transfers for enterprise plans.' },
+                { q: 'Can I cancel anytime?', a: 'Absolutely! You can cancel your subscription at any time with no cancellation fees.' },
+              ].map((faq, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+                >
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+                    <span className="text-green-500 text-xl">?</span> {faq.q}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 ml-7">{faq.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* --- CTA SECTION --- */}
+          <div className="mt-20 bg-gray-900 dark:bg-gray-800 rounded-[40px] p-12 text-center shadow-2xl relative overflow-hidden animate-fade-in-up">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-[80px]"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]"></div>
+
+            <div className="relative z-10">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                Still have questions?
+              </h2>
+              <p className="text-lg text-gray-400 mb-10 max-w-2xl mx-auto font-medium">
+                Our team is here to help you choose the right plan for your career needs.
+              </p>
+              <button className="px-10 py-4 bg-white text-gray-900 rounded-full font-bold hover:bg-gray-100 transition-all duration-200 shadow-lg hover:scale-105">
+                Contact Sales
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Payment Modal */}
+      {/* --- PAYMENT MODAL (Modern Glassmorphism) --- */}
       {showPaymentModal && selectedPlan && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-fade-in-up">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 dark:border-gray-700">
+
             {paymentStep === 'form' && (
               <>
-                {/* Header */}
-                <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex justify-between items-center">
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 p-6 flex justify-between items-center z-10">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      Payment
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {selectedPlan.name} Plan - ${selectedPlan.price}/{selectedPlan.billingCycle === 'monthly' ? 'month' : 'year'}
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Checkout</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">
+                      {selectedPlan.name} Plan <span className="mx-1">•</span> <span className="text-green-600 font-bold">${selectedPlan.price}</span>/{selectedPlan.billingCycle}
                     </p>
                   </div>
-                  <button
-                    onClick={closeModal}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                  <button onClick={closeModal} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    <svg className="w-5 h-5 text-gray-500 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handlePayment} className="p-6 space-y-6">
-                  
-                  {/* Personal Information */}
+                {/* Modal Body */}
+                <form onSubmit={handlePayment} className="p-8 space-y-8">
+
+                  {/* Personal Info */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">1</span>
                       Personal Information
                     </h3>
-                    <div className="space-y-4">
+                    <div className="space-y-4 pl-8">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Full Name *
-                        </label>
-                        <input
-                          type="text"
-                          name="fullName"
-                          value={formData.fullName}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4A7C59] dark:bg-gray-700 dark:text-white"
-                          placeholder="John Doe"
-                        />
+                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Full Name</label>
+                        <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium" placeholder="John Doe" />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Email *
-                          </label>
-                          <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4A7C59] dark:bg-gray-700 dark:text-white"
-                            placeholder="email@example.com"
-                          />
+                          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
+                          <input type="email" name="email" value={formData.email} onChange={handleInputChange} required className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium" placeholder="email@example.com" />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Phone Number *
-                          </label>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4A7C59] dark:bg-gray-700 dark:text-white"
-                            placeholder="0123456789"
-                          />
+                          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Phone</label>
+                          <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium" placeholder="0123456789" />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Payment Information */}
+                  {/* Payment Info */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Payment Information
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">2</span>
+                      Payment Method
                     </h3>
-                    <div className="space-y-4">
+                    <div className="space-y-4 pl-8">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Card Number *
-                        </label>
-                        <input
-                          type="text"
-                          name="cardNumber"
-                          value={formData.cardNumber}
-                          onChange={handleInputChange}
-                          required
-                          maxLength={19}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4A7C59] dark:bg-gray-700 dark:text-white"
-                          placeholder="1234 5678 9012 3456"
-                        />
+                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Card Number</label>
+                        <div className="relative">
+                          <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} required maxLength={19} className="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium" placeholder="0000 0000 0000 0000" />
+                          <svg className="w-6 h-6 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Expiry Date *
-                          </label>
-                          <input
-                            type="text"
-                            name="expiryDate"
-                            value={formData.expiryDate}
-                            onChange={handleInputChange}
-                            required
-                            maxLength={5}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4A7C59] dark:bg-gray-700 dark:text-white"
-                            placeholder="MM/YY"
-                          />
+                          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Expiry</label>
+                          <input type="text" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange} required maxLength={5} className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium" placeholder="MM/YY" />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            CVV *
-                          </label>
-                          <input
-                            type="text"
-                            name="cvv"
-                            value={formData.cvv}
-                            onChange={handleInputChange}
-                            required
-                            maxLength={3}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4A7C59] dark:bg-gray-700 dark:text-white"
-                            placeholder="123"
-                          />
+                          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">CVC</label>
+                          <input type="text" name="cvv" value={formData.cvv} onChange={handleInputChange} required maxLength={3} className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium" placeholder="123" />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Billing Address */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Billing Address
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Address *
-                        </label>
-                        <input
-                          type="text"
-                          name="billingAddress"
-                          value={formData.billingAddress}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4A7C59] dark:bg-gray-700 dark:text-white"
-                          placeholder="123 Main Street"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            City *
-                          </label>
-                          <input
-                            type="text"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4A7C59] dark:bg-gray-700 dark:text-white"
-                            placeholder="New York"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            ZIP Code *
-                          </label>
-                          <input
-                            type="text"
-                            name="zipCode"
-                            value={formData.zipCode}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4A7C59] dark:bg-gray-700 dark:text-white"
-                            placeholder="10001"
-                          />
-                        </div>
-                      </div>
+                  {/* Summary & Submit */}
+                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-6">
+                    <div className="flex justify-between mb-2 text-sm text-gray-600 dark:text-gray-300">
+                      <span>Subtotal</span>
+                      <span>${selectedPlan.price.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between mb-4 text-sm text-gray-600 dark:text-gray-300">
+                      <span>Tax (10%)</span>
+                      <span>${(selectedPlan.price * 0.1).toFixed(2)}</span>
+                    </div>
+                    <div className="border-t border-gray-200 dark:border-gray-600 pt-4 flex justify-between items-center">
+                      <span className="font-bold text-gray-900 dark:text-white">Total Due</span>
+                      <span className="text-2xl font-extrabold text-green-600">${(selectedPlan.price * 1.1).toFixed(2)}</span>
                     </div>
                   </div>
 
-                  {/* Order Summary */}
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                      Order Summary
-                    </h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                        <span>{selectedPlan.name} Plan</span>
-                        <span>${selectedPlan.price}</span>
-                      </div>
-                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                        <span>Tax (10%)</span>
-                        <span>${(selectedPlan.price * 0.1).toFixed(2)}</span>
-                      </div>
-                      <div className="border-t border-gray-300 dark:border-gray-600 pt-2 mt-2">
-                        <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
-                          <span>Total</span>
-                          <span>${(selectedPlan.price * 1.1).toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
                   <div className="flex gap-4">
-                    <button
-                      type="button"
-                      onClick={closeModal}
-                      className="flex-1 py-3 px-6 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
-                    >
+                    <button type="button" onClick={closeModal} className="flex-1 py-4 rounded-xl font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                       Cancel
                     </button>
-                    <button
-                      type="submit"
-                      className="flex-1 py-3 px-6 bg-[#4A7C59] dark:bg-green-600 text-white rounded-xl font-semibold hover:bg-[#3d6449] dark:hover:bg-green-700 transition-all shadow-lg"
-                    >
-                      Pay ${(selectedPlan.price * 1.1).toFixed(2)}
+                    <button type="submit" className="flex-[2] py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-600/30 hover:-translate-y-0.5 transition-all">
+                      Confirm Payment
                     </button>
                   </div>
                 </form>
@@ -551,33 +436,22 @@ const PricingPage = () => {
             )}
 
             {paymentStep === 'processing' && (
-              <div className="p-12 text-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#4A7C59] mx-auto mb-4"></div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Processing Payment...
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Please wait a moment
-                </p>
+              <div className="p-20 text-center flex flex-col items-center">
+                <div className="w-20 h-20 border-4 border-gray-100 rounded-full relative mb-6">
+                  <div className="absolute inset-0 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Processing Payment</h3>
+                <p className="text-gray-500 font-medium">Please wait while we secure your subscription...</p>
               </div>
             )}
 
             {paymentStep === 'success' && (
-              <div className="p-12 text-center">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+              <div className="p-20 text-center flex flex-col items-center">
+                <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6 text-green-600 animate-bounce">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Payment Successful!
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Thank you for subscribing to the {selectedPlan.name} plan
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Redirecting to dashboard...
-                </p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Payment Successful!</h3>
+                <p className="text-gray-500 font-medium mb-8">Welcome to {selectedPlan.name}. Redirecting you to dashboard...</p>
               </div>
             )}
 

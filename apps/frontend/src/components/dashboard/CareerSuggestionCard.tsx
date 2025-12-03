@@ -22,57 +22,68 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
       ? String((career as any).slug)
         .replace(/-/g, ' ')
         .replace(/\b\w/g, (m) => m.toUpperCase())
-      : '');
+      : 'Career Path');
 
   return (
     <div
-      className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 
-                 dark:border-gray-700 p-6 hover:border-[#4A7C59] dark:hover:border-green-600 transition-all duration-300 
-                 shadow-lg hover:shadow-xl group flex flex-col justify-between min-h-[340px]"
+      onClick={handleViewRoadmap}
+      className="group bg-white dark:bg-gray-800 rounded-[24px] border border-gray-100 dark:border-gray-700 p-6 md:p-8 
+                 shadow-sm hover:shadow-xl hover:shadow-green-900/10 dark:shadow-none 
+                 transition-all duration-300 cursor-pointer flex flex-col justify-between h-full min-h-[320px]"
     >
       <div>
-        <div className="flex items-start justify-between mb-4">
+        {/* Header: Title & Score */}
+        <div className="flex justify-between items-start mb-6">
+          <div className="pr-4">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white leading-snug group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors line-clamp-2">
+              {displayTitle}
+            </h3>
+            {/* Optional: Industry Tag if available */}
+            {(career as any).industry_category && (
+              <span className="inline-block mt-2 px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                {(career as any).industry_category}
+              </span>
+            )}
+          </div>
 
-          <h3 className="text-base font-semibold text-gray-900 dark:text-white 
-                         group-hover:text-[#4A7C59] dark:group-hover:text-green-400 transition-colors">
-            {displayTitle}
-          </h3>
-
-          <div className="flex flex-col items-end">
-            <span className="text-3xl font-bold text-[#4A7C59] dark:text-green-500">
-              {career.matchPercentage}%
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {t('dashboard.careerSuggestions.match')}
-            </span>
+          <div className="flex flex-col items-end shrink-0">
+            <div className="flex items-baseline text-green-600 dark:text-green-400">
+              <span className="text-3xl font-extrabold tracking-tight">{career.matchPercentage}</span>
+              <span className="text-sm font-bold ml-0.5">%</span>
+            </div>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">Match</span>
           </div>
         </div>
 
-        <div className="mb-4">
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-[#4A7C59] dark:bg-green-600 h-2.5 rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-green-500 to-teal-500 h-2 rounded-full transition-all duration-1000 ease-out"
               style={{ width: `${career.matchPercentage}%` }}
             />
           </div>
         </div>
 
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 line-clamp-3">
-          {career.description}
+        {/* Description */}
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-3 leading-relaxed">
+          {career.description || "Explore this career path to see if it matches your skills and interests."}
         </p>
       </div>
 
-      <button
-        onClick={handleViewRoadmap}
-        className="mt-auto w-full bg-[#4A7C59] dark:bg-green-600 text-white py-3 px-4 rounded-lg 
-                   hover:bg-[#3d6449] dark:hover:bg-green-700 transition-all duration-200 text-sm font-medium 
-                   shadow-lg flex items-center justify-center space-x-2"
-      >
-        <span>{t('dashboard.progress.viewRoadmap')}</span>
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+      {/* Footer Action */}
+      <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between group/btn">
+        <span className="text-sm font-bold text-gray-400 group-hover/btn:text-gray-600 dark:group-hover/btn:text-gray-300 transition-colors">
+          View Roadmap
+        </span>
+        <button
+          className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-green-500/30"
+        >
+          <svg className="w-5 h-5 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 };
