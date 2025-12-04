@@ -136,9 +136,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: data?.user || null,
       } as RegisterResult;
     } catch (error: any) {
-      const msg = error?.response?.data?.detail || error?.response?.data?.message || error?.message;
-      console.error('Registration failed:', msg || error);
-      throw new Error(msg || 'Registration failed');
+      // Normalize error shape so UI can read error_code/message instead of seeing "[object Object]"
+      if (error?.response) {
+        const detail = error.response.data?.detail;
+        if (detail && typeof detail === 'object') {
+          return Promise.reject({
+            response: { status: error.response.status, data: { detail } },
+          });
+        }
+        const message = detail || error.response.data?.message || error.message;
+        return Promise.reject({
+          response: { status: error.response.status, data: { message } },
+          message,
+        });
+      }
+      return Promise.reject(error);
     }
   };
 

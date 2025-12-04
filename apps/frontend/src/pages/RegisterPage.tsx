@@ -88,7 +88,7 @@ const RegisterPage = () => {
         friendly = t("auth.emailNotExist") || "Email does not exist, please change to another email!";
       } else if (errorCode === "EMAIL_ALREADY_REGISTERED") {
         setAlreadyRegistered(true);
-        setInfo("Account registered successfully, please return to login page!");
+        setInfo("Congratulations! You have successfully created an account. Please click on the login page to sign in.");
         setError("");
         return;
       }
@@ -174,7 +174,11 @@ const RegisterPage = () => {
                 <p className="text-sm text-green-700 dark:text-green-300">{info}</p>
                 {alreadyRegistered && (
                   <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                    Go to <Link to="/login" className="underline text-[#2f6f46] dark:text-green-400">Login</Link>
+                    Please click on the{" "}
+                    <Link to="/login" className="underline text-[#2f6f46] dark:text-green-400">
+                      login page
+                    </Link>
+                    {" "}to continue.
                   </p>
                 )}
                 {devToken && (
