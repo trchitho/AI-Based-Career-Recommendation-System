@@ -1,5 +1,4 @@
 # src/api/routes_traits.py
-
 from fastapi import APIRouter, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -12,7 +11,7 @@ router = APIRouter(prefix="/ai", tags=["traits"])
 
 class InferReq(BaseModel):
     essay_text: str
-    lang: str = "auto"
+    lang: str = "auto"  # 'vi' | 'en' | 'auto'
 
 
 class InferRes(BaseModel):
@@ -26,7 +25,7 @@ class InferRes(BaseModel):
     embedding: list[float]
 
 
-@router.post("/infer_user_traits")
+@router.post("/infer_user_traits", response_model=InferRes)
 def infer_user_traits_api(req: InferReq):
     text = (req.essay_text or "").strip()
     if len(text) < 5:
@@ -43,10 +42,9 @@ def infer_user_traits_api(req: InferReq):
         "riasec": result.riasec.tolist(),
         "big5": result.big5.tolist(),
         "embedding_dim": int(emb.shape[0]),
-        "embedding": emb.tolist(),  # mảng số, ngăn bởi dấu phẩy trong JSON
+        "embedding": emb.tolist(),
     }
 
-    # Pretty JSON, giữ Unicode (tiếng Việt) nguyên bản
     pretty_json = json.dumps(
         jsonable_encoder(payload),
         indent=2,

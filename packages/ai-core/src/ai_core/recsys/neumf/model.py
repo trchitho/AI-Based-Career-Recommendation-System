@@ -1,14 +1,40 @@
-﻿# packages/ai-core/src/recsys/neumf/model.py
+﻿# src/ai_core/recsys/neumf/model.py
+from __future__ import annotations
+
+import torch
 import torch.nn as nn
 
 
 class MLPScore(nn.Module):
-    def __init__(self, dim_text=768, use_item_riasec=True):
-        in_dim = dim_text * 2 + 6 + 5 + (6 if use_item_riasec else 0)
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(in_dim, 512), nn.ReLU(), nn.Linear(512, 128), nn.ReLU(), nn.Linear(128, 1)
-        )
+    """
+    MLP ranker:
+    - input = concat(user_text, item_text, user_riasec, user_big5, item_riasec)
+    """
 
-    def forward(self, x):  # x: [B, in_dim]
+    def __init__(
+        self,
+        dim_text: int = 768,
+        use_item_riasec: bool = True,
+        hidden_dims=(512, 128),
+    ):
+        super().__init__()
+        extra = 6 + 5 + (6 if use_item_riasec else 0)
+        in_dim = dim_text * 2 + extra
+
+        layers = []
+        last = in_dim
+        for h in hidden_dims:
+            layers.append(nn.Linear(last, h))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(0.1))
+            last = h
+        layers.append(nn.Linear(last, 1))  # logit
+
+        self.net = nn.Sequential(*layers)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        x: [B, in_dim]
+        return: [B] logit
+        """
         return self.net(x).squeeze(-1)

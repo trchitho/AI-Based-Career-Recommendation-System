@@ -2,90 +2,81 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { assessmentService } from '../services/assessmentService';
-import { AssessmentResults, CareerRecommendation } from '../types/results';
+import {
+  recommendationService,
+  CareerRecommendationDTO,
+  RecommendationsResponse,
+} from '../services/recommendationService';
+import { AssessmentResults } from '../types/results';
 import RIASECSpiderChart from '../components/results/RIASECSpiderChart';
 import BigFiveBarChart from '../components/results/BigFiveBarChart';
 import CareerRecommendationsDisplay from '../components/results/CareerRecommendationsDisplay';
 import { feedbackService } from '../services/feedbackService';
-import api from '../lib/api';
 import AppLogo from '../components/common/AppLogo';
 
 const ResultsPage = () => {
   const { assessmentId } = useParams<{ assessmentId: string }>();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
   const [results, setResults] = useState<AssessmentResults | null>(null);
-  const [careerRecommendations, setCareerRecommendations] = useState<CareerRecommendation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'summary' | 'detailed' | 'recommendations'>('summary');
+  const [loadingResults, setLoadingResults] = useState(true);
+  const [errorResults, setErrorResults] = useState<string | null>(null);
+
+  // BFF Recommendations
+  const [recData, setRecData] = useState<RecommendationsResponse | null>(null);
+  const [recLoading, setRecLoading] = useState<boolean>(false);
+  const [recError, setRecError] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] =
+    useState<'summary' | 'detailed' | 'recommendations'>('summary');
 
   const [fbRating, setFbRating] = useState<number | null>(null);
   const [fbComment, setFbComment] = useState('');
   const [fbDone, setFbDone] = useState(false);
 
+  // Luôn giới hạn tối đa 5 nghề cho UI
+  const recItems: CareerRecommendationDTO[] = (recData?.items ?? []).slice(0, 5);
+  const recRequestId = recData?.request_id ?? null;
+
   useEffect(() => {
-    if (assessmentId) fetchResults();
+    if (!assessmentId) return;
+    fetchResults(assessmentId);
+    fetchRecommendations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId]);
 
-  const fetchResults = async () => {
-    if (!assessmentId) return;
-
+  const fetchResults = async (id: string) => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoadingResults(true);
+      setErrorResults(null);
 
-      const resultsData = await assessmentService.getResults(assessmentId);
+      const resultsData = await assessmentService.getResults(id);
       setResults(resultsData);
-
-      // Nếu BE trả về career_recommendations_full
-      if (resultsData.career_recommendations_full?.length > 0) {
-        const careers: CareerRecommendation[] = resultsData.career_recommendations_full.map(
-          (c: any, index: number) => ({
-            id: c.id,
-            slug: c.slug,
-            title: c.title,
-            description: c.description,
-            matchPercentage: 95 - index * 5,
-            required_skills: c.required_skills,
-            salary_range: c.salary_range,
-            industry_category: c.industry_category,
-          }),
-        );
-        setCareerRecommendations(careers);
-      }
-      // Nếu BE chỉ trả về ID → fetch chi tiết từng nghề
-      else if (resultsData.career_recommendations?.length > 0) {
-        const promises = resultsData.career_recommendations.map((careerId: string) =>
-          api.get(`/api/careers/${careerId}`),
-        );
-
-        const responses = await Promise.allSettled(promises);
-
-        const careers = responses
-          .filter((r) => r.status === 'fulfilled')
-          .map((r: any, index) => {
-            const c = r.value.data;
-            return {
-              id: c.id,
-              slug: c.slug,
-              title: c.title,
-              description: c.description,
-              matchPercentage: 95 - index * 5,
-              required_skills: c.required_skills,
-              salary_range: c.salary_range,
-              industry_category: c.industry_category,
-            } as CareerRecommendation;
-          });
-
-        setCareerRecommendations(careers);
-      }
     } catch (err) {
       console.error(err);
-      setError('Failed to load assessment results. Please try again.');
+      setErrorResults('Failed to load assessment results. Please try again.');
     } finally {
-      setLoading(false);
+      setLoadingResults(false);
+    }
+  };
+
+  const fetchRecommendations = async () => {
+    try {
+      setRecLoading(true);
+      setRecError(null);
+
+      // Không truyền 20 nữa – dùng default = 5 ở recommendationService
+      const res = await recommendationService.getMain();
+      setRecData(res);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.detail ||
+        err?.message ||
+        'Failed to load recommendations';
+      setRecError(msg);
+    } finally {
+      setRecLoading(false);
     }
   };
 
@@ -107,10 +98,22 @@ const ResultsPage = () => {
           <div className="flex justify-between h-16 items-center">
             <AppLogo size="sm" showText={true} linkTo="/dashboard" />
             <div className="flex items-center space-x-4">
-              <button onClick={() => navigate('/dashboard')} className="nav-btn">Dashboard</button>
-              <button onClick={() => navigate('/profile')} className="nav-btn">Profile</button>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="nav-btn"
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => navigate('/profile')}
+                className="nav-btn"
+              >
+                Profile
+              </button>
               <span className="nav-text">{user?.firstName || user?.email}</span>
-              <button onClick={logout} className="nav-btn">Logout</button>
+              <button onClick={logout} className="nav-btn">
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -119,34 +122,47 @@ const ResultsPage = () => {
       {/* MAIN */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6">
-
           {/* LOADING */}
-          {loading && (
+          {loadingResults && (
             <div className="flex justify-center items-center py-12">
               <div className="spinner-border" />
             </div>
           )}
 
           {/* ERROR */}
-          {error && (
+          {errorResults && (
             <div className="error-box">
-              <p>{error}</p>
+              <p>{errorResults}</p>
             </div>
           )}
 
           {/* RESULTS */}
-          {!loading && !error && results && (
+          {!loadingResults && !errorResults && results && (
             <div>
               {/* HEADER */}
               <div className="result-header">
                 <div>
-                  <h2 className="header-title">Your Personality type report is ready!</h2>
-                  <p className="header-sub">Completed on {formatDate(results.completed_at)}</p>
+                  <h2 className="header-title">
+                    Your Personality type report is ready!
+                  </h2>
+                  <p className="header-sub">
+                    Completed on {formatDate(results.completed_at)}
+                  </p>
                 </div>
 
                 <div className="header-icon">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 0 0118 0z" />
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
               </div>
@@ -156,21 +172,27 @@ const ResultsPage = () => {
                 <nav className="tab-nav">
                   <button
                     onClick={() => setActiveTab('summary')}
-                    className={`tab-btn ${activeTab === 'summary' ? 'tab-active' : ''}`}
+                    className={`tab-btn ${
+                      activeTab === 'summary' ? 'tab-active' : ''
+                    }`}
                   >
                     Summary
                   </button>
 
                   <button
                     onClick={() => setActiveTab('detailed')}
-                    className={`tab-btn ${activeTab === 'detailed' ? 'tab-active' : ''}`}
+                    className={`tab-btn ${
+                      activeTab === 'detailed' ? 'tab-active' : ''
+                    }`}
                   >
                     Detailed Analysis
                   </button>
 
                   <button
                     onClick={() => setActiveTab('recommendations')}
-                    className={`tab-btn ${activeTab === 'recommendations' ? 'tab-active' : ''}`}
+                    className={`tab-btn ${
+                      activeTab === 'recommendations' ? 'tab-active' : ''
+                    }`}
                   >
                     Career Recommendations
                   </button>
@@ -184,8 +206,9 @@ const ResultsPage = () => {
                   <div className="card">
                     <h3 className="card-title">Overview</h3>
                     <p className="card-text">
-                      Your assessment has been analyzed using scientifically-validated methods
-                      to understand your career interests and personality traits.
+                      Your assessment has been analyzed using
+                      scientifically-validated methods to understand your career
+                      interests and personality traits.
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -203,11 +226,14 @@ const ResultsPage = () => {
 
                       {/* Big Five */}
                       <div className="summary-box summary-yellow">
-                        <h4 className="summary-title-yellow">Dominant Personality Trait</h4>
+                        <h4 className="summary-title-yellow">
+                          Dominant Personality Trait
+                        </h4>
                         <p className="summary-value-yellow">
                           {(() => {
-                            const top = Object.entries(results.big_five_scores)
-                              .sort((a, b) => b[1] - a[1])[0];
+                            const top = Object.entries(
+                              results.big_five_scores,
+                            ).sort((a, b) => b[1] - a[1])[0];
                             return top ? top[0].toUpperCase() : 'N/A';
                           })()}
                         </p>
@@ -225,11 +251,13 @@ const ResultsPage = () => {
                         <div className="mb-6">
                           <h4 className="sub-title">Key Insights:</h4>
                           <ul className="space-y-2">
-                            {results.essay_analysis.key_insights.map((ins, idx) => (
-                              <li key={idx} className="insight-item">
-                                <span>{ins}</span>
-                              </li>
-                            ))}
+                            {results.essay_analysis.key_insights.map(
+                              (ins, idx) => (
+                                <li key={idx} className="insight-item">
+                                  <span>{ins}</span>
+                                </li>
+                              ),
+                            )}
                           </ul>
                         </div>
                       )}
@@ -239,9 +267,13 @@ const ResultsPage = () => {
                         <div>
                           <h4 className="sub-title">Identified Themes:</h4>
                           <div className="flex flex-wrap gap-2">
-                            {results.essay_analysis.themes.map((theme: string, i: number) => (
-                              <span key={i} className="tag">{theme}</span>
-                            ))}
+                            {results.essay_analysis.themes.map(
+                              (theme: string, i: number) => (
+                                <span key={i} className="tag">
+                                  {theme}
+                                </span>
+                              ),
+                            )}
                           </div>
                         </div>
                       )}
@@ -258,9 +290,14 @@ const ResultsPage = () => {
                 </div>
               )}
 
-              {/* TAB: Recommendations */}
+              {/* TAB: RECOMMENDATIONS – BFF /api/recommendations */}
               {activeTab === 'recommendations' && (
-                <CareerRecommendationsDisplay recommendations={careerRecommendations} />
+                <CareerRecommendationsDisplay
+                  items={recItems}
+                  requestId={recRequestId}
+                  loading={recLoading}
+                  error={recError}
+                />
               )}
 
               {/* FEEDBACK */}
@@ -278,7 +315,9 @@ const ResultsPage = () => {
                       <button
                         key={v}
                         onClick={() => setFbRating(v)}
-                        className={`rate-dot ${fbRating === v ? 'rate-selected' : ''}`}
+                        className={`rate-dot ${
+                          fbRating === v ? 'rate-selected' : ''
+                        }`}
                       >
                         {v}
                       </button>
@@ -299,7 +338,11 @@ const ResultsPage = () => {
                       onClick={async () => {
                         if (!assessmentId || !fbRating) return;
                         try {
-                          await feedbackService.submit(assessmentId, fbRating, fbComment);
+                          await feedbackService.submit(
+                            assessmentId,
+                            fbRating,
+                            fbComment,
+                          );
                           setFbDone(true);
                         } catch (e) {
                           console.error(e);

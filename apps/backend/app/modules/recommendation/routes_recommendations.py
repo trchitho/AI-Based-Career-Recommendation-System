@@ -2,100 +2,118 @@ from __future__ import annotations
 
 from typing import List, Optional, Annotated
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from .service import RecService
+from app.modules.auth.deps import get_current_user_optional
+from app.modules.users.models import User
 
-router = APIRouter()
+
+router = APIRouter(prefix="", tags=["recommendations"])  # giữ nguyên dòng này
 svc = RecService()
 
 
 def _db(req: Request) -> Session:
+    # DB session đã được gắn vào request.state.db ở middleware
     return req.state.db
 
 
-class GenerateReq(BaseModel):
-    user_id: Optional[str] = Field(
-        default=None, description="User ID (có thể null cho khách / demo)"
-    )
-    topk: Annotated[int, Field(ge=1, le=50)] = 10
+# ====== DTOs cho response ======
 
-
-class GenerateItem(BaseModel):
+class CareerDTO(BaseModel):
     career_id: str
     title_vi: Optional[str] = None
-    short_desc_vi: Optional[str] = None
-    score: float
+    title_en: Optional[str] = None
+    description: Optional[str] = None
+    match_score: float
+    tags: List[str] = []
+    job_zone: Optional[int] = None
+    position: int
 
 
-class GenerateRes(BaseModel):
-    user_id: Optional[str]
-    items: List[GenerateItem]
+class RecommendationsRes(BaseModel):
+    request_id: Optional[str]
+    items: List[CareerDTO]
 
 
-class RankReq(BaseModel):
-    user_id: str
-    candidate_ids: Optional[Annotated[list[str], Field(min_length=1)]] = None
-    query_emb: Optional[Annotated[list[float], Field(min_length=768, max_length=768)]] = None
-    topn: Annotated[int, Field(ge=1, le=200)] = 50
-    topk: Annotated[int, Field(ge=1, le=50)] = 10
-
-
-class RankResItem(BaseModel):
+class ClickReq(BaseModel):
     career_id: str
-    score: float
+    position: Annotated[int, Field(ge=1, le=100)]
+    request_id: Optional[str] = None
+    match_score: Optional[float] = None
 
 
-class RankRes(BaseModel):
-    user_id: str
-    results: List[RankResItem]
+class ClickRes(BaseModel):
+    status: str = "ok"
 
 
-@router.post("/generate", response_model=GenerateRes)
-def generate(request: Request, req: GenerateReq):
+# ====== Routes ======
+
+@router.get("", response_model=RecommendationsRes)
+def get_main_recommendations(
+    request: Request,
+    top_k: int = Query(20, ge=1, le=50),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
     """
-    MVP: gợi ý top-k nghề đơn giản từ core.careers (id tăng dần).
-    Sau này sẽ thay bằng:
-      - lấy user embedding + trait từ ai.user_embeddings / ai.user_trait_preds
-      - chạy NeuMF ranker + bandit online.
+    GET /api/recommendations?top_k=20
+
+    - Lấy user_id từ JWT nếu có.
+    - (Dev) Nếu chưa login → tạm dùng user_id=9 để test pipeline.
+    - Gọi RecService.get_main_recommendations.
     """
-    session = _db(request)
-    items = svc.generate_for_user(session, user_id=req.user_id, topk=req.topk)
-    return GenerateRes(
-        user_id=req.user_id,
-        items=[GenerateItem(**it) for it in items],
+    db = _db(request)
+
+    # Tạm fallback user_id=9 nếu chưa login (cho dev/test).
+    # Sau này muốn bắt buộc đăng nhập thì đổi thành raise HTTPException(401, ...)
+    if current_user is None:
+        user_id = 9
+    else:
+        user_id = current_user.id
+
+    try:
+        result = svc.get_main_recommendations(
+            db=db,
+            user_id=user_id,
+            top_k=top_k,
+        )
+    except RuntimeError as e:
+        # AI-core lỗi, trả 502 để FE biết
+        raise HTTPException(status_code=502, detail=str(e))
+
+    items = [CareerDTO(**it) for it in result["items"]]
+    return RecommendationsRes(request_id=result["request_id"], items=items)
+
+
+@router.post("/click", response_model=ClickRes)
+def log_click(
+    request: Request,
+    body: ClickReq,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """
+    POST /api/recommendations/click
+
+    Body: { career_id, position, request_id, match_score? }
+
+    - Log event_type='click' vào analytics.career_events.
+    """
+    db = _db(request)
+
+    if current_user is None:
+        user_id = 9  # dev fallback
+    else:
+        user_id = current_user.id
+
+    svc.log_click(
+        db=db,
+        user_id=user_id,
+        career_id=body.career_id,
+        position=body.position,
+        request_id=body.request_id,
+        match_score=body.match_score,
     )
 
-
-@router.post("/rank", response_model=RankRes)
-def rank(request: Request, req: RankReq):
-    """
-    Placeholder: nếu có candidate_ids → trả về như cũ với score=1.0.
-    Nếu không có candidate_ids nhưng có query_emb → dùng retrieval pgvector.
-    """
-    session = _db(request)
-
-    cand_ids: Optional[List[str]] = req.candidate_ids
-
-    if cand_ids is None:
-        if not req.query_emb:
-            raise HTTPException(
-                status_code=422,
-                detail="Need candidate_ids or query_emb (768-dim)",
-            )
-        try:
-            cands = svc.retrieve_candidates(session, req.query_emb, topn=req.topn)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
-        cand_ids = [c["career_id"] for c in cands]
-
-    results = [
-        {"career_id": cid, "score": 1.0}
-        for cid in cand_ids[: req.topk]
-    ]
-    return RankRes(
-        user_id=req.user_id,
-        results=[RankResItem(**x) for x in results],
-    )
+    return ClickRes()

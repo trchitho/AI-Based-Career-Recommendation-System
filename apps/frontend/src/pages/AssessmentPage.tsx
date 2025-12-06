@@ -98,7 +98,6 @@ const AssessmentPage = () => {
    */
   const handleEssaySubmit = async (essayText: string) => {
     if (!assessmentId) {
-      // Không có assessmentId thì không cố gắng gắn essay vào test
       return;
     }
 
@@ -106,11 +105,16 @@ const AssessmentPage = () => {
       setLoading(true);
       setError(null);
 
-      await assessmentService.submitEssay({
+      // Build payload and only include promptId when defined to satisfy exactOptionalPropertyTypes
+      const payload = {
         assessmentId,
         essayText,
-        lang: 'en', // hoặc i18n.language nếu bạn muốn
-      });
+        // dùng lang & id đúng với prompt BE vừa trả
+        lang: essayPrompt?.lang ?? 'en',
+        ...(essayPrompt?.id != null ? { promptId: essayPrompt.id } : {}),
+      };
+
+      await assessmentService.submitEssay(payload);
 
       setStep('processing');
 
@@ -128,6 +132,7 @@ const AssessmentPage = () => {
       setLoading(false);
     }
   };
+
 
   /**
    * Nếu user bỏ qua essay → vẫn cho xem kết quả RIASEC/BigFive
