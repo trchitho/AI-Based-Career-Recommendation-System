@@ -158,6 +158,9 @@ packages/ai-core/
 ```bash
 cd packages/ai-core
 pip install -r requirements.txt
+python -m venv .venv
+. .venv/Scripts/activate
+pip install uvicorn
 uvicorn src.api.main:app --reload --port 9000
 ```
 

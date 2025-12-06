@@ -13,6 +13,9 @@ import BigFiveBarChart from '../components/results/BigFiveBarChart';
 import CareerRecommendationsDisplay from '../components/results/CareerRecommendationsDisplay';
 import { feedbackService } from '../services/feedbackService';
 import AppLogo from '../components/common/AppLogo';
+import { paymentService, UserPermissions } from '../services/paymentService';
+import { PricingModal } from '../components/payment/PricingModal';
+import { UpgradePrompt } from '../components/payment/UpgradePrompt';
 
 const ResultsPage = () => {
   const { assessmentId } = useParams<{ assessmentId: string }>();
@@ -359,6 +362,13 @@ const ResultsPage = () => {
           )}
         </div>
       </main>
+
+      {/* Pricing Modal */}
+      <PricingModal
+        isOpen={showPricing}
+        onClose={() => setShowPricing(false)}
+        reason="careers"
+      />
     </div>
   );
 };

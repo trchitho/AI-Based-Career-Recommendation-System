@@ -5,6 +5,10 @@ import { careerService } from '../services/careerService';
 import RoadmapTimelineComponent from '../components/roadmap/RoadmapTimelineComponent';
 import { Roadmap } from '../types/roadmap';
 import MainLayout from '../components/layout/MainLayout';
+import { paymentService, UserPermissions } from '../services/paymentService';
+import { PricingModal } from '../components/payment/PricingModal';
+import { UpgradePrompt } from '../components/payment/UpgradePrompt';
+import { SimplePaymentPrompt } from '../components/payment/SimplePaymentPrompt';
 
 const buildGenericMilestones = (): any[] => [
   {

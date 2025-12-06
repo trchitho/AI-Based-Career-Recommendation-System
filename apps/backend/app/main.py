@@ -85,7 +85,7 @@ def create_app() -> FastAPI:
     )
 
     # CORS
-    origins: Iterable[str] = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000")
+    origins: Iterable[str] = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000,http://localhost:3001")
     allow_headers = _split_csv_env(os.getenv("ALLOWED_HEADERS"), "*, Authorization, Content-Type")
     allow_methods = _split_csv_env(os.getenv("ALLOWED_METHODS"), "*")
     allow_credentials = _bool_env("ALLOW_CREDENTIALS", True)
