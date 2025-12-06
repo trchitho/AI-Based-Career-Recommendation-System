@@ -28,6 +28,22 @@ engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 # Base dùng chung cho tất cả models (cái bạn đang thiếu)
 Base = declarative_base()
 
+# SessionLocal cho dependency injection
+from sqlalchemy.orm import sessionmaker
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+def get_db():
+    """
+    Dependency để inject DB session vào FastAPI routes
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 def test_connection():
     with engine.connect() as conn:

@@ -74,6 +74,21 @@ class Settings(BaseSettings):
     frontend_oauth_redirect: str | None = Field(None, env="frontend_oauth_redirect")
 
     # ======================================================
+    # ZaloPay Payment Gateway
+    # ======================================================
+    zalopay_app_id: str = Field("2553", env="ZALOPAY_APP_ID")
+    zalopay_key1: str = Field("PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL", env="ZALOPAY_KEY1")
+    zalopay_key2: str = Field("kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz", env="ZALOPAY_KEY2")
+    zalopay_endpoint: str = Field(
+        "https://sb-openapi.zalopay.vn/v2/create",
+        env="ZALOPAY_ENDPOINT"
+    )
+    zalopay_callback_url: str = Field(
+        "http://localhost:8000/api/payment/callback",
+        env="ZALOPAY_CALLBACK_URL"
+    )
+
+    # ======================================================
     # Helper alias (nếu sau này muốn dùng snake_case)
     # ======================================================
     @property

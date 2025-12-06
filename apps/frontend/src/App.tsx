@@ -25,7 +25,9 @@ import BlogDetailPage from './pages/BlogDetailPage';
 import ChatSummaryPage from './pages/ChatSummaryPage';
 import ChatPage from './pages/ChatPage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
-import PricingPage from './pages/PricingPage';
+import { PaymentPage } from './pages/PaymentPage';
+import DebugAuthPage from './pages/DebugAuthPage';
+import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -48,9 +50,33 @@ function App() {
               <Route path="/reset" element={<ResetPasswordPage />} />
               <Route path="/verify" element={<VerifyEmailPage />} />
               <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
-              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/pricing" element={<PaymentPage />} />
 
               {/* Protected routes */}
+              <Route
+                path="/payment"
+                element={
+                  <ProtectedRoute>
+                    <PaymentPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/debug-auth"
+                element={
+                  <ProtectedRoute>
+                    <DebugAuthPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/subscription-demo"
+                element={
+                  <ProtectedRoute>
+                    <SubscriptionDemoPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/dashboard"
                 element={
