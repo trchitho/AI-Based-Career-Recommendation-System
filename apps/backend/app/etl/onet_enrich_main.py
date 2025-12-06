@@ -30,6 +30,7 @@ async def fetch_onet_codes(pool):
 async def fetch_table_rows(client: OnetV2Client, table_id: str, code: str):
     """
     Gọi OnetV2Client.iter_database_rows(...) trong thread pool để không block event loop.
+    Trả về list các rows cho table_id & onet_code.
     """
     def _job():
         return list(
@@ -50,13 +51,18 @@ async def enrich_one_code(pool, client: OnetV2Client, code: str) -> None:
       - knowledge
       - skills
       - abilities
+    3 bảng này được fetch song song để giảm thời gian ~3 lần.
     """
-    # 1) fetch rows từ O*NET v2 (chạy trong thread)
-    kn_rows = await fetch_table_rows(client, "knowledge", code)
-    sk_rows = await fetch_table_rows(client, "skills", code)
-    ab_rows = await fetch_table_rows(client, "abilities", code)
+    logger.info(f"[START] {code}")
 
-    # 2) upsert vào DB
+    # 1) fetch 3 bảng song song
+    kn_rows, sk_rows, ab_rows = await asyncio.gather(
+        fetch_table_rows(client, "knowledge", code),
+        fetch_table_rows(client, "skills", code),
+        fetch_table_rows(client, "abilities", code),
+    )
+
+    # 2) upsert vào DB (vẫn tuần tự nhưng rất nhanh so với network)
     async with pool.acquire() as conn:
         if kn_rows:
             await upsert_career_ksa_rows(conn, kn_rows, ksa_type="knowledge", source="ONLINE")
@@ -93,6 +99,7 @@ async def enrich_ksas(only_code: str | None = None, max_concurrent: int = 10):
                 logger.error(f"[FAIL] {code}: {ex}")
             finally:
                 done += 1
+                # log tiến độ mỗi 10 nghề, hoặc khi xong hết
                 if done % 10 == 0 or done == total:
                     logger.info(f"Progress: {done}/{total}")
 

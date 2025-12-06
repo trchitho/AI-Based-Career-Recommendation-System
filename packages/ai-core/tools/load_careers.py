@@ -288,57 +288,77 @@ ON CONFLICT (onet_code) DO UPDATE SET
 
 # ---------- MAIN ----------
 def main():
-    titles = read_onet_titles()
-    ints = read_onet_interests()
-    df_vi = load_jobs_vi_tagged()
+    titles = read_onet_titles()         # full O*NET, để lấy title_en + desc_en
+    ints = read_onet_interests()        # full RIASEC, sẽ filter sau
+    df_vi = load_jobs_vi_tagged()       # catalog đã clean (~924 dòng)
+
+    # Tập mã nghề hợp lệ = chỉ những gì xuất hiện trong catalog đã clean
+    valid_codes: set[str] = set()
+    vi_rows_by_code: dict[str, dict] = {}
+
+    for _, r in df_vi.iterrows():
+        code = (r.get("job_id") or "").strip()
+        if not code:
+            continue
+        valid_codes.add(code)
+        vi_rows_by_code[code] = r
+
+    print(f"[INFO] valid_codes from VN_CATALOG = {len(valid_codes)}")
+
+    if not valid_codes:
+        raise SystemExit("[ERR] VN_CATALOG rỗng hoặc không có cột job_id.")
 
     with psycopg.connect(DB_URL) as conn:
         with conn.cursor() as cur:
             today = date.today()
 
-            # Load khung từ O*NET
-            for code, row in titles.items():
-                title_en = row["title_en"]
-                short_en = (row.get("desc_en") or "").strip() or None
-                slug = slugify(f"{title_en}-{code}")
-                cur.execute(
-                    UPSERT_CAREER, (code, slug, title_en, None, short_en, None, today, today)
-                )
-                _ = cur.fetchone()[0]
+            # XÓA SẠCH trước khi load lại cho chắc
+            cur.execute("TRUNCATE TABLE core.careers RESTART IDENTITY CASCADE;")
 
-            # Enrich từ CSV tiếng Việt
-            for _, r in df_vi.iterrows():
-                code = (r.get("job_id") or "").strip()
-                if not code:
-                    continue
-                title_en = titles.get(code, {}).get("title_en")
-                title_vi = (r.get("title_vi") or "").strip() or None
-                short_vi = (r.get("description_vi") or "").strip() or None
-                base = title_en if title_en else (title_vi or "unknown")
+            # 1) Upsert careers chỉ cho các code hợp lệ
+            for code in sorted(valid_codes):
+                tinfo = titles.get(code, {})  # có thể thiếu nếu O*NET không có
+                title_en = (tinfo.get("title_en") or "").strip() or None
+                short_en = (tinfo.get("desc_en") or "").strip() or None
+
+                r_vi = vi_rows_by_code.get(code, {})
+                title_vi = (r_vi.get("title_vi") or "").strip() or None
+                short_vi = (r_vi.get("description_vi") or "").strip() or None
+
+                base = title_en or title_vi or "unknown"
                 slug = slugify(f"{base}-{code}")
+
                 cur.execute(
                     UPSERT_CAREER,
-                    (code, slug, title_en or base, title_vi, None, short_vi, today, today),
+                    (code, slug, title_en or base, title_vi, short_en, short_vi, today, today),
                 )
                 career_id = cur.fetchone()[0]
 
-                # Tags
-                tags_vi = (r.get("tags_vi") or "").strip()
+                # 2) Tags_vi từ catalog
+                tags_vi = (r_vi.get("tags_vi") or "").strip()
                 if tags_vi:
                     for t in [x.strip() for x in tags_vi.split("|") if x.strip()]:
                         cur.execute(UPSERT_TAG, (t,))
                         tag_id = cur.fetchone()[0]
                         cur.execute(UPSERT_TAG_MAP, (career_id, tag_id))
 
-            # RIASEC Interests
-            for code, v in ints.items():
+            # 3) RIASEC interests chỉ cho valid_codes
+            for code in sorted(valid_codes):
+                v = ints.get(code)
+                if not v:
+                    continue
                 cur.execute(
-                    UPSERT_INTERESTS, (code, v["R"], v["I"], v["A"], v["S"], v["E"], v["C"], today)
+                    UPSERT_INTERESTS,
+                    (code, v["R"], v["I"], v["A"], v["S"], v["E"], v["C"], today),
                 )
 
         conn.commit()
 
-    print("[OK] Loaded careers (title_en, title_vi, short_desc_en, short_desc_vn, tags, interests)")
+    print(
+        "[OK] Loaded careers FROM CLEAN CATALOG "
+        f"(rows={len(valid_codes)}, all from {VN_CATALOG.name})"
+    )
+
 
 
 if __name__ == "__main__":

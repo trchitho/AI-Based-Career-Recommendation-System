@@ -260,16 +260,14 @@ def api_submit_essay(
     Ghi nhận essay tự luận sau khi hoàn thành test.
     """
     try:
-        # 1) Lưu essay + gọi AI-core (bên trong save_essay)
         essay_id = save_essay(
             db,
             user_id=user_id,
             content=body.essayText,
-            prompt_id=body.promptId,
+            prompt_id=body.promptId,   # <-- dùng promptId FE gửi
             lang=body.lang,
         )
 
-        # 2) Lấy assessment_session_id từ assessmentId nếu FE gửi kèm
         assessment_session_id: Optional[int] = None
         main_assessment_id: Optional[int] = body.assessmentId
         if body.assessmentId is not None:
@@ -277,20 +275,18 @@ def api_submit_essay(
             if assess_obj is not None and assess_obj.session_id is not None:
                 assessment_session_id = int(assess_obj.session_id)
 
-        # 3) Fuse traits (test + essay) cho user
         traits = fuse_user_traits(db, user_id=user_id) or {}
 
         has_essay_traits = bool(traits.get("has_essay_traits"))
         has_fused_traits = bool(traits.get("has_fused_traits"))
 
-        # 4) Trả response đầy đủ cho FE
         return {
             "essayId": essay_id,
-            "assessmentSessionId": assessment_session_id,  # có thể None
-            "mainAssessmentId": main_assessment_id,        # chính là assessmentId RIASEC/BigFive từ bước test
+            "assessmentSessionId": assessment_session_id,
+            "mainAssessmentId": main_assessment_id,
             "hasEssayTraits": has_essay_traits,
             "hasFusedTraits": has_fused_traits,
-            "traits": traits,  # snapshot đầy đủ, FE có thể dùng hiển thị ngay Results
+            "traits": traits,
         }
     except ValueError as e:
         db.rollback()

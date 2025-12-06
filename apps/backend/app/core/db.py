@@ -3,7 +3,8 @@ import os
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, event, text
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, Session
+from fastapi import Request, HTTPException, status
 
 import asyncpg
 
@@ -28,6 +29,18 @@ engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 # Base dùng chung cho tất cả models (cái bạn đang thiếu)
 Base = declarative_base()
 
+
+def _db(req: Request) -> Session:
+    """
+    Lấy Session từ req.state.db (middleware DB đã gắn trước đó).
+    """
+    db = getattr(req.state, "db", None)
+    if db is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database session not available on request state",
+        )
+    return db
 
 def test_connection():
     with engine.connect() as conn:

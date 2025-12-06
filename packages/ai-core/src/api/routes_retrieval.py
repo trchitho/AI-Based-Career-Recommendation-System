@@ -15,7 +15,9 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModel
 
-router = APIRouter(tags=["search"])
+from ai_core.retrieval.service_pgvector import search_candidates_for_user, Candidate
+
+router = APIRouter(prefix="/search", tags=["retrieval"])
 
 # ---------------- CONFIG ----------------
 
@@ -76,15 +78,35 @@ def encode_text(text: str) -> list[float]:
 
 # ---------------- SCHEMA ----------------
 
+
+class SearchReq(BaseModel):
+    user_id: int
+    top_k: int = 50
+class SearchResItem(BaseModel):
+    job_id: str
+    score: float
+@router.post("", response_model=list[SearchResItem])
+def search(req: SearchReq):
+    try:
+        cands: list[Candidate] = search_candidates_for_user(
+            user_id=req.user_id,
+            top_n=req.top_k,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    return [
+        SearchResItem(job_id=c.job_id, score=c.score_sim)
+        for c in cands
+    ]
+
+
+
 class SearchReq(BaseModel):
     text: Optional[str] = None
     vector: Optional[list[float]] = None
     topk: int = 10
     allowed_tokens: Optional[list[str]] = None  # optional filter on tag_tokens
-
-
-# ---------------- ROUTE ----------------
-
 @router.post("/search")
 def search(req: SearchReq):
     # 1) Chuẩn bị vector truy vấn

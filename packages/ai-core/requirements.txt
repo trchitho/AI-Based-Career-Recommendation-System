@@ -3,6 +3,7 @@ uvicorn[standard]
 pandas
 scikit-learn
 pydantic
+psycopg_pool
 
 pre-commit
 ruff
@@ -24,3 +25,8 @@ torch>=2.2
 numpy>=1.26
 googletrans==4.0.0-rc1
 psycopg[binary]>=3.1
+
+deep-translator
+
+python-slugify  
+
