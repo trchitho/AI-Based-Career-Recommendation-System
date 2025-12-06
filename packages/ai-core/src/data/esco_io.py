@@ -83,7 +83,7 @@ def load_isco_tree() -> dict | None:
     # Chuẩn hoá tối thiểu
     for c in [uri_col, label_col, note_col] if note_col else [uri_col, label_col]:
         if c in df.columns:
-            df[c] = df[c].astype(str).strip()
+            df[c] = df[c].astype(str).str.strip()
 
     if uri_col not in df.columns:
         return None

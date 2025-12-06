@@ -1,120 +1,154 @@
-import { useNavigate } from 'react-router-dom';
-import { CareerRecommendation } from '../../types/results';
+// src/components/results/CareerRecommendationsDisplay.tsx
+import { useNavigate } from "react-router-dom";
+import {
+  CareerRecommendationDTO,
+  recommendationService,
+} from "../../services/recommendationService";
 
 interface CareerRecommendationsDisplayProps {
-  recommendations: CareerRecommendation[];
+  items: CareerRecommendationDTO[];
+  requestId: string | null;
+  loading: boolean;
+  error?: string | null;
 }
 
-const CareerRecommendationsDisplay = ({ recommendations }: CareerRecommendationsDisplayProps) => {
+const CareerRecommendationsDisplay = ({
+  items,
+  requestId,
+  loading,
+  error,
+}: CareerRecommendationsDisplayProps) => {
   const navigate = useNavigate();
 
-  const handleViewRoadmap = (careerId: string, slug?: string) => {
-    const key = slug || careerId;
-    navigate(`/careers/${key}/roadmap`);
-  };
-
-  const prettify = (s?: string) => (s ? s.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()) : '');
+  // Chỉ hiển thị tối đa 5 nghề (phòng trường hợp parent vẫn pass >5)
+  const displayedItems = items.slice(0, 5);
 
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 80) return { text: 'text-green-700 dark:text-green-300', bg: 'bg-green-100 dark:bg-green-900/30', border: 'border-green-200 dark:border-green-800' };
-    if (percentage >= 60) return { text: 'text-blue-700 dark:text-blue-300', bg: 'bg-blue-100 dark:bg-blue-900/30', border: 'border-blue-200 dark:border-blue-800' };
-    return { text: 'text-yellow-700 dark:text-yellow-300', bg: 'bg-yellow-100 dark:bg-yellow-900/30', border: 'border-yellow-200 dark:border-yellow-800' };
+    if (percentage >= 90) return "text-green-600 bg-green-100";
+    if (percentage >= 80) return "text-blue-600 bg-blue-100";
+    if (percentage >= 70) return "text-yellow-600 bg-yellow-100";
+    return "text-gray-600 bg-gray-100";
+  };
+
+  const handleViewRoadmap = async (
+    career: CareerRecommendationDTO,
+    position: number,
+    title: string,
+    desc: string
+  ) => {
+    const slugOrId = career.slug || career.career_id;
+
+    try {
+      await recommendationService.logClick({
+        career_id: slugOrId,
+        position,
+        request_id: requestId,
+        match_score: career.match_score,
+      });
+    } catch (err) {
+      // Không chặn UX nếu log fail
+      // eslint-disable-next-line no-console
+      console.error("Failed to log recommendation click", err);
+    }
+
+    // Truyền EN title / description sang RoadmapPage
+    navigate(`/careers/${slugOrId}/roadmap`, {
+      state: {
+        title,
+        description: desc,
+      },
+    });
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-xl rounded-[32px] p-8 border border-gray-100 dark:border-gray-700 font-['Plus_Jakarta_Sans']">
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        Your Top Career Matches
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        Based on your assessment results, here are careers that align with your
+        interests and personality.
+      </p>
 
-      <div className="mb-8">
-        <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-          <span className="w-2 h-6 bg-green-500 rounded-full"></span>
-          Your Top Career Matches
-        </h3>
-        <p className="text-gray-500 dark:text-gray-400 leading-relaxed max-w-3xl">
-          Based on your assessment results, these careers align best with your personality, interests, and strengths.
-        </p>
-      </div>
+      {loading && <div>Loading recommendations...</div>}
 
-      {recommendations.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
-          <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-          </div>
-          <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Analyzing...</h4>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Career recommendations are being generated. Please check back shortly.
+      {!loading && error && (
+        <div className="text-red-700 bg-red-50 dark:bg-red-900/30 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && displayedItems.length === 0 && (
+        <div className="text-center py-8 bg-gray-50 dark:bg-gray-900 rounded-lg">
+          <p className="text-gray-600 dark:text-gray-400">
+            Career recommendations are being generated. Please check back
+            shortly.
           </p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6">
-          {recommendations.map((career, index) => {
-            const style = getMatchColor(career.matchPercentage);
+      )}
+
+      {!loading && !error && displayedItems.length > 0 && (
+        <div className="space-y-4">
+          {displayedItems.map((career, index) => {
+            // Fake % match cao cho Top 5
+            const basePercentages = [95, 90, 85, 80, 75];
+            const raw = Math.round(career.match_score * 100);
+            const percent =
+              typeof career.display_match === "number"
+                ? Math.round(career.display_match)
+                : basePercentages[index] ?? Math.max(60, raw);
+
+            // Ưu tiên EN, thiếu thì fallback VN
+            const title =
+              career.title_en ||
+              career.title_vi ||
+              career.career_id ||
+              "Unknown career";
+            const desc = career.description ?? "";
 
             return (
               <div
-                key={career.id}
-                className="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[24px] p-6 hover:border-green-200 dark:hover:border-green-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+                key={career.career_id}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 hover:shadow-lg transition-shadow bg-white dark:bg-gray-800"
               >
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gray-100 dark:bg-gray-700 group-hover:bg-green-500 transition-colors"></div>
-
-                <div className="pl-4 flex flex-col md:flex-row md:items-start justify-between gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${style.bg} ${style.text} ${style.border}`}>
-                        {career.matchPercentage}% Match
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#E8DCC8] dark:bg-green-900/30 flex items-center justify-center mr-3">
+                      <span className="text-[#4A7C59] dark:text-green-400 font-bold text-lg">
+                        #{index + 1}
                       </span>
-                      <span className="text-xs font-bold text-gray-400">#{index + 1} Recommendation</span>
                     </div>
-
-                    <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                      {career.title || prettify(career.slug)}
-                    </h4>
-
-                    {career.industry_category && (
-                      <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide flex items-center gap-1">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                        {career.industry_category}
-                      </p>
-                    )}
-
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-2 mb-4">
-                      {career.description}
-                    </p>
-
-                    <div className="flex flex-wrap gap-4 text-sm">
-                      {career.salary_range && (
-                        <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 px-3 py-1.5 rounded-lg">
-                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          <span className="font-bold">{career.salary_range}</span>
-                        </div>
-                      )}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {title}
+                      </h4>
                     </div>
-
-                    {career.required_skills && career.required_skills.length > 0 && (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {career.required_skills.slice(0, 4).map((skill, idx) => (
-                          <span key={idx} className="px-2.5 py-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-md text-xs font-medium text-gray-600 dark:text-gray-300">
-                            {skill}
-                          </span>
-                        ))}
-                        {career.required_skills.length > 4 && (
-                          <span className="px-2.5 py-1 bg-gray-50 dark:bg-gray-800 text-xs font-medium text-gray-400">+{career.required_skills.length - 4}</span>
-                        )}
-                      </div>
-                    )}
                   </div>
-
-                  <div className="flex flex-col justify-end items-end min-w-[160px]">
-                    <button
-                      onClick={() => handleViewRoadmap(career.id, career.slug)}
-                      className="w-full sm:w-auto px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-sm hover:bg-green-600 dark:hover:bg-green-400 hover:text-white dark:hover:text-gray-900 transition-all shadow-lg flex items-center justify-center gap-2 group/btn"
-                    >
-                      View Roadmap
-                      <svg className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                    </button>
+                  <div
+                    className={`px-3 py-1 rounded-full font-semibold text-sm ${getMatchColor(
+                      percent
+                    )}`}
+                  >
+                    {percent}% Match
                   </div>
                 </div>
+
+                {desc && (
+                  <p className="text-gray-700 dark:text-gray-300 mb-4">
+                    {desc}
+                  </p>
+                )}
+
+                <button
+                  onClick={() =>
+                    handleViewRoadmap(career, index + 1, title, desc)
+                  }
+                  className="w-full px-4 py-2 bg-[#4A7C59] dark:bg-green-600 text-white rounded-lg hover:bg-[#3d6449] dark:hover:bg-green-700 transition-colors font-medium"
+                >
+                  View Learning Roadmap
+                </button>
               </div>
-            )
+            );
           })}
         </div>
       )}

@@ -24,7 +24,6 @@ load_dotenv(DOTENV_PATH, override=True)
 DB_URL = os.getenv("DATABASE_URL")
 
 
-from datetime import datetime, timezone
 from psycopg import Connection, sql
 
 from apps.backend.app.services.onetsvc import get_onet_service  # factory bạn đã có

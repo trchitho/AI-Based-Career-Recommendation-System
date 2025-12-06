@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from .config import DB_URL, RETR_TABLE, MODEL_DIR, IVF_PROBES
 from .routes_retrieval import router as retrieval_router
 from .routes_traits import router as traits_router
+from api.routes_rank import router as rank_router
+from .routes_recs import router as recs_router
 
 app = FastAPI(
     title="AI Core Service",
@@ -34,3 +36,5 @@ def debug_cfg():
 
 app.include_router(retrieval_router)
 app.include_router(traits_router)
+app.include_router(rank_router)
+app.include_router(recs_router)

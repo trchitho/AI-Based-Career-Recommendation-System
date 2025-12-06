@@ -1,41 +1,41 @@
 # apps/backend/app/core/config.py
 
-import os
 from pathlib import Path
 
-from dotenv import load_dotenv
 from pydantic import Field, AnyHttpUrl
-from pydantic_settings import BaseSettings
-
-
-# --- Load .env thủ công (ưu tiên .env ở backend root) ---
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-ENV_PATH = BASE_DIR / ".env"
-load_dotenv(ENV_PATH)
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    # Pydantic Settings v2 config
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",   # nếu .env có key lạ thì bỏ qua, không quăng lỗi
+    )
+
     # ======================================================
     # Database & Services
     # ======================================================
-    DATABASE_URL: str = Field(..., env="DATABASE_URL")
-    REDIS_URL: str | None = Field(None, env="REDIS_URL")
+    DATABASE_URL: str
 
-    NEO4J_URL: str | None = Field(None, env="NEO4J_URL")
-    NEO4J_USER: str | None = Field(None, env="NEO4J_USER")
-    NEO4J_PASS: str | None = Field(None, env="NEO4J_PASS")
+    REDIS_URL: str | None = None
+
+    NEO4J_URL: str | None = None
+    NEO4J_USER: str | None = None
+    NEO4J_PASS: str | None = None
 
     # ======================================================
     # Search (Elastic)
     # ======================================================
-    ES_URL: str | None = Field(None, env="ES_URL")
-    ES_USER: str | None = Field(None, env="ES_USER")
-    ES_PASS: str | None = Field(None, env="ES_PASS")
+    ES_URL: str | None = None
+    ES_USER: str | None = None
+    ES_PASS: str | None = None
 
     # ======================================================
     # External AI service (optional)
     # ======================================================
-    AI_SERVICE_URL: str | None = Field(None, env="AI_SERVICE_URL")
+    AI_SERVICE_URL: str | None = None
 
     # ======================================================
     # JWT & Security
@@ -63,15 +63,35 @@ class Settings(BaseSettings):
         "https://api-v2.onetcenter.org",
         env="ONET_V2_BASE_URL",
     )
-    onet_v2_timeout: int = Field(10, env="ONET_V2_TIMEOUT")
+    onet_v2_timeout: int = Field(30, env="ONET_V2_TIMEOUT")
 
     # ======================================================
-    # Google OAuth (những key đang gây lỗi extra_forbidden)
+    # Google OAuth (trùng với .env.example)
     # ======================================================
-    google_client_id: str | None = Field(None, env="google_client_id")
-    google_client_secret: str | None = Field(None, env="google_client_secret")
-    google_redirect_uri: str | None = Field(None, env="google_redirect_uri")
-    frontend_oauth_redirect: str | None = Field(None, env="frontend_oauth_redirect")
+    google_client_id: str | None = Field(None, env="GOOGLE_CLIENT_ID")
+    google_client_secret: str | None = Field(None, env="GOOGLE_CLIENT_SECRET")
+    google_redirect_uri: str | None = Field(None, env="GOOGLE_REDIRECT_URI")
+    frontend_oauth_redirect: str | None = Field(None, env="FRONTEND_OAUTH_REDIRECT")
+
+    # ======================================================
+    # SMTP / Email verification (trùng .env.example)
+    # ======================================================
+    smtp_host: str | None = Field(None, env="SMTP_HOST")
+    smtp_port: int | None = Field(None, env="SMTP_PORT")
+    smtp_ssl: bool = Field(False, env="SMTP_SSL")
+    smtp_starttls: bool = Field(False, env="SMTP_STARTTLS")
+    smtp_user: str | None = Field(None, env="SMTP_USER")
+    smtp_password: str | None = Field(None, env="SMTP_PASSWORD")
+
+    email_from: str | None = Field(None, env="EMAIL_FROM")
+    frontend_verify_url: str | None = Field(None, env="FRONTEND_VERIFY_URL")
+
+    email_deliverability_required: bool = Field(
+        False,
+        env="EMAIL_DELIVERABILITY_REQUIRED",
+    )
+    email_smtp_probe_port: int = Field(25, env="EMAIL_SMTP_PROBE_PORT")
+    email_smtp_probe_timeout: int = Field(5, env="EMAIL_SMTP_PROBE_TIMEOUT")
 
     # ======================================================
     # ZaloPay Payment Gateway
@@ -94,11 +114,6 @@ class Settings(BaseSettings):
     @property
     def database_url(self) -> str:
         return self.DATABASE_URL
-
-    class Config:
-        # vẫn cho phép đọc .env
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
 
 settings = Settings()

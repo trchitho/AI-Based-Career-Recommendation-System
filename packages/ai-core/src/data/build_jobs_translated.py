@@ -312,10 +312,28 @@ def translate_sentences_safe(
 # Main
 # =========================
 def main():
+
     ap = argparse.ArgumentParser(description="Build Vietnamese job catalog from English source.")
     ap.add_argument("--in", dest="in_path", type=Path, default=DEF_IN)
-    ap.add_argument("--out-jsonl", dest="out_jsonl", type=Path, default=DEF_OUT_JSONL)
-    ap.add_argument("--out-csv", dest="out_csv", type=Path, default=DEF_OUT_CSV)
+
+    # JSONL giữ nguyên
+    ap.add_argument(
+        "--out-jsonl",
+        dest="out_jsonl",
+        type=Path,
+        default=DEF_OUT_JSONL,
+    )
+
+    # CSV: cho phép dùng cả --out-csv và --out
+    ap.add_argument(
+        "--out-csv",
+        "--out",
+        dest="out_csv",
+        type=Path,
+        default=DEF_OUT_CSV,
+        help="Đường dẫn CSV output (alias: --out)",
+    )
+
     ap.add_argument("--glossary", dest="glossary_path", type=Path, default=DEF_GLOSSARY)
     ap.add_argument("--cache", dest="cache_path", type=Path, default=DEF_CACHE)
     ap.add_argument(

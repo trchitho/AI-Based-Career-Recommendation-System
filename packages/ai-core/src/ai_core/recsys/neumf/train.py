@@ -1,112 +1,179 @@
-﻿# packages/ai-core/src/recsys/neumf/train.py
-import argparse
-import json
-import os
-import sys
-from pathlib import Path
+﻿from __future__ import annotations
 
-import numpy as np
+import argparse
+import csv
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+import json
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader
 
-sys.path.append(os.path.dirname(__file__))
-
-import csv
-
-from dataset import PairDataset
-from model import MLPScore
+from .dataset import PairDataset
+from .model import MLPScore
 
 
-def load_pairs(path_csv: Path):
-    pairs = []
-    with path_csv.open("r", encoding="utf-8", newline="") as f:
-        r = csv.DictReader(f)
-        for row in r:
-            pairs.append((int(row["user_id"]), str(row["job_id"]), int(row["label"])))
+def _normalize_job_id(raw: str) -> str:
+    """
+    Chuẩn hoá job_id về O*NET code:
+    - Nếu đã là dạng '11-1021.00' thì giữ nguyên.
+    - Nếu là slug kiểu 'general-and-operations-managers-11-1021-00'
+      thì bóc phần code cuối và đổi thành '11-1021.00'.
+    """
+    s = (raw or "").strip()
+    if not s:
+        return s
+
+    # Nếu đã có dấu chấm ở dạng ##-####.## thì giữ nguyên
+    import re
+
+    m = re.search(r"(\d{2})-(\d{4})\.(\d{2})", s)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}.{m.group(3)}"
+
+    # Thử dạng slug: ...-11-1021-00
+    m = re.search(r"(\d{2})-(\d{4})-(\d{2})", s)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}.{m.group(3)}"
+
+    return s
+
+
+def load_pairs(path: Path) -> List[Tuple[str, str, float]]:
+    """
+    Đọc interactions và trả về list (user_id, job_id, label).
+
+    Hỗ trợ 2 schema:
+    - user_id,job_id,label
+    - user_id,job_id,implicit_rating[,timestamp]
+
+    Đồng thời chuẩn hoá job_id về O*NET code (11-1021.00).
+    """
+    pairs: List[Tuple[str, str, float]] = []
+    with path.open("r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            user = str(row.get("user_id", "")).strip()
+            raw_job = str(row.get("job_id", "")).strip()
+            if not user or not raw_job:
+                continue
+
+            job = _normalize_job_id(raw_job)
+
+            label_val = None
+
+            # 1) Ưu tiên cột 'label'
+            if "label" in row and row["label"] not in (None, ""):
+                try:
+                    label_val = float(row["label"])
+                except Exception:
+                    pass
+
+            # 2) Fallback 'implicit_rating'
+            if label_val is None and "implicit_rating" in row and row["implicit_rating"] not in (None, ""):
+                try:
+                    label_val = float(row["implicit_rating"])
+                except Exception:
+                    pass
+
+            if label_val is None:
+                continue
+
+            pairs.append((user, job, float(label_val)))
+
     return pairs
 
 
-def load_feats_json(path_json: Path):
-    # JSON: {"<user_or_job_id>": {"text": [...768], "riasec": [...6], "big5": [...5]?}}
-    return json.loads(path_json.read_text(encoding="utf-8"))
+
+def split_train_val(pairs: List[Tuple[str, str, float]], val_ratio: float = 0.1):
+    n = len(pairs)
+    split = int(n * (1 - val_ratio))
+    return pairs[:split], pairs[split:]
 
 
-def collate_pairs(pairs, user_feats, item_feats):
-    # Lọc cặp hợp lệ (có feature)
-    clean = []
-    for u, j, y in pairs:
-        if str(u) in user_feats and j in item_feats:
-            clean.append((str(u), j, y))
-    return clean
+def train_mlp(
+    train_pairs,
+    val_pairs,
+    user_feats: Dict[str, list[float]],
+    item_feats: Dict[str, list[float]],
+    epochs: int = 5,
+    bs: int = 512,
+    lr: float = 1e-3,
+    device: str = "cpu",
+):
+    train_ds = PairDataset(train_pairs, user_feats, item_feats)
+    val_ds = PairDataset(val_pairs, user_feats, item_feats)
 
-
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--interactions", default="data/processed/interactions.csv")
-    ap.add_argument("--user_feats", default="data/processed/user_feats.json")
-    ap.add_argument("--item_feats", default="data/processed/item_feats.json")
-    ap.add_argument("--epochs", type=int, default=5)
-    ap.add_argument("--bs", type=int, default=512)
-    ap.add_argument("--lr", type=float, default=1e-3)
-    ap.add_argument("--val_split", type=float, default=0.1)
-    ap.add_argument("--out_dir", default="models/recsys_mlp")
-    args = ap.parse_args()
-
-    interactions = Path(args.interactions)
-    user_feats = load_feats_json(Path(args.user_feats))
-    item_feats = load_feats_json(Path(args.item_feats))
-    pairs_all = load_pairs(interactions)
-    pairs_all = collate_pairs(pairs_all, user_feats, item_feats)
-
-    # Split train/val nhanh
-    rng = np.random.default_rng(42)
-    idx = np.arange(len(pairs_all))
-    rng.shuffle(idx)
-    n_val = int(len(idx) * args.val_split)
-    val_idx, tr_idx = idx[:n_val], idx[n_val:]
-    val_pairs = [pairs_all[i] for i in val_idx]
-    tr_pairs = [pairs_all[i] for i in tr_idx]
-
-    # Torch: build loaders
-    tr_ds = PairDataset(tr_pairs, user_feats, item_feats)
-    va_ds = PairDataset(val_pairs, user_feats, item_feats)
-    tr_dl = DataLoader(tr_ds, batch_size=args.bs, shuffle=True)
-    va_dl = DataLoader(va_ds, batch_size=args.bs)
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = MLPScore().to(device)
-    opt = optim.AdamW(model.parameters(), lr=args.lr)
+    opt = optim.AdamW(model.parameters(), lr=lr)
     lossfn = nn.BCEWithLogitsLoss()
 
-    for ep in range(args.epochs):
+    dl = DataLoader(train_ds, batch_size=bs, shuffle=True)
+
+    for ep in range(epochs):
         model.train()
-        for x, y in tr_dl:
-            x, y = x.to(device), y.view(-1).to(device)
+        for x, y in dl:
+            x = x.to(device)
+            y = y.to(device)
             opt.zero_grad()
             logits = model(x)
-            loss = lossfn(logits, y)
+            loss = lossfn(logits, y.view(-1))
             loss.backward()
             opt.step()
 
         # quick val AUC
         model.eval()
-        y_true, y_score = [], []
+        Xv = []
+        Yv = []
         with torch.no_grad():
-            for x, y in va_dl:
+            for x, y in DataLoader(val_ds, batch_size=bs):
                 x = x.to(device)
-                s = torch.sigmoid(model(x)).cpu().numpy()
-                y_true.extend(y.view(-1).numpy().tolist())
-                y_score.extend(s.tolist())
-        auc = roc_auc_score(y_true, y_score) if len(set(y_true)) > 1 else float("nan")
-        print(f"[Ep {ep + 1}] val AUC={auc:.4f}")
+                y = y.to(device)
+                prob = torch.sigmoid(model(x))
+                Xv.append(prob.cpu())
+                Yv.append(y.view(-1).cpu())
 
-    out = Path(args.out_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    torch.save(model.state_dict(), out / "best.pt")
-    print(f"[OK] Saved model → {out / 'best.pt'}")
+        import torch as T
+
+        auc = roc_auc_score(
+            T.cat(Yv).numpy(),
+            T.cat(Xv).numpy(),
+        )
+        print(f"Epoch {ep+1}: val AUC={auc:.4f}")
+
+    return model
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--interactions", type=Path, required=True)
+    parser.add_argument("--user_feats", type=Path, required=True)
+    parser.add_argument("--item_feats", type=Path, required=True)
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=Path("models/recsys_mlp/best.pt"),
+    )
+    args = parser.parse_args()
+
+    pairs = load_pairs(args.interactions)
+    if not pairs:
+        raise RuntimeError(f"No training pairs loaded from {args.interactions}")
+
+    train_pairs, val_pairs = split_train_val(pairs)
+
+    user_feats = json.loads(args.user_feats.read_text(encoding="utf-8"))
+    item_feats = json.loads(args.item_feats.read_text(encoding="utf-8"))
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = train_mlp(train_pairs, val_pairs, user_feats, item_feats, device=device)
+
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(model.state_dict(), args.out)
+    print(f"[OK] saved model to {args.out}")
 
 
 if __name__ == "__main__":

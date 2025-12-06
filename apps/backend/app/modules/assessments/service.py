@@ -902,12 +902,13 @@ def save_essay(
         + Không tin 100% tham số lang từ FE.
         + Luôn detect lại từ nội dung; nếu detect ra 'vi' / 'en' thì override.
     - Prompt:
-        + Nếu FE gửi prompt_id hợp lệ -> dùng đúng ID đó.
-        + Nếu không gửi hoặc không tồn tại -> random 1 prompt theo lang
+        + Nếu FE gửi prompt_id hợp lệ -> dùng **đúng** ID đó.
+        + Nếu FE không gửi prompt_id -> random 1 prompt theo lang
           (nếu không có prompt cùng lang -> random toàn bảng).
     Sau khi lưu:
         - Gọi infer_user_traits_for_essay để nạp ai.user_embeddings / ai.user_trait_preds.
     """
+
     # 0) Chuẩn hoá nội dung
     content = (content or "").strip()
     if not content:
@@ -924,33 +925,34 @@ def save_essay(
 
     # 2) Detect lại từ nội dung -> nếu ra 'vi' / 'en' thì ưu tiên kết quả detect
     try:
-        detected = _detect_vi_en_from_text(content)  # hàm cũ của bạn
+        detected = _detect_vi_en_from_text(content)
         if detected in {"vi", "en"}:
             effective_lang = detected
     except Exception as e:
         print("[assessments] save_essay lang detect error:", repr(e))
 
     resolved_prompt_id: Optional[int] = None
-    prompt_obj: Optional[EssayPrompt] = None
 
-    # 3) Nếu FE gửi prompt_id → cố gắng dùng đúng ID đó
+    # 3) Nếu FE gửi prompt_id → bắt buộc dùng đúng ID đó (nếu tồn tại)
     if prompt_id is not None:
         try:
-            prompt_obj = session.get(EssayPrompt, prompt_id)
-            if prompt_obj:
-                resolved_prompt_id = int(prompt_obj.id)
-            else:
-                print(
-                    f"[assessments] save_essay: prompt_id={prompt_id} not found, "
-                    "will fallback to random prompt"
-                )
-        except Exception as e:
-            print("[assessments] save_essay prompt lookup error:", repr(e))
+            pid = int(prompt_id)
+        except (TypeError, ValueError):
+            raise ValueError(f"Invalid prompt_id={prompt_id!r}")
 
-    # 4) Nếu vẫn chưa có prompt → random theo lang
+        prompt_obj = session.get(EssayPrompt, pid)
+        if not prompt_obj:
+            # Lỗi rõ ràng thay vì fallback random (tránh tình trạng FE/BE lệch ID)
+            raise ValueError(f"Prompt with id={pid} not found in EssayPrompt")
+
+        resolved_prompt_id = pid
+
+    # 4) Nếu FE **không** gửi prompt_id → random theo lang (giữ logic cũ)
     if resolved_prompt_id is None:
+        prompt_obj = None
         try:
             q = session.query(EssayPrompt)
+
             # ưu tiên random trong đúng lang
             q_lang = q.filter(EssayPrompt.lang == effective_lang)
             prompt_obj = q_lang.order_by(func.random()).first()
@@ -964,7 +966,7 @@ def save_essay(
         except Exception as e:
             print("[assessments] save_essay default prompt select error:", repr(e))
 
-        # 5) Tạo bản ghi essay
+    # 5) Tạo bản ghi essay
     essay = Essay(
         user_id=user_id,
         lang=effective_lang,

@@ -259,6 +259,14 @@ def create_app() -> FastAPI:
         print("??  Skip subscription router:", repr(e))
 
     return app
+    # Analytics tracking
+    try:
+        from .modules.analytics import routes_tracking as tracking_router
 
+        app.include_router(tracking_router.router, prefix="/api/analytics", tags=["analytics"])
+    except Exception as e:
+        print("??  Skip analytics tracking router:", repr(e))
+
+    return app
 
 app = create_app()

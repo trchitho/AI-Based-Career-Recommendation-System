@@ -1,12 +1,12 @@
-﻿# src/data/enrich_tags_auto.py (v5)
+﻿# src/data/enrich_tags_auto.py (v6)
 import csv
 import json
 import re
 import unicodedata
 from pathlib import Path
 
-JOBS_IN = Path("data/catalog/jobs_translated.csv")
-JOBS_OUT = Path("data/catalog/jobs_vi_tagged.csv")
+JOBS_IN_DEFAULT = Path("data/catalog/jobs_translated.csv")
+JOBS_OUT_DEFAULT = Path("data/catalog/jobs_vi_tagged.csv")
 ONET_PATH = Path("data/catalog/onet_tags.json")
 VOCAB_PATH = Path("data/catalog/tag_vocab.json")
 TRANS_PATH = Path("data/catalog/skill_trans_vi.json")
@@ -42,28 +42,43 @@ def norm_row_keys(row):
 def main():
     import argparse
 
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--overwrite", action="store_true", help="Ghi đè vào jobs_vi.csv")
+    ap = argparse.ArgumentParser(description="Auto-enrich VI tags & skills for jobs.")
     ap.add_argument(
-        "--fallback_text", action="store_true", help="Text matching khi không map O*NET"
+        "--in",
+        dest="jobs_in",
+        type=Path,
+        default=JOBS_IN_DEFAULT,
+        help="Input CSV (default: data/catalog/jobs_translated.csv)",
+    )
+    ap.add_argument(
+        "--out",
+        dest="jobs_out",
+        type=Path,
+        default=JOBS_OUT_DEFAULT,
+        help="Output CSV (default: data/catalog/jobs_vi_tagged.csv)",
+    )
+    ap.add_argument("--overwrite", action="store_true", help="Ghi đè vào file --in")
+    ap.add_argument(
+        "--fallback_text",
+        action="store_true",
+        help="Text matching khi không map O*NET",
     )
     args = ap.parse_args()
 
-    if not JOBS_IN.exists():
-        raise FileNotFoundError(f"Missing {JOBS_IN}")
+    jobs_in: Path = args.jobs_in
+    if not jobs_in.exists():
+        raise FileNotFoundError(f"Missing {jobs_in}")
 
     onet = load_json_or_empty(ONET_PATH)
     vocab = load_json_or_empty(VOCAB_PATH)
     trans = load_json_or_empty(TRANS_PATH)
 
-    # READ: force comma CSV (bỏ sniff để tránh hiểu nhầm delimiter = space)
-    with JOBS_IN.open(encoding="utf-8-sig", newline="") as f:
+    # READ: force comma CSV
+    with jobs_in.open(encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f, delimiter=",", quotechar='"', skipinitialspace=True)
-        # Áp dụng header mong đợi: nếu thiếu cột nào thì thêm sau
         rows = [norm_row_keys(r) for r in reader]
 
-    # Ghi file
-    out_path = JOBS_IN if args.overwrite else JOBS_OUT
+    out_path: Path = jobs_in if args.overwrite else args.jobs_out
     matched_soc = 0
     unmatched_soc = 0
 
@@ -79,6 +94,7 @@ def main():
         writer.writeheader()
 
         for rr in rows:
+            # copy các cột lõi
             out_row = {k: rr.get(k, "") for k in OUT_COLS}
             jid = (out_row.get("job_id") or "").strip()
             title = out_row.get("title_vi", "") or ""
@@ -86,6 +102,7 @@ def main():
             sktxt = out_row.get("skills_vi", "") or ""
 
             tags_domain, tags_skill = [], []
+            skills_vi_from_onet: list[str] = []
 
             info = onet.get(jid)
             if info:
@@ -97,6 +114,7 @@ def main():
                     vi = (trans.get(sk_en) or sk_en).strip()
                     if vi:
                         tags_skill.append(vi)
+                        skills_vi_from_onet.append(vi)
             else:
                 unmatched_soc += 1
                 if args.fallback_text:
@@ -107,8 +125,22 @@ def main():
                             vi = (trans.get(sk_en) or sk_en).strip()
                             if vi:
                                 tags_skill.append(vi)
+                                skills_vi_from_onet.append(vi)
 
-            # dedup + limit
+            # ---- build skills_vi ----
+            existing_skills = [
+                s.strip()
+                for s in (out_row.get("skills_vi") or "").split("|")
+                if s.strip()
+            ]
+            all_skills = existing_skills + skills_vi_from_onet
+            seen_sk = set()
+            clean_skills = [
+                s for s in all_skills if s and not (s in seen_sk or seen_sk.add(s))
+            ][:MAX_SKILL_TAGS]
+            out_row["skills_vi"] = "|".join(clean_skills)
+
+            # ---- build tags_vi (domain + skill tags) ----
             seen = set()
             clean_domain = [t for t in tags_domain if t and not (t in seen or seen.add(t))]
             seen = set()
@@ -121,7 +153,8 @@ def main():
 
     print(f"[OK] wrote {out_path}")
     print(
-        f"[INFO] matched_by_onet={matched_soc} | unmatched={unmatched_soc} | fallback_text={'ON' if args.fallback_text else 'OFF'}"
+        f"[INFO] matched_by_onet={matched_soc} | unmatched={unmatched_soc} | "
+        f"fallback_text={'ON' if args.fallback_text else 'OFF'}"
     )
 
 

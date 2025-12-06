@@ -22,25 +22,39 @@ from app.core.config import settings
 class OnetV2Error(RuntimeError):
     pass
 
-
 class OnetV2Client:
-    def __init__(
-        self,
-        api_key: str | None = None,
-        base_url: str | None = None,
-        timeout: int | None = None,
-    ) -> None:
-        self.base_url = base_url or settings.onet_v2_base_url.rstrip("/")
+    def __init__(self, api_key: str | None = None, base_url: str | None = None, timeout: int | None = None):
         self.api_key = api_key or settings.onet_v2_api_key
+        self.base_url = (base_url or settings.onet_v2_base_url).rstrip("/")
         self.timeout = timeout or settings.onet_v2_timeout
 
         self._client = httpx.Client(
-            base_url=self.base_url,
             timeout=self.timeout,
-            headers={
-                "X-API-Key": self.api_key,  # v2 auth
-            },
+            headers={"X-API-Key": self.api_key},
         )
+
+    def _build_url(self, path: str) -> str:
+        # Nếu là absolute (next = full URL) thì dùng luôn
+        if path.startswith("http://") or path.startswith("https://"):
+            return path
+        return f"{self.base_url}/{path.lstrip('/')}"
+
+    def _get(self, path: str, params: dict | None = None) -> dict:
+        url = self._build_url(path)
+        for attempt in range(3):
+            try:
+                resp = self._client.get(url, params=params or {})
+                if resp.status_code >= 400:
+                    logger.error(f"O*NET v2 error {resp.status_code}: {resp.text[:300]}")
+                    resp.raise_for_status()
+                return resp.json()
+            except (httpx.HTTPError, ValueError) as exc:
+                logger.warning(
+                    f"O*NET v2 RequestError (attempt {attempt+1}/3) "
+                    f"for {url}: {exc}"
+                )
+        raise RuntimeError(f"O*NET v2: failed GET {url} after retries")
+
 
     # ---- Generic helpers -------------------------------------------------
 
@@ -120,3 +134,38 @@ class OnetV2Client:
         """
         path = f"online/occupation/{onet_code}/{section}"
         return self._get(path)
+
+        # -------- Occupation summary sections (v2) --------
+
+    def iter_occupation_summary_elements(self, onet_code: str, section: str):
+        """
+        Duyệt tất cả phần tử cho 1 occupation + 1 section summary.
+        - work_activities, detailed_work_activities, work_context: dùng field 'element'
+        - education: dùng field 'response'
+        """
+        path = f"online/occupations/{onet_code}/summary/{section}"
+        url: str | None = path
+
+        while url:
+            data = self._get(url)
+
+            # Education summary: 'response'
+            if "response" in data and isinstance(data["response"], list):
+                for item in data["response"]:
+                    yield item
+                # Education không phân trang -> break
+                break
+
+            # Work Activities, Detailed Work Activities, Work Context: 'element' + 'next'
+            if "element" in data and isinstance(data["element"], list):
+                for el in data["element"]:
+                    yield el
+
+            next_url = data.get("next")
+            if not next_url:
+                break
+            url = next_url
+
+    def get_education_summary(self, onet_code: str) -> dict:
+        """Convenience: lấy nguyên JSON education summary (nếu cần)."""
+        return self._get(f"online/occupations/{onet_code}/summary/education")
