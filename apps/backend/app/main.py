@@ -242,6 +242,23 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("??  Skip user profile router:", repr(e))
 
+    # Payment (ZaloPay)
+    try:
+        from .modules.payment import routes_payment as payment_router
+
+        app.include_router(payment_router.router, prefix="/api/payment", tags=["payment"])
+    except Exception as e:
+        print("??  Skip payment router:", repr(e))
+
+    # Subscription
+    try:
+        from .modules.subscription import routes as subscription_router
+
+        app.include_router(subscription_router.router, prefix="/api/subscription", tags=["subscription"])
+    except Exception as e:
+        print("??  Skip subscription router:", repr(e))
+
+    return app
     # Analytics tracking
     try:
         from .modules.analytics import routes_tracking as tracking_router

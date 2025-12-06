@@ -16,24 +16,25 @@ interface BigFiveBarChartProps {
 
 const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
   const data = [
-    { trait: 'Openness', score: scores.openness, color: '#8b5cf6' },
-    { trait: 'Conscientiousness', score: scores.conscientiousness, color: '#3b82f6' },
-    { trait: 'Extraversion', score: scores.extraversion, color: '#10b981' },
-    { trait: 'Agreeableness', score: scores.agreeableness, color: '#f59e0b' },
-    { trait: 'Neuroticism', score: scores.neuroticism, color: '#ef4444' },
+    { trait: 'Openness', score: scores.openness, color: '#8B5CF6' }, // Violet
+    { trait: 'Conscientiousness', score: scores.conscientiousness, color: '#3B82F6' }, // Blue
+    { trait: 'Extraversion', score: scores.extraversion, color: '#10B981' }, // Emerald
+    { trait: 'Agreeableness', score: scores.agreeableness, color: '#F59E0B' }, // Amber
+    { trait: 'Neuroticism', score: scores.neuroticism, color: '#EF4444' }, // Red
   ];
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0].payload;
       return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-          <p className="font-semibold text-gray-900">{payload[0].payload.trait}</p>
-          <p
-            className="font-bold"
-            style={{ color: payload[0].payload.color }}
-          >
-            {payload[0].value.toFixed(1)}%
-          </p>
+        <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-xl p-3 z-50">
+          <p className="font-semibold text-gray-800 mb-1">{data.trait}</p>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }}></div>
+            <span className="font-bold text-lg" style={{ color: data.color }}>
+              {data.score.toFixed(0)}%
+            </span>
+          </div>
         </div>
       );
     }
@@ -41,61 +42,84 @@ const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">
-        Big Five Personality Traits
-      </h3>
-      <p className="text-sm text-gray-600 mb-6">
-        Your personality profile across five key dimensions. Scores indicate the
-        strength of each trait.
-      </p>
+    // Xóa bỏ background, shadow, padding của khung bao
+    <div className="w-full h-auto flex flex-col">
 
-      <ResponsiveContainer width="100%" height={350}>
-        <BarChart
-          data={data}
-          layout="vertical"
-          margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis
-            type="number"
-            domain={[0, 100]}
-            tick={{ fill: '#6b7280', fontSize: 12 }}
-          />
-          <YAxis
-            type="category"
-            dataKey="trait"
-            tick={{ fill: '#374151', fontSize: 13 }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="score" radius={[0, 8, 8, 0]}>
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      {/* Nếu component cha chưa có tiêu đề, bạn có thể uncomment phần dưới. 
+          Nếu cha đã có tiêu đề "Big Five..." rồi thì nên ẩn đi để tránh lặp. */}
+      {/* <div className="mb-4">
+        <h3 className="text-xl font-bold text-gray-800">Big Five Personality Traits</h3>
+        <p className="text-sm text-gray-500">Your personality profile across five key dimensions.</p>
+      </div> */}
 
-      <div className="mt-6 space-y-3">
-        {data.map((item) => (
-          <div key={item.trait} className="flex items-center">
-            <div
-              className="w-4 h-4 rounded mr-3"
-              style={{ backgroundColor: item.color }}
-            />
-            <div className="flex-1 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">
-                {item.trait}
-              </span>
-              <span
-                className="text-sm font-bold"
-                style={{ color: item.color }}
+      <div className="flex flex-col md:flex-row items-center gap-6 mt-2">
+
+        {/* Phần Chart - Bên trái */}
+        <div className="w-full md:w-3/5 h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              layout="vertical"
+              margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+              barSize={24} // Độ dày của thanh
+            >
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} stroke="#E5E7EB" />
+              <XAxis type="number" domain={[0, 100]} hide />
+              <YAxis
+                type="category"
+                dataKey="trait"
+                width={120} // Tăng độ rộng để tên Trait không bị cắt
+                tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 500 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
+
+              {/* Thanh Background màu xám nhạt */}
+              <Bar
+                dataKey="score"
+                radius={[0, 4, 4, 0]}
+                background={{ fill: '#F3F4F6', radius: [0, 4, 4, 0] }}
               >
-                {item.score.toFixed(0)}%
-              </span>
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Phần List chi tiết - Bên phải */}
+        <div className="w-full md:w-2/5 flex flex-col gap-3">
+          {data.map((item) => (
+            <div
+              key={item.trait}
+              className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100"
+            >
+              <div className="flex items-center gap-3">
+                {/* Dấu chấm màu */}
+                <div
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: item.color }}
+                ></div>
+
+                <span className="text-sm font-semibold text-gray-700">
+                  {item.trait}
+                </span>
+              </div>
+
+              {/* Điểm số */}
+              <div className="flex items-center bg-gray-100 px-3 py-1 rounded-md flex-shrink-0">
+                <span
+                  className="text-sm font-bold"
+                  style={{ color: item.color }}
+                >
+                  {item.score.toFixed(0)}%
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -32,81 +32,81 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
     const change = calculateChange(score1, score2);
 
     return (
-      <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 w-1/3">{label}</span>
+      <div className="grid grid-cols-12 gap-4 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0 items-center hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors px-2 rounded-lg">
+        {/* Label */}
+        <div className="col-span-5 text-sm font-semibold text-gray-700 dark:text-gray-200">
+          {label}
+        </div>
 
-        <div className="flex items-center space-x-4 w-2/3">
-          <span className="text-sm text-gray-900 dark:text-gray-100 w-16 text-right">{score1?.toFixed(0) || 'N/A'}</span>
+        {/* Old Score */}
+        <div className="col-span-2 text-sm font-bold text-gray-500 dark:text-gray-400 text-center">
+          {score1?.toFixed(0) || '-'}
+        </div>
 
-          <div className="flex-1 flex items-center justify-center">
-            {change && change.direction !== 'same' && (
-              <span
-                className={`text-xs font-medium ${change.direction === 'increase'
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-red-600 dark:text-red-400'
-                  }`}
-              >
-                {change.direction === 'increase' ? '↑' : '↓'} {change.value.toFixed(0)}
-              </span>
-            )}
+        {/* Change Indicator */}
+        <div className="col-span-3 flex justify-center">
+          {change && change.direction !== 'same' ? (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${change.direction === 'increase'
+                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+              }`}>
+              {change.direction === 'increase' ? '↑' : '↓'} {change.value.toFixed(0)}
+            </span>
+          ) : (
+            <span className="text-xs font-medium text-gray-400">-</span>
+          )}
+        </div>
 
-            {change && change.direction === 'same' && (
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">→ No change</span>
-            )}
-          </div>
-
-          <span className="text-sm text-gray-900 dark:text-gray-100 w-16 text-left">{score2?.toFixed(0) || 'N/A'}</span>
+        {/* New Score */}
+        <div className="col-span-2 text-sm font-bold text-gray-900 dark:text-white text-center">
+          {score2?.toFixed(0) || '-'}
         </div>
       </div>
     );
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#1a1a1a] rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-['Plus_Jakarta_Sans']">
+
+      {/* Modal Container */}
+      <div className="bg-white dark:bg-gray-900 rounded-[32px] shadow-2xl border border-gray-100 dark:border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-fade-in-up">
 
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-[#1a1a1a] border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Assessment Comparison</h3>
-
+        <div className="p-6 md:p-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start bg-white dark:bg-gray-900 sticky top-0 z-10">
+          <div>
+            <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">Compare Results</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">See how your profile has evolved over time.</p>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-white text-2xl"
+            className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400"
           >
-            ×
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Date Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-1/3"></div>
+        {/* Scrollable Content */}
+        <div className="p-6 md:p-8 overflow-y-auto">
 
-            <div className="flex items-center space-x-4 w-2/3">
-              <div className="w-16 text-right">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Earlier</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {formatDate(assessment1.completed_at)}
-                </p>
-              </div>
-
-              <div className="flex-1 text-center">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Change</p>
-              </div>
-
-              <div className="w-16 text-left">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Recent</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {formatDate(assessment2.completed_at)}
-                </p>
-              </div>
+          {/* Comparison Header Grid */}
+          <div className="grid grid-cols-12 gap-4 mb-6 pb-4 border-b-2 border-gray-100 dark:border-gray-800 text-xs font-bold uppercase tracking-wider text-gray-400">
+            <div className="col-span-5">Metric</div>
+            <div className="col-span-2 text-center">
+              {formatDate(assessment1.completed_at)}
+            </div>
+            <div className="col-span-3 text-center">Change</div>
+            <div className="col-span-2 text-center text-green-600 dark:text-green-500">
+              {formatDate(assessment2.completed_at)}
             </div>
           </div>
 
-          {/* RIASEC */}
+          {/* RIASEC Section */}
           {assessment1.riasec_scores && assessment2.riasec_scores && (
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">RIASEC Scores</h4>
+            <div className="mb-8">
+              <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+                RIASEC Scores
+              </h4>
               <div className="space-y-1">
                 {renderScoreComparison("Realistic", assessment1.riasec_scores.realistic, assessment2.riasec_scores.realistic)}
                 {renderScoreComparison("Investigative", assessment1.riasec_scores.investigative, assessment2.riasec_scores.investigative)}
@@ -118,10 +118,13 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
             </div>
           )}
 
-          {/* Big Five */}
+          {/* Big Five Section */}
           {assessment1.big_five_scores && assessment2.big_five_scores && (
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Big Five Personality Traits</h4>
+            <div className="mb-8">
+              <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-purple-500 rounded-full"></span>
+                Big Five Traits
+              </h4>
               <div className="space-y-1">
                 {renderScoreComparison("Openness", assessment1.big_five_scores.openness, assessment2.big_five_scores.openness)}
                 {renderScoreComparison("Conscientiousness", assessment1.big_five_scores.conscientiousness, assessment2.big_five_scores.conscientiousness)}
@@ -132,24 +135,30 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
             </div>
           )}
 
-          {/* Summary */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">Interpretation</h4>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              Changes in scores can reflect personal growth, new experiences, or evolving interests.
-            </p>
+          {/* Summary Box */}
+          <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-2xl p-5 flex gap-4">
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+            <div>
+              <h4 className="font-bold text-blue-900 dark:text-blue-300 text-sm mb-1">Interpretation</h4>
+              <p className="text-sm text-blue-700 dark:text-blue-200 leading-relaxed">
+                Changes in your scores may reflect personal growth, new experiences, or shifts in your interests over time. Small fluctuations are normal.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-50 dark:bg-[#111] px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+        {/* Footer Actions */}
+        <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 flex justify-end sticky bottom-0">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition"
+            className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:opacity-90 transition-opacity shadow-lg"
           >
             Close Comparison
           </button>
         </div>
+
       </div>
     </div>
   );

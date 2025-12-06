@@ -14,6 +14,6 @@ asyncpg
 httpx
 requests
 
-python-multipart==0.0.9
+python-multipart==0.0.12
 
 psycopg[binary]>=3.1

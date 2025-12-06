@@ -64,13 +64,12 @@ const RoadmapTimelineComponent = ({
             <div key={milestone.order} className="relative pl-16">
               {/* Timeline Node */}
               <div
-                className={`absolute left-5 top-2 w-6 h-6 rounded-full border-4 ${
-                  isCompleted
+                className={`absolute left-5 top-2 w-6 h-6 rounded-full border-4 transition-colors ${isCompleted
                     ? 'bg-[#4A7C59] dark:bg-green-600 border-[#E8F5E9] dark:border-green-300'
                     : isCurrent
-                    ? 'bg-[#4A7C59] dark:bg-green-600 border-[#E8DCC8] dark:border-green-300 animate-pulse'
-                    : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
-                }`}
+                      ? 'bg-orange-500 dark:bg-orange-600 border-orange-100 dark:border-orange-900 animate-pulse' // Changed from beige to orange
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
+                  }`}
               >
                 {isCompleted && (
                   <svg
@@ -89,13 +88,12 @@ const RoadmapTimelineComponent = ({
 
               {/* Milestone Card */}
               <div
-                className={`bg-white dark:bg-gray-800 rounded-lg shadow-md border-2 transition-all ${
-                  isCurrent
-                    ? 'border-[#4A7C59] dark:border-green-600 shadow-lg'
+                className={`bg-white dark:bg-gray-800 rounded-lg shadow-md border-2 transition-all ${isCurrent
+                    ? 'border-orange-400 dark:border-orange-500 shadow-lg' // Changed border to orange
                     : isCompleted
-                    ? 'border-[#E8F5E9] dark:border-green-700'
-                    : 'border-gray-200 dark:border-gray-700'
-                }`}
+                      ? 'border-[#E8F5E9] dark:border-green-700'
+                      : 'border-gray-200 dark:border-gray-700'
+                  }`}
               >
                 <div
                   className="p-5 cursor-pointer"
@@ -108,7 +106,7 @@ const RoadmapTimelineComponent = ({
                           Step {milestone.order}
                         </span>
                         {isCurrent && (
-                          <span className="px-2 py-1 bg-[#E8DCC8] dark:bg-green-900/30 text-[#4A7C59] dark:text-green-400 text-xs font-semibold rounded-full">
+                          <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-semibold rounded-full"> {/* Changed to orange */}
                             Current
                           </span>
                         )}
@@ -131,9 +129,8 @@ const RoadmapTimelineComponent = ({
                     </div>
                     <button className="ml-4 text-gray-400 hover:text-gray-600">
                       <svg
-                        className={`w-5 h-5 transition-transform ${
-                          isExpanded ? 'transform rotate-180' : ''
-                        }`}
+                        className={`w-5 h-5 transition-transform ${isExpanded ? 'transform rotate-180' : ''
+                          }`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -204,20 +201,20 @@ const RoadmapTimelineComponent = ({
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
                           <span>Completed on{' '}
-                          {(() => {
-                            const completionTimestamp =
-                              userProgress.milestone_completions?.[milestone.order.toString()];
-                            if (completionTimestamp) {
-                              return new Date(completionTimestamp).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              });
-                            }
-                            return new Date(userProgress.last_updated_at).toLocaleDateString();
-                          })()}
+                            {(() => {
+                              const completionTimestamp =
+                                userProgress.milestone_completions?.[milestone.order.toString()];
+                              if (completionTimestamp) {
+                                return new Date(completionTimestamp).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                });
+                              }
+                              return new Date(userProgress.last_updated_at).toLocaleDateString();
+                            })()}
                           </span>
                         </p>
                       </div>
