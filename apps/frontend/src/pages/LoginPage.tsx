@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import { useAppSettings } from '../contexts/AppSettingsContext';
 import api from '../lib/api';
 
 const LoginPage = () => {
@@ -17,22 +16,19 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [verifyMsg, setVerifyMsg] = useState('');
   const [verifyUrl, setVerifyUrl] = useState<string | null>(null);
-  const [devToken, setDevToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const app = useAppSettings();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setError('');
     setVerifyMsg('');
     setVerifyUrl(null);
-    setDevToken(null);
     setLoading(true);
-
     try {
       const u = await login(email, password);
       if ((u as any)?.role === 'admin') navigate('/admin');
@@ -45,7 +41,6 @@ const LoginPage = () => {
         if (detail?.verification_required || detail?.verificationRequired) {
           setVerifyMsg(detail?.message || 'Please verify your email to continue.');
           setVerifyUrl(detail?.verify_url || detail?.verifyUrl || null);
-          setDevToken(detail?.dev_token || detail?.devToken || null);
           return;
         }
         if (detail?.message) {

@@ -5,7 +5,7 @@ from typing import List
 import numpy as np
 from psycopg_pool import ConnectionPool
 
-from api.config import get_pg_dsn  # helper lấy DATABASE_URL
+from src.api.config import get_pg_dsn  # helper lấy DATABASE_URL
 
 
 @dataclass

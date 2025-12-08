@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { profileService } from '../services/profileService';
 import { ProfileData } from '../types/profile';
 import ProfileInfoSection from '../components/profile/ProfileInfoSection';
@@ -10,7 +9,7 @@ const ProfilePage = () => {
   // ==========================================
   // 1. LOGIC BLOCK (GIỮ NGUYÊN)
   // ==========================================
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Removed unused variable
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

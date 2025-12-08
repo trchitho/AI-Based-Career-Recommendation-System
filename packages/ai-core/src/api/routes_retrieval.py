@@ -15,7 +15,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModel
 
-from ai_core.retrieval.service_pgvector import search_candidates_for_user, Candidate
+from src.ai_core.retrieval.service_pgvector import search_candidates_for_user, Candidate
 
 router = APIRouter(prefix="/search", tags=["retrieval"])
 

@@ -6,9 +6,9 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from ai_core.retrieval.service_pgvector import search_candidates_for_user
-from ai_core.recsys.bandit import FinalItem, recommend_with_bandit
-from ai_core.recsys.service import (
+from src.ai_core.retrieval.service_pgvector import search_candidates_for_user
+from src.ai_core.recsys.bandit import FinalItem, recommend_with_bandit
+from src.ai_core.recsys.service import (
     infer_scores_from_candidates,
 )  # dùng helper cho Candidate objects
 

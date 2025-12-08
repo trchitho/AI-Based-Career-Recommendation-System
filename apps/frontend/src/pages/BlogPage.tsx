@@ -8,9 +8,9 @@ const BlogPage = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [pageSize] = useState(9);
-  const [total, setTotal] = useState(0);
+  // Removed unused 'total' state
 
   const load = async () => {
     setLoading(true);
@@ -18,7 +18,7 @@ const BlogPage = () => {
     try {
       const resp: BlogListResponse = await blogService.list({ page, pageSize });
       setPosts(resp.items || []);
-      setTotal(resp.total || 0);
+      // Removed setTotal since 'total' is unused
     } catch (e: any) {
       setError(e?.response?.data?.detail || e?.message || 'Failed to load posts');
     } finally {
@@ -27,8 +27,6 @@ const BlogPage = () => {
   };
 
   useEffect(() => { load(); }, [page, pageSize]);
-
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   // Create form state omitted for brevity, logic remains same
 

@@ -17,8 +17,10 @@ export const DebugAuthPage: React.FC = () => {
                 // Decode JWT token (base64)
                 const parts = token.split('.');
                 if (parts.length === 3) {
-                    const payload = JSON.parse(atob(parts[1]));
-                    setTokenInfo(payload);
+                    if (typeof parts[1] === 'string') {
+                        const payload = JSON.parse(atob(parts[1]));
+                        setTokenInfo(payload);
+                    }
                 }
             } catch (error) {
                 console.error('Error decoding token:', error);
