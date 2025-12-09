@@ -52,6 +52,26 @@ const TransactionHistoryPage = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
+  const buildRequestFilters = (
+    source: LocalFilters,
+    pagination?: { page?: number; pageSize?: number }
+  ): TransactionFilters => {
+    const payload: TransactionFilters = {};
+
+    if (source.status && source.status !== "all") payload.status = source.status;
+    if (source.paymentMethod && source.paymentMethod !== "all") payload.paymentMethod = source.paymentMethod;
+    if (source.search && source.search.trim()) payload.search = source.search.trim();
+    if (source.userId !== undefined && source.userId !== null && source.userId !== "") {
+      payload.userId = Number(source.userId);
+    }
+    if (source.fromDate) payload.fromDate = source.fromDate;
+    if (source.toDate) payload.toDate = source.toDate;
+    if (pagination?.page !== undefined) payload.page = pagination.page;
+    if (pagination?.pageSize !== undefined) payload.pageSize = pagination.pageSize;
+
+    return payload;
+  };
+
   useEffect(() => {
     loadTransactions();
   }, [appliedFilters, page, pageSize]);
@@ -60,12 +80,7 @@ const TransactionHistoryPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const payload: TransactionFilters = {
-        ...appliedFilters,
-        page,
-        pageSize,
-        userId: appliedFilters.userId ? Number(appliedFilters.userId) : undefined,
-      };
+      const payload = buildRequestFilters(appliedFilters, { page, pageSize });
       const data = await adminService.listTransactions(payload);
       setTransactions(data.items || []);
       setSummary(data.summary || null);
@@ -92,12 +107,8 @@ const TransactionHistoryPage = () => {
   const handleExport = async () => {
     try {
       setExporting(true);
-      const blob = await adminService.exportTransactions({
-        ...appliedFilters,
-        page: 1,
-        pageSize: 2000,
-        userId: appliedFilters.userId ? Number(appliedFilters.userId) : undefined,
-      });
+      const payload = buildRequestFilters(appliedFilters, { page: 1, pageSize: 2000 });
+      const blob = await adminService.exportTransactions(payload);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
