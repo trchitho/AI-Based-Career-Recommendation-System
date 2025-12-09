@@ -1,11 +1,28 @@
+import csv
 import importlib.util as _importlib_util
+import json
 import logging
 import secrets
 from datetime import datetime, timezone
+from io import StringIO
 from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
-from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, Text, func, select, text
+from fastapi.responses import StreamingResponse
+from sqlalchemy import (
+    TIMESTAMP,
+    BigInteger,
+    Column,
+    Integer,
+    Text,
+    case,
+    func,
+    or_,
+    select,
+    text,
+    Table,
+    MetaData,
+)
 from sqlalchemy.orm import Session, registry
 
 from ...core.jwt import require_admin
@@ -21,6 +38,86 @@ router = APIRouter()
 
 def _db(req: Request) -> Session:
     return req.state.db
+
+
+# ----- Helpers -----
+def _parse_date(date_str: str | None, field_name: str) -> datetime | None:
+    if not date_str:
+        return None
+    try:
+        return datetime.fromisoformat(date_str)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid {field_name}. Use ISO 8601 format.")
+
+
+def _enum_to_str(value):
+    return value.value if hasattr(value, "value") else str(value)
+
+
+def _payment_to_dict(
+    payment_row: dict,
+    email: str | None = None,
+    full_name: str | None = None,
+    include_callback: bool = False,
+) -> dict:
+    """
+    Convert payment row (dict-like) to response shape.
+    Uses `transaction_id` as order_id fallback for legacy schemas without order_id.
+    """
+    if hasattr(payment_row, "_mapping"):
+        p = dict(payment_row._mapping)
+    elif isinstance(payment_row, dict):
+        p = payment_row
+    else:
+        p = getattr(payment_row, "__dict__", {}) or {}
+    amount_val = p.get("amount")
+    try:
+        amount_val = int(amount_val) if amount_val is not None else None
+    except Exception:
+        amount_val = amount_val
+
+    data = {
+        "id": p.get("id"),
+        "user_id": p.get("user_id"),
+        "order_id": p.get("order_id") or p.get("transaction_id"),
+        "app_trans_id": p.get("app_trans_id"),
+        "amount": amount_val,
+        "currency": p.get("currency") or "VND",
+        "description": p.get("description"),
+        "payment_method": _enum_to_str(p.get("payment_method")),
+        "status": _enum_to_str(p.get("status")),
+        "order_url": p.get("order_url"),
+        "zp_trans_token": p.get("zp_trans_token"),
+        "created_at": p.get("created_at").isoformat() if p.get("created_at") else None,
+        "paid_at": p.get("paid_at").isoformat() if p.get("paid_at") else None,
+        "updated_at": p.get("updated_at").isoformat() if p.get("updated_at") else None,
+        "user": {
+            "id": p.get("user_id"),
+            "email": email,
+            "full_name": full_name,
+        }
+        if email or full_name
+        else None,
+    }
+
+    if include_callback:
+        parsed_callback = None
+        raw_cb = p.get("callback_data") or p.get("payment_gateway_response")
+        if raw_cb:
+            try:
+                parsed_callback = json.loads(raw_cb)
+            except Exception:
+                parsed_callback = raw_cb
+        data["callback_data"] = parsed_callback
+    return data
+
+
+def _payments_table(session: Session) -> Table:
+    """
+    Reflect payments table (legacy-friendly) from DB.
+    """
+    metadata = MetaData()
+    return Table("payments", metadata, schema="core", autoload_with=session.bind)
 
 
 # ----- Dashboard & AI metrics -----
@@ -81,6 +178,283 @@ def ai_metrics(request: Request):
             "neuroticism": "0%",
         },
     }
+
+
+# ----- Transactions / Payments (admin) -----
+@router.get("/transactions")
+def list_transactions(
+    request: Request,
+    status: str | None = Query(None, description="pending/success/failed/cancelled"),
+    paymentMethod: str | None = Query(None, description="zalopay/momo/vnpay"),
+    search: str | None = Query(None, description="order id, app trans id, email"),
+    userId: int | None = Query(None, ge=1),
+    fromDate: str | None = Query(None, description="ISO start date"),
+    toDate: str | None = Query(None, description="ISO end date"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    _ = require_admin(request)
+    session = _db(request)
+
+    start_dt = _parse_date(fromDate, "fromDate")
+    end_dt = _parse_date(toDate, "toDate")
+
+    payments = _payments_table(session)
+    user_tbl = User.__table__
+    payment_cols = set(payments.c.keys())
+    payment_cols = set(payments.c.keys())
+
+    filters = []
+    if status:
+        status_val = status.lower()
+        filters.append(func.lower(payments.c.status) == status_val)
+    if paymentMethod:
+        filters.append(func.lower(payments.c.payment_method) == paymentMethod.lower())
+    if userId:
+        filters.append(payments.c.user_id == userId)
+    if start_dt:
+        filters.append(payments.c.created_at >= start_dt)
+    if end_dt:
+        filters.append(payments.c.created_at <= end_dt)
+    if search:
+        like = f"%{search.lower()}%"
+        search_filters = [
+            func.lower(func.coalesce(payments.c.transaction_id, "")).like(like),
+            func.lower(user_tbl.c.email).like(like),
+            func.lower(func.coalesce(user_tbl.c.full_name, "")).like(like),
+        ]
+        if "order_id" in payment_cols:
+            search_filters.append(func.lower(func.coalesce(payments.c.order_id, "")).like(like))
+        if "app_trans_id" in payment_cols:
+            search_filters.append(func.lower(func.coalesce(payments.c.app_trans_id, "")).like(like))
+        if "description" in payment_cols:
+            search_filters.append(func.lower(func.coalesce(payments.c.description, "")).like(like))
+        if "payment_gateway_response" in payment_cols:
+            search_filters.append(func.lower(func.coalesce(payments.c.payment_gateway_response.cast(Text), "")).like(like))
+        filters.append(or_(*search_filters))
+
+    base_stmt = select(
+        payments,
+        user_tbl.c.email.label("email"),
+        user_tbl.c.full_name.label("full_name"),
+    ).select_from(payments.join(user_tbl, user_tbl.c.id == payments.c.user_id))
+    if filters:
+        base_stmt = base_stmt.where(*filters)
+
+    total = session.execute(select(func.count()).select_from(base_stmt.subquery())).scalar() or 0
+
+    rows = session.execute(
+        base_stmt.order_by(payments.c.created_at.desc()).limit(limit).offset(offset)
+    ).all()
+
+    items = []
+    for row in rows:
+        mapping = row._mapping
+        payment_dict = {col.name: mapping[col.name] for col in payments.c if col.name in mapping}
+        items.append(_payment_to_dict(payment_dict, email=mapping.get("email"), full_name=mapping.get("full_name")))
+
+    summary_stmt = select(
+        func.coalesce(func.sum(payments.c.amount), 0).label("total_amount"),
+        func.coalesce(
+            func.sum(case((func.lower(payments.c.status) == "success", payments.c.amount), else_=0)),
+            0,
+        ).label("success_amount"),
+        func.coalesce(func.sum(case((func.lower(payments.c.status) == "success", 1), else_=0)), 0).label(
+            "success_count"
+        ),
+        func.coalesce(func.sum(case((func.lower(payments.c.status) == "pending", 1), else_=0)), 0).label(
+            "pending_count"
+        ),
+        func.coalesce(func.sum(case((func.lower(payments.c.status) == "failed", 1), else_=0)), 0).label(
+            "failed_count"
+        ),
+        func.coalesce(func.sum(case((func.lower(payments.c.status) == "cancelled", 1), else_=0)), 0).label(
+            "cancelled_count"
+        ),
+    ).select_from(payments.join(user_tbl, user_tbl.c.id == payments.c.user_id))
+
+    if filters:
+        summary_stmt = summary_stmt.where(*filters)
+
+    summary_row = session.execute(summary_stmt).mappings().first() or {}
+
+    return {
+        "items": items,
+        "total": int(total),
+        "limit": limit,
+        "offset": offset,
+        "summary": {
+            "totalAmount": int(summary_row.get("total_amount") or 0),
+            "successAmount": int(summary_row.get("success_amount") or 0),
+            "successCount": int(summary_row.get("success_count") or 0),
+            "pendingCount": int(summary_row.get("pending_count") or 0),
+            "failedCount": int(summary_row.get("failed_count") or 0),
+            "cancelledCount": int(summary_row.get("cancelled_count") or 0),
+            "currency": "VND",
+        },
+    }
+
+
+@router.get("/transactions/export")
+def export_transactions(
+    request: Request,
+    status: str | None = Query(None),
+    paymentMethod: str | None = Query(None),
+    search: str | None = Query(None),
+    userId: int | None = Query(None, ge=1),
+    fromDate: str | None = Query(None),
+    toDate: str | None = Query(None),
+    limit: int = Query(1000, ge=1, le=5000),
+    offset: int = Query(0, ge=0),
+):
+    _ = require_admin(request)
+    session = _db(request)
+
+    start_dt = _parse_date(fromDate, "fromDate")
+    end_dt = _parse_date(toDate, "toDate")
+    payments = _payments_table(session)
+    user_tbl = User.__table__
+
+    filters = []
+    if status:
+        filters.append(func.lower(payments.c.status) == status.lower())
+    if paymentMethod:
+        filters.append(func.lower(payments.c.payment_method) == paymentMethod.lower())
+    if userId:
+        filters.append(payments.c.user_id == userId)
+    if start_dt:
+        filters.append(payments.c.created_at >= start_dt)
+    if end_dt:
+        filters.append(payments.c.created_at <= end_dt)
+    if search:
+        like = f"%{search.lower()}%"
+        search_filters = [
+            func.lower(func.coalesce(payments.c.transaction_id, "")).like(like),
+            func.lower(user_tbl.c.email).like(like),
+            func.lower(func.coalesce(user_tbl.c.full_name, "")).like(like),
+        ]
+        if "order_id" in payment_cols:
+            search_filters.append(func.lower(func.coalesce(payments.c.order_id, "")).like(like))
+        if "app_trans_id" in payment_cols:
+            search_filters.append(func.lower(func.coalesce(payments.c.app_trans_id, "")).like(like))
+        if "description" in payment_cols:
+            search_filters.append(func.lower(func.coalesce(payments.c.description, "")).like(like))
+        if "payment_gateway_response" in payment_cols:
+            search_filters.append(func.lower(func.coalesce(payments.c.payment_gateway_response.cast(Text), "")).like(like))
+        filters.append(or_(*search_filters))
+
+    stmt = (
+        select(payments, user_tbl.c.email.label("email"), user_tbl.c.full_name.label("full_name"))
+        .join(user_tbl, user_tbl.c.id == payments.c.user_id)
+        .order_by(payments.c.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    if filters:
+        stmt = stmt.where(*filters)
+
+    rows = session.execute(stmt).all()
+
+    csv_buffer = StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(
+        [
+            "transaction_id",
+            "user_email",
+            "user_full_name",
+            "amount",
+            "currency",
+            "status",
+            "payment_method",
+            "created_at",
+            "updated_at",
+            "payment_gateway_response",
+        ]
+    )
+
+    for row in rows:
+        mapping = row._mapping
+        payment = {col.name: mapping[col.name] for col in payments.c if col.name in mapping}
+        writer.writerow(
+            [
+                payment.get("transaction_id") or payment.get("order_id") or "",
+                mapping.get("email") or "",
+                mapping.get("full_name") or "",
+                payment.get("amount") or 0,
+                payment.get("currency") or "VND",
+                _enum_to_str(payment.get("status")),
+                _enum_to_str(payment.get("payment_method")),
+                payment.get("created_at").isoformat() if payment.get("created_at") else "",
+                payment.get("updated_at").isoformat() if payment.get("updated_at") else "",
+                (payment.get("payment_gateway_response") or ""),
+            ]
+        )
+
+    filename = f"transactions_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+    csv_buffer.seek(0)
+    return StreamingResponse(
+        iter([csv_buffer.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/transactions/{order_id}")
+def get_transaction(request: Request, order_id: str):
+    _ = require_admin(request)
+    session = _db(request)
+    payments = _payments_table(session)
+    user_tbl = User.__table__
+    payment_cols = set(payments.c.keys())
+    order_col = payments.c.get("order_id") if hasattr(payments.c, "get") else None
+    app_col = payments.c.get("transaction_id") if hasattr(payments.c, "get") else None
+    stmt = (
+        select(payments, user_tbl.c.email.label("email"), user_tbl.c.full_name.label("full_name"))
+        .join(user_tbl, user_tbl.c.id == payments.c.user_id)
+        .where(
+            or_(
+                app_col == order_id if app_col is not None else False,
+                order_col == order_id if order_col is not None else False,
+            )
+        )
+        .limit(1)
+    )
+    row = session.execute(stmt).mappings().first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    payment = {col.name: row.get(col.name) for col in payments.c if col.name in row}
+    return {"transaction": _payment_to_dict(payment, email=row.get("email"), full_name=row.get("full_name"), include_callback=True)}
+
+
+@router.delete("/transactions/{order_id}")
+def delete_transaction(request: Request, order_id: str):
+    """
+    Delete a transaction by transaction_id or order_id (legacy).
+    """
+    _ = require_admin(request)
+    session = _db(request)
+    payments = _payments_table(session)
+
+    order_col = payments.c.get("order_id") if hasattr(payments.c, "get") else None
+    txn_col = payments.c.get("transaction_id") if hasattr(payments.c, "get") else None
+
+    if txn_col is None and order_col is None:
+        raise HTTPException(status_code=400, detail="Payments schema missing identifier columns")
+
+    filters = []
+    if txn_col is not None:
+        filters.append(txn_col == order_id)
+    if order_col is not None:
+        filters.append(order_col == order_id)
+
+    stmt = payments.delete().where(or_(*filters))
+    result = session.execute(stmt)
+    session.commit()
+
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return {"status": "deleted", "deleted": int(result.rowcount)}
+
 
 
 @router.get("/feedback")

@@ -25,34 +25,29 @@ class PaymentMethod(str, enum.Enum):
 
 
 class Payment(Base):
-    """Model thanh toán"""
+    """
+    Payment model aligned with current DB schema (core.payments).
+    Legacy fields like order_id/app_trans_id/order_url are not present in DB,
+    so we map against transaction_id and payment_gateway_response.
+    """
     __tablename__ = "payments"
     __table_args__ = {"schema": "core"}
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False, index=True)
-    
-    # Thông tin đơn hàng
-    order_id = Column(String(100), unique=True, nullable=False, index=True)
-    app_trans_id = Column(String(100), unique=True, nullable=True, index=True)
-    
-    # Thông tin thanh toán
+
+    # Current schema columns
+    subscription_id = Column(Integer, nullable=True)
+    payment_method = Column(String(50), default=PaymentMethod.ZALOPAY.value)
     amount = Column(Integer, nullable=False)
-    description = Column(Text, nullable=True)
-    payment_method = Column(SQLEnum(PaymentMethod), default=PaymentMethod.ZALOPAY)
-    status = Column(SQLEnum(PaymentStatus), default=PaymentStatus.PENDING, index=True)
-    
-    # Thông tin từ gateway
-    zp_trans_token = Column(String(255), nullable=True)
-    order_url = Column(Text, nullable=True)
-    
-    # Callback data
-    callback_data = Column(Text, nullable=True)
-    
+    currency = Column(String(10), default="VND")
+    status = Column(String(50), default=PaymentStatus.PENDING.value, index=True)
+    transaction_id = Column(String(200), unique=True, nullable=False, index=True)
+    payment_gateway_response = Column(Text, nullable=True)
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    paid_at = Column(DateTime, nullable=True)
-    
+
     def __repr__(self):
-        return f"<Payment {self.order_id} - {self.status}>"
+        return f"<Payment {self.transaction_id} - {self.status}>"
