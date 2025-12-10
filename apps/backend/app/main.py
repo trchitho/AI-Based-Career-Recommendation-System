@@ -258,7 +258,14 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("??  Skip subscription router:", repr(e))
 
-    return app
+    # CV Builder
+    try:
+        from .modules.cv import routes_cv as cv_router
+
+        app.include_router(cv_router.router, tags=["cv"])
+    except Exception as e:
+        print("??  Skip CV router:", repr(e))
+
     # Analytics tracking
     try:
         from .modules.analytics import routes_tracking as tracking_router

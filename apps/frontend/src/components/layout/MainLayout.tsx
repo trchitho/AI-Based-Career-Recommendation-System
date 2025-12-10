@@ -23,6 +23,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // State cho Mobile Menu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
   // Xử lý click ra ngoài để đóng dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,6 +43,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
     { to: "/assessment", label: "Assessment" },
+    { to: "/cv", label: "CV Builder" },
     { to: "/blog", label: "Blog" },
     { to: "/careers", label: "Careers" },
     { to: "/pricing", label: "Pricing" },
@@ -62,16 +67,38 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       `}</style>
 
       {/* HEADER */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 h-[72px] transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
+      <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex justify-between items-center">
 
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <AppLogo />
+          {/* Logo + Hamburger Button */}
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0">
+              <AppLogo />
+            </div>
+
+            {/* Hamburger Button (Mobile - hiện từ 816px trở xuống) */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <svg
+                className="w-6 h-6 text-gray-600 dark:text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
 
-          {/* Menu chính giữa (Desktop) */}
-          <nav className="hidden md:flex items-center gap-8">
+          {/* Menu chính giữa (Desktop - ẩn từ 816px trở xuống) */}
+          <nav className="hidden lg:flex items-center gap-8">
             {navLinks.map((item) => (
               <NavLink
                 key={item.to}
@@ -177,7 +204,53 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             </div>
           </div>
         </div>
+
       </header>
+
+      {/* Mobile Menu Dropdown - Nằm bên ngoài header, dưới header */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden sticky top-[72px] z-40 w-full bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-lg">
+          <nav className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-2">
+            {navLinks.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `px-4 py-3 rounded-lg text-[15px] font-semibold transition-colors duration-200 ${isActive
+                    ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
+                    : "text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+
+            {/* Admin link trong mobile menu */}
+            {isAdmin && (
+              <NavLink
+                to="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="px-4 py-3 rounded-lg text-[15px] font-semibold text-green-700 bg-green-50 dark:bg-green-900/20 dark:text-green-400 border border-green-200 dark:border-green-800"
+              >
+                Admin Panel
+              </NavLink>
+            )}
+
+            {/* Login/Logout trong mobile menu */}
+            {!user && (
+              <NavLink
+                to="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="px-4 py-3 rounded-lg text-[15px] font-semibold text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                {t('auth.signIn')}
+              </NavLink>
+            )}
+          </nav>
+        </div>
+      )}
 
       {/* PAGE CONTENT */}
       <main className="relative z-10 flex-1 w-full">

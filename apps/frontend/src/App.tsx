@@ -28,6 +28,8 @@ import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import { PaymentPage } from './pages/PaymentPage';
 import DebugAuthPage from './pages/DebugAuthPage';
 import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
+import CVListPage from './pages/CVListPage';
+import CVBuilderPage from './pages/CVBuilderPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -162,6 +164,30 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RoadmapPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cv"
+                element={
+                  <ProtectedRoute>
+                    <CVListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cv/builder"
+                element={
+                  <ProtectedRoute>
+                    <CVBuilderPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cv/builder/:id"
+                element={
+                  <ProtectedRoute>
+                    <CVBuilderPage />
                   </ProtectedRoute>
                 }
               />

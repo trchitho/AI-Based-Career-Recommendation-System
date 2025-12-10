@@ -80,8 +80,15 @@ def google_callback(request: Request, code: str | None = None, state: str | None
         data=data,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        token_payload = json.loads(resp.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            token_payload = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8") if e.fp else "No error details"
+        raise HTTPException(
+            status_code=400,
+            detail=f"Google token exchange failed: {e.code} - {error_body}. The authorization code may have expired or been used already. Please try logging in again.",
+        )
 
     access_token = token_payload.get("access_token")
     if not access_token:

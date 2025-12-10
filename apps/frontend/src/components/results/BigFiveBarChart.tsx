@@ -78,8 +78,8 @@ const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
               {/* Thanh Background màu xám nhạt */}
               <Bar
                 dataKey="score"
-                radius={[0, 4, 4, 0]}
-                background={{ fill: '#F3F4F6', radius: [0, 4, 4, 0] }}
+                radius={4}
+                background={{ fill: '#F3F4F6', radius: 4 }}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
