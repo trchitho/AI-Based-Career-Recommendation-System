@@ -13,6 +13,7 @@ from typing import Any, Iterable
 import httpx
 import psycopg
 from dotenv import load_dotenv
+from psycopg import Connection, sql
 from psycopg.rows import dict_row
 
 from ..services.onetsvc import OnetService
@@ -22,12 +23,6 @@ DOTENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(DOTENV_PATH, override=True)
 
 DB_URL = os.getenv("DATABASE_URL")
-
-
-from psycopg import Connection, sql
-
-from apps.backend.app.services.onetsvc import get_onet_service  # factory bạn đã có
-# Removed unused imports from apps.backend.app.etl.online_parsers
 
 # --- UPSERT cho 4 bảng Online ---
 
@@ -155,7 +150,7 @@ def _today() -> date:
     return date.today()
 
 
-def _safe_get(dct, *keys, default=None):
+def _safe_get(dct: Any, *keys: str, default: Any = None) -> Any:
     cur = dct or {}
     for k in keys:
         if isinstance(cur, dict) and k in cur:
@@ -165,7 +160,19 @@ def _safe_get(dct, *keys, default=None):
     return cur
 
 
-def _as_list(x):
+def _safe_str(val: Any) -> str:
+    """Convert arbitrary value to string safely; fallback to empty."""
+    if val is None:
+        return ""
+    if isinstance(val, str):
+        return val
+    try:
+        return str(val)
+    except Exception:
+        return ""
+
+
+def _as_list(x: Any) -> list[Any]:
     if x is None:
         return []
     if isinstance(x, list):
@@ -240,9 +247,19 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
     edu_obj = svc.get_education(code)
     out_obj = svc.get_outlook(code)
 
+    # Ensure downstream accessors always see dictionaries
+    ov_obj = ov_obj if isinstance(ov_obj, dict) else {}
+    kn_obj = kn_obj if isinstance(kn_obj, dict) else {}
+    sk_obj = sk_obj if isinstance(sk_obj, dict) else {}
+    ab_obj = ab_obj if isinstance(ab_obj, dict) else {}
+    pers_obj = pers_obj if isinstance(pers_obj, dict) else {}
+    tech_obj = tech_obj if isinstance(tech_obj, dict) else {}
+    edu_obj = edu_obj if isinstance(edu_obj, dict) else {}
+    out_obj = out_obj if isinstance(out_obj, dict) else {}
+
     # --- 2) Normalize (header) ---
-    title_en = (ov_obj.get("title") or "").strip()
-    short_desc = (ov_obj.get("what_they_do") or "").strip()
+    title_en = _safe_str(ov_obj.get("title")).strip()
+    short_desc = _safe_str(ov_obj.get("what_they_do")).strip()
 
     # ===================== Tasks (đảm bảo đủ 5) =====================
     MIN_TASKS, MAX_TASKS = 5, 5
@@ -361,35 +378,53 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
     # =================== Technology ===================
     tech_items: list[tuple[str, str, bool]] = []
     for cat in _as_list(tech_obj.get("category")):
-        cat_name = _safe_get(cat, "title", "name", default="").strip()
+        if not isinstance(cat, dict):
+            continue
+        cat_name = _safe_str(_safe_get(cat, "title", "name", default="")).strip()
         for ex in _as_list(cat.get("example")):
-            ex_name = (ex.get("name") or "").strip()
-            hot = bool(ex.get("hot_technology"))
+            if isinstance(ex, dict):
+                ex_name = _safe_str(ex.get("name")).strip()
+                hot = bool(ex.get("hot_technology"))
+            else:
+                ex_name = _safe_str(ex).strip()
+                hot = False
             if ex_name:
                 tech_items.append((cat_name, ex_name, hot))
 
     # =================== KSAs (group -> element; MNM thường không có ratings) ===================
     know_items: list[tuple[str, str, float | None, float | None]] = []
     for grp in _as_list(kn_obj.get("group")):
-        grp_name = _safe_get(grp, "title", "name", default="").strip()
+        if not isinstance(grp, dict):
+            continue
+        grp_name = _safe_str(_safe_get(grp, "title", "name", default="")).strip()
         for el in _as_list(grp.get("element")):
-            name = (el.get("name") or "").strip()
+            if not isinstance(el, dict):
+                continue
+            name = _safe_str(el.get("name")).strip()
             if name:
                 know_items.append((name, grp_name, None, None))
 
     skill_items: list[tuple[str, str, float | None, float | None]] = []
     for grp in _as_list(sk_obj.get("group")):
-        grp_name = _safe_get(grp, "title", "name", default="").strip()
+        if not isinstance(grp, dict):
+            continue
+        grp_name = _safe_str(_safe_get(grp, "title", "name", default="")).strip()
         for el in _as_list(grp.get("element")):
-            name = (el.get("name") or "").strip()
+            if not isinstance(el, dict):
+                continue
+            name = _safe_str(el.get("name")).strip()
             if name:
                 skill_items.append((name, grp_name, None, None))
 
     abil_items: list[tuple[str, str, float | None, float | None]] = []
     for grp in _as_list(ab_obj.get("group")):
-        grp_name = _safe_get(grp, "title", "name", default="").strip()
+        if not isinstance(grp, dict):
+            continue
+        grp_name = _safe_str(_safe_get(grp, "title", "name", default="")).strip()
         for el in _as_list(grp.get("element")):
-            name = (el.get("name") or "").strip()
+            if not isinstance(el, dict):
+                continue
+            name = _safe_str(el.get("name")).strip()
             if name:
                 abil_items.append((name, grp_name, None, None))
 
@@ -404,20 +439,20 @@ def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -
                     parts.append(it)
             return "; ".join(p.strip() for p in parts if p and p.strip())
         if isinstance(v, dict) and v.get("text"):
-            return v["text"]
-        return v or ""
+            return _safe_str(v.get("text"))
+        return _safe_str(v)
 
-    job_zone = _safe_get(edu_obj, "job_zone", "title") or edu_obj.get("job_zone") or None
-    education = _join_text_list(edu_obj.get("education"))
-    training = _join_text_list(edu_obj.get("training"))
+    job_zone = _safe_str(_safe_get(edu_obj, "job_zone", "title") or edu_obj.get("job_zone")).strip() or None
+    education = _safe_str(_join_text_list(edu_obj.get("education"))).strip()
+    training = _safe_str(_join_text_list(edu_obj.get("training"))).strip()
 
     # =================== Outlook ===================
-    growth_label = _safe_get(out_obj, "growth", "text") or out_obj.get("growth") or ""
+    growth_label = _safe_str(_safe_get(out_obj, "growth", "text") or out_obj.get("growth")).strip()
     openings_est = _parse_int(_safe_get(out_obj, "openings", "text") or out_obj.get("openings"))
-    outlook_md = out_obj.get("summary") or ""
+    outlook_md = _safe_str(out_obj.get("summary")).strip()
 
     # =================== Interests (top_interest -> one-hot) ===================
-    top_interest_title = _safe_get(pers_obj, "top_interest", "title")
+    top_interest_title = _safe_str(_safe_get(pers_obj, "top_interest", "title")).strip() or None
     riasec = _riasec_one_hot(top_interest_title)  # (r,i,a,s,e,c) hoặc None
 
     today = _today()

@@ -203,35 +203,28 @@ CREATE TABLE core.payments
     user_id BIGINT NOT NULL REFERENCES core.users(id)
         ON UPDATE NO ACTION
         ON DELETE CASCADE,
-    order_id VARCHAR(100) NOT NULL,
-    app_trans_id VARCHAR(100),
+    subscription_id INTEGER REFERENCES core.subscription_plans(id),
     amount INTEGER NOT NULL,
-    description TEXT,
-    payment_method VARCHAR(20) DEFAULT 'zalopay',
+    payment_method VARCHAR(50) DEFAULT 'zalopay',
+    currency VARCHAR(10) DEFAULT 'VND',
     status VARCHAR(20) DEFAULT 'pending',
-    zp_trans_token VARCHAR(255),
-    order_url TEXT,
-    callback_data TEXT,
+    transaction_id VARCHAR(200) NOT NULL UNIQUE,
+    payment_gateway_response TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    paid_at TIMESTAMPTZ,
-    CONSTRAINT payments_app_trans_id_key UNIQUE (app_trans_id),
-    CONSTRAINT payments_order_id_key UNIQUE (order_id)
+    paid_at TIMESTAMPTZ
 );
-
-CREATE INDEX IF NOT EXISTS idx_payments_app_trans_id
-    ON core.payments (app_trans_id);
 
 CREATE INDEX IF NOT EXISTS idx_payments_created_at
     ON core.payments (created_at DESC);
-
-CREATE INDEX IF NOT EXISTS idx_payments_order_id
-    ON core.payments (order_id);
 
 CREATE INDEX IF NOT EXISTS idx_payments_status
     ON core.payments (status);
 
 CREATE INDEX IF NOT EXISTS idx_payments_user_id
     ON core.payments (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_payments_subscription_id
+    ON core.payments (subscription_id);
 
 COMMIT;

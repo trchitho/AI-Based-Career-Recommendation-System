@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from loguru import logger
 
@@ -33,7 +34,8 @@ def get_zalopay_service() -> ZaloPayService:
         key2=os.getenv("ZALOPAY_KEY2", "kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz"),
         endpoint=os.getenv("ZALOPAY_ENDPOINT", "https://sb-openapi.zalopay.vn/v2/create"),
         callback_url=os.getenv("ZALOPAY_CALLBACK_URL", "http://localhost:8000/api/payment/callback"),
-        redirect_url=os.getenv("ZALOPAY_REDIRECT_URL", "http://localhost:5173/payment"),
+        # Mặc định redirect về backend để tự query cập nhật trạng thái; FE có thể override env này
+        redirect_url=os.getenv("ZALOPAY_REDIRECT_URL", "http://localhost:8000/api/payment/redirect"),
     )
 
 
@@ -91,11 +93,15 @@ def create_payment(
     payment.payment_gateway_response = json.dumps(result)
 
     if result.get("success"):
+        # ZaloPay trả app_trans_id (format yymmdd_orderid); dùng làm transaction_id để query later
+        app_trans_id = result.get("app_trans_id") or transaction_id
+        payment.transaction_id = app_trans_id
         payment.status = PaymentStatus.PENDING.value
         db.commit()
+        db.refresh(payment)
         return PaymentCreateResponse(
             success=True,
-            order_id=transaction_id,
+            order_id=payment.transaction_id,
             order_url=result.get("order_url"),
         )
     else:
@@ -229,6 +235,47 @@ def query_payment(
         status=payment.status,
         payment=_payment_response(payment),
     )
+
+
+@router.get("/redirect", response_class=HTMLResponse, include_in_schema=False)
+def payment_redirect(
+    apptransid: str | None = None,
+    order_id: str | None = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Điểm redirect sau khi thanh toán. Tự động query trạng thái và cập nhật DB.
+    """
+    app_trans_id = apptransid or order_id
+    if not app_trans_id:
+        return HTMLResponse("<h3>Thiếu apptransid/order_id</h3>", status_code=400)
+
+    payment = db.query(Payment).filter(Payment.transaction_id == app_trans_id).first()
+    zalopay = get_zalopay_service()
+    result = zalopay.query_order(app_trans_id)
+    status_result = result.get("status", "unknown")
+
+    if payment:
+        if status_result == "success":
+            payment.status = PaymentStatus.SUCCESS.value
+        elif status_result == "cancelled":
+            payment.status = PaymentStatus.CANCELLED.value
+        elif status_result in ["failed", "error"]:
+            payment.status = PaymentStatus.FAILED.value
+        elif status_result == "pending":
+            payment.status = PaymentStatus.PENDING.value
+        db.commit()
+        db.refresh(payment)
+
+    # Redirect về trang chủ/FE kèm status + app_trans_id
+    return_url = (
+        os.getenv("PAYMENT_RETURN_URL")
+        or os.getenv("FRONTEND_URL")
+        or "http://localhost:3000/home"
+    )
+    sep = "&" if "?" in return_url else "?"
+    target = f"{return_url}{sep}status={status_result}&apptransid={app_trans_id}"
+    return RedirectResponse(target)
 
 
 @router.get("/history", response_model=List[PaymentResponse])
