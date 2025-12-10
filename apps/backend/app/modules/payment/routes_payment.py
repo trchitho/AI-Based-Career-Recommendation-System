@@ -41,12 +41,13 @@ def get_zalopay_service() -> ZaloPayService:
 
 def _payment_response(payment: Payment) -> PaymentResponse:
     """
-    Build PaymentResponse ensuring order_id compatibility (mapped from transaction_id).
+    Build PaymentResponse ensuring order_id compatibility (mapped from app_trans_id).
     """
+    app_trans_id = getattr(payment, "app_trans_id") or getattr(payment, "order_id")
     return PaymentResponse(
         id=getattr(payment, "id"),
-        order_id=getattr(payment, "transaction_id"),
-        transaction_id=getattr(payment, "transaction_id"),
+        order_id=app_trans_id,
+        transaction_id=app_trans_id,
         amount=getattr(payment, "amount"),
         description=getattr(payment, "description", None),
         status=getattr(payment, "status"),
@@ -63,19 +64,17 @@ def create_payment(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Create a new payment (transaction_id used as order_id for compatibility)
-    """
+    """Create a new payment"""
     user_id = current_user["user_id"]
-    transaction_id = f"TX_{user_id}_{int(datetime.utcnow().timestamp())}"
+    order_id = f"TX_{user_id}_{int(datetime.utcnow().timestamp())}"
 
     payment = Payment(
         user_id=user_id,
-        transaction_id=transaction_id,
+        order_id=order_id,
         amount=payment_req.amount,
         payment_method=payment_req.payment_method.value if isinstance(payment_req.payment_method, PaymentMethod) else payment_req.payment_method,
         status=PaymentStatus.PENDING.value,
-        currency="VND",
+        description=payment_req.description,
     )
 
     db.add(payment)
@@ -87,21 +86,22 @@ def create_payment(
         amount=payment_req.amount,
         description=payment_req.description,
         user_id=user_id,
-        order_id=transaction_id,
+        order_id=order_id,
     )
 
-    payment.payment_gateway_response = json.dumps(result)
+    payment.order_url = result.get("order_url")
+    payment.zp_trans_token = result.get("zp_trans_token")
 
     if result.get("success"):
         # ZaloPay trả app_trans_id (format yymmdd_orderid); dùng làm transaction_id để query later
-        app_trans_id = result.get("app_trans_id") or transaction_id
-        payment.transaction_id = app_trans_id
+        app_trans_id = result.get("app_trans_id") or f"{datetime.utcnow().strftime('%y%m%d')}_{order_id}"
+        payment.app_trans_id = app_trans_id
         payment.status = PaymentStatus.PENDING.value
         db.commit()
         db.refresh(payment)
         return PaymentCreateResponse(
             success=True,
-            order_id=payment.transaction_id,
+            order_id=payment.app_trans_id or payment.order_id,
             order_url=result.get("order_url"),
         )
     else:
@@ -109,7 +109,7 @@ def create_payment(
         db.commit()
         return PaymentCreateResponse(
             success=False,
-            order_id=transaction_id,
+            order_id=order_id,
             message=result.get("message", "Tạo đơn hàng thất bại"),
         )
 
@@ -144,19 +144,20 @@ async def payment_callback(
             return {"return_code": -1, "return_message": "Invalid MAC"}
 
         data = json.loads(callback_data["data"])
-        transaction_id = data.get("app_trans_id") or data.get("transaction_id")
+        app_trans_id = data.get("app_trans_id")
 
-        payment = db.query(Payment).filter(Payment.transaction_id == transaction_id).first()
+        payment = db.query(Payment).filter(Payment.app_trans_id == app_trans_id).first()
 
         if not payment:
-            logger.error(f"Payment not found: {transaction_id}")
+            logger.error(f"Payment not found: {app_trans_id}")
             return {"return_code": -1, "return_message": "Payment not found"}
 
         payment.status = PaymentStatus.SUCCESS.value
-        payment.payment_gateway_response = json.dumps(callback_data)
+        payment.callback_data = json.dumps(callback_data)
+        payment.paid_at = datetime.utcnow()
         db.commit()
 
-        logger.info(f"Payment {payment.transaction_id} marked as SUCCESS")
+        logger.info(f"Payment {payment.app_trans_id} marked as SUCCESS")
 
         return {"return_code": 1, "return_message": "success"}
 
@@ -172,12 +173,12 @@ def query_payment(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Query payment status (uses transaction_id)
+    Query payment status (uses app_trans_id hoặc order_id)
     """
     user_id = current_user["user_id"]
 
     payment = db.query(Payment).filter(
-        Payment.transaction_id == order_id,
+        (Payment.app_trans_id == order_id) | (Payment.order_id == order_id),
         Payment.user_id == user_id,
     ).first()
 
@@ -195,7 +196,8 @@ def query_payment(
         )
 
     zalopay = get_zalopay_service()
-    result = zalopay.query_order(payment.transaction_id)
+    app_trans_id = payment.app_trans_id or payment.order_id
+    result = zalopay.query_order(app_trans_id)
 
     logger.info(f"Query result for {order_id}: {result}")
 
@@ -204,6 +206,7 @@ def query_payment(
     if result_status == "success":
         payment.status = PaymentStatus.SUCCESS.value
         db.commit()
+        payment.paid_at = datetime.utcnow()
         logger.info(f"Payment {order_id} updated to SUCCESS")
     elif result_status == "cancelled":
         payment.status = PaymentStatus.CANCELLED.value
@@ -250,7 +253,7 @@ def payment_redirect(
     if not app_trans_id:
         return HTMLResponse("<h3>Thiếu apptransid/order_id</h3>", status_code=400)
 
-    payment = db.query(Payment).filter(Payment.transaction_id == app_trans_id).first()
+    payment = db.query(Payment).filter(Payment.app_trans_id == app_trans_id).first()
     zalopay = get_zalopay_service()
     result = zalopay.query_order(app_trans_id)
     status_result = result.get("status", "unknown")

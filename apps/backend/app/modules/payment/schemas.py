@@ -17,7 +17,7 @@ class PaymentCreateRequest(BaseModel):
 class PaymentCreateResponse(BaseModel):
     """Response tạo thanh toán"""
     success: bool
-    order_id: str  # alias to transaction_id for compatibility
+    order_id: str  # sử dụng app_trans_id/order_id
     order_url: Optional[str] = None
     message: Optional[str] = None
 
@@ -32,8 +32,8 @@ class PaymentCallbackRequest(BaseModel):
 class PaymentResponse(BaseModel):
     """Response thông tin thanh toán"""
     id: int
-    order_id: str  # exposed as order_id but backed by transaction_id
-    transaction_id: Optional[str] = None
+    order_id: str  # ưu tiên app_trans_id, fallback order_id
+    transaction_id: Optional[str] = None  # alias to app_trans_id for compatibility
     amount: int
     description: Optional[str] = None
     status: Union[PaymentStatus, str]
