@@ -10,7 +10,8 @@ const BlogPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newPost, setNewPost] = useState('');
+  const [newPostTitle, setNewPostTitle] = useState('');
+  const [newPostContent, setNewPostContent] = useState('');
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -20,8 +21,8 @@ const BlogPage = () => {
   const loadPosts = async () => {
     try {
       setLoading(true);
-      const data = await blogService.getMyPosts();
-      setPosts(data);
+      const response = await blogService.getAllPosts();
+      setPosts(response.items);
     } catch (err) {
       console.error('Error loading posts:', err);
       setError('Failed to load posts');
@@ -31,7 +32,11 @@ const BlogPage = () => {
   };
 
   const handleCreatePost = async () => {
-    if (!newPost.trim()) {
+    if (!newPostTitle.trim()) {
+      alert('Please enter a title');
+      return;
+    }
+    if (!newPostContent.trim()) {
       alert('Please enter some content');
       return;
     }
@@ -39,10 +44,11 @@ const BlogPage = () => {
     try {
       setCreating(true);
       await blogService.createPost({
-        content: newPost,
-        lang: 'vi',
+        title: newPostTitle,
+        content: newPostContent,
       });
-      setNewPost('');
+      setNewPostTitle('');
+      setNewPostContent('');
       setShowCreateModal(false);
       loadPosts();
       alert('Post created successfully!');
@@ -145,18 +151,32 @@ const BlogPage = () => {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                      {new Date(post.created_at).toLocaleDateString('vi-VN', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                      {post.published_at
+                        ? new Date(post.published_at).toLocaleDateString('vi-VN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                        : new Date(post.created_at).toLocaleDateString('vi-VN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
                     </p>
                     <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                      {post.content}
+                      {post.content_md}
                     </p>
+                    {post.status && (
+                      <span className="inline-block mt-3 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-semibold">
+                        {post.status}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -171,9 +191,16 @@ const BlogPage = () => {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 Create New Post
               </h2>
+              <input
+                type="text"
+                value={newPostTitle}
+                onChange={(e) => setNewPostTitle(e.target.value)}
+                placeholder="Post title..."
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white mb-4"
+              />
               <textarea
-                value={newPost}
-                onChange={(e) => setNewPost(e.target.value)}
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
                 placeholder="Share your thoughts..."
                 rows={10}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white mb-4"
@@ -189,7 +216,8 @@ const BlogPage = () => {
                 <button
                   onClick={() => {
                     setShowCreateModal(false);
-                    setNewPost('');
+                    setNewPostTitle('');
+                    setNewPostContent('');
                   }}
                   className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
