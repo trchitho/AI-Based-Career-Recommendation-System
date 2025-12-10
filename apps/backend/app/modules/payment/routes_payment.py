@@ -1,5 +1,5 @@
 """
-Payment Routes (aligned with current payments table: transaction_id only, no order_id/app_trans_id columns)
+Payment Routes (schema: order_id + app_trans_id)
 """
 import json
 import urllib.parse
