@@ -270,15 +270,27 @@ def payment_redirect(
         db.commit()
         db.refresh(payment)
 
-    # Redirect về trang chủ/FE kèm status + app_trans_id
+    # Redirect về FE (nếu cấu hình); không ép về /home khi không có cấu hình
     return_url = (
         os.getenv("PAYMENT_RETURN_URL")
         or os.getenv("FRONTEND_URL")
-        or "http://localhost:3000/home"
+        or os.getenv("ZALOPAY_REDIRECT_URL")
     )
-    sep = "&" if "?" in return_url else "?"
-    target = f"{return_url}{sep}status={status_result}&apptransid={app_trans_id}"
-    return RedirectResponse(target)
+    if return_url:
+        sep = "&" if "?" in return_url else "?"
+        target = f"{return_url}{sep}status={status_result}&apptransid={app_trans_id}"
+        return RedirectResponse(target)
+
+    # Fallback: trả HTML nếu không cấu hình URL đích
+    html = f"""
+    <html><body>
+    <h3>Trạng thái đơn: {status_result.upper()}</h3>
+    <p>app_trans_id: {app_trans_id}</p>
+    <p>message: {result.get('message','')}</p>
+    <p>Bạn có thể đóng trang này và quay lại ứng dụng.</p>
+    </body></html>
+    """
+    return HTMLResponse(html)
 
 
 @router.get("/history", response_model=List[PaymentResponse])
