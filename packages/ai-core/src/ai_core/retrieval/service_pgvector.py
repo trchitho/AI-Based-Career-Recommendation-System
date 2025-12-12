@@ -5,7 +5,7 @@ from typing import List
 import numpy as np
 from psycopg_pool import ConnectionPool
 
-from src.api.config import get_pg_dsn  # helper lấy DATABASE_URL
+from api.config import get_pg_dsn  # helper lấy DATABASE_URL
 
 
 @dataclass
@@ -83,20 +83,15 @@ def _fetch_user_vector(user_id: int) -> np.ndarray:
 
 def search_candidates_for_embedding(user_vec: np.ndarray, top_n: int = 200) -> List[Candidate]:
     """
-    B3 – Retrieval bằng pgvector cho 1 vector bất kỳ (không cần biết user_id).
-    Dùng bảng: ai.retrieval_jobs_visbert (cột embedding vector(768)).
-
-    Trả list các job ứng viên đã sort theo score_sim giảm dần:
-      score_sim = 1 - cosine_distance ∈ [0,1]
+    Retrieval B3 theo VECTOR của bài test, không theo user_id.
     """
     vec_str = _np_to_pgvector_str(user_vec)
 
     with pool.connection() as conn, conn.cursor() as cur:
         cur.execute(
             """
-            SELECT
-              job_id,
-              1 - (embedding <=> %s::vector(768)) AS score_sim
+            SELECT job_id,
+                   1 - (embedding <=> %s::vector(768)) AS score_sim
             FROM ai.retrieval_jobs_visbert
             ORDER BY embedding <-> %s::vector(768)
             LIMIT %s
@@ -105,11 +100,7 @@ def search_candidates_for_embedding(user_vec: np.ndarray, top_n: int = 200) -> L
         )
         rows = cur.fetchall()
 
-    return [
-        Candidate(job_id=row[0], score_sim=float(row[1]))
-        for row in rows
-    ]
-
+    return [Candidate(job_id=r[0], score_sim=float(r[1])) for r in rows]
 
 def search_candidates_for_user(user_id: int, top_n: int = 200) -> List[Candidate]:
     """
@@ -173,3 +164,5 @@ if __name__ == "__main__":
         else:
             for c in cands:
                 print(f"{c.job_id}  sim={c.score_sim:.4f}")
+
+                

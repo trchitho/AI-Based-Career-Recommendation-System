@@ -1,33 +1,34 @@
+# app/modules/recommendation/routes_recommendations.py
 from __future__ import annotations
 
-from typing import List, Optional, Annotated
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from .service import RecService
+from .service import RecService, CareerEventsService
 from app.modules.auth.deps import get_current_user_optional
 from app.modules.users.models import User
 
-
-router = APIRouter(prefix="", tags=["recommendations"])  # giữ nguyên dòng này
+router = APIRouter(prefix="", tags=["recommendations"])
 svc = RecService()
 
 
 def _db(req: Request) -> Session:
-    # DB session đã được gắn vào request.state.db ở middleware
     return req.state.db
 
 
-# ====== DTOs cho response ======
+# ===== DTO =====
 
 class CareerDTO(BaseModel):
     career_id: str
+    slug: Optional[str] = None
     title_vi: Optional[str] = None
     title_en: Optional[str] = None
     description: Optional[str] = None
     match_score: float
+    display_match: Optional[float] = None
     tags: List[str] = []
     job_zone: Optional[int] = None
     position: int
@@ -38,82 +39,82 @@ class RecommendationsRes(BaseModel):
     items: List[CareerDTO]
 
 
-class ClickReq(BaseModel):
-    career_id: str
-    position: Annotated[int, Field(ge=1, le=100)]
-    request_id: Optional[str] = None
-    match_score: Optional[float] = None
+# ===== ROUTES =====
 
-
-class ClickRes(BaseModel):
-    status: str = "ok"
-
-
-# ====== Routes ======
 
 @router.get("", response_model=RecommendationsRes)
-def get_main_recommendations(
+def get_recommendations(
     request: Request,
+    assessment_id: int = Query(..., ge=1),
     top_k: int = Query(20, ge=1, le=50),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """
-    GET /api/recommendations?top_k=20
-
-    - Lấy user_id từ JWT nếu có.
-    - (Dev) Nếu chưa login → tạm dùng user_id=9 để test pipeline.
-    - Gọi RecService.get_main_recommendations.
+    GET /api/recommendations?assessment_id=97&top_k=5
     """
     db = _db(request)
-
-    # Tạm fallback user_id=9 nếu chưa login (cho dev/test).
-    # Sau này muốn bắt buộc đăng nhập thì đổi thành raise HTTPException(401, ...)
-    if current_user is None:
-        user_id = 9
-    else:
-        user_id = current_user.id
 
     try:
         result = svc.get_main_recommendations(
             db=db,
-            user_id=user_id,
+            assessment_id=assessment_id,
             top_k=top_k,
         )
     except RuntimeError as e:
-        # AI-core lỗi, trả 502 để FE biết
         raise HTTPException(status_code=502, detail=str(e))
 
     items = [CareerDTO(**it) for it in result["items"]]
     return RecommendationsRes(request_id=result["request_id"], items=items)
 
 
-@router.post("/click", response_model=ClickRes)
+class ClickPayload(BaseModel):
+    career_id: str      # slug hoặc onet_code FE gửi lên
+    position: int
+    request_id: Optional[str] = None
+    match_score: Optional[float] = None
+
+
+@router.post("/click")
 def log_click(
     request: Request,
-    body: ClickReq,
+    payload: ClickPayload,
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """
-    POST /api/recommendations/click
+    Khi user bấm "View Learning Roadmap" trên một nghề.
 
-    Body: { career_id, position, request_id, match_score? }
-
-    - Log event_type='click' vào analytics.career_events.
+    Body:
+    {
+      "career_id": "signal-and-track-switch-repairers-49-9097-00",
+      "position": 1,
+      "match_score": 0.95,
+      "request_id": "uuid từ /api/recommendations"
+    }
+    
+    CRITICAL: user_id lấy từ JWT (current_user), không nhận từ client.
+    Nếu không có user đăng nhập, vẫn log với user_id = None (guest click).
     """
     db = _db(request)
 
-    if current_user is None:
-        user_id = 9  # dev fallback
-    else:
-        user_id = current_user.id
+    # map slug -> onet_code (job_id dùng train B4)
+    job_onet = svc.get_onet_code_by_slug(db, payload.career_id)
+    if not job_onet:
+        # Không tìm thấy nghề → không 500, chỉ bỏ qua
+        return {"status": "ignored"}
 
-    svc.log_click(
-        db=db,
+    events = CareerEventsService(db)
+
+    session_id = request.headers.get("X-Session-Id")
+    # CRITICAL: user_id chỉ lấy từ JWT, không nhận từ header X-User-Id
+    user_id = current_user.id if current_user else None
+
+    events.log_click(
         user_id=user_id,
-        career_id=body.career_id,
-        position=body.position,
-        request_id=body.request_id,
-        match_score=body.match_score,
+        session_id=session_id,
+        job_onet=job_onet,
+        rank_pos=payload.position,
+        score_shown=payload.match_score,
+        request_id=payload.request_id,  # để sau join lại request
     )
 
-    return ClickRes()
+    return {"status": "ok"}

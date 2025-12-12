@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AssessmentHistoryItem } from '../../types/profile';
 import AssessmentComparisonModal from './AssessmentComparisonModal';
+import { getRIASECFullName } from '../../utils/riasec';
 
 interface AssessmentHistorySectionProps {
   assessmentHistory: AssessmentHistoryItem[];
@@ -41,7 +42,9 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
     if (!topEntry || !topEntry[0]) return 'N/A';
     const trait = topEntry[0];
     const value = topEntry[1] as number;
-    return `${trait.charAt(0).toUpperCase() + trait.slice(1)} (${value.toFixed(0)})`;
+    // Use shared util for consistent Title Case display
+    const fullName = getRIASECFullName(trait);
+    return `${fullName} (${value.toFixed(0)})`;
   };
 
   const getBigFiveSummary = (scores?: any) => {

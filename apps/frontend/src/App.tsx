@@ -14,6 +14,7 @@ import DashboardPage from './pages/DashboardPage';
 import AssessmentPage from './pages/AssessmentPage';
 import ResultsPage from './pages/ResultsPage';
 import RoadmapPage from './pages/RoadmapPage';
+import ReportPage from './pages/ReportPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import CareersPage from './pages/CareersPage';
 import CareerDetailPage from './pages/CareerDetailPage';
@@ -154,6 +155,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ResultsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/results/:assessmentId/report"
+                element={
+                  <ProtectedRoute>
+                    <ReportPage />
                   </ProtectedRoute>
                 }
               />

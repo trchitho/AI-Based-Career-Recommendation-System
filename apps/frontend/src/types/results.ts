@@ -26,6 +26,7 @@ export interface AssessmentResults {
   user_id: string;
   riasec_scores: RIASECScores;
   big_five_scores: BigFiveScores;
+  top_interest?: string;  // L1 từ raw test scores - khớp với filter logic
   career_recommendations: string[];
   essay_analysis?: EssayAnalysis;
   completed_at: string;

@@ -39,6 +39,7 @@ export interface AssessmentResults {
   user_id: number;
   riasec_scores: Record<string, number>;    // {Realistic:3.2, ...}
   big_five_scores: Record<string, number>;  // {Openness:0.7, ...}
+  top_interest?: string;  // L1 từ raw test scores - khớp với filter logic
 
   traits: TraitSnapshot;
 }

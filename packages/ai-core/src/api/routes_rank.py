@@ -3,9 +3,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 
-from src.ai_core.retrieval.service_pgvector import search_candidates_for_user
-from src.ai_core.recsys.neumf.infer import infer_scores   # dùng B4
-from src.ai_core.recsys.neumf.mappings import load_mappings  # để map user_feat & item_feat
+from ai_core.retrieval.service_pgvector import search_candidates_for_user
+from ai_core.recsys.neumf.infer import infer_scores   # dùng B4
+from ai_core.recsys.neumf.mappings import load_mappings  # để map user_feat & item_feat
 
 router = APIRouter(prefix="/rank", tags=["ranking"])
 

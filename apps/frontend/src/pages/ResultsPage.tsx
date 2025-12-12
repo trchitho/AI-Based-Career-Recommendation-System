@@ -1,6 +1,6 @@
 // apps/frontend/src/pages/ResultsPage.tsx
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { assessmentService } from '../services/assessmentService';
 import {
   recommendationService,
@@ -13,21 +13,26 @@ import BigFiveBarChart from '../components/results/BigFiveBarChart';
 import CareerRecommendationsDisplay from '../components/results/CareerRecommendationsDisplay';
 import { feedbackService } from '../services/feedbackService';
 import MainLayout from '../components/layout/MainLayout';
+import { trackCareerEvent, markDwellStart } from '../services/trackService';
+import { useAuth } from '../contexts/AuthContext';
+import { getRIASECFullName } from '../utils/riasec';
 
 const ResultsPage = () => {
   // ==========================================
   // 1. LOGIC BLOCK
   // ==========================================
   const { assessmentId } = useParams<{ assessmentId: string }>();
+  const { user } = useAuth();
 
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [loadingResults, setLoadingResults] = useState(true);
   const [errorResults, setErrorResults] = useState<string | null>(null);
 
-  // BFF Recommendations
+  // BFF Recommendations - LAZY LOAD only when Career Matches tab is opened
   const [recData, setRecData] = useState<RecommendationsResponse | null>(null);
   const [recLoading, setRecLoading] = useState<boolean>(false);
   const [recError, setRecError] = useState<string | null>(null);
+  const [recFetched, setRecFetched] = useState<boolean>(false); // Guard: only fetch once
 
   const [activeTab, setActiveTab] =
     useState<'summary' | 'detailed' | 'recommendations'>('summary');
@@ -36,16 +41,66 @@ const ResultsPage = () => {
   const [fbComment, setFbComment] = useState('');
   const [fbDone, setFbDone] = useState(false);
 
-  // Luôn giới hạn tối đa 5 nghề cho UI
-  const recItems: CareerRecommendationDTO[] = (recData?.items ?? []).slice(0, 5);
+  // Guard: track if impressions have been logged for this assessment
+  const impressionLoggedRef = useRef<string | null>(null);
+
+  // Bây giờ backend đã honor top_k, FE không cần slice thêm ở đây.
+  const recItems: CareerRecommendationDTO[] = recData?.items ?? [];
   const recRequestId = recData?.request_id ?? null;
 
+  // Fetch assessment results on mount
   useEffect(() => {
     if (!assessmentId) return;
     fetchResults(assessmentId);
-    fetchRecommendations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId]);
+
+  // LAZY LOAD: Fetch recommendations ONLY when Career Matches tab is opened
+  useEffect(() => {
+    if (activeTab === 'recommendations' && !recFetched && assessmentId) {
+      fetchRecommendations();
+    }
+  }, [activeTab, recFetched, assessmentId]);
+
+  // Log impressions ONLY ONCE when recommendations are loaded and tab is active
+  // Also mark dwell start time for click tracking
+  useEffect(() => {
+    if (
+      activeTab === 'recommendations' &&
+      recData?.items &&
+      recData.items.length > 0 &&
+      recData.request_id &&
+      impressionLoggedRef.current !== recData.request_id
+    ) {
+      // Mark as logged to prevent double-count
+      impressionLoggedRef.current = recData.request_id;
+
+      // Mark dwell start time for click tracking
+      markDwellStart();
+
+      // Log impression for each career item
+      const reqId = recData.request_id;
+      recData.items.forEach((item, index) => {
+        trackCareerEvent(
+          {
+            event_type: 'impression',
+            job_id: item.slug || item.career_id,
+            rank_pos: index + 1,
+            score_shown: item.display_match ?? item.match_score,
+            ...(reqId ? { ref: reqId } : {}),
+          },
+          user?.id ? { userId: user.id } : undefined
+        );
+      });
+    }
+  }, [activeTab, recData, user?.id]);
+
+  // Re-mark dwell start when switching back to recommendations tab
+  useEffect(() => {
+    if (activeTab === 'recommendations' && impressionLoggedRef.current) {
+      // Re-mark dwell start when returning to tab (after navigating away)
+      markDwellStart();
+    }
+  }, [activeTab]);
 
   const fetchResults = async (id: string) => {
     try {
@@ -62,24 +117,30 @@ const ResultsPage = () => {
     }
   };
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async () => {
+    if (recFetched) return; // Guard: don't fetch twice
+
     try {
       setRecLoading(true);
       setRecError(null);
 
-      // Dùng default = 5 ở recommendationService
-      const res = await recommendationService.getMain();
+      if (!assessmentId) {
+        throw new Error("Missing assessmentId in URL");
+      }
+
+      const res = await recommendationService.getMain(assessmentId, 5);
       setRecData(res);
+      setRecFetched(true); // Mark as fetched
     } catch (err: any) {
       const msg =
         err?.response?.data?.detail ||
         err?.message ||
-        'Failed to load recommendations';
+        "Failed to load recommendations";
       setRecError(msg);
     } finally {
       setRecLoading(false);
     }
-  };
+  }, [assessmentId, recFetched]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -179,9 +240,12 @@ const ResultsPage = () => {
                     </p>
                   </div>
 
-                  <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner">
+                  <Link
+                    to={`/results/${assessmentId}/report`}
+                    className="flex-shrink-0 px-5 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30 transition-colors flex items-center gap-2"
+                  >
                     <svg
-                      className="w-10 h-10 text-white"
+                      className="w-5 h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -190,10 +254,11 @@ const ResultsPage = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
-                  </div>
+                    View Full Report
+                  </Link>
                 </div>
               </div>
 
@@ -209,11 +274,10 @@ const ResultsPage = () => {
                     onClick={() =>
                       setActiveTab(tab.id as 'summary' | 'detailed' | 'recommendations')
                     }
-                    className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 shadow-sm'
-                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                    }`}
+                    className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
+                      ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                      }`}
                   >
                     {tab.label}
                   </button>
@@ -240,9 +304,23 @@ const ResultsPage = () => {
                               Top Career Interest
                             </p>
                             <p className="text-4xl font-extrabold text-gray-900 dark:text-white">
-                              {Object.entries(results.riasec_scores).sort(
-                                (a, b) => b[1] - a[1],
-                              )[0]?.[0]?.toUpperCase() || 'N/A'}
+                              {(() => {
+                                // Ưu tiên top_interest từ API
+                                if (results.top_interest) {
+                                  return getRIASECFullName(results.top_interest).toUpperCase();
+                                }
+                                // Fallback: tính từ riasec_scores với tie-breaking theo thứ tự R,I,A,S,E,C
+                                const order = ['realistic', 'investigative', 'artistic', 'social', 'enterprising', 'conventional'];
+                                const entries = Object.entries(results.riasec_scores);
+                                entries.sort((a, b) => {
+                                  const scoreDiff = b[1] - a[1];
+                                  if (scoreDiff !== 0) return scoreDiff;
+                                  // Tie-breaker: theo thứ tự RIASEC
+                                  return order.indexOf(a[0].toLowerCase()) - order.indexOf(b[0].toLowerCase());
+                                });
+                                const topKey = entries[0]?.[0];
+                                return getRIASECFullName(topKey).toUpperCase();
+                              })()}
                             </p>
                           </div>
                           <svg
@@ -385,11 +463,10 @@ const ResultsPage = () => {
                         <button
                           key={v}
                           onClick={() => setFbRating(v)}
-                          className={`w-12 h-12 rounded-2xl font-bold text-lg transition-all flex items-center justify-center shadow-sm ${
-                            fbRating === v
-                              ? 'bg-green-600 text-white scale-110 shadow-green-600/30'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-gray-600 hover:text-green-600'
-                          }`}
+                          className={`w-12 h-12 rounded-2xl font-bold text-lg transition-all flex items-center justify-center shadow-sm ${fbRating === v
+                            ? 'bg-green-600 text-white scale-110 shadow-green-600/30'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-gray-600 hover:text-green-600'
+                            }`}
                         >
                           {v}
                         </button>

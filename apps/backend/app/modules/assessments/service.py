@@ -35,6 +35,14 @@ from .schemas import TraitSnapshot
 # Mình chỉ wrap lại cho gọn.
 
 
+def get_user_from_assessment(session: Session, assessment_id: int) -> Optional[int]:
+    row = session.execute(
+        text("SELECT user_id FROM core.assessments WHERE id = :aid"),
+        {"aid": assessment_id},
+    ).mappings().first()
+    return int(row["user_id"]) if row else None
+
+
 
 
 # -------------------------------------------------
@@ -636,21 +644,30 @@ def fuse_user_traits(
             return max(0.0, min(1.0, (f - 1.0) / 4.0))
 
         # 1) Lấy trait từ bài test (core.assessments) nếu caller chưa truyền vào
-        if test_riasec is None or test_big5 is None:
-            assessments = (
+        # Query từng loại độc lập để tránh conflict khi timestamp giống nhau
+        if test_riasec is None:
+            riasec_row = (
                 session.query(Assessment)
                 .filter(
                     Assessment.user_id == user_id,
-                    Assessment.a_type.in_(["RIASEC", "BigFive"]),
+                    Assessment.a_type == "RIASEC",
                 )
                 .order_by(Assessment.created_at.desc())
-                .all()
+                .first()
             )
-            for a in assessments:
-                if a.a_type == "RIASEC" and test_riasec is None:
-                    test_riasec = dict(a.scores or {})
-                elif a.a_type == "BigFive" and test_big5 is None:
-                    test_big5 = dict(a.scores or {})
+            test_riasec = dict(riasec_row.scores or {}) if riasec_row else None
+        
+        if test_big5 is None:
+            big5_row = (
+                session.query(Assessment)
+                .filter(
+                    Assessment.user_id == user_id,
+                    Assessment.a_type == "BigFive",
+                )
+                .order_by(Assessment.created_at.desc())
+                .first()
+            )
+            test_big5 = dict(big5_row.scores or {}) if big5_row else None
 
         def _dict_to_vec(
             src: dict[str, float] | None,
@@ -1004,8 +1021,14 @@ def build_results(session: Session, assessment_id: int) -> dict:
     - Chuẩn hoá điểm cho FE:
         + riasec_scores: realistic, investigative, ... (0–100)
         + big_five_scores: openness, conscientiousness, ... (0–100)
-      → Ưu tiên dùng fused; nếu không có fused thì dùng test.
+      → Ưu tiên dùng fused (0-1) rồi nhân 100; nếu không có fused thì dùng test (0-1).
+    - top_interest: L1 dimension từ raw test scores (1-5, khớp với filter logic)
     - Lấy top 3 careers (tạm thời placeholder như logic cũ).
+    
+    CRITICAL: 
+    - riasec_scores cho chart dùng vector 0-1 (fused hoặc test) rồi nhân 100
+    - top_interest dùng raw scores 1-5 từ core.assessments để khớp với filter logic
+    - KHÔNG được ghi đè riasec_vec (0-1) bằng raw_scores (1-5)
     """
     obj = session.get(Assessment, assessment_id)
     if not obj:
@@ -1019,12 +1042,38 @@ def build_results(session: Session, assessment_id: int) -> dict:
         user_id=user_id,
     )
 
-    # 2) Chọn vector để dùng cho chart
-    riasec_vec = traits_snapshot.riasec_fused or traits_snapshot.riasec_test
+    # 2) Chọn vector 0-1 để dùng cho chart (KHÔNG PHẢI raw 1-5)
+    # Ưu tiên fused, fallback về test
+    riasec_vec_for_chart = traits_snapshot.riasec_fused or traits_snapshot.riasec_test
     big5_vec = traits_snapshot.big5_fused or traits_snapshot.big5_test
 
     # Map thứ tự vector → tên dimension FE đang dùng
     riasec_letters = ["R", "I", "A", "S", "E", "C"]
+    
+    # 2.1) Tính top_interest từ RAW test scores (1-5 scale) - khớp với filter logic
+    # Đây là L1 dimension dùng trong recommendation filter
+    # TIE-BREAKING RULE: Nếu 2 dimension có điểm bằng nhau, ưu tiên theo thứ tự R,I,A,S,E,C
+    # CRITICAL: Dùng biến riêng (raw_riasec_vec), KHÔNG ghi đè riasec_vec_for_chart
+    top_interest: str | None = None
+    riasec_row = (
+        session.query(Assessment)
+        .filter(
+            Assessment.user_id == user_id,
+            Assessment.a_type == "RIASEC",
+        )
+        .order_by(Assessment.created_at.desc())
+        .first()
+    )
+    if riasec_row and riasec_row.scores:
+        raw_scores = riasec_row.scores
+        # Build vector 1-5 theo thứ tự R,I,A,S,E,C (CHỈ dùng để tính top_interest)
+        raw_riasec_vec = [float(raw_scores.get(dim, 0.0)) for dim in riasec_letters]
+        # Sort với tie-breaker: (-score, index) để index nhỏ hơn được ưu tiên khi score bằng nhau
+        sorted_indices = sorted(
+            range(6),
+            key=lambda i: (-raw_riasec_vec[i], i)
+        )
+        top_interest = riasec_letters[sorted_indices[0]]
     riasec_name_map = {
         "R": "realistic",
         "I": "investigative",
@@ -1070,7 +1119,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
         return scores
 
     riasec_scores = _vec_to_percent_scores(
-        riasec_vec, riasec_letters, riasec_name_map
+        riasec_vec_for_chart, riasec_letters, riasec_name_map
     )
     big_five_scores = _vec_to_percent_scores(
         big5_vec, big5_letters, big5_name_map
@@ -1188,6 +1237,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
         "user_id": user_id,
         "riasec_scores": riasec_scores,
         "big_five_scores": big_five_scores,
+        "top_interest": top_interest,  # L1 từ raw test scores - khớp với filter
         "traits": traits_snapshot.model_dump(),
         "career_recommendations": rec_ids,
         "career_recommendations_full": careers_full,
