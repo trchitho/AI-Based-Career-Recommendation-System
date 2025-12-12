@@ -138,9 +138,13 @@ const BlogDetailPage = () => {
             {/* Tags/Categories */}
             <div className="mt-8 pt-8 border-t border-gray-700">
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-sm">
-                  #1 Vấn đề chúng tôi muốn giải quyết
-                </span>
+                {post.tags && post.tags.length > 0 ? (
+                  post.tags.map((tag: string, idx: number) => (
+                    <span key={idx} className="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-sm">
+                      {tag}
+                    </span>
+                  ))
+                ) : null}
               </div>
             </div>
           </div>
