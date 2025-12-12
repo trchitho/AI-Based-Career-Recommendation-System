@@ -6,6 +6,7 @@ import secrets
 from datetime import datetime, timezone
 from io import StringIO
 from pathlib import Path
+from typing import Any, Mapping
 
 from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import StreamingResponse
@@ -54,8 +55,15 @@ def _enum_to_str(value):
     return value.value if hasattr(value, "value") else str(value)
 
 
+def _iso_or_none(dt: Any) -> str | None:
+    try:
+        return dt.isoformat() if dt else None
+    except Exception:
+        return None
+
+
 def _payment_to_dict(
-    payment_row: dict,
+    payment_row: Mapping[str, Any] | Any,
     email: str | None = None,
     full_name: str | None = None,
     include_callback: bool = False,
@@ -65,7 +73,7 @@ def _payment_to_dict(
     Uses `transaction_id` as order_id fallback for legacy schemas without order_id.
     """
     if hasattr(payment_row, "_mapping"):
-        p = dict(payment_row._mapping)
+        p: dict[str, Any] = dict(payment_row._mapping)  # type: ignore[attr-defined]
     elif isinstance(payment_row, dict):
         p = payment_row
     else:
@@ -79,18 +87,18 @@ def _payment_to_dict(
     data = {
         "id": p.get("id"),
         "user_id": p.get("user_id"),
-        "order_id": p.get("order_id") or p.get("transaction_id"),
+        "order_id": p.get("order_id") or p.get("app_trans_id"),
         "app_trans_id": p.get("app_trans_id"),
         "amount": amount_val,
-        "currency": p.get("currency") or "VND",
+        "currency": "VND",
         "description": p.get("description"),
         "payment_method": _enum_to_str(p.get("payment_method")),
         "status": _enum_to_str(p.get("status")),
         "order_url": p.get("order_url"),
         "zp_trans_token": p.get("zp_trans_token"),
-        "created_at": p.get("created_at").isoformat() if p.get("created_at") else None,
-        "paid_at": p.get("paid_at").isoformat() if p.get("paid_at") else None,
-        "updated_at": p.get("updated_at").isoformat() if p.get("updated_at") else None,
+        "created_at": _iso_or_none(p.get("created_at")),
+        "paid_at": _iso_or_none(p.get("paid_at")),
+        "updated_at": _iso_or_none(p.get("updated_at")),
         "user": {
             "id": p.get("user_id"),
             "email": email,
@@ -202,7 +210,6 @@ def list_transactions(
     payments = _payments_table(session)
     user_tbl = User.__table__
     payment_cols = set(payments.c.keys())
-    payment_cols = set(payments.c.keys())
 
     filters = []
     if status:
@@ -219,7 +226,7 @@ def list_transactions(
     if search:
         like = f"%{search.lower()}%"
         search_filters = [
-            func.lower(func.coalesce(payments.c.transaction_id, "")).like(like),
+            func.lower(func.coalesce(payments.c.app_trans_id, "")).like(like),
             func.lower(user_tbl.c.email).like(like),
             func.lower(func.coalesce(user_tbl.c.full_name, "")).like(like),
         ]
@@ -229,8 +236,6 @@ def list_transactions(
             search_filters.append(func.lower(func.coalesce(payments.c.app_trans_id, "")).like(like))
         if "description" in payment_cols:
             search_filters.append(func.lower(func.coalesce(payments.c.description, "")).like(like))
-        if "payment_gateway_response" in payment_cols:
-            search_filters.append(func.lower(func.coalesce(payments.c.payment_gateway_response.cast(Text), "")).like(like))
         filters.append(or_(*search_filters))
 
     base_stmt = select(
@@ -314,6 +319,7 @@ def export_transactions(
     end_dt = _parse_date(toDate, "toDate")
     payments = _payments_table(session)
     user_tbl = User.__table__
+    payment_cols = set(payments.c.keys())
 
     filters = []
     if status:
@@ -329,7 +335,7 @@ def export_transactions(
     if search:
         like = f"%{search.lower()}%"
         search_filters = [
-            func.lower(func.coalesce(payments.c.transaction_id, "")).like(like),
+            func.lower(func.coalesce(payments.c.app_trans_id, "")).like(like),
             func.lower(user_tbl.c.email).like(like),
             func.lower(func.coalesce(user_tbl.c.full_name, "")).like(like),
         ]
@@ -339,8 +345,6 @@ def export_transactions(
             search_filters.append(func.lower(func.coalesce(payments.c.app_trans_id, "")).like(like))
         if "description" in payment_cols:
             search_filters.append(func.lower(func.coalesce(payments.c.description, "")).like(like))
-        if "payment_gateway_response" in payment_cols:
-            search_filters.append(func.lower(func.coalesce(payments.c.payment_gateway_response.cast(Text), "")).like(like))
         filters.append(or_(*search_filters))
 
     stmt = (
@@ -359,7 +363,7 @@ def export_transactions(
     writer = csv.writer(csv_buffer)
     writer.writerow(
         [
-            "transaction_id",
+            "app_trans_id",
             "user_email",
             "user_full_name",
             "amount",
@@ -377,16 +381,16 @@ def export_transactions(
         payment = {col.name: mapping[col.name] for col in payments.c if col.name in mapping}
         writer.writerow(
             [
-                payment.get("transaction_id") or payment.get("order_id") or "",
+                payment.get("app_trans_id") or payment.get("order_id") or "",
                 mapping.get("email") or "",
                 mapping.get("full_name") or "",
                 payment.get("amount") or 0,
-                payment.get("currency") or "VND",
+                "VND",
                 _enum_to_str(payment.get("status")),
                 _enum_to_str(payment.get("payment_method")),
-                payment.get("created_at").isoformat() if payment.get("created_at") else "",
-                payment.get("updated_at").isoformat() if payment.get("updated_at") else "",
-                (payment.get("payment_gateway_response") or ""),
+                _iso_or_none(payment.get("created_at")) or "",
+                _iso_or_none(payment.get("updated_at")) or "",
+                (payment.get("callback_data") or ""),
             ]
         )
 
@@ -405,20 +409,21 @@ def get_transaction(request: Request, order_id: str):
     session = _db(request)
     payments = _payments_table(session)
     user_tbl = User.__table__
-    payment_cols = set(payments.c.keys())
     order_col = payments.c.get("order_id") if hasattr(payments.c, "get") else None
-    app_col = payments.c.get("transaction_id") if hasattr(payments.c, "get") else None
+    app_col = payments.c.get("app_trans_id") if hasattr(payments.c, "get") else None
+    filters = []
+    if app_col is not None:
+        filters.append(app_col == order_id)
+    if order_col is not None:
+        filters.append(order_col == order_id)
     stmt = (
         select(payments, user_tbl.c.email.label("email"), user_tbl.c.full_name.label("full_name"))
         .join(user_tbl, user_tbl.c.id == payments.c.user_id)
-        .where(
-            or_(
-                app_col == order_id if app_col is not None else False,
-                order_col == order_id if order_col is not None else False,
-            )
-        )
-        .limit(1)
+        .where(or_(*filters)) if filters else None
     )
+    if stmt is None:
+        raise HTTPException(status_code=400, detail="Payments schema missing identifier columns")
+    stmt = stmt.limit(1)
     row = session.execute(stmt).mappings().first()
     if not row:
         raise HTTPException(status_code=404, detail="Transaction not found")
@@ -436,7 +441,7 @@ def delete_transaction(request: Request, order_id: str):
     payments = _payments_table(session)
 
     order_col = payments.c.get("order_id") if hasattr(payments.c, "get") else None
-    txn_col = payments.c.get("transaction_id") if hasattr(payments.c, "get") else None
+    txn_col = payments.c.get("app_trans_id") if hasattr(payments.c, "get") else None
 
     if txn_col is None and order_col is None:
         raise HTTPException(status_code=400, detail="Payments schema missing identifier columns")
@@ -493,10 +498,10 @@ def user_feedback(
         {
             "id": str(x.id),
             "user_id": str(x.user_id),
-            "assessment_id": str(x.assessment_id) if x.assessment_id else None,
-            "rating": int(x.rating or 0),
+            "assessment_id": str(getattr(x, "assessment_id", None)) if getattr(x, "assessment_id", None) is not None else None,
+            "rating": int(getattr(x, "rating", 0) or 0),
             "comment": x.comment,
-            "created_at": x.created_at.isoformat() if x.created_at else None,
+            "created_at": _iso_or_none(getattr(x, "created_at", None)),
         }
         for x in rows
     ]
@@ -532,7 +537,7 @@ def update_settings(request: Request, payload: dict):
     for key in ("logo_url", "app_title", "app_name", "footer_html"):
         if key in payload:
             setattr(s, key, payload.get(key))
-    s.updated_by = admin_id
+    s.updated_by = admin_id  # type: ignore[assignment]
     session.commit()
     session.refresh(s)
     return s.to_dict()
@@ -810,17 +815,19 @@ def delete_skill(request: Request, skill_id: int):
 
 # ----- Questions CRUD -----
 def _question_to_client(q: AssessmentQuestion, test_type: str) -> dict:
+    opts = getattr(q, "options_json", None)
+    opts = opts or []
     return {
         "id": str(q.id),
         "text": q.prompt,
         "test_type": test_type,
         "dimension": q.question_key or "",
-        "question_type": "multiple_choice" if q.options_json else "scale",
-        "options": q.options_json or [],
+        "question_type": "multiple_choice" if opts else "scale",
+        "options": opts,
         "scale_range": {"min": 1, "max": 5},
         "is_active": True,
-        "created_at": q.created_at.isoformat() if q.created_at else None,
-        "updated_at": q.created_at.isoformat() if q.created_at else None,
+        "created_at": _iso_or_none(getattr(q, "created_at", None)),
+        "updated_at": _iso_or_none(getattr(q, "created_at", None)),
     }
 
 
@@ -849,7 +856,7 @@ def list_questions(
         base.order_by(AssessmentQuestion.form_id.asc(), AssessmentQuestion.question_no.asc()).limit(limit).offset(offset)
     ).all()
 
-    items = [_question_to_client(q, ftype) for (q, ftype) in rows]
+    items = [_question_to_client(q, str(ftype) if ftype is not None else "RIASEC") for (q, ftype) in rows]
     return {"items": items, "total": int(total), "limit": limit, "offset": offset}
 
 
@@ -860,8 +867,8 @@ def get_question(request: Request, question_id: int):
     q = session.get(AssessmentQuestion, question_id)
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
-    f = session.get(AssessmentForm, q.form_id) if q.form_id else None
-    test_type = f.form_type if f else "RIASEC"
+    f = session.get(AssessmentForm, q.form_id) if q.form_id is not None else None
+    test_type = str(f.form_type) if f and f.form_type is not None else "RIASEC"
     return _question_to_client(q, test_type)
 
 
@@ -899,7 +906,8 @@ def create_question(request: Request, payload: dict):
     session.add(q)
     session.commit()
     session.refresh(q)
-    return {"question": _question_to_client(q, form.form_type)}
+    form_type = str(form.form_type) if form.form_type is not None else "RIASEC"
+    return {"question": _question_to_client(q, form_type)}
 
 
 @router.put("/questions/{question_id}")
@@ -914,10 +922,11 @@ def update_question(request: Request, question_id: int, payload: dict):
     if "dimension" in payload:
         q.question_key = payload.get("dimension") or q.question_key
     if "options" in payload:
-        q.options_json = payload.get("options") or None
+        q.options_json = payload.get("options") or None  # type: ignore[assignment]
     session.commit()
-    f = session.get(AssessmentForm, q.form_id) if q.form_id else None
-    return {"question": _question_to_client(q, f.form_type if f else "RIASEC")}
+    f = session.get(AssessmentForm, q.form_id) if q.form_id is not None else None
+    form_type = str(f.form_type) if f and f.form_type is not None else "RIASEC"
+    return {"question": _question_to_client(q, form_type)}
 
 
 @router.delete("/questions/{question_id}")
@@ -951,19 +960,20 @@ def list_users(
         stmt = stmt.where(func.lower(User.email).like(like) | func.lower(User.full_name).like(like))
     total = session.execute(select(func.count(User.id)).select_from(stmt.subquery())).scalar() or 0
     rows = session.execute(stmt.order_by(User.created_at.desc()).limit(limit).offset(offset)).scalars().all()
-    items = [
-        {
-            "id": str(u.id),
-            "email": u.email,
-            "full_name": u.full_name,
-            "role": u.role,
-            "is_locked": u.is_locked,
-            "is_email_verified": getattr(u, "is_email_verified", False),
-            "email_verified_at": u.email_verified_at.isoformat() if getattr(u, "email_verified_at", None) else None,
-            "created_at": u.created_at.isoformat() if u.created_at else None,
-        }
-        for u in rows
-    ]
+    items = []
+    for u in rows:
+        items.append(
+            {
+                "id": str(u.id),
+                "email": u.email,
+                "full_name": u.full_name,
+                "role": u.role,
+                "is_locked": u.is_locked,
+                "is_email_verified": getattr(u, "is_email_verified", False),
+                "email_verified_at": _iso_or_none(getattr(u, "email_verified_at", None)),
+                "created_at": _iso_or_none(getattr(u, "created_at", None)),
+            }
+        )
     return {"items": items, "total": int(total), "limit": limit, "offset": offset}
 
 
@@ -1028,16 +1038,16 @@ def update_user(request: Request, user_id: int, payload: dict):
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
     if "full_name" in payload:
-        u.full_name = payload.get("full_name") or u.full_name
+        u.full_name = payload.get("full_name") or u.full_name  # type: ignore[assignment]
     if "role" in payload:
         role = (payload.get("role") or "").strip().lower()
         if role not in {"admin", "user"}:
             raise HTTPException(status_code=400, detail="Invalid role")
-        u.role = role
+        u.role = role  # type: ignore[assignment]
     if "is_locked" in payload:
-        u.is_locked = bool(payload.get("is_locked"))
+        u.is_locked = bool(payload.get("is_locked"))  # type: ignore[assignment]
     if "password" in payload and payload.get("password"):
-        u.password_hash = hash_password(payload.get("password"))
+        u.password_hash = hash_password(payload.get("password"))  # type: ignore[assignment]
     session.commit()
     session.refresh(u)
     return {
@@ -1099,10 +1109,10 @@ def admin_update_post(request: Request, post_id: int, payload: dict):
         if field in payload:
             setattr(p, field, payload[field] or getattr(p, field))
     status = (p.status or "").strip()
-    if status.lower() == "published" and not p.published_at:
-        p.published_at = datetime.now(timezone.utc)
+    if status.lower() == "published" and getattr(p, "published_at", None) is None:
+        p.published_at = datetime.now(timezone.utc)  # type: ignore[assignment]
     if status.lower() != "published":
-        p.published_at = None
+        p.published_at = None  # type: ignore[assignment]
     session.commit()
     session.refresh(p)
     return p.to_dict()
