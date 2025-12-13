@@ -6,6 +6,7 @@ import ThemeToggle from "../components/ThemeToggle";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import api from "../lib/api";
+import { authTokenService } from "../services/authTokenService";
 
 const RegisterPage = () => {
   // ==========================================
@@ -27,6 +28,11 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [devCode, setDevCode] = useState<string | null>(null);
+  const submitting = loading || verifyingCode;
 
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -67,8 +73,10 @@ const RegisterPage = () => {
     try {
       const result = await register(email, password, firstName, lastName);
       if (result?.verificationRequired) {
-        setInfo(result.message || "Please verify your email to continue.");
+        setInfo(result.message || "A verification code has been sent to your email. Please enter it below to activate your account.");
         setDevToken(result.devToken || null);
+        setCodeSent(true);
+        setError("");
         return;
       }
       if (skipNavigate) {
@@ -81,19 +89,24 @@ const RegisterPage = () => {
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
       const message = err?.response?.data?.message;
-      const errorCode = typeof detail === "object" ? detail?.error_code : undefined;
-      const detailMessage = typeof detail === "object" ? detail?.message : detail;
+      const isObj = typeof detail === "object" && detail !== null;
+      const errorCode = isObj ? detail?.error_code : undefined;
+      const detailMessage = isObj ? detail?.message : detail;
       const raw = detailMessage || message || err?.message || "";
       let friendly = raw;
       if (errorCode === "EMAIL_NOT_DELIVERABLE") {
         friendly = t("auth.emailNotExist") || "Email does not exist, please change to another email!";
       } else if (errorCode === "EMAIL_ALREADY_REGISTERED") {
-        setAlreadyRegistered(true);
-        setInfo("Account registered successfully, please return to login page!");
-        setError("");
-        return;
+        friendly = "Email already exists, please try again with another email.";
       }
-      setError(friendly || "Registration failed. Please try again.");
+      if (!friendly || typeof friendly === "object") {
+        if (typeof friendly === "object") {
+          // Log the original error object for debugging
+          console.error("Registration error details:", friendly, err);
+        }
+        friendly = "Registration failed. Please try again.";
+      }
+      setError(friendly);
     } finally {
       setLoading(false);
     }
@@ -101,7 +114,11 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await runRegister(false);
+    if (codeSent) {
+      await handleVerifyCode();
+    } else {
+      await runRegister(false);
+    }
   };
 
   const handleVerifyEmail = async () => {
@@ -112,6 +129,26 @@ const RegisterPage = () => {
     setVerifying(true);
     await runRegister(true);
     setVerifying(false);
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode.trim()) {
+      setError("Please enter the verification code from your email.");
+      return;
+    }
+    setVerifyingCode(true);
+    try {
+      await authTokenService.verify(verificationCode.trim());
+      setError("");
+      setInfo("Email verified successfully. Redirecting to login...");
+      setAlreadyRegistered(true);
+      setCodeSent(false);
+      setTimeout(() => navigate("/login"), 1200);
+    } catch (e: any) {
+      setError(e?.response?.data?.detail || e?.message || "Invalid or expired code. Please try again.");
+    } finally {
+      setVerifyingCode(false);
+    }
   };
 
   // ==========================================
@@ -309,16 +346,47 @@ const RegisterPage = () => {
                 </div>
               </div>
 
+              {/* Verification code input (inline) */}
+              {codeSent && (
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">
+                    Enter verification code
+                  </label>
+                  <input
+                    type="tel"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                    placeholder="Enter the code from your email"
+                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                    maxLength={6}
+                    pattern="[0-9]*"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Press Sign Up to confirm the code and finish activation.
+                  </p>
+                  {devToken && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Dev code: <span className="font-mono">{devToken}</span>
+                    </p>
+                  )}
+                  {devCode && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Dev OTP: <span className="font-mono">{devCode}</span>
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={submitting}
                 className="w-full py-3.5 px-4 bg-green-500 hover:bg-green-600 text-white rounded-full font-bold text-[16px] shadow-lg shadow-green-500/20 hover:shadow-green-500/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? (
+                {submitting ? (
                   <>
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span>Processing...</span>
+                    <span>{codeSent ? "Confirming..." : "Processing..."}</span>
                   </>
                 ) : (
                   <>

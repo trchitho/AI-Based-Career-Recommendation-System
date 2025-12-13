@@ -52,6 +52,9 @@ def _verification_response(u: User, info: dict, message: str) -> dict:
         "message": message,
         "user": u.to_dict(),
         "verify_url": info.get("verify_url"),
+        # Expose token only in dev_mode (when SMTP is not configured)
+        "dev_token": info.get("token") if info.get("dev_mode") else None,
+        "dev_mode": info.get("dev_mode", False),
     }
     return resp
 
@@ -139,12 +142,12 @@ def register(request: Request, payload: RegisterPayload, background_tasks: Backg
     session.refresh(u)
 
     info = send_verification_email(session, u, minutes=DEFAULT_VERIFY_MINUTES)
-    if not info.get("sent"):
+    if not info.get("sent") and not info.get("dev_mode"):
         raise HTTPException(
             status_code=500,
             detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
         )
-    return _verification_response(u, info, "Verification email sent. Please confirm to activate your account.")
+    return _verification_response(u, info, "Verification code sent. Please enter the code to activate your account.")
 
 
 @router.post("/login")

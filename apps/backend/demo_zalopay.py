@@ -67,8 +67,10 @@ def demo_query_order(app_trans_id: str):
         'pending': '⏳',
     }
     
-    icon = status_icons.get(result.get('status'), '❓')
-    print(f"\n{icon} Trạng thái: {result.get('status').upper()}")
+    status_value = result.get('status')
+    status = str(status_value or "unknown")
+    icon = status_icons.get(status.lower(), '❓')
+    print(f"\n{icon} Trạng thái: {status.upper()}")
     
     return result
 

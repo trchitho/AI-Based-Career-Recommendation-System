@@ -103,6 +103,26 @@ CREATE INDEX IF NOT EXISTS idx_user_subscriptions_status ON core.user_subscripti
 CREATE INDEX IF NOT EXISTS idx_user_subscriptions_end_date ON core.user_subscriptions(end_date);
 CREATE INDEX IF NOT EXISTS idx_user_usage_user_month ON core.user_usage(user_id, year, month);
 
+-- Link payments -> subscription_plans (nullable)
+ALTER TABLE IF EXISTS core.payments
+    ADD COLUMN IF NOT EXISTS subscription_id INTEGER;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'fk_payments_subscription_id'
+          AND conrelid = 'core.payments'::regclass
+    ) THEN
+        ALTER TABLE core.payments
+            ADD CONSTRAINT fk_payments_subscription_id
+            FOREIGN KEY (subscription_id) REFERENCES core.subscription_plans(id);
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_payments_subscription_id ON core.payments(subscription_id);
+
 -- Comments
 COMMENT ON TABLE core.subscription_plans IS 'Các gói subscription';
 COMMENT ON TABLE core.user_subscriptions IS 'Subscription của user';

@@ -57,7 +57,12 @@ class ZaloPayService:
         app_trans_id = f"{datetime.now().strftime('%y%m%d')}_{order_id}"
 
         # Redirect URL: Khi user hoàn tất/hủy thanh toán, ZaloPay sẽ redirect về đây
-        redirect_url = f"{self.redirect_url}?order_id={order_id}" if self.redirect_url else self.callback_url
+        # Đính kèm app_trans_id để BE/FE có thể query lại trạng thái
+        redirect_url = (
+            f"{self.redirect_url}?apptransid={app_trans_id}&order_id={order_id}"
+            if self.redirect_url
+            else self.callback_url
+        )
         embed_data = json.dumps({"redirecturl": redirect_url})
         
         items = json.dumps([{

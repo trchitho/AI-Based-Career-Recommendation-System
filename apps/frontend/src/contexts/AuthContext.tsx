@@ -136,9 +136,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: data?.user || null,
       } as RegisterResult;
     } catch (error: any) {
-      const msg = error?.response?.data?.detail || error?.response?.data?.message || error?.message;
-      console.error('Registration failed:', msg || error);
-      throw new Error(msg || 'Registration failed');
+      const detail = error?.response?.data?.detail;
+      const message = error?.response?.data?.message;
+      const isObj = typeof detail === 'object' && detail !== null;
+      const errorCode = isObj ? detail?.error_code : undefined;
+      const detailMessage = isObj ? detail?.message : detail;
+      let friendly = detailMessage || message || error?.message;
+      if (errorCode === 'EMAIL_ALREADY_REGISTERED') {
+        friendly = 'Email already exists, please try again with another email.';
+      }
+      if (!friendly || typeof friendly === 'object') {
+        friendly = 'Registration failed. Please try again.';
+      }
+      console.error('Registration failed:', friendly);
+      throw new Error(friendly);
     }
   };
 
