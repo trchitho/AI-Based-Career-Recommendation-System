@@ -82,7 +82,7 @@ def _payment_to_dict(
     try:
         amount_val = int(amount_val) if amount_val is not None else None
     except Exception:
-        amount_val = amount_val
+        pass
 
     data = {
         "id": p.get("id"),
