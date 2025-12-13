@@ -105,3 +105,28 @@ export const trackCareerView = async (careerId: number): Promise<void> => {
         { headers: { Authorization: `Bearer ${token}` } }
     );
 };
+
+/**
+ * Lấy thông tin subscription và usage hiện tại
+ */
+export const getSubscriptionUsage = async () => {
+    const token = getAccessToken();
+    const response = await axios.get(`${API_BASE}/api/subscription/usage`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+};
+
+/**
+ * Kiểm tra quyền truy cập feature cụ thể
+ */
+export const checkFeatureAccess = async (featureType: string, level?: number) => {
+    const token = getAccessToken();
+    const response = await axios.post(`${API_BASE}/api/subscription/check-access`, {
+        feature_type: featureType,
+        level: level
+    }, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+};

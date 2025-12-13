@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import { careerService, CareerItem } from '../services/careerService';
+import UpgradePrompt from '../components/subscription/UpgradePrompt';
 
 const CareerDetailPage = () => {
   // ==========================================
@@ -18,7 +19,7 @@ const CareerDetailPage = () => {
         if (!idOrSlug) return;
         const data = await careerService.get(idOrSlug);
         setItem(data);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
       } finally {
         setLoading(false);
@@ -60,6 +61,49 @@ const CareerDetailPage = () => {
             <div className="flex flex-col items-center justify-center py-32 animate-pulse">
               <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-green-600 mb-4 animate-spin"></div>
               <p className="text-gray-500 font-medium">Loading career details...</p>
+            </div>
+          )}
+
+          {/* --- ACCESS LEVEL INFO --- */}
+          {!loading && item && (
+            <div className="animate-fade-in-up mb-8">
+              {item.premium_features_locked ? (
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">🔓</div>
+                      <div>
+                        <h3 className="font-semibold text-orange-900 dark:text-orange-100">
+                          Đang xem ở mức cơ bản
+                        </h3>
+                        <p className="text-sm text-orange-700 dark:text-orange-300">
+                          Nâng cấp Premium để xem thông tin chi tiết đầy đủ
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => navigate('/pricing')}
+                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors"
+                    >
+                      Nâng Cấp
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">⭐</div>
+                    <div>
+                      <h3 className="font-semibold text-green-900 dark:text-green-100">
+                        Truy cập Premium
+                      </h3>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        Bạn có thể xem tất cả thông tin chi tiết
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -120,6 +164,56 @@ const CareerDetailPage = () => {
                       <p className="italic text-gray-400 mt-4">Detailed description coming soon...</p>
                     )}
                   </div>
+
+                  {/* Premium Features Section */}
+                  {item.premium_features_locked && (
+                    <div className="mt-8 space-y-4">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        🔒 Thông tin chi tiết (Premium)
+                      </h4>
+                      
+                      <div className="space-y-3">
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border-l-4 border-orange-500">
+                          <h5 className="font-semibold text-gray-900 dark:text-white">Yêu cầu học vấn</h5>
+                          <p className="text-gray-600 dark:text-gray-400">{item.education_requirements}</p>
+                        </div>
+                        
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border-l-4 border-orange-500">
+                          <h5 className="font-semibold text-gray-900 dark:text-white">Mức lương</h5>
+                          <p className="text-gray-600 dark:text-gray-400">{item.salary_range}</p>
+                        </div>
+                        
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border-l-4 border-orange-500">
+                          <h5 className="font-semibold text-gray-900 dark:text-white">Triển vọng nghề nghiệp</h5>
+                          <p className="text-gray-600 dark:text-gray-400">{item.job_outlook}</p>
+                        </div>
+                        
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border-l-4 border-orange-500">
+                          <h5 className="font-semibold text-gray-900 dark:text-white">Môi trường làm việc</h5>
+                          <p className="text-gray-600 dark:text-gray-400">{item.work_environment}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800 rounded-xl">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold text-orange-900 dark:text-orange-100">
+                              Mở khóa thông tin đầy đủ
+                            </h4>
+                            <p className="text-sm text-orange-700 dark:text-orange-300">
+                              Nâng cấp Premium để xem chi tiết về lương, yêu cầu, triển vọng và nhiều hơn nữa
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => navigate('/pricing')}
+                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors"
+                          >
+                            Nâng Cấp
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right Column: Quick Stats */}

@@ -84,18 +84,18 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS
-    origins: Iterable[str] = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000")
-    allow_headers = _split_csv_env(os.getenv("ALLOWED_HEADERS"), "*, Authorization, Content-Type")
-    allow_methods = _split_csv_env(os.getenv("ALLOWED_METHODS"), "*")
+    # CORS - Fix for payment issues
+    origins: Iterable[str] = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000,http://127.0.0.1:3000")
+    allow_headers = _split_csv_env(os.getenv("ALLOWED_HEADERS"), "*, Authorization, Content-Type, X-Requested-With")
+    allow_methods = _split_csv_env(os.getenv("ALLOWED_METHODS"), "GET, POST, PUT, DELETE, OPTIONS")
     allow_credentials = _bool_env("ALLOW_CREDENTIALS", True)
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=list(origins),
-        allow_credentials=allow_credentials,
-        allow_methods=list(allow_methods),
-        allow_headers=list(allow_headers),
+        allow_origins=["*"],  # Temporary fix for development
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
         expose_headers=["*"],
         max_age=600,
     )
@@ -145,11 +145,13 @@ def create_app() -> FastAPI:
     from .modules.content import routes_careers as careers_router
     from .modules.content import routes_comments as comments_router
     from .modules.content import routes_essays as essays_router
+    from .modules.content import routes_skills as skills_router
 
     app.include_router(careers_router.router, prefix="/api/careers", tags=["careers"])
     app.include_router(blog_router.router, prefix="/api/blog", tags=["blog"])
     app.include_router(comments_router.router, prefix="/api/comments", tags=["comments"])
     app.include_router(essays_router.router, prefix="/api/essays", tags=["essays"])
+    app.include_router(skills_router.router, prefix="/api/content", tags=["admin-skills"])
 
     # Assessments (nếu có thêm)
     try:
@@ -250,6 +252,14 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("??  Skip payment router:", repr(e))
 
+    # Payment Admin
+    try:
+        from .modules.payment import routes_admin as payment_admin_router
+
+        app.include_router(payment_admin_router.router, prefix="/api/payment", tags=["payment-admin"])
+    except Exception as e:
+        print("??  Skip payment admin router:", repr(e))
+
     # Subscription
     try:
         from .modules.subscription import routes as subscription_router
@@ -258,7 +268,6 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("??  Skip subscription router:", repr(e))
 
-    return app
     # Analytics tracking
     try:
         from .modules.analytics import routes_tracking as tracking_router
@@ -266,6 +275,14 @@ def create_app() -> FastAPI:
         app.include_router(tracking_router.router, prefix="/api/analytics", tags=["analytics"])
     except Exception as e:
         print("??  Skip analytics tracking router:", repr(e))
+
+    # Chatbot (Gemini AI)
+    try:
+        from .modules.chatbot import routes as chatbot_router
+
+        app.include_router(chatbot_router.router, tags=["chatbot"])
+    except Exception as e:
+        print("??  Skip chatbot router:", repr(e))
 
     return app
 

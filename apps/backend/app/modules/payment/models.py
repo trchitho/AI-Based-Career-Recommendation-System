@@ -2,7 +2,8 @@
 Payment Models
 """
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum, Text, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum, Text, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 import enum
 
@@ -30,7 +31,7 @@ class Payment(Base):
     __table_args__ = {"schema": "core"}
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)  # Remove FK constraint temporarily
     
     # Thông tin đơn hàng
     order_id = Column(String(100), unique=True, nullable=False, index=True)
@@ -53,6 +54,9 @@ class Payment(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     paid_at = Column(DateTime, nullable=True)
+    
+    # Relationships - tạm thời comment out để tránh lỗi
+    # user = relationship("User", back_populates="payments")
     
     def __repr__(self):
         return f"<Payment {self.order_id} - {self.status}>"

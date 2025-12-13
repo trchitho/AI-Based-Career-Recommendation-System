@@ -1,133 +1,87 @@
-/**
- * useSubscription Hook
- * Hook để quản lý subscription và check giới hạn
- */
 import { useState, useEffect, useCallback } from 'react';
-import {
-    getMyPlan,
-    checkAssessmentLimit,
-    checkCareerAccess,
-    checkRoadmapLevel,
-    trackAssessment,
-    trackCareerView,
-    type Plan,
-    type Usage,
-} from '../services/subscriptionService';
+import api from '../lib/api';
+
+interface SubscriptionInfo {
+  subscription_id: number | null;
+  plan_name: string;
+  limits: Record<string, any>;
+  features: Record<string, any>;
+  status: string;
+  expires_at: string | null;
+  is_premium: boolean;
+}
+
+interface UsageInfo {
+  feature: string;
+  current_usage: number;
+  limit: number;
+  remaining: number;
+  allowed: boolean;
+}
+
+interface SubscriptionData {
+  subscription: SubscriptionInfo;
+  usage: UsageInfo[];
+}
 
 export const useSubscription = () => {
-    const [plan, setPlan] = useState<Plan | null>(null);
-    const [usage, setUsage] = useState<Usage | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    // Load plan và usage
-    const loadPlan = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const data = await getMyPlan();
-            setPlan(data.plan);
-            setUsage(data.usage);
-        } catch (err: any) {
-            setError(err.message || 'Failed to load plan');
-            console.error('Load plan error:', err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const fetchSubscriptionData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await api.get('/api/subscription/usage');
+      setSubscriptionData(response.data);
+    } catch (err: any) {
+      console.error('Failed to fetch subscription data:', err);
+      setError(err.response?.data?.message || 'Failed to load subscription data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    useEffect(() => {
-        loadPlan();
-    }, [loadPlan]);
+  const refreshSubscription = useCallback(() => {
+    return fetchSubscriptionData();
+  }, [fetchSubscriptionData]);
 
-    // Check có thể làm bài test không
-    const canTakeAssessment = useCallback(async () => {
-        try {
-            const result = await checkAssessmentLimit();
-            return result;
-        } catch (err: any) {
-            console.error('Check assessment error:', err);
-            return { allowed: false, message: 'Error checking limit' };
-        }
-    }, []);
+  const checkFeatureAccess = useCallback(async (featureType: string, level?: number) => {
+    try {
+      const response = await api.post('/api/subscription/check-access', {
+        feature_type: featureType,
+        level: level
+      });
+      return response.data;
+    } catch (err: any) {
+      console.error('Failed to check feature access:', err);
+      return { allowed: false, reason: 'Error checking access' };
+    }
+  }, []);
 
-    // Check có thể xem nghề nghiệp không
-    const canViewCareer = useCallback(async (careerId: number) => {
-        try {
-            const result = await checkCareerAccess(careerId);
-            return result;
-        } catch (err: any) {
-            console.error('Check career error:', err);
-            return { allowed: false, message: 'Error checking access' };
-        }
-    }, []);
+  useEffect(() => {
+    fetchSubscriptionData();
+  }, [fetchSubscriptionData]);
 
-    // Check có thể xem roadmap level không
-    const canViewRoadmapLevel = useCallback(async (level: number) => {
-        try {
-            const result = await checkRoadmapLevel(level);
-            return result;
-        } catch (err: any) {
-            console.error('Check roadmap error:', err);
-            return { allowed: false, message: 'Error checking access' };
-        }
-    }, []);
 
-    // Track assessment
-    const recordAssessment = useCallback(async () => {
-        try {
-            await trackAssessment();
-            await loadPlan(); // Reload để cập nhật usage
-        } catch (err: any) {
-            console.error('Track assessment error:', err);
-            throw err;
-        }
-    }, [loadPlan]);
 
-    // Track career view
-    const recordCareerView = useCallback(
-        async (careerId: number) => {
-            try {
-                await trackCareerView(careerId);
-                await loadPlan(); // Reload để cập nhật usage
-            } catch (err: any) {
-                console.error('Track career error:', err);
-                throw err;
-            }
-        },
-        [loadPlan]
-    );
 
-    // Helper functions
-    const isPremium = plan?.name === 'premium' || plan?.name === 'enterprise';
-    const isFree = plan?.name === 'free';
 
-    const assessmentsRemaining = () => {
-        if (!plan || !usage) return 0;
-        if (plan.max_assessments_per_month === -1) return Infinity;
-        return Math.max(0, plan.max_assessments_per_month - usage.assessments_count);
-    };
+  // Enhanced premium detection
+  const planName = subscriptionData?.subscription?.plan_name || 'Free';
+  const isPremiumFromAPI = subscriptionData?.subscription?.is_premium === true;
+  const isPremiumFromPlan = planName === 'Pro' || planName === 'Premium' || planName === 'Enterprise';
+  const finalIsPremium = isPremiumFromAPI || isPremiumFromPlan;
 
-    const careersRemaining = () => {
-        if (!plan || !usage) return 0;
-        if (plan.can_view_all_careers) return Infinity;
-        return Math.max(0, plan.max_career_views - usage.careers_viewed.length);
-    };
-
-    return {
-        plan,
-        usage,
-        loading,
-        error,
-        isPremium,
-        isFree,
-        assessmentsRemaining: assessmentsRemaining(),
-        careersRemaining: careersRemaining(),
-        canTakeAssessment,
-        canViewCareer,
-        canViewRoadmapLevel,
-        recordAssessment,
-        recordCareerView,
-        reload: loadPlan,
-    };
+  return {
+    subscriptionData,
+    loading,
+    error,
+    refreshSubscription,
+    checkFeatureAccess,
+    isPremium: finalIsPremium,
+    planName: planName
+  };
 };

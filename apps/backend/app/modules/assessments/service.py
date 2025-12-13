@@ -997,14 +997,11 @@ def save_essay(
 
 def build_results(session: Session, assessment_id: int) -> dict:
     """
-    Build kết quả cho 1 assessment:
+    Build kết quả cho 1 assessment cụ thể:
 
     - Lấy Assessment (RIASEC hoặc BigFive) theo id.
-    - Lấy snapshot traits cho user (test + essay + fused) qua get_user_traits().
-    - Chuẩn hoá điểm cho FE:
-        + riasec_scores: realistic, investigative, ... (0–100)
-        + big_five_scores: openness, conscientiousness, ... (0–100)
-      → Ưu tiên dùng fused; nếu không có fused thì dùng test.
+    - Lấy điểm số trực tiếp từ assessment.scores
+    - Chuẩn hoá điểm cho FE: (1-5) -> (0-100)
     - Lấy top 3 careers (tạm thời placeholder như logic cũ).
     """
     obj = session.get(Assessment, assessment_id)
@@ -1012,144 +1009,90 @@ def build_results(session: Session, assessment_id: int) -> dict:
         raise NotFoundError("Assessment not found")
 
     user_id = int(obj.user_id)
+    
+    # Lấy điểm số trực tiếp từ assessment này
+    assessment_scores = obj.scores or {}
+    assessment_type = obj.a_type
 
-    # 1) Lấy snapshot traits (đã fuse) cho user
+    # 1) Lấy snapshot traits (đã fuse) cho user để trả về thêm thông tin
     traits_snapshot: TraitSnapshot = get_user_traits(
         session=session,
         user_id=user_id,
     )
 
-    # 2) Chọn vector để dùng cho chart
-    riasec_vec = traits_snapshot.riasec_fused or traits_snapshot.riasec_test
-    big5_vec = traits_snapshot.big5_fused or traits_snapshot.big5_test
+    # 2) Xử lý điểm số của assessment cụ thể này
+    def _scores_to_percent(scores_dict: dict, score_type: str) -> dict[str, float]:
+        """Chuyển điểm từ 1-5 sang 0-100 và map tên"""
+        if score_type == "RIASEC":
+            name_map = {
+                "R": "realistic",
+                "I": "investigative", 
+                "A": "artistic",
+                "S": "social",
+                "E": "enterprising",
+                "C": "conventional",
+            }
+        else:  # BigFive
+            name_map = {
+                "O": "openness",
+                "C": "conscientiousness",
+                "E": "extraversion",
+                "A": "agreeableness", 
+                "N": "neuroticism",
+            }
+        
+        result = {}
+        for key, value in scores_dict.items():
+            if key in name_map:
+                # Chuyển từ 1-5 sang 0-100
+                percent_value = ((float(value) - 1.0) / 4.0) * 100.0
+                result[name_map[key]] = round(percent_value, 1)
+        
+        return result
 
-    # Map thứ tự vector → tên dimension FE đang dùng
-    riasec_letters = ["R", "I", "A", "S", "E", "C"]
-    riasec_name_map = {
-        "R": "realistic",
-        "I": "investigative",
-        "A": "artistic",
-        "S": "social",
-        "E": "enterprising",
-        "C": "conventional",
-    }
-
-    big5_letters = ["O", "C", "E", "A", "N"]
-    big5_name_map = {
-        "O": "openness",
-        "C": "conscientiousness",
-        "E": "extraversion",
-        "A": "agreeableness",
-        "N": "neuroticism",
-    }
-
-    def _vec_to_percent_scores(
-        vec: Optional[list[float]],
-        letters: list[str],
-        name_map: dict[str, str],
-    ) -> dict[str, float]:
-        """
-        vec: list[float] 0..1 (theo thứ tự letters).
-        Trả: { display_name: value_0_100 }.
-        """
-        scores: dict[str, float] = {
-            name_map[ch]: 0.0 for ch in letters
+    # 3) Tạo điểm số cho cả RIASEC và BigFive
+    riasec_scores = {}
+    big_five_scores = {}
+    
+    if assessment_type == "RIASEC":
+        riasec_scores = _scores_to_percent(assessment_scores, "RIASEC")
+        # Lấy BigFive từ cùng session nếu có
+        session_assessments = session.query(Assessment).filter(
+            Assessment.session_id == obj.session_id,
+            Assessment.a_type == "BigFive"
+        ).first()
+        if session_assessments:
+            big_five_scores = _scores_to_percent(session_assessments.scores or {}, "BigFive")
+    
+    elif assessment_type == "BigFive":
+        big_five_scores = _scores_to_percent(assessment_scores, "BigFive")
+        # Lấy RIASEC từ cùng session nếu có
+        session_assessments = session.query(Assessment).filter(
+            Assessment.session_id == obj.session_id,
+            Assessment.a_type == "RIASEC"
+        ).first()
+        if session_assessments:
+            riasec_scores = _scores_to_percent(session_assessments.scores or {}, "RIASEC")
+    
+    # Nếu không có điểm từ session, tạo điểm mặc định
+    if not riasec_scores:
+        riasec_scores = {
+            "realistic": 0.0,
+            "investigative": 0.0,
+            "artistic": 0.0,
+            "social": 0.0,
+            "enterprising": 0.0,
+            "conventional": 0.0,
         }
-        if not vec or len(vec) < len(letters):
-            return scores
-
-        for idx, ch in enumerate(letters):
-            raw = float(vec[idx])
-            # clip 0..1 rồi *100
-            if raw < 0.0:
-                raw = 0.0
-            if raw > 1.0:
-                raw = 1.0
-            scores[name_map[ch]] = round(raw * 100.0, 1)
-
-        return scores
-
-    riasec_scores = _vec_to_percent_scores(
-        riasec_vec, riasec_letters, riasec_name_map
-    )
-    big_five_scores = _vec_to_percent_scores(
-        big5_vec, big5_letters, big5_name_map
-    )
-
-    # 3) Nếu vì lý do nào đó chưa có trait → fallback nhẹ từ responses (map 1..5 -> 0..100)
-    if (
-        not any(riasec_scores.values())
-        and not any(big_five_scores.values())
-    ):
-        resp_rows = (
-            session.execute(
-                select(AssessmentResponse).where(
-                    AssessmentResponse.assessment_id == obj.id
-                )
-            )
-            .scalars()
-            .all()
-        )
-
-        riasec_acc: dict[str, list[float]] = {
-            v: [] for v in riasec_name_map.values()
+    
+    if not big_five_scores:
+        big_five_scores = {
+            "openness": 0.0,
+            "conscientiousness": 0.0,
+            "extraversion": 0.0,
+            "agreeableness": 0.0,
+            "neuroticism": 0.0,
         }
-        big5_acc: dict[str, list[float]] = {
-            v: [] for v in big5_name_map.values()
-        }
-
-        # reverse-map key chữ cái → tên hiển thị
-        riasec_key_map = {
-            "R": "realistic",
-            "I": "investigative",
-            "A": "artistic",
-            "S": "social",
-            "E": "enterprising",
-            "C": "conventional",
-        }
-        big5_key_map = {
-            "O": "openness",
-            "C": "conscientiousness",
-            "E": "extraversion",
-            "A": "agreeableness",
-            "N": "neuroticism",
-        }
-
-        for r in resp_rows:
-            key = (r.question_key or "").strip().upper()
-            try:
-                raw_val = (
-                    float(r.score_value)
-                    if r.score_value is not None
-                    else float(r.answer_raw)
-                )
-            except Exception:
-                raw_val = None
-            if raw_val is None:
-                continue
-
-            # 1..5 -> 0..1
-            val01 = max(0.0, min(1.0, (float(raw_val) - 1.0) / 4.0))
-
-            if key in riasec_key_map:
-                riasec_acc[riasec_key_map[key]].append(val01)
-            if key in big5_key_map:
-                big5_acc[big5_key_map[key]].append(val01)
-
-        def _avg_to_percent(d: dict[str, list[float]]) -> dict[str, float]:
-            out: dict[str, float] = {}
-            for k, arr in d.items():
-                if not arr:
-                    out[k] = 0.0
-                else:
-                    out[k] = round(
-                        (sum(arr) / len(arr)) * 100.0,
-                        1,
-                    )
-            return out
-
-        riasec_scores = _avg_to_percent(riasec_acc)
-        big_five_scores = _avg_to_percent(big5_acc)
 
     # 4) Gợi ý nghề giống logic cũ (placeholder)
     rec_rows = session.execute(

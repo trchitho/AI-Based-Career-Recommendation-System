@@ -4,6 +4,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
+import { ChatbotWrapper } from './components/chatbot/ChatbotWrapper';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -13,6 +14,8 @@ import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import AssessmentPage from './pages/AssessmentPage';
 import ResultsPage from './pages/ResultsPage';
+import SessionResultsPage from './pages/SessionResultsPage';
+import AssessmentHistoryPage from './pages/AssessmentHistoryPage';
 import RoadmapPage from './pages/RoadmapPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import CareersPage from './pages/CareersPage';
@@ -22,10 +25,14 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import BlogPage from './pages/BlogPage';
 import BlogDetailPage from './pages/BlogDetailPage';
+import BlogCreatePage from './pages/admin/BlogCreatePage';
+import BlogManagementPage from './pages/admin/BlogManagementPage';
+import UserBlogCreatePage from './pages/BlogCreatePage';
 import ChatSummaryPage from './pages/ChatSummaryPage';
 import ChatPage from './pages/ChatPage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import { PaymentPage } from './pages/PaymentPage';
+import PaymentReturn from './components/payment/PaymentReturn';
 import DebugAuthPage from './pages/DebugAuthPage';
 import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
 
@@ -51,6 +58,7 @@ function App() {
               <Route path="/verify" element={<VerifyEmailPage />} />
               <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
               <Route path="/pricing" element={<PaymentPage />} />
+              <Route path="/payment/return" element={<PaymentReturn />} />
 
               {/* Protected routes */}
               <Route
@@ -134,6 +142,30 @@ function App() {
                 }
               />
               <Route
+                path="/blog/create"
+                element={
+                  <ProtectedRoute>
+                    <UserBlogCreatePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/blog/create"
+                element={
+                  <AdminRoute>
+                    <BlogCreatePage />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/blog/manage"
+                element={
+                  <AdminRoute>
+                    <BlogManagementPage />
+                  </AdminRoute>
+                }
+              />
+              <Route
                 path="/chat/summary"
                 element={
                   <ProtectedRoute>
@@ -154,6 +186,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ResultsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/session-results/:sessionId"
+                element={
+                  <ProtectedRoute>
+                    <SessionResultsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/assessment-history"
+                element={
+                  <ProtectedRoute>
+                    <AssessmentHistoryPage />
                   </ProtectedRoute>
                 }
               />
@@ -179,6 +227,9 @@ function App() {
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            
+            {/* Global Chatbot - chỉ hiện khi đã đăng nhập */}
+            <ChatbotWrapper />
           </SocketProvider>
         </AuthProvider>
       </Router>

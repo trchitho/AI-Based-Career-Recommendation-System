@@ -6,6 +6,17 @@ export interface CareerItem {
   title: string;
   short_desc?: string;
   description?: string;
+  skills?: string[];
+  education_requirements?: string;
+  salary_range?: string;
+  job_outlook?: string;
+  detailed_description?: string;
+  career_path?: string;
+  work_environment?: string;
+  access_level?: 'basic' | 'full';
+  upgrade_required?: boolean;
+  premium_features_locked?: boolean;
+  access_info?: any;
 }
 
 export interface CareerListResponse {

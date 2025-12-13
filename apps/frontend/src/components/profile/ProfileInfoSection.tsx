@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { UserProfile } from '../../types/profile';
 import { profileService } from '../../services/profileService';
+import ProfileAvatar from './ProfileAvatar';
 
 interface ProfileInfoSectionProps {
   profile: UserProfile;
@@ -61,27 +62,50 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/5 skew-x-12 transform translate-x-10 pointer-events-none"></div>
 
-        <div className="relative z-10 flex justify-between items-center">
-          <div>
-            <h3 className="text-2xl font-extrabold text-white mb-1 tracking-tight">
-              Personal Information
-            </h3>
-            <p className="text-green-100 font-medium text-sm">
-              Manage your account details
-            </p>
+        <div className="relative z-10">
+          {/* Avatar and basic info */}
+          <div className="flex items-center gap-4 mb-6">
+            <ProfileAvatar 
+              name={`${profile.first_name || ''} ${profile.last_name || ''}`.trim()}
+              email={profile.email}
+              size="lg"
+            />
+            <div className="flex-1">
+              <h3 className="text-2xl font-extrabold text-white mb-1 tracking-tight">
+                {profile.first_name || profile.last_name 
+                  ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+                  : 'Your Profile'
+                }
+              </h3>
+              <p className="text-green-100 font-medium text-sm">
+                {profile.email}
+              </p>
+            </div>
           </div>
 
-          {!isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/30 text-white rounded-xl font-bold text-sm hover:bg-white/20 transition-all shadow-sm flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-              Edit
-            </button>
-          )}
+          {/* Header and edit button */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h4 className="text-lg font-bold text-white mb-1">
+                Personal Information
+              </h4>
+              <p className="text-green-100 font-medium text-sm">
+                Manage your account details
+              </p>
+            </div>
+
+            {!isEditing && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/30 text-white rounded-xl font-bold text-sm hover:bg-white/20 transition-all shadow-sm flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                Edit
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

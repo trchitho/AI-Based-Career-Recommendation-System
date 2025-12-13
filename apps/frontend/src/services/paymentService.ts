@@ -1,143 +1,123 @@
-/**
- * Payment Service - ZaloPay Integration
- */
-import axios from 'axios';
-
-const API_BASE = import.meta.env['VITE_API_BASE'] || 'http://localhost:8000';
+import api from '../lib/api';
 
 export interface PaymentCreateRequest {
-    amount: number;
-    description: string;
-    payment_method?: 'zalopay' | 'momo' | 'vnpay';
+  amount: number;
+  description: string;
+  payment_method: 'zalopay' | 'vnpay' | 'momo';
 }
 
 export interface PaymentCreateResponse {
-    success: boolean;
-    order_id: string;
-    order_url?: string;
-    message?: string;
+  success: boolean;
+  order_id: string;
+  order_url?: string;
+  message?: string;
 }
 
 export interface Payment {
-    id: number;
-    order_id: string;
-    amount: number;
-    description: string;
-    status: 'pending' | 'success' | 'failed' | 'cancelled';
-    payment_method: string;
-    created_at: string;
-    paid_at?: string;
+  id: number;
+  order_id: string;
+  amount: number;
+  description: string;
+  status: string;
+  created_at: string;
+  paid_at?: string;
 }
 
 export interface PaymentQueryResponse {
-    success: boolean;
-    status: string;
-    message?: string;
-    payment?: Payment;
+  success: boolean;
+  status: string;
+  payment: Payment;
 }
 
-/**
- * Tạo đơn thanh toán mới
- */
-export const createPayment = async (
-    data: PaymentCreateRequest,
-    token: string
-): Promise<PaymentCreateResponse> => {
-    const response = await axios.post(
-        `${API_BASE}/api/payment/create`,
-        data,
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        }
-    );
+class PaymentService {
+  async createPayment(request: PaymentCreateRequest): Promise<PaymentCreateResponse> {
+    const response = await api.post('/api/payment/create', request);
     return response.data;
-};
+  }
 
-/**
- * Truy vấn trạng thái thanh toán
- */
-export const queryPayment = async (
-    orderId: string,
-    token: string
-): Promise<PaymentQueryResponse> => {
-    const response = await axios.get(
-        `${API_BASE}/api/payment/query/${orderId}`,
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        }
-    );
+  async queryPayment(orderId: string): Promise<PaymentQueryResponse> {
+    const response = await api.get(`/api/payment/query/${orderId}`);
     return response.data;
-};
+  }
 
-/**
- * Lấy lịch sử thanh toán
- */
-export const getPaymentHistory = async (
-    token: string,
-    skip: number = 0,
-    limit: number = 20
-): Promise<Payment[]> => {
-    const response = await axios.get(
-        `${API_BASE}/api/payment/history`,
-        {
-            params: { skip, limit },
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        }
-    );
-    return response.data;
-};
-
-/**
- * Poll payment status - Tự động kiểm tra trạng thái thanh toán
- */
-export const pollPaymentStatus = async (
-    orderId: string,
-    token: string,
-    maxAttempts: number = 30, // 30 lần = 2.5 phút (mỗi 5 giây)
-    interval: number = 5000 // 5 giây
-): Promise<PaymentQueryResponse> => {
-    let attempts = 0;
-
-    return new Promise((resolve, reject) => {
-        const checkStatus = async () => {
-            try {
-                attempts++;
-                console.log(`Polling attempt ${attempts}/${maxAttempts} for order ${orderId}`);
-
-                const result = await queryPayment(orderId, token);
-                console.log(`Polling result:`, result);
-
-                // Dừng polling nếu có kết quả cuối cùng
-                if (result.status === 'success' || result.status === 'failed' || result.status === 'cancelled') {
-                    resolve(result);
-                    return;
-                }
-
-                // Nếu hết số lần thử
-                if (attempts >= maxAttempts) {
-                    resolve({
-                        success: false,
-                        status: 'failed',
-                        message: 'Không thể xác nhận thanh toán. Giao dịch có thể đã bị hủy hoặc hết hạn.',
-                    });
-                    return;
-                }
-
-                // Tiếp tục polling
-                setTimeout(checkStatus, interval);
-            } catch (error) {
-                console.error('Polling error:', error);
-                reject(error);
-            }
-        };
-
-        checkStatus();
+  async getPaymentHistory(skip = 0, limit = 20) {
+    const response = await api.get('/api/payment/history', {
+      params: { skip, limit }
     });
+    return response.data;
+  }
+
+  // Poll payment status until completion
+  async pollPaymentStatus(orderId: string, maxAttempts = 30, intervalMs = 2000): Promise<PaymentQueryResponse> {
+    let attempts = 0;
+    
+    while (attempts < maxAttempts) {
+      try {
+        const result = await this.queryPayment(orderId);
+        
+        // If payment is completed (success or failed), return result
+        if (result.payment.status !== 'pending') {
+          return result;
+        }
+        
+        // Wait before next attempt
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+        attempts++;
+      } catch (error) {
+        console.error('Error polling payment status:', error);
+        attempts++;
+        
+        if (attempts >= maxAttempts) {
+          throw error;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+      }
+    }
+    
+    throw new Error('Payment status polling timeout');
+  }
+
+  // Trigger subscription refresh after successful payment
+  triggerSubscriptionRefresh() {
+    // Use localStorage to communicate between components
+    localStorage.setItem('payment_success', Date.now().toString());
+    
+    // Dispatch custom event
+    window.dispatchEvent(new CustomEvent('payment_success', {
+      detail: { timestamp: Date.now() }
+    }));
+  }
+
+  // Handle payment success redirect
+  handlePaymentSuccess(orderId?: string) {
+    if (orderId) {
+      // Store successful order ID
+      localStorage.setItem('last_successful_payment', orderId);
+    }
+    
+    this.triggerSubscriptionRefresh();
+    
+    // Redirect to payment return page for status checking
+    window.location.href = `/payment/return${orderId ? `?order_id=${orderId}` : ''}`;
+  }
+}
+
+export const paymentService = new PaymentService();
+
+// Named exports for backward compatibility
+export const createPayment = (request: PaymentCreateRequest) => {
+  return paymentService.createPayment(request);
+};
+
+export const queryPayment = (orderId: string) => {
+  return paymentService.queryPayment(orderId);
+};
+
+export const getPaymentHistory = (skip = 0, limit = 20) => {
+  return paymentService.getPaymentHistory(skip, limit);
+};
+
+export const pollPaymentStatus = (orderId: string, maxAttempts = 30, intervalMs = 2000) => {
+  return paymentService.pollPaymentStatus(orderId, maxAttempts, intervalMs);
 };

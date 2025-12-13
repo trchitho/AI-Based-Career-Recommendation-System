@@ -8,6 +8,9 @@ import { PaymentButton } from '../components/payment/PaymentButton';
 import { getPaymentHistory, pollPaymentStatus, queryPayment, Payment } from '../services/paymentService';
 import MainLayout from '../components/layout/MainLayout';
 import { getAccessToken } from '../utils/auth';
+import { useSubscription } from '../hooks/useSubscription';
+import PaidUserStatus from '../components/subscription/PaidUserStatus';
+import EnterpriseUserStatus from '../components/subscription/EnterpriseUserStatus';
 
 export const PaymentPage: React.FC = () => {
     // ==========================================
@@ -18,6 +21,7 @@ export const PaymentPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'plans' | 'history'>('plans');
     const isLoggedIn = !!getAccessToken();
+    const { isPremium, subscriptionData } = useSubscription();
 
     // Payment status modal
     const [showStatusModal, setShowStatusModal] = useState(false);
@@ -80,7 +84,7 @@ export const PaymentPage: React.FC = () => {
             setShowStatusModal(true);
 
             // Bắt đầu polling
-            const result = await pollPaymentStatus(orderId, token);
+            const result = await pollPaymentStatus(orderId);
 
             // Cập nhật kết quả
             if (result.status === 'success') {
@@ -100,7 +104,7 @@ export const PaymentPage: React.FC = () => {
 
                 setPaymentStatus({
                     type: 'failed',
-                    message: messages[result.status] || result.message || 'Thanh toán không thành công.',
+                    message: messages[result.status] || 'Thanh toán không thành công.',
                 });
             }
         } catch (error) {
@@ -118,19 +122,19 @@ export const PaymentPage: React.FC = () => {
             const token = getAccessToken();
             if (!token) return;
 
-            const data = await getPaymentHistory(token);
+            const data = await getPaymentHistory(0, 20);
             setHistory(data);
 
             // Chỉ auto query 1 lần khi được yêu cầu
             if (autoQuery) {
-                const pendingOrders = data.filter(p => p.status === 'pending');
+                const pendingOrders = data.filter((p: Payment) => p.status === 'pending');
                 if (pendingOrders.length > 0) {
                     console.log(`Found ${pendingOrders.length} pending orders, querying...`);
 
                     // Query tất cả pending orders
                     await Promise.all(
-                        pendingOrders.map(payment =>
-                            queryPayment(payment.order_id, token).catch(err =>
+                        pendingOrders.map((payment: Payment) =>
+                            queryPayment(payment.order_id).catch(err =>
                                 console.error(`Failed to query ${payment.order_id}:`, err)
                             )
                         )
@@ -155,7 +159,7 @@ export const PaymentPage: React.FC = () => {
             name: 'Gói Cơ Bản',
             price: 99000,
             description: 'Phù hợp cho người mới bắt đầu',
-            features: ['20 bài test/tháng', 'Xem 5 nghề nghiệp', 'Roadmap Level 1-2', 'Hỗ trợ email'],
+            features: ['5 bài test/tháng', 'Xem 5 nghề nghiệp', 'Roadmap Level 1', 'Hỗ trợ email'],
             gradient: 'from-blue-500 to-cyan-500',
             glowColor: 'shadow-blue-500/50',
             popular: false,
@@ -193,6 +197,32 @@ export const PaymentPage: React.FC = () => {
             popular: false,
         },
     ];
+
+    // Filter plans based on user's current subscription
+    const getAvailablePlans = () => {
+        if (!isPremium) {
+            return plans; // Show all plans for non-premium users
+        }
+        
+        const currentPlan = subscriptionData?.subscription?.plan_name?.toLowerCase() || '';
+        
+        // For premium users, only show higher tier plans
+        if (currentPlan.includes('enterprise') || currentPlan.includes('doanh nghiệp')) {
+            return []; // Already has highest plan
+        }
+        
+        if (currentPlan.includes('premium') || currentPlan.includes('pro')) {
+            return plans.filter(plan => plan.id === 'enterprise'); // Only show Enterprise
+        }
+        
+        if (currentPlan.includes('basic') || currentPlan.includes('cơ bản')) {
+            return plans.filter(plan => plan.id !== 'basic'); // Show Premium and Enterprise
+        }
+        
+        return plans.filter(plan => plan.id === 'enterprise'); // Default to Enterprise only
+    };
+
+    const availablePlans = getAvailablePlans();
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('vi-VN', {
@@ -232,6 +262,24 @@ export const PaymentPage: React.FC = () => {
     // ==========================================
     // 2. NEW DESIGN UI
     // ==========================================
+    
+    // Check if user wants to view all plans
+    const viewAll = searchParams.get('view') === 'all';
+    
+    // Check if user is Enterprise
+    const isEnterprise = subscriptionData?.subscription?.plan_name?.toLowerCase().includes('enterprise') || 
+                        subscriptionData?.subscription?.plan_name?.toLowerCase().includes('doanh nghiệp');
+    
+    // If user is Enterprise and doesn't want to view all plans, show Enterprise status
+    if (isPremium && isEnterprise && !viewAll) {
+        return <EnterpriseUserStatus />;
+    }
+    
+    // If user is premium (but not Enterprise) and doesn't want to view all plans, show paid status
+    if (isPremium && !viewAll) {
+        return <PaidUserStatus />;
+    }
+    
     return (
         <MainLayout>
             <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
@@ -257,16 +305,44 @@ export const PaymentPage: React.FC = () => {
 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
+                    {/* --- PREMIUM USER BANNER --- */}
+                    {isPremium && viewAll && (
+                        <div className="mb-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-6 text-white shadow-xl animate-fade-in-up">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold">Bạn đã là thành viên {subscriptionData?.subscription?.plan_name || 'Premium'}!</h3>
+                                        <p className="text-green-100">Xem các gói nâng cấp bên dưới hoặc quay lại trang trạng thái</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => window.location.href = '/pricing'}
+                                    className="px-6 py-3 bg-white text-green-600 font-bold rounded-xl hover:bg-gray-100 transition-colors shadow-lg"
+                                >
+                                    Xem trạng thái
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {/* --- HEADER & TABS --- */}
                     <div className="text-center mb-16 animate-fade-in-up">
                         <span className="inline-block py-1.5 px-4 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold tracking-widest uppercase mb-6 border border-green-200 dark:border-green-800">
-                            Premium Access
+                            {isPremium ? 'Upgrade Options' : 'Premium Access'}
                         </span>
                         <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
-                            Choose Your <span className="text-green-600 dark:text-green-500">Upgrade</span>
+                            {isPremium ? 'Nâng cấp' : 'Choose Your'} <span className="text-green-600 dark:text-green-500">{isPremium ? 'Gói Cao Hơn' : 'Upgrade'}</span>
                         </h1>
                         <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed mb-10">
-                            Unlock full potential with our premium career guidance features.
+                            {isPremium 
+                                ? 'Khám phá các gói cao cấp hơn để mở rộng quy mô và tính năng.'
+                                : 'Unlock full potential with our premium career guidance features.'
+                            }
                         </p>
 
                         {/* Tabs Navigation */}
@@ -304,8 +380,30 @@ export const PaymentPage: React.FC = () => {
 
                         {/* TAB: PLANS */}
                         {activeTab === 'plans' && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {plans.map((plan) => (
+                            <>
+                                {availablePlans.length === 0 ? (
+                                    <div className="text-center py-16">
+                                        <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <svg className="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                            Bạn đã có gói cao nhất!
+                                        </h3>
+                                        <p className="text-gray-600 dark:text-gray-400 mb-8">
+                                            Bạn đang sử dụng gói {subscriptionData?.subscription?.plan_name || 'Enterprise'} - gói cao nhất của chúng tôi với đầy đủ tính năng.
+                                        </p>
+                                        <button
+                                            onClick={() => window.location.href = '/pricing'}
+                                            className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-lg"
+                                        >
+                                            Quay lại trang trạng thái
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className={`grid gap-8 ${availablePlans.length === 1 ? 'grid-cols-1 max-w-md mx-auto' : availablePlans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' : 'grid-cols-1 md:grid-cols-3'}`}>
+                                        {availablePlans.map((plan) => (
                                     <div
                                         key={plan.id}
                                         className={`relative bg-white dark:bg-gray-800 rounded-[32px] p-8 shadow-xl border transition-all duration-300 flex flex-col
@@ -365,8 +463,10 @@ export const PaymentPage: React.FC = () => {
                                             </PaymentButton>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
                         )}
 
                         {/* TAB: HISTORY */}

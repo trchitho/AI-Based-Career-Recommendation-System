@@ -1,0 +1,1 @@
+# Chatbot module for Gemini AI integration

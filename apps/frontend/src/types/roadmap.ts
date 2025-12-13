@@ -34,4 +34,16 @@ export interface Roadmap {
   userProgress?: UserProgress;
   createdAt: string;
   updatedAt: string;
+  upgrade_required?: boolean;
+  max_free_level?: number;
+  levels?: RoadmapLevel[];
+}
+
+export interface RoadmapLevel {
+  level: number;
+  title: string;
+  description: string;
+  milestones: Milestone[];
+  locked?: boolean;
+  upgrade_required?: boolean;
 }

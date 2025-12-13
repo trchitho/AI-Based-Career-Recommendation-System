@@ -22,6 +22,8 @@ import AIMonitoringPage from "./AIMonitoringPage.tsx";
 import UserManagementPage from "./UserManagementPage";
 import SettingsPage from "./SettingsPage";
 import BlogManagementPage from "./BlogManagementPage.tsx";
+import PaymentManagementPage from "./PaymentManagementPage.tsx";
+import PaymentManagementPageMock from "./PaymentManagementPageMock.tsx";
 
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
@@ -72,6 +74,7 @@ const AdminDashboardPage = () => {
               <div className="flex items-center gap-6 flex-nowrap flex-shrink-0">
                 <NavItem to="/admin" label={t("admin.dashboard")} active={location.pathname === "/admin"} />
                 <NavItem to="/admin/users" label={t("admin.users")} active={isActive("/admin/users")} />
+                <NavItem to="/admin/payments" label="Thanh toán" active={isActive("/admin/payments")} />
                 <NavItem to="/admin/settings" label={t("admin.settings")} active={isActive("/admin/settings")} />
                 <NavItem to="/admin/blogs" label={t("admin.blogs")} active={isActive("/admin/blogs")} />
                 <NavItem to="/admin/careers" label={t("admin.careers")} active={isActive("/admin/careers")} />
@@ -115,6 +118,7 @@ const AdminDashboardPage = () => {
           <Route path="questions" element={<QuestionManagementPage />} />
           <Route path="ai-monitoring" element={<AIMonitoringPage />} />
           <Route path="users" element={<UserManagementPage />} />
+          <Route path="payments" element={<PaymentManagementPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="blogs" element={<BlogManagementPage />} />
         </Routes>
