@@ -355,11 +355,13 @@ const RegisterPage = () => {
                     Enter verification code
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                     placeholder="Enter the code from your email"
                     className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                    maxLength={6}
+                    pattern="[0-9]*"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Press Sign Up to confirm the code and finish activation.
