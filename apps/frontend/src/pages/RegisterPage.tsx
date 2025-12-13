@@ -102,6 +102,10 @@ const RegisterPage = () => {
         setInfo("");
       }
       if (!friendly || typeof friendly === "object") {
+        if (typeof friendly === "object") {
+          // Log the original error object for debugging
+          console.error("Registration error details:", friendly, err);
+        }
         friendly = "Registration failed. Please try again.";
       }
       setError(friendly);
