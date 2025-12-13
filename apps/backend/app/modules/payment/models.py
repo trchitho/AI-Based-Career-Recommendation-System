@@ -42,7 +42,9 @@ class Payment(Base):
     app_trans_id: Mapped[Optional[str]] = mapped_column(String(100), unique=True, nullable=True, index=True)
     amount: Mapped[int] = mapped_column(nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # Store as string; always use PaymentMethod.X.value for assignments/comparisons
     payment_method: Mapped[str] = mapped_column(String(20), default=PaymentMethod.ZALOPAY.value)
+    # Store as string; always use PaymentStatus.X.value for assignments/comparisons
     status: Mapped[str] = mapped_column(String(20), default=PaymentStatus.PENDING.value, index=True)
     zp_trans_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     order_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
