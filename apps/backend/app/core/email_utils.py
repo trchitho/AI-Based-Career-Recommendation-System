@@ -47,7 +47,8 @@ def send_email(to_email: str, subject: str, body: str) -> Tuple[bool, str | None
     """
     Lightweight SMTP sender.
     Returns (sent_ok, error_message_if_any, dev_mode_fallback).
-    dev_mode_fallback is True when SMTP is not configured so callers can decide to allow dev token.
+    dev_mode_fallback is True only when SMTP is not configured AND the environment
+    is explicitly set to development mode via ENVIRONMENT=development.
     """
     _ensure_env_loaded()
     host = os.getenv("SMTP_HOST")
@@ -57,14 +58,20 @@ def send_email(to_email: str, subject: str, body: str) -> Tuple[bool, str | None
     use_starttls = _bool_env("SMTP_STARTTLS", True)
     use_ssl = _bool_env("SMTP_SSL", False)
     sender = os.getenv("EMAIL_FROM") or user
+    
+    # Only allow dev mode if explicitly configured
+    is_dev_environment = os.getenv("ENVIRONMENT", "").lower() in {"development", "dev"}
 
     if not host:
         msg = "[email] SMTP_HOST not set; skipping actual send."
         print(msg)
-        print(f"[email] To: {to_email}")
-        print(f"[email] Subject: {subject}")
-        print(f"[email] Body:\n{body}")
-        return False, msg, True
+        if is_dev_environment:
+            print(f"[email] To: {to_email}")
+            print(f"[email] Subject: {subject}")
+            print(f"[email] Body:\n{body}")
+            return False, msg, True
+        else:
+            return False, msg, False
 
     message = EmailMessage()
     message["From"] = sender or "no-reply@example.com"
