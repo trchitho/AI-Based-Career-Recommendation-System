@@ -1,0 +1,101 @@
+form_code,question_no,question_key,prompt,options_json,reverse_score
+BIG5_100,1,E1,Am the life of the party.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,2,A1,Feel little concern for others.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,3,C1,Am always prepared.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,4,N1,Get stressed out easily.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,5,O1,Have a rich vocabulary.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,6,E2,Don't talk a lot.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,7,A2,Am interested in people.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,8,C2,Leave my belongings around.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,9,N2,Am relaxed most of the time.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,10,O2,Have difficulty understanding abstract ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,11,E3,Feel comfortable around people.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,12,A3,Insult people.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,13,C3,Pay attention to details.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,14,N3,Worry about things.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,15,O3,Have a vivid imagination.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,16,E4,Keep in the background.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,17,A4,Sympathize with others' feelings.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,18,C4,Make a mess of things.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,19,N4,Seldom feel blue.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,20,O4,Am not interested in abstract ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,21,E5,Start conversations.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,22,A5,Am not interested in other people's problems.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,23,C5,Get chores done right away.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,24,N5,Am easily disturbed.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,25,O5,Have excellent ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,26,E6,Have little to say.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,27,A6,Have a soft heart.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,28,C6,Often forget to put things back in their proper place.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,29,N6,Get upset easily.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,30,O6,Do not have a good imagination.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,31,E7,Talk to a lot of different people at parties.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,32,A7,Am not really interested in others.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,33,C7,Like order.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,34,N7,Change my mood a lot.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,35,O7,Am quick to understand things.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,36,E8,Don't like to draw attention to myself.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,37,A8,Take time out for others.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,38,C8,Shirk my duties.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,39,N8,Have frequent mood swings.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,40,O8,Use difficult words.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,41,E9,Don't mind being the center of attention.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,42,A9,Feel others' emotions.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,43,C9,Follow a schedule.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,44,N9,Get irritated easily.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,45,O9,Spend time reflecting on things.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,46,E10,Am quiet around strangers.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,47,A10,Make people feel at ease.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,48,C10,Am exacting in my work.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,49,N10,Often feel blue.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,50,O10,Am full of ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,51,O1,Have a rich vocabulary.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,52,O2,Have difficulty understanding abstract ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,53,O3,Have a vivid imagination.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,54,O4,Am not interested in abstract ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,55,O5,Have excellent ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,56,O6,Do not have a good imagination.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,57,O7,Am quick to understand things.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,58,O8,Use difficult words.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,59,O9,Spend time reflecting on things.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,60,O10,Am full of ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,61,C1,Am always prepared.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,62,C2,Leave my belongings around.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,63,C3,Pay attention to details.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,64,C4,Make a mess of things.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,65,C5,Get chores done right away.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,66,C6,Often forget to put things back in their proper place.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,67,C7,Like order.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,68,C8,Shirk my duties.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,69,C9,Follow a schedule.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,70,C10,Am exacting in my work.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,71,E1,Am the life of the party.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,72,E2,Don't talk a lot.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,73,E3,Feel comfortable around people.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,74,E4,Keep in the background.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,75,E5,Start conversations.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,76,E6,Have little to say.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,77,E7,Talk to a lot of different people at parties.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,78,E8,Don't like to draw attention to myself.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,79,E9,Don't mind being the center of attention.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,80,E10,Am quiet around strangers.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,81,A1,Feel little concern for others.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,82,A2,Am interested in people.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,83,A3,Insult people.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,84,A4,Sympathize with others' feelings.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,85,A5,Am not interested in other people's problems.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,86,A6,Have a soft heart.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,87,A7,Am not really interested in others.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,88,A8,Take time out for others.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,89,A9,Feel others' emotions.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,90,A10,Make people feel at ease.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,91,N1,Get stressed out easily.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,92,N2,Am relaxed most of the time.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,93,N3,Worry about things.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,94,N4,Seldom feel blue.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",False
+BIG5_100,95,N5,Am easily disturbed.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,96,N6,Get upset easily.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,97,N7,Change my mood a lot.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,98,N8,Have frequent mood swings.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,99,N9,Get irritated easily.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True
+BIG5_100,100,N10,Often feel blue.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""BigFive""}",True

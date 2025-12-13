@@ -40,7 +40,6 @@ dist/
 # -------------------
 dataset/
 datasets/
-*.csv
 *.tsv
 *.jsonl
 *.xlsx
