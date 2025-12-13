@@ -16,7 +16,7 @@ def send_verification_email(session: Session, user, minutes: int = DEFAULT_VERIF
     Caller should reject the flow if sent is False (meaning SMTP failed).
     """
     mark_all_tokens_used(session, user.id, "verify_email")
-    otp = f"{secrets.randbelow(1_000_000):06d}"
+    otp = str(secrets.randbelow(900_000) + 100_000)
     token = issue_token_with_value(session, user.id, "verify_email", otp, minutes=minutes)
     verify_url = build_verify_url(token)
 
