@@ -160,16 +160,16 @@ def _safe_get(dct: Any, *keys: str, default: Any = None) -> Any:
     return cur
 
 
-def _safe_str(val: Any) -> str:
-    """Convert arbitrary value to string safely; fallback to empty."""
+def _safe_str(val: Any, default: str | None = "") -> str | None:
+    """Convert arbitrary value to string safely; fallback to `default` if None or conversion fails."""
     if val is None:
-        return ""
+        return default
     if isinstance(val, str):
         return val
     try:
         return str(val)
     except Exception:
-        return ""
+        return default
 
 
 def _as_list(x: Any) -> list[Any]:
