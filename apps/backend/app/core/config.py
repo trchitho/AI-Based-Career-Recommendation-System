@@ -40,73 +40,55 @@ class Settings(BaseSettings):
     # ======================================================
     # JWT & Security
     # ======================================================
-    JWT_SECRET_KEY: str = Field(
-        "dev-secret-change-me",
-        env="JWT_SECRET_KEY",
-    )
+    JWT_SECRET_KEY: str = Field("dev-secret-change-me")
     # Dạng chuỗi: "http://localhost:3000,http://127.0.0.1:3000"
-    ALLOWED_ORIGINS: str = Field(
-        "http://localhost:3000",
-        env="ALLOWED_ORIGINS",
-    )
+    ALLOWED_ORIGINS: str = Field("http://localhost:3000")
 
     # ======================================================
     # AI models or extra configs
     # ======================================================
-    AI_MODELS_DIR: str | None = Field(None, env="AI_MODELS_DIR")
+    AI_MODELS_DIR: str | None = Field(None)
 
     # ======================================================
     # O*NET Web Services v2
     # ======================================================
-    onet_v2_api_key: str = Field(..., env="ONET_V2_API_KEY")
-    onet_v2_base_url: AnyHttpUrl | str = Field(
-        "https://api-v2.onetcenter.org",
-        env="ONET_V2_BASE_URL",
-    )
-    onet_v2_timeout: int = Field(30, env="ONET_V2_TIMEOUT")
+    onet_v2_api_key: str = Field(...)
+    onet_v2_base_url: AnyHttpUrl | str = Field("https://api-v2.onetcenter.org")
+    onet_v2_timeout: int = Field(30)
 
     # ======================================================
     # Google OAuth (trùng với .env.example)
     # ======================================================
-    google_client_id: str | None = Field(None, env="GOOGLE_CLIENT_ID")
-    google_client_secret: str | None = Field(None, env="GOOGLE_CLIENT_SECRET")
-    google_redirect_uri: str | None = Field(None, env="GOOGLE_REDIRECT_URI")
-    frontend_oauth_redirect: str | None = Field(None, env="FRONTEND_OAUTH_REDIRECT")
+    google_client_id: str | None = Field(None)
+    google_client_secret: str | None = Field(None)
+    google_redirect_uri: str | None = Field(None)
+    frontend_oauth_redirect: str | None = Field(None)
 
     # ======================================================
     # SMTP / Email verification (trùng .env.example)
     # ======================================================
-    smtp_host: str | None = Field(None, env="SMTP_HOST")
-    smtp_port: int | None = Field(None, env="SMTP_PORT")
-    smtp_ssl: bool = Field(False, env="SMTP_SSL")
-    smtp_starttls: bool = Field(False, env="SMTP_STARTTLS")
-    smtp_user: str | None = Field(None, env="SMTP_USER")
-    smtp_password: str | None = Field(None, env="SMTP_PASSWORD")
+    smtp_host: str | None = Field(None)
+    smtp_port: int | None = Field(None)
+    smtp_ssl: bool = Field(False)
+    smtp_starttls: bool = Field(False)
+    smtp_user: str | None = Field(None)
+    smtp_password: str | None = Field(None)
 
-    email_from: str | None = Field(None, env="EMAIL_FROM")
-    frontend_verify_url: str | None = Field(None, env="FRONTEND_VERIFY_URL")
+    email_from: str | None = Field(None)
+    frontend_verify_url: str | None = Field(None)
 
-    email_deliverability_required: bool = Field(
-        False,
-        env="EMAIL_DELIVERABILITY_REQUIRED",
-    )
-    email_smtp_probe_port: int = Field(25, env="EMAIL_SMTP_PROBE_PORT")
-    email_smtp_probe_timeout: int = Field(5, env="EMAIL_SMTP_PROBE_TIMEOUT")
+    email_deliverability_required: bool = Field(False)
+    email_smtp_probe_port: int = Field(25)
+    email_smtp_probe_timeout: int = Field(5)
 
     # ======================================================
     # ZaloPay Payment Gateway
     # ======================================================
-    zalopay_app_id: str = Field("2553", env="ZALOPAY_APP_ID")
-    zalopay_key1: str = Field("PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL", env="ZALOPAY_KEY1")
-    zalopay_key2: str = Field("kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz", env="ZALOPAY_KEY2")
-    zalopay_endpoint: str = Field(
-        "https://sb-openapi.zalopay.vn/v2/create",
-        env="ZALOPAY_ENDPOINT"
-    )
-    zalopay_callback_url: str = Field(
-        "http://localhost:8000/api/payment/callback",
-        env="ZALOPAY_CALLBACK_URL"
-    )
+    zalopay_app_id: str = Field("2553")
+    zalopay_key1: str = Field("PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL")
+    zalopay_key2: str = Field("kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz")
+    zalopay_endpoint: str = Field("https://sb-openapi.zalopay.vn/v2/create")
+    zalopay_callback_url: str = Field("http://localhost:8000/api/payment/callback")
 
     # ======================================================
     # Helper alias (nếu sau này muốn dùng snake_case)
@@ -116,4 +98,4 @@ class Settings(BaseSettings):
         return self.DATABASE_URL
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]  # loaded from env

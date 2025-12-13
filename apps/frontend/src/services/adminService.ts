@@ -9,6 +9,9 @@ import {
   Question,
   QuestionFormData,
   FeedbackFilters,
+  AdminTransaction,
+  TransactionFilters,
+  TransactionListResponse,
 } from '../types/admin';
 
 export const adminService = {
@@ -239,5 +242,59 @@ export const adminService = {
       payload
     );
     return res.data.roadmap;
+  },
+
+  // Transactions
+  async listTransactions(filters?: TransactionFilters): Promise<TransactionListResponse> {
+    const page = filters?.page ?? 1;
+    const pageSize = filters?.pageSize ?? 20;
+    const offset = (page - 1) * pageSize;
+
+    const params: Record<string, any> = {
+      limit: pageSize,
+      offset,
+    };
+
+    if (filters?.status && filters.status !== 'all') params.status = filters.status;
+    if (filters?.paymentMethod && filters.paymentMethod !== 'all') params.paymentMethod = filters.paymentMethod;
+    if (filters?.search) params.search = filters.search;
+    if (filters?.userId) params.userId = filters.userId;
+    if (filters?.fromDate) params.fromDate = filters.fromDate;
+    if (filters?.toDate) params.toDate = filters.toDate;
+
+    const res = await api.get('/api/admin/transactions', { params });
+    return res.data;
+  },
+
+  async getTransaction(orderId: string): Promise<AdminTransaction> {
+    const res = await api.get(`/api/admin/transactions/${orderId}`);
+    return res.data.transaction;
+  },
+
+  async deleteTransaction(orderId: string): Promise<void> {
+    await api.delete(`/api/admin/transactions/${orderId}`);
+  },
+
+  async exportTransactions(filters?: TransactionFilters & { limit?: number }): Promise<Blob> {
+    const page = filters?.page ?? 1;
+    const pageSize = filters?.pageSize ?? filters?.limit ?? 1000;
+    const offset = (page - 1) * pageSize;
+    const params: Record<string, any> = {
+      limit: pageSize,
+      offset,
+    };
+
+    if (filters?.status && filters.status !== 'all') params.status = filters.status;
+    if (filters?.paymentMethod && filters.paymentMethod !== 'all') params.paymentMethod = filters.paymentMethod;
+    if (filters?.search) params.search = filters.search;
+    if (filters?.userId) params.userId = filters.userId;
+    if (filters?.fromDate) params.fromDate = filters.fromDate;
+    if (filters?.toDate) params.toDate = filters.toDate;
+
+    const res = await api.get('/api/admin/transactions/export', {
+      params,
+      responseType: 'blob',
+    });
+    return res.data;
   },
 };

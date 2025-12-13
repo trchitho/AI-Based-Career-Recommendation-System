@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import psycopg
-import redis.asyncio as redis
+import redis.asyncio as redis  # type: ignore[import-not-found]
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from psycopg.rows import dict_row
