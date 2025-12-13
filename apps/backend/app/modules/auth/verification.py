@@ -29,7 +29,4 @@ def send_verification_email(session: Session, user, minutes: int = DEFAULT_VERIF
         "If you did not request this, you can ignore this email."
     )
     sent, err, dev_mode = send_email(user.email, "Your verification code", body)
-    # If sending fails, allow dev fallback so FE can still show the code
-    if not sent and not dev_mode:
-        dev_mode = True
     return {"token": token, "verify_url": verify_url, "sent": sent, "error": err, "dev_mode": dev_mode}
