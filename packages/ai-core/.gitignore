@@ -17,9 +17,6 @@ ENV/
 # Distribution / Packaging
 build/
 dist/
-*.egg-info/
-.eggs/
-src/ai_core.egg-info/
 
 # Logs & Debug
 *.log
@@ -75,8 +72,3 @@ Thumbs.db
 # Credentials / misc
 .gemini/
 gha-creds-*.json
-
-# -------------------
-# Project data (LOCAL ONLY)
-# -------------------
-/data/
