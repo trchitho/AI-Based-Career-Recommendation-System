@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from .config import DB_URL, RETR_TABLE, MODEL_DIR, IVF_PROBES
 from .routes_retrieval import router as retrieval_router
 from .routes_traits import router as traits_router
-from src.api.routes_rank import router as rank_router
+from api.routes_rank import router as rank_router
 from .routes_recs import router as recs_router
 
 app = FastAPI(

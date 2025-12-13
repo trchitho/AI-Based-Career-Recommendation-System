@@ -1,0 +1,387 @@
+{
+    "quadrants": {
+        "problemSolving": {
+            "title": "Problem-Solving Style",
+            "titleVi": "Phong cách giải quyết vấn đề",
+            "labels": {
+                "innovator": {
+                    "formula": "+O - 0.2*C",
+                    "weights": {
+                        "O": 1,
+                        "C": -0.2
+                    },
+                    "description": "Creative and flexible thinker who embraces new approaches",
+                    "descriptionVi": "Tư duy sáng tạo và linh hoạt, đón nhận cách tiếp cận mới"
+                },
+                "humanitarian": {
+                    "formula": "+A + 0.2*O",
+                    "weights": {
+                        "A": 1,
+                        "O": 0.2
+                    },
+                    "description": "Cooperative and empathetic problem-solver",
+                    "descriptionVi": "Giải quyết vấn đề theo hướng hợp tác và đồng cảm"
+                },
+                "caretaker": {
+                    "formula": "+C - 0.2*O",
+                    "weights": {
+                        "C": 1,
+                        "O": -0.2
+                    },
+                    "description": "Organized and rule-oriented approach",
+                    "descriptionVi": "Tiếp cận có tổ chức và tuân thủ quy tắc"
+                },
+                "pragmatist": {
+                    "formula": "+0.3*C - O",
+                    "weights": {
+                        "C": 0.3,
+                        "O": -1
+                    },
+                    "description": "Practical and stability-focused solutions",
+                    "descriptionVi": "Giải pháp thực tế và hướng đến sự ổn định"
+                }
+            }
+        },
+        "motivation": {
+            "title": "Motivation Style",
+            "titleVi": "Phong cách động lực",
+            "labels": {
+                "ambitious": {
+                    "formula": "+E + C",
+                    "weights": {
+                        "E": 1,
+                        "C": 1
+                    },
+                    "description": "Achievement-driven with strong goal orientation",
+                    "descriptionVi": "Hướng đến thành tựu với định hướng mục tiêu mạnh mẽ"
+                },
+                "dutiful": {
+                    "formula": "+C - 0.2*N",
+                    "weights": {
+                        "C": 1,
+                        "N": -0.2
+                    },
+                    "description": "Self-disciplined and goal-focused",
+                    "descriptionVi": "Tự kỷ luật và tập trung vào mục tiêu"
+                },
+                "excitable": {
+                    "formula": "+E + N",
+                    "weights": {
+                        "E": 1,
+                        "N": 1
+                    },
+                    "description": "Energetic and emotionally engaged",
+                    "descriptionVi": "Năng động và gắn kết cảm xúc"
+                },
+                "casual": {
+                    "formula": "-C - 0.2*E",
+                    "weights": {
+                        "C": -1,
+                        "E": -0.2
+                    },
+                    "description": "Relaxed and flexible approach to goals",
+                    "descriptionVi": "Tiếp cận mục tiêu thoải mái và linh hoạt"
+                }
+            }
+        },
+        "interaction": {
+            "title": "Interaction Style",
+            "titleVi": "Phong cách tương tác",
+            "labels": {
+                "gregarious": {
+                    "formula": "+E",
+                    "weights": {
+                        "E": 1
+                    },
+                    "description": "Sociable and outgoing personality",
+                    "descriptionVi": "Tính cách hòa đồng và cởi mở"
+                },
+                "dominant": {
+                    "formula": "+E - A",
+                    "weights": {
+                        "E": 1,
+                        "A": -1
+                    },
+                    "description": "Assertive and competitive in interactions",
+                    "descriptionVi": "Quyết đoán và cạnh tranh trong tương tác"
+                },
+                "supportive": {
+                    "formula": "+A + 0.2*E",
+                    "weights": {
+                        "A": 1,
+                        "E": 0.2
+                    },
+                    "description": "Warm and cooperative with others",
+                    "descriptionVi": "Ấm áp và hợp tác với người khác"
+                },
+                "independent": {
+                    "formula": "-E - 0.2*A",
+                    "weights": {
+                        "E": -1,
+                        "A": -0.2
+                    },
+                    "description": "Self-reliant and reserved",
+                    "descriptionVi": "Tự lập và kín đáo"
+                }
+            }
+        },
+        "communication": {
+            "title": "Communication Style",
+            "titleVi": "Phong cách giao tiếp",
+            "labels": {
+                "inspiring": {
+                    "formula": "+O + E",
+                    "weights": {
+                        "O": 1,
+                        "E": 1
+                    },
+                    "description": "Creative and enthusiastic communicator",
+                    "descriptionVi": "Giao tiếp sáng tạo và nhiệt huyết"
+                },
+                "informative": {
+                    "formula": "+E + C",
+                    "weights": {
+                        "E": 1,
+                        "C": 1
+                    },
+                    "description": "Clear and organized in delivery",
+                    "descriptionVi": "Rõ ràng và có tổ chức trong truyền đạt"
+                },
+                "insightful": {
+                    "formula": "+O - 0.2*E",
+                    "weights": {
+                        "O": 1,
+                        "E": -0.2
+                    },
+                    "description": "Thoughtful and reflective communicator",
+                    "descriptionVi": "Giao tiếp sâu sắc và chiêm nghiệm"
+                },
+                "concise": {
+                    "formula": "+C - E",
+                    "weights": {
+                        "C": 1,
+                        "E": -1
+                    },
+                    "description": "Precise and to-the-point",
+                    "descriptionVi": "Chính xác và đi thẳng vào vấn đề"
+                }
+            }
+        },
+        "teamwork": {
+            "title": "Teamwork Style",
+            "titleVi": "Phong cách làm việc nhóm",
+            "labels": {
+                "cooperator": {
+                    "formula": "+A",
+                    "weights": {
+                        "A": 1
+                    },
+                    "description": "Focused on team harmony and collaboration",
+                    "descriptionVi": "Tập trung vào sự hài hòa và hợp tác nhóm"
+                },
+                "taskmaster": {
+                    "formula": "+C - 0.2*A",
+                    "weights": {
+                        "C": 1,
+                        "A": -0.2
+                    },
+                    "description": "Results-driven team member",
+                    "descriptionVi": "Thành viên nhóm hướng đến kết quả"
+                },
+                "empath": {
+                    "formula": "+A + 0.2*O",
+                    "weights": {
+                        "A": 1,
+                        "O": 0.2
+                    },
+                    "description": "Understanding and adaptable team player",
+                    "descriptionVi": "Thành viên nhóm thấu hiểu và thích nghi"
+                },
+                "improviser": {
+                    "formula": "+O - C",
+                    "weights": {
+                        "O": 1,
+                        "C": -1
+                    },
+                    "description": "Flexible and creative in team settings",
+                    "descriptionVi": "Linh hoạt và sáng tạo trong môi trường nhóm"
+                }
+            }
+        },
+        "taskManagement": {
+            "title": "Task Management Style",
+            "titleVi": "Phong cách quản lý công việc",
+            "labels": {
+                "director": {
+                    "formula": "+C + 0.2*E",
+                    "weights": {
+                        "C": 1,
+                        "E": 0.2
+                    },
+                    "description": "Structured leadership approach",
+                    "descriptionVi": "Tiếp cận lãnh đạo có cấu trúc"
+                },
+                "inspector": {
+                    "formula": "+C - O",
+                    "weights": {
+                        "C": 1,
+                        "O": -1
+                    },
+                    "description": "Detail-oriented and thorough",
+                    "descriptionVi": "Chú trọng chi tiết và kỹ lưỡng"
+                },
+                "visionary": {
+                    "formula": "+O - 0.2*C",
+                    "weights": {
+                        "O": 1,
+                        "C": -0.2
+                    },
+                    "description": "Strategic and innovative thinker",
+                    "descriptionVi": "Tư duy chiến lược và đổi mới"
+                },
+                "responder": {
+                    "formula": "-C + 0.2*E",
+                    "weights": {
+                        "C": -1,
+                        "E": 0.2
+                    },
+                    "description": "Reactive and adaptable to change",
+                    "descriptionVi": "Phản ứng nhanh và thích nghi với thay đổi"
+                }
+            }
+        }
+    },
+    "traitDescriptions": {
+        "riasec": {
+            "realistic": {
+                "high": "You prefer hands-on, practical work with tools, machines, or physical activities. You value tangible results and enjoy working with your hands.",
+                "highVi": "Bạn thích công việc thực hành, làm việc với công cụ, máy móc hoặc hoạt động thể chất. Bạn đánh giá cao kết quả hữu hình.",
+                "low": "You may prefer conceptual or interpersonal tasks over physical or mechanical work.",
+                "lowVi": "Bạn có thể thích các công việc khái niệm hoặc giao tiếp hơn là công việc vật lý hoặc cơ khí."
+            },
+            "investigative": {
+                "high": "You enjoy analyzing problems, conducting research, and exploring ideas. You're curious and enjoy intellectual challenges.",
+                "highVi": "Bạn thích phân tích vấn đề, nghiên cứu và khám phá ý tưởng. Bạn tò mò và thích thử thách trí tuệ.",
+                "low": "You may prefer practical application over theoretical exploration.",
+                "lowVi": "Bạn có thể thích ứng dụng thực tế hơn là khám phá lý thuyết."
+            },
+            "artistic": {
+                "high": "You value creativity, self-expression, and originality. You thrive in environments that allow artistic freedom.",
+                "highVi": "Bạn đánh giá cao sự sáng tạo, tự thể hiện và độc đáo. Bạn phát triển trong môi trường cho phép tự do nghệ thuật.",
+                "low": "You may prefer structured, predictable work over creative ambiguity.",
+                "lowVi": "Bạn có thể thích công việc có cấu trúc, dự đoán được hơn là sự mơ hồ sáng tạo."
+            },
+            "social": {
+                "high": "You enjoy helping, teaching, and working with others. You're empathetic and value interpersonal connections.",
+                "highVi": "Bạn thích giúp đỡ, dạy học và làm việc với người khác. Bạn đồng cảm và đánh giá cao các mối quan hệ.",
+                "low": "You may prefer independent work or tasks that don't require extensive social interaction.",
+                "lowVi": "Bạn có thể thích làm việc độc lập hoặc các công việc không yêu cầu tương tác xã hội nhiều."
+            },
+            "enterprising": {
+                "high": "You're drawn to leadership, persuasion, and business ventures. You enjoy taking initiative and influencing others.",
+                "highVi": "Bạn bị thu hút bởi lãnh đạo, thuyết phục và kinh doanh. Bạn thích chủ động và ảnh hưởng đến người khác.",
+                "low": "You may prefer collaborative or supportive roles over competitive leadership positions.",
+                "lowVi": "Bạn có thể thích vai trò hợp tác hoặc hỗ trợ hơn là vị trí lãnh đạo cạnh tranh."
+            },
+            "conventional": {
+                "high": "You value organization, accuracy, and systematic approaches. You thrive in structured environments with clear procedures.",
+                "highVi": "Bạn đánh giá cao tổ chức, chính xác và cách tiếp cận có hệ thống. Bạn phát triển trong môi trường có cấu trúc.",
+                "low": "You may prefer flexibility and variety over routine and structure.",
+                "lowVi": "Bạn có thể thích sự linh hoạt và đa dạng hơn là thói quen và cấu trúc."
+            }
+        },
+        "bigFive": {
+            "openness": {
+                "high": "You are curious, imaginative, and open to new experiences. You appreciate art, adventure, and unconventional ideas.",
+                "highVi": "Bạn tò mò, giàu trí tưởng tượng và cởi mở với trải nghiệm mới. Bạn đánh giá cao nghệ thuật và ý tưởng độc đáo.",
+                "low": "You prefer familiar routines and practical approaches. You value tradition and conventional methods.",
+                "lowVi": "Bạn thích thói quen quen thuộc và cách tiếp cận thực tế. Bạn đánh giá cao truyền thống."
+            },
+            "conscientiousness": {
+                "high": "You are organized, disciplined, and goal-oriented. You plan ahead and follow through on commitments.",
+                "highVi": "Bạn có tổ chức, kỷ luật và hướng đến mục tiêu. Bạn lên kế hoạch trước và hoàn thành cam kết.",
+                "low": "You prefer flexibility and spontaneity. You may find strict schedules constraining.",
+                "lowVi": "Bạn thích sự linh hoạt và tự phát. Bạn có thể thấy lịch trình nghiêm ngặt gò bó."
+            },
+            "extraversion": {
+                "high": "You are energetic, sociable, and enjoy being around others. You seek stimulation and enjoy social gatherings.",
+                "highVi": "Bạn năng động, hòa đồng và thích ở bên người khác. Bạn tìm kiếm sự kích thích và thích giao lưu.",
+                "low": "You prefer quieter, more solitary activities. You recharge through alone time and deep reflection.",
+                "lowVi": "Bạn thích các hoạt động yên tĩnh, đơn độc hơn. Bạn nạp năng lượng qua thời gian một mình."
+            },
+            "agreeableness": {
+                "high": "You are cooperative, trusting, and caring. You value harmony and are considerate of others' feelings.",
+                "highVi": "Bạn hợp tác, tin tưởng và quan tâm. Bạn đánh giá cao sự hài hòa và quan tâm đến cảm xúc người khác.",
+                "low": "You are more competitive and skeptical. You prioritize your own interests and speak your mind directly.",
+                "lowVi": "Bạn cạnh tranh và hoài nghi hơn. Bạn ưu tiên lợi ích của mình và nói thẳng."
+            },
+            "neuroticism": {
+                "high": "You experience emotions intensely and may be more sensitive to stress. You're in touch with your feelings.",
+                "highVi": "Bạn trải nghiệm cảm xúc mãnh liệt và có thể nhạy cảm hơn với căng thẳng. Bạn kết nối với cảm xúc của mình.",
+                "low": "You are emotionally stable and resilient. You handle stress well and remain calm under pressure.",
+                "lowVi": "Bạn ổn định về cảm xúc và kiên cường. Bạn xử lý căng thẳng tốt và bình tĩnh dưới áp lực."
+            }
+        }
+    },
+    "templates": {
+        "summary": "You are a {riasecPattern} type with a {bigFivePattern} personality style.",
+        "summaryVi": "Bạn thuộc kiểu {riasecPattern} với phong cách tính cách {bigFivePattern}.",
+        "strengthsIntro": "Based on your personality profile, your key strengths include:",
+        "strengthsIntroVi": "Dựa trên hồ sơ tính cách của bạn, các điểm mạnh chính bao gồm:",
+        "environmentIntro": "Understanding your ideal work environment helps you make better career decisions.",
+        "environmentIntroVi": "Hiểu môi trường làm việc lý tưởng giúp bạn đưa ra quyết định nghề nghiệp tốt hơn."
+    },
+    "strengthMappings": {
+        "highO_highA": "Creative problem-solving with empathy and consideration for others",
+        "highO_highE": "Innovative thinking combined with strong communication skills",
+        "highC_highA": "Reliable team player who delivers consistent, quality work",
+        "highC_highE": "Organized leader who can motivate and direct teams effectively",
+        "highE_highA": "Excellent interpersonal skills with natural ability to build relationships",
+        "highO_highC": "Strategic thinker who can turn creative ideas into actionable plans",
+        "lowN_highC": "Calm under pressure with strong ability to meet deadlines",
+        "lowN_highE": "Confident communicator who remains composed in challenging situations"
+    },
+    "environmentMappings": {
+        "thrivesIn": {
+            "highE": "Collaborative, team-oriented environments with frequent interaction",
+            "highO": "Creative, innovative settings that encourage new ideas",
+            "highC": "Structured environments with clear goals and expectations",
+            "highA": "Supportive, harmonious workplaces that value cooperation",
+            "lowN": "Fast-paced, high-pressure environments"
+        },
+        "mayStruggleWith": {
+            "lowE": "Highly social environments requiring constant interaction",
+            "lowO": "Rapidly changing environments with ambiguous expectations",
+            "lowC": "Rigid, highly structured settings with strict procedures",
+            "lowA": "Environments requiring extensive compromise and consensus",
+            "highN": "High-stress, unpredictable work situations"
+        }
+    },
+    "developmentMappings": {
+        "lowO": "Explore new approaches and be open to unconventional solutions",
+        "lowC": "Develop organizational skills and create structured routines",
+        "lowE": "Practice public speaking and networking in comfortable settings",
+        "lowA": "Work on active listening and considering others' perspectives",
+        "highN": "Build stress management techniques and emotional resilience"
+    },
+    "percentileLabels": {
+        "low": {
+            "min": 0,
+            "max": 30,
+            "label": "Low",
+            "labelVi": "Thấp"
+        },
+        "average": {
+            "min": 31,
+            "max": 70,
+            "label": "Average",
+            "labelVi": "Trung bình"
+        },
+        "high": {
+            "min": 71,
+            "max": 100,
+            "label": "High",
+            "labelVi": "Cao"
+        }
+    }
+}

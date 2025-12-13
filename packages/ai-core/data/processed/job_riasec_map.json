@@ -1,0 +1,7386 @@
+{
+  "Accountants and Auditors": {
+    "R": 0.1629,
+    "I": 0.51,
+    "A": 0.1557,
+    "S": 0.3043,
+    "E": 0.5514,
+    "C": 1.0
+  },
+  "Actors": {
+    "R": 0.33,
+    "I": 0.3043,
+    "A": 1.0,
+    "S": 0.5857,
+    "E": 0.5714,
+    "C": 0.2386
+  },
+  "Actuaries": {
+    "R": 0.2586,
+    "I": 0.6343,
+    "A": 0.1686,
+    "S": 0.3529,
+    "E": 0.4871,
+    "C": 0.8914
+  },
+  "Acupuncturists": {
+    "R": 0.6571,
+    "I": 0.76,
+    "A": 0.3029,
+    "S": 0.8143,
+    "E": 0.2529,
+    "C": 0.4443
+  },
+  "Acute Care Nurses": {
+    "R": 0.5771,
+    "I": 0.7729,
+    "A": 0.2114,
+    "S": 0.8386,
+    "E": 0.2314,
+    "C": 0.4986
+  },
+  "Adapted Physical Education Specialists": {
+    "R": 0.6229,
+    "I": 0.5171,
+    "A": 0.3757,
+    "S": 1.0,
+    "E": 0.2557,
+    "C": 0.5129
+  },
+  "Adhesive Bonding Machine Operators and Tenders": {
+    "R": 0.9343,
+    "I": 0.2814,
+    "A": 0.1629,
+    "S": 0.1429,
+    "E": 0.16,
+    "C": 0.6071
+  },
+  "Administrative Law Judges, Adjudicators, and Hearing Officers": {
+    "R": 0.1486,
+    "I": 0.5729,
+    "A": 0.2243,
+    "S": 0.4343,
+    "E": 0.7486,
+    "C": 0.77
+  },
+  "Administrative Services Managers": {
+    "R": 0.2271,
+    "I": 0.29,
+    "A": 0.1443,
+    "S": 0.53,
+    "E": 0.93,
+    "C": 0.9186
+  },
+  "Adult Basic Education, Adult Secondary Education, and English as a Second Language Instructors": {
+    "R": 0.3486,
+    "I": 0.4457,
+    "A": 0.5329,
+    "S": 1.0,
+    "E": 0.4186,
+    "C": 0.4957
+  },
+  "Advanced Practice Psychiatric Nurses": {
+    "R": 0.3914,
+    "I": 0.8457,
+    "A": 0.3743,
+    "S": 0.8414,
+    "E": 0.2614,
+    "C": 0.5486
+  },
+  "Advertising Sales Agents": {
+    "R": 0.1514,
+    "I": 0.21,
+    "A": 0.5057,
+    "S": 0.4129,
+    "E": 0.9586,
+    "C": 0.6757
+  },
+  "Advertising and Promotions Managers": {
+    "R": 0.1529,
+    "I": 0.2443,
+    "A": 0.55,
+    "S": 0.4486,
+    "E": 1.0,
+    "C": 0.6143
+  },
+  "Aerospace Engineering and Operations Technologists and Technicians": {
+    "R": 0.9214,
+    "I": 0.7257,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.2014,
+    "C": 0.7443
+  },
+  "Aerospace Engineers": {
+    "R": 0.7671,
+    "I": 0.8771,
+    "A": 0.35,
+    "S": 0.1829,
+    "E": 0.3686,
+    "C": 0.6614
+  },
+  "Agents and Business Managers of Artists, Performers, and Athletes": {
+    "R": 0.1429,
+    "I": 0.2357,
+    "A": 0.5029,
+    "S": 0.5729,
+    "E": 0.9071,
+    "C": 0.5571
+  },
+  "Agricultural Engineers": {
+    "R": 0.8814,
+    "I": 0.8971,
+    "A": 0.3143,
+    "S": 0.2457,
+    "E": 0.37,
+    "C": 0.5614
+  },
+  "Agricultural Equipment Operators": {
+    "R": 1.0,
+    "I": 0.3571,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1929,
+    "C": 0.5243
+  },
+  "Agricultural Inspectors": {
+    "R": 0.7614,
+    "I": 0.58,
+    "A": 0.1429,
+    "S": 0.2714,
+    "E": 0.4471,
+    "C": 0.7357
+  },
+  "Agricultural Sciences Teachers, Postsecondary": {
+    "R": 0.5814,
+    "I": 0.7671,
+    "A": 0.41,
+    "S": 0.8857,
+    "E": 0.3757,
+    "C": 0.4871
+  },
+  "Agricultural Technicians": {
+    "R": 0.8971,
+    "I": 0.7086,
+    "A": 0.1429,
+    "S": 0.2229,
+    "E": 0.2571,
+    "C": 0.6629
+  },
+  "Air Traffic Controllers": {
+    "R": 0.6771,
+    "I": 0.3614,
+    "A": 0.1429,
+    "S": 0.3771,
+    "E": 0.6014,
+    "C": 0.6914
+  },
+  "Aircraft Cargo Handling Supervisors": {
+    "R": 0.6571,
+    "I": 0.3129,
+    "A": 0.1429,
+    "S": 0.3529,
+    "E": 0.7671,
+    "C": 0.6843
+  },
+  "Aircraft Mechanics and Service Technicians": {
+    "R": 0.9786,
+    "I": 0.5343,
+    "A": 0.1429,
+    "S": 0.1857,
+    "E": 0.2614,
+    "C": 0.6686
+  },
+  "Aircraft Service Attendants": {
+    "R": 0.8729,
+    "I": 0.2614,
+    "A": 0.1429,
+    "S": 0.2671,
+    "E": 0.3,
+    "C": 0.5943
+  },
+  "Aircraft Structure, Surfaces, Rigging, and Systems Assemblers": {
+    "R": 1.0,
+    "I": 0.3786,
+    "A": 0.2486,
+    "S": 0.1429,
+    "E": 0.1929,
+    "C": 0.5357
+  },
+  "Airfield Operations Specialists": {
+    "R": 0.6757,
+    "I": 0.5014,
+    "A": 0.1429,
+    "S": 0.3557,
+    "E": 0.64,
+    "C": 0.7186
+  },
+  "Airline Pilots, Copilots, and Flight Engineers": {
+    "R": 0.6771,
+    "I": 0.4529,
+    "A": 0.2043,
+    "S": 0.3557,
+    "E": 0.5414,
+    "C": 0.67
+  },
+  "Allergists and Immunologists": {
+    "R": 0.5843,
+    "I": 0.9886,
+    "A": 0.24,
+    "S": 0.7286,
+    "E": 0.3186,
+    "C": 0.5057
+  },
+  "Ambulance Drivers and Attendants, Except Emergency Medical Technicians": {
+    "R": 0.9114,
+    "I": 0.3614,
+    "A": 0.1429,
+    "S": 0.6614,
+    "E": 0.22,
+    "C": 0.5129
+  },
+  "Amusement and Recreation Attendants": {
+    "R": 0.5943,
+    "I": 0.1429,
+    "A": 0.2486,
+    "S": 0.6257,
+    "E": 0.5643,
+    "C": 0.6571
+  },
+  "Anesthesiologist Assistants": {
+    "R": 0.65,
+    "I": 0.6729,
+    "A": 0.1429,
+    "S": 0.7143,
+    "E": 0.2671,
+    "C": 0.68
+  },
+  "Anesthesiologists": {
+    "R": 0.7329,
+    "I": 0.8243,
+    "A": 0.1614,
+    "S": 0.7457,
+    "E": 0.3543,
+    "C": 0.5643
+  },
+  "Animal Breeders": {
+    "R": 0.9243,
+    "I": 0.4629,
+    "A": 0.2043,
+    "S": 0.3357,
+    "E": 0.2957,
+    "C": 0.5114
+  },
+  "Animal Caretakers": {
+    "R": 0.8814,
+    "I": 0.3943,
+    "A": 0.2329,
+    "S": 0.5357,
+    "E": 0.2171,
+    "C": 0.4629
+  },
+  "Animal Control Workers": {
+    "R": 0.8471,
+    "I": 0.5114,
+    "A": 0.1429,
+    "S": 0.37,
+    "E": 0.3014,
+    "C": 0.55
+  },
+  "Animal Scientists": {
+    "R": 0.75,
+    "I": 0.9929,
+    "A": 0.2929,
+    "S": 0.2943,
+    "E": 0.3171,
+    "C": 0.4771
+  },
+  "Animal Trainers": {
+    "R": 0.9214,
+    "I": 0.3214,
+    "A": 0.2529,
+    "S": 0.5143,
+    "E": 0.3071,
+    "C": 0.43
+  },
+  "Anthropologists and Archeologists": {
+    "R": 0.65,
+    "I": 0.9629,
+    "A": 0.5557,
+    "S": 0.4743,
+    "E": 0.2229,
+    "C": 0.5057
+  },
+  "Anthropology and Archeology Teachers, Postsecondary": {
+    "R": 0.5157,
+    "I": 0.86,
+    "A": 0.5029,
+    "S": 0.9357,
+    "E": 0.3414,
+    "C": 0.4957
+  },
+  "Appraisers and Assessors of Real Estate": {
+    "R": 0.3886,
+    "I": 0.3971,
+    "A": 0.23,
+    "S": 0.38,
+    "E": 0.6871,
+    "C": 0.8443
+  },
+  "Appraisers of Personal and Business Property": {
+    "R": 0.51,
+    "I": 0.3729,
+    "A": 0.29,
+    "S": 0.2429,
+    "E": 0.6686,
+    "C": 0.86
+  },
+  "Arbitrators, Mediators, and Conciliators": {
+    "R": 0.1429,
+    "I": 0.5529,
+    "A": 0.33,
+    "S": 0.6057,
+    "E": 0.71,
+    "C": 0.6171
+  },
+  "Architects, Except Landscape and Naval": {
+    "R": 0.7443,
+    "I": 0.5971,
+    "A": 0.65,
+    "S": 0.3586,
+    "E": 0.4929,
+    "C": 0.5886
+  },
+  "Architectural and Civil Drafters": {
+    "R": 0.78,
+    "I": 0.6029,
+    "A": 0.6414,
+    "S": 0.2186,
+    "E": 0.2171,
+    "C": 0.7
+  },
+  "Architectural and Engineering Managers": {
+    "R": 0.4529,
+    "I": 0.6371,
+    "A": 0.38,
+    "S": 0.4057,
+    "E": 0.9114,
+    "C": 0.6543
+  },
+  "Architecture Teachers, Postsecondary": {
+    "R": 0.4829,
+    "I": 0.7329,
+    "A": 0.6329,
+    "S": 0.9586,
+    "E": 0.3586,
+    "C": 0.4757
+  },
+  "Archivists": {
+    "R": 0.3971,
+    "I": 0.6543,
+    "A": 0.4214,
+    "S": 0.4429,
+    "E": 0.2743,
+    "C": 0.86
+  },
+  "Area, Ethnic, and Cultural Studies Teachers, Postsecondary": {
+    "R": 0.4257,
+    "I": 0.7514,
+    "A": 0.5486,
+    "S": 1.0,
+    "E": 0.4271,
+    "C": 0.4257
+  },
+  "Art Directors": {
+    "R": 0.4314,
+    "I": 0.3857,
+    "A": 1.0,
+    "S": 0.4,
+    "E": 0.7586,
+    "C": 0.5457
+  },
+  "Art Therapists": {
+    "R": 0.4257,
+    "I": 0.4814,
+    "A": 0.83,
+    "S": 0.8371,
+    "E": 0.3329,
+    "C": 0.3557
+  },
+  "Art, Drama, and Music Teachers, Postsecondary": {
+    "R": 0.4571,
+    "I": 0.5857,
+    "A": 0.8371,
+    "S": 0.99,
+    "E": 0.3029,
+    "C": 0.3471
+  },
+  "Astronomers": {
+    "R": 0.6929,
+    "I": 1.0,
+    "A": 0.4629,
+    "S": 0.4014,
+    "E": 0.2843,
+    "C": 0.5671
+  },
+  "Athletes and Sports Competitors": {
+    "R": 0.7143,
+    "I": 0.2257,
+    "A": 0.3171,
+    "S": 0.6257,
+    "E": 0.6443,
+    "C": 0.4114
+  },
+  "Athletic Trainers": {
+    "R": 0.7914,
+    "I": 0.6271,
+    "A": 0.1557,
+    "S": 0.8143,
+    "E": 0.3243,
+    "C": 0.4743
+  },
+  "Atmospheric and Space Scientists": {
+    "R": 0.6886,
+    "I": 0.9071,
+    "A": 0.3886,
+    "S": 0.35,
+    "E": 0.3843,
+    "C": 0.64
+  },
+  "Atmospheric, Earth, Marine, and Space Sciences Teachers, Postsecondary": {
+    "R": 0.5629,
+    "I": 0.7929,
+    "A": 0.4471,
+    "S": 0.9414,
+    "E": 0.3314,
+    "C": 0.5486
+  },
+  "Audio and Video Technicians": {
+    "R": 0.7386,
+    "I": 0.3929,
+    "A": 0.4643,
+    "S": 0.2829,
+    "E": 0.2686,
+    "C": 0.6543
+  },
+  "Audiologists": {
+    "R": 0.5843,
+    "I": 0.8614,
+    "A": 0.3043,
+    "S": 0.8229,
+    "E": 0.23,
+    "C": 0.5943
+  },
+  "Audiovisual Equipment Installers and Repairers": {
+    "R": 0.97,
+    "I": 0.3886,
+    "A": 0.2214,
+    "S": 0.2286,
+    "E": 0.16,
+    "C": 0.68
+  },
+  "Automotive Body and Related Repairers": {
+    "R": 1.0,
+    "I": 0.2543,
+    "A": 0.2057,
+    "S": 0.1429,
+    "E": 0.1971,
+    "C": 0.49
+  },
+  "Automotive Engineering Technicians": {
+    "R": 1.0,
+    "I": 0.7614,
+    "A": 0.1986,
+    "S": 0.1429,
+    "E": 0.1886,
+    "C": 0.6614
+  },
+  "Automotive Engineers": {
+    "R": 0.9257,
+    "I": 0.8143,
+    "A": 0.3486,
+    "S": 0.1843,
+    "E": 0.2914,
+    "C": 0.5871
+  },
+  "Automotive Glass Installers and Repairers": {
+    "R": 1.0,
+    "I": 0.3157,
+    "A": 0.1429,
+    "S": 0.1786,
+    "E": 0.2,
+    "C": 0.5343
+  },
+  "Automotive Service Technicians and Mechanics": {
+    "R": 1.0,
+    "I": 0.51,
+    "A": 0.1429,
+    "S": 0.2057,
+    "E": 0.2271,
+    "C": 0.6186
+  },
+  "Automotive and Watercraft Service Attendants": {
+    "R": 0.9143,
+    "I": 0.1886,
+    "A": 0.1429,
+    "S": 0.2814,
+    "E": 0.3071,
+    "C": 0.6257
+  },
+  "Aviation Inspectors": {
+    "R": 0.7957,
+    "I": 0.5843,
+    "A": 0.1429,
+    "S": 0.2043,
+    "E": 0.37,
+    "C": 0.8186
+  },
+  "Avionics Technicians": {
+    "R": 1.0,
+    "I": 0.5943,
+    "A": 0.1771,
+    "S": 0.1914,
+    "E": 0.1429,
+    "C": 0.67
+  },
+  "Baggage Porters and Bellhops": {
+    "R": 0.6957,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.5086,
+    "E": 0.3814,
+    "C": 0.6814
+  },
+  "Bailiffs": {
+    "R": 0.72,
+    "I": 0.3043,
+    "A": 0.1429,
+    "S": 0.43,
+    "E": 0.5471,
+    "C": 0.6971
+  },
+  "Bakers": {
+    "R": 0.91,
+    "I": 0.2386,
+    "A": 0.3186,
+    "S": 0.25,
+    "E": 0.3,
+    "C": 0.6314
+  },
+  "Barbers": {
+    "R": 0.7657,
+    "I": 0.1429,
+    "A": 0.3886,
+    "S": 0.5157,
+    "E": 0.5171,
+    "C": 0.5571
+  },
+  "Baristas": {
+    "R": 0.7257,
+    "I": 0.1429,
+    "A": 0.3714,
+    "S": 0.5343,
+    "E": 0.4971,
+    "C": 0.6114
+  },
+  "Bartenders": {
+    "R": 0.7114,
+    "I": 0.1429,
+    "A": 0.3414,
+    "S": 0.5043,
+    "E": 0.5414,
+    "C": 0.6271
+  },
+  "Bicycle Repairers": {
+    "R": 1.0,
+    "I": 0.2514,
+    "A": 0.1643,
+    "S": 0.2486,
+    "E": 0.2643,
+    "C": 0.5157
+  },
+  "Bill and Account Collectors": {
+    "R": 0.2914,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.4629,
+    "E": 0.6257,
+    "C": 1.0
+  },
+  "Billing and Posting Clerks": {
+    "R": 0.3843,
+    "I": 0.24,
+    "A": 0.1429,
+    "S": 0.2129,
+    "E": 0.3929,
+    "C": 1.0
+  },
+  "Biochemists and Biophysicists": {
+    "R": 0.7286,
+    "I": 1.0,
+    "A": 0.3729,
+    "S": 0.3086,
+    "E": 0.26,
+    "C": 0.5157
+  },
+  "Bioengineers and Biomedical Engineers": {
+    "R": 0.7957,
+    "I": 1.0,
+    "A": 0.3286,
+    "S": 0.4157,
+    "E": 0.2257,
+    "C": 0.54
+  },
+  "Biofuels Processing Technicians": {
+    "R": 0.8386,
+    "I": 0.4686,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.3043,
+    "C": 0.7614
+  },
+  "Biofuels Production Managers": {
+    "R": 0.6557,
+    "I": 0.5343,
+    "A": 0.1429,
+    "S": 0.2614,
+    "E": 0.7729,
+    "C": 0.7229
+  },
+  "Biofuels/Biodiesel Technology and Product Development Managers": {
+    "R": 0.5943,
+    "I": 0.8343,
+    "A": 0.3014,
+    "S": 0.3,
+    "E": 0.6714,
+    "C": 0.5014
+  },
+  "Bioinformatics Scientists": {
+    "R": 0.5343,
+    "I": 1.0,
+    "A": 0.3657,
+    "S": 0.2329,
+    "E": 0.1814,
+    "C": 0.7186
+  },
+  "Bioinformatics Technicians": {
+    "R": 0.5443,
+    "I": 0.9171,
+    "A": 0.2257,
+    "S": 0.2414,
+    "E": 0.1429,
+    "C": 0.8629
+  },
+  "Biological Science Teachers, Postsecondary": {
+    "R": 0.57,
+    "I": 0.8443,
+    "A": 0.4729,
+    "S": 0.8886,
+    "E": 0.29,
+    "C": 0.5157
+  },
+  "Biological Technicians": {
+    "R": 0.8,
+    "I": 0.7957,
+    "A": 0.1771,
+    "S": 0.2829,
+    "E": 0.1686,
+    "C": 0.7671
+  },
+  "Biologists": {
+    "R": 0.5929,
+    "I": 0.9957,
+    "A": 0.3314,
+    "S": 0.3657,
+    "E": 0.4186,
+    "C": 0.6429
+  },
+  "Biomass Plant Technicians": {
+    "R": 0.9957,
+    "I": 0.4457,
+    "A": 0.1429,
+    "S": 0.1743,
+    "E": 0.25,
+    "C": 0.6886
+  },
+  "Biomass Power Plant Managers": {
+    "R": 0.7314,
+    "I": 0.4557,
+    "A": 0.1429,
+    "S": 0.2457,
+    "E": 0.6943,
+    "C": 0.7629
+  },
+  "Biostatisticians": {
+    "R": 0.3686,
+    "I": 1.0,
+    "A": 0.3786,
+    "S": 0.3814,
+    "E": 0.2657,
+    "C": 0.6757
+  },
+  "Blockchain Engineers": {
+    "R": 0.4857,
+    "I": 0.7543,
+    "A": 0.2957,
+    "S": 0.2243,
+    "E": 0.4843,
+    "C": 0.8129
+  },
+  "Boilermakers": {
+    "R": 1.0,
+    "I": 0.3243,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.5229
+  },
+  "Bookkeeping, Accounting, and Auditing Clerks": {
+    "R": 0.2357,
+    "I": 0.31,
+    "A": 0.1429,
+    "S": 0.21,
+    "E": 0.4129,
+    "C": 1.0
+  },
+  "Brickmasons and Blockmasons": {
+    "R": 0.9771,
+    "I": 0.2943,
+    "A": 0.2343,
+    "S": 0.1657,
+    "E": 0.1771,
+    "C": 0.5643
+  },
+  "Bridge and Lock Tenders": {
+    "R": 0.8829,
+    "I": 0.3514,
+    "A": 0.1429,
+    "S": 0.2486,
+    "E": 0.3757,
+    "C": 0.6229
+  },
+  "Broadcast Announcers and Radio Disc Jockeys": {
+    "R": 0.2457,
+    "I": 0.2829,
+    "A": 0.7929,
+    "S": 0.5,
+    "E": 0.64,
+    "C": 0.45
+  },
+  "Broadcast Technicians": {
+    "R": 0.7057,
+    "I": 0.4429,
+    "A": 0.3986,
+    "S": 0.3057,
+    "E": 0.3486,
+    "C": 0.7114
+  },
+  "Brokerage Clerks": {
+    "R": 0.2971,
+    "I": 0.18,
+    "A": 0.1429,
+    "S": 0.3314,
+    "E": 0.6443,
+    "C": 0.9957
+  },
+  "Brownfield Redevelopment Specialists and Site Managers": {
+    "R": 0.6414,
+    "I": 0.6157,
+    "A": 0.2086,
+    "S": 0.29,
+    "E": 0.6486,
+    "C": 0.67
+  },
+  "Budget Analysts": {
+    "R": 0.1429,
+    "I": 0.5443,
+    "A": 0.2186,
+    "S": 0.3143,
+    "E": 0.68,
+    "C": 0.9886
+  },
+  "Bus Drivers, School": {
+    "R": 0.8057,
+    "I": 0.2286,
+    "A": 0.1771,
+    "S": 0.6257,
+    "E": 0.3086,
+    "C": 0.6557
+  },
+  "Bus Drivers, Transit and Intercity": {
+    "R": 0.8414,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.5229,
+    "E": 0.4071,
+    "C": 0.6329
+  },
+  "Bus and Truck Mechanics and Diesel Engine Specialists": {
+    "R": 1.0,
+    "I": 0.4686,
+    "A": 0.1429,
+    "S": 0.2186,
+    "E": 0.1857,
+    "C": 0.5329
+  },
+  "Business Continuity Planners": {
+    "R": 0.2914,
+    "I": 0.63,
+    "A": 0.2357,
+    "S": 0.4371,
+    "E": 0.7586,
+    "C": 0.7286
+  },
+  "Business Intelligence Analysts": {
+    "R": 0.16,
+    "I": 0.78,
+    "A": 0.2786,
+    "S": 0.2686,
+    "E": 0.6371,
+    "C": 0.8014
+  },
+  "Business Teachers, Postsecondary": {
+    "R": 0.2843,
+    "I": 0.6914,
+    "A": 0.4571,
+    "S": 0.9186,
+    "E": 0.5443,
+    "C": 0.5386
+  },
+  "Butchers and Meat Cutters": {
+    "R": 0.9,
+    "I": 0.2057,
+    "A": 0.2529,
+    "S": 0.2629,
+    "E": 0.3943,
+    "C": 0.5457
+  },
+  "Buyers and Purchasing Agents, Farm Products": {
+    "R": 0.6686,
+    "I": 0.2571,
+    "A": 0.1471,
+    "S": 0.2429,
+    "E": 0.6943,
+    "C": 0.6943
+  },
+  "Cabinetmakers and Bench Carpenters": {
+    "R": 1.0,
+    "I": 0.2957,
+    "A": 0.3471,
+    "S": 0.1629,
+    "E": 0.1729,
+    "C": 0.5086
+  },
+  "Calibration Technologists and Technicians": {
+    "R": 0.9014,
+    "I": 0.5914,
+    "A": 0.1643,
+    "S": 0.2257,
+    "E": 0.1429,
+    "C": 0.7914
+  },
+  "Camera Operators, Television, Video, and Film": {
+    "R": 0.6814,
+    "I": 0.2814,
+    "A": 0.75,
+    "S": 0.2629,
+    "E": 0.3343,
+    "C": 0.5
+  },
+  "Camera and Photographic Equipment Repairers": {
+    "R": 1.0,
+    "I": 0.3814,
+    "A": 0.2814,
+    "S": 0.1714,
+    "E": 0.1429,
+    "C": 0.6543
+  },
+  "Captains, Mates, and Pilots of Water Vessels": {
+    "R": 0.8014,
+    "I": 0.3771,
+    "A": 0.1429,
+    "S": 0.2686,
+    "E": 0.6043,
+    "C": 0.6514
+  },
+  "Cardiologists": {
+    "R": 0.71,
+    "I": 0.98,
+    "A": 0.1657,
+    "S": 0.6757,
+    "E": 0.3286,
+    "C": 0.5729
+  },
+  "Cardiovascular Technologists and Technicians": {
+    "R": 0.7871,
+    "I": 0.77,
+    "A": 0.1429,
+    "S": 0.61,
+    "E": 0.19,
+    "C": 0.66
+  },
+  "Career/Technical Education Teachers, Middle School": {
+    "R": 0.3957,
+    "I": 0.4871,
+    "A": 0.52,
+    "S": 1.0,
+    "E": 0.3143,
+    "C": 0.51
+  },
+  "Career/Technical Education Teachers, Postsecondary": {
+    "R": 0.5357,
+    "I": 0.5929,
+    "A": 0.4486,
+    "S": 0.9443,
+    "E": 0.3,
+    "C": 0.47
+  },
+  "Career/Technical Education Teachers, Secondary School": {
+    "R": 0.4043,
+    "I": 0.4771,
+    "A": 0.5171,
+    "S": 1.0,
+    "E": 0.3871,
+    "C": 0.4971
+  },
+  "Cargo and Freight Agents": {
+    "R": 0.4486,
+    "I": 0.2143,
+    "A": 0.1429,
+    "S": 0.3057,
+    "E": 0.6886,
+    "C": 0.9043
+  },
+  "Carpenters": {
+    "R": 0.9629,
+    "I": 0.2714,
+    "A": 0.3129,
+    "S": 0.2714,
+    "E": 0.2557,
+    "C": 0.4943
+  },
+  "Carpet Installers": {
+    "R": 1.0,
+    "I": 0.1914,
+    "A": 0.2457,
+    "S": 0.1857,
+    "E": 0.1429,
+    "C": 0.53
+  },
+  "Cartographers and Photogrammetrists": {
+    "R": 0.6586,
+    "I": 0.7357,
+    "A": 0.5086,
+    "S": 0.2529,
+    "E": 0.2329,
+    "C": 0.7614
+  },
+  "Cashiers": {
+    "R": 0.4,
+    "I": 0.1457,
+    "A": 0.1429,
+    "S": 0.39,
+    "E": 0.5229,
+    "C": 0.8657
+  },
+  "Cement Masons and Concrete Finishers": {
+    "R": 1.0,
+    "I": 0.3257,
+    "A": 0.24,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.4643
+  },
+  "Chefs and Head Cooks": {
+    "R": 0.6957,
+    "I": 0.23,
+    "A": 0.39,
+    "S": 0.4214,
+    "E": 0.7371,
+    "C": 0.6329
+  },
+  "Chemical Engineers": {
+    "R": 0.8971,
+    "I": 0.8186,
+    "A": 0.2514,
+    "S": 0.1514,
+    "E": 0.2614,
+    "C": 0.6586
+  },
+  "Chemical Equipment Operators and Tenders": {
+    "R": 0.95,
+    "I": 0.4743,
+    "A": 0.1429,
+    "S": 0.15,
+    "E": 0.1814,
+    "C": 0.69
+  },
+  "Chemical Plant and System Operators": {
+    "R": 0.8957,
+    "I": 0.4657,
+    "A": 0.1429,
+    "S": 0.1886,
+    "E": 0.2386,
+    "C": 0.7471
+  },
+  "Chemical Technicians": {
+    "R": 0.7771,
+    "I": 0.84,
+    "A": 0.2243,
+    "S": 0.2457,
+    "E": 0.1457,
+    "C": 0.7243
+  },
+  "Chemistry Teachers, Postsecondary": {
+    "R": 0.5786,
+    "I": 0.8314,
+    "A": 0.4229,
+    "S": 0.8171,
+    "E": 0.2971,
+    "C": 0.5386
+  },
+  "Chemists": {
+    "R": 0.8086,
+    "I": 0.9514,
+    "A": 0.2143,
+    "S": 0.1643,
+    "E": 0.2286,
+    "C": 0.7071
+  },
+  "Chief Executives": {
+    "R": 0.1857,
+    "I": 0.4629,
+    "A": 0.2971,
+    "S": 0.5029,
+    "E": 0.9829,
+    "C": 0.7143
+  },
+  "Chief Sustainability Officers": {
+    "R": 0.2914,
+    "I": 0.6829,
+    "A": 0.3543,
+    "S": 0.5071,
+    "E": 0.9543,
+    "C": 0.6414
+  },
+  "Child, Family, and School Social Workers": {
+    "R": 0.2429,
+    "I": 0.4743,
+    "A": 0.4143,
+    "S": 0.9786,
+    "E": 0.4186,
+    "C": 0.51
+  },
+  "Childcare Workers": {
+    "R": 0.4786,
+    "I": 0.1857,
+    "A": 0.5029,
+    "S": 0.8486,
+    "E": 0.4171,
+    "C": 0.5157
+  },
+  "Chiropractors": {
+    "R": 0.7414,
+    "I": 0.7229,
+    "A": 0.1929,
+    "S": 0.8186,
+    "E": 0.3186,
+    "C": 0.5043
+  },
+  "Choreographers": {
+    "R": 0.5243,
+    "I": 0.2971,
+    "A": 1.0,
+    "S": 0.5829,
+    "E": 0.5429,
+    "C": 0.2686
+  },
+  "Civil Engineering Technologists and Technicians": {
+    "R": 0.8314,
+    "I": 0.78,
+    "A": 0.3729,
+    "S": 0.2214,
+    "E": 0.2743,
+    "C": 0.7614
+  },
+  "Civil Engineers": {
+    "R": 0.9086,
+    "I": 0.73,
+    "A": 0.3071,
+    "S": 0.2557,
+    "E": 0.4143,
+    "C": 0.6614
+  },
+  "Claims Adjusters, Examiners, and Investigators": {
+    "R": 0.1586,
+    "I": 0.4857,
+    "A": 0.1429,
+    "S": 0.3757,
+    "E": 0.6857,
+    "C": 0.8914
+  },
+  "Cleaners of Vehicles and Equipment": {
+    "R": 1.0,
+    "I": 0.1529,
+    "A": 0.1429,
+    "S": 0.1686,
+    "E": 0.1429,
+    "C": 0.5514
+  },
+  "Cleaning, Washing, and Metal Pickling Equipment Operators and Tenders": {
+    "R": 1.0,
+    "I": 0.2529,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.6357
+  },
+  "Clergy": {
+    "R": 0.3014,
+    "I": 0.3057,
+    "A": 0.4971,
+    "S": 0.84,
+    "E": 0.5971,
+    "C": 0.4043
+  },
+  "Climate Change Policy Analysts": {
+    "R": 0.1957,
+    "I": 0.9614,
+    "A": 0.4443,
+    "S": 0.4529,
+    "E": 0.67,
+    "C": 0.58
+  },
+  "Clinical Data Managers": {
+    "R": 0.1843,
+    "I": 0.8157,
+    "A": 0.1643,
+    "S": 0.3643,
+    "E": 0.4714,
+    "C": 0.9814
+  },
+  "Clinical Neuropsychologists": {
+    "R": 0.4086,
+    "I": 1.0,
+    "A": 0.3429,
+    "S": 0.8171,
+    "E": 0.3014,
+    "C": 0.4929
+  },
+  "Clinical Nurse Specialists": {
+    "R": 0.3457,
+    "I": 0.71,
+    "A": 0.2443,
+    "S": 0.87,
+    "E": 0.56,
+    "C": 0.6014
+  },
+  "Clinical Research Coordinators": {
+    "R": 0.2829,
+    "I": 0.82,
+    "A": 0.2186,
+    "S": 0.51,
+    "E": 0.61,
+    "C": 0.72
+  },
+  "Clinical and Counseling Psychologists": {
+    "R": 0.1529,
+    "I": 0.7857,
+    "A": 0.4314,
+    "S": 0.9386,
+    "E": 0.3814,
+    "C": 0.5071
+  },
+  "Coaches and Scouts": {
+    "R": 0.6086,
+    "I": 0.3071,
+    "A": 0.3471,
+    "S": 0.7586,
+    "E": 0.7329,
+    "C": 0.4914
+  },
+  "Coating, Painting, and Spraying Machine Setters, Operators, and Tenders": {
+    "R": 0.9971,
+    "I": 0.2129,
+    "A": 0.3014,
+    "S": 0.1757,
+    "E": 0.15,
+    "C": 0.52
+  },
+  "Coil Winders, Tapers, and Finishers": {
+    "R": 0.9343,
+    "I": 0.3257,
+    "A": 0.1429,
+    "S": 0.16,
+    "E": 0.2,
+    "C": 0.5957
+  },
+  "Coin, Vending, and Amusement Machine Servicers and Repairers": {
+    "R": 0.8686,
+    "I": 0.2571,
+    "A": 0.1429,
+    "S": 0.1757,
+    "E": 0.27,
+    "C": 0.8157
+  },
+  "Commercial Divers": {
+    "R": 1.0,
+    "I": 0.5143,
+    "A": 0.1929,
+    "S": 0.1571,
+    "E": 0.2371,
+    "C": 0.4429
+  },
+  "Commercial Pilots": {
+    "R": 0.6914,
+    "I": 0.3743,
+    "A": 0.1686,
+    "S": 0.3686,
+    "E": 0.5543,
+    "C": 0.6543
+  },
+  "Commercial and Industrial Designers": {
+    "R": 0.6629,
+    "I": 0.5786,
+    "A": 0.7929,
+    "S": 0.2629,
+    "E": 0.5271,
+    "C": 0.4971
+  },
+  "Communications Teachers, Postsecondary": {
+    "R": 0.29,
+    "I": 0.6557,
+    "A": 0.5571,
+    "S": 1.0,
+    "E": 0.4557,
+    "C": 0.48
+  },
+  "Community Health Workers": {
+    "R": 0.2771,
+    "I": 0.4986,
+    "A": 0.32,
+    "S": 0.94,
+    "E": 0.5,
+    "C": 0.48
+  },
+  "Compensation and Benefits Managers": {
+    "R": 0.1429,
+    "I": 0.3486,
+    "A": 0.2129,
+    "S": 0.5271,
+    "E": 1.0,
+    "C": 0.7943
+  },
+  "Compensation, Benefits, and Job Analysis Specialists": {
+    "R": 0.2043,
+    "I": 0.5,
+    "A": 0.1829,
+    "S": 0.4671,
+    "E": 0.73,
+    "C": 0.8514
+  },
+  "Compliance Managers": {
+    "R": 0.2743,
+    "I": 0.4257,
+    "A": 0.1429,
+    "S": 0.4429,
+    "E": 0.8471,
+    "C": 0.9
+  },
+  "Compliance Officers": {
+    "R": 0.3686,
+    "I": 0.4357,
+    "A": 0.1429,
+    "S": 0.4214,
+    "E": 0.58,
+    "C": 0.9029
+  },
+  "Computer Hardware Engineers": {
+    "R": 0.8271,
+    "I": 0.8057,
+    "A": 0.2629,
+    "S": 0.2557,
+    "E": 0.2686,
+    "C": 0.7543
+  },
+  "Computer Network Architects": {
+    "R": 0.58,
+    "I": 0.7614,
+    "A": 0.32,
+    "S": 0.3129,
+    "E": 0.4529,
+    "C": 0.7243
+  },
+  "Computer Network Support Specialists": {
+    "R": 0.6157,
+    "I": 0.6586,
+    "A": 0.1429,
+    "S": 0.3329,
+    "E": 0.3871,
+    "C": 0.7843
+  },
+  "Computer Numerically Controlled Tool Operators": {
+    "R": 0.9143,
+    "I": 0.4029,
+    "A": 0.1629,
+    "S": 0.1429,
+    "E": 0.2043,
+    "C": 0.7771
+  },
+  "Computer Numerically Controlled Tool Programmers": {
+    "R": 0.66,
+    "I": 0.54,
+    "A": 0.2014,
+    "S": 0.23,
+    "E": 0.2443,
+    "C": 0.8843
+  },
+  "Computer Programmers": {
+    "R": 0.4729,
+    "I": 0.74,
+    "A": 0.3743,
+    "S": 0.2871,
+    "E": 0.2914,
+    "C": 0.8286
+  },
+  "Computer Science Teachers, Postsecondary": {
+    "R": 0.45,
+    "I": 0.8086,
+    "A": 0.4586,
+    "S": 0.8286,
+    "E": 0.3214,
+    "C": 0.5886
+  },
+  "Computer Systems Analysts": {
+    "R": 0.4771,
+    "I": 0.9086,
+    "A": 0.2829,
+    "S": 0.27,
+    "E": 0.3229,
+    "C": 0.8414
+  },
+  "Computer Systems Engineers/Architects": {
+    "R": 0.6186,
+    "I": 0.8243,
+    "A": 0.2814,
+    "S": 0.2914,
+    "E": 0.4014,
+    "C": 0.7743
+  },
+  "Computer User Support Specialists": {
+    "R": 0.58,
+    "I": 0.55,
+    "A": 0.1429,
+    "S": 0.4743,
+    "E": 0.33,
+    "C": 0.8414
+  },
+  "Computer and Information Research Scientists": {
+    "R": 0.5629,
+    "I": 1.0,
+    "A": 0.4086,
+    "S": 0.2914,
+    "E": 0.3457,
+    "C": 0.6857
+  },
+  "Computer and Information Systems Managers": {
+    "R": 0.3657,
+    "I": 0.6314,
+    "A": 0.2143,
+    "S": 0.3443,
+    "E": 0.7271,
+    "C": 0.8171
+  },
+  "Computer, Automated Teller, and Office Machine Repairers": {
+    "R": 0.8743,
+    "I": 0.4014,
+    "A": 0.1429,
+    "S": 0.2243,
+    "E": 0.2243,
+    "C": 0.7657
+  },
+  "Concierges": {
+    "R": 0.3786,
+    "I": 0.1429,
+    "A": 0.3114,
+    "S": 0.7629,
+    "E": 0.6629,
+    "C": 0.6357
+  },
+  "Conservation Scientists": {
+    "R": 0.7371,
+    "I": 0.8143,
+    "A": 0.2814,
+    "S": 0.4114,
+    "E": 0.4543,
+    "C": 0.5714
+  },
+  "Construction Laborers": {
+    "R": 1.0,
+    "I": 0.3829,
+    "A": 0.1971,
+    "S": 0.1757,
+    "E": 0.1929,
+    "C": 0.5157
+  },
+  "Construction Managers": {
+    "R": 0.67,
+    "I": 0.44,
+    "A": 0.2471,
+    "S": 0.3343,
+    "E": 0.82,
+    "C": 0.6871
+  },
+  "Construction and Building Inspectors": {
+    "R": 0.9086,
+    "I": 0.5871,
+    "A": 0.1586,
+    "S": 0.2029,
+    "E": 0.3,
+    "C": 0.78
+  },
+  "Continuous Mining Machine Operators": {
+    "R": 1.0,
+    "I": 0.3529,
+    "A": 0.1429,
+    "S": 0.1543,
+    "E": 0.1957,
+    "C": 0.56
+  },
+  "Control and Valve Installers and Repairers, Except Mechanical Door": {
+    "R": 1.0,
+    "I": 0.4071,
+    "A": 0.1429,
+    "S": 0.17,
+    "E": 0.1429,
+    "C": 0.6786
+  },
+  "Conveyor Operators and Tenders": {
+    "R": 0.9071,
+    "I": 0.1871,
+    "A": 0.1429,
+    "S": 0.1914,
+    "E": 0.3986,
+    "C": 0.6786
+  },
+  "Cooks, Fast Food": {
+    "R": 0.8743,
+    "I": 0.18,
+    "A": 0.2657,
+    "S": 0.3571,
+    "E": 0.4929,
+    "C": 0.67
+  },
+  "Cooks, Institution and Cafeteria": {
+    "R": 0.8471,
+    "I": 0.27,
+    "A": 0.2829,
+    "S": 0.4371,
+    "E": 0.43,
+    "C": 0.63
+  },
+  "Cooks, Private Household": {
+    "R": 0.7457,
+    "I": 0.1986,
+    "A": 0.5171,
+    "S": 0.5214,
+    "E": 0.49,
+    "C": 0.5329
+  },
+  "Cooks, Restaurant": {
+    "R": 0.8286,
+    "I": 0.2,
+    "A": 0.35,
+    "S": 0.3971,
+    "E": 0.5486,
+    "C": 0.6086
+  },
+  "Cooks, Short Order": {
+    "R": 0.8729,
+    "I": 0.1429,
+    "A": 0.3314,
+    "S": 0.4571,
+    "E": 0.5043,
+    "C": 0.6229
+  },
+  "Cooling and Freezing Equipment Operators and Tenders": {
+    "R": 1.0,
+    "I": 0.34,
+    "A": 0.1429,
+    "S": 0.1943,
+    "E": 0.1471,
+    "C": 0.6386
+  },
+  "Coroners": {
+    "R": 0.5829,
+    "I": 0.6943,
+    "A": 0.2171,
+    "S": 0.4471,
+    "E": 0.56,
+    "C": 0.6871
+  },
+  "Correctional Officers and Jailers": {
+    "R": 0.7643,
+    "I": 0.2443,
+    "A": 0.1443,
+    "S": 0.5557,
+    "E": 0.4586,
+    "C": 0.6714
+  },
+  "Correspondence Clerks": {
+    "R": 0.1814,
+    "I": 0.3529,
+    "A": 0.2314,
+    "S": 0.3914,
+    "E": 0.4843,
+    "C": 0.9629
+  },
+  "Cost Estimators": {
+    "R": 0.4429,
+    "I": 0.4643,
+    "A": 0.15,
+    "S": 0.2371,
+    "E": 0.6729,
+    "C": 0.92
+  },
+  "Costume Attendants": {
+    "R": 0.51,
+    "I": 0.1429,
+    "A": 0.8414,
+    "S": 0.4929,
+    "E": 0.4386,
+    "C": 0.55
+  },
+  "Counter and Rental Clerks": {
+    "R": 0.4457,
+    "I": 0.1429,
+    "A": 0.1729,
+    "S": 0.4671,
+    "E": 0.5271,
+    "C": 0.8686
+  },
+  "Couriers and Messengers": {
+    "R": 0.6071,
+    "I": 0.1671,
+    "A": 0.1429,
+    "S": 0.4371,
+    "E": 0.3914,
+    "C": 0.78
+  },
+  "Court Reporters and Simultaneous Captioners": {
+    "R": 0.32,
+    "I": 0.3014,
+    "A": 0.4229,
+    "S": 0.4114,
+    "E": 0.3814,
+    "C": 0.8014
+  },
+  "Court, Municipal, and License Clerks": {
+    "R": 0.2857,
+    "I": 0.2729,
+    "A": 0.16,
+    "S": 0.5,
+    "E": 0.6057,
+    "C": 0.8757
+  },
+  "Craft Artists": {
+    "R": 0.8371,
+    "I": 0.2686,
+    "A": 0.8571,
+    "S": 0.2457,
+    "E": 0.4143,
+    "C": 0.3643
+  },
+  "Crane and Tower Operators": {
+    "R": 1.0,
+    "I": 0.3171,
+    "A": 0.1429,
+    "S": 0.1714,
+    "E": 0.1871,
+    "C": 0.5643
+  },
+  "Credit Analysts": {
+    "R": 0.1429,
+    "I": 0.5471,
+    "A": 0.1429,
+    "S": 0.3457,
+    "E": 0.6429,
+    "C": 0.9843
+  },
+  "Credit Authorizers, Checkers, and Clerks": {
+    "R": 0.1429,
+    "I": 0.2643,
+    "A": 0.1429,
+    "S": 0.4843,
+    "E": 0.6386,
+    "C": 1.0
+  },
+  "Credit Counselors": {
+    "R": 0.1429,
+    "I": 0.3743,
+    "A": 0.2571,
+    "S": 0.6929,
+    "E": 0.6757,
+    "C": 0.78
+  },
+  "Crematory Operators": {
+    "R": 0.8514,
+    "I": 0.3014,
+    "A": 0.2086,
+    "S": 0.39,
+    "E": 0.2129,
+    "C": 0.6229
+  },
+  "Criminal Justice and Law Enforcement Teachers, Postsecondary": {
+    "R": 0.3714,
+    "I": 0.6986,
+    "A": 0.4629,
+    "S": 0.9757,
+    "E": 0.4914,
+    "C": 0.5229
+  },
+  "Critical Care Nurses": {
+    "R": 0.5857,
+    "I": 0.7243,
+    "A": 0.2257,
+    "S": 0.7857,
+    "E": 0.2957,
+    "C": 0.56
+  },
+  "Crossing Guards and Flaggers": {
+    "R": 0.8371,
+    "I": 0.2314,
+    "A": 0.1643,
+    "S": 0.44,
+    "E": 0.4329,
+    "C": 0.5071
+  },
+  "Crushing, Grinding, and Polishing Machine Setters, Operators, and Tenders": {
+    "R": 1.0,
+    "I": 0.3086,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1743,
+    "C": 0.6186
+  },
+  "Curators": {
+    "R": 0.3829,
+    "I": 0.49,
+    "A": 0.49,
+    "S": 0.5257,
+    "E": 0.55,
+    "C": 0.6857
+  },
+  "Customer Service Representatives": {
+    "R": 0.2929,
+    "I": 0.2314,
+    "A": 0.1429,
+    "S": 0.5486,
+    "E": 0.73,
+    "C": 0.88
+  },
+  "Customs Brokers": {
+    "R": 0.3471,
+    "I": 0.2186,
+    "A": 0.1429,
+    "S": 0.3143,
+    "E": 0.7243,
+    "C": 0.8757
+  },
+  "Customs and Border Protection Officers": {
+    "R": 0.4871,
+    "I": 0.3771,
+    "A": 0.1429,
+    "S": 0.3743,
+    "E": 0.6171,
+    "C": 0.7529
+  },
+  "Cutters and Trimmers, Hand": {
+    "R": 0.8914,
+    "I": 0.1743,
+    "A": 0.3129,
+    "S": 0.1614,
+    "E": 0.1429,
+    "C": 0.5357
+  },
+  "Cutting and Slicing Machine Setters, Operators, and Tenders": {
+    "R": 0.9571,
+    "I": 0.2171,
+    "A": 0.16,
+    "S": 0.1429,
+    "E": 0.1743,
+    "C": 0.5957
+  },
+  "Cutting, Punching, and Press Machine Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 0.9814,
+    "I": 0.3029,
+    "A": 0.1857,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.5571
+  },
+  "Cytogenetic Technologists": {
+    "R": 0.7671,
+    "I": 0.8514,
+    "A": 0.21,
+    "S": 0.27,
+    "E": 0.2214,
+    "C": 0.7243
+  },
+  "Cytotechnologists": {
+    "R": 0.8371,
+    "I": 0.8729,
+    "A": 0.1643,
+    "S": 0.3629,
+    "E": 0.2529,
+    "C": 0.6957
+  },
+  "Dancers": {
+    "R": 0.6829,
+    "I": 0.2,
+    "A": 0.9029,
+    "S": 0.5257,
+    "E": 0.4643,
+    "C": 0.2371
+  },
+  "Data Entry Keyers": {
+    "R": 0.4171,
+    "I": 0.3343,
+    "A": 0.1429,
+    "S": 0.1757,
+    "E": 0.2571,
+    "C": 1.0
+  },
+  "Data Scientists": {
+    "R": 0.3086,
+    "I": 0.9986,
+    "A": 0.37,
+    "S": 0.2371,
+    "E": 0.2443,
+    "C": 0.7714
+  },
+  "Data Warehousing Specialists": {
+    "R": 0.41,
+    "I": 0.6729,
+    "A": 0.2314,
+    "S": 0.2857,
+    "E": 0.4414,
+    "C": 0.91
+  },
+  "Database Administrators": {
+    "R": 0.3857,
+    "I": 0.68,
+    "A": 0.1857,
+    "S": 0.3257,
+    "E": 0.4086,
+    "C": 0.9386
+  },
+  "Database Architects": {
+    "R": 0.3843,
+    "I": 0.8114,
+    "A": 0.3171,
+    "S": 0.2757,
+    "E": 0.3929,
+    "C": 0.8557
+  },
+  "Demonstrators and Product Promoters": {
+    "R": 0.49,
+    "I": 0.2571,
+    "A": 0.4614,
+    "S": 0.4514,
+    "E": 0.76,
+    "C": 0.5214
+  },
+  "Dental Assistants": {
+    "R": 0.6414,
+    "I": 0.5071,
+    "A": 0.1429,
+    "S": 0.6214,
+    "E": 0.1914,
+    "C": 0.78
+  },
+  "Dental Hygienists": {
+    "R": 0.7343,
+    "I": 0.6686,
+    "A": 0.1686,
+    "S": 0.78,
+    "E": 0.2386,
+    "C": 0.6129
+  },
+  "Dental Laboratory Technicians": {
+    "R": 0.9543,
+    "I": 0.6386,
+    "A": 0.2071,
+    "S": 0.3814,
+    "E": 0.1429,
+    "C": 0.6029
+  },
+  "Dentists, General": {
+    "R": 0.7586,
+    "I": 0.7714,
+    "A": 0.1643,
+    "S": 0.61,
+    "E": 0.2786,
+    "C": 0.55
+  },
+  "Dermatologists": {
+    "R": 0.7929,
+    "I": 0.8986,
+    "A": 0.2514,
+    "S": 0.6129,
+    "E": 0.2514,
+    "C": 0.5214
+  },
+  "Derrick Operators, Oil and Gas": {
+    "R": 1.0,
+    "I": 0.3629,
+    "A": 0.1429,
+    "S": 0.1443,
+    "E": 0.2343,
+    "C": 0.52
+  },
+  "Desktop Publishers": {
+    "R": 0.48,
+    "I": 0.3929,
+    "A": 0.6714,
+    "S": 0.2557,
+    "E": 0.2671,
+    "C": 0.76
+  },
+  "Detectives and Criminal Investigators": {
+    "R": 0.5971,
+    "I": 0.7,
+    "A": 0.1714,
+    "S": 0.39,
+    "E": 0.5771,
+    "C": 0.69
+  },
+  "Diagnostic Medical Sonographers": {
+    "R": 0.8514,
+    "I": 0.6729,
+    "A": 0.1671,
+    "S": 0.5929,
+    "E": 0.2157,
+    "C": 0.7343
+  },
+  "Dietetic Technicians": {
+    "R": 0.5486,
+    "I": 0.4943,
+    "A": 0.35,
+    "S": 0.7629,
+    "E": 0.3514,
+    "C": 0.5257
+  },
+  "Dietitians and Nutritionists": {
+    "R": 0.4329,
+    "I": 0.6857,
+    "A": 0.3429,
+    "S": 0.7857,
+    "E": 0.4886,
+    "C": 0.48
+  },
+  "Digital Forensics Analysts": {
+    "R": 0.4543,
+    "I": 0.8714,
+    "A": 0.2443,
+    "S": 0.24,
+    "E": 0.3857,
+    "C": 0.8643
+  },
+  "Dining Room and Cafeteria Attendants and Bartender Helpers": {
+    "R": 0.8014,
+    "I": 0.1429,
+    "A": 0.1457,
+    "S": 0.5243,
+    "E": 0.3243,
+    "C": 0.6571
+  },
+  "Directors, Religious Activities and Education": {
+    "R": 0.1429,
+    "I": 0.4057,
+    "A": 0.49,
+    "S": 0.9971,
+    "E": 0.8643,
+    "C": 0.46
+  },
+  "Disc Jockeys, Except Radio": {
+    "R": 0.42,
+    "I": 0.2186,
+    "A": 0.69,
+    "S": 0.4229,
+    "E": 0.5171,
+    "C": 0.5
+  },
+  "Dishwashers": {
+    "R": 0.9971,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.2629,
+    "E": 0.2029,
+    "C": 0.6357
+  },
+  "Dispatchers, Except Police, Fire, and Ambulance": {
+    "R": 0.7543,
+    "I": 0.2029,
+    "A": 0.1429,
+    "S": 0.3829,
+    "E": 0.4143,
+    "C": 0.77
+  },
+  "Document Management Specialists": {
+    "R": 0.2386,
+    "I": 0.5443,
+    "A": 0.2643,
+    "S": 0.3414,
+    "E": 0.4314,
+    "C": 0.9643
+  },
+  "Door-to-Door Sales Workers, News and Street Vendors, and Related Workers": {
+    "R": 0.51,
+    "I": 0.1429,
+    "A": 0.2886,
+    "S": 0.3943,
+    "E": 0.7857,
+    "C": 0.6743
+  },
+  "Dredge Operators": {
+    "R": 0.9471,
+    "I": 0.4271,
+    "A": 0.1429,
+    "S": 0.1943,
+    "E": 0.3329,
+    "C": 0.4971
+  },
+  "Drilling and Boring Machine Tool Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 1.0,
+    "I": 0.3929,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.61
+  },
+  "Driver/Sales Workers": {
+    "R": 0.8071,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.3514,
+    "E": 0.4914,
+    "C": 0.6314
+  },
+  "Drywall and Ceiling Tile Installers": {
+    "R": 1.0,
+    "I": 0.2786,
+    "A": 0.3286,
+    "S": 0.1686,
+    "E": 0.1429,
+    "C": 0.4457
+  },
+  "Earth Drillers, Except Oil and Gas": {
+    "R": 1.0,
+    "I": 0.5114,
+    "A": 0.1629,
+    "S": 0.1686,
+    "E": 0.2429,
+    "C": 0.5271
+  },
+  "Economics Teachers, Postsecondary": {
+    "R": 0.3871,
+    "I": 0.79,
+    "A": 0.4371,
+    "S": 0.8886,
+    "E": 0.4843,
+    "C": 0.5543
+  },
+  "Economists": {
+    "R": 0.22,
+    "I": 1.0,
+    "A": 0.3557,
+    "S": 0.3171,
+    "E": 0.5429,
+    "C": 0.62
+  },
+  "Editors": {
+    "R": 0.1429,
+    "I": 0.4443,
+    "A": 0.7371,
+    "S": 0.3586,
+    "E": 0.5757,
+    "C": 0.6929
+  },
+  "Education Administrators, Kindergarten through Secondary": {
+    "R": 0.1686,
+    "I": 0.4743,
+    "A": 0.4214,
+    "S": 0.8386,
+    "E": 0.7386,
+    "C": 0.64
+  },
+  "Education Administrators, Postsecondary": {
+    "R": 0.1429,
+    "I": 0.5714,
+    "A": 0.4157,
+    "S": 0.8286,
+    "E": 0.7414,
+    "C": 0.6671
+  },
+  "Education Teachers, Postsecondary": {
+    "R": 0.3843,
+    "I": 0.7014,
+    "A": 0.5029,
+    "S": 1.0,
+    "E": 0.3757,
+    "C": 0.5057
+  },
+  "Education and Childcare Administrators, Preschool and Daycare": {
+    "R": 0.1543,
+    "I": 0.4329,
+    "A": 0.4114,
+    "S": 0.9429,
+    "E": 0.68,
+    "C": 0.6114
+  },
+  "Educational, Guidance, and Career Counselors and Advisors": {
+    "R": 0.1429,
+    "I": 0.4729,
+    "A": 0.4886,
+    "S": 1.0,
+    "E": 0.6014,
+    "C": 0.4829
+  },
+  "Electric Motor, Power Tool, and Related Repairers": {
+    "R": 1.0,
+    "I": 0.3971,
+    "A": 0.1429,
+    "S": 0.1629,
+    "E": 0.1514,
+    "C": 0.5843
+  },
+  "Electrical Engineers": {
+    "R": 0.9071,
+    "I": 0.7586,
+    "A": 0.2871,
+    "S": 0.2243,
+    "E": 0.33,
+    "C": 0.7157
+  },
+  "Electrical Power-Line Installers and Repairers": {
+    "R": 1.0,
+    "I": 0.3757,
+    "A": 0.1429,
+    "S": 0.17,
+    "E": 0.2457,
+    "C": 0.5243
+  },
+  "Electrical and Electronic Engineering Technologists and Technicians": {
+    "R": 0.8914,
+    "I": 0.7429,
+    "A": 0.2514,
+    "S": 0.2557,
+    "E": 0.1886,
+    "C": 0.7143
+  },
+  "Electrical and Electronic Equipment Assemblers": {
+    "R": 1.0,
+    "I": 0.4757,
+    "A": 0.26,
+    "S": 0.1771,
+    "E": 0.1429,
+    "C": 0.6143
+  },
+  "Electrical and Electronics Drafters": {
+    "R": 0.7914,
+    "I": 0.5071,
+    "A": 0.4686,
+    "S": 0.1886,
+    "E": 0.2743,
+    "C": 0.7586
+  },
+  "Electrical and Electronics Installers and Repairers, Transportation Equipment": {
+    "R": 1.0,
+    "I": 0.4814,
+    "A": 0.1429,
+    "S": 0.1657,
+    "E": 0.1457,
+    "C": 0.6871
+  },
+  "Electrical and Electronics Repairers, Commercial and Industrial Equipment": {
+    "R": 1.0,
+    "I": 0.5757,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1586,
+    "C": 0.7629
+  },
+  "Electrical and Electronics Repairers, Powerhouse, Substation, and Relay": {
+    "R": 1.0,
+    "I": 0.5029,
+    "A": 0.1429,
+    "S": 0.1529,
+    "E": 0.1857,
+    "C": 0.7529
+  },
+  "Electricians": {
+    "R": 1.0,
+    "I": 0.3814,
+    "A": 0.1829,
+    "S": 0.18,
+    "E": 0.2643,
+    "C": 0.6029
+  },
+  "Electro-Mechanical and Mechatronics Technologists and Technicians": {
+    "R": 1.0,
+    "I": 0.6257,
+    "A": 0.1971,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.6543
+  },
+  "Electromechanical Equipment Assemblers": {
+    "R": 1.0,
+    "I": 0.4786,
+    "A": 0.2014,
+    "S": 0.1514,
+    "E": 0.1429,
+    "C": 0.7114
+  },
+  "Electronic Equipment Installers and Repairers, Motor Vehicles": {
+    "R": 1.0,
+    "I": 0.5057,
+    "A": 0.1429,
+    "S": 0.1714,
+    "E": 0.1429,
+    "C": 0.65
+  },
+  "Electronics Engineers, Except Computer": {
+    "R": 0.89,
+    "I": 0.8286,
+    "A": 0.29,
+    "S": 0.2271,
+    "E": 0.2314,
+    "C": 0.6686
+  },
+  "Elementary School Teachers, Except Special Education": {
+    "R": 0.3643,
+    "I": 0.4829,
+    "A": 0.57,
+    "S": 1.0,
+    "E": 0.3671,
+    "C": 0.5043
+  },
+  "Elevator and Escalator Installers and Repairers": {
+    "R": 1.0,
+    "I": 0.3457,
+    "A": 0.1514,
+    "S": 0.1971,
+    "E": 0.1671,
+    "C": 0.54
+  },
+  "Eligibility Interviewers, Government Programs": {
+    "R": 0.1429,
+    "I": 0.3514,
+    "A": 0.1429,
+    "S": 0.6343,
+    "E": 0.5614,
+    "C": 0.9071
+  },
+  "Embalmers": {
+    "R": 0.8343,
+    "I": 0.3571,
+    "A": 0.2414,
+    "S": 0.49,
+    "E": 0.3786,
+    "C": 0.5343
+  },
+  "Emergency Management Directors": {
+    "R": 0.5143,
+    "I": 0.6514,
+    "A": 0.2543,
+    "S": 0.5714,
+    "E": 0.7129,
+    "C": 0.6657
+  },
+  "Emergency Medical Technicians": {
+    "R": 0.7786,
+    "I": 0.65,
+    "A": 0.1429,
+    "S": 0.7986,
+    "E": 0.22,
+    "C": 0.5457
+  },
+  "Emergency Medicine Physicians": {
+    "R": 0.5971,
+    "I": 0.8057,
+    "A": 0.1429,
+    "S": 0.7943,
+    "E": 0.3914,
+    "C": 0.5971
+  },
+  "Endoscopy Technicians": {
+    "R": 0.9029,
+    "I": 0.5871,
+    "A": 0.1429,
+    "S": 0.47,
+    "E": 0.15,
+    "C": 0.7029
+  },
+  "Energy Auditors": {
+    "R": 0.6471,
+    "I": 0.5957,
+    "A": 0.1429,
+    "S": 0.27,
+    "E": 0.4771,
+    "C": 0.8471
+  },
+  "Energy Engineers, Except Wind and Solar": {
+    "R": 0.7514,
+    "I": 0.6671,
+    "A": 0.2929,
+    "S": 0.32,
+    "E": 0.4371,
+    "C": 0.6314
+  },
+  "Engine and Other Machine Assemblers": {
+    "R": 1.0,
+    "I": 0.4071,
+    "A": 0.1814,
+    "S": 0.1429,
+    "E": 0.1514,
+    "C": 0.6386
+  },
+  "Engineering Teachers, Postsecondary": {
+    "R": 0.6914,
+    "I": 0.77,
+    "A": 0.4514,
+    "S": 0.8229,
+    "E": 0.2857,
+    "C": 0.4914
+  },
+  "English Language and Literature Teachers, Postsecondary": {
+    "R": 0.3357,
+    "I": 0.68,
+    "A": 0.5986,
+    "S": 1.0,
+    "E": 0.3443,
+    "C": 0.5071
+  },
+  "Entertainment and Recreation Managers, Except Gambling": {
+    "R": 0.5871,
+    "I": 0.2914,
+    "A": 0.2686,
+    "S": 0.5071,
+    "E": 0.8371,
+    "C": 0.6829
+  },
+  "Environmental Compliance Inspectors": {
+    "R": 0.6529,
+    "I": 0.6814,
+    "A": 0.15,
+    "S": 0.3357,
+    "E": 0.4586,
+    "C": 0.8343
+  },
+  "Environmental Economists": {
+    "R": 0.3914,
+    "I": 1.0,
+    "A": 0.3614,
+    "S": 0.3257,
+    "E": 0.5871,
+    "C": 0.5829
+  },
+  "Environmental Engineering Technologists and Technicians": {
+    "R": 0.8871,
+    "I": 0.8443,
+    "A": 0.2471,
+    "S": 0.2143,
+    "E": 0.1786,
+    "C": 0.7257
+  },
+  "Environmental Engineers": {
+    "R": 0.7357,
+    "I": 0.8729,
+    "A": 0.2914,
+    "S": 0.3157,
+    "E": 0.4429,
+    "C": 0.6129
+  },
+  "Environmental Restoration Planners": {
+    "R": 0.7586,
+    "I": 0.8929,
+    "A": 0.32,
+    "S": 0.3029,
+    "E": 0.5186,
+    "C": 0.59
+  },
+  "Environmental Science Teachers, Postsecondary": {
+    "R": 0.5371,
+    "I": 0.8929,
+    "A": 0.4857,
+    "S": 0.8971,
+    "E": 0.3371,
+    "C": 0.5114
+  },
+  "Environmental Science and Protection Technicians, Including Health": {
+    "R": 0.79,
+    "I": 0.7957,
+    "A": 0.1614,
+    "S": 0.2957,
+    "E": 0.21,
+    "C": 0.7014
+  },
+  "Environmental Scientists and Specialists, Including Health": {
+    "R": 0.6714,
+    "I": 1.0,
+    "A": 0.2557,
+    "S": 0.3743,
+    "E": 0.3686,
+    "C": 0.6343
+  },
+  "Epidemiologists": {
+    "R": 0.4543,
+    "I": 1.0,
+    "A": 0.2886,
+    "S": 0.5757,
+    "E": 0.3543,
+    "C": 0.5243
+  },
+  "Equal Opportunity Representatives and Officers": {
+    "R": 0.1757,
+    "I": 0.43,
+    "A": 0.2471,
+    "S": 0.6057,
+    "E": 0.7671,
+    "C": 0.7443
+  },
+  "Etchers and Engravers": {
+    "R": 0.9743,
+    "I": 0.3614,
+    "A": 0.4657,
+    "S": 0.1857,
+    "E": 0.1429,
+    "C": 0.5114
+  },
+  "Excavating and Loading Machine and Dragline Operators, Surface Mining": {
+    "R": 1.0,
+    "I": 0.3429,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.5071
+  },
+  "Executive Secretaries and Executive Administrative Assistants": {
+    "R": 0.18,
+    "I": 0.2714,
+    "A": 0.1971,
+    "S": 0.5686,
+    "E": 0.7943,
+    "C": 0.9129
+  },
+  "Exercise Physiologists": {
+    "R": 0.7229,
+    "I": 0.6957,
+    "A": 0.24,
+    "S": 0.6886,
+    "E": 0.4386,
+    "C": 0.5029
+  },
+  "Exercise Trainers and Group Fitness Instructors": {
+    "R": 0.7114,
+    "I": 0.4086,
+    "A": 0.3714,
+    "S": 0.8071,
+    "E": 0.4857,
+    "C": 0.3929
+  },
+  "Explosives Workers, Ordnance Handling Experts, and Blasters": {
+    "R": 0.9843,
+    "I": 0.5386,
+    "A": 0.1786,
+    "S": 0.1857,
+    "E": 0.26,
+    "C": 0.5971
+  },
+  "Extruding and Drawing Machine Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 0.9557,
+    "I": 0.3186,
+    "A": 0.2043,
+    "S": 0.1557,
+    "E": 0.1429,
+    "C": 0.6157
+  },
+  "Extruding and Forming Machine Setters, Operators, and Tenders, Synthetic and Glass Fibers": {
+    "R": 0.9286,
+    "I": 0.3157,
+    "A": 0.1814,
+    "S": 0.1743,
+    "E": 0.2014,
+    "C": 0.5786
+  },
+  "Extruding, Forming, Pressing, and Compacting Machine Setters, Operators, and Tenders": {
+    "R": 0.9343,
+    "I": 0.3186,
+    "A": 0.1829,
+    "S": 0.1486,
+    "E": 0.1786,
+    "C": 0.6143
+  },
+  "Fabric and Apparel Patternmakers": {
+    "R": 0.7886,
+    "I": 0.1829,
+    "A": 0.78,
+    "S": 0.1957,
+    "E": 0.2143,
+    "C": 0.6157
+  },
+  "Facilities Managers": {
+    "R": 0.5614,
+    "I": 0.36,
+    "A": 0.2343,
+    "S": 0.5129,
+    "E": 0.7914,
+    "C": 0.7729
+  },
+  "Fallers": {
+    "R": 1.0,
+    "I": 0.3543,
+    "A": 0.1614,
+    "S": 0.2743,
+    "E": 0.2243,
+    "C": 0.4743
+  },
+  "Family Medicine Physicians": {
+    "R": 0.5357,
+    "I": 0.8686,
+    "A": 0.2071,
+    "S": 0.8871,
+    "E": 0.3343,
+    "C": 0.5643
+  },
+  "Family and Consumer Sciences Teachers, Postsecondary": {
+    "R": 0.4314,
+    "I": 0.7014,
+    "A": 0.4914,
+    "S": 1.0,
+    "E": 0.3871,
+    "C": 0.5043
+  },
+  "Farm Equipment Mechanics and Service Technicians": {
+    "R": 1.0,
+    "I": 0.4457,
+    "A": 0.1429,
+    "S": 0.1929,
+    "E": 0.1443,
+    "C": 0.5857
+  },
+  "Farm Labor Contractors": {
+    "R": 0.6929,
+    "I": 0.22,
+    "A": 0.1429,
+    "S": 0.4629,
+    "E": 0.7129,
+    "C": 0.6271
+  },
+  "Farm and Home Management Educators": {
+    "R": 0.5657,
+    "I": 0.6114,
+    "A": 0.33,
+    "S": 0.69,
+    "E": 0.4986,
+    "C": 0.4543
+  },
+  "Farmers, Ranchers, and Other Agricultural Managers": {
+    "R": 0.7371,
+    "I": 0.3957,
+    "A": 0.1486,
+    "S": 0.3757,
+    "E": 0.7914,
+    "C": 0.6443
+  },
+  "Farmworkers and Laborers, Crop, Nursery, and Greenhouse": {
+    "R": 1.0,
+    "I": 0.3314,
+    "A": 0.1843,
+    "S": 0.2643,
+    "E": 0.3386,
+    "C": 0.4786
+  },
+  "Farmworkers, Farm, Ranch, and Aquacultural Animals": {
+    "R": 0.9686,
+    "I": 0.38,
+    "A": 0.2029,
+    "S": 0.3571,
+    "E": 0.2743,
+    "C": 0.4214
+  },
+  "Fashion Designers": {
+    "R": 0.6171,
+    "I": 0.31,
+    "A": 1.0,
+    "S": 0.3329,
+    "E": 0.5671,
+    "C": 0.4157
+  },
+  "Fast Food and Counter Workers": {
+    "R": 0.7014,
+    "I": 0.1429,
+    "A": 0.2014,
+    "S": 0.5014,
+    "E": 0.5029,
+    "C": 0.6943
+  },
+  "Fence Erectors": {
+    "R": 1.0,
+    "I": 0.3043,
+    "A": 0.1986,
+    "S": 0.1929,
+    "E": 0.1429,
+    "C": 0.5229
+  },
+  "Fiberglass Laminators and Fabricators": {
+    "R": 0.9629,
+    "I": 0.29,
+    "A": 0.3171,
+    "S": 0.1429,
+    "E": 0.1643,
+    "C": 0.4986
+  },
+  "File Clerks": {
+    "R": 0.3614,
+    "I": 0.1971,
+    "A": 0.1643,
+    "S": 0.2743,
+    "E": 0.2371,
+    "C": 1.0
+  },
+  "Film and Video Editors": {
+    "R": 0.4671,
+    "I": 0.2814,
+    "A": 0.7786,
+    "S": 0.2671,
+    "E": 0.4257,
+    "C": 0.57
+  },
+  "Financial Examiners": {
+    "R": 0.1429,
+    "I": 0.5057,
+    "A": 0.1429,
+    "S": 0.3857,
+    "E": 0.6729,
+    "C": 0.88
+  },
+  "Financial Managers": {
+    "R": 0.1743,
+    "I": 0.35,
+    "A": 0.22,
+    "S": 0.4186,
+    "E": 1.0,
+    "C": 0.8143
+  },
+  "Financial Quantitative Analysts": {
+    "R": 0.2514,
+    "I": 0.9429,
+    "A": 0.26,
+    "S": 0.23,
+    "E": 0.4886,
+    "C": 0.84
+  },
+  "Financial Risk Specialists": {
+    "R": 0.24,
+    "I": 0.7114,
+    "A": 0.1843,
+    "S": 0.3557,
+    "E": 0.7029,
+    "C": 0.7657
+  },
+  "Financial and Investment Analysts": {
+    "R": 0.1429,
+    "I": 0.7229,
+    "A": 0.2543,
+    "S": 0.3214,
+    "E": 0.7271,
+    "C": 0.7914
+  },
+  "Fine Artists, Including Painters, Sculptors, and Illustrators": {
+    "R": 0.58,
+    "I": 0.3829,
+    "A": 1.0,
+    "S": 0.3243,
+    "E": 0.3386,
+    "C": 0.3343
+  },
+  "Fire Inspectors and Investigators": {
+    "R": 0.7771,
+    "I": 0.6214,
+    "A": 0.1471,
+    "S": 0.37,
+    "E": 0.4714,
+    "C": 0.74
+  },
+  "Fire-Prevention and Protection Engineers": {
+    "R": 0.8686,
+    "I": 0.7543,
+    "A": 0.2157,
+    "S": 0.4229,
+    "E": 0.4029,
+    "C": 0.61
+  },
+  "Firefighters": {
+    "R": 0.9314,
+    "I": 0.4157,
+    "A": 0.1857,
+    "S": 0.4857,
+    "E": 0.43,
+    "C": 0.4943
+  },
+  "First-Line Supervisors of Construction Trades and Extraction Workers": {
+    "R": 0.71,
+    "I": 0.2843,
+    "A": 0.1429,
+    "S": 0.4014,
+    "E": 0.8414,
+    "C": 0.7114
+  },
+  "First-Line Supervisors of Correctional Officers": {
+    "R": 0.4957,
+    "I": 0.2586,
+    "A": 0.1429,
+    "S": 0.6543,
+    "E": 0.9171,
+    "C": 0.7157
+  },
+  "First-Line Supervisors of Entertainment and Recreation Workers, Except Gambling Services": {
+    "R": 0.4157,
+    "I": 0.1457,
+    "A": 0.2557,
+    "S": 0.6257,
+    "E": 1.0,
+    "C": 0.6757
+  },
+  "First-Line Supervisors of Farming, Fishing, and Forestry Workers": {
+    "R": 0.7914,
+    "I": 0.3186,
+    "A": 0.1429,
+    "S": 0.4114,
+    "E": 0.8586,
+    "C": 0.6643
+  },
+  "First-Line Supervisors of Firefighting and Prevention Workers": {
+    "R": 0.7343,
+    "I": 0.3214,
+    "A": 0.1429,
+    "S": 0.5314,
+    "E": 0.8786,
+    "C": 0.6671
+  },
+  "First-Line Supervisors of Food Preparation and Serving Workers": {
+    "R": 0.5943,
+    "I": 0.1443,
+    "A": 0.1443,
+    "S": 0.4586,
+    "E": 0.9071,
+    "C": 0.7814
+  },
+  "First-Line Supervisors of Gambling Services Workers": {
+    "R": 0.5286,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.4314,
+    "E": 0.8471,
+    "C": 0.7857
+  },
+  "First-Line Supervisors of Helpers, Laborers, and Material Movers, Hand": {
+    "R": 0.5843,
+    "I": 0.1771,
+    "A": 0.1429,
+    "S": 0.5057,
+    "E": 0.8429,
+    "C": 0.7157
+  },
+  "First-Line Supervisors of Housekeeping and Janitorial Workers": {
+    "R": 0.6071,
+    "I": 0.1686,
+    "A": 0.1429,
+    "S": 0.5071,
+    "E": 0.8171,
+    "C": 0.7343
+  },
+  "First-Line Supervisors of Landscaping, Lawn Service, and Groundskeeping Workers": {
+    "R": 0.6429,
+    "I": 0.2543,
+    "A": 0.1471,
+    "S": 0.4271,
+    "E": 0.8729,
+    "C": 0.7443
+  },
+  "First-Line Supervisors of Material-Moving Machine and Vehicle Operators": {
+    "R": 0.7114,
+    "I": 0.2571,
+    "A": 0.1429,
+    "S": 0.3414,
+    "E": 0.7157,
+    "C": 0.7
+  },
+  "First-Line Supervisors of Mechanics, Installers, and Repairers": {
+    "R": 0.6371,
+    "I": 0.2686,
+    "A": 0.1429,
+    "S": 0.4871,
+    "E": 0.8214,
+    "C": 0.6914
+  },
+  "First-Line Supervisors of Non-Retail Sales Workers": {
+    "R": 0.2714,
+    "I": 0.1471,
+    "A": 0.1429,
+    "S": 0.5786,
+    "E": 1.0,
+    "C": 0.7614
+  },
+  "First-Line Supervisors of Office and Administrative Support Workers": {
+    "R": 0.23,
+    "I": 0.1929,
+    "A": 0.1429,
+    "S": 0.6186,
+    "E": 0.9943,
+    "C": 0.8114
+  },
+  "First-Line Supervisors of Passenger Attendants": {
+    "R": 0.3714,
+    "I": 0.15,
+    "A": 0.1429,
+    "S": 0.5829,
+    "E": 0.9314,
+    "C": 0.7471
+  },
+  "First-Line Supervisors of Personal Service Workers": {
+    "R": 0.4814,
+    "I": 0.1543,
+    "A": 0.1843,
+    "S": 0.5743,
+    "E": 0.9643,
+    "C": 0.7114
+  },
+  "First-Line Supervisors of Police and Detectives": {
+    "R": 0.4729,
+    "I": 0.3286,
+    "A": 0.1571,
+    "S": 0.5529,
+    "E": 1.0,
+    "C": 0.7386
+  },
+  "First-Line Supervisors of Production and Operating Workers": {
+    "R": 0.6186,
+    "I": 0.2171,
+    "A": 0.1429,
+    "S": 0.41,
+    "E": 0.8814,
+    "C": 0.7629
+  },
+  "First-Line Supervisors of Retail Sales Workers": {
+    "R": 0.3929,
+    "I": 0.16,
+    "A": 0.1429,
+    "S": 0.5343,
+    "E": 1.0,
+    "C": 0.7914
+  },
+  "First-Line Supervisors of Security Workers": {
+    "R": 0.5943,
+    "I": 0.2514,
+    "A": 0.1429,
+    "S": 0.5086,
+    "E": 0.8429,
+    "C": 0.7371
+  },
+  "Fish and Game Wardens": {
+    "R": 0.9086,
+    "I": 0.5571,
+    "A": 0.1429,
+    "S": 0.3329,
+    "E": 0.4314,
+    "C": 0.6229
+  },
+  "Fishing and Hunting Workers": {
+    "R": 1.0,
+    "I": 0.32,
+    "A": 0.1429,
+    "S": 0.1471,
+    "E": 0.2686,
+    "C": 0.4986
+  },
+  "Fitness and Wellness Coordinators": {
+    "R": 0.4257,
+    "I": 0.3986,
+    "A": 0.3029,
+    "S": 0.8029,
+    "E": 0.7714,
+    "C": 0.5229
+  },
+  "Flight Attendants": {
+    "R": 0.6129,
+    "I": 0.2886,
+    "A": 0.1543,
+    "S": 0.5857,
+    "E": 0.4957,
+    "C": 0.6529
+  },
+  "Floor Layers, Except Carpet, Wood, and Hard Tiles": {
+    "R": 1.0,
+    "I": 0.1986,
+    "A": 0.2614,
+    "S": 0.2243,
+    "E": 0.1429,
+    "C": 0.5257
+  },
+  "Floor Sanders and Finishers": {
+    "R": 1.0,
+    "I": 0.1943,
+    "A": 0.1914,
+    "S": 0.2071,
+    "E": 0.2286,
+    "C": 0.4657
+  },
+  "Floral Designers": {
+    "R": 0.7329,
+    "I": 0.2457,
+    "A": 0.6286,
+    "S": 0.3514,
+    "E": 0.5414,
+    "C": 0.5614
+  },
+  "Food Batchmakers": {
+    "R": 0.86,
+    "I": 0.3,
+    "A": 0.29,
+    "S": 0.21,
+    "E": 0.3929,
+    "C": 0.6357
+  },
+  "Food Cooking Machine Operators and Tenders": {
+    "R": 1.0,
+    "I": 0.2571,
+    "A": 0.15,
+    "S": 0.2,
+    "E": 0.2329,
+    "C": 0.6014
+  },
+  "Food Preparation Workers": {
+    "R": 0.9243,
+    "I": 0.1986,
+    "A": 0.25,
+    "S": 0.3571,
+    "E": 0.3186,
+    "C": 0.6086
+  },
+  "Food Science Technicians": {
+    "R": 0.7943,
+    "I": 0.65,
+    "A": 0.1957,
+    "S": 0.2386,
+    "E": 0.2571,
+    "C": 0.7243
+  },
+  "Food Scientists and Technologists": {
+    "R": 0.7271,
+    "I": 0.8129,
+    "A": 0.3514,
+    "S": 0.3057,
+    "E": 0.3629,
+    "C": 0.5657
+  },
+  "Food Servers, Nonrestaurant": {
+    "R": 0.7171,
+    "I": 0.2014,
+    "A": 0.2943,
+    "S": 0.59,
+    "E": 0.3986,
+    "C": 0.5586
+  },
+  "Food Service Managers": {
+    "R": 0.5657,
+    "I": 0.2657,
+    "A": 0.2271,
+    "S": 0.5014,
+    "E": 0.85,
+    "C": 0.7557
+  },
+  "Food and Tobacco Roasting, Baking, and Drying Machine Operators and Tenders": {
+    "R": 0.9771,
+    "I": 0.2271,
+    "A": 0.1571,
+    "S": 0.1814,
+    "E": 0.26,
+    "C": 0.5971
+  },
+  "Foreign Language and Literature Teachers, Postsecondary": {
+    "R": 0.3029,
+    "I": 0.6314,
+    "A": 0.57,
+    "S": 1.0,
+    "E": 0.3671,
+    "C": 0.5286
+  },
+  "Forensic Science Technicians": {
+    "R": 0.7186,
+    "I": 0.8729,
+    "A": 0.2571,
+    "S": 0.2414,
+    "E": 0.2443,
+    "C": 0.72
+  },
+  "Forest Fire Inspectors and Prevention Specialists": {
+    "R": 0.8843,
+    "I": 0.5243,
+    "A": 0.17,
+    "S": 0.4757,
+    "E": 0.4829,
+    "C": 0.6443
+  },
+  "Forest and Conservation Technicians": {
+    "R": 0.9329,
+    "I": 0.6271,
+    "A": 0.1429,
+    "S": 0.4029,
+    "E": 0.3514,
+    "C": 0.6714
+  },
+  "Forest and Conservation Workers": {
+    "R": 0.9943,
+    "I": 0.5043,
+    "A": 0.1471,
+    "S": 0.37,
+    "E": 0.4043,
+    "C": 0.6157
+  },
+  "Foresters": {
+    "R": 0.76,
+    "I": 0.6286,
+    "A": 0.1771,
+    "S": 0.3443,
+    "E": 0.54,
+    "C": 0.6157
+  },
+  "Forestry and Conservation Science Teachers, Postsecondary": {
+    "R": 0.5743,
+    "I": 0.8271,
+    "A": 0.4343,
+    "S": 0.9343,
+    "E": 0.3386,
+    "C": 0.5014
+  },
+  "Forging Machine Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 0.9643,
+    "I": 0.3657,
+    "A": 0.1457,
+    "S": 0.1429,
+    "E": 0.1529,
+    "C": 0.61
+  },
+  "Foundry Mold and Coremakers": {
+    "R": 0.9714,
+    "I": 0.3357,
+    "A": 0.3129,
+    "S": 0.1614,
+    "E": 0.1429,
+    "C": 0.4686
+  },
+  "Fraud Examiners, Investigators and Analysts": {
+    "R": 0.2643,
+    "I": 0.6486,
+    "A": 0.1586,
+    "S": 0.2629,
+    "E": 0.6614,
+    "C": 0.87
+  },
+  "Freight Forwarders": {
+    "R": 0.4771,
+    "I": 0.3471,
+    "A": 0.1429,
+    "S": 0.27,
+    "E": 0.56,
+    "C": 0.8214
+  },
+  "Fuel Cell Engineers": {
+    "R": 0.8414,
+    "I": 0.7614,
+    "A": 0.2314,
+    "S": 0.19,
+    "E": 0.3457,
+    "C": 0.57
+  },
+  "Fundraisers": {
+    "R": 0.1429,
+    "I": 0.2843,
+    "A": 0.4657,
+    "S": 0.5971,
+    "E": 0.8543,
+    "C": 0.59
+  },
+  "Fundraising Managers": {
+    "R": 0.1429,
+    "I": 0.3443,
+    "A": 0.3814,
+    "S": 0.5357,
+    "E": 1.0,
+    "C": 0.6743
+  },
+  "Funeral Attendants": {
+    "R": 0.6643,
+    "I": 0.1443,
+    "A": 0.2886,
+    "S": 0.5957,
+    "E": 0.4743,
+    "C": 0.5929
+  },
+  "Funeral Home Managers": {
+    "R": 0.4271,
+    "I": 0.2914,
+    "A": 0.2657,
+    "S": 0.6257,
+    "E": 0.93,
+    "C": 0.68
+  },
+  "Furnace, Kiln, Oven, Drier, and Kettle Operators and Tenders": {
+    "R": 0.9843,
+    "I": 0.31,
+    "A": 0.1429,
+    "S": 0.1786,
+    "E": 0.1743,
+    "C": 0.6471
+  },
+  "Furniture Finishers": {
+    "R": 1.0,
+    "I": 0.2057,
+    "A": 0.4014,
+    "S": 0.1814,
+    "E": 0.1429,
+    "C": 0.4171
+  },
+  "Gambling Cage Workers": {
+    "R": 0.4043,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.4071,
+    "E": 0.6614,
+    "C": 0.8529
+  },
+  "Gambling Change Persons and Booth Cashiers": {
+    "R": 0.4229,
+    "I": 0.1429,
+    "A": 0.1529,
+    "S": 0.3529,
+    "E": 0.6029,
+    "C": 0.9257
+  },
+  "Gambling Dealers": {
+    "R": 0.5271,
+    "I": 0.1429,
+    "A": 0.1514,
+    "S": 0.31,
+    "E": 0.7471,
+    "C": 0.7814
+  },
+  "Gambling Managers": {
+    "R": 0.42,
+    "I": 0.1886,
+    "A": 0.1429,
+    "S": 0.3757,
+    "E": 0.9586,
+    "C": 0.7771
+  },
+  "Gambling Surveillance Officers and Gambling Investigators": {
+    "R": 0.6029,
+    "I": 0.3086,
+    "A": 0.1429,
+    "S": 0.31,
+    "E": 0.6886,
+    "C": 0.8057
+  },
+  "Gambling and Sports Book Writers and Runners": {
+    "R": 0.3971,
+    "I": 0.1429,
+    "A": 0.1457,
+    "S": 0.4171,
+    "E": 0.7129,
+    "C": 0.8529
+  },
+  "Gas Compressor and Gas Pumping Station Operators": {
+    "R": 0.8771,
+    "I": 0.3329,
+    "A": 0.1429,
+    "S": 0.22,
+    "E": 0.2171,
+    "C": 0.6929
+  },
+  "Gas Plant Operators": {
+    "R": 0.9443,
+    "I": 0.3757,
+    "A": 0.1429,
+    "S": 0.2086,
+    "E": 0.3171,
+    "C": 0.7557
+  },
+  "Gem and Diamond Workers": {
+    "R": 0.7814,
+    "I": 0.44,
+    "A": 0.4114,
+    "S": 0.1643,
+    "E": 0.3029,
+    "C": 0.5886
+  },
+  "General Internal Medicine Physicians": {
+    "R": 0.6257,
+    "I": 0.9757,
+    "A": 0.2029,
+    "S": 0.8757,
+    "E": 0.3014,
+    "C": 0.5229
+  },
+  "General and Operations Managers": {
+    "R": 0.3171,
+    "I": 0.3414,
+    "A": 0.1871,
+    "S": 0.4814,
+    "E": 0.9943,
+    "C": 0.76
+  },
+  "Genetic Counselors": {
+    "R": 0.2371,
+    "I": 0.8371,
+    "A": 0.3343,
+    "S": 0.7786,
+    "E": 0.39,
+    "C": 0.5557
+  },
+  "Geneticists": {
+    "R": 0.5643,
+    "I": 1.0,
+    "A": 0.4343,
+    "S": 0.4229,
+    "E": 0.2414,
+    "C": 0.63
+  },
+  "Geodetic Surveyors": {
+    "R": 0.8043,
+    "I": 0.7714,
+    "A": 0.2029,
+    "S": 0.2257,
+    "E": 0.2343,
+    "C": 0.7857
+  },
+  "Geographers": {
+    "R": 0.7414,
+    "I": 0.9614,
+    "A": 0.5286,
+    "S": 0.3843,
+    "E": 0.3071,
+    "C": 0.53
+  },
+  "Geographic Information Systems Technologists and Technicians": {
+    "R": 0.6086,
+    "I": 0.7414,
+    "A": 0.33,
+    "S": 0.2757,
+    "E": 0.2757,
+    "C": 0.84
+  },
+  "Geography Teachers, Postsecondary": {
+    "R": 0.49,
+    "I": 0.8229,
+    "A": 0.5229,
+    "S": 0.9514,
+    "E": 0.3614,
+    "C": 0.5271
+  },
+  "Geological Technicians, Except Hydrologic Technicians": {
+    "R": 0.7986,
+    "I": 0.74,
+    "A": 0.1829,
+    "S": 0.21,
+    "E": 0.1586,
+    "C": 0.7629
+  },
+  "Geoscientists, Except Hydrologists and Geographers": {
+    "R": 0.8086,
+    "I": 1.0,
+    "A": 0.3857,
+    "S": 0.3186,
+    "E": 0.2386,
+    "C": 0.5943
+  },
+  "Geothermal Production Managers": {
+    "R": 0.7643,
+    "I": 0.4786,
+    "A": 0.1429,
+    "S": 0.2957,
+    "E": 0.6543,
+    "C": 0.6886
+  },
+  "Geothermal Technicians": {
+    "R": 0.9114,
+    "I": 0.4914,
+    "A": 0.1429,
+    "S": 0.24,
+    "E": 0.2543,
+    "C": 0.7129
+  },
+  "Glass Blowers, Molders, Benders, and Finishers": {
+    "R": 0.9671,
+    "I": 0.3514,
+    "A": 0.2186,
+    "S": 0.1614,
+    "E": 0.2143,
+    "C": 0.6771
+  },
+  "Glaziers": {
+    "R": 0.9357,
+    "I": 0.2857,
+    "A": 0.3143,
+    "S": 0.2329,
+    "E": 0.2257,
+    "C": 0.4757
+  },
+  "Government Property Inspectors and Investigators": {
+    "R": 0.4414,
+    "I": 0.4743,
+    "A": 0.1429,
+    "S": 0.3443,
+    "E": 0.6,
+    "C": 0.8943
+  },
+  "Graders and Sorters, Agricultural Products": {
+    "R": 0.8057,
+    "I": 0.3429,
+    "A": 0.2371,
+    "S": 0.2186,
+    "E": 0.3057,
+    "C": 0.7129
+  },
+  "Graphic Designers": {
+    "R": 0.4571,
+    "I": 0.4043,
+    "A": 1.0,
+    "S": 0.33,
+    "E": 0.5157,
+    "C": 0.54
+  },
+  "Grinding and Polishing Workers, Hand": {
+    "R": 1.0,
+    "I": 0.1986,
+    "A": 0.2414,
+    "S": 0.1557,
+    "E": 0.1429,
+    "C": 0.4743
+  },
+  "Grinding, Lapping, Polishing, and Buffing Machine Tool Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 1.0,
+    "I": 0.3071,
+    "A": 0.1686,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.5571
+  },
+  "Hairdressers, Hairstylists, and Cosmetologists": {
+    "R": 0.7729,
+    "I": 0.2186,
+    "A": 0.4614,
+    "S": 0.53,
+    "E": 0.4643,
+    "C": 0.5629
+  },
+  "Hazardous Materials Removal Workers": {
+    "R": 1.0,
+    "I": 0.3714,
+    "A": 0.1429,
+    "S": 0.2071,
+    "E": 0.1686,
+    "C": 0.6114
+  },
+  "Health Education Specialists": {
+    "R": 0.2343,
+    "I": 0.7571,
+    "A": 0.3614,
+    "S": 0.88,
+    "E": 0.4571,
+    "C": 0.5686
+  },
+  "Health Informatics Specialists": {
+    "R": 0.4243,
+    "I": 0.89,
+    "A": 0.2757,
+    "S": 0.6614,
+    "E": 0.3,
+    "C": 0.6771
+  },
+  "Health Information Technologists and Medical Registrars": {
+    "R": 0.3543,
+    "I": 0.74,
+    "A": 0.17,
+    "S": 0.5429,
+    "E": 0.3143,
+    "C": 0.8514
+  },
+  "Health Specialties Teachers, Postsecondary": {
+    "R": 0.4971,
+    "I": 0.7843,
+    "A": 0.4186,
+    "S": 0.9957,
+    "E": 0.2671,
+    "C": 0.53
+  },
+  "Health and Safety Engineers, Except Mining Safety Engineers and Inspectors": {
+    "R": 0.76,
+    "I": 0.8043,
+    "A": 0.1486,
+    "S": 0.3114,
+    "E": 0.3229,
+    "C": 0.6657
+  },
+  "Healthcare Social Workers": {
+    "R": 0.2814,
+    "I": 0.6057,
+    "A": 0.3329,
+    "S": 0.9886,
+    "E": 0.3614,
+    "C": 0.4371
+  },
+  "Hearing Aid Specialists": {
+    "R": 0.5243,
+    "I": 0.6243,
+    "A": 0.2557,
+    "S": 0.6771,
+    "E": 0.2586,
+    "C": 0.6014
+  },
+  "Heat Treating Equipment Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 0.9743,
+    "I": 0.3143,
+    "A": 0.1429,
+    "S": 0.2229,
+    "E": 0.1429,
+    "C": 0.5814
+  },
+  "Heating, Air Conditioning, and Refrigeration Mechanics and Installers": {
+    "R": 0.9886,
+    "I": 0.3914,
+    "A": 0.1429,
+    "S": 0.2143,
+    "E": 0.1929,
+    "C": 0.64
+  },
+  "Heavy and Tractor-Trailer Truck Drivers": {
+    "R": 1.0,
+    "I": 0.2757,
+    "A": 0.1429,
+    "S": 0.1886,
+    "E": 0.19,
+    "C": 0.6243
+  },
+  "Helpers--Brickmasons, Blockmasons, Stonemasons, and Tile and Marble Setters": {
+    "R": 1.0,
+    "I": 0.2014,
+    "A": 0.2129,
+    "S": 0.2729,
+    "E": 0.1429,
+    "C": 0.4843
+  },
+  "Helpers--Carpenters": {
+    "R": 0.9929,
+    "I": 0.18,
+    "A": 0.1929,
+    "S": 0.2943,
+    "E": 0.2386,
+    "C": 0.5057
+  },
+  "Helpers--Electricians": {
+    "R": 1.0,
+    "I": 0.3057,
+    "A": 0.1429,
+    "S": 0.3,
+    "E": 0.1429,
+    "C": 0.5686
+  },
+  "Helpers--Extraction Workers": {
+    "R": 1.0,
+    "I": 0.3057,
+    "A": 0.1429,
+    "S": 0.2529,
+    "E": 0.2243,
+    "C": 0.5271
+  },
+  "Helpers--Installation, Maintenance, and Repair Workers": {
+    "R": 0.9986,
+    "I": 0.28,
+    "A": 0.1571,
+    "S": 0.2586,
+    "E": 0.2329,
+    "C": 0.5757
+  },
+  "Helpers--Painters, Paperhangers, Plasterers, and Stucco Masons": {
+    "R": 0.9314,
+    "I": 0.1586,
+    "A": 0.2543,
+    "S": 0.3471,
+    "E": 0.1943,
+    "C": 0.4957
+  },
+  "Helpers--Pipelayers, Plumbers, Pipefitters, and Steamfitters": {
+    "R": 0.9771,
+    "I": 0.1857,
+    "A": 0.1429,
+    "S": 0.2571,
+    "E": 0.1943,
+    "C": 0.5286
+  },
+  "Helpers--Production Workers": {
+    "R": 0.93,
+    "I": 0.1571,
+    "A": 0.1729,
+    "S": 0.24,
+    "E": 0.2429,
+    "C": 0.5943
+  },
+  "Helpers--Roofers": {
+    "R": 0.9929,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.28,
+    "E": 0.2014,
+    "C": 0.5157
+  },
+  "Highway Maintenance Workers": {
+    "R": 1.0,
+    "I": 0.2457,
+    "A": 0.16,
+    "S": 0.2486,
+    "E": 0.2129,
+    "C": 0.5071
+  },
+  "Histology Technicians": {
+    "R": 0.9214,
+    "I": 0.7714,
+    "A": 0.1814,
+    "S": 0.3043,
+    "E": 0.1429,
+    "C": 0.7314
+  },
+  "Historians": {
+    "R": 0.3457,
+    "I": 0.7414,
+    "A": 0.5157,
+    "S": 0.4586,
+    "E": 0.3429,
+    "C": 0.71
+  },
+  "History Teachers, Postsecondary": {
+    "R": 0.41,
+    "I": 0.7729,
+    "A": 0.5557,
+    "S": 0.9843,
+    "E": 0.3571,
+    "C": 0.51
+  },
+  "Histotechnologists": {
+    "R": 0.8271,
+    "I": 0.9457,
+    "A": 0.1729,
+    "S": 0.3971,
+    "E": 0.1529,
+    "C": 0.7443
+  },
+  "Hoist and Winch Operators": {
+    "R": 0.9843,
+    "I": 0.2214,
+    "A": 0.1529,
+    "S": 0.2071,
+    "E": 0.2071,
+    "C": 0.4757
+  },
+  "Home Appliance Repairers": {
+    "R": 1.0,
+    "I": 0.3029,
+    "A": 0.1429,
+    "S": 0.2357,
+    "E": 0.2114,
+    "C": 0.7143
+  },
+  "Home Health Aides": {
+    "R": 0.6014,
+    "I": 0.4543,
+    "A": 0.2129,
+    "S": 0.9043,
+    "E": 0.2514,
+    "C": 0.5029
+  },
+  "Hospitalists": {
+    "R": 0.5186,
+    "I": 0.6686,
+    "A": 0.2214,
+    "S": 0.8643,
+    "E": 0.4486,
+    "C": 0.5929
+  },
+  "Hosts and Hostesses, Restaurant, Lounge, and Coffee Shop": {
+    "R": 0.4786,
+    "I": 0.1429,
+    "A": 0.2543,
+    "S": 0.7429,
+    "E": 0.5986,
+    "C": 0.5486
+  },
+  "Hotel, Motel, and Resort Desk Clerks": {
+    "R": 0.3743,
+    "I": 0.1429,
+    "A": 0.19,
+    "S": 0.64,
+    "E": 0.5443,
+    "C": 0.8157
+  },
+  "Human Factors Engineers and Ergonomists": {
+    "R": 0.6671,
+    "I": 0.8886,
+    "A": 0.3671,
+    "S": 0.3143,
+    "E": 0.3786,
+    "C": 0.6057
+  },
+  "Human Resources Assistants, Except Payroll and Timekeeping": {
+    "R": 0.2129,
+    "I": 0.1943,
+    "A": 0.1429,
+    "S": 0.46,
+    "E": 0.5514,
+    "C": 1.0
+  },
+  "Human Resources Managers": {
+    "R": 0.1557,
+    "I": 0.3829,
+    "A": 0.2443,
+    "S": 0.5543,
+    "E": 1.0,
+    "C": 0.7414
+  },
+  "Human Resources Specialists": {
+    "R": 0.1529,
+    "I": 0.3557,
+    "A": 0.2057,
+    "S": 0.54,
+    "E": 0.8214,
+    "C": 0.7857
+  },
+  "Hydroelectric Plant Technicians": {
+    "R": 1.0,
+    "I": 0.4686,
+    "A": 0.1429,
+    "S": 0.1729,
+    "E": 0.2529,
+    "C": 0.6686
+  },
+  "Hydroelectric Production Managers": {
+    "R": 0.7671,
+    "I": 0.52,
+    "A": 0.1429,
+    "S": 0.2614,
+    "E": 0.6529,
+    "C": 0.7171
+  },
+  "Hydrologic Technicians": {
+    "R": 0.7929,
+    "I": 0.7086,
+    "A": 0.1429,
+    "S": 0.2186,
+    "E": 0.2014,
+    "C": 0.7614
+  },
+  "Hydrologists": {
+    "R": 0.8157,
+    "I": 0.9329,
+    "A": 0.2657,
+    "S": 0.3086,
+    "E": 0.31,
+    "C": 0.6214
+  },
+  "Industrial Ecologists": {
+    "R": 0.66,
+    "I": 1.0,
+    "A": 0.3057,
+    "S": 0.2786,
+    "E": 0.4343,
+    "C": 0.5686
+  },
+  "Industrial Engineering Technologists and Technicians": {
+    "R": 0.7686,
+    "I": 0.7343,
+    "A": 0.17,
+    "S": 0.2071,
+    "E": 0.3414,
+    "C": 0.7457
+  },
+  "Industrial Engineers": {
+    "R": 0.6714,
+    "I": 0.6971,
+    "A": 0.2357,
+    "S": 0.2,
+    "E": 0.5029,
+    "C": 0.7729
+  },
+  "Industrial Machinery Mechanics": {
+    "R": 1.0,
+    "I": 0.4257,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1657,
+    "C": 0.6257
+  },
+  "Industrial Production Managers": {
+    "R": 0.6043,
+    "I": 0.42,
+    "A": 0.19,
+    "S": 0.2614,
+    "E": 0.8457,
+    "C": 0.7557
+  },
+  "Industrial Truck and Tractor Operators": {
+    "R": 1.0,
+    "I": 0.25,
+    "A": 0.1429,
+    "S": 0.1629,
+    "E": 0.17,
+    "C": 0.5329
+  },
+  "Industrial-Organizational Psychologists": {
+    "R": 0.1586,
+    "I": 0.76,
+    "A": 0.4657,
+    "S": 0.5971,
+    "E": 0.6643,
+    "C": 0.5771
+  },
+  "Information Security Analysts": {
+    "R": 0.5157,
+    "I": 0.7757,
+    "A": 0.1886,
+    "S": 0.29,
+    "E": 0.4029,
+    "C": 0.88
+  },
+  "Information Security Engineers": {
+    "R": 0.6057,
+    "I": 0.7871,
+    "A": 0.1871,
+    "S": 0.2643,
+    "E": 0.38,
+    "C": 0.8629
+  },
+  "Information Technology Project Managers": {
+    "R": 0.2457,
+    "I": 0.5257,
+    "A": 0.2614,
+    "S": 0.38,
+    "E": 0.86,
+    "C": 0.7557
+  },
+  "Inspectors, Testers, Sorters, Samplers, and Weighers": {
+    "R": 0.8186,
+    "I": 0.4886,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1971,
+    "C": 0.7657
+  },
+  "Instructional Coordinators": {
+    "R": 0.2414,
+    "I": 0.5686,
+    "A": 0.4971,
+    "S": 0.88,
+    "E": 0.6071,
+    "C": 0.5757
+  },
+  "Insulation Workers, Floor, Ceiling, and Wall": {
+    "R": 1.0,
+    "I": 0.2371,
+    "A": 0.1786,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.5386
+  },
+  "Insulation Workers, Mechanical": {
+    "R": 0.9886,
+    "I": 0.3443,
+    "A": 0.1429,
+    "S": 0.1786,
+    "E": 0.1429,
+    "C": 0.6043
+  },
+  "Insurance Appraisers, Auto Damage": {
+    "R": 0.7214,
+    "I": 0.4329,
+    "A": 0.16,
+    "S": 0.2429,
+    "E": 0.5143,
+    "C": 0.78
+  },
+  "Insurance Claims and Policy Processing Clerks": {
+    "R": 0.1657,
+    "I": 0.3457,
+    "A": 0.1429,
+    "S": 0.3686,
+    "E": 0.55,
+    "C": 1.0
+  },
+  "Insurance Sales Agents": {
+    "R": 0.1571,
+    "I": 0.3271,
+    "A": 0.1686,
+    "S": 0.5271,
+    "E": 0.8343,
+    "C": 0.7571
+  },
+  "Insurance Underwriters": {
+    "R": 0.2243,
+    "I": 0.5029,
+    "A": 0.1429,
+    "S": 0.4114,
+    "E": 0.64,
+    "C": 0.8957
+  },
+  "Intelligence Analysts": {
+    "R": 0.3357,
+    "I": 0.84,
+    "A": 0.3114,
+    "S": 0.2729,
+    "E": 0.5186,
+    "C": 0.7871
+  },
+  "Interior Designers": {
+    "R": 0.6329,
+    "I": 0.4543,
+    "A": 0.81,
+    "S": 0.3986,
+    "E": 0.4771,
+    "C": 0.5329
+  },
+  "Interpreters and Translators": {
+    "R": 0.27,
+    "I": 0.4514,
+    "A": 0.6286,
+    "S": 0.5014,
+    "E": 0.2686,
+    "C": 0.6629
+  },
+  "Interviewers, Except Eligibility and Loan": {
+    "R": 0.1429,
+    "I": 0.2743,
+    "A": 0.1971,
+    "S": 0.59,
+    "E": 0.5229,
+    "C": 0.8586
+  },
+  "Investment Fund Managers": {
+    "R": 0.2371,
+    "I": 0.53,
+    "A": 0.21,
+    "S": 0.3657,
+    "E": 0.9671,
+    "C": 0.75
+  },
+  "Janitors and Cleaners, Except Maids and Housekeeping Cleaners": {
+    "R": 0.9657,
+    "I": 0.1557,
+    "A": 0.1429,
+    "S": 0.2971,
+    "E": 0.2286,
+    "C": 0.6457
+  },
+  "Jewelers and Precious Stone and Metal Workers": {
+    "R": 0.9343,
+    "I": 0.3686,
+    "A": 0.5443,
+    "S": 0.1486,
+    "E": 0.2286,
+    "C": 0.4714
+  },
+  "Judges, Magistrate Judges, and Magistrates": {
+    "R": 0.3386,
+    "I": 0.5357,
+    "A": 0.3157,
+    "S": 0.5714,
+    "E": 0.75,
+    "C": 0.5871
+  },
+  "Judicial Law Clerks": {
+    "R": 0.2329,
+    "I": 0.6143,
+    "A": 0.3243,
+    "S": 0.45,
+    "E": 0.6271,
+    "C": 0.7186
+  },
+  "Kindergarten Teachers, Except Special Education": {
+    "R": 0.37,
+    "I": 0.45,
+    "A": 0.5714,
+    "S": 1.0,
+    "E": 0.3514,
+    "C": 0.5329
+  },
+  "Labor Relations Specialists": {
+    "R": 0.18,
+    "I": 0.4286,
+    "A": 0.2357,
+    "S": 0.5471,
+    "E": 0.8114,
+    "C": 0.6657
+  },
+  "Laborers and Freight, Stock, and Material Movers, Hand": {
+    "R": 0.8757,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.2043,
+    "E": 0.2586,
+    "C": 0.6571
+  },
+  "Landscape Architects": {
+    "R": 0.7743,
+    "I": 0.67,
+    "A": 0.6529,
+    "S": 0.3757,
+    "E": 0.5229,
+    "C": 0.53
+  },
+  "Landscaping and Groundskeeping Workers": {
+    "R": 1.0,
+    "I": 0.2314,
+    "A": 0.2714,
+    "S": 0.2071,
+    "E": 0.2571,
+    "C": 0.4771
+  },
+  "Lathe and Turning Machine Tool Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 1.0,
+    "I": 0.28,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.59
+  },
+  "Laundry and Dry-Cleaning Workers": {
+    "R": 0.9086,
+    "I": 0.1471,
+    "A": 0.1786,
+    "S": 0.1886,
+    "E": 0.2114,
+    "C": 0.6071
+  },
+  "Law Teachers, Postsecondary": {
+    "R": 0.3314,
+    "I": 0.7586,
+    "A": 0.49,
+    "S": 0.9271,
+    "E": 0.5029,
+    "C": 0.5371
+  },
+  "Lawyers": {
+    "R": 0.1671,
+    "I": 0.6457,
+    "A": 0.3314,
+    "S": 0.4929,
+    "E": 0.7914,
+    "C": 0.6486
+  },
+  "Layout Workers, Metal and Plastic": {
+    "R": 0.9186,
+    "I": 0.3771,
+    "A": 0.3957,
+    "S": 0.1471,
+    "E": 0.1429,
+    "C": 0.5643
+  },
+  "Legal Secretaries and Administrative Assistants": {
+    "R": 0.2171,
+    "I": 0.4514,
+    "A": 0.2271,
+    "S": 0.43,
+    "E": 0.6114,
+    "C": 0.9443
+  },
+  "Legislators": {
+    "R": 0.22,
+    "I": 0.4786,
+    "A": 0.3857,
+    "S": 0.5271,
+    "E": 0.7886,
+    "C": 0.5171
+  },
+  "Librarians and Media Collections Specialists": {
+    "R": 0.3329,
+    "I": 0.5171,
+    "A": 0.3786,
+    "S": 0.5771,
+    "E": 0.3943,
+    "C": 0.8329
+  },
+  "Library Assistants, Clerical": {
+    "R": 0.4157,
+    "I": 0.2871,
+    "A": 0.1857,
+    "S": 0.54,
+    "E": 0.3129,
+    "C": 0.9843
+  },
+  "Library Science Teachers, Postsecondary": {
+    "R": 0.3943,
+    "I": 0.7814,
+    "A": 0.4871,
+    "S": 0.9071,
+    "E": 0.3271,
+    "C": 0.5629
+  },
+  "Library Technicians": {
+    "R": 0.4386,
+    "I": 0.3843,
+    "A": 0.2286,
+    "S": 0.5814,
+    "E": 0.2671,
+    "C": 0.93
+  },
+  "Licensed Practical and Licensed Vocational Nurses": {
+    "R": 0.6543,
+    "I": 0.5243,
+    "A": 0.1529,
+    "S": 0.7871,
+    "E": 0.3043,
+    "C": 0.6529
+  },
+  "Lifeguards, Ski Patrol, and Other Recreational Protective Service Workers": {
+    "R": 0.9114,
+    "I": 0.32,
+    "A": 0.1429,
+    "S": 0.5943,
+    "E": 0.4086,
+    "C": 0.5014
+  },
+  "Light Truck Drivers": {
+    "R": 0.95,
+    "I": 0.2057,
+    "A": 0.1429,
+    "S": 0.2043,
+    "E": 0.3286,
+    "C": 0.65
+  },
+  "Lighting Technicians": {
+    "R": 0.9986,
+    "I": 0.2886,
+    "A": 0.3414,
+    "S": 0.1686,
+    "E": 0.2729,
+    "C": 0.5814
+  },
+  "Loading and Moving Machine Operators, Underground Mining": {
+    "R": 1.0,
+    "I": 0.3129,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.54
+  },
+  "Loan Interviewers and Clerks": {
+    "R": 0.1429,
+    "I": 0.3086,
+    "A": 0.1429,
+    "S": 0.4857,
+    "E": 0.6586,
+    "C": 0.99
+  },
+  "Loan Officers": {
+    "R": 0.1771,
+    "I": 0.3286,
+    "A": 0.1429,
+    "S": 0.5371,
+    "E": 0.7186,
+    "C": 0.86
+  },
+  "Locker Room, Coatroom, and Dressing Room Attendants": {
+    "R": 0.6229,
+    "I": 0.1429,
+    "A": 0.23,
+    "S": 0.5857,
+    "E": 0.3286,
+    "C": 0.7714
+  },
+  "Locksmiths and Safe Repairers": {
+    "R": 0.87,
+    "I": 0.3114,
+    "A": 0.1543,
+    "S": 0.2243,
+    "E": 0.1914,
+    "C": 0.67
+  },
+  "Locomotive Engineers": {
+    "R": 0.9657,
+    "I": 0.4929,
+    "A": 0.1429,
+    "S": 0.2771,
+    "E": 0.3029,
+    "C": 0.65
+  },
+  "Lodging Managers": {
+    "R": 0.35,
+    "I": 0.1671,
+    "A": 0.2071,
+    "S": 0.6029,
+    "E": 0.8986,
+    "C": 0.7586
+  },
+  "Log Graders and Scalers": {
+    "R": 0.7114,
+    "I": 0.3386,
+    "A": 0.1429,
+    "S": 0.1571,
+    "E": 0.2514,
+    "C": 0.9014
+  },
+  "Logging Equipment Operators": {
+    "R": 0.9771,
+    "I": 0.26,
+    "A": 0.1429,
+    "S": 0.1571,
+    "E": 0.1557,
+    "C": 0.6286
+  },
+  "Logisticians": {
+    "R": 0.3414,
+    "I": 0.5471,
+    "A": 0.15,
+    "S": 0.3357,
+    "E": 0.7286,
+    "C": 0.7971
+  },
+  "Logistics Analysts": {
+    "R": 0.46,
+    "I": 0.5686,
+    "A": 0.1429,
+    "S": 0.2214,
+    "E": 0.63,
+    "C": 0.9771
+  },
+  "Logistics Engineers": {
+    "R": 0.5714,
+    "I": 0.78,
+    "A": 0.1514,
+    "S": 0.1729,
+    "E": 0.5129,
+    "C": 0.8186
+  },
+  "Loss Prevention Managers": {
+    "R": 0.5414,
+    "I": 0.53,
+    "A": 0.1429,
+    "S": 0.3857,
+    "E": 0.8043,
+    "C": 0.8057
+  },
+  "Low Vision Therapists, Orientation and Mobility Specialists, and Vision Rehabilitation Therapists": {
+    "R": 0.5614,
+    "I": 0.5557,
+    "A": 0.4571,
+    "S": 0.9314,
+    "E": 0.3029,
+    "C": 0.4043
+  },
+  "Machine Feeders and Offbearers": {
+    "R": 1.0,
+    "I": 0.2914,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.6571
+  },
+  "Machinists": {
+    "R": 1.0,
+    "I": 0.5286,
+    "A": 0.2757,
+    "S": 0.1657,
+    "E": 0.1757,
+    "C": 0.6314
+  },
+  "Magnetic Resonance Imaging Technologists": {
+    "R": 0.7729,
+    "I": 0.6729,
+    "A": 0.1429,
+    "S": 0.4886,
+    "E": 0.1771,
+    "C": 0.7043
+  },
+  "Maids and Housekeeping Cleaners": {
+    "R": 0.8643,
+    "I": 0.1429,
+    "A": 0.2014,
+    "S": 0.3543,
+    "E": 0.2243,
+    "C": 0.6514
+  },
+  "Mail Clerks and Mail Machine Operators, Except Postal Service": {
+    "R": 0.57,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.29,
+    "E": 0.31,
+    "C": 0.9071
+  },
+  "Maintenance Workers, Machinery": {
+    "R": 1.0,
+    "I": 0.3071,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1714,
+    "C": 0.64
+  },
+  "Maintenance and Repair Workers, General": {
+    "R": 1.0,
+    "I": 0.3586,
+    "A": 0.1729,
+    "S": 0.2543,
+    "E": 0.2186,
+    "C": 0.5943
+  },
+  "Makeup Artists, Theatrical and Performance": {
+    "R": 0.6271,
+    "I": 0.2129,
+    "A": 0.9771,
+    "S": 0.4343,
+    "E": 0.4229,
+    "C": 0.3843
+  },
+  "Management Analysts": {
+    "R": 0.2257,
+    "I": 0.78,
+    "A": 0.2257,
+    "S": 0.3957,
+    "E": 0.68,
+    "C": 0.8757
+  },
+  "Manicurists and Pedicurists": {
+    "R": 0.8171,
+    "I": 0.1886,
+    "A": 0.3286,
+    "S": 0.4229,
+    "E": 0.3271,
+    "C": 0.5257
+  },
+  "Manufactured Building and Mobile Home Installers": {
+    "R": 0.9757,
+    "I": 0.2714,
+    "A": 0.2171,
+    "S": 0.2443,
+    "E": 0.1671,
+    "C": 0.5571
+  },
+  "Manufacturing Engineers": {
+    "R": 0.74,
+    "I": 0.6671,
+    "A": 0.3,
+    "S": 0.2157,
+    "E": 0.4371,
+    "C": 0.64
+  },
+  "Marine Engineers and Naval Architects": {
+    "R": 0.8171,
+    "I": 0.7829,
+    "A": 0.3343,
+    "S": 0.2043,
+    "E": 0.49,
+    "C": 0.6343
+  },
+  "Market Research Analysts and Marketing Specialists": {
+    "R": 0.1529,
+    "I": 0.6571,
+    "A": 0.3657,
+    "S": 0.3543,
+    "E": 0.7886,
+    "C": 0.66
+  },
+  "Marketing Managers": {
+    "R": 0.1429,
+    "I": 0.4143,
+    "A": 0.35,
+    "S": 0.4029,
+    "E": 1.0,
+    "C": 0.6714
+  },
+  "Marriage and Family Therapists": {
+    "R": 0.2129,
+    "I": 0.75,
+    "A": 0.5114,
+    "S": 0.9029,
+    "E": 0.2657,
+    "C": 0.4043
+  },
+  "Massage Therapists": {
+    "R": 0.6814,
+    "I": 0.5514,
+    "A": 0.3229,
+    "S": 0.8214,
+    "E": 0.2957,
+    "C": 0.3757
+  },
+  "Materials Engineers": {
+    "R": 0.8414,
+    "I": 0.8329,
+    "A": 0.3629,
+    "S": 0.1957,
+    "E": 0.2943,
+    "C": 0.5871
+  },
+  "Materials Scientists": {
+    "R": 0.8243,
+    "I": 0.9443,
+    "A": 0.3114,
+    "S": 0.1929,
+    "E": 0.2714,
+    "C": 0.5943
+  },
+  "Mathematical Science Teachers, Postsecondary": {
+    "R": 0.4057,
+    "I": 0.8286,
+    "A": 0.4386,
+    "S": 0.8814,
+    "E": 0.28,
+    "C": 0.6343
+  },
+  "Mathematicians": {
+    "R": 0.4286,
+    "I": 1.0,
+    "A": 0.4614,
+    "S": 0.2814,
+    "E": 0.1657,
+    "C": 0.7529
+  },
+  "Meat, Poultry, and Fish Cutters and Trimmers": {
+    "R": 1.0,
+    "I": 0.2629,
+    "A": 0.1429,
+    "S": 0.1914,
+    "E": 0.2071,
+    "C": 0.5757
+  },
+  "Mechanical Door Repairers": {
+    "R": 0.9829,
+    "I": 0.25,
+    "A": 0.1429,
+    "S": 0.2129,
+    "E": 0.1429,
+    "C": 0.5471
+  },
+  "Mechanical Drafters": {
+    "R": 0.85,
+    "I": 0.5557,
+    "A": 0.5429,
+    "S": 0.1757,
+    "E": 0.1757,
+    "C": 0.6857
+  },
+  "Mechanical Engineering Technologists and Technicians": {
+    "R": 0.9114,
+    "I": 0.7957,
+    "A": 0.2829,
+    "S": 0.1643,
+    "E": 0.1486,
+    "C": 0.6886
+  },
+  "Mechanical Engineers": {
+    "R": 0.9429,
+    "I": 0.7571,
+    "A": 0.3143,
+    "S": 0.1571,
+    "E": 0.2514,
+    "C": 0.6643
+  },
+  "Mechatronics Engineers": {
+    "R": 0.8371,
+    "I": 0.81,
+    "A": 0.3457,
+    "S": 0.2086,
+    "E": 0.2286,
+    "C": 0.7029
+  },
+  "Media Programming Directors": {
+    "R": 0.1829,
+    "I": 0.3171,
+    "A": 0.56,
+    "S": 0.53,
+    "E": 0.9643,
+    "C": 0.6771
+  },
+  "Media Technical Directors/Managers": {
+    "R": 0.5614,
+    "I": 0.3886,
+    "A": 0.4986,
+    "S": 0.3643,
+    "E": 0.7057,
+    "C": 0.6214
+  },
+  "Medical Appliance Technicians": {
+    "R": 1.0,
+    "I": 0.58,
+    "A": 0.2214,
+    "S": 0.4457,
+    "E": 0.1429,
+    "C": 0.5257
+  },
+  "Medical Assistants": {
+    "R": 0.58,
+    "I": 0.5429,
+    "A": 0.1429,
+    "S": 0.6871,
+    "E": 0.2829,
+    "C": 0.8229
+  },
+  "Medical Dosimetrists": {
+    "R": 0.6386,
+    "I": 0.7486,
+    "A": 0.1971,
+    "S": 0.5257,
+    "E": 0.3029,
+    "C": 0.7057
+  },
+  "Medical Equipment Preparers": {
+    "R": 0.9729,
+    "I": 0.4886,
+    "A": 0.1429,
+    "S": 0.3243,
+    "E": 0.1429,
+    "C": 0.79
+  },
+  "Medical Equipment Repairers": {
+    "R": 1.0,
+    "I": 0.6557,
+    "A": 0.1429,
+    "S": 0.2586,
+    "E": 0.1429,
+    "C": 0.7429
+  },
+  "Medical Records Specialists": {
+    "R": 0.4086,
+    "I": 0.6186,
+    "A": 0.1429,
+    "S": 0.4829,
+    "E": 0.2686,
+    "C": 0.9957
+  },
+  "Medical Scientists, Except Epidemiologists": {
+    "R": 0.6329,
+    "I": 1.0,
+    "A": 0.3286,
+    "S": 0.4629,
+    "E": 0.3186,
+    "C": 0.5643
+  },
+  "Medical Secretaries and Administrative Assistants": {
+    "R": 0.34,
+    "I": 0.4357,
+    "A": 0.1429,
+    "S": 0.5914,
+    "E": 0.4514,
+    "C": 0.9514
+  },
+  "Medical Transcriptionists": {
+    "R": 0.3514,
+    "I": 0.5114,
+    "A": 0.25,
+    "S": 0.5271,
+    "E": 0.1743,
+    "C": 0.8886
+  },
+  "Medical and Clinical Laboratory Technicians": {
+    "R": 0.86,
+    "I": 0.8386,
+    "A": 0.1429,
+    "S": 0.4086,
+    "E": 0.1429,
+    "C": 0.6943
+  },
+  "Medical and Clinical Laboratory Technologists": {
+    "R": 0.8257,
+    "I": 0.8814,
+    "A": 0.1586,
+    "S": 0.4,
+    "E": 0.2214,
+    "C": 0.7129
+  },
+  "Medical and Health Services Managers": {
+    "R": 0.3071,
+    "I": 0.55,
+    "A": 0.1886,
+    "S": 0.6057,
+    "E": 0.8071,
+    "C": 0.8043
+  },
+  "Meeting, Convention, and Event Planners": {
+    "R": 0.1429,
+    "I": 0.2043,
+    "A": 0.3486,
+    "S": 0.6457,
+    "E": 1.0,
+    "C": 0.7529
+  },
+  "Mental Health Counselors": {
+    "R": 0.1886,
+    "I": 0.6343,
+    "A": 0.4371,
+    "S": 0.9657,
+    "E": 0.4157,
+    "C": 0.4929
+  },
+  "Mental Health and Substance Abuse Social Workers": {
+    "R": 0.2457,
+    "I": 0.5829,
+    "A": 0.3971,
+    "S": 0.9943,
+    "E": 0.3457,
+    "C": 0.4357
+  },
+  "Merchandise Displayers and Window Trimmers": {
+    "R": 0.6343,
+    "I": 0.23,
+    "A": 0.6929,
+    "S": 0.3157,
+    "E": 0.6014,
+    "C": 0.4286
+  },
+  "Metal-Refining Furnace Operators and Tenders": {
+    "R": 0.9714,
+    "I": 0.39,
+    "A": 0.1457,
+    "S": 0.1486,
+    "E": 0.1586,
+    "C": 0.5643
+  },
+  "Meter Readers, Utilities": {
+    "R": 0.6657,
+    "I": 0.3657,
+    "A": 0.1429,
+    "S": 0.3143,
+    "E": 0.1971,
+    "C": 0.9514
+  },
+  "Microbiologists": {
+    "R": 0.7629,
+    "I": 1.0,
+    "A": 0.2629,
+    "S": 0.3029,
+    "E": 0.17,
+    "C": 0.5571
+  },
+  "Microsystems Engineers": {
+    "R": 0.8029,
+    "I": 0.8943,
+    "A": 0.2771,
+    "S": 0.1957,
+    "E": 0.1871,
+    "C": 0.6957
+  },
+  "Middle School Teachers, Except Special and Career/Technical Education": {
+    "R": 0.3771,
+    "I": 0.4729,
+    "A": 0.5686,
+    "S": 1.0,
+    "E": 0.3643,
+    "C": 0.5143
+  },
+  "Midwives": {
+    "R": 0.54,
+    "I": 0.5543,
+    "A": 0.2543,
+    "S": 0.8557,
+    "E": 0.3843,
+    "C": 0.51
+  },
+  "Milling and Planing Machine Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 1.0,
+    "I": 0.32,
+    "A": 0.17,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.6014
+  },
+  "Millwrights": {
+    "R": 1.0,
+    "I": 0.3614,
+    "A": 0.2629,
+    "S": 0.1429,
+    "E": 0.1557,
+    "C": 0.5129
+  },
+  "Mining and Geological Engineers, Including Mining Safety Engineers": {
+    "R": 0.8671,
+    "I": 0.8,
+    "A": 0.2186,
+    "S": 0.2643,
+    "E": 0.3929,
+    "C": 0.6614
+  },
+  "Mixing and Blending Machine Setters, Operators, and Tenders": {
+    "R": 0.9271,
+    "I": 0.3014,
+    "A": 0.1743,
+    "S": 0.1486,
+    "E": 0.1686,
+    "C": 0.6014
+  },
+  "Mobile Heavy Equipment Mechanics, Except Engines": {
+    "R": 1.0,
+    "I": 0.5071,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.6
+  },
+  "Model Makers, Metal and Plastic": {
+    "R": 0.9929,
+    "I": 0.4457,
+    "A": 0.4029,
+    "S": 0.15,
+    "E": 0.1429,
+    "C": 0.55
+  },
+  "Model Makers, Wood": {
+    "R": 1.0,
+    "I": 0.37,
+    "A": 0.5514,
+    "S": 0.1929,
+    "E": 0.2214,
+    "C": 0.57
+  },
+  "Models": {
+    "R": 0.6857,
+    "I": 0.1429,
+    "A": 1.0,
+    "S": 0.3871,
+    "E": 0.52,
+    "C": 0.2914
+  },
+  "Molders, Shapers, and Casters, Except Metal and Plastic": {
+    "R": 0.9457,
+    "I": 0.3214,
+    "A": 0.3057,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.6129
+  },
+  "Molding, Coremaking, and Casting Machine Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 1.0,
+    "I": 0.3443,
+    "A": 0.2129,
+    "S": 0.1514,
+    "E": 0.15,
+    "C": 0.59
+  },
+  "Molecular and Cellular Biologists": {
+    "R": 0.7143,
+    "I": 0.9529,
+    "A": 0.3,
+    "S": 0.3214,
+    "E": 0.3343,
+    "C": 0.71
+  },
+  "Morticians, Undertakers, and Funeral Arrangers": {
+    "R": 0.5343,
+    "I": 0.1986,
+    "A": 0.2257,
+    "S": 0.6143,
+    "E": 0.6557,
+    "C": 0.7014
+  },
+  "Motion Picture Projectionists": {
+    "R": 0.7743,
+    "I": 0.2786,
+    "A": 0.4257,
+    "S": 0.2886,
+    "E": 0.2971,
+    "C": 0.6543
+  },
+  "Motorboat Mechanics and Service Technicians": {
+    "R": 1.0,
+    "I": 0.3971,
+    "A": 0.1429,
+    "S": 0.1557,
+    "E": 0.2386,
+    "C": 0.5671
+  },
+  "Motorboat Operators": {
+    "R": 0.9329,
+    "I": 0.3171,
+    "A": 0.1571,
+    "S": 0.2686,
+    "E": 0.4571,
+    "C": 0.5071
+  },
+  "Motorcycle Mechanics": {
+    "R": 1.0,
+    "I": 0.4429,
+    "A": 0.1686,
+    "S": 0.2057,
+    "E": 0.1429,
+    "C": 0.5114
+  },
+  "Multiple Machine Tool Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 1.0,
+    "I": 0.3071,
+    "A": 0.1429,
+    "S": 0.1486,
+    "E": 0.1429,
+    "C": 0.6586
+  },
+  "Museum Technicians and Conservators": {
+    "R": 0.81,
+    "I": 0.4586,
+    "A": 0.4486,
+    "S": 0.3771,
+    "E": 0.2157,
+    "C": 0.6543
+  },
+  "Music Directors and Composers": {
+    "R": 0.2914,
+    "I": 0.3257,
+    "A": 1.0,
+    "S": 0.4371,
+    "E": 0.6814,
+    "C": 0.37
+  },
+  "Music Therapists": {
+    "R": 0.3086,
+    "I": 0.5514,
+    "A": 0.7371,
+    "S": 0.7886,
+    "E": 0.3657,
+    "C": 0.4114
+  },
+  "Musical Instrument Repairers and Tuners": {
+    "R": 0.9171,
+    "I": 0.37,
+    "A": 0.5071,
+    "S": 0.2371,
+    "E": 0.1429,
+    "C": 0.4829
+  },
+  "Musicians and Singers": {
+    "R": 0.41,
+    "I": 0.2186,
+    "A": 0.9514,
+    "S": 0.4857,
+    "E": 0.4871,
+    "C": 0.31
+  },
+  "Nannies": {
+    "R": 0.4243,
+    "I": 0.2929,
+    "A": 0.5429,
+    "S": 0.8714,
+    "E": 0.4,
+    "C": 0.47
+  },
+  "Nanosystems Engineers": {
+    "R": 0.7686,
+    "I": 0.87,
+    "A": 0.3471,
+    "S": 0.1943,
+    "E": 0.36,
+    "C": 0.5829
+  },
+  "Nanotechnology Engineering Technologists and Technicians": {
+    "R": 0.89,
+    "I": 0.7214,
+    "A": 0.2071,
+    "S": 0.15,
+    "E": 0.2829,
+    "C": 0.6729
+  },
+  "Natural Sciences Managers": {
+    "R": 0.4343,
+    "I": 0.8186,
+    "A": 0.3586,
+    "S": 0.4243,
+    "E": 0.8043,
+    "C": 0.5986
+  },
+  "Naturopathic Physicians": {
+    "R": 0.5914,
+    "I": 0.8471,
+    "A": 0.2743,
+    "S": 0.8257,
+    "E": 0.2843,
+    "C": 0.5114
+  },
+  "Network and Computer Systems Administrators": {
+    "R": 0.6,
+    "I": 0.5786,
+    "A": 0.1429,
+    "S": 0.3171,
+    "E": 0.4957,
+    "C": 0.8829
+  },
+  "Neurodiagnostic Technologists": {
+    "R": 0.7543,
+    "I": 0.8143,
+    "A": 0.21,
+    "S": 0.5114,
+    "E": 0.1886,
+    "C": 0.6486
+  },
+  "Neurologists": {
+    "R": 0.5586,
+    "I": 1.0,
+    "A": 0.2986,
+    "S": 0.76,
+    "E": 0.3457,
+    "C": 0.5186
+  },
+  "Neuropsychologists": {
+    "R": 0.3814,
+    "I": 1.0,
+    "A": 0.4657,
+    "S": 0.7543,
+    "E": 0.2571,
+    "C": 0.4629
+  },
+  "New Accounts Clerks": {
+    "R": 0.22,
+    "I": 0.2514,
+    "A": 0.1429,
+    "S": 0.5071,
+    "E": 0.6657,
+    "C": 1.0
+  },
+  "News Analysts, Reporters, and Journalists": {
+    "R": 0.21,
+    "I": 0.5943,
+    "A": 0.7271,
+    "S": 0.4,
+    "E": 0.5657,
+    "C": 0.5186
+  },
+  "Non-Destructive Testing Specialists": {
+    "R": 0.88,
+    "I": 0.7214,
+    "A": 0.1786,
+    "S": 0.21,
+    "E": 0.1429,
+    "C": 0.69
+  },
+  "Nuclear Engineers": {
+    "R": 0.7143,
+    "I": 0.9014,
+    "A": 0.2957,
+    "S": 0.2814,
+    "E": 0.3686,
+    "C": 0.6314
+  },
+  "Nuclear Medicine Technologists": {
+    "R": 0.8557,
+    "I": 0.7957,
+    "A": 0.1429,
+    "S": 0.44,
+    "E": 0.1871,
+    "C": 0.7429
+  },
+  "Nuclear Monitoring Technicians": {
+    "R": 0.8743,
+    "I": 0.6171,
+    "A": 0.1429,
+    "S": 0.2643,
+    "E": 0.2386,
+    "C": 0.7886
+  },
+  "Nuclear Power Reactor Operators": {
+    "R": 0.7486,
+    "I": 0.4643,
+    "A": 0.1429,
+    "S": 0.31,
+    "E": 0.3857,
+    "C": 0.7357
+  },
+  "Nuclear Technicians": {
+    "R": 0.8214,
+    "I": 0.6529,
+    "A": 0.1429,
+    "S": 0.2614,
+    "E": 0.3229,
+    "C": 0.7243
+  },
+  "Nurse Anesthetists": {
+    "R": 0.7143,
+    "I": 0.7057,
+    "A": 0.1429,
+    "S": 0.74,
+    "E": 0.2743,
+    "C": 0.6071
+  },
+  "Nurse Midwives": {
+    "R": 0.4886,
+    "I": 0.6186,
+    "A": 0.2729,
+    "S": 0.8357,
+    "E": 0.4171,
+    "C": 0.4871
+  },
+  "Nurse Practitioners": {
+    "R": 0.5243,
+    "I": 0.7886,
+    "A": 0.1871,
+    "S": 0.7657,
+    "E": 0.3043,
+    "C": 0.6114
+  },
+  "Nursing Assistants": {
+    "R": 0.6571,
+    "I": 0.39,
+    "A": 0.1429,
+    "S": 0.8171,
+    "E": 0.2514,
+    "C": 0.6029
+  },
+  "Nursing Instructors and Teachers, Postsecondary": {
+    "R": 0.43,
+    "I": 0.6914,
+    "A": 0.47,
+    "S": 1.0,
+    "E": 0.3071,
+    "C": 0.4786
+  },
+  "Obstetricians and Gynecologists": {
+    "R": 0.6529,
+    "I": 0.7729,
+    "A": 0.1914,
+    "S": 0.7714,
+    "E": 0.3729,
+    "C": 0.5914
+  },
+  "Occupational Health and Safety Specialists": {
+    "R": 0.66,
+    "I": 0.7129,
+    "A": 0.1714,
+    "S": 0.4814,
+    "E": 0.4443,
+    "C": 0.6871
+  },
+  "Occupational Health and Safety Technicians": {
+    "R": 0.7671,
+    "I": 0.7029,
+    "A": 0.1429,
+    "S": 0.43,
+    "E": 0.3914,
+    "C": 0.7557
+  },
+  "Occupational Therapists": {
+    "R": 0.4971,
+    "I": 0.62,
+    "A": 0.4357,
+    "S": 0.8757,
+    "E": 0.2586,
+    "C": 0.4371
+  },
+  "Occupational Therapy Aides": {
+    "R": 0.5586,
+    "I": 0.3643,
+    "A": 0.2414,
+    "S": 0.8571,
+    "E": 0.26,
+    "C": 0.5314
+  },
+  "Occupational Therapy Assistants": {
+    "R": 0.5214,
+    "I": 0.4957,
+    "A": 0.3057,
+    "S": 0.8957,
+    "E": 0.1586,
+    "C": 0.5471
+  },
+  "Office Clerks, General": {
+    "R": 0.4171,
+    "I": 0.2643,
+    "A": 0.1429,
+    "S": 0.4386,
+    "E": 0.4557,
+    "C": 0.9757
+  },
+  "Office Machine Operators, Except Computer": {
+    "R": 0.6471,
+    "I": 0.2943,
+    "A": 0.1729,
+    "S": 0.2343,
+    "E": 0.2814,
+    "C": 0.9586
+  },
+  "Online Merchants": {
+    "R": 0.3343,
+    "I": 0.2143,
+    "A": 0.2257,
+    "S": 0.3386,
+    "E": 0.8371,
+    "C": 0.8929
+  },
+  "Operating Engineers and Other Construction Equipment Operators": {
+    "R": 1.0,
+    "I": 0.4186,
+    "A": 0.1429,
+    "S": 0.1629,
+    "E": 0.1786,
+    "C": 0.5543
+  },
+  "Operations Research Analysts": {
+    "R": 0.2743,
+    "I": 0.8943,
+    "A": 0.3057,
+    "S": 0.2914,
+    "E": 0.4457,
+    "C": 0.8243
+  },
+  "Ophthalmic Laboratory Technicians": {
+    "R": 0.9214,
+    "I": 0.4157,
+    "A": 0.2329,
+    "S": 0.2686,
+    "E": 0.1771,
+    "C": 0.5929
+  },
+  "Ophthalmic Medical Technicians": {
+    "R": 0.7671,
+    "I": 0.68,
+    "A": 0.1429,
+    "S": 0.6386,
+    "E": 0.2343,
+    "C": 0.6871
+  },
+  "Ophthalmic Medical Technologists": {
+    "R": 0.7757,
+    "I": 0.6743,
+    "A": 0.17,
+    "S": 0.6143,
+    "E": 0.2871,
+    "C": 0.6686
+  },
+  "Ophthalmologists, Except Pediatric": {
+    "R": 0.6829,
+    "I": 0.9043,
+    "A": 0.2314,
+    "S": 0.7543,
+    "E": 0.4086,
+    "C": 0.5314
+  },
+  "Opticians, Dispensing": {
+    "R": 0.6157,
+    "I": 0.3186,
+    "A": 0.2057,
+    "S": 0.4329,
+    "E": 0.4671,
+    "C": 0.7829
+  },
+  "Optometrists": {
+    "R": 0.6857,
+    "I": 0.8257,
+    "A": 0.2286,
+    "S": 0.7171,
+    "E": 0.3243,
+    "C": 0.56
+  },
+  "Oral and Maxillofacial Surgeons": {
+    "R": 0.8,
+    "I": 0.8443,
+    "A": 0.1743,
+    "S": 0.6386,
+    "E": 0.3143,
+    "C": 0.5186
+  },
+  "Order Clerks": {
+    "R": 0.3586,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.3586,
+    "E": 0.6471,
+    "C": 1.0
+  },
+  "Orderlies": {
+    "R": 0.7843,
+    "I": 0.3157,
+    "A": 0.1429,
+    "S": 0.62,
+    "E": 0.1743,
+    "C": 0.6329
+  },
+  "Orthodontists": {
+    "R": 0.8286,
+    "I": 0.8343,
+    "A": 0.2386,
+    "S": 0.5629,
+    "E": 0.1829,
+    "C": 0.6786
+  },
+  "Orthopedic Surgeons, Except Pediatric": {
+    "R": 0.7243,
+    "I": 0.9286,
+    "A": 0.2114,
+    "S": 0.6886,
+    "E": 0.3357,
+    "C": 0.5557
+  },
+  "Orthoptists": {
+    "R": 0.6686,
+    "I": 0.7957,
+    "A": 0.2943,
+    "S": 0.6643,
+    "E": 0.2343,
+    "C": 0.5443
+  },
+  "Orthotists and Prosthetists": {
+    "R": 0.8243,
+    "I": 0.7286,
+    "A": 0.3071,
+    "S": 0.6329,
+    "E": 0.2271,
+    "C": 0.5143
+  },
+  "Outdoor Power Equipment and Other Small Engine Mechanics": {
+    "R": 1.0,
+    "I": 0.3829,
+    "A": 0.1429,
+    "S": 0.1543,
+    "E": 0.1771,
+    "C": 0.5971
+  },
+  "Packaging and Filling Machine Operators and Tenders": {
+    "R": 0.9371,
+    "I": 0.1771,
+    "A": 0.1429,
+    "S": 0.1443,
+    "E": 0.2643,
+    "C": 0.71
+  },
+  "Packers and Packagers, Hand": {
+    "R": 0.7886,
+    "I": 0.2057,
+    "A": 0.1886,
+    "S": 0.1986,
+    "E": 0.3514,
+    "C": 0.8086
+  },
+  "Painters, Construction and Maintenance": {
+    "R": 1.0,
+    "I": 0.22,
+    "A": 0.3914,
+    "S": 0.18,
+    "E": 0.1429,
+    "C": 0.4786
+  },
+  "Painting, Coating, and Decorating Workers": {
+    "R": 0.99,
+    "I": 0.1929,
+    "A": 0.4886,
+    "S": 0.2229,
+    "E": 0.1429,
+    "C": 0.4871
+  },
+  "Paper Goods Machine Setters, Operators, and Tenders": {
+    "R": 0.9329,
+    "I": 0.2457,
+    "A": 0.18,
+    "S": 0.1429,
+    "E": 0.2071,
+    "C": 0.6486
+  },
+  "Paperhangers": {
+    "R": 0.8443,
+    "I": 0.1429,
+    "A": 0.4271,
+    "S": 0.2214,
+    "E": 0.16,
+    "C": 0.5529
+  },
+  "Paralegals and Legal Assistants": {
+    "R": 0.2443,
+    "I": 0.6514,
+    "A": 0.2914,
+    "S": 0.4686,
+    "E": 0.6014,
+    "C": 0.7843
+  },
+  "Paramedics": {
+    "R": 0.7486,
+    "I": 0.72,
+    "A": 0.1429,
+    "S": 0.7814,
+    "E": 0.2643,
+    "C": 0.4914
+  },
+  "Park Naturalists": {
+    "R": 0.6043,
+    "I": 0.6443,
+    "A": 0.5857,
+    "S": 0.6929,
+    "E": 0.4829,
+    "C": 0.4371
+  },
+  "Parking Attendants": {
+    "R": 0.8271,
+    "I": 0.1429,
+    "A": 0.16,
+    "S": 0.4329,
+    "E": 0.4543,
+    "C": 0.7086
+  },
+  "Parking Enforcement Workers": {
+    "R": 0.9071,
+    "I": 0.2029,
+    "A": 0.1429,
+    "S": 0.3686,
+    "E": 0.4486,
+    "C": 0.7814
+  },
+  "Parts Salespersons": {
+    "R": 0.7586,
+    "I": 0.1929,
+    "A": 0.1429,
+    "S": 0.3014,
+    "E": 0.5714,
+    "C": 0.78
+  },
+  "Passenger Attendants": {
+    "R": 0.5771,
+    "I": 0.1529,
+    "A": 0.1429,
+    "S": 0.61,
+    "E": 0.4386,
+    "C": 0.6143
+  },
+  "Patient Representatives": {
+    "R": 0.1843,
+    "I": 0.5786,
+    "A": 0.2257,
+    "S": 0.9629,
+    "E": 0.4386,
+    "C": 0.5314
+  },
+  "Patternmakers, Metal and Plastic": {
+    "R": 0.89,
+    "I": 0.2571,
+    "A": 0.4357,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.6643
+  },
+  "Patternmakers, Wood": {
+    "R": 0.9557,
+    "I": 0.2986,
+    "A": 0.5529,
+    "S": 0.1771,
+    "E": 0.1771,
+    "C": 0.5714
+  },
+  "Paving, Surfacing, and Tamping Equipment Operators": {
+    "R": 1.0,
+    "I": 0.2457,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.53
+  },
+  "Payroll and Timekeeping Clerks": {
+    "R": 0.2257,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.2929,
+    "E": 0.4857,
+    "C": 1.0
+  },
+  "Pediatric Surgeons": {
+    "R": 0.7071,
+    "I": 0.9314,
+    "A": 0.2214,
+    "S": 0.7129,
+    "E": 0.3471,
+    "C": 0.5586
+  },
+  "Pediatricians, General": {
+    "R": 0.5371,
+    "I": 0.8857,
+    "A": 0.2529,
+    "S": 0.9471,
+    "E": 0.3557,
+    "C": 0.5043
+  },
+  "Penetration Testers": {
+    "R": 0.5571,
+    "I": 0.7386,
+    "A": 0.1829,
+    "S": 0.2814,
+    "E": 0.2971,
+    "C": 0.7357
+  },
+  "Personal Care Aides": {
+    "R": 0.5171,
+    "I": 0.26,
+    "A": 0.2571,
+    "S": 0.8871,
+    "E": 0.3657,
+    "C": 0.5457
+  },
+  "Personal Financial Advisors": {
+    "R": 0.1429,
+    "I": 0.4529,
+    "A": 0.2486,
+    "S": 0.6,
+    "E": 0.84,
+    "C": 0.7971
+  },
+  "Pest Control Workers": {
+    "R": 0.9343,
+    "I": 0.4429,
+    "A": 0.1429,
+    "S": 0.2571,
+    "E": 0.3329,
+    "C": 0.5971
+  },
+  "Pesticide Handlers, Sprayers, and Applicators, Vegetation": {
+    "R": 0.91,
+    "I": 0.4057,
+    "A": 0.1514,
+    "S": 0.2757,
+    "E": 0.2171,
+    "C": 0.5114
+  },
+  "Petroleum Engineers": {
+    "R": 0.7786,
+    "I": 0.75,
+    "A": 0.2729,
+    "S": 0.2571,
+    "E": 0.4143,
+    "C": 0.63
+  },
+  "Petroleum Pump System Operators, Refinery Operators, and Gaugers": {
+    "R": 0.8814,
+    "I": 0.3543,
+    "A": 0.1429,
+    "S": 0.1857,
+    "E": 0.3171,
+    "C": 0.7229
+  },
+  "Pharmacists": {
+    "R": 0.4114,
+    "I": 0.8071,
+    "A": 0.2114,
+    "S": 0.6871,
+    "E": 0.3614,
+    "C": 0.6686
+  },
+  "Pharmacy Aides": {
+    "R": 0.5186,
+    "I": 0.2157,
+    "A": 0.1429,
+    "S": 0.45,
+    "E": 0.5529,
+    "C": 0.9757
+  },
+  "Pharmacy Technicians": {
+    "R": 0.58,
+    "I": 0.4471,
+    "A": 0.1429,
+    "S": 0.48,
+    "E": 0.3643,
+    "C": 1.0
+  },
+  "Philosophy and Religion Teachers, Postsecondary": {
+    "R": 0.3486,
+    "I": 0.7343,
+    "A": 0.5386,
+    "S": 1.0,
+    "E": 0.4029,
+    "C": 0.47
+  },
+  "Phlebotomists": {
+    "R": 0.7929,
+    "I": 0.6486,
+    "A": 0.1429,
+    "S": 0.5271,
+    "E": 0.2057,
+    "C": 0.7757
+  },
+  "Photographers": {
+    "R": 0.7843,
+    "I": 0.3271,
+    "A": 0.74,
+    "S": 0.2643,
+    "E": 0.3286,
+    "C": 0.49
+  },
+  "Photographic Process Workers and Processing Machine Operators": {
+    "R": 0.7671,
+    "I": 0.2871,
+    "A": 0.45,
+    "S": 0.1643,
+    "E": 0.1857,
+    "C": 0.7471
+  },
+  "Photonics Engineers": {
+    "R": 0.8314,
+    "I": 0.8443,
+    "A": 0.39,
+    "S": 0.2,
+    "E": 0.2457,
+    "C": 0.5886
+  },
+  "Photonics Technicians": {
+    "R": 1.0,
+    "I": 0.6086,
+    "A": 0.1514,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.7314
+  },
+  "Physical Medicine and Rehabilitation Physicians": {
+    "R": 0.65,
+    "I": 0.9086,
+    "A": 0.2886,
+    "S": 0.8529,
+    "E": 0.2443,
+    "C": 0.4257
+  },
+  "Physical Therapist Aides": {
+    "R": 0.6957,
+    "I": 0.3643,
+    "A": 0.1557,
+    "S": 0.8357,
+    "E": 0.2914,
+    "C": 0.5543
+  },
+  "Physical Therapist Assistants": {
+    "R": 0.6371,
+    "I": 0.5214,
+    "A": 0.2186,
+    "S": 0.9157,
+    "E": 0.1929,
+    "C": 0.54
+  },
+  "Physical Therapists": {
+    "R": 0.62,
+    "I": 0.6957,
+    "A": 0.31,
+    "S": 0.8443,
+    "E": 0.3557,
+    "C": 0.44
+  },
+  "Physician Assistants": {
+    "R": 0.5414,
+    "I": 0.7114,
+    "A": 0.1757,
+    "S": 0.83,
+    "E": 0.2957,
+    "C": 0.6514
+  },
+  "Physicians, Pathologists": {
+    "R": 0.7657,
+    "I": 1.0,
+    "A": 0.1714,
+    "S": 0.4943,
+    "E": 0.2,
+    "C": 0.6529
+  },
+  "Physicists": {
+    "R": 0.7071,
+    "I": 1.0,
+    "A": 0.3943,
+    "S": 0.3014,
+    "E": 0.26,
+    "C": 0.6943
+  },
+  "Physics Teachers, Postsecondary": {
+    "R": 0.5357,
+    "I": 0.8386,
+    "A": 0.4586,
+    "S": 0.8586,
+    "E": 0.3371,
+    "C": 0.56
+  },
+  "Pile Driver Operators": {
+    "R": 1.0,
+    "I": 0.2771,
+    "A": 0.1429,
+    "S": 0.1457,
+    "E": 0.1643,
+    "C": 0.5157
+  },
+  "Pipelayers": {
+    "R": 1.0,
+    "I": 0.3443,
+    "A": 0.1429,
+    "S": 0.1829,
+    "E": 0.1529,
+    "C": 0.5043
+  },
+  "Plasterers and Stucco Masons": {
+    "R": 1.0,
+    "I": 0.2114,
+    "A": 0.3471,
+    "S": 0.19,
+    "E": 0.1586,
+    "C": 0.48
+  },
+  "Plating Machine Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 1.0,
+    "I": 0.3186,
+    "A": 0.2014,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.5857
+  },
+  "Plumbers, Pipefitters, and Steamfitters": {
+    "R": 1.0,
+    "I": 0.3186,
+    "A": 0.1429,
+    "S": 0.1814,
+    "E": 0.1429,
+    "C": 0.5514
+  },
+  "Podiatrists": {
+    "R": 0.7457,
+    "I": 0.8129,
+    "A": 0.2529,
+    "S": 0.7229,
+    "E": 0.31,
+    "C": 0.4529
+  },
+  "Poets, Lyricists and Creative Writers": {
+    "R": 0.1957,
+    "I": 0.5471,
+    "A": 1.0,
+    "S": 0.3929,
+    "E": 0.4414,
+    "C": 0.4057
+  },
+  "Police Identification and Records Officers": {
+    "R": 0.6329,
+    "I": 0.5529,
+    "A": 0.2214,
+    "S": 0.2914,
+    "E": 0.4357,
+    "C": 0.83
+  },
+  "Police and Sheriff's Patrol Officers": {
+    "R": 0.7671,
+    "I": 0.3929,
+    "A": 0.1529,
+    "S": 0.49,
+    "E": 0.5843,
+    "C": 0.6214
+  },
+  "Political Science Teachers, Postsecondary": {
+    "R": 0.3014,
+    "I": 0.78,
+    "A": 0.5157,
+    "S": 0.9643,
+    "E": 0.4586,
+    "C": 0.4514
+  },
+  "Political Scientists": {
+    "R": 0.1429,
+    "I": 0.9457,
+    "A": 0.54,
+    "S": 0.4957,
+    "E": 0.5286,
+    "C": 0.5143
+  },
+  "Postal Service Clerks": {
+    "R": 0.4643,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.3629,
+    "E": 0.3843,
+    "C": 0.93
+  },
+  "Postal Service Mail Carriers": {
+    "R": 0.51,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.3771,
+    "E": 0.4086,
+    "C": 0.9143
+  },
+  "Postal Service Mail Sorters, Processors, and Processing Machine Operators": {
+    "R": 0.6571,
+    "I": 0.22,
+    "A": 0.1429,
+    "S": 0.2614,
+    "E": 0.2371,
+    "C": 0.8443
+  },
+  "Postmasters and Mail Superintendents": {
+    "R": 0.2971,
+    "I": 0.1657,
+    "A": 0.1529,
+    "S": 0.4814,
+    "E": 0.8571,
+    "C": 0.8486
+  },
+  "Potters, Manufacturing": {
+    "R": 0.9971,
+    "I": 0.2343,
+    "A": 0.3243,
+    "S": 0.1443,
+    "E": 0.18,
+    "C": 0.5043
+  },
+  "Pourers and Casters, Metal": {
+    "R": 1.0,
+    "I": 0.3486,
+    "A": 0.17,
+    "S": 0.1614,
+    "E": 0.1429,
+    "C": 0.51
+  },
+  "Power Distributors and Dispatchers": {
+    "R": 0.7371,
+    "I": 0.3586,
+    "A": 0.1429,
+    "S": 0.2786,
+    "E": 0.4286,
+    "C": 0.7257
+  },
+  "Power Plant Operators": {
+    "R": 0.9471,
+    "I": 0.3771,
+    "A": 0.1429,
+    "S": 0.1971,
+    "E": 0.28,
+    "C": 0.7257
+  },
+  "Precision Agriculture Technicians": {
+    "R": 0.9357,
+    "I": 0.7857,
+    "A": 0.1671,
+    "S": 0.2057,
+    "E": 0.3071,
+    "C": 0.6886
+  },
+  "Prepress Technicians and Workers": {
+    "R": 0.6957,
+    "I": 0.2857,
+    "A": 0.4414,
+    "S": 0.2229,
+    "E": 0.2071,
+    "C": 0.8229
+  },
+  "Preschool Teachers, Except Special Education": {
+    "R": 0.3871,
+    "I": 0.3957,
+    "A": 0.58,
+    "S": 1.0,
+    "E": 0.3757,
+    "C": 0.5129
+  },
+  "Pressers, Textile, Garment, and Related Materials": {
+    "R": 0.88,
+    "I": 0.2029,
+    "A": 0.3629,
+    "S": 0.1614,
+    "E": 0.1429,
+    "C": 0.5243
+  },
+  "Preventive Medicine Physicians": {
+    "R": 0.4686,
+    "I": 0.9743,
+    "A": 0.2629,
+    "S": 0.77,
+    "E": 0.3371,
+    "C": 0.4771
+  },
+  "Print Binding and Finishing Workers": {
+    "R": 0.7629,
+    "I": 0.1871,
+    "A": 0.3257,
+    "S": 0.2086,
+    "E": 0.1757,
+    "C": 0.7214
+  },
+  "Printing Press Operators": {
+    "R": 0.6771,
+    "I": 0.19,
+    "A": 0.2414,
+    "S": 0.2371,
+    "E": 0.2757,
+    "C": 0.8071
+  },
+  "Private Detectives and Investigators": {
+    "R": 0.3471,
+    "I": 0.56,
+    "A": 0.2114,
+    "S": 0.4057,
+    "E": 0.5886,
+    "C": 0.7729
+  },
+  "Probation Officers and Correctional Treatment Specialists": {
+    "R": 0.32,
+    "I": 0.4957,
+    "A": 0.3143,
+    "S": 0.8043,
+    "E": 0.5571,
+    "C": 0.5871
+  },
+  "Procurement Clerks": {
+    "R": 0.43,
+    "I": 0.2329,
+    "A": 0.1429,
+    "S": 0.2371,
+    "E": 0.6157,
+    "C": 1.0
+  },
+  "Producers and Directors": {
+    "R": 0.3057,
+    "I": 0.3186,
+    "A": 0.8786,
+    "S": 0.4471,
+    "E": 0.8257,
+    "C": 0.5071
+  },
+  "Production, Planning, and Expediting Clerks": {
+    "R": 0.4443,
+    "I": 0.1714,
+    "A": 0.1643,
+    "S": 0.3,
+    "E": 0.7,
+    "C": 0.8457
+  },
+  "Project Management Specialists": {
+    "R": 0.2086,
+    "I": 0.3943,
+    "A": 0.2257,
+    "S": 0.4786,
+    "E": 0.9086,
+    "C": 0.7943
+  },
+  "Proofreaders and Copy Markers": {
+    "R": 0.2329,
+    "I": 0.3586,
+    "A": 0.4957,
+    "S": 0.3143,
+    "E": 0.2086,
+    "C": 0.8743
+  },
+  "Property, Real Estate, and Community Association Managers": {
+    "R": 0.4486,
+    "I": 0.3171,
+    "A": 0.25,
+    "S": 0.4986,
+    "E": 0.9671,
+    "C": 0.7657
+  },
+  "Prosthodontists": {
+    "R": 0.88,
+    "I": 0.8043,
+    "A": 0.24,
+    "S": 0.6357,
+    "E": 0.2229,
+    "C": 0.4871
+  },
+  "Psychiatric Aides": {
+    "R": 0.5186,
+    "I": 0.5757,
+    "A": 0.2586,
+    "S": 0.9471,
+    "E": 0.2629,
+    "C": 0.5671
+  },
+  "Psychiatric Technicians": {
+    "R": 0.49,
+    "I": 0.6614,
+    "A": 0.2986,
+    "S": 0.9586,
+    "E": 0.1971,
+    "C": 0.5186
+  },
+  "Psychiatrists": {
+    "R": 0.3057,
+    "I": 0.91,
+    "A": 0.3886,
+    "S": 0.8543,
+    "E": 0.3029,
+    "C": 0.5571
+  },
+  "Psychology Teachers, Postsecondary": {
+    "R": 0.3043,
+    "I": 0.7943,
+    "A": 0.55,
+    "S": 1.0,
+    "E": 0.3386,
+    "C": 0.4657
+  },
+  "Public Relations Managers": {
+    "R": 0.1429,
+    "I": 0.3357,
+    "A": 0.5257,
+    "S": 0.5914,
+    "E": 1.0,
+    "C": 0.6271
+  },
+  "Public Relations Specialists": {
+    "R": 0.1429,
+    "I": 0.3986,
+    "A": 0.6743,
+    "S": 0.5629,
+    "E": 0.83,
+    "C": 0.4957
+  },
+  "Public Safety Telecommunicators": {
+    "R": 0.6071,
+    "I": 0.4114,
+    "A": 0.1429,
+    "S": 0.5143,
+    "E": 0.4143,
+    "C": 0.7914
+  },
+  "Pump Operators, Except Wellhead Pumpers": {
+    "R": 0.9529,
+    "I": 0.3229,
+    "A": 0.1429,
+    "S": 0.1829,
+    "E": 0.2086,
+    "C": 0.6443
+  },
+  "Purchasing Agents, Except Wholesale, Retail, and Farm Products": {
+    "R": 0.4843,
+    "I": 0.2729,
+    "A": 0.16,
+    "S": 0.2757,
+    "E": 0.7129,
+    "C": 0.8129
+  },
+  "Purchasing Managers": {
+    "R": 0.2914,
+    "I": 0.2871,
+    "A": 0.2,
+    "S": 0.3957,
+    "E": 1.0,
+    "C": 0.7929
+  },
+  "Quality Control Analysts": {
+    "R": 0.58,
+    "I": 0.7086,
+    "A": 0.16,
+    "S": 0.17,
+    "E": 0.3457,
+    "C": 0.8329
+  },
+  "Quality Control Systems Managers": {
+    "R": 0.5143,
+    "I": 0.5743,
+    "A": 0.1671,
+    "S": 0.2957,
+    "E": 0.7214,
+    "C": 0.8143
+  },
+  "Radiation Therapists": {
+    "R": 0.6971,
+    "I": 0.6629,
+    "A": 0.1757,
+    "S": 0.6786,
+    "E": 0.2471,
+    "C": 0.6457
+  },
+  "Radio Frequency Identification Device Specialists": {
+    "R": 0.7529,
+    "I": 0.6871,
+    "A": 0.2,
+    "S": 0.1929,
+    "E": 0.2,
+    "C": 0.7686
+  },
+  "Radio, Cellular, and Tower Equipment Installers and Repairers": {
+    "R": 0.9557,
+    "I": 0.4929,
+    "A": 0.1514,
+    "S": 0.1957,
+    "E": 0.1943,
+    "C": 0.6471
+  },
+  "Radiologic Technologists and Technicians": {
+    "R": 0.8929,
+    "I": 0.6614,
+    "A": 0.1429,
+    "S": 0.5114,
+    "E": 0.1429,
+    "C": 0.6957
+  },
+  "Radiologists": {
+    "R": 0.68,
+    "I": 0.9429,
+    "A": 0.17,
+    "S": 0.5586,
+    "E": 0.3057,
+    "C": 0.6857
+  },
+  "Rail Car Repairers": {
+    "R": 1.0,
+    "I": 0.3843,
+    "A": 0.1743,
+    "S": 0.1986,
+    "E": 0.1771,
+    "C": 0.5957
+  },
+  "Rail Yard Engineers, Dinkey Operators, and Hostlers": {
+    "R": 1.0,
+    "I": 0.33,
+    "A": 0.1429,
+    "S": 0.23,
+    "E": 0.2729,
+    "C": 0.6029
+  },
+  "Rail-Track Laying and Maintenance Equipment Operators": {
+    "R": 1.0,
+    "I": 0.2429,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.5871
+  },
+  "Railroad Brake, Signal, and Switch Operators and Locomotive Firers": {
+    "R": 1.0,
+    "I": 0.2971,
+    "A": 0.1429,
+    "S": 0.1729,
+    "E": 0.2043,
+    "C": 0.6043
+  },
+  "Railroad Conductors and Yardmasters": {
+    "R": 0.8286,
+    "I": 0.2814,
+    "A": 0.1429,
+    "S": 0.2643,
+    "E": 0.5386,
+    "C": 0.6957
+  },
+  "Range Managers": {
+    "R": 0.8143,
+    "I": 0.7,
+    "A": 0.2071,
+    "S": 0.3586,
+    "E": 0.6329,
+    "C": 0.5471
+  },
+  "Real Estate Brokers": {
+    "R": 0.3743,
+    "I": 0.22,
+    "A": 0.1429,
+    "S": 0.4229,
+    "E": 0.9186,
+    "C": 0.8014
+  },
+  "Real Estate Sales Agents": {
+    "R": 0.2886,
+    "I": 0.2086,
+    "A": 0.2757,
+    "S": 0.5,
+    "E": 0.9186,
+    "C": 0.73
+  },
+  "Receptionists and Information Clerks": {
+    "R": 0.2671,
+    "I": 0.2743,
+    "A": 0.1429,
+    "S": 0.5186,
+    "E": 0.6043,
+    "C": 0.89
+  },
+  "Recreation Workers": {
+    "R": 0.5357,
+    "I": 0.2829,
+    "A": 0.4357,
+    "S": 0.7,
+    "E": 0.6443,
+    "C": 0.4929
+  },
+  "Recreation and Fitness Studies Teachers, Postsecondary": {
+    "R": 0.4529,
+    "I": 0.6829,
+    "A": 0.49,
+    "S": 1.0,
+    "E": 0.3586,
+    "C": 0.49
+  },
+  "Recreational Therapists": {
+    "R": 0.5457,
+    "I": 0.5957,
+    "A": 0.4329,
+    "S": 0.98,
+    "E": 0.36,
+    "C": 0.3571
+  },
+  "Recreational Vehicle Service Technicians": {
+    "R": 1.0,
+    "I": 0.3729,
+    "A": 0.1429,
+    "S": 0.2314,
+    "E": 0.1829,
+    "C": 0.5729
+  },
+  "Recycling Coordinators": {
+    "R": 0.5714,
+    "I": 0.3214,
+    "A": 0.1429,
+    "S": 0.4814,
+    "E": 0.6814,
+    "C": 0.6529
+  },
+  "Recycling and Reclamation Workers": {
+    "R": 0.8971,
+    "I": 0.2914,
+    "A": 0.1429,
+    "S": 0.1829,
+    "E": 0.2271,
+    "C": 0.6271
+  },
+  "Refractory Materials Repairers, Except Brickmasons": {
+    "R": 1.0,
+    "I": 0.3143,
+    "A": 0.1871,
+    "S": 0.1457,
+    "E": 0.1429,
+    "C": 0.5071
+  },
+  "Refuse and Recyclable Material Collectors": {
+    "R": 1.0,
+    "I": 0.2529,
+    "A": 0.1429,
+    "S": 0.1986,
+    "E": 0.2214,
+    "C": 0.63
+  },
+  "Registered Nurses": {
+    "R": 0.5229,
+    "I": 0.6886,
+    "A": 0.1871,
+    "S": 0.8029,
+    "E": 0.3257,
+    "C": 0.6543
+  },
+  "Regulatory Affairs Managers": {
+    "R": 0.25,
+    "I": 0.4057,
+    "A": 0.1786,
+    "S": 0.3771,
+    "E": 0.9157,
+    "C": 0.8643
+  },
+  "Regulatory Affairs Specialists": {
+    "R": 0.2114,
+    "I": 0.4757,
+    "A": 0.1429,
+    "S": 0.3514,
+    "E": 0.6371,
+    "C": 0.9029
+  },
+  "Rehabilitation Counselors": {
+    "R": 0.1757,
+    "I": 0.4657,
+    "A": 0.4271,
+    "S": 0.9729,
+    "E": 0.5086,
+    "C": 0.4657
+  },
+  "Reinforcing Iron and Rebar Workers": {
+    "R": 1.0,
+    "I": 0.32,
+    "A": 0.1714,
+    "S": 0.1643,
+    "E": 0.19,
+    "C": 0.5257
+  },
+  "Remote Sensing Scientists and Technologists": {
+    "R": 0.6914,
+    "I": 0.8629,
+    "A": 0.2671,
+    "S": 0.1871,
+    "E": 0.2129,
+    "C": 0.6914
+  },
+  "Remote Sensing Technicians": {
+    "R": 0.7371,
+    "I": 0.6671,
+    "A": 0.29,
+    "S": 0.21,
+    "E": 0.2386,
+    "C": 0.7371
+  },
+  "Reservation and Transportation Ticket Agents and Travel Clerks": {
+    "R": 0.3029,
+    "I": 0.1429,
+    "A": 0.1814,
+    "S": 0.6229,
+    "E": 0.5743,
+    "C": 0.8086
+  },
+  "Residential Advisors": {
+    "R": 0.3757,
+    "I": 0.3514,
+    "A": 0.3271,
+    "S": 0.7786,
+    "E": 0.5386,
+    "C": 0.6471
+  },
+  "Respiratory Therapists": {
+    "R": 0.7029,
+    "I": 0.6871,
+    "A": 0.1429,
+    "S": 0.7214,
+    "E": 0.2457,
+    "C": 0.5486
+  },
+  "Retail Loss Prevention Specialists": {
+    "R": 0.5643,
+    "I": 0.4814,
+    "A": 0.1429,
+    "S": 0.3786,
+    "E": 0.6743,
+    "C": 0.8157
+  },
+  "Retail Salespersons": {
+    "R": 0.4714,
+    "I": 0.1429,
+    "A": 0.2986,
+    "S": 0.4257,
+    "E": 0.8686,
+    "C": 0.72
+  },
+  "Riggers": {
+    "R": 1.0,
+    "I": 0.3414,
+    "A": 0.1943,
+    "S": 0.1429,
+    "E": 0.2671,
+    "C": 0.5286
+  },
+  "Robotics Engineers": {
+    "R": 0.8714,
+    "I": 0.8271,
+    "A": 0.2586,
+    "S": 0.2043,
+    "E": 0.2486,
+    "C": 0.6529
+  },
+  "Robotics Technicians": {
+    "R": 0.9971,
+    "I": 0.5829,
+    "A": 0.1429,
+    "S": 0.1557,
+    "E": 0.1486,
+    "C": 0.6414
+  },
+  "Rock Splitters, Quarry": {
+    "R": 0.9943,
+    "I": 0.2971,
+    "A": 0.25,
+    "S": 0.1786,
+    "E": 0.1671,
+    "C": 0.4586
+  },
+  "Rolling Machine Setters, Operators, and Tenders, Metal and Plastic": {
+    "R": 0.9771,
+    "I": 0.2414,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.5814
+  },
+  "Roof Bolters, Mining": {
+    "R": 1.0,
+    "I": 0.3771,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1457,
+    "C": 0.4957
+  },
+  "Roofers": {
+    "R": 1.0,
+    "I": 0.1714,
+    "A": 0.1771,
+    "S": 0.2114,
+    "E": 0.2214,
+    "C": 0.4871
+  },
+  "Rotary Drill Operators, Oil and Gas": {
+    "R": 1.0,
+    "I": 0.4357,
+    "A": 0.1429,
+    "S": 0.1657,
+    "E": 0.3143,
+    "C": 0.54
+  },
+  "Roustabouts, Oil and Gas": {
+    "R": 1.0,
+    "I": 0.2586,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.53
+  },
+  "Sailors and Marine Oilers": {
+    "R": 0.9971,
+    "I": 0.3743,
+    "A": 0.1429,
+    "S": 0.1786,
+    "E": 0.3457,
+    "C": 0.5643
+  },
+  "Sales Engineers": {
+    "R": 0.4514,
+    "I": 0.5229,
+    "A": 0.2557,
+    "S": 0.41,
+    "E": 0.83,
+    "C": 0.6414
+  },
+  "Sales Managers": {
+    "R": 0.2129,
+    "I": 0.2371,
+    "A": 0.1871,
+    "S": 0.47,
+    "E": 1.0,
+    "C": 0.7971
+  },
+  "Sales Representatives of Services, Except Advertising, Insurance, Financial Services, and Travel": {
+    "R": 0.1557,
+    "I": 0.2771,
+    "A": 0.2057,
+    "S": 0.5329,
+    "E": 0.9586,
+    "C": 0.7271
+  },
+  "Sales Representatives, Wholesale and Manufacturing, Except Technical and Scientific Products": {
+    "R": 0.3771,
+    "I": 0.3286,
+    "A": 0.2414,
+    "S": 0.3757,
+    "E": 0.87,
+    "C": 0.6986
+  },
+  "Sales Representatives, Wholesale and Manufacturing, Technical and Scientific Products": {
+    "R": 0.4057,
+    "I": 0.45,
+    "A": 0.2157,
+    "S": 0.4257,
+    "E": 0.77,
+    "C": 0.7186
+  },
+  "Sawing Machine Setters, Operators, and Tenders, Wood": {
+    "R": 1.0,
+    "I": 0.3329,
+    "A": 0.1429,
+    "S": 0.1614,
+    "E": 0.1429,
+    "C": 0.59
+  },
+  "School Bus Monitors": {
+    "R": 0.4986,
+    "I": 0.22,
+    "A": 0.2471,
+    "S": 0.75,
+    "E": 0.2729,
+    "C": 0.6743
+  },
+  "School Psychologists": {
+    "R": 0.1429,
+    "I": 0.7143,
+    "A": 0.4729,
+    "S": 0.9671,
+    "E": 0.4029,
+    "C": 0.5729
+  },
+  "Search Marketing Strategists": {
+    "R": 0.1429,
+    "I": 0.5443,
+    "A": 0.4614,
+    "S": 0.3857,
+    "E": 0.79,
+    "C": 0.67
+  },
+  "Secondary School Teachers, Except Special and Career/Technical Education": {
+    "R": 0.4071,
+    "I": 0.4614,
+    "A": 0.53,
+    "S": 1.0,
+    "E": 0.3929,
+    "C": 0.5186
+  },
+  "Secretaries and Administrative Assistants, Except Legal, Medical, and Executive": {
+    "R": 0.2829,
+    "I": 0.1957,
+    "A": 0.1429,
+    "S": 0.5171,
+    "E": 0.6,
+    "C": 0.9957
+  },
+  "Securities, Commodities, and Financial Services Sales Agents": {
+    "R": 0.1786,
+    "I": 0.3614,
+    "A": 0.1843,
+    "S": 0.44,
+    "E": 0.8686,
+    "C": 0.7529
+  },
+  "Security Guards": {
+    "R": 0.8857,
+    "I": 0.3143,
+    "A": 0.1429,
+    "S": 0.3971,
+    "E": 0.4214,
+    "C": 0.6957
+  },
+  "Security Management Specialists": {
+    "R": 0.5586,
+    "I": 0.7314,
+    "A": 0.24,
+    "S": 0.2829,
+    "E": 0.5143,
+    "C": 0.8057
+  },
+  "Security Managers": {
+    "R": 0.4857,
+    "I": 0.53,
+    "A": 0.1843,
+    "S": 0.3929,
+    "E": 0.8,
+    "C": 0.77
+  },
+  "Security and Fire Alarm Systems Installers": {
+    "R": 0.9529,
+    "I": 0.4714,
+    "A": 0.1471,
+    "S": 0.1986,
+    "E": 0.2314,
+    "C": 0.6943
+  },
+  "Segmental Pavers": {
+    "R": 0.9586,
+    "I": 0.2286,
+    "A": 0.28,
+    "S": 0.1943,
+    "E": 0.1857,
+    "C": 0.4886
+  },
+  "Self-Enrichment Teachers": {
+    "R": 0.3729,
+    "I": 0.4214,
+    "A": 0.5914,
+    "S": 1.0,
+    "E": 0.4543,
+    "C": 0.4271
+  },
+  "Semiconductor Processing Technicians": {
+    "R": 0.9171,
+    "I": 0.4386,
+    "A": 0.1429,
+    "S": 0.1586,
+    "E": 0.2071,
+    "C": 0.7343
+  },
+  "Separating, Filtering, Clarifying, Precipitating, and Still Machine Setters, Operators, and Tenders": {
+    "R": 0.8957,
+    "I": 0.3271,
+    "A": 0.1429,
+    "S": 0.1571,
+    "E": 0.1557,
+    "C": 0.6386
+  },
+  "Septic Tank Servicers and Sewer Pipe Cleaners": {
+    "R": 1.0,
+    "I": 0.3014,
+    "A": 0.1429,
+    "S": 0.2114,
+    "E": 0.1743,
+    "C": 0.6114
+  },
+  "Service Unit Operators, Oil and Gas": {
+    "R": 1.0,
+    "I": 0.3643,
+    "A": 0.1429,
+    "S": 0.1671,
+    "E": 0.2629,
+    "C": 0.5957
+  },
+  "Set and Exhibit Designers": {
+    "R": 0.5086,
+    "I": 0.4071,
+    "A": 1.0,
+    "S": 0.44,
+    "E": 0.5586,
+    "C": 0.4686
+  },
+  "Sewers, Hand": {
+    "R": 0.8971,
+    "I": 0.1429,
+    "A": 0.4129,
+    "S": 0.2314,
+    "E": 0.18,
+    "C": 0.4614
+  },
+  "Sewing Machine Operators": {
+    "R": 0.9629,
+    "I": 0.1971,
+    "A": 0.2443,
+    "S": 0.17,
+    "E": 0.1671,
+    "C": 0.56
+  },
+  "Shampooers": {
+    "R": 0.79,
+    "I": 0.1929,
+    "A": 0.2229,
+    "S": 0.5357,
+    "E": 0.3529,
+    "C": 0.4814
+  },
+  "Sheet Metal Workers": {
+    "R": 1.0,
+    "I": 0.2943,
+    "A": 0.2343,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.51
+  },
+  "Ship Engineers": {
+    "R": 0.9386,
+    "I": 0.5071,
+    "A": 0.1429,
+    "S": 0.2514,
+    "E": 0.5257,
+    "C": 0.6714
+  },
+  "Shipping, Receiving, and Inventory Clerks": {
+    "R": 0.5471,
+    "I": 0.18,
+    "A": 0.1429,
+    "S": 0.2071,
+    "E": 0.4514,
+    "C": 1.0
+  },
+  "Shoe Machine Operators and Tenders": {
+    "R": 0.95,
+    "I": 0.2757,
+    "A": 0.1943,
+    "S": 0.1957,
+    "E": 0.2186,
+    "C": 0.5943
+  },
+  "Shoe and Leather Workers and Repairers": {
+    "R": 0.9757,
+    "I": 0.2286,
+    "A": 0.4643,
+    "S": 0.1886,
+    "E": 0.2129,
+    "C": 0.4214
+  },
+  "Shuttle Drivers and Chauffeurs": {
+    "R": 0.9186,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.4386,
+    "E": 0.3143,
+    "C": 0.5957
+  },
+  "Signal and Track Switch Repairers": {
+    "R": 0.9229,
+    "I": 0.3814,
+    "A": 0.1429,
+    "S": 0.1671,
+    "E": 0.1429,
+    "C": 0.6486
+  },
+  "Skincare Specialists": {
+    "R": 0.8286,
+    "I": 0.2943,
+    "A": 0.4171,
+    "S": 0.58,
+    "E": 0.43,
+    "C": 0.45
+  },
+  "Slaughterers and Meat Packers": {
+    "R": 0.94,
+    "I": 0.3171,
+    "A": 0.1986,
+    "S": 0.2443,
+    "E": 0.3029,
+    "C": 0.5043
+  },
+  "Social Science Research Assistants": {
+    "R": 0.3543,
+    "I": 0.8571,
+    "A": 0.2929,
+    "S": 0.3943,
+    "E": 0.3357,
+    "C": 0.8257
+  },
+  "Social Work Teachers, Postsecondary": {
+    "R": 0.3314,
+    "I": 0.7057,
+    "A": 0.5214,
+    "S": 1.0,
+    "E": 0.4114,
+    "C": 0.4886
+  },
+  "Social and Community Service Managers": {
+    "R": 0.1429,
+    "I": 0.3071,
+    "A": 0.3343,
+    "S": 0.7643,
+    "E": 1.0,
+    "C": 0.65
+  },
+  "Social and Human Service Assistants": {
+    "R": 0.18,
+    "I": 0.4,
+    "A": 0.2814,
+    "S": 0.8714,
+    "E": 0.5129,
+    "C": 0.65
+  },
+  "Sociologists": {
+    "R": 0.23,
+    "I": 0.9186,
+    "A": 0.5657,
+    "S": 0.6314,
+    "E": 0.44,
+    "C": 0.51
+  },
+  "Sociology Teachers, Postsecondary": {
+    "R": 0.3614,
+    "I": 0.7957,
+    "A": 0.51,
+    "S": 0.9514,
+    "E": 0.3657,
+    "C": 0.4871
+  },
+  "Software Developers": {
+    "R": 0.5614,
+    "I": 0.8371,
+    "A": 0.3229,
+    "S": 0.2686,
+    "E": 0.2671,
+    "C": 0.78
+  },
+  "Software Quality Assurance Analysts and Testers": {
+    "R": 0.5429,
+    "I": 0.8229,
+    "A": 0.2414,
+    "S": 0.2186,
+    "E": 0.2243,
+    "C": 0.8114
+  },
+  "Soil and Plant Scientists": {
+    "R": 0.9186,
+    "I": 0.96,
+    "A": 0.3014,
+    "S": 0.24,
+    "E": 0.2457,
+    "C": 0.4871
+  },
+  "Solar Energy Installation Managers": {
+    "R": 0.8371,
+    "I": 0.3786,
+    "A": 0.1814,
+    "S": 0.2486,
+    "E": 0.6929,
+    "C": 0.5986
+  },
+  "Solar Energy Systems Engineers": {
+    "R": 0.8529,
+    "I": 0.7171,
+    "A": 0.3014,
+    "S": 0.2714,
+    "E": 0.4357,
+    "C": 0.5657
+  },
+  "Solar Photovoltaic Installers": {
+    "R": 1.0,
+    "I": 0.3786,
+    "A": 0.1929,
+    "S": 0.1829,
+    "E": 0.24,
+    "C": 0.58
+  },
+  "Solar Sales Representatives and Assessors": {
+    "R": 0.5029,
+    "I": 0.39,
+    "A": 0.1986,
+    "S": 0.3929,
+    "E": 0.7943,
+    "C": 0.6329
+  },
+  "Solar Thermal Installers and Technicians": {
+    "R": 1.0,
+    "I": 0.3843,
+    "A": 0.1614,
+    "S": 0.2429,
+    "E": 0.2286,
+    "C": 0.5229
+  },
+  "Sound Engineering Technicians": {
+    "R": 0.72,
+    "I": 0.3714,
+    "A": 0.6343,
+    "S": 0.2557,
+    "E": 0.2743,
+    "C": 0.6086
+  },
+  "Spa Managers": {
+    "R": 0.3586,
+    "I": 0.1657,
+    "A": 0.2186,
+    "S": 0.5614,
+    "E": 1.0,
+    "C": 0.81
+  },
+  "Special Education Teachers, Elementary School": {
+    "R": 0.3343,
+    "I": 0.5643,
+    "A": 0.5171,
+    "S": 1.0,
+    "E": 0.2557,
+    "C": 0.4943
+  },
+  "Special Education Teachers, Kindergarten": {
+    "R": 0.3643,
+    "I": 0.5429,
+    "A": 0.52,
+    "S": 1.0,
+    "E": 0.25,
+    "C": 0.5271
+  },
+  "Special Education Teachers, Middle School": {
+    "R": 0.3471,
+    "I": 0.5557,
+    "A": 0.5543,
+    "S": 1.0,
+    "E": 0.2571,
+    "C": 0.4814
+  },
+  "Special Education Teachers, Preschool": {
+    "R": 0.3457,
+    "I": 0.5229,
+    "A": 0.55,
+    "S": 1.0,
+    "E": 0.2457,
+    "C": 0.4686
+  },
+  "Special Education Teachers, Secondary School": {
+    "R": 0.3729,
+    "I": 0.5514,
+    "A": 0.5357,
+    "S": 1.0,
+    "E": 0.2786,
+    "C": 0.4629
+  },
+  "Special Effects Artists and Animators": {
+    "R": 0.5314,
+    "I": 0.4,
+    "A": 1.0,
+    "S": 0.3014,
+    "E": 0.3871,
+    "C": 0.46
+  },
+  "Speech-Language Pathologists": {
+    "R": 0.3843,
+    "I": 0.8043,
+    "A": 0.4243,
+    "S": 0.8443,
+    "E": 0.2043,
+    "C": 0.5757
+  },
+  "Speech-Language Pathology Assistants": {
+    "R": 0.3229,
+    "I": 0.6257,
+    "A": 0.4057,
+    "S": 0.79,
+    "E": 0.2186,
+    "C": 0.6886
+  },
+  "Sports Medicine Physicians": {
+    "R": 0.7243,
+    "I": 0.7843,
+    "A": 0.18,
+    "S": 0.7514,
+    "E": 0.47,
+    "C": 0.4971
+  },
+  "Stationary Engineers and Boiler Operators": {
+    "R": 1.0,
+    "I": 0.4629,
+    "A": 0.1429,
+    "S": 0.1557,
+    "E": 0.1786,
+    "C": 0.6643
+  },
+  "Statistical Assistants": {
+    "R": 0.3614,
+    "I": 0.6471,
+    "A": 0.1429,
+    "S": 0.1943,
+    "E": 0.2457,
+    "C": 1.0
+  },
+  "Statisticians": {
+    "R": 0.2957,
+    "I": 0.9471,
+    "A": 0.2514,
+    "S": 0.2414,
+    "E": 0.26,
+    "C": 0.8471
+  },
+  "Stockers and Order Fillers": {
+    "R": 0.6543,
+    "I": 0.1429,
+    "A": 0.1429,
+    "S": 0.2771,
+    "E": 0.4714,
+    "C": 0.9071
+  },
+  "Stone Cutters and Carvers, Manufacturing": {
+    "R": 1.0,
+    "I": 0.25,
+    "A": 0.5414,
+    "S": 0.1771,
+    "E": 0.1429,
+    "C": 0.4943
+  },
+  "Stonemasons": {
+    "R": 1.0,
+    "I": 0.3071,
+    "A": 0.4171,
+    "S": 0.2614,
+    "E": 0.1843,
+    "C": 0.4314
+  },
+  "Structural Iron and Steel Workers": {
+    "R": 1.0,
+    "I": 0.4,
+    "A": 0.2071,
+    "S": 0.1686,
+    "E": 0.18,
+    "C": 0.5071
+  },
+  "Structural Metal Fabricators and Fitters": {
+    "R": 1.0,
+    "I": 0.38,
+    "A": 0.2343,
+    "S": 0.1429,
+    "E": 0.1514,
+    "C": 0.5443
+  },
+  "Substance Abuse and Behavioral Disorder Counselors": {
+    "R": 0.2314,
+    "I": 0.5429,
+    "A": 0.3386,
+    "S": 0.95,
+    "E": 0.39,
+    "C": 0.5214
+  },
+  "Substitute Teachers, Short-Term": {
+    "R": 0.3729,
+    "I": 0.3729,
+    "A": 0.4343,
+    "S": 0.9671,
+    "E": 0.35,
+    "C": 0.5314
+  },
+  "Subway and Streetcar Operators": {
+    "R": 0.8957,
+    "I": 0.1886,
+    "A": 0.1429,
+    "S": 0.3843,
+    "E": 0.3171,
+    "C": 0.62
+  },
+  "Supply Chain Managers": {
+    "R": 0.4886,
+    "I": 0.3643,
+    "A": 0.1429,
+    "S": 0.2929,
+    "E": 0.9014,
+    "C": 0.7714
+  },
+  "Surgical Assistants": {
+    "R": 0.8143,
+    "I": 0.4957,
+    "A": 0.1429,
+    "S": 0.5471,
+    "E": 0.2514,
+    "C": 0.6343
+  },
+  "Surgical Technologists": {
+    "R": 0.8943,
+    "I": 0.46,
+    "A": 0.1429,
+    "S": 0.5457,
+    "E": 0.23,
+    "C": 0.6929
+  },
+  "Survey Researchers": {
+    "R": 0.2429,
+    "I": 0.8714,
+    "A": 0.3014,
+    "S": 0.33,
+    "E": 0.4357,
+    "C": 0.78
+  },
+  "Surveying and Mapping Technicians": {
+    "R": 0.85,
+    "I": 0.5757,
+    "A": 0.2729,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.8029
+  },
+  "Surveyors": {
+    "R": 0.7343,
+    "I": 0.6886,
+    "A": 0.2529,
+    "S": 0.2357,
+    "E": 0.2757,
+    "C": 0.7829
+  },
+  "Sustainability Specialists": {
+    "R": 0.2943,
+    "I": 0.7429,
+    "A": 0.3571,
+    "S": 0.4214,
+    "E": 0.7271,
+    "C": 0.63
+  },
+  "Switchboard Operators, Including Answering Service": {
+    "R": 0.5143,
+    "I": 0.1986,
+    "A": 0.1429,
+    "S": 0.4157,
+    "E": 0.4543,
+    "C": 0.8514
+  },
+  "Tailors, Dressmakers, and Custom Sewers": {
+    "R": 0.8729,
+    "I": 0.1529,
+    "A": 0.5714,
+    "S": 0.2814,
+    "E": 0.3129,
+    "C": 0.4257
+  },
+  "Talent Directors": {
+    "R": 0.1786,
+    "I": 0.2014,
+    "A": 0.8186,
+    "S": 0.6186,
+    "E": 0.8543,
+    "C": 0.5014
+  },
+  "Tank Car, Truck, and Ship Loaders": {
+    "R": 0.98,
+    "I": 0.2771,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1871,
+    "C": 0.6686
+  },
+  "Tapers": {
+    "R": 0.9129,
+    "I": 0.2414,
+    "A": 0.2457,
+    "S": 0.2129,
+    "E": 0.1557,
+    "C": 0.5014
+  },
+  "Tax Examiners and Collectors, and Revenue Agents": {
+    "R": 0.1843,
+    "I": 0.32,
+    "A": 0.1429,
+    "S": 0.4529,
+    "E": 0.6229,
+    "C": 0.97
+  },
+  "Tax Preparers": {
+    "R": 0.2814,
+    "I": 0.3371,
+    "A": 0.1429,
+    "S": 0.3457,
+    "E": 0.5043,
+    "C": 0.9457
+  },
+  "Taxi Drivers": {
+    "R": 0.8214,
+    "I": 0.16,
+    "A": 0.1429,
+    "S": 0.3971,
+    "E": 0.3543,
+    "C": 0.6871
+  },
+  "Teaching Assistants, Postsecondary": {
+    "R": 0.2943,
+    "I": 0.4629,
+    "A": 0.31,
+    "S": 0.9657,
+    "E": 0.3986,
+    "C": 0.6643
+  },
+  "Teaching Assistants, Preschool, Elementary, Middle, and Secondary School, Except Special Education": {
+    "R": 0.3943,
+    "I": 0.3414,
+    "A": 0.3271,
+    "S": 0.9157,
+    "E": 0.3714,
+    "C": 0.6714
+  },
+  "Teaching Assistants, Special Education": {
+    "R": 0.36,
+    "I": 0.4229,
+    "A": 0.3814,
+    "S": 0.99,
+    "E": 0.3429,
+    "C": 0.5943
+  },
+  "Team Assemblers": {
+    "R": 0.7657,
+    "I": 0.2014,
+    "A": 0.2286,
+    "S": 0.3429,
+    "E": 0.5571,
+    "C": 0.6629
+  },
+  "Technical Writers": {
+    "R": 0.4014,
+    "I": 0.5286,
+    "A": 0.6029,
+    "S": 0.2857,
+    "E": 0.2843,
+    "C": 0.7614
+  },
+  "Telecommunications Engineering Specialists": {
+    "R": 0.6957,
+    "I": 0.6229,
+    "A": 0.2671,
+    "S": 0.2971,
+    "E": 0.4514,
+    "C": 0.7071
+  },
+  "Telecommunications Equipment Installers and Repairers, Except Line Installers": {
+    "R": 0.9271,
+    "I": 0.3457,
+    "A": 0.1429,
+    "S": 0.2586,
+    "E": 0.2271,
+    "C": 0.6771
+  },
+  "Telecommunications Line Installers and Repairers": {
+    "R": 0.9171,
+    "I": 0.3457,
+    "A": 0.1429,
+    "S": 0.2286,
+    "E": 0.3014,
+    "C": 0.5943
+  },
+  "Telemarketers": {
+    "R": 0.2657,
+    "I": 0.17,
+    "A": 0.1986,
+    "S": 0.5171,
+    "E": 0.7414,
+    "C": 0.7271
+  },
+  "Telephone Operators": {
+    "R": 0.4029,
+    "I": 0.1486,
+    "A": 0.1429,
+    "S": 0.6514,
+    "E": 0.48,
+    "C": 0.8843
+  },
+  "Tellers": {
+    "R": 0.3271,
+    "I": 0.2043,
+    "A": 0.1429,
+    "S": 0.3471,
+    "E": 0.5986,
+    "C": 0.9843
+  },
+  "Terrazzo Workers and Finishers": {
+    "R": 1.0,
+    "I": 0.26,
+    "A": 0.25,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.5043
+  },
+  "Textile Bleaching and Dyeing Machine Operators and Tenders": {
+    "R": 0.9729,
+    "I": 0.3071,
+    "A": 0.1643,
+    "S": 0.1729,
+    "E": 0.1586,
+    "C": 0.6129
+  },
+  "Textile Cutting Machine Setters, Operators, and Tenders": {
+    "R": 0.9071,
+    "I": 0.2243,
+    "A": 0.2143,
+    "S": 0.1714,
+    "E": 0.24,
+    "C": 0.6457
+  },
+  "Textile Knitting and Weaving Machine Setters, Operators, and Tenders": {
+    "R": 0.9786,
+    "I": 0.25,
+    "A": 0.2357,
+    "S": 0.1486,
+    "E": 0.2,
+    "C": 0.6129
+  },
+  "Textile Winding, Twisting, and Drawing Out Machine Setters, Operators, and Tenders": {
+    "R": 0.9286,
+    "I": 0.2114,
+    "A": 0.19,
+    "S": 0.1429,
+    "E": 0.2186,
+    "C": 0.6171
+  },
+  "Tile and Stone Setters": {
+    "R": 1.0,
+    "I": 0.1986,
+    "A": 0.3671,
+    "S": 0.1843,
+    "E": 0.1429,
+    "C": 0.51
+  },
+  "Timing Device Assemblers and Adjusters": {
+    "R": 0.9629,
+    "I": 0.3029,
+    "A": 0.17,
+    "S": 0.1429,
+    "E": 0.1629,
+    "C": 0.6586
+  },
+  "Tire Builders": {
+    "R": 1.0,
+    "I": 0.3286,
+    "A": 0.1429,
+    "S": 0.1571,
+    "E": 0.1429,
+    "C": 0.5414
+  },
+  "Tire Repairers and Changers": {
+    "R": 1.0,
+    "I": 0.2514,
+    "A": 0.1429,
+    "S": 0.2514,
+    "E": 0.2243,
+    "C": 0.49
+  },
+  "Title Examiners, Abstractors, and Searchers": {
+    "R": 0.3443,
+    "I": 0.3814,
+    "A": 0.1657,
+    "S": 0.3314,
+    "E": 0.4829,
+    "C": 0.9557
+  },
+  "Tool Grinders, Filers, and Sharpeners": {
+    "R": 1.0,
+    "I": 0.3057,
+    "A": 0.19,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.6171
+  },
+  "Tool and Die Makers": {
+    "R": 1.0,
+    "I": 0.4157,
+    "A": 0.2257,
+    "S": 0.1429,
+    "E": 0.1429,
+    "C": 0.6443
+  },
+  "Tour Guides and Escorts": {
+    "R": 0.4786,
+    "I": 0.34,
+    "A": 0.4714,
+    "S": 0.7343,
+    "E": 0.5257,
+    "C": 0.4271
+  },
+  "Traffic Technicians": {
+    "R": 0.7214,
+    "I": 0.6143,
+    "A": 0.1914,
+    "S": 0.2686,
+    "E": 0.2629,
+    "C": 0.6557
+  },
+  "Training and Development Managers": {
+    "R": 0.2786,
+    "I": 0.4657,
+    "A": 0.3743,
+    "S": 0.7914,
+    "E": 0.9071,
+    "C": 0.5614
+  },
+  "Training and Development Specialists": {
+    "R": 0.2814,
+    "I": 0.56,
+    "A": 0.4414,
+    "S": 0.8086,
+    "E": 0.5371,
+    "C": 0.5614
+  },
+  "Transit and Railroad Police": {
+    "R": 0.8386,
+    "I": 0.3457,
+    "A": 0.1429,
+    "S": 0.3643,
+    "E": 0.4686,
+    "C": 0.7229
+  },
+  "Transportation Engineers": {
+    "R": 0.7957,
+    "I": 0.6886,
+    "A": 0.2957,
+    "S": 0.28,
+    "E": 0.4343,
+    "C": 0.6729
+  },
+  "Transportation Inspectors": {
+    "R": 0.8129,
+    "I": 0.4171,
+    "A": 0.1429,
+    "S": 0.2214,
+    "E": 0.3786,
+    "C": 0.8771
+  },
+  "Transportation Planners": {
+    "R": 0.4571,
+    "I": 0.7857,
+    "A": 0.3114,
+    "S": 0.2929,
+    "E": 0.4586,
+    "C": 0.67
+  },
+  "Transportation Security Screeners": {
+    "R": 0.7586,
+    "I": 0.3157,
+    "A": 0.1429,
+    "S": 0.3086,
+    "E": 0.3557,
+    "C": 0.81
+  },
+  "Transportation Vehicle, Equipment and Systems Inspectors, Except Aviation": {
+    "R": 1.0,
+    "I": 0.5314,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.1929,
+    "C": 0.7343
+  },
+  "Transportation, Storage, and Distribution Managers": {
+    "R": 0.5143,
+    "I": 0.3771,
+    "A": 0.1429,
+    "S": 0.3414,
+    "E": 0.8571,
+    "C": 0.82
+  },
+  "Travel Agents": {
+    "R": 0.1757,
+    "I": 0.2114,
+    "A": 0.2757,
+    "S": 0.6171,
+    "E": 0.8243,
+    "C": 0.8171
+  },
+  "Travel Guides": {
+    "R": 0.3857,
+    "I": 0.3557,
+    "A": 0.3443,
+    "S": 0.7014,
+    "E": 0.6357,
+    "C": 0.5886
+  },
+  "Treasurers and Controllers": {
+    "R": 0.1429,
+    "I": 0.3429,
+    "A": 0.1829,
+    "S": 0.3857,
+    "E": 0.8886,
+    "C": 0.8786
+  },
+  "Tree Trimmers and Pruners": {
+    "R": 1.0,
+    "I": 0.3071,
+    "A": 0.1429,
+    "S": 0.2543,
+    "E": 0.18,
+    "C": 0.4414
+  },
+  "Tutors": {
+    "R": 0.3229,
+    "I": 0.4671,
+    "A": 0.4629,
+    "S": 0.9286,
+    "E": 0.2343,
+    "C": 0.4729
+  },
+  "Umpires, Referees, and Other Sports Officials": {
+    "R": 0.6257,
+    "I": 0.2357,
+    "A": 0.1557,
+    "S": 0.4771,
+    "E": 0.8129,
+    "C": 0.6629
+  },
+  "Upholsterers": {
+    "R": 0.9829,
+    "I": 0.2686,
+    "A": 0.4429,
+    "S": 0.1914,
+    "E": 0.1429,
+    "C": 0.42
+  },
+  "Urban and Regional Planners": {
+    "R": 0.4514,
+    "I": 0.7686,
+    "A": 0.4229,
+    "S": 0.4286,
+    "E": 0.6471,
+    "C": 0.5643
+  },
+  "Urologists": {
+    "R": 0.7371,
+    "I": 0.9857,
+    "A": 0.1757,
+    "S": 0.7371,
+    "E": 0.33,
+    "C": 0.4886
+  },
+  "Ushers, Lobby Attendants, and Ticket Takers": {
+    "R": 0.4771,
+    "I": 0.1429,
+    "A": 0.1986,
+    "S": 0.6786,
+    "E": 0.5971,
+    "C": 0.6586
+  },
+  "Validation Engineers": {
+    "R": 0.6614,
+    "I": 0.7743,
+    "A": 0.2071,
+    "S": 0.2086,
+    "E": 0.3186,
+    "C": 0.7429
+  },
+  "Veterinarians": {
+    "R": 0.8529,
+    "I": 0.8486,
+    "A": 0.1429,
+    "S": 0.49,
+    "E": 0.2443,
+    "C": 0.5029
+  },
+  "Veterinary Assistants and Laboratory Animal Caretakers": {
+    "R": 0.9014,
+    "I": 0.6057,
+    "A": 0.1429,
+    "S": 0.4986,
+    "E": 0.1429,
+    "C": 0.5629
+  },
+  "Veterinary Technologists and Technicians": {
+    "R": 0.9586,
+    "I": 0.7514,
+    "A": 0.1429,
+    "S": 0.4314,
+    "E": 0.1429,
+    "C": 0.6514
+  },
+  "Video Game Designers": {
+    "R": 0.3829,
+    "I": 0.5857,
+    "A": 0.9171,
+    "S": 0.3357,
+    "E": 0.5743,
+    "C": 0.5529
+  },
+  "Waiters and Waitresses": {
+    "R": 0.5814,
+    "I": 0.1429,
+    "A": 0.2757,
+    "S": 0.6886,
+    "E": 0.5929,
+    "C": 0.6471
+  },
+  "Watch and Clock Repairers": {
+    "R": 0.92,
+    "I": 0.2814,
+    "A": 0.1757,
+    "S": 0.21,
+    "E": 0.1857,
+    "C": 0.66
+  },
+  "Water Resource Specialists": {
+    "R": 0.6357,
+    "I": 0.8286,
+    "A": 0.2543,
+    "S": 0.3686,
+    "E": 0.5043,
+    "C": 0.5957
+  },
+  "Water and Wastewater Treatment Plant and System Operators": {
+    "R": 0.9771,
+    "I": 0.3871,
+    "A": 0.1429,
+    "S": 0.2171,
+    "E": 0.2086,
+    "C": 0.6629
+  },
+  "Water/Wastewater Engineers": {
+    "R": 0.8029,
+    "I": 0.7643,
+    "A": 0.2643,
+    "S": 0.2514,
+    "E": 0.4143,
+    "C": 0.6471
+  },
+  "Weatherization Installers and Technicians": {
+    "R": 0.8586,
+    "I": 0.46,
+    "A": 0.2143,
+    "S": 0.33,
+    "E": 0.3129,
+    "C": 0.6414
+  },
+  "Web Administrators": {
+    "R": 0.3671,
+    "I": 0.6314,
+    "A": 0.3257,
+    "S": 0.3186,
+    "E": 0.5343,
+    "C": 0.82
+  },
+  "Web Developers": {
+    "R": 0.4214,
+    "I": 0.7229,
+    "A": 0.4386,
+    "S": 0.32,
+    "E": 0.4129,
+    "C": 0.7271
+  },
+  "Web and Digital Interface Designers": {
+    "R": 0.3671,
+    "I": 0.6957,
+    "A": 0.6414,
+    "S": 0.3157,
+    "E": 0.4486,
+    "C": 0.6271
+  },
+  "Weighers, Measurers, Checkers, and Samplers, Recordkeeping": {
+    "R": 0.7557,
+    "I": 0.3429,
+    "A": 0.1429,
+    "S": 0.1429,
+    "E": 0.2471,
+    "C": 0.9243
+  },
+  "Welders, Cutters, Solderers, and Brazers": {
+    "R": 1.0,
+    "I": 0.31,
+    "A": 0.2143,
+    "S": 0.1571,
+    "E": 0.2329,
+    "C": 0.54
+  },
+  "Welding, Soldering, and Brazing Machine Setters, Operators, and Tenders": {
+    "R": 1.0,
+    "I": 0.3014,
+    "A": 0.1786,
+    "S": 0.1629,
+    "E": 0.1986,
+    "C": 0.5543
+  },
+  "Wellhead Pumpers": {
+    "R": 0.9671,
+    "I": 0.3443,
+    "A": 0.1429,
+    "S": 0.1529,
+    "E": 0.2671,
+    "C": 0.6229
+  },
+  "Wholesale and Retail Buyers, Except Farm Products": {
+    "R": 0.4871,
+    "I": 0.2714,
+    "A": 0.2257,
+    "S": 0.3471,
+    "E": 0.7429,
+    "C": 0.7357
+  },
+  "Wind Energy Development Managers": {
+    "R": 0.4914,
+    "I": 0.5514,
+    "A": 0.2371,
+    "S": 0.34,
+    "E": 0.9586,
+    "C": 0.6886
+  },
+  "Wind Energy Engineers": {
+    "R": 0.8429,
+    "I": 0.6486,
+    "A": 0.3171,
+    "S": 0.2043,
+    "E": 0.4457,
+    "C": 0.5886
+  },
+  "Wind Energy Operations Managers": {
+    "R": 0.5943,
+    "I": 0.4343,
+    "A": 0.1429,
+    "S": 0.3343,
+    "E": 0.9243,
+    "C": 0.7486
+  },
+  "Wind Turbine Service Technicians": {
+    "R": 1.0,
+    "I": 0.51,
+    "A": 0.1429,
+    "S": 0.23,
+    "E": 0.2543,
+    "C": 0.6143
+  },
+  "Woodworking Machine Setters, Operators, and Tenders, Except Sawing": {
+    "R": 1.0,
+    "I": 0.3471,
+    "A": 0.1643,
+    "S": 0.1686,
+    "E": 0.1471,
+    "C": 0.5929
+  },
+  "Word Processors and Typists": {
+    "R": 0.41,
+    "I": 0.2757,
+    "A": 0.3171,
+    "S": 0.3243,
+    "E": 0.2743,
+    "C": 0.9429
+  },
+  "Writers and Authors": {
+    "R": 0.1429,
+    "I": 0.4657,
+    "A": 0.99,
+    "S": 0.4057,
+    "E": 0.6857,
+    "C": 0.4543
+  },
+  "Zoologists and Wildlife Biologists": {
+    "R": 0.76,
+    "I": 1.0,
+    "A": 0.32,
+    "S": 0.3671,
+    "E": 0.3543,
+    "C": 0.5271
+  }
+}

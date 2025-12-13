@@ -1,23 +1,20 @@
 # src/api/routes_recs.py
 from __future__ import annotations
 
-from typing import List
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import List
 
-from src.ai_core.retrieval.service_pgvector import search_candidates_for_user
-from src.ai_core.recsys.bandit import FinalItem, recommend_with_bandit
-from src.ai_core.recsys.service import (
-    infer_scores_from_candidates,
-)  # dùng helper cho Candidate objects
-
+from ai_core.retrieval.service_pgvector import search_candidates_for_embedding
+from ai_core.recsys.bandit import FinalItem, recommend_with_bandit
+from ai_core.recsys.service import infer_scores
+from ai_core.traits.loader import load_traits_and_embedding_for_assessment
 
 router = APIRouter(prefix="/recs", tags=["recommendations"])
 
 
 class TopCareersRequest(BaseModel):
-    user_id: int
+    assessment_id: int
     top_k: int = 20
 
 
@@ -31,34 +28,86 @@ class TopCareersResponse(BaseModel):
 
 
 @router.post("/top_careers", response_model=TopCareersResponse)
-def top_careers(req: TopCareersRequest) -> TopCareersResponse:
+def top_careers(req: TopCareersRequest):
     """
-    Glue B3 + B4 + B5 thành 1 API duy nhất cho backend gọi.
+    Recommend theo ASSESSMENT.
+    B3: vector = embedding của bài essay thuộc assessment_id
+    B4: ranker dùng đúng snapshot traits
+    B5: bandit (stub)
+
+    Nếu NeuMF không có user_id trong user_feats (cold-start)
+    thì fallback: dùng luôn thứ tự retrieval làm recommendation.
     """
 
-    # ---- B3: retrieval bằng pgvector ----
-    candidates = search_candidates_for_user(user_id=req.user_id, top_n=200)
+    # ---- 1) Lấy vector + traits theo assessment ----
+    try:
+        snapshot = load_traits_and_embedding_for_assessment(req.assessment_id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error loading assessment snapshot: {e}",
+        )
+
+    user_vec = snapshot.embedding_vector  # np.ndarray
+    user_id = snapshot.user_id            # dùng cho Ranker (train theo user_id)
+    # traits = snapshot.traits            # để dành sau này nếu mix traits
+
+    # ---- 2) Retrieval B3 ----
+    candidates = search_candidates_for_embedding(user_vec, top_n=200)
     if not candidates:
-        raise HTTPException(status_code=404, detail="No candidates for this user")
+        raise HTTPException(status_code=404, detail="No candidates from retrieval")
 
-    # ---- B4: NeuMF ranker ----
-    # B3 trả về list[Candidate] → dùng helper infer_scores_from_candidates
-    scored = infer_scores_from_candidates(req.user_id, candidates)
+    candidate_ids = [c.job_id for c in candidates]
 
-    if not scored:
-        raise HTTPException(status_code=500, detail="Ranking returned empty list")
+    # ---- 3) Rank B4 + Bandit B5, có fallback cold-start ----
+    final_items: list[FinalItem]
 
-    # ---- B5: bandit stub ----
-    final_items: list[FinalItem] = recommend_with_bandit(
-        ranked_items=scored,
-        user_id=req.user_id,
-        top_k=req.top_k,
-    )
+    try:
+        scored = infer_scores(user_id, candidate_ids)
+        if not scored:
+            raise ValueError("Ranker returned empty list")
 
-    # Chỉ expose career_id + final_score cho backend
+        # NeuMF OK -> dùng bandit như bình thường
+        final_items = recommend_with_bandit(
+            ranked_items=scored,
+            user_id=user_id,
+            top_k=req.top_k,
+        )
+
+    except ValueError as e:
+        print(f"[WARN] NeuMF cold-start for user_id={user_id}: {e}")
+        print(f"[INFO] Using retrieval scores for cold-start (deterministic)")
+
+        # Cold-start: dùng retrieval scores (đã deterministic từ pgvector)
+        # CRITICAL: Sort với tie-breaker rõ ràng để đảm bảo 100% deterministic
+        sorted_candidates = sorted(
+            candidates,  # Lấy tất cả candidates để có đủ room cho filtering
+            key=lambda c: (
+                -getattr(c, "score_sim", getattr(c, "score", getattr(c, "sim", 0.0))),
+                c.job_id  # Tie-breaker: alphabetical order by job_id
+            )
+        )
+
+        # Trả về TẤT CẢ sorted candidates (không cắt ở đây)
+        # Backend sẽ filter theo RIASEC L1/L2 và cắt top_k sau
+        final_items = []
+        for c in sorted_candidates:
+            base = getattr(c, "score_sim", None)
+            if base is None:
+                base = getattr(c, "score", None)
+            if base is None:
+                base = getattr(c, "sim", 0.0)
+
+            final_items.append(
+                FinalItem(
+                    career_id=c.job_id,
+                    final_score=float(base),
+                )
+            )
+    # ---- 4) Trả kết quả ----
     return TopCareersResponse(
         items=[
-            CareerItem(career_id=item.career_id, final_score=item.final_score)
-            for item in final_items
+            CareerItem(career_id=i.career_id, final_score=i.final_score)
+            for i in final_items
         ]
     )

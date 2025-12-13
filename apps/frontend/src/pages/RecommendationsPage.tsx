@@ -7,6 +7,7 @@ import {
   CareerRecommendationDTO,
   RecommendationsResponse,
 } from "../services/recommendationService";
+import { getRIASECTagDisplay } from "../utils/riasec";
 
 const RecommendationsPage = () => {
   const navigate = useNavigate();
@@ -241,7 +242,7 @@ const RecommendationsPage = () => {
                               key={tag}
                               className="text-xs bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-200 px-2 py-1 rounded-md font-medium"
                             >
-                              {tag}
+                              {getRIASECTagDisplay(tag)}
                             </span>
                           ))}
                       </div>
