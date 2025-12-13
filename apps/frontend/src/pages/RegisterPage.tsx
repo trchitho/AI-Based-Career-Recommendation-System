@@ -98,8 +98,6 @@ const RegisterPage = () => {
         friendly = t("auth.emailNotExist") || "Email does not exist, please change to another email!";
       } else if (errorCode === "EMAIL_ALREADY_REGISTERED") {
         friendly = "Email already exists, please try again with another email.";
-        setAlreadyRegistered(true);
-        setInfo("");
       }
       if (!friendly || typeof friendly === "object") {
         if (typeof friendly === "object") {
