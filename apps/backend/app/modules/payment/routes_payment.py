@@ -205,8 +205,8 @@ def query_payment(
 
     if result_status == "success":
         payment.status = PaymentStatus.SUCCESS.value
-        db.commit()
         payment.paid_at = datetime.utcnow()
+        db.commit()
         logger.info(f"Payment {order_id} updated to SUCCESS")
     elif result_status == "cancelled":
         payment.status = PaymentStatus.CANCELLED.value
