@@ -69,5 +69,36 @@ export const blogService = {
   async deleteBlog(id: string): Promise<void> {
     await api.delete(`/api/blog/${id}`);
   },
+
+  // Admin-specific methods
+  async adminList(params?: { page?: number; pageSize?: number }): Promise<BlogListResponse> {
+    const page = params?.page ?? 1;
+    const pageSize = params?.pageSize ?? 50;
+    const offset = (page - 1) * pageSize;
+    const res = await api.get(`/api/admin/blog?limit=${pageSize}&offset=${offset}`);
+    
+    // Transform the response to match BlogListResponse format
+    const posts = res.data as BlogPost[];
+    return {
+      items: posts,
+      total: posts.length,
+      limit: pageSize,
+      offset: offset
+    };
+  },
+
+  async adminCreate(data: CreateBlogData): Promise<BlogPost> {
+    const res = await api.post('/api/admin/blog', data);
+    return res.data as BlogPost;
+  },
+
+  async adminUpdate(id: string, data: UpdateBlogData): Promise<BlogPost> {
+    const res = await api.put(`/api/admin/blog/${id}`, data);
+    return res.data as BlogPost;
+  },
+
+  async adminDelete(id: string): Promise<void> {
+    await api.delete(`/api/admin/blog/${id}`);
+  },
 };
 

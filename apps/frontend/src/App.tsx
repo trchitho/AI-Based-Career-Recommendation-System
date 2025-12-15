@@ -26,6 +26,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import BlogPage from './pages/BlogPage';
 import BlogDetailPage from './pages/BlogDetailPage';
 import BlogCreatePage from './pages/admin/BlogCreatePage';
+import BlogEditPage from './pages/admin/BlogEditPage';
 import BlogManagementPage from './pages/admin/BlogManagementPage';
 import UserBlogCreatePage from './pages/BlogCreatePage';
 import ChatSummaryPage from './pages/ChatSummaryPage';
@@ -162,6 +163,14 @@ function App() {
                 element={
                   <AdminRoute>
                     <BlogManagementPage />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/blog/edit/:id"
+                element={
+                  <AdminRoute>
+                    <BlogEditPage />
                   </AdminRoute>
                 }
               />

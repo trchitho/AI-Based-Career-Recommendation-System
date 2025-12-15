@@ -5,8 +5,19 @@ from typing import Optional
 
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Numeric, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
+import enum
 
 from ...core.db import Base
+
+class BlogStatus(enum.Enum):
+    DRAFT = "Draft"
+    PUBLISHED = "Published"
+    PENDING = "Pending"
+    REJECTED = "Rejected"
+    ARCHIVED = "Archived"
+    
+    def __str__(self):
+        return self.value
 
 
 # bảng core.career_categories
@@ -87,7 +98,7 @@ class BlogPost(Base):
     featured_image = Column(Text)
     view_count = Column(BigInteger, default=0)
     is_featured = Column(Text)  # Boolean as text
-    status = Column(Text)  # blog_status enum => map text
+    status = Column(Text, default="Draft")
     published_at = Column(TIMESTAMP(timezone=True))
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
@@ -115,8 +126,8 @@ class BlogPost(Base):
             "featured_image": self.featured_image or "",
             "view_count": self.view_count or 0,
             "is_featured": self.is_featured == "true" if self.is_featured else False,
-            "is_published": self.status == "Published",
-            "status": self.status,
+            "is_published": self.status == "Published" if self.status else False,
+            "status": self.status or "Draft",
             "published_at": self.published_at.isoformat() if self.published_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

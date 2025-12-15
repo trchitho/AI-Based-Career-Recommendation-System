@@ -36,8 +36,8 @@ const BlogCreatePage = () => {
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
       };
       
-      await blogService.createBlog(blogData);
-      navigate('/blog');
+      await blogService.adminCreate(blogData);
+      navigate('/admin/blog/manage');
     } catch (err: any) {
       setError(err?.response?.data?.detail || err?.message || 'Không thể tạo blog');
     } finally {

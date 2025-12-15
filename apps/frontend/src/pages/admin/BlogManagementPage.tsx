@@ -12,7 +12,7 @@ const BlogManagementPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const resp: BlogListResponse = await blogService.list({ page: 1, pageSize: 50 });
+      const resp: BlogListResponse = await blogService.adminList({ page: 1, pageSize: 50 });
       setPosts(resp.items || []);
     } catch (e: any) {
       setError(e?.response?.data?.detail || e?.message || 'Failed to load posts');
@@ -29,7 +29,7 @@ const BlogManagementPage = () => {
     if (!confirm('Bạn có chắc muốn xóa blog này?')) return;
     
     try {
-      await blogService.deleteBlog(id);
+      await blogService.adminDelete(id);
       await loadPosts(); // Reload list
     } catch (e: any) {
       alert('Không thể xóa blog: ' + (e?.response?.data?.detail || e?.message));
@@ -38,7 +38,7 @@ const BlogManagementPage = () => {
 
   const handleApprove = async (id: string) => {
     try {
-      await blogService.updateBlog(id, { is_published: true });
+      await blogService.adminUpdate(id, { status: 'Published' });
       await loadPosts(); // Reload list
     } catch (e: any) {
       alert('Không thể duyệt blog: ' + (e?.response?.data?.detail || e?.message));
@@ -49,7 +49,7 @@ const BlogManagementPage = () => {
     if (!confirm('Bạn có chắc muốn từ chối blog này?')) return;
     
     try {
-      await blogService.updateBlog(id, { status: 'Rejected' });
+      await blogService.adminUpdate(id, { status: 'Rejected' });
       await loadPosts(); // Reload list
     } catch (e: any) {
       alert('Không thể từ chối blog: ' + (e?.response?.data?.detail || e?.message));
@@ -196,7 +196,7 @@ const BlogManagementPage = () => {
                                 Xem
                               </button>
                               
-                              {/* Approval buttons for pending posts */}
+                              {/* Status action buttons */}
                               {post.status === 'Pending' && (
                                 <>
                                   <button
@@ -212,6 +212,26 @@ const BlogManagementPage = () => {
                                     Từ chối
                                   </button>
                                 </>
+                              )}
+                              
+                              {/* Publish button for drafts */}
+                              {post.status === 'Draft' && (
+                                <button
+                                  onClick={() => handleApprove(post.id)}
+                                  className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                >
+                                  Xuất bản
+                                </button>
+                              )}
+                              
+                              {/* Unpublish button for published posts */}
+                              {post.status === 'Published' && (
+                                <button
+                                  onClick={() => blogService.adminUpdate(post.id, { status: 'Draft' }).then(() => loadPosts())}
+                                  className="text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300"
+                                >
+                                  Hủy xuất bản
+                                </button>
                               )}
                               
                               <button
