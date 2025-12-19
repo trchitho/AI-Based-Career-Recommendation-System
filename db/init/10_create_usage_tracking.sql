@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS core.user_usage_tracking (
     UNIQUE(user_id, feature_type)
 );
 
+DROP TABLE IF EXISTS core.subscription_plans CASCADE;
+
 -- 2. Tạo bảng subscription_plans
 CREATE TABLE IF NOT EXISTS core.subscription_plans (
     id BIGSERIAL PRIMARY KEY,

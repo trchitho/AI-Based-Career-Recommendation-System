@@ -204,12 +204,12 @@ async def payment_callback(
             elif payment.amount >= 200000:  # 200k VND trở lên
                 plan_name = "Premium"
             else:
-                plan_name = "Basic"
+                plan_name = "basic"
             
             # Upgrade user subscription
             upgrade_success = SubscriptionService.upgrade_user_subscription(
                 user_id=payment.user_id,
-                plan_name=plan_name,
+                plan_name=plan_name.strip(),
                 payment_id=payment.id,
                 session=db
             )
@@ -289,12 +289,12 @@ def query_payment(
                 elif payment.amount >= 200000:  # 200k VND trở lên
                     plan_name = "Premium"
                 else:
-                    plan_name = "Basic"
+                    plan_name = "basic"
                 
                 # Upgrade user subscription
                 upgrade_success = SubscriptionService.upgrade_user_subscription(
                     user_id=payment.user_id,
-                    plan_name=plan_name,
+                    plan_name=plan_name.strip(),
                     payment_id=payment.id,
                     session=db
                 )
