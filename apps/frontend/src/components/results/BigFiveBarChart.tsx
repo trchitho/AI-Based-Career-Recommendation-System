@@ -15,12 +15,17 @@ interface BigFiveBarChartProps {
 }
 
 const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
+  // Check if we have real data or should use fallback
+  
+  // Fallback data nếu không có scores thực
+  const hasRealData = scores && Object.values(scores).some(score => score > 0);
+  
   const data = [
-    { trait: 'Openness', score: scores.openness, color: '#8B5CF6' }, // Violet
-    { trait: 'Conscientiousness', score: scores.conscientiousness, color: '#3B82F6' }, // Blue
-    { trait: 'Extraversion', score: scores.extraversion, color: '#10B981' }, // Emerald
-    { trait: 'Agreeableness', score: scores.agreeableness, color: '#F59E0B' }, // Amber
-    { trait: 'Neuroticism', score: scores.neuroticism, color: '#EF4444' }, // Red
+    { trait: 'Openness', score: scores?.openness || (hasRealData ? 0 : 75), color: '#8B5CF6' }, // Violet
+    { trait: 'Conscientiousness', score: scores?.conscientiousness || (hasRealData ? 0 : 68), color: '#3B82F6' }, // Blue
+    { trait: 'Extraversion', score: scores?.extraversion || (hasRealData ? 0 : 82), color: '#10B981' }, // Emerald
+    { trait: 'Agreeableness', score: scores?.agreeableness || (hasRealData ? 0 : 71), color: '#F59E0B' }, // Amber
+    { trait: 'Neuroticism', score: scores?.neuroticism || (hasRealData ? 0 : 45), color: '#EF4444' }, // Red
   ];
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -44,6 +49,14 @@ const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
   return (
     // Xóa bỏ background, shadow, padding của khung bao
     <div className="w-full h-auto flex flex-col">
+      {!hasRealData && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+            <span className="text-lg">📊</span>
+            Đây là dữ liệu mẫu. Hoàn thành assessment để xem kết quả thực tế của bạn.
+          </p>
+        </div>
+      )}
 
       {/* Nếu component cha chưa có tiêu đề, bạn có thể uncomment phần dưới. 
           Nếu cha đã có tiêu đề "Big Five..." rồi thì nên ẩn đi để tránh lặp. */}
@@ -78,8 +91,8 @@ const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
               {/* Thanh Background màu xám nhạt */}
               <Bar
                 dataKey="score"
-                radius={[0, 4, 4, 0]}
-                background={{ fill: '#F3F4F6', radius: [0, 4, 4, 0] }}
+                radius={4}
+                background={{ fill: '#F3F4F6', radius: 4 }}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />

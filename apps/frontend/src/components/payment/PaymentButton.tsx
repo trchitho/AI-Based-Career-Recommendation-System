@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createPayment } from '../../services/paymentService';
+import { paymentService } from '../../services/paymentService';
 import { getAccessToken } from '../../utils/auth';
 
 interface PaymentButtonProps {
@@ -43,16 +43,16 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
             console.log('Token found:', token.substring(0, 20) + '...');
 
             // Tạo đơn thanh toán
-            const result = await createPayment(
-                {
-                    amount,
-                    description,
-                    payment_method: 'zalopay',
-                },
-                token
-            );
+            const result = await paymentService.createPayment({
+                amount,
+                description,
+                payment_method: 'zalopay',
+            });
 
             if (result.success && result.order_url) {
+                // Store order ID for tracking
+                localStorage.setItem('pending_payment_order', result.order_id);
+                
                 // Chuyển hướng đến trang thanh toán ZaloPay
                 window.location.href = result.order_url;
 
@@ -64,7 +64,20 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
             }
         } catch (error: any) {
             console.error('Payment error:', error);
-            const errorMessage = error.response?.data?.detail || error.message || 'Lỗi thanh toán';
+            
+            let errorMessage = 'Lỗi thanh toán';
+            
+            if (error.code === 'ERR_NETWORK') {
+                errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.';
+            } else if (error.response?.status === 500) {
+                errorMessage = 'Lỗi server. Vui lòng thử lại sau.';
+            } else if (error.response?.status === 401) {
+                errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+            } else if (error.response?.data?.detail) {
+                errorMessage = error.response.data.detail;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
 
             if (onError) {
                 onError(errorMessage);

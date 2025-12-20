@@ -3,7 +3,11 @@ import { profileService } from '../services/profileService';
 import { ProfileData } from '../types/profile';
 import ProfileInfoSection from '../components/profile/ProfileInfoSection';
 import AssessmentHistorySection from '../components/profile/AssessmentHistorySection';
+import SubscriptionStatusCard from '../components/profile/SubscriptionStatusCard';
+import ProfileStatsCard from '../components/profile/ProfileStatsCard';
+import PremiumBenefitsCard from '../components/profile/PremiumBenefitsCard';
 import MainLayout from '../components/layout/MainLayout';
+import { useSubscription } from '../hooks/useSubscription';
 
 const ProfilePage = () => {
   // ==========================================
@@ -13,6 +17,7 @@ const ProfilePage = () => {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isPremium } = useSubscription();
 
   useEffect(() => {
     fetchProfileData();
@@ -106,24 +111,14 @@ const ProfilePage = () => {
               <div className="lg:col-span-1 flex flex-col gap-8">
                 <ProfileInfoSection profile={profileData.profile} onUpdate={handleProfileUpdate} />
 
-                {/* Additional info card (optional) */}
-                <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-                  <h4 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-green-500 rounded-full"></span>
-                    Account Status
-                  </h4>
-                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center text-green-600 dark:text-green-400">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-900 dark:text-white">Active</p>
-                        <p className="text-xs text-green-600 dark:text-green-400 font-medium">Verified Member</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Subscription Status Card */}
+                <SubscriptionStatusCard />
+
+                {/* Profile Stats Card */}
+                <ProfileStatsCard assessmentCount={profileData?.assessmentHistory?.length || 0} />
+
+                {/* Premium Benefits Card - Only for premium users */}
+                <PremiumBenefitsCard />
               </div>
 
               {/* Right Column: History (Chiếm 2/3 trên màn lớn) */}

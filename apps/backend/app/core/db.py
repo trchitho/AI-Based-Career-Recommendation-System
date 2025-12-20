@@ -6,7 +6,10 @@ from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import declarative_base, Session
 from fastapi import Request, HTTPException, status
 
-import asyncpg
+try:
+    import asyncpg
+except ImportError:
+    asyncpg = None
 
 # Nạp .env (ưu tiên .env, fallback .env.example)
 env_path = os.path.join(os.path.dirname(__file__), "../../.env")
@@ -82,13 +85,16 @@ except Exception:
     pass
 
 
-_pg_pool: asyncpg.Pool | None = None
+_pg_pool = None
 
 
-async def get_pg_pool() -> asyncpg.Pool:
+async def get_pg_pool():
     """
     Tạo và cache asyncpg pool, dùng cho các ETL async (onet_enrich_main, v.v.).
     """
+    if asyncpg is None:
+        raise RuntimeError("asyncpg not installed")
+        
     global _pg_pool
     if _pg_pool is None:
         _pg_pool = await asyncpg.create_pool(

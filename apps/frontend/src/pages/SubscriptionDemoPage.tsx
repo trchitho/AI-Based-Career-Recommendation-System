@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import { useSubscription } from '../hooks/useSubscription';
 import { AssessmentLimitBanner } from '../components/subscription/AssessmentLimitBanner';
-import { LockedCareerCard } from '../components/subscription/LockedCareerCard';
+import LockedCareerCard from '../components/subscription/LockedCareerCard';
 import { LockedRoadmapLevel } from '../components/subscription/LockedRoadmapLevel';
 import { UpgradeModal } from '../components/subscription/UpgradeModal';
 

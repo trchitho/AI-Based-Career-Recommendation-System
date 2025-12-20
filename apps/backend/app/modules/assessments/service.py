@@ -1014,7 +1014,7 @@ def save_essay(
 
 def build_results(session: Session, assessment_id: int) -> dict:
     """
-    Build kết quả cho 1 assessment:
+    Build kết quả cho 1 assessment cụ thể:
 
     - Lấy Assessment (RIASEC hoặc BigFive) theo id.
     - Lấy snapshot traits cho user (test + essay + fused) qua get_user_traits().
@@ -1035,8 +1035,12 @@ def build_results(session: Session, assessment_id: int) -> dict:
         raise NotFoundError("Assessment not found")
 
     user_id = int(obj.user_id)
+    
+    # Lấy điểm số trực tiếp từ assessment này
+    assessment_scores = obj.scores or {}
+    assessment_type = obj.a_type
 
-    # 1) Lấy snapshot traits (đã fuse) cho user
+    # 1) Lấy snapshot traits (đã fuse) cho user để trả về thêm thông tin
     traits_snapshot: TraitSnapshot = get_user_traits(
         session=session,
         user_id=user_id,
@@ -1156,49 +1160,15 @@ def build_results(session: Session, assessment_id: int) -> dict:
             "E": "enterprising",
             "C": "conventional",
         }
-        big5_key_map = {
-            "O": "openness",
-            "C": "conscientiousness",
-            "E": "extraversion",
-            "A": "agreeableness",
-            "N": "neuroticism",
+    
+    if not big_five_scores:
+        big_five_scores = {
+            "openness": 0.0,
+            "conscientiousness": 0.0,
+            "extraversion": 0.0,
+            "agreeableness": 0.0,
+            "neuroticism": 0.0,
         }
-
-        for r in resp_rows:
-            key = (r.question_key or "").strip().upper()
-            try:
-                raw_val = (
-                    float(r.score_value)
-                    if r.score_value is not None
-                    else float(r.answer_raw)
-                )
-            except Exception:
-                raw_val = None
-            if raw_val is None:
-                continue
-
-            # 1..5 -> 0..1
-            val01 = max(0.0, min(1.0, (float(raw_val) - 1.0) / 4.0))
-
-            if key in riasec_key_map:
-                riasec_acc[riasec_key_map[key]].append(val01)
-            if key in big5_key_map:
-                big5_acc[big5_key_map[key]].append(val01)
-
-        def _avg_to_percent(d: dict[str, list[float]]) -> dict[str, float]:
-            out: dict[str, float] = {}
-            for k, arr in d.items():
-                if not arr:
-                    out[k] = 0.0
-                else:
-                    out[k] = round(
-                        (sum(arr) / len(arr)) * 100.0,
-                        1,
-                    )
-            return out
-
-        riasec_scores = _avg_to_percent(riasec_acc)
-        big_five_scores = _avg_to_percent(big5_acc)
 
     # 4) Gợi ý nghề giống logic cũ (placeholder)
     rec_rows = session.execute(

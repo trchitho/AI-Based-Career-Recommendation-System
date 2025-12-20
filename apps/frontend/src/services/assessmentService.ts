@@ -65,4 +65,14 @@ export const assessmentService = {
     const response = await api.get(`/api/assessments/${assessmentId}/results`);
     return response.data;
   },
+
+  async getSessionResults(sessionId: string) {
+    const response = await api.get(`/api/assessments/session/${sessionId}/results`);
+    return response.data;
+  },
+
+  async getUserSessions() {
+    const response = await api.get('/api/assessments/user/sessions');
+    return response.data;
+  },
 };

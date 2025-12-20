@@ -52,6 +52,11 @@ const ResultsPage = () => {
   useEffect(() => {
     if (!assessmentId) return;
     fetchResults(assessmentId);
+    fetchRecommendations();
+    
+
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId]);
 
   // LAZY LOAD: Fetch recommendations ONLY when Career Matches tab is opened
@@ -108,6 +113,7 @@ const ResultsPage = () => {
       setErrorResults(null);
 
       const resultsData = await assessmentService.getResults(id);
+      
       setResults(resultsData);
     } catch (err) {
       console.error(err);
@@ -151,6 +157,8 @@ const ResultsPage = () => {
       minute: '2-digit',
     });
   };
+
+
 
   // ==========================================
   // 2. UI – NEW DESIGN
@@ -214,6 +222,8 @@ const ResultsPage = () => {
               </p>
             </div>
           )}
+
+
 
           {/* RESULTS CONTENT */}
           {!loadingResults && !errorResults && results && (

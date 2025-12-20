@@ -1080,7 +1080,7 @@ def admin_create_post(request: Request, payload: dict):
         raise HTTPException(status_code=400, detail="content is required")
     slug = (payload.get("slug") or "").strip() or "-".join(title.lower().split())[:120]
     status = (payload.get("status") or "Draft").strip() or "Draft"
-    published_at = datetime.now(timezone.utc) if status.lower() == "published" else None
+    published_at = datetime.now(timezone.utc) if status == "Published" else None
     exists = session.execute(select(BlogPost).where(BlogPost.slug == slug)).scalar_one_or_none()
     if exists:
         slug = f"{slug}-{int(datetime.now(timezone.utc).timestamp())}"
@@ -1105,14 +1105,20 @@ def admin_update_post(request: Request, post_id: int, payload: dict):
     p = session.get(BlogPost, post_id)
     if not p:
         raise HTTPException(status_code=404, detail="Post not found")
-    for field in ("title", "slug", "content_md", "status"):
+    for field in ("title", "slug", "content_md"):
         if field in payload:
             setattr(p, field, payload[field] or getattr(p, field))
-    status = (p.status or "").strip()
-    if status.lower() == "published" and getattr(p, "published_at", None) is None:
-        p.published_at = datetime.now(timezone.utc)  # type: ignore[assignment]
-    if status.lower() != "published":
-        p.published_at = None  # type: ignore[assignment]
+    
+    # Handle status field separately
+    if "status" in payload:
+        status = payload.get("status") or "Draft"
+        p.status = status
+    # Handle status updates
+    if hasattr(p, 'status') and p.status:
+        if p.status == "Published" and not p.published_at:
+            p.published_at = datetime.now(timezone.utc)
+        elif p.status != "Published":
+            p.published_at = None
     session.commit()
     session.refresh(p)
     return p.to_dict()

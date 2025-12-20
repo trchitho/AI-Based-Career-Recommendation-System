@@ -1,370 +1,263 @@
 import { useEffect, useState } from 'react';
-import { adminService } from '../../services/adminService';
-import { useTranslation } from 'react-i18next';
-
-interface AdminPost {
-  id: string;
-  title: string;
-  slug: string;
-  content_md: string;
-  status?: string;
-  published_at?: string | null;
-  created_at?: string | null;
-}
-
-interface PostForm {
-  title: string;
-  slug: string;
-  content_md: string;
-  status: string;
-}
-
-const emptyForm: PostForm = {
-  title: '',
-  slug: '',
-  content_md: '',
-  status: 'Draft',
-};
-
-/* 🎨 THEME CLASSES */
-const inputClass =
-  'w-full px-3 py-2 rounded-lg border ' +
-  'bg-white text-black placeholder-gray-500 ' +
-  'focus:ring-2 focus:ring-blue-500 focus:border-transparent ' +
-  'dark:bg-[#1E293B] dark:text-white dark:border-[#334155]';
-
-const cardClass =
-  'rounded-lg shadow p-6 bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-[#334155]';
-
-const tableHeadClass =
-  'bg-gray-100 dark:bg-[#1E293B] text-gray-700 dark:text-gray-200';
-
-const tableRowClass =
-  'border-t border-gray-200 dark:border-[#334155] bg-white dark:bg-[#0F172A] ' +
-  'hover:bg-gray-50 dark:hover:bg-[#1E253A]';
-
-const primaryBtn =
-  'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50';
+import { useNavigate } from 'react-router-dom';
+import { blogService, BlogPost, BlogListResponse } from '../../services/blogService';
 
 const BlogManagementPage = () => {
-  const { t } = useTranslation();
-
-  const [posts, setPosts] = useState<AdminPost[]>([]);
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [form, setForm] = useState<PostForm>(emptyForm);
-  const [editing, setEditing] = useState<AdminPost | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  const load = async () => {
+  const loadPosts = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      const rows = await adminService.listPosts();
-      setPosts(rows || []);
+      const resp: BlogListResponse = await blogService.adminList({ page: 1, pageSize: 50 });
+      setPosts(resp.items || []);
     } catch (e: any) {
-      setError(
-        e?.response?.data?.detail ||
-        e?.message ||
-        t('blog.loadFailed')
-      );
+      setError(e?.response?.data?.detail || e?.message || 'Failed to load posts');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    load();
+    loadPosts();
   }, []);
 
-  const onCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  const handleDelete = async (id: string) => {
+    if (!confirm('Bạn có chắc muốn xóa blog này?')) return;
+    
     try {
-      await adminService.createPost(form);
-      setForm(emptyForm);
-      await load();
+      await blogService.adminDelete(id);
+      await loadPosts(); // Reload list
     } catch (e: any) {
-      alert(
-        e?.response?.data?.detail ||
-        e?.message ||
-        t('blog.createFailed')
-      );
-    } finally {
-      setSubmitting(false);
+      alert('Không thể xóa blog: ' + (e?.response?.data?.detail || e?.message));
     }
   };
 
-  const onUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editing) return;
-    setSubmitting(true);
-
+  const handleApprove = async (id: string) => {
     try {
-      await adminService.updatePost(String(editing.id), {
-        title: editing.title,
-        slug: editing.slug,
-        content_md: editing.content_md,
-        status: editing.status,
-      });
-
-      setEditing(null);
-      await load();
+      await blogService.adminUpdate(id, { status: 'Published' });
+      await loadPosts(); // Reload list
     } catch (e: any) {
-      alert(
-        e?.response?.data?.detail ||
-        e?.message ||
-        t('blog.updateFailed')
-      );
-    } finally {
-      setSubmitting(false);
+      alert('Không thể duyệt blog: ' + (e?.response?.data?.detail || e?.message));
     }
   };
 
-  const onDelete = async (id: string) => {
-    if (!confirm(t('blog.confirmDelete'))) return;
+  const handleReject = async (id: string) => {
+    if (!confirm('Bạn có chắc muốn từ chối blog này?')) return;
+    
     try {
-      await adminService.deletePost(id);
-      await load();
+      await blogService.adminUpdate(id, { status: 'Rejected' });
+      await loadPosts(); // Reload list
     } catch (e: any) {
-      alert(
-        e?.response?.data?.detail ||
-        e?.message ||
-        t('blog.deleteFailed')
-      );
-    }
-  };
-
-  const togglePublish = async (p: AdminPost) => {
-    const next = p.status === 'Published' ? 'Draft' : 'Published';
-    try {
-      await adminService.updatePost(String(p.id), { status: next });
-      await load();
-    } catch (e: any) {
-      alert(
-        e?.response?.data?.detail ||
-        e?.message ||
-        t('blog.statusUpdateFailed')
-      );
+      alert('Không thể từ chối blog: ' + (e?.response?.data?.detail || e?.message));
     }
   };
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-black dark:text-white">
-        {t("blog.managePosts")}
-      </h1>
+    <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white">
+        
+        {/* CSS Injection */}
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        `}</style>
 
-      {/* Create Form */}
-      <div className={cardClass}>
-        <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">
-          {t("blog.newPost")}
-        </h2>
+        {/* Background Glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-green-500/5 dark:bg-green-500/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
-        <form onSubmit={onCreate} className="space-y-4">
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              className={inputClass}
-              placeholder={t("blog.titlePlaceholder")}
-              value={form.title}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, title: e.target.value }))
-              }
-              required
-            />
-
-            <input
-              className={inputClass}
-              placeholder={t("blog.slugPlaceholder")}
-              value={form.slug}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, slug: e.target.value }))
-              }
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-            <select
-              className={inputClass + ' md:col-span-1'}
-              value={form.status}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, status: e.target.value }))
-              }
-            >
-              <option value="Draft">{t("blog.statusDraft")}</option>
-              <option value="Published">{t("blog.statusPublished")}</option>
-            </select>
-
-            <textarea
-              className={inputClass + ' md:col-span-3 h-40'}
-              placeholder={t("blog.contentPlaceholder")}
-              value={form.content_md}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, content_md: e.target.value }))
-              }
-            />
-          </div>
-
-          <button className={primaryBtn} disabled={submitting}>
-            {submitting ? t("blog.creating") : t("blog.createPost")}
-          </button>
-        </form>
-      </div>
-
-      {/* LIST */}
-      <div className={cardClass}>
-        <h2 className="text-lg font-semibold text-black dark:text-white p-4 border-b border-gray-200 dark:border-[#334155]">
-          {t("blog.allPosts")}
-        </h2>
-
-        {loading ? (
-          <div className="p-4 text-gray-600 dark:text-gray-300">
-            {t("blog.loading")}
-          </div>
-        ) : error ? (
-          <div className="p-4 text-red-500">{error}</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-gray-700 dark:text-gray-200">
-              <thead className={tableHeadClass}>
-                <tr>
-                  <th className="px-4 py-2 text-left">{t("blog.colTitle")}</th>
-                  <th className="px-4 py-2 text-left">{t("blog.colSlug")}</th>
-                  <th className="px-4 py-2 text-center">{t("blog.colStatus")}</th>
-                  <th className="px-4 py-2 text-center">{t("blog.colPublished")}</th>
-                  <th className="px-4 py-2 text-center">{t("blog.colActions")}</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {posts.map((p) => (
-                  <tr key={p.id} className={tableRowClass}>
-                    <td className="px-4 py-2">{p.title}</td>
-                    <td className="px-4 py-2">{p.slug}</td>
-
-                    <td className="px-4 py-2 text-center">
-                      <span
-                        className={`px-2 py-1 text-xs rounded ${p.status === 'Published'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-300 dark:text-green-900'
-                            : 'bg-gray-200 text-gray-800 dark:bg-gray-400 dark:text-gray-900'
-                          }`}
-                      >
-                        {p.status === 'Published'
-                          ? t("blog.statusPublished")
-                          : t("blog.statusDraft")}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-2 text-center">
-                      {p.published_at
-                        ? new Date(p.published_at).toLocaleString()
-                        : '-'}
-                    </td>
-
-                    <td className="px-4 py-2 text-center space-x-2">
-                      <button
-                        className="px-2 py-1 border border-gray-500 dark:border-gray-400 rounded text-black dark:text-white"
-                        onClick={() => setEditing(p)}
-                      >
-                        {t("blog.edit")}
-                      </button>
-
-                      <button
-                        className="px-2 py-1 border border-gray-500 dark:border-gray-400 rounded text-black dark:text-white"
-                        onClick={() => togglePublish(p)}
-                      >
-                        {p.status === 'Published'
-                          ? t("blog.unpublish")
-                          : t("blog.publish")}
-                      </button>
-
-                      <button
-                        className="px-2 py-1 border border-red-500 rounded text-red-600 dark:text-red-400"
-                        onClick={() => onDelete(String(p.id))}
-                      >
-                        {t("blog.delete")}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* EDIT MODAL */}
-      {editing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0F172A] rounded-lg shadow max-w-2xl w-full p-6 border border-gray-200 dark:border-[#334155]">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-black dark:text-white">
-                {t("blog.editPost")}
-              </h3>
-              <button
-                className="text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
-                onClick={() => setEditing(null)}
-              >
-                ✕
-              </button>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          
+          {/* Header */}
+          <div className="flex justify-between items-center mb-12">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+                Quản lý <span className="text-green-600 dark:text-green-500">Blog</span>
+              </h1>
+              <p className="text-xl text-gray-500 dark:text-gray-400">
+                Tạo, chỉnh sửa và quản lý các bài viết blog
+              </p>
             </div>
-
-            <form onSubmit={onUpdate} className="space-y-4">
-              <input
-                className={inputClass}
-                value={editing.title}
-                onChange={(e) =>
-                  setEditing({ ...editing, title: e.target.value })
-                }
-              />
-
-              <input
-                className={inputClass}
-                value={editing.slug}
-                onChange={(e) =>
-                  setEditing({ ...editing, slug: e.target.value })
-                }
-              />
-
-              <select
-                className={inputClass}
-                value={editing.status || 'Draft'}
-                onChange={(e) =>
-                  setEditing({ ...editing, status: e.target.value })
-                }
-              >
-                <option value="Draft">{t("blog.statusDraft")}</option>
-                <option value="Published">{t("blog.statusPublished")}</option>
-              </select>
-
-              <textarea
-                className={inputClass + ' h-40'}
-                value={editing.content_md}
-                onChange={(e) =>
-                  setEditing({ ...editing, content_md: e.target.value })
-                }
-              />
-
-              <div className="flex gap-2">
-                <button disabled={submitting} className={primaryBtn}>
-                  {submitting ? t("blog.saving") : t("blog.save")}
-                </button>
-
-                <button
-                  type="button"
-                  className="px-4 py-2 border border-gray-400 dark:border-gray-300 rounded text-black dark:text-white"
-                  onClick={() => setEditing(null)}
-                >
-                  {t("blog.cancel")}
-                </button>
-              </div>
-            </form>
+            
+            <button
+              onClick={() => navigate('/admin/blog/create')}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-1"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Tạo Blog Mới
+            </button>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400">
+              {error}
+            </div>
+          )}
+
+          {/* Loading */}
+          {loading && (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              <p className="mt-4 text-gray-500 dark:text-gray-400">Đang tải...</p>
+            </div>
+          )}
+
+          {/* Blog List */}
+          {!loading && !error && (
+            <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+              
+              {posts.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Chưa có blog nào</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Bắt đầu bằng cách tạo blog đầu tiên của bạn.</p>
+                  <div className="mt-6">
+                    <button
+                      onClick={() => navigate('/admin/blog/create')}
+                      className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                    >
+                      Tạo Blog Mới
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-900">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Tiêu đề
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Danh mục
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Trạng thái
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Ngày tạo
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Thao tác
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                      {posts.map((post) => (
+                        <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {post.title}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                  {post.slug}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              {post.category || 'Không có'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              post.status === 'Published' 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                : post.status === 'Pending'
+                                ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                                : post.status === 'Rejected'
+                                ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                            }`}>
+                              {post.status === 'Published' ? 'Đã xuất bản' 
+                               : post.status === 'Pending' ? 'Chờ duyệt'
+                               : post.status === 'Rejected' ? 'Từ chối'
+                               : 'Bản nháp'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {post.created_at ? new Date(post.created_at).toLocaleDateString('vi-VN') : '-'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => navigate(`/blog/${post.slug}`)}
+                                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                              >
+                                Xem
+                              </button>
+                              
+                              {/* Status action buttons */}
+                              {post.status === 'Pending' && (
+                                <>
+                                  <button
+                                    onClick={() => handleApprove(post.id)}
+                                    className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                                  >
+                                    Duyệt
+                                  </button>
+                                  <button
+                                    onClick={() => handleReject(post.id)}
+                                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                  >
+                                    Từ chối
+                                  </button>
+                                </>
+                              )}
+                              
+                              {/* Publish button for drafts */}
+                              {post.status === 'Draft' && (
+                                <button
+                                  onClick={() => handleApprove(post.id)}
+                                  className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                >
+                                  Xuất bản
+                                </button>
+                              )}
+                              
+                              {/* Unpublish button for published posts */}
+                              {post.status === 'Published' && (
+                                <button
+                                  onClick={() => blogService.adminUpdate(post.id, { status: 'Draft' }).then(() => loadPosts())}
+                                  className="text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300"
+                                >
+                                  Hủy xuất bản
+                                </button>
+                              )}
+                              
+                              <button
+                                onClick={() => navigate(`/admin/blog/edit/${post.id}`)}
+                                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                              >
+                                Sửa
+                              </button>
+                              <button
+                                onClick={() => handleDelete(post.id)}
+                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                              >
+                                Xóa
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
   );
 };
 

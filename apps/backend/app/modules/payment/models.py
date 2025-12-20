@@ -1,7 +1,10 @@
-"""Payment Models"""
-
-from __future__ import annotations
-
+"""
+Payment Models
+"""
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum, Text, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 import enum
 from datetime import datetime, timezone
 from typing import Optional
@@ -37,24 +40,33 @@ class Payment(Base):
     __tablename__ = "payments"
     __table_args__ = {"schema": "core"}
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(BigInteger, index=True, nullable=False)
-    order_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
-    app_trans_id: Mapped[Optional[str]] = mapped_column(String(100), unique=True, nullable=True, index=True)
-    amount: Mapped[int] = mapped_column(nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    # Store as string; always use PaymentMethod.X.value for assignments/comparisons
-    payment_method: Mapped[str] = mapped_column(String(20), default=PaymentMethod.ZALOPAY.value)
-    # Store as string; always use PaymentStatus.X.value for assignments/comparisons
-    status: Mapped[str] = mapped_column(String(20), default=PaymentStatus.PENDING.value, index=True)
-    zp_trans_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    order_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    callback_data: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
-    )
-    paid_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-
-    def __repr__(self) -> str:
-        return f"<Payment {self.app_trans_id or self.order_id} - {self.status}>"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)  # Remove FK constraint temporarily
+    
+    # Thông tin đơn hàng
+    order_id = Column(String(100), unique=True, nullable=False, index=True)
+    app_trans_id = Column(String(100), unique=True, nullable=True, index=True)
+    
+    # Thông tin thanh toán
+    amount = Column(Integer, nullable=False)
+    description = Column(Text, nullable=True)
+    payment_method = Column(SQLEnum(PaymentMethod), default=PaymentMethod.ZALOPAY)
+    status = Column(SQLEnum(PaymentStatus), default=PaymentStatus.PENDING, index=True)
+    
+    # Thông tin từ gateway
+    zp_trans_token = Column(String(255), nullable=True)
+    order_url = Column(Text, nullable=True)
+    
+    # Callback data
+    callback_data = Column(Text, nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    paid_at = Column(DateTime, nullable=True)
+    
+    # Relationships - tạm thời comment out để tránh lỗi
+    # user = relationship("User", back_populates="payments")
+    
+    def __repr__(self):
+        return f"<Payment {self.order_id} - {self.status}>"

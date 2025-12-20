@@ -5,8 +5,19 @@ from typing import Optional
 
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Numeric, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
+import enum
 
 from ...core.db import Base
+
+class BlogStatus(enum.Enum):
+    DRAFT = "Draft"
+    PUBLISHED = "Published"
+    PENDING = "Pending"
+    REJECTED = "Rejected"
+    ARCHIVED = "Archived"
+    
+    def __str__(self):
+        return self.value
 
 
 # bảng core.career_categories
@@ -81,19 +92,42 @@ class BlogPost(Base):
     title = Column(Text, nullable=False)
     slug = Column(Text, nullable=False, unique=True)
     content_md = Column(Text, nullable=False)
-    status = Column(Text)  # blog_status enum => map text
+    excerpt = Column(Text)
+    category = Column(Text)
+    tags = Column(Text)  # JSON string for tags array
+    featured_image = Column(Text)
+    view_count = Column(BigInteger, default=0)
+    is_featured = Column(Text)  # Boolean as text
+    status = Column(Text, default="Draft")
     published_at = Column(TIMESTAMP(timezone=True))
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     def to_dict(self) -> dict:
+        import json
+        
+        # Parse tags from JSON string
+        tags = []
+        if self.tags:
+            try:
+                tags = json.loads(self.tags) if isinstance(self.tags, str) else self.tags
+            except (TypeError, ValueError, json.JSONDecodeError):
+                tags = []
+        
         return {
             "id": self.id,
             "author_id": self.author_id,
             "title": self.title,
             "slug": self.slug,
-            "content_md": self.content_md,
-            "status": self.status,
+            "content_md": self.content_md or "",
+            "excerpt": self.excerpt or "",
+            "category": self.category or "",
+            "tags": tags,
+            "featured_image": self.featured_image or "",
+            "view_count": self.view_count or 0,
+            "is_featured": self.is_featured == "true" if self.is_featured else False,
+            "is_published": self.status == "Published" if self.status else False,
+            "status": self.status or "Draft",
             "published_at": self.published_at.isoformat() if self.published_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
@@ -149,7 +183,11 @@ class Essay(Base):
 # bảng core.career_ksas (skills)
 class CareerKSA(Base):
     __tablename__ = "career_ksas"
-    __table_args__ = {"schema": "core"}
+    __table_args__ = (
+        {"schema": "core"},
+        # Thêm unique constraint để tránh trùng lặp
+        # UniqueConstraint('onet_code', 'ksa_type', 'name', name='unique_career_ksa')
+    )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     onet_code = Column(Text, nullable=False)
     ksa_type = Column(Text, nullable=False)

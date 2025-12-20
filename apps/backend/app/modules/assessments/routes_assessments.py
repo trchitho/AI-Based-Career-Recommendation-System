@@ -9,10 +9,11 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.modules.assessments.schemas import AssessmentResultsOut
-from .models import Assessment
+from .models import Assessment, AssessmentSession
 from sqlalchemy import func
 
 from ..content.models import EssayPrompt
+from ...core.subscription import SubscriptionService, require_feature_access
 from .service import (
     get_questions,
     save_assessment,
@@ -219,12 +220,47 @@ def api_submit_assessment(
     Nhận toàn bộ bài làm trắc nghiệm và trả về assessmentId.
     user_id lấy từ _current_user_id (dựa trên req.state / header / JWT).
     """
+    
+    # Check subscription status
+    subscription = SubscriptionService.get_user_subscription(user_id, db)
+    is_premium = subscription["is_premium"]
+    
+    if not is_premium:
+        # For free users, check monthly assessment limit
+        usage = SubscriptionService.get_user_usage(user_id, "assessment", db)
+        current_usage = usage["usage_count"]
+        limit = subscription["limits"].get("assessments_per_month", 5)
+        
+        if current_usage >= limit:
+            raise HTTPException(
+                status_code=402,  # Payment Required
+                detail={
+                    "message": f"Bạn đã sử dụng hết {limit} lần test miễn phí trong tháng này. Nâng cấp để test không giới hạn.",
+                    "feature": "assessment",
+                    "current_usage": current_usage,
+                    "limit": limit,
+                    "upgrade_required": True,
+                    "reset_date": "Đầu tháng tới"
+                }
+            )
+    
     try:
         assessment_id = save_assessment(
             db,
             user_id=user_id,
             payload=body.model_dump(),
         )
+        
+        # Increment usage count for non-premium users
+        if not is_premium:
+            SubscriptionService.increment_usage(user_id, "assessment", db)
+            # Get updated usage for response
+            updated_usage = SubscriptionService.get_user_usage(user_id, "assessment", db)
+            current_usage = updated_usage["usage_count"]
+            limit = subscription["limits"].get("assessments_per_month", 5)
+        else:
+            current_usage = -1  # Unlimited
+            limit = -1
 
         traits = fuse_user_traits(db, user_id=user_id) or {}
 
@@ -233,6 +269,12 @@ def api_submit_assessment(
             "hasEssayTraits": bool(traits.get("has_essay_traits")),
             "hasFusedTraits": bool(traits.get("has_fused_traits")),
             "traits": traits,
+            "usage_info": {
+                "current_usage": current_usage,
+                "limit": limit,
+                "remaining": max(0, limit - current_usage) if limit != -1 else -1,
+                "is_premium": is_premium
+            }
         }
     except ValueError as e:
         db.rollback()
@@ -403,3 +445,109 @@ def get_assessment_results(
         )
 
     return results
+
+
+@router.get("/session/{session_id}/results")
+def get_session_results(
+    session_id: int,
+    db: Session = Depends(_db),
+    current_user_id: int = Depends(_current_user_id),
+):
+    """
+    Lấy kết quả theo session (bao gồm cả RIASEC và BigFive trong cùng session).
+    """
+    try:
+        # Lấy tất cả assessments trong session
+        assessments = db.query(Assessment).filter(
+            Assessment.session_id == session_id
+        ).all()
+        
+        if not assessments:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Session not found"
+            )
+        
+        # Kiểm tra quyền truy cập
+        if assessments[0].user_id != current_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not allowed to view this session"
+            )
+        
+        riasec_assessment = None
+        bigfive_assessment = None
+        
+        for assessment in assessments:
+            if assessment.a_type == "RIASEC":
+                riasec_assessment = assessment
+            elif assessment.a_type == "BigFive":
+                bigfive_assessment = assessment
+        
+        # Build results cho từng loại
+        riasec_results = None
+        bigfive_results = None
+        
+        if riasec_assessment:
+            riasec_results = build_results(db, riasec_assessment.id)
+        
+        if bigfive_assessment:
+            bigfive_results = build_results(db, bigfive_assessment.id)
+        
+        return {
+            "session_id": session_id,
+            "user_id": current_user_id,
+            "riasec": riasec_results,
+            "bigfive": bigfive_results,
+            "created_at": assessments[0].created_at.isoformat() if assessments else None
+        }
+        
+    except Exception as e:
+        print(f"[assessments] get_session_results error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get session results"
+        )
+
+
+@router.get("/user/sessions")
+def get_user_sessions(
+    db: Session = Depends(_db),
+    current_user_id: int = Depends(_current_user_id),
+):
+    """
+    Lấy danh sách tất cả sessions của user.
+    """
+    try:
+        # Lấy sessions của user
+        sessions_query = db.query(AssessmentSession).filter(
+            AssessmentSession.user_id == current_user_id
+        ).order_by(AssessmentSession.created_at.desc()).all()
+        
+        sessions_data = []
+        for session in sessions_query:
+            # Lấy assessments trong session này
+            assessments = db.query(Assessment).filter(
+                Assessment.session_id == session.id
+            ).all()
+            
+            assessment_types = [a.a_type for a in assessments]
+            
+            sessions_data.append({
+                "session_id": session.id,
+                "created_at": session.created_at.isoformat(),
+                "assessment_count": len(assessments),
+                "assessment_types": ", ".join(assessment_types)
+            })
+        
+        return {
+            "user_id": current_user_id,
+            "sessions": sessions_data
+        }
+        
+    except Exception as e:
+        print(f"[assessments] get_user_sessions error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get user sessions"
+        )

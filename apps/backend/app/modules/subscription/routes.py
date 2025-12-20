@@ -1,124 +1,134 @@
 """
-Subscription Routes
-API endpoints để check giới hạn và quản lý subscription
+Subscription API Routes
 """
-from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
 
-from app.core.db import get_db
-from app.core.jwt import get_current_user
-from app.services.subscription_service import SubscriptionService
+from fastapi import APIRouter, Request, HTTPException
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+
+from ...core.jwt import require_user
+from ...core.subscription import SubscriptionService
 
 router = APIRouter()
 
 
-@router.get("/my-plan")
-def get_my_plan(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
-    """Lấy thông tin plan hiện tại"""
-    user_id = current_user["user_id"]
+def _db(request: Request) -> Session:
+    return request.state.db
+
+
+@router.get("/usage")
+def get_user_usage(request: Request):
+    """Lấy thông tin usage hiện tại của user"""
+    user_id = require_user(request)
+    session = _db(request)
     
-    plan = SubscriptionService.get_user_plan(db, user_id)
-    usage = SubscriptionService.get_user_usage(db, user_id)
+    # Lấy subscription info
+    subscription = SubscriptionService.get_user_subscription(user_id, session)
+    
+    # Lấy usage cho các features
+    features = ["career_view", "assessment", "roadmap_level"]
+    usage_data = []
+    
+    for feature in features:
+        usage = SubscriptionService.get_user_usage(user_id, feature, session)
+        access = SubscriptionService.check_feature_access(user_id, feature, session)
+        
+        usage_data.append({
+            "feature": feature,
+            "current_usage": usage["usage_count"],
+            "limit": access["limit"],
+            "remaining": max(0, access["limit"] - usage["usage_count"]) if access["limit"] != -1 else -1,
+            "allowed": access["allowed"]
+        })
     
     return {
-        "plan": plan,
-        "usage": usage,
+        "subscription": subscription,
+        "usage": usage_data
     }
 
 
-@router.get("/check/assessment")
-def check_assessment_limit(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
-    """Kiểm tra có thể làm bài test không"""
-    user_id = current_user["user_id"]
+@router.get("/plans")
+def get_subscription_plans(request: Request):
+    """Lấy danh sách các gói subscription"""
+    session = _db(request)
     
-    can_take, message = SubscriptionService.can_take_assessment(db, user_id)
+    query = text("""
+    SELECT id, name, price_monthly, price_yearly, features, limits, is_active
+    FROM core.subscription_plans
+    WHERE is_active = true
+    ORDER BY price_monthly ASC
+    """)
     
-    return {
-        "allowed": can_take,
-        "message": message,
-    }
+    result = session.execute(query).fetchall()
+    
+    plans = []
+    for row in result:
+        plans.append({
+            "id": row.id,
+            "name": row.name,
+            "price_monthly": float(row.price_monthly) if row.price_monthly else 0,
+            "price_yearly": float(row.price_yearly) if row.price_yearly else 0,
+            "features": row.features or {},
+            "limits": row.limits or {},
+            "is_active": row.is_active
+        })
+    
+    return {"plans": plans}
 
 
-@router.get("/check/career/{career_id}")
-def check_career_access(
-    career_id: int,
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
-    """Kiểm tra có thể xem nghề nghiệp này không"""
-    user_id = current_user["user_id"]
+@router.post("/check-access")
+def check_feature_access(request: Request, payload: dict):
+    """Kiểm tra quyền truy cập feature"""
+    user_id = require_user(request)
+    session = _db(request)
     
-    can_view, message = SubscriptionService.can_view_career(db, user_id, career_id)
+    feature_type = payload.get("feature_type")
+    level = payload.get("level")
     
-    return {
-        "allowed": can_view,
-        "message": message,
-    }
+    if not feature_type:
+        raise HTTPException(status_code=400, detail="feature_type is required")
+    
+    access = SubscriptionService.check_feature_access(user_id, feature_type, session, level)
+    
+    return access
 
 
-@router.get("/check/roadmap-level/{level}")
-def check_roadmap_level(
-    level: int,
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
-    """Kiểm tra có thể xem level roadmap này không"""
-    user_id = current_user["user_id"]
+@router.get("/subscription")
+def get_user_subscription(request: Request):
+    """Lấy thông tin subscription hiện tại của user"""
+    user_id = require_user(request)
+    session = _db(request)
     
-    can_view, message = SubscriptionService.can_view_roadmap_level(db, user_id, level)
+    subscription = SubscriptionService.get_user_subscription(user_id, session)
     
-    return {
-        "allowed": can_view,
-        "message": message,
-    }
+    return subscription
 
 
-@router.post("/track/assessment")
-def track_assessment(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
-    """Track việc làm bài test"""
-    user_id = current_user["user_id"]
+@router.post("/debug/upgrade")
+def debug_upgrade_user(request: Request, payload: dict):
+    """Debug endpoint để manual upgrade user"""
+    user_id = require_user(request)
+    session = _db(request)
     
-    # Kiểm tra trước
-    can_take, message = SubscriptionService.can_take_assessment(db, user_id)
-    if not can_take:
-        raise HTTPException(status_code=403, detail=message)
+    plan_name = payload.get("plan_name", "Premium")
     
-    # Increment counter
-    SubscriptionService.increment_assessment_count(db, user_id)
-    
-    return {"success": True, "message": "Tracked"}
-
-
-@router.post("/track/career/{career_id}")
-def track_career_view(
-    career_id: int,
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
-):
-    """Track việc xem nghề nghiệp"""
-    user_id = current_user["user_id"]
-    
-    # Kiểm tra trước
-    can_view, message = SubscriptionService.can_view_career(db, user_id, career_id)
-    if not can_view:
-        raise HTTPException(status_code=403, detail=message)
-    
-    # Track view
-    SubscriptionService.track_career_view(db, user_id, career_id)
-    
-    return {"success": True, "message": "Tracked"}
+    try:
+        from ...core.subscription import SubscriptionService
+        
+        # Create a fake payment ID for debug
+        fake_payment_id = 999999
+        
+        success = SubscriptionService.upgrade_user_subscription(
+            user_id=user_id,
+            plan_name=plan_name,
+            payment_id=fake_payment_id,
+            session=session
+        )
+        
+        if success:
+            return {"success": True, "message": f"User upgraded to {plan_name}"}
+        else:
+            return {"success": False, "message": "Upgrade failed"}
+            
+    except Exception as e:
+        return {"success": False, "message": str(e)}

@@ -14,13 +14,18 @@ interface RIASECSpiderChartProps {
 }
 
 const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
+  // Check if we have real data or should use fallback
+  
+  // Fallback data nếu không có scores thực
+  const hasRealData = scores && Object.values(scores).some(score => score > 0);
+  
   const data = [
-    { dimension: 'Realistic', score: scores.realistic, fullName: 'Realistic (Doers)', color: '#EF4444' },
-    { dimension: 'Investigative', score: scores.investigative, fullName: 'Investigative (Thinkers)', color: '#F59E0B' },
-    { dimension: 'Artistic', score: scores.artistic, fullName: 'Artistic (Creators)', color: '#10B981' },
-    { dimension: 'Social', score: scores.social, fullName: 'Social (Helpers)', color: '#3B82F6' },
-    { dimension: 'Enterprising', score: scores.enterprising, fullName: 'Enterprising (Persuaders)', color: '#8B5CF6' },
-    { dimension: 'Conventional', score: scores.conventional, fullName: 'Conventional (Organizers)', color: '#EC4899' },
+    { dimension: 'Realistic', score: scores?.realistic || (hasRealData ? 0 : 65), fullName: 'Realistic (Doers)', color: '#EF4444' },
+    { dimension: 'Investigative', score: scores?.investigative || (hasRealData ? 0 : 78), fullName: 'Investigative (Thinkers)', color: '#F59E0B' },
+    { dimension: 'Artistic', score: scores?.artistic || (hasRealData ? 0 : 72), fullName: 'Artistic (Creators)', color: '#10B981' },
+    { dimension: 'Social', score: scores?.social || (hasRealData ? 0 : 85), fullName: 'Social (Helpers)', color: '#3B82F6' },
+    { dimension: 'Enterprising', score: scores?.enterprising || (hasRealData ? 0 : 58), fullName: 'Enterprising (Persuaders)', color: '#8B5CF6' },
+    { dimension: 'Conventional', score: scores?.conventional || (hasRealData ? 0 : 63), fullName: 'Conventional (Organizers)', color: '#EC4899' },
   ];
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -43,6 +48,14 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
     // Xóa bỏ: bg-white, shadow-md, border, p-6, rounded-xl
     // Chỉ giữ lại w-full để nó chiếm hết chiều rộng của khung cha
     <div className="w-full h-auto">
+      {!hasRealData && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+            <span className="text-lg">📊</span>
+            Đây là dữ liệu mẫu. Hoàn thành assessment để xem kết quả thực tế của bạn.
+          </p>
+        </div>
+      )}
 
       {/* Lưu ý: Nếu ở khung cha (Parent Component) ĐÃ CÓ tiêu đề "RIASEC Interest Profile" rồi 
          thì bạn nên xóa hoặc ẩn thẻ div dưới đây đi để tránh bị lặp lại 2 tiêu đề.

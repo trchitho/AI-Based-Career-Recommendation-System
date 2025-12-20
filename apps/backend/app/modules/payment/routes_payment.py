@@ -25,6 +25,11 @@ import os
 
 router = APIRouter()
 
+@router.get("/test")
+def test_payment_api():
+    """Test endpoint để kiểm tra payment API"""
+    return {"message": "Payment API is working", "timestamp": datetime.utcnow().isoformat()}
+
 
 def get_zalopay_service() -> ZaloPayService:
     """Init ZaloPay service from env"""
@@ -64,53 +69,87 @@ def create_payment(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    """Create a new payment"""
-    user_id = current_user["user_id"]
-    order_id = f"TX_{user_id}_{int(datetime.utcnow().timestamp())}"
-
-    payment = Payment(
-        user_id=user_id,
-        order_id=order_id,
-        amount=payment_req.amount,
-        payment_method=payment_req.payment_method.value if isinstance(payment_req.payment_method, PaymentMethod) else payment_req.payment_method,
-        status=PaymentStatus.PENDING.value,
-        description=payment_req.description,
-    )
-
-    db.add(payment)
-    db.commit()
-    db.refresh(payment)
-
-    zalopay = get_zalopay_service()
-    result = zalopay.create_order(
-        amount=payment_req.amount,
-        description=payment_req.description,
-        user_id=user_id,
-        order_id=order_id,
-    )
-
-    payment.order_url = result.get("order_url")
-    payment.zp_trans_token = result.get("zp_trans_token")
-
-    if result.get("success"):
-        # ZaloPay trả app_trans_id (format yymmdd_orderid); dùng làm transaction_id để query later
-        app_trans_id = result.get("app_trans_id") or f"{datetime.utcnow().strftime('%y%m%d')}_{order_id}"
-        payment.app_trans_id = app_trans_id
-        payment.status = PaymentStatus.PENDING.value
-        db.commit()
-        db.refresh(payment)
-        return PaymentCreateResponse(
-            success=True,
-            order_id=payment.app_trans_id or payment.order_id,
-            order_url=result.get("order_url"),
-        )
-    else:
-        payment.status = PaymentStatus.FAILED.value
-        db.commit()
-        return PaymentCreateResponse(
-            success=False,
-            order_id=order_id,
-            message=result.get("message", "Tạo đơn hàng thất bại"),
+    """
+    Tạo đơn thanh toán mới
+    """
+    try:
+        user_id = current_user["user_id"]
+        order_id = f"ORDER_{user_id}_{int(datetime.utcnow().timestamp())}"
+        
+        # Try to create payment record, fallback if DB fails
+        payment = None
+        try:
+            payment = Payment(
+                user_id=user_id,
+                order_id=order_id,
+                amount=payment_req.amount,
+                description=payment_req.description,
+                payment_method=payment_req.payment_method,
+                status=PaymentStatus.PENDING,
+            )
+            
+            db.add(payment)
+            db.commit()
+            db.refresh(payment)
+        except Exception as db_error:
+            logger.error(f"Database error: {db_error}")
+            # Continue without DB record for now
+        
+        # Gọi ZaloPay API thực tế
+        try:
+            zalopay = get_zalopay_service()
+            result = zalopay.create_order(
+                amount=payment_req.amount,
+                description=payment_req.description,
+                user_id=user_id,
+                order_id=order_id,
+            )
+        except Exception as e:
+            logger.error(f"ZaloPay API error: {e}")
+            # Fallback nếu ZaloPay API fail
+            result = {
+                "success": False, 
+                "message": f"Lỗi kết nối ZaloPay: {str(e)}"
+            }
+        
+        if result.get("success"):
+            # Cập nhật payment với thông tin từ ZaloPay (nếu có)
+            if payment:
+                try:
+                    payment.app_trans_id = result.get("app_trans_id")
+                    payment.zp_trans_token = result.get("zp_trans_token")
+                    payment.order_url = result.get("order_url")
+                    # Giữ status PENDING, sẽ update khi có callback từ ZaloPay
+                    db.commit()
+                except Exception as e:
+                    logger.error(f"Failed to update payment: {e}")
+            
+            return PaymentCreateResponse(
+                success=True,
+                order_id=order_id,
+                order_url=result.get("order_url"),
+            )
+        else:
+            # Cập nhật trạng thái failed (nếu có payment record)
+            if payment:
+                try:
+                    payment.status = PaymentStatus.FAILED
+                    db.commit()
+                except Exception as e:
+                    logger.error(f"Failed to update payment status: {e}")
+            
+            return PaymentCreateResponse(
+                success=False,
+                order_id=order_id,
+                message=result.get("message", "Tạo đơn hàng thất bại"),
+            )
+            
+    except Exception as e:
+        logger.error(f"Payment creation error: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi tạo thanh toán: {str(e)}"
         )
 
 
@@ -156,9 +195,41 @@ async def payment_callback(
         payment.callback_data = json.dumps(callback_data)
         payment.paid_at = datetime.utcnow()
         db.commit()
-
-        logger.info(f"Payment {payment.app_trans_id} marked as SUCCESS")
-
+        
+        logger.info(f"Payment {payment.order_id} marked as SUCCESS")
+        
+        # Auto-upgrade user subscription sau khi thanh toán thành công
+        try:
+            from app.core.subscription import SubscriptionService
+            
+            # Xác định plan dựa trên amount hoặc description
+            plan_name = "Premium"  # Default plan
+            
+            # Logic để xác định plan dựa trên amount
+            if payment.amount >= 500000:  # 500k VND trở lên
+                plan_name = "Pro"
+            elif payment.amount >= 200000:  # 200k VND trở lên
+                plan_name = "Premium"
+            else:
+                plan_name = "basic"
+            
+            # Upgrade user subscription
+            upgrade_success = SubscriptionService.upgrade_user_subscription(
+                user_id=payment.user_id,
+                plan_name=plan_name.strip(),
+                payment_id=payment.id,
+                session=db
+            )
+            
+            if upgrade_success:
+                logger.info(f"User {payment.user_id} upgraded to {plan_name} plan")
+            else:
+                logger.error(f"Failed to upgrade user {payment.user_id} to {plan_name} plan")
+                
+        except Exception as upgrade_error:
+            logger.error(f"Error during auto-upgrade: {upgrade_error}")
+            # Không fail callback vì payment đã thành công
+        
         return {"return_code": 1, "return_message": "success"}
 
     except Exception as e:
@@ -194,37 +265,72 @@ def query_payment(
             status=payment.status,
             payment=_payment_response(payment),
         )
-
-    zalopay = get_zalopay_service()
-    app_trans_id = payment.app_trans_id or payment.order_id
-    result = zalopay.query_order(app_trans_id)
-
-    logger.info(f"Query result for {order_id}: {result}")
-
-    result_status = result.get("status")
-
-    if result_status == "success":
-        payment.status = PaymentStatus.SUCCESS.value
-        payment.paid_at = datetime.utcnow()
-        db.commit()
-        logger.info(f"Payment {order_id} updated to SUCCESS")
-    elif result_status == "cancelled":
-        payment.status = PaymentStatus.CANCELLED.value
-        db.commit()
-        logger.info(f"Payment {order_id} updated to CANCELLED")
-    elif result_status in ["failed", "error"]:
-        payment.status = PaymentStatus.FAILED.value
-        db.commit()
-        logger.info(f"Payment {order_id} updated to FAILED (reason: {result_status})")
-    elif result_status == "pending":
-        from datetime import timezone
-        now = datetime.now(timezone.utc)
-        created = payment.created_at
-
-        if created and created.tzinfo is None:
-            created = created.replace(tzinfo=timezone.utc)
-
-        if created:
+    
+    # Query từ ZaloPay nếu còn pending
+    if payment.app_trans_id:
+        zalopay = get_zalopay_service()
+        result = zalopay.query_order(payment.app_trans_id)
+        
+        logger.info(f"Query result for {order_id}: {result}")
+        
+        # Cập nhật trạng thái dựa trên kết quả từ ZaloPay
+        result_status = result.get("status")
+        
+        if result_status == "success":
+            payment.status = PaymentStatus.SUCCESS
+            payment.paid_at = datetime.utcnow()
+            db.commit()
+            logger.info(f"Payment {order_id} updated to SUCCESS")
+            
+            # Auto-upgrade user subscription khi detect success từ query
+            try:
+                from app.core.subscription import SubscriptionService
+                
+                # Xác định plan dựa trên amount
+                plan_name = "Premium"  # Default plan
+                
+                if payment.amount >= 500000:  # 500k VND trở lên
+                    plan_name = "Pro"
+                elif payment.amount >= 200000:  # 200k VND trở lên
+                    plan_name = "Premium"
+                else:
+                    plan_name = "basic"
+                
+                # Upgrade user subscription
+                upgrade_success = SubscriptionService.upgrade_user_subscription(
+                    user_id=payment.user_id,
+                    plan_name=plan_name.strip(),
+                    payment_id=payment.id,
+                    session=db
+                )
+                
+                if upgrade_success:
+                    logger.info(f"User {payment.user_id} auto-upgraded to {plan_name} plan")
+                else:
+                    logger.error(f"Failed to auto-upgrade user {payment.user_id} to {plan_name} plan")
+                    
+            except Exception as upgrade_error:
+                logger.error(f"Error during auto-upgrade: {upgrade_error}")
+        elif result_status == "cancelled":
+            # Đơn hàng bị hủy
+            payment.status = PaymentStatus.CANCELLED
+            db.commit()
+            logger.info(f"Payment {order_id} updated to CANCELLED")
+        elif result_status in ["failed", "error"]:
+            # Thanh toán thất bại
+            payment.status = PaymentStatus.FAILED
+            db.commit()
+            logger.info(f"Payment {order_id} updated to FAILED (reason: {result_status})")
+        elif result_status == "pending":
+            # Kiểm tra timeout: nếu đơn hàng quá 15 phút vẫn pending → failed
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
+            created = payment.created_at
+            
+            # Ensure both datetimes are timezone-aware
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+            
             time_elapsed = (now - created).total_seconds()
             if time_elapsed > 900:
                 payment.status = PaymentStatus.FAILED.value
