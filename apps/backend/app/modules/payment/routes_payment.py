@@ -94,7 +94,6 @@ def create_payment(
         except Exception as db_error:
             logger.error(f"Database error: {db_error}")
             # Continue without DB record for now
-            pass
         
         # Gọi ZaloPay API thực tế
         try:
