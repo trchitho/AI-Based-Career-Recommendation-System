@@ -166,6 +166,8 @@ def get_payments(
                 status_enum = PaymentStatus(status_filter)
                 query = query.filter(Payment.status == status_enum)
             except ValueError:
+                # Ignore invalid status values instead of raising an error
+                # This allows the API to be more forgiving with user input
                 pass
         
         # Lọc theo phương thức thanh toán
@@ -174,6 +176,8 @@ def get_payments(
                 method_enum = PaymentMethod(payment_method)
                 query = query.filter(Payment.payment_method == method_enum)
             except ValueError:
+                # Ignore invalid payment method values instead of raising an error
+                # This allows the API to be more forgiving with user input
                 pass
         
         # Lọc theo ngày
