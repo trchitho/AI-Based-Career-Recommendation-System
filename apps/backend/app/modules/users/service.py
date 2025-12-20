@@ -2,9 +2,9 @@ import datetime as dt
 
 from flask_jwt_extended import create_access_token
 
-from .core.security import hash_password, verify_password
-from .modules.users.models import User
-from .modules.users.repository import UserRepository
+from app.core.security import hash_password, verify_password
+from .models import User
+from .repository import UserRepository
 
 
 class UserService:

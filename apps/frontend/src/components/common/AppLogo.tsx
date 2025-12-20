@@ -8,7 +8,7 @@ interface AppLogoProps {
   className?: string;
 }
 
-const AppLogo = ({ size = 'md', showText = true, linkTo = '/home', className = '' }: AppLogoProps) => {
+const AppLogo = ({ linkTo = '/home', className = '' }: AppLogoProps) => {
   const app = useAppSettings();
 
   // Logo Text chuẩn từ HomePage

@@ -301,6 +301,7 @@ def api_submit_essay(
     """
     Ghi nhận essay tự luận sau khi hoàn thành test.
     """
+    print(f"[assessments] POST /essay called: user_id={user_id}, essayText_len={len(body.essayText or '')}, promptId={body.promptId}")
     try:
         essay_id = save_essay(
             db,
@@ -309,6 +310,7 @@ def api_submit_essay(
             prompt_id=body.promptId,   # <-- dùng promptId FE gửi
             lang=body.lang,
         )
+        print(f"[assessments] POST /essay: essay saved with id={essay_id}")
 
         assessment_session_id: Optional[int] = None
         main_assessment_id: Optional[int] = body.assessmentId

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 const NoAssessmentPrompt: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  useTranslation();
 
   const handleStartAssessment = () => {
     navigate('/assessment');

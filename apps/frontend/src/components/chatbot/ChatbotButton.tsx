@@ -16,6 +16,7 @@ export const ChatbotButton: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return;
   }, []);
 
   const handleToggleChatbot = () => {

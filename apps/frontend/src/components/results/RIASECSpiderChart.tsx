@@ -114,7 +114,7 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
                     {item.dimension}
                   </span>
                   <span className="text-[11px] text-gray-400 font-medium">
-                    {item.fullName.split('(')[1].replace(')', '')}
+                    {item.fullName.split('(')[1]?.replace(')', '') || ''}
                   </span>
                 </div>
               </div>

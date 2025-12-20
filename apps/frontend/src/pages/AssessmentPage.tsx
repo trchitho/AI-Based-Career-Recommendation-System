@@ -69,10 +69,12 @@ const AssessmentPage = () => {
       const result = await assessmentService.submitAssessment({
         testTypes: ['RIASEC', 'BIG_FIVE'],
         responses,
-      });
+      }) as { assessmentId: string; usage_info?: any };
 
       setAssessmentId(result.assessmentId);
-      setUsageInfo(result.usage_info);
+      if (result.usage_info) {
+        setUsageInfo(result.usage_info);
+      }
       setStep('essay');
     } catch (err: any) {
       console.error('Error submitting assessment:', err);

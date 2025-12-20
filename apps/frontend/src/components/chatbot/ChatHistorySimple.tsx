@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { History, MessageSquare, Trash2, Edit3, Plus, Clock, RefreshCw } from 'lucide-react';
+import { History, MessageSquare, Trash2, Plus, Clock, RefreshCw } from 'lucide-react';
 
 interface ChatSession {
   id: number;

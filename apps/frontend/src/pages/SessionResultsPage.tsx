@@ -4,12 +4,17 @@ import { assessmentService } from '../services/assessmentService';
 import RIASECSpiderChart from '../components/results/RIASECSpiderChart';
 import BigFiveBarChart from '../components/results/BigFiveBarChart';
 import MainLayout from '../components/layout/MainLayout';
+import { RIASECScores, BigFiveScores } from '../types/results';
 
 interface SessionResults {
   session_id: number;
   user_id: number;
-  riasec: any;
-  bigfive: any;
+  riasec: {
+    riasec_scores: RIASECScores;
+  } | null;
+  bigfive: {
+    big_five_scores: BigFiveScores;
+  } | null;
   created_at: string;
 }
 
@@ -83,123 +88,97 @@ const SessionResultsPage = () => {
     );
   }
 
+  const riasecScores = results.riasec?.riasec_scores;
+  const bigfiveScores = results.bigfive?.big_five_scores;
+
+  const getTopRiasec = (): [string, number] => {
+    if (!riasecScores) return ['N/A', 0];
+    const entries = Object.entries(riasecScores) as [string, number][];
+    if (entries.length === 0) return ['N/A', 0];
+    const sorted = entries.sort((a, b) => b[1] - a[1]);
+    return sorted[0] ?? ['N/A', 0];
+  };
+
+  const getTopBigfive = (): [string, number] => {
+    if (!bigfiveScores) return ['N/A', 0];
+    const entries = Object.entries(bigfiveScores) as [string, number][];
+    if (entries.length === 0) return ['N/A', 0];
+    const sorted = entries.sort((a, b) => b[1] - a[1]);
+    return sorted[0] ?? ['N/A', 0];
+  };
+
+  const [topRiasec, topRiasecScore] = getTopRiasec();
+  const [topBigfive, topBigfiveScore] = getTopBigfive();
+
   return (
     <MainLayout>
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Kết quả đánh giá - Session {results.session_id}
             </h1>
-            <p className="text-gray-600">
-              Thực hiện lúc: {formatDate(results.created_at)}
-            </p>
+            <p className="text-gray-600">Thực hiện lúc: {formatDate(results.created_at)}</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* RIASEC Results */}
             {results.riasec && (
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  RIASEC Interest Profile
-                </h2>
-                
-                {/* Top Interest */}
+                <h2 className="text-xl font-bold text-gray-900 mb-4">RIASEC Interest Profile</h2>
                 <div className="bg-green-50 rounded-lg p-4 mb-6">
-                  <p className="text-sm font-medium text-green-600 mb-1">
-                    Sở thích nghề nghiệp hàng đầu
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {Object.entries(results.riasec.riasec_scores)
-                      .sort((a, b) => b[1] - a[1])[0]?.[0]?.toUpperCase() || 'N/A'}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Điểm: {Object.entries(results.riasec.riasec_scores)
-                      .sort((a, b) => b[1] - a[1])[0]?.[1] || 0}/100
-                  </p>
+                  <p className="text-sm font-medium text-green-600 mb-1">Sở thích nghề nghiệp hàng đầu</p>
+                  <p className="text-2xl font-bold text-gray-900">{topRiasec.toUpperCase()}</p>
+                  <p className="text-sm text-gray-600">Điểm: {topRiasecScore}/100</p>
                 </div>
-
-                {/* Detailed Scores */}
                 <div className="space-y-3 mb-6">
                   <h3 className="font-medium text-gray-900">Chi tiết điểm số:</h3>
-                  {Object.entries(results.riasec.riasec_scores).map(([key, value]) => (
+                  {riasecScores && (Object.entries(riasecScores) as [string, number][]).map(([key, value]) => (
                     <div key={key} className="flex justify-between items-center">
                       <span className="text-gray-700 capitalize">{key}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-green-500 h-2 rounded-full" 
-                            style={{ width: `${value}%` }}
-                          ></div>
+                          <div className="bg-green-500 h-2 rounded-full" style={{ width: `${value}%` }}></div>
                         </div>
-                        <span className="text-sm font-medium text-gray-900 w-12 text-right">
-                          {value}
-                        </span>
+                        <span className="text-sm font-medium text-gray-900 w-12 text-right">{value}</span>
                       </div>
                     </div>
                   ))}
                 </div>
-
-                {/* Chart */}
                 <div className="h-80">
-                  <RIASECSpiderChart scores={results.riasec.riasec_scores} />
+                  {riasecScores && <RIASECSpiderChart scores={riasecScores} />}
                 </div>
               </div>
             )}
 
-            {/* Big Five Results */}
             {results.bigfive && (
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Big Five Personality Traits
-                </h2>
-                
-                {/* Dominant Trait */}
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Big Five Personality Traits</h2>
                 <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                  <p className="text-sm font-medium text-blue-600 mb-1">
-                    Đặc điểm tính cách nổi bật
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {Object.entries(results.bigfive.big_five_scores)
-                      .sort((a, b) => b[1] - a[1])[0]?.[0]?.toUpperCase() || 'N/A'}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Điểm: {Object.entries(results.bigfive.big_five_scores)
-                      .sort((a, b) => b[1] - a[1])[0]?.[1] || 0}/100
-                  </p>
+                  <p className="text-sm font-medium text-blue-600 mb-1">Đặc điểm tính cách nổi bật</p>
+                  <p className="text-2xl font-bold text-gray-900">{topBigfive.toUpperCase()}</p>
+                  <p className="text-sm text-gray-600">Điểm: {topBigfiveScore}/100</p>
                 </div>
-
-                {/* Detailed Scores */}
                 <div className="space-y-3 mb-6">
                   <h3 className="font-medium text-gray-900">Chi tiết điểm số:</h3>
-                  {Object.entries(results.bigfive.big_five_scores).map(([key, value]) => (
+                  {bigfiveScores && (Object.entries(bigfiveScores) as [string, number][]).map(([key, value]) => (
                     <div key={key} className="flex justify-between items-center">
                       <span className="text-gray-700 capitalize">{key}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-500 h-2 rounded-full" 
-                            style={{ width: `${value}%` }}
-                          ></div>
+                          <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${value}%` }}></div>
                         </div>
-                        <span className="text-sm font-medium text-gray-900 w-12 text-right">
-                          {value}
-                        </span>
+                        <span className="text-sm font-medium text-gray-900 w-12 text-right">{value}</span>
                       </div>
                     </div>
                   ))}
                 </div>
-
-                {/* Chart */}
                 <div className="h-80">
-                  <BigFiveBarChart scores={results.bigfive.big_five_scores} />
+                  {bigfiveScores && <BigFiveBarChart scores={bigfiveScores} />}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Summary */}
           <div className="bg-white rounded-lg shadow-sm p-6 mt-8">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Tóm tắt kết quả</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -207,28 +186,15 @@ const SessionResultsPage = () => {
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">RIASEC Profile</h3>
                   <p className="text-gray-600 text-sm">
-                    Bạn có xu hướng nghề nghiệp mạnh nhất ở lĩnh vực{' '}
-                    <strong>
-                      {Object.entries(results.riasec.riasec_scores)
-                        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'}
-                    </strong>{' '}
-                    với điểm số {Object.entries(results.riasec.riasec_scores)
-                      .sort((a, b) => b[1] - a[1])[0]?.[1] || 0}/100.
+                    Bạn có xu hướng nghề nghiệp mạnh nhất ở lĩnh vực <strong>{topRiasec}</strong> với điểm số {topRiasecScore}/100.
                   </p>
                 </div>
               )}
-              
               {results.bigfive && (
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Big Five Profile</h3>
                   <p className="text-gray-600 text-sm">
-                    Đặc điểm tính cách nổi bật nhất của bạn là{' '}
-                    <strong>
-                      {Object.entries(results.bigfive.big_five_scores)
-                        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'}
-                    </strong>{' '}
-                    với điểm số {Object.entries(results.bigfive.big_five_scores)
-                      .sort((a, b) => b[1] - a[1])[0]?.[1] || 0}/100.
+                    Đặc điểm tính cách nổi bật nhất của bạn là <strong>{topBigfive}</strong> với điểm số {topBigfiveScore}/100.
                   </p>
                 </div>
               )}

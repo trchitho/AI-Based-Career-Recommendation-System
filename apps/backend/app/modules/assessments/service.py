@@ -128,20 +128,31 @@ def infer_user_traits_for_essay(
     """
     essay_text = (essay_text or "").strip()
     if not essay_text:
+        print(f"[assessments] infer_user_traits_for_essay: empty essay_text for user_id={user_id}, essay_id={essay_id}")
         return
 
+    print(f"[assessments] infer_user_traits_for_essay: calling AI-core for user_id={user_id}, essay_id={essay_id}, text_len={len(essay_text)}")
+    
     try:
+        url = f"{AI_CORE_URL}/ai/infer_user_traits"
+        print(f"[assessments] POST {url}")
+        
         resp = requests.post(
-            f"{AI_CORE_URL}/ai/infer_user_traits",
+            url,
             json={"essay_text": essay_text, "lang": "auto"},
             timeout=60,
         )
+        
+        print(f"[assessments] AI-core response status: {resp.status_code}")
+        
         resp.raise_for_status()
         data = resp.json()
 
         embedding = data.get("embedding") or []
         riasec = data.get("riasec")
         big5 = data.get("big5")
+        
+        print(f"[assessments] AI-core returned: embedding_len={len(embedding)}, riasec={riasec}, big5={big5}")
 
         save_essay_traits(
             session,
@@ -153,9 +164,18 @@ def infer_user_traits_for_essay(
             model="phobert+vi-sbert",
         )
         session.commit()
+        print(f"[assessments] infer_user_traits_for_essay: saved traits for user_id={user_id}, essay_id={essay_id}")
+    except requests.exceptions.ConnectionError as e:
+        session.rollback()
+        print(f"[assessments] infer_user_traits_for_essay CONNECTION ERROR: AI-core not reachable at {AI_CORE_URL}")
+        print(f"[assessments] Error details: {repr(e)}")
+    except requests.exceptions.Timeout as e:
+        session.rollback()
+        print(f"[assessments] infer_user_traits_for_essay TIMEOUT: AI-core took too long")
+        print(f"[assessments] Error details: {repr(e)}")
     except Exception as e:
         session.rollback()
-        print("[assessments] infer_user_traits error:", repr(e))
+        print(f"[assessments] infer_user_traits_for_essay error: {repr(e)}")
 
 
 
@@ -995,6 +1015,7 @@ def save_essay(
     essay_id = int(essay.id)
 
     # 6) Gọi AI-core để suy luận trait cho essay này
+    print(f"[assessments] save_essay: calling infer_user_traits_for_essay for user_id={user_id}, essay_id={essay_id}")
     try:
         infer_user_traits_for_essay(
             session=session,

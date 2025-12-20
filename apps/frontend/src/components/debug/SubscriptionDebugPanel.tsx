@@ -3,7 +3,7 @@ import { useSubscription } from '../../hooks/useSubscription';
 const SubscriptionDebugPanel = () => {
   const { subscriptionData, loading, error, refreshSubscription, isPremium, planName } = useSubscription();
 
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env['NODE_ENV'] === 'production') {
     return null; // Don't show in production
   }
 

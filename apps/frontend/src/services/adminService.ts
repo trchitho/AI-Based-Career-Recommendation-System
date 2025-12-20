@@ -255,12 +255,12 @@ export const adminService = {
       offset,
     };
 
-    if (filters?.status && filters.status !== 'all') params.status = filters.status;
-    if (filters?.paymentMethod && filters.paymentMethod !== 'all') params.paymentMethod = filters.paymentMethod;
-    if (filters?.search) params.search = filters.search;
-    if (filters?.userId) params.userId = filters.userId;
-    if (filters?.fromDate) params.fromDate = filters.fromDate;
-    if (filters?.toDate) params.toDate = filters.toDate;
+    if (filters?.status && filters.status !== 'all') params['status'] = filters.status;
+    if (filters?.paymentMethod && filters.paymentMethod !== 'all') params['paymentMethod'] = filters.paymentMethod;
+    if (filters?.search) params['search'] = filters.search;
+    if (filters?.userId) params['userId'] = filters.userId;
+    if (filters?.fromDate) params['fromDate'] = filters.fromDate;
+    if (filters?.toDate) params['toDate'] = filters.toDate;
 
     const res = await api.get('/api/admin/transactions', { params });
     return res.data;
@@ -284,12 +284,12 @@ export const adminService = {
       offset,
     };
 
-    if (filters?.status && filters.status !== 'all') params.status = filters.status;
-    if (filters?.paymentMethod && filters.paymentMethod !== 'all') params.paymentMethod = filters.paymentMethod;
-    if (filters?.search) params.search = filters.search;
-    if (filters?.userId) params.userId = filters.userId;
-    if (filters?.fromDate) params.fromDate = filters.fromDate;
-    if (filters?.toDate) params.toDate = filters.toDate;
+    if (filters?.status && filters.status !== 'all') params['status'] = filters.status;
+    if (filters?.paymentMethod && filters.paymentMethod !== 'all') params['paymentMethod'] = filters.paymentMethod;
+    if (filters?.search) params['search'] = filters.search;
+    if (filters?.userId) params['userId'] = filters.userId;
+    if (filters?.fromDate) params['fromDate'] = filters.fromDate;
+    if (filters?.toDate) params['toDate'] = filters.toDate;
 
     const res = await api.get('/api/admin/transactions/export', {
       params,

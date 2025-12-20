@@ -103,12 +103,23 @@ function softmaxNormalize(rawScores: Record<string, number>): Record<string, num
     return result;
 }
 
+interface QuadrantConfig {
+    title: string;
+    titleVi: string;
+    labels: Record<string, {
+        formula: string;
+        weights: Record<string, number>;
+        description: string;
+        descriptionVi: string;
+    }>;
+}
+
 /**
  * Compute scores for a single quadrant
  */
 function computeQuadrant(
     normalizedScores: BigFiveScores,
-    quadrantConfig: typeof reportConfig.quadrants.problemSolving
+    quadrantConfig: QuadrantConfig
 ): QuadrantLabelScores {
     const rawScores: Record<string, number> = {};
 
@@ -166,9 +177,9 @@ export function getQuadrantResults(bigFiveScores: BigFiveScores): QuadrantResult
     const results: QuadrantResult[] = [];
 
     for (const [quadrantName, quadrantScores] of Object.entries(scores)) {
-        const config = quadrants[quadrantName as keyof typeof quadrants];
+        const config = quadrants[quadrantName as keyof typeof quadrants] as QuadrantConfig;
         const { label: primaryLabel, score: primaryScore } = getPrimaryLabel(quadrantScores);
-        const labelConfig = config.labels[primaryLabel as keyof typeof config.labels];
+        const labelConfig = config.labels[primaryLabel];
 
         results.push({
             quadrantName,

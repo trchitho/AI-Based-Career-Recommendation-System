@@ -9,7 +9,7 @@ interface CareerSuggestionCardProps {
 
 const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  useTranslation();
 
   const handleViewRoadmap = () => {
     const key = (career as any).slug || career.id;

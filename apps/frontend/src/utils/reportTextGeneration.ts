@@ -98,7 +98,7 @@ export function generateSummaryStatement(
 export function generateStrengths(
     bigFiveScores: BigFiveScores,
     riasecScores: RIASECScores,
-    lang: Lang = 'en'
+    _lang: Lang = 'en'
 ): string[] {
     const { high } = identifyTraitLevels(bigFiveScores);
     const strengths: string[] = [];
@@ -183,7 +183,7 @@ export function generateStrengths(
  */
 export function generateEnvironmentFit(
     bigFiveScores: BigFiveScores,
-    lang: Lang = 'en'
+    _lang: Lang = 'en'
 ): { thrivesIn: string[]; mayStruggleWith: string[] } {
     const { high, low } = identifyTraitLevels(bigFiveScores);
     const { environmentMappings } = reportConfig;
@@ -252,9 +252,9 @@ export function generateEnvironmentFit(
  */
 export function generateDevelopmentRecommendations(
     bigFiveScores: BigFiveScores,
-    lang: Lang = 'en'
+    _lang: Lang = 'en'
 ): string[] {
-    const { low, average } = identifyTraitLevels(bigFiveScores);
+    const { low } = identifyTraitLevels(bigFiveScores);
     const { high } = identifyTraitLevels(bigFiveScores);
     const { developmentMappings } = reportConfig;
 
@@ -308,11 +308,11 @@ export function generateDevelopmentRecommendations(
  * Generate career match explanation
  */
 export function generateCareerExplanation(
-    careerTitle: string,
+    _careerTitle: string,
     riasecScores: RIASECScores,
     bigFiveScores: BigFiveScores,
     careerTags: string[],
-    lang: Lang = 'en'
+    _lang: Lang = 'en'
 ): string {
     const riasecPattern = generateRIASECPattern(riasecScores, 2);
     const { high } = identifyTraitLevels(bigFiveScores);

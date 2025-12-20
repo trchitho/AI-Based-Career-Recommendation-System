@@ -200,6 +200,14 @@ function App() {
                 }
               />
               <Route
+                path="/results/:assessmentId/report"
+                element={
+                  <ProtectedRoute>
+                    <ReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/session-results/:sessionId"
                 element={
                   <ProtectedRoute>
@@ -237,7 +245,7 @@ function App() {
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-            
+
             {/* Global Chatbot - chỉ hiện khi đã đăng nhập */}
             <ChatbotWrapper />
           </SocketProvider>

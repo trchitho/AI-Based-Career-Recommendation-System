@@ -3,7 +3,7 @@ import { useSubscription } from '../../hooks/useSubscription';
 import api from '../../lib/api';
 
 const SubscriptionDebug = () => {
-  const { subscriptionData, refreshSubscription, isPremium, planName } = useSubscription();
+  const { refreshSubscription, isPremium, planName } = useSubscription();
   const [loading, setLoading] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
 
@@ -35,7 +35,7 @@ const SubscriptionDebug = () => {
       });
     } catch (error) {
       console.error('Failed to get debug info:', error);
-      setDebugInfo({ error: error.message });
+      setDebugInfo({ error: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

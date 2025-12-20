@@ -88,7 +88,7 @@ export function generateRIASECPattern(
     const topDimensions = topKeys.map(key => getRIASECFullName(key));
 
     const fullPattern = topDimensions.join('-');
-    const shortPattern = topKeys.map(key => KEY_TO_LETTER[key] || key[0].toUpperCase()).join('');
+    const shortPattern = topKeys.map(key => KEY_TO_LETTER[key] || key.charAt(0).toUpperCase()).join('');
 
     return {
         fullPattern,
@@ -111,10 +111,19 @@ export function getPrimaryRIASEC(scores: RIASECScores): {
     const sorted = sortRIASECScores(scores);
     const top = sorted[0];
 
+    if (!top) {
+        return {
+            key: 'unknown',
+            fullName: 'Unknown',
+            letter: '?',
+            score: 0,
+        };
+    }
+
     return {
         key: top.key,
         fullName: getRIASECFullName(top.key),
-        letter: KEY_TO_LETTER[top.key] || top.key[0].toUpperCase(),
+        letter: KEY_TO_LETTER[top.key] || top.key.charAt(0).toUpperCase(),
         score: top.score,
     };
 }

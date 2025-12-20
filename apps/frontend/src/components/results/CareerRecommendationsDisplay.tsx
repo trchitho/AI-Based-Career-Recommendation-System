@@ -6,7 +6,6 @@ import {
 } from "../../services/recommendationService";
 import { useSubscription } from "../../hooks/useSubscription";
 import { checkCareerAccess, trackCareerView } from "../../services/subscriptionService";
-import { CareerRecommendationDTO } from "../../services/recommendationService";
 import { trackCareerEvent, getDwellMs, clearDwellStart } from "../../services/trackService";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -25,6 +24,7 @@ const CareerRecommendationsDisplay = ({
 }: CareerRecommendationsDisplayProps) => {
   const navigate = useNavigate();
   const { isPremium } = useSubscription();
+  const { user } = useAuth();
 
   // Debug: Log premium status
   console.log('🔍 CareerRecommendations - isPremium:', isPremium);
@@ -101,7 +101,7 @@ const CareerRecommendationsDisplay = ({
         dwell_ms: dwellMs,
         ...(requestId ? { ref: requestId } : {}),
       },
-      user?.id ? { userId: user.id } : undefined
+      user && user.id ? { userId: user.id } : undefined
     );
 
     // Clear dwell start to prevent double-count on back navigation
@@ -167,16 +167,15 @@ const CareerRecommendationsDisplay = ({
 
             // Check if this career is locked for free users
             const isLocked = !isPremium && index > 0; // Free users can only view first career
-            
+
             // Debug: Log lock status for each career
             console.log(`Career ${index + 1} (${title}):`, { isPremium, index, isLocked });
 
             return (
               <div
                 key={career.career_id}
-                className={`border border-gray-200 dark:border-gray-700 rounded-lg p-5 transition-shadow bg-white dark:bg-gray-800 relative overflow-hidden ${
-                  isLocked ? 'opacity-75' : 'hover:shadow-lg'
-                }`}
+                className={`border border-gray-200 dark:border-gray-700 rounded-lg p-5 transition-shadow bg-white dark:bg-gray-800 relative overflow-hidden ${isLocked ? 'opacity-75' : 'hover:shadow-lg'
+                  }`}
               >
                 {/* Premium overlay for locked careers */}
                 {isLocked && (
@@ -194,46 +193,41 @@ const CareerRecommendationsDisplay = ({
 
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center">
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
-                      isLocked 
-                        ? 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30' 
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3 ${isLocked
+                        ? 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30'
                         : 'bg-[#E8DCC8] dark:bg-green-900/30'
-                    }`}>
-                      <span className={`font-bold text-lg ${
-                        isLocked 
-                          ? 'text-purple-600 dark:text-purple-400' 
-                          : 'text-[#4A7C59] dark:text-green-400'
                       }`}>
+                      <span className={`font-bold text-lg ${isLocked
+                          ? 'text-purple-600 dark:text-purple-400'
+                          : 'text-[#4A7C59] dark:text-green-400'
+                        }`}>
                         #{index + 1}
                       </span>
                     </div>
                     <div>
-                      <h4 className={`text-lg font-semibold ${
-                        isLocked 
-                          ? 'text-gray-600 dark:text-gray-400' 
+                      <h4 className={`text-lg font-semibold ${isLocked
+                          ? 'text-gray-600 dark:text-gray-400'
                           : 'text-gray-900 dark:text-white'
-                      }`}>
+                        }`}>
                         {title}
                       </h4>
                     </div>
                   </div>
                   <div
-                    className={`px-3 py-1 rounded-full font-semibold text-sm ${
-                      isLocked 
+                    className={`px-3 py-1 rounded-full font-semibold text-sm ${isLocked
                         ? 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                         : getMatchColor(percent)
-                    }`}
+                      }`}
                   >
                     {percent}% Match
                   </div>
                 </div>
 
                 {desc && (
-                  <p className={`mb-4 ${
-                    isLocked 
-                      ? 'text-gray-500 dark:text-gray-500' 
+                  <p className={`mb-4 ${isLocked
+                      ? 'text-gray-500 dark:text-gray-500'
                       : 'text-gray-700 dark:text-gray-300'
-                  }`}>
+                    }`}>
                     {isLocked ? 'Nâng cấp Premium để xem chi tiết nghề nghiệp này và lộ trình học tập đầy đủ.' : desc}
                   </p>
                 )}
@@ -242,11 +236,10 @@ const CareerRecommendationsDisplay = ({
                   onClick={() =>
                     handleViewRoadmap(career, index + 1, title, desc)
                   }
-                  className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${
-                    isLocked
+                  className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${isLocked
                       ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
                       : 'bg-[#4A7C59] dark:bg-green-600 text-white hover:bg-[#3d6449] dark:hover:bg-green-700'
-                  }`}
+                    }`}
                 >
                   {isLocked ? 'Mở khóa với Premium ✨' : 'View Learning Roadmap'}
                 </button>
