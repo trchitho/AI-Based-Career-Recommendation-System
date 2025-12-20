@@ -111,7 +111,7 @@ class BlogPost(Base):
         if self.tags:
             try:
                 tags = json.loads(self.tags) if isinstance(self.tags, str) else self.tags
-            except:
+            except (TypeError, ValueError, json.JSONDecodeError):
                 tags = []
         
         return {
