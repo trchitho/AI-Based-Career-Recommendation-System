@@ -1,18 +1,19 @@
 """
-Payment Routes
+Payment Routes (schema: order_id + app_trans_id)
 """
 import json
 import urllib.parse
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status, Body
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from loguru import logger
 
 from app.core.db import get_db
 from app.core.jwt import get_current_user
-from .models import Payment, PaymentStatus
+from .models import Payment, PaymentStatus, PaymentMethod
 from .schemas import (
     PaymentCreateRequest,
     PaymentCreateResponse,
@@ -31,14 +32,33 @@ def test_payment_api():
 
 
 def get_zalopay_service() -> ZaloPayService:
-    """Khởi tạo ZaloPay service từ env"""
+    """Init ZaloPay service from env"""
     return ZaloPayService(
         app_id=os.getenv("ZALOPAY_APP_ID", "2553"),
         key1=os.getenv("ZALOPAY_KEY1", "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL"),
         key2=os.getenv("ZALOPAY_KEY2", "kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz"),
         endpoint=os.getenv("ZALOPAY_ENDPOINT", "https://sb-openapi.zalopay.vn/v2/create"),
         callback_url=os.getenv("ZALOPAY_CALLBACK_URL", "http://localhost:8000/api/payment/callback"),
-        redirect_url=os.getenv("ZALOPAY_REDIRECT_URL", "http://localhost:5173/payment/return"),
+        # Mặc định redirect về backend để tự query cập nhật trạng thái; FE có thể override env này
+        redirect_url=os.getenv("ZALOPAY_REDIRECT_URL", "http://localhost:8000/api/payment/redirect"),
+    )
+
+
+def _payment_response(payment: Payment) -> PaymentResponse:
+    """
+    Build PaymentResponse ensuring order_id compatibility (mapped from app_trans_id).
+    """
+    app_trans_id = getattr(payment, "app_trans_id") or getattr(payment, "order_id")
+    return PaymentResponse(
+        id=getattr(payment, "id"),
+        order_id=app_trans_id,
+        transaction_id=app_trans_id,
+        amount=getattr(payment, "amount"),
+        description=getattr(payment, "description", None),
+        status=getattr(payment, "status"),
+        payment_method=getattr(payment, "payment_method"),
+        created_at=getattr(payment, "created_at", None),
+        paid_at=getattr(payment, "paid_at", None),
     )
 
 
@@ -140,53 +160,41 @@ async def payment_callback(
     db: Session = Depends(get_db),
 ):
     """
-    Callback từ ZaloPay sau khi thanh toán
+    ZaloPay callback handler
     """
     try:
-        # Lấy dữ liệu từ body (JSON hoặc form-urlencoded)
         content_type = request.headers.get("content-type", "")
-        
+
         if "application/json" in content_type:
             callback_data = await request.json()
         else:
-            # Parse form data manually để tránh dùng cgi module
             body = await request.body()
             body_str = body.decode("utf-8")
-            
-            # Parse simple form data
             callback_data = {}
             for pair in body_str.split("&"):
                 if "=" in pair:
                     key, value = pair.split("=", 1)
-                    # URL decode
-                    import urllib.parse
                     callback_data[key] = urllib.parse.unquote_plus(value)
-        
+
         logger.info(f"ZaloPay callback received: {callback_data}")
-        
-        # Verify callback
+
         zalopay = get_zalopay_service()
         if not zalopay.verify_callback(callback_data):
             logger.error("Invalid callback MAC")
             return {"return_code": -1, "return_message": "Invalid MAC"}
-        
-        # Parse data
+
         data = json.loads(callback_data["data"])
         app_trans_id = data.get("app_trans_id")
-        
-        # Tìm payment
-        payment = db.query(Payment).filter(
-            Payment.app_trans_id == app_trans_id
-        ).first()
-        
+
+        payment = db.query(Payment).filter(Payment.app_trans_id == app_trans_id).first()
+
         if not payment:
             logger.error(f"Payment not found: {app_trans_id}")
             return {"return_code": -1, "return_message": "Payment not found"}
-        
-        # Cập nhật trạng thái
-        payment.status = PaymentStatus.SUCCESS
-        payment.paid_at = datetime.utcnow()
+
+        payment.status = PaymentStatus.SUCCESS.value
         payment.callback_data = json.dumps(callback_data)
+        payment.paid_at = datetime.utcnow()
         db.commit()
         
         logger.info(f"Payment {payment.order_id} marked as SUCCESS")
@@ -224,7 +232,7 @@ async def payment_callback(
             # Không fail callback vì payment đã thành công
         
         return {"return_code": 1, "return_message": "success"}
-        
+
     except Exception as e:
         logger.error(f"Callback error: {e}")
         return {"return_code": 0, "return_message": str(e)}
@@ -237,28 +245,26 @@ def query_payment(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Truy vấn trạng thái thanh toán - Tự động cập nhật từ ZaloPay
+    Query payment status (uses app_trans_id hoặc order_id)
     """
     user_id = current_user["user_id"]
-    
-    # Tìm payment
+
     payment = db.query(Payment).filter(
-        Payment.order_id == order_id,
+        (Payment.app_trans_id == order_id) | (Payment.order_id == order_id),
         Payment.user_id == user_id,
     ).first()
-    
+
     if not payment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Không tìm thấy đơn hàng",
         )
-    
-    # Nếu đã có kết quả cuối cùng thì return luôn (không query lại)
-    if payment.status in [PaymentStatus.SUCCESS, PaymentStatus.FAILED, PaymentStatus.CANCELLED]:
+
+    if payment.status in [PaymentStatus.SUCCESS.value, PaymentStatus.FAILED.value, PaymentStatus.CANCELLED.value]:
         return PaymentQueryResponse(
-            success=payment.status == PaymentStatus.SUCCESS,
+            success=payment.status == PaymentStatus.SUCCESS.value,
             status=payment.status,
-            payment=PaymentResponse.from_orm(payment),
+            payment=_payment_response(payment),
         )
     
     # Query từ ZaloPay nếu còn pending
@@ -327,18 +333,71 @@ def query_payment(
                 created = created.replace(tzinfo=timezone.utc)
             
             time_elapsed = (now - created).total_seconds()
-            if time_elapsed > 900:  # 15 phút = 900 giây
-                payment.status = PaymentStatus.FAILED
+            if time_elapsed > 900:
+                payment.status = PaymentStatus.FAILED.value
                 db.commit()
                 logger.info(f"Payment {order_id} marked as FAILED due to timeout")
-    
+
     db.refresh(payment)
-    
+
     return PaymentQueryResponse(
-        success=payment.status == PaymentStatus.SUCCESS,
+        success=payment.status == PaymentStatus.SUCCESS.value,
         status=payment.status,
-        payment=PaymentResponse.from_orm(payment),
+        payment=_payment_response(payment),
     )
+
+
+@router.get("/redirect", response_class=HTMLResponse, include_in_schema=False)
+def payment_redirect(
+    apptransid: str | None = None,
+    order_id: str | None = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Điểm redirect sau khi thanh toán. Tự động query trạng thái và cập nhật DB.
+    """
+    app_trans_id = apptransid or order_id
+    if not app_trans_id:
+        return HTMLResponse("<h3>Thiếu apptransid/order_id</h3>", status_code=400)
+
+    payment = db.query(Payment).filter(Payment.app_trans_id == app_trans_id).first()
+    zalopay = get_zalopay_service()
+    result = zalopay.query_order(app_trans_id)
+    status_result = result.get("status", "unknown")
+
+    if payment:
+        if status_result == "success":
+            payment.status = PaymentStatus.SUCCESS.value
+        elif status_result == "cancelled":
+            payment.status = PaymentStatus.CANCELLED.value
+        elif status_result in ["failed", "error"]:
+            payment.status = PaymentStatus.FAILED.value
+        elif status_result == "pending":
+            payment.status = PaymentStatus.PENDING.value
+        db.commit()
+        db.refresh(payment)
+
+    # Redirect về FE (nếu cấu hình); không ép về /home khi không có cấu hình
+    return_url = (
+        os.getenv("PAYMENT_RETURN_URL")
+        or os.getenv("FRONTEND_URL")
+        or os.getenv("ZALOPAY_REDIRECT_URL")
+    )
+    if return_url:
+        sep = "&" if "?" in return_url else "?"
+        target = f"{return_url}{sep}status={status_result}&apptransid={app_trans_id}"
+        return RedirectResponse(target)
+
+    # Fallback: trả HTML nếu không cấu hình URL đích
+    html = f"""
+    <html><body>
+    <h3>Trạng thái đơn: {status_result.upper()}</h3>
+    <p>app_trans_id: {app_trans_id}</p>
+    <p>message: {result.get('message','')}</p>
+    <p>Bạn có thể đóng trang này và quay lại ứng dụng.</p>
+    </body></html>
+    """
+    return HTMLResponse(html)
 
 
 @router.get("/history", response_model=List[PaymentResponse])
@@ -352,7 +411,7 @@ def get_payment_history(
     Lấy lịch sử thanh toán của user
     """
     user_id = current_user["user_id"]
-    
+
     payments = (
         db.query(Payment)
         .filter(Payment.user_id == user_id)
@@ -361,5 +420,5 @@ def get_payment_history(
         .limit(limit)
         .all()
     )
-    
-    return [PaymentResponse.from_orm(p) for p in payments]
+
+    return [_payment_response(p) for p in payments]

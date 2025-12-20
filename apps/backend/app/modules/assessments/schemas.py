@@ -23,6 +23,7 @@ class AssessmentResultsOut(BaseModel):
 
     riasec_scores: Dict[str, float]
     big_five_scores: Dict[str, float]
+    top_interest: Optional[str] = None  # L1 từ raw test scores - khớp với filter logic
 
     traits: TraitSnapshot
 

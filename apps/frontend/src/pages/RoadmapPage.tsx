@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { roadmapService, TraitEvidence } from '../services/roadmapService';
 import { careerService } from '../services/careerService';
 import RoadmapTimelineComponent from '../components/roadmap/RoadmapTimelineComponent';
@@ -12,6 +14,7 @@ import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh'
 import EnterpriseRoadmapFeatures from '../components/enterprise/EnterpriseRoadmapFeatures';
 import { useSubscription } from '../hooks/useSubscription';
 
+import { getRIASECFullName } from '../utils/riasec';
 
 const buildGenericMilestones = (): any[] => [
   {
@@ -185,12 +188,9 @@ const RoadmapPage = () => {
 
 
 
-  useEffect(() => {
+  // --------- LOAD ROADMAP ---------
+  const fetchRoadmap = useCallback(async () => {
     if (!careerId) return;
-    fetchRoadmap();
-    loadTraitEvidence();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [careerId]);
 
   // Watch for subscription changes and update roadmap access
   useEffect(() => {
@@ -224,7 +224,7 @@ const RoadmapPage = () => {
 
       let data: Roadmap | null = null;
 
-      // 1) Thử load roadmap động
+      // 1) Thử load roadmap động từ backend
       try {
         data = await roadmapService.getRoadmap(careerId);
       } catch (err: any) {
@@ -232,7 +232,7 @@ const RoadmapPage = () => {
         const detail = err?.response?.data?.detail;
 
         if (status === 404 && detail === 'Roadmap not found') {
-          // fallback skeleton nếu chưa có roadmap trong DB
+          // Fallback skeleton nếu chưa có roadmap trong DB
           const c = await careerService.get(careerId);
           data = {
             careerId,
@@ -253,7 +253,7 @@ const RoadmapPage = () => {
         throw new Error('No roadmap data');
       }
 
-      // 2) Load mô tả nghề (ưu tiên EN, sau đó tới VN, sau cùng là state)
+      // 2) Load mô tả nghề (ưu tiên EN, sau đó VN, sau cùng là state)
       try {
         const c = await careerService.get(careerId);
         const desc =
@@ -279,7 +279,7 @@ const RoadmapPage = () => {
         }
       }
 
-      // 3) Fallback 6 step × 2 khóa học nếu milestones quá ít
+      // 3) Fallback 6 step nếu milestones quá ít
       const normalized = withFallbackMilestones(data);
       
       // Use subscription limits directly from API
@@ -309,29 +309,51 @@ const RoadmapPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [careerId, navState.description, navState.title]);
 
-  const loadTraitEvidence = async () => {
+  // --------- LOAD TRAIT EVIDENCE ---------
+  const hasLoadedTraitEvidenceRef = useRef(false);
+  const loadTraitEvidence = useCallback(async () => {
+    if (!careerId) return;
+    if (hasLoadedTraitEvidenceRef.current) return; // chặn lần thứ 2 do StrictMode
+
+    hasLoadedTraitEvidenceRef.current = true;
+
     try {
-      const data = await roadmapService.getTraitEvidence();
+      const data = await roadmapService.getTraitEvidence(careerId);
       setTraitEvidence(data);
-    } catch {
-      // không critical
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        setTraitEvidence(null);
+        return;
+      }
+      console.error('Failed to load trait evidence', err);
     }
-  };
+  }, [careerId]);
 
+  useEffect(() => {
+    if (!careerId) return;
+
+    fetchRoadmap();
+    loadTraitEvidence();
+  }, [careerId, fetchRoadmap, loadTraitEvidence]);
+
+  // --------- COMPLETE MILESTONE ---------
   const handleCompleteMilestone = async (milestoneId: string) => {
     if (!careerId) return;
+
     try {
       setCompletingMilestone(milestoneId);
       await roadmapService.completeMilestone(careerId, milestoneId);
       await fetchRoadmap();
+      await loadTraitEvidence();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to mark complete.');
+      setError(err?.response?.data?.message || 'Failed to mark complete.');
     } finally {
       setCompletingMilestone(null);
     }
   };
+
 
   const totalMilestones = roadmap?.milestones?.length || 0;
   const completedCount = roadmap?.userProgress?.completed_milestones?.length || 0;
@@ -449,13 +471,12 @@ const RoadmapPage = () => {
                           className="flex-shrink-0 flex flex-col items-center snap-center group cursor-default"
                         >
                           <div
-                            className={`relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${
-                              isCompleted
-                                ? 'bg-white text-green-700 border-white'
-                                : isCurrent
+                            className={`relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted
+                              ? 'bg-white text-green-700 border-white'
+                              : isCurrent
                                 ? 'bg-green-600 text-white border-white ring-4 ring-white/30'
                                 : 'bg-green-800/50 text-green-300 border-green-700/50'
-                            }`}
+                              }`}
                           >
                             {isCompleted ? (
                               <svg
@@ -479,18 +500,16 @@ const RoadmapPage = () => {
 
                             {idx < 5 && (
                               <div
-                                className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${
-                                  isCompleted ? 'bg-white' : 'bg-green-800'
-                                }`}
+                                className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-green-800'
+                                  }`}
                               />
                             )}
                           </div>
                           <span
-                            className={`mt-3 text-xs font-bold uppercase tracking-wide ${
-                              isCompleted || isCurrent
-                                ? 'text-white'
-                                : 'text-green-200/60'
-                            }`}
+                            className={`mt-3 text-xs font-bold uppercase tracking-wide ${isCompleted || isCurrent
+                              ? 'text-white'
+                              : 'text-green-200/60'
+                              }`}
                           >
                             {item.label}
                           </span>
@@ -513,9 +532,8 @@ const RoadmapPage = () => {
                         Overview
                       </h3>
                       <div
-                        className={`prose prose-green dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed ${
-                          showFullDesc ? '' : 'line-clamp-3'
-                        }`}
+                        className={`prose prose-green dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed ${showFullDesc ? '' : 'line-clamp-3'
+                          }`}
                       >
                         {navState.description || careerDesc}
                       </div>
@@ -579,7 +597,7 @@ const RoadmapPage = () => {
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                         Below are some example items from the{' '}
                         <span className="font-semibold">
-                          {traitEvidence.scale}
+                          {getRIASECFullName(traitEvidence.scale)}
                         </span>{' '}
                         scales that were used when computing your profile.
                       </p>

@@ -19,17 +19,10 @@
     "tryAgain": "Thử lại",
     "never": "Không bao giờ",
     "remove": "Xóa",
-    "save": "Lưu",
-    "loading": "Đang tải...",
-    "error": "Lỗi",
-    "search": "Tìm kiếm",
     "allCategories": "Tất cả danh mục",
     "notAvailable": "Không có",
     "actions": "Hành động",
-    "edit": "Chỉnh sửa",
-    "delete": "Xóa",
     "confirm": "Xác nhận",
-    "cancel": "Hủy",
     "add": "Thêm",
     "saving": "Đang lưu...",
     "update": "Cập nhật",
@@ -341,7 +334,8 @@
       "roleAdmin": "Quản trị",
       "unlock": "Mở khóa",
       "lock": "Khóa"
-    }
+    },
+    "transactions": "Giao dịch"
   },
   "notifications": {
     "title": "Thông báo",
@@ -402,8 +396,6 @@
     "currency": "Tiền tệ",
     "requiredSkills": "Kỹ năng yêu cầu",
     "addSkillPlaceholder": "Thêm kỹ năng...",
-    "riasec": "Hồ sơ RIASEC",
-    "riasecDistribution": "Biểu đồ RIASEC",
     "riasec": {
       "realistic": "Thực tế (R)",
       "investigative": "Nghiên cứu (I)",
@@ -412,6 +404,7 @@
       "enterprising": "Quản lý (E)",
       "conventional": "Quy ước (C)"
     },
+    "riasecDistribution": "Biểu đồ RIASEC",
     "saveFailed": "Không thể lưu ngành nghề",
     "deleteFailed": "Không thể xóa ngành nghề"
   },

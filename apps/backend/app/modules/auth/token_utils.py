@@ -48,6 +48,19 @@ def issue_token(session: Session, user_id: int, ttype: str, minutes: int = 30) -
     return tok.token
 
 
+def issue_token_with_value(session: Session, user_id: int, ttype: str, token_value: str, minutes: int = 30) -> str:
+    tok = AuthToken(
+        user_id=user_id,
+        token=token_value,
+        ttype=ttype,
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=minutes),
+        used_at=None,
+    )
+    session.add(tok)
+    session.commit()
+    return tok.token
+
+
 def mark_all_tokens_used(session: Session, user_id: int, ttype: str) -> None:
     """Best-effort cleanup to avoid multiple active tokens of the same type."""
     session.execute(

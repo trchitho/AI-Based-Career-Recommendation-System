@@ -17,6 +17,7 @@ import ResultsPage from './pages/ResultsPage';
 import SessionResultsPage from './pages/SessionResultsPage';
 import AssessmentHistoryPage from './pages/AssessmentHistoryPage';
 import RoadmapPage from './pages/RoadmapPage';
+import ReportPage from './pages/ReportPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import CareersPage from './pages/CareersPage';
 import CareerDetailPage from './pages/CareerDetailPage';

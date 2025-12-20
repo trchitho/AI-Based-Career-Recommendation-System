@@ -53,12 +53,17 @@ def request_verify(request: Request, payload: dict):
 
     # Only send email if user exists and is not verified
     info = send_verification_email(session, u, minutes=DEFAULT_VERIFY_MINUTES)
-    if not info.get("sent"):
+    if not info.get("sent") and not info.get("dev_mode"):
         raise HTTPException(
             status_code=500,
             detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
         )
-    return {"status": "ok", "verify_url": info.get("verify_url")}
+    return {
+        "status": "ok",
+        "verify_url": info.get("verify_url"),
+        "dev_token": info.get("token") if info.get("dev_mode") else None,
+        "dev_mode": info.get("dev_mode", False),
+    }
 
 
 @router.post("/verify")

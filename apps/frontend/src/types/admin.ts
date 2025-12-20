@@ -146,3 +146,59 @@ export interface FeedbackFilters {
   endDate?: string;
   minRating?: number;
 }
+
+// Transaction Management
+export type AdminPaymentStatus = 'pending' | 'success' | 'failed' | 'cancelled';
+export type AdminPaymentMethod = 'zalopay' | 'momo' | 'vnpay';
+
+export interface AdminTransaction {
+  id: number;
+  user_id: number;
+  order_id: string;
+  app_trans_id?: string | null;
+  amount: number;
+  currency: string;
+  description?: string | null;
+  payment_method: AdminPaymentMethod | string;
+  status: AdminPaymentStatus | string;
+  order_url?: string | null;
+  zp_trans_token?: string | null;
+  created_at?: string | null;
+  paid_at?: string | null;
+  updated_at?: string | null;
+  callback_data?: any;
+  user?: {
+    id: number;
+    email?: string;
+    full_name?: string;
+  } | null;
+}
+
+export interface TransactionSummary {
+  totalAmount: number;
+  successAmount: number;
+  successCount: number;
+  pendingCount: number;
+  failedCount: number;
+  cancelledCount: number;
+  currency: string;
+}
+
+export interface TransactionFilters {
+  status?: AdminPaymentStatus | 'all';
+  paymentMethod?: AdminPaymentMethod | 'all';
+  search?: string;
+  userId?: number;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface TransactionListResponse {
+  items: AdminTransaction[];
+  total: number;
+  limit: number;
+  offset: number;
+  summary: TransactionSummary;
+}

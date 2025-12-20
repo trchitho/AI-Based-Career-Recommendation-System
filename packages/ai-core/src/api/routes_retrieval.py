@@ -15,7 +15,8 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModel
 
-from src.ai_core.retrieval.service_pgvector import search_candidates_for_user, Candidate
+from ai_core.retrieval.service_pgvector import search_candidates_for_user, Candidate
+from ai_core.traits.loader import load_traits_and_embedding_for_assessment
 
 router = APIRouter(prefix="/search", tags=["retrieval"])
 
@@ -77,6 +78,22 @@ def encode_text(text: str) -> list[float]:
 
 
 # ---------------- SCHEMA ----------------
+
+class SearchByAssessmentReq(BaseModel):
+    assessment_id: int
+    top_k: int = 20
+
+@router.post("/by_assessment")
+def search_by_assessment(req: SearchByAssessmentReq):
+    snapshot = load_traits_and_embedding_for_assessment(req.assessment_id)
+    user_vec = snapshot.embedding_vector
+
+    cands = search_candidates_for_user(
+        user_vec,
+        req.top_k,
+    )
+    return [{"job_id": c.job_id, "score": c.score_sim} for c in cands]
+
 
 
 class SearchReq(BaseModel):

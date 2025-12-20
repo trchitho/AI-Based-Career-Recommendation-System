@@ -24,6 +24,7 @@ import SettingsPage from "./SettingsPage";
 import BlogManagementPage from "./BlogManagementPage.tsx";
 import PaymentManagementPage from "./PaymentManagementPage.tsx";
 import PaymentManagementPageMock from "./PaymentManagementPageMock.tsx";
+import TransactionHistoryPage from "./TransactionHistoryPage";
 
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
@@ -121,6 +122,7 @@ const AdminDashboardPage = () => {
           <Route path="payments" element={<PaymentManagementPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="blogs" element={<BlogManagementPage />} />
+          <Route path="transactions" element={<TransactionHistoryPage />} />
         </Routes>
       </div>
     </div>

@@ -1,0 +1,121 @@
+form_code,question_no,question_key,prompt,options_json,reverse_score
+RIASEC120,1,R1,Build kitchen cabinets.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,2,R2,Lay brick or tile.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,3,R3,Repair household appliances.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,4,R4,Raise fish in a fish hatchery.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,5,R5,Assemble electronic parts.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,6,R6,Drive a truck to deliver packages to offices and homes.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,7,R7,Test the quality of parts before shipment.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,8,R8,Repair and install locks.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,9,R9,Set up and operate machines to make products.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,10,R10,Put out forest fires.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,11,I1,Develop a new medicine.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,12,I2,Study ways to reduce water pollution.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,13,I3,Conduct chemical experiments.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,14,I4,Study the movement of planets.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,15,I5,Examine blood samples using a microscope.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,16,I6,Investigate the cause of a fire.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,17,I7,Develop a way to better predict the weather.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,18,I8,Work in a biology lab.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,19,I9,Invent a replacement for sugar.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,20,I10,Do laboratory tests to identify diseases.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,21,A1,Write books or plays.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,22,A2,Play a musical instrument.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,23,A3,Compose or arrange music.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,24,A4,Draw pictures.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,25,A5,Create special effects for movies.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,26,A6,Paint sets for plays.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,27,A7,Write scripts for movies or television shows.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,28,A8,Perform jazz or tap dance.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,29,A9,Sing in a band.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,30,A10,Edit movies.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,31,S1,Teach an individual an exercise routine.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,32,S2,Help people with personal or emotional problems.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,33,S3,Give career guidance to people.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,34,S4,Perform rehabilitation therapy.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,35,S5,Do volunteer work at a non-profit organization.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,36,S6,Teach children how to play sports.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,37,S7,Teach sign language to people who are deaf or hard of hearing.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,38,S8,Help conduct a group therapy session.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,39,S9,Take care of children at a day-care center.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,40,S10,Teach a high-school class.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,41,E1,Buy and sell stocks and bonds.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,42,E2,Manage a retail store.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,43,E3,Operate a beauty salon or barber shop.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,44,E4,Manage a department within a large company.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,45,E5,Start your own business.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,46,E6,Negotiate business contracts.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,47,E7,Represent a client in a lawsuit.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,48,E8,Market a new line of clothing.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,49,E9,Sell merchandise at a department store.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,50,E10,Manage a clothing store.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,51,C1,Develop a spreadsheet using computer software.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,52,C2,Proofread records or forms.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,53,C3,Install software across computers on a large network.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,54,C4,Operate a calculator.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,55,C5,Keep shipping and receiving records.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,56,C6,Calculate the wages of employees.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,57,C7,Inventory supplies using a hand-held computer.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,58,C8,Record rent payments.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,59,C9,Keep inventory records.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,60,C10,Stamp; sort; and distribute mail for an organization.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,61,R11,I like repairing machines or equipment.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,62,R12,I enjoy assembling mechanical items.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,63,R13,I prefer working outdoors and doing physical tasks.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,64,R14,I like using tools such as drills or screwdrivers.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,65,R15,I like operating or maintaining technical equipment.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,66,R16,I enjoy jobs requiring endurance and manual skills.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,67,R17,I like gardening; building; or carpentry.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,68,R18,I prefer working with my hands and following clear steps.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,69,R19,I want to learn a technical trade (electricity; mechanics; auto).,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,70,R20,I feel comfortable getting my hands dirty to finish work.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,71,I11,I like solving scientific or technical problems.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,72,I12,I am curious about how things work.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,73,I13,I enjoy analyzing data and finding patterns.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,74,I14,I like reading academic or technical materials.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,75,I15,I enjoy programming or automating tasks.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,76,I16,I like testing hypotheses to confirm results.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,77,I17,I love mathematics and logical reasoning.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,78,I18,I like designing small experiments or prototypes.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,79,I19,I like optimizing system efficiency and accuracy.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,80,I20,I want to study fundamental scientific principles.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,81,A11,I like creating content; designs; or artwork.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,82,A12,I am interested in music; painting; or photography.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,83,A13,I like writing; storytelling; or poetry.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,84,A14,I like freedom in how I work and express ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,85,A15,I want to make aesthetically pleasing products.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,86,A16,I feel inspired when trying new designs or ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,87,A17,I like producing videos; music; or stage work.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,88,A18,I like designing user interfaces and experiences.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,89,A19,I enjoy creating brand concepts or visual ads.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,90,A20,I like turning ideas into tangible products.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,91,S11,I like helping; guiding; or caring for others.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,92,S12,I want to work in education; counseling; or healthcare.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,93,S13,I enjoy explaining ideas so others can understand.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,94,S14,I like teamwork and supporting colleagues.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,95,S15,I care about others’ emotions and needs.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,96,S16,I want to contribute to the community.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,97,S17,I like listening and giving advice.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,98,S18,I am patient when working with beginners.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,99,S19,I enjoy coordinating volunteer or social projects.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,100,S20,I like seeing positive impact on people’s lives.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,101,E11,I like persuading; negotiating; or leading teams.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,102,E12,I want to build a wide professional network.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,103,E13,I enjoy setting and achieving sales targets.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,104,E14,I like making quick decisions and taking responsibility.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,105,E15,I want to start a business or manage a major project.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,106,E16,I enjoy presenting; pitching; or selling ideas.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,107,E17,I like leading change within organizations.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,108,E18,I enjoy competition and pursuing achievements.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,109,E19,I feel confident speaking in front of crowds.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,110,E20,I like finding new business opportunities.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,111,C11,I like following procedures; templates; and standards.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,112,C12,I am careful when entering and verifying data.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,113,C13,I like detailed planning and meeting deadlines.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,114,C14,I feel comfortable organizing files and documents.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,115,C15,I prefer to check details carefully.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,116,C16,I like keeping things in order.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,117,C17,I enjoy repetitive work that requires accuracy.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,118,C18,I prefer following rules and procedures.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,119,C19,I like to ensure things are done properly.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False
+RIASEC120,120,C20,I enjoy reviewing and checking work for errors.,"{""options"":[""Strongly Dislike"",""Dislike"",""Unsure"",""Like"",""Strongly Like""],""scale"":""RIASEC""}",False

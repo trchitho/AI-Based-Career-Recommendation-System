@@ -292,6 +292,7 @@
   "admin": {
     "dashboard": "Admin Dashboard",
     "users": "Users",
+    "transactions": "Transactions",
     "careers": "Careers",
     "skills": "Skills",
     "questions": "Questions",

@@ -6,6 +6,9 @@ import {
 } from "../../services/recommendationService";
 import { useSubscription } from "../../hooks/useSubscription";
 import { checkCareerAccess, trackCareerView } from "../../services/subscriptionService";
+import { CareerRecommendationDTO } from "../../services/recommendationService";
+import { trackCareerEvent, getDwellMs, clearDwellStart } from "../../services/trackService";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface CareerRecommendationsDisplayProps {
   items: CareerRecommendationDTO[];
@@ -26,8 +29,8 @@ const CareerRecommendationsDisplay = ({
   // Debug: Log premium status
   console.log('🔍 CareerRecommendations - isPremium:', isPremium);
 
-  // Chỉ hiển thị tối đa 5 nghề (phòng trường hợp parent vẫn pass >5)
-  const displayedItems = items.slice(0, 5);
+  // Backend đã đảm bảo số lượng & thứ tự, không slice ở FE nữa
+  const displayedItems = items;
 
   const getMatchColor = (percentage: number) => {
     if (percentage >= 90) return "text-green-600 bg-green-100";
@@ -84,6 +87,27 @@ const CareerRecommendationsDisplay = ({
     }
 
     // Truyền EN title / description sang RoadmapPage
+    // Calculate dwell time before clearing
+    const dwellMs = getDwellMs();
+
+    // Log click event via trackService (uses axios instance with auth)
+    // dwell_ms = time from when Career Matches tab was opened until click
+    trackCareerEvent(
+      {
+        event_type: 'click',
+        job_id: slugOrId,
+        rank_pos: position,
+        score_shown: career.display_match ?? career.match_score,
+        dwell_ms: dwellMs,
+        ...(requestId ? { ref: requestId } : {}),
+      },
+      user?.id ? { userId: user.id } : undefined
+    );
+
+    // Clear dwell start to prevent double-count on back navigation
+    clearDwellStart();
+
+    // Navigate immediately, don't wait for tracking
     navigate(`/careers/${slugOrId}/roadmap`, {
       state: {
         title,
@@ -122,13 +146,16 @@ const CareerRecommendationsDisplay = ({
       {!loading && !error && displayedItems.length > 0 && (
         <div className="space-y-4">
           {displayedItems.map((career, index) => {
-            // Fake % match cao cho Top 5
-            const basePercentages = [95, 90, 85, 80, 75];
+            // Ưu tiên dùng display_match từ backend.
+            // Nếu chưa có (giai đoạn chuyển tiếp), fallback = max(60, match_score * 100).
+            const hasDisplayMatch =
+              typeof career.display_match === "number" &&
+              !Number.isNaN(career.display_match);
+
             const raw = Math.round(career.match_score * 100);
-            const percent =
-              typeof career.display_match === "number"
-                ? Math.round(career.display_match)
-                : basePercentages[index] ?? Math.max(60, raw);
+            const percent = hasDisplayMatch
+              ? Math.round(career.display_match as number)
+              : Math.max(60, raw);
 
             // Ưu tiên EN, thiếu thì fallback VN
             const title =

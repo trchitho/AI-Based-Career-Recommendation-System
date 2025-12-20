@@ -6,12 +6,20 @@ from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum, Text,
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 import enum
+from datetime import datetime, timezone
+from typing import Optional
 
-Base = declarative_base()
+from sqlalchemy import BigInteger, DateTime, String, Text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class PaymentStatus(str, enum.Enum):
     """Trạng thái thanh toán"""
+
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
@@ -20,13 +28,15 @@ class PaymentStatus(str, enum.Enum):
 
 class PaymentMethod(str, enum.Enum):
     """Phương thức thanh toán"""
+
     ZALOPAY = "zalopay"
     MOMO = "momo"
     VNPAY = "vnpay"
 
 
 class Payment(Base):
-    """Model thanh toán"""
+    """Payment model khớp schema core.payments"""
+
     __tablename__ = "payments"
     __table_args__ = {"schema": "core"}
 
