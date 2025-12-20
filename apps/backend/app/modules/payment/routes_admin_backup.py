@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, desc
 from datetime import datetime, date
+from loguru import logger
 
 from .models import Payment, PaymentStatus, PaymentMethod
 from ...core.jwt import require_admin
@@ -166,7 +167,9 @@ def get_payments(
                 status_enum = PaymentStatus(status_filter)
                 query = query.filter(Payment.status == status_enum)
             except ValueError:
-                pass
+                # Invalid status value provided - log warning and skip filter
+                # This allows the API to gracefully handle invalid filter parameters
+                logger.warning(f"Invalid status filter value: {status_filter}")
         
         # Lọc theo phương thức thanh toán
         if payment_method:
@@ -174,7 +177,9 @@ def get_payments(
                 method_enum = PaymentMethod(payment_method)
                 query = query.filter(Payment.payment_method == method_enum)
             except ValueError:
-                pass
+                # Invalid payment method value provided - log warning and skip filter
+                # This allows the API to gracefully handle invalid filter parameters
+                logger.warning(f"Invalid payment_method filter value: {payment_method}")
         
         # Lọc theo ngày
         if date_from:
