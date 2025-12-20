@@ -168,6 +168,7 @@ def get_payments(
                 status_enum = PaymentStatus(status_filter)
                 query = query.filter(Payment.status == status_enum)
             except ValueError:
+                # Ignore invalid status values and continue without this filter
                 pass
         
         # Lọc theo phương thức thanh toán
@@ -176,6 +177,7 @@ def get_payments(
                 method_enum = PaymentMethod(payment_method)
                 query = query.filter(Payment.payment_method == method_enum)
             except ValueError:
+                # Ignore invalid payment method values and continue without this filter
                 pass
         
         # Lọc theo ngày
@@ -184,6 +186,7 @@ def get_payments(
                 from_date = datetime.strptime(date_from, "%Y-%m-%d").date()
                 query = query.filter(func.date(Payment.created_at) >= from_date)
             except ValueError:
+                # Ignore invalid date format and continue without this filter
                 pass
         
         if date_to:
@@ -191,6 +194,7 @@ def get_payments(
                 to_date = datetime.strptime(date_to, "%Y-%m-%d").date()
                 query = query.filter(func.date(Payment.created_at) <= to_date)
             except ValueError:
+                # Ignore invalid date format and continue without this filter
                 pass
         
         # Đếm tổng số
@@ -299,6 +303,7 @@ def get_user_payment_history(
                 status_enum = PaymentStatus(status_filter)
                 query = query.filter(Payment.status == status_enum)
             except ValueError:
+                # Ignore invalid status values and continue without this filter
                 pass
         
         # Lọc theo ngày
@@ -307,6 +312,7 @@ def get_user_payment_history(
                 from_date = datetime.strptime(date_from, "%Y-%m-%d").date()
                 query = query.filter(func.date(Payment.created_at) >= from_date)
             except ValueError:
+                # Ignore invalid date format and continue without this filter
                 pass
         
         if date_to:
@@ -314,6 +320,7 @@ def get_user_payment_history(
                 to_date = datetime.strptime(date_to, "%Y-%m-%d").date()
                 query = query.filter(func.date(Payment.created_at) <= to_date)
             except ValueError:
+                # Ignore invalid date format and continue without this filter
                 pass
         
         # Đếm tổng số
@@ -425,6 +432,7 @@ def export_payments(
                 status_enum = PaymentStatus(status_filter)
                 query = query.filter(Payment.status == status_enum)
             except ValueError:
+                # Ignore invalid status values and continue without this filter
                 pass
         
         if payment_method:
@@ -432,6 +440,7 @@ def export_payments(
                 method_enum = PaymentMethod(payment_method)
                 query = query.filter(Payment.payment_method == method_enum)
             except ValueError:
+                # Ignore invalid payment method values and continue without this filter
                 pass
         
         if date_from:
@@ -439,6 +448,7 @@ def export_payments(
                 from_date = datetime.strptime(date_from, "%Y-%m-%d").date()
                 query = query.filter(func.date(Payment.created_at) >= from_date)
             except ValueError:
+                # Ignore invalid date format and continue without this filter
                 pass
         
         if date_to:
@@ -446,6 +456,7 @@ def export_payments(
                 to_date = datetime.strptime(date_to, "%Y-%m-%d").date()
                 query = query.filter(func.date(Payment.created_at) <= to_date)
             except ValueError:
+                # Ignore invalid date format and continue without this filter
                 pass
         
         # Lấy tất cả dữ liệu (giới hạn 10000 để tránh quá tải)
