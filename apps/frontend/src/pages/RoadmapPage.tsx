@@ -848,32 +848,7 @@ const RoadmapPage = () => {
                     </div>
                   )}
 
-                  {/* Old upgrade banner - removed for simplicity */}
-                  {false && upgradeRequired && (
-                    <div className="mb-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-6 text-white shadow-xl">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-bold">Mở khóa toàn bộ lộ trình</h3>
-                            <p className="text-white/90">
-                              Bạn đang xem {maxFreeLevel} level miễn phí. Nâng cấp Premium để truy cập tất cả {totalMilestones} levels.
-                            </p>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => navigate('/pricing')}
-                          className="px-6 py-3 bg-white text-orange-600 font-bold rounded-xl hover:bg-gray-100 transition-colors shadow-lg"
-                        >
-                          Nâng Cấp Ngay
-                        </button>
-                      </div>
-                    </div>
-                  )}
+
 
                   <RoadmapTimelineComponent
                     milestones={roadmap.milestones}
