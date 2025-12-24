@@ -1741,15 +1741,17 @@ def get_sync_stats(request: Request):
             onet_count = session.execute(text(
                 "SELECT COUNT(*) FROM core.careers WHERE source = 'onet'"
             )).scalar() or 0
-        except:
-            pass
+        except Exception as e:
+            # Table might not have 'source' column yet - use default value
+            logger.debug(f"Failed to get O*NET count: {e}")
         
         try:
             esco_count = session.execute(text(
                 "SELECT COUNT(*) FROM core.careers WHERE source = 'esco'"
             )).scalar() or 0
-        except:
-            pass
+        except Exception as e:
+            # Table might not have 'source' column yet - use default value
+            logger.debug(f"Failed to get ESCO count: {e}")
         
         try:
             last_sync_result = session.execute(text("""
@@ -1758,8 +1760,9 @@ def get_sync_stats(request: Request):
                 ORDER BY completed_at DESC LIMIT 1
             """)).scalar()
             last_sync = _iso_or_none(last_sync_result)
-        except:
-            pass
+        except Exception as e:
+            # Table might not exist yet - use default value
+            logger.debug(f"Failed to get last sync time: {e}")
         
         return {
             "totalCareers": career_count,
