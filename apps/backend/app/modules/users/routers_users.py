@@ -67,9 +67,10 @@ def _log_audit(
             new_session.commit()
         finally:
             new_session.close()
-    except Exception as e:
+    except Exception:
         # Log audit failures but don't propagate to avoid breaking the main flow
-        logger.error(f"Failed to log audit: {e}")
+        # Using exception() to include stack trace for debugging
+        logger.exception("Failed to log audit")
 
 
 def _split_name(full_name: str | None) -> tuple[str | None, str | None]:
