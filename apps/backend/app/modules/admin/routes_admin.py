@@ -1741,15 +1741,15 @@ def get_sync_stats(request: Request):
             onet_count = session.execute(text(
                 "SELECT COUNT(*) FROM core.careers WHERE source = 'onet'"
             )).scalar() or 0
-        except:
-            pass
+        except Exception as e:
+            logger.debug("Failed to get O*NET career count", exc_info=True)
         
         try:
             esco_count = session.execute(text(
                 "SELECT COUNT(*) FROM core.careers WHERE source = 'esco'"
             )).scalar() or 0
-        except:
-            pass
+        except Exception as e:
+            logger.debug("Failed to get ESCO career count", exc_info=True)
         
         try:
             last_sync_result = session.execute(text("""
@@ -1758,8 +1758,8 @@ def get_sync_stats(request: Request):
                 ORDER BY completed_at DESC LIMIT 1
             """)).scalar()
             last_sync = _iso_or_none(last_sync_result)
-        except:
-            pass
+        except Exception as e:
+            logger.debug("Failed to get last sync timestamp", exc_info=True)
         
         return {
             "totalCareers": career_count,
