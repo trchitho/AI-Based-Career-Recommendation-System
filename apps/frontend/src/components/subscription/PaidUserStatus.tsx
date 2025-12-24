@@ -14,7 +14,7 @@ const PaidUserStatus = () => {
 
   // Check if user can upgrade to higher plans
   const currentPlan = planName || 'Premium';
-  const canUpgrade = !currentPlan?.toLowerCase().includes('enterprise') && !currentPlan?.toLowerCase().includes('doanh nghiệp');
+  const canUpgrade = !currentPlan?.toLowerCase().includes('pro');
 
   return (
     <MainLayout>

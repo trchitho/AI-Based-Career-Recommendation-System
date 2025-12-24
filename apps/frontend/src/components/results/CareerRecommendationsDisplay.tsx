@@ -4,8 +4,8 @@ import {
   CareerRecommendationDTO,
   recommendationService,
 } from "../../services/recommendationService";
-import { useSubscription } from "../../hooks/useSubscription";
-import { checkCareerAccess, trackCareerView } from "../../services/subscriptionService";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
+import { useUsageTracking } from "../../hooks/useUsageTracking";
 import { trackCareerEvent, getDwellMs, clearDwellStart } from "../../services/trackService";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -23,11 +23,9 @@ const CareerRecommendationsDisplay = ({
   error,
 }: CareerRecommendationsDisplayProps) => {
   const navigate = useNavigate();
-  const { isPremium } = useSubscription();
+  const { hasFeature, getPlanInfo, currentPlan } = useFeatureAccess();
+  const { incrementUsage, canUseFeature } = useUsageTracking();
   const { user } = useAuth();
-
-  // Debug: Log premium status
-  console.log('🔍 CareerRecommendations - isPremium:', isPremium);
 
   // Backend đã đảm bảo số lượng & thứ tự, không slice ở FE nữa
   const displayedItems = items;
@@ -47,27 +45,48 @@ const CareerRecommendationsDisplay = ({
   ) => {
     const slugOrId = career.slug || career.career_id;
 
-    // Check career access for free users
-    if (!isPremium) {
-      try {
-        const accessCheck = await checkCareerAccess(parseInt(slugOrId));
-        if (!accessCheck.allowed) {
-          // Show upgrade prompt instead of navigating
-          navigate('/pricing', {
-            state: {
-              feature: 'career_view',
-              message: accessCheck.message,
-              redirectTo: `/careers/${slugOrId}/roadmap`,
-              redirectState: { title, description: desc }
-            }
-          });
-          return;
-        }
-      } catch (err) {
-        console.error("Failed to check career access", err);
+    // Check career viewing limits based on plan
+    const canViewCareer = () => {
+      if (hasFeature('unlimited_careers')) {
+        return true; // Premium/Pro users can view all careers
       }
+      
+      // For Basic plan: can only view first 2 careers (position 1, 2)
+      // Position 3+ are locked
+      if (currentPlan === 'basic') {
+        return position <= 2; // Allow positions 1, 2 only
+      }
+      
+      // Free users can only view first career (position 1)
+      return position === 1;
+    };
+
+    if (!canViewCareer()) {
+      const requiredPlan = currentPlan === 'basic' ? 'premium' : 'basic';
+      const planInfo = getPlanInfo(requiredPlan);
+      
+      let message = '';
+      if (currentPlan === 'free') {
+        message = `Nâng cấp ${planInfo?.name || 'Gói Cơ Bản'} để xem 2 nghề nghiệp phù hợp nhất.`;
+      } else if (currentPlan === 'basic') {
+        message = `Nâng cấp ${getPlanInfo('premium')?.name || 'Gói Premium'} để xem toàn bộ danh mục nghề nghiệp.`;
+      } else {
+        message = `Nâng cấp ${getPlanInfo('premium')?.name || 'Gói Premium'} để xem toàn bộ danh mục nghề nghiệp.`;
+      }
+      
+      navigate('/pricing', {
+        state: {
+          feature: 'career_recommendations',
+          message,
+          requiredPlan: requiredPlan,
+          redirectTo: `/careers/${slugOrId}/roadmap`,
+          redirectState: { title, description: desc }
+        }
+      });
+      return;
     }
 
+    // For unlocked careers, proceed normally
     try {
       await recommendationService.logClick({
         career_id: slugOrId,
@@ -75,16 +94,14 @@ const CareerRecommendationsDisplay = ({
         request_id: requestId,
         match_score: career.match_score,
       });
-
-      // Track career view for usage counting
-      if (!isPremium) {
-        await trackCareerView(parseInt(slugOrId));
-      }
     } catch (err) {
       // Không chặn UX nếu log fail
       // eslint-disable-next-line no-console
       console.error("Failed to log recommendation click", err);
     }
+
+    // NOTE: ViewRoadmap không track usage - chỉ track khi vào career detail page
+    // Tracking sẽ được thực hiện ở CareerDetailPage và CareersPage
 
     // Truyền EN title / description sang RoadmapPage
     // Calculate dwell time before clearing
@@ -112,6 +129,7 @@ const CareerRecommendationsDisplay = ({
       state: {
         title,
         description: desc,
+        fromRoadmap: true, // Đánh dấu đây là navigation từ roadmap
       },
     });
   };
@@ -165,11 +183,34 @@ const CareerRecommendationsDisplay = ({
               "Unknown career";
             const desc = career.description ?? "";
 
-            // Check if this career is locked for free users
-            const isLocked = !isPremium && index > 0; // Free users can only view first career
-
-            // Debug: Log lock status for each career
-            console.log(`Career ${index + 1} (${title}):`, { isPremium, index, isLocked });
+            // Check if this career is locked based on 4-tier system
+            const isLocked = (() => {
+              if (hasFeature('unlimited_careers')) {
+                return false; // Premium/Pro users can view all careers
+              }
+              
+              // For Basic plan: can only view first 2 careers (index 0, 1)
+              // Career 3+ (index 2+) are locked
+              if (currentPlan === 'basic') {
+                return index >= 2; // Lock careers from index 2 onwards
+              }
+              
+              // Free users can only view first career (index 0)
+              return index > 0;
+            })();
+            
+            const requiredPlan = (() => {
+              if (!isLocked) return null;
+              
+              // For Basic users viewing career 3+, suggest Premium
+              if (currentPlan === 'basic') {
+                return 'premium';
+              }
+              
+              // For Free users, suggest Basic
+              return 'basic';
+            })();
+            const requiredPlanInfo = requiredPlan ? getPlanInfo(requiredPlan) : null;
 
             return (
               <div
@@ -181,11 +222,15 @@ const CareerRecommendationsDisplay = ({
                 {isLocked && (
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none">
                     <div className="absolute top-3 right-3">
-                      <span className="px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 616 0z" clipRule="evenodd" />
+                      <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${
+                        requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
+                        requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                        'bg-gradient-to-r from-purple-500 to-pink-500'
+                      }`}>
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" />
                         </svg>
-                        PRO
+                        {requiredPlanInfo?.name.replace('Gói ', '') || 'PRO'}
                       </span>
                     </div>
                   </div>
@@ -223,12 +268,23 @@ const CareerRecommendationsDisplay = ({
                   </div>
                 </div>
 
-                {desc && (
+                    {desc && (
                   <p className={`mb-4 ${isLocked
                       ? 'text-gray-500 dark:text-gray-500'
                       : 'text-gray-700 dark:text-gray-300'
                     }`}>
-                    {isLocked ? 'Nâng cấp Premium để xem chi tiết nghề nghiệp này và lộ trình học tập đầy đủ.' : desc}
+                    {isLocked 
+                      ? (() => {
+                          if (currentPlan === 'free') {
+                            return `Nâng cấp Gói Cơ Bản (99k) để xem 2 nghề nghiệp phù hợp nhất hoặc Gói Premium (299k) để xem không giới hạn.`;
+                          } else if (currentPlan === 'basic') {
+                            return `Gói Cơ Bản chỉ xem được 2 nghề nghiệp đầu tiên. Nâng cấp Gói Premium (299k) để xem toàn bộ danh mục nghề nghiệp.`;
+                          } else {
+                            return `Nâng cấp ${requiredPlanInfo?.name || 'Premium'} để xem chi tiết nghề nghiệp này.`;
+                          }
+                        })()
+                      : desc
+                    }
                   </p>
                 )}
 
@@ -237,11 +293,23 @@ const CareerRecommendationsDisplay = ({
                     handleViewRoadmap(career, index + 1, title, desc)
                   }
                   className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${isLocked
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
+                      ? `bg-gradient-to-r ${
+                          requiredPlanInfo?.color === 'blue' ? 'from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600' :
+                          requiredPlanInfo?.color === 'green' ? 'from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' :
+                          'from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+                        } text-white`
                       : 'bg-[#4A7C59] dark:bg-green-600 text-white hover:bg-[#3d6449] dark:hover:bg-green-700'
                     }`}
                 >
-                  {isLocked ? 'Mở khóa với Premium ✨' : 'View Learning Roadmap'}
+                  {isLocked ? (() => {
+                    if (currentPlan === 'free') {
+                      return 'Nâng cấp Gói Cơ Bản ✨';
+                    } else if (currentPlan === 'basic') {
+                      return 'Nâng cấp Premium ✨';
+                    } else {
+                      return `Nâng cấp ${requiredPlanInfo?.name || 'Premium'} ✨`;
+                    }
+                  })() : 'View Learning Roadmap'}
                 </button>
               </div>
             );

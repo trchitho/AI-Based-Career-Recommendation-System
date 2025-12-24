@@ -61,6 +61,13 @@ class Assessment(Base):
     scores = Column(JSONB, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     session_id = Column(BigInteger)                # <<< THÊM DÒNG NÀY
+    
+    # Processed results fields for persistence
+    processed_riasec_scores = Column(JSONB, nullable=True)
+    processed_big_five_scores = Column(JSONB, nullable=True)
+    top_interest = Column(Text, nullable=True)
+    career_recommendations = Column(JSONB, nullable=True)
+    essay_analysis = Column(JSONB, nullable=True)
 
 
 class AssessmentSession(Base):

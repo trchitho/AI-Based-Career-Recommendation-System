@@ -16,6 +16,7 @@ import MainLayout from '../components/layout/MainLayout';
 import { trackCareerEvent, markDwellStart } from '../services/trackService';
 import { useAuth } from '../contexts/AuthContext';
 import { getRIASECFullName } from '../utils/riasec';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
 
 const ResultsPage = () => {
   // ==========================================
@@ -23,6 +24,7 @@ const ResultsPage = () => {
   // ==========================================
   const { assessmentId } = useParams<{ assessmentId: string }>();
   const { user } = useAuth();
+  const { hasFeature, currentPlan, getNextUpgradePlan } = useFeatureAccess();
 
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [loadingResults, setLoadingResults] = useState(true);
@@ -250,25 +252,82 @@ const ResultsPage = () => {
                     </p>
                   </div>
 
-                  <Link
-                    to={`/results/${assessmentId}/report`}
-                    className="flex-shrink-0 px-5 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30 transition-colors flex items-center gap-2"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  {/* View Full Report - Only for Premium and Pro plans */}
+                  {hasFeature('detailed_analysis') ? (
+                    <Link
+                      to={`/results/${assessmentId}/report`}
+                      className="flex-shrink-0 px-5 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30 transition-colors flex items-center gap-2"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    View Full Report
-                  </Link>
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      View Full Report
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/pricing"
+                      className="flex-shrink-0 px-5 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30 transition-colors flex items-center gap-2"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                      </svg>
+                      {currentPlan === 'free' ? 'Upgrade to Premium' : 'Upgrade to Premium'}
+                    </Link>
+                  )}
+
+                  {/* Progress Tracking - Only for Pro plan */}
+                  {hasFeature('progress_tracking') ? (
+                    <Link
+                      to={`/progress-comparison`}
+                      className="flex-shrink-0 px-5 py-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-md border border-purple-300/30 rounded-xl text-white font-semibold hover:from-purple-500/30 hover:to-pink-500/30 transition-colors flex items-center gap-2"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                      Compare Progress
+                    </Link>
+                  ) : currentPlan !== 'pro' && (
+                    <div className="flex-shrink-0 px-5 py-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-md border border-purple-300/20 rounded-xl text-white/70 font-semibold flex items-center gap-2 cursor-not-allowed">
+                      <svg
+                        className="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" />
+                      </svg>
+                      Pro Feature
+                    </div>
+                  )}
                 </div>
               </div>
 

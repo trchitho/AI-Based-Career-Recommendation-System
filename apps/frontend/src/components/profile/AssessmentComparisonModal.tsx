@@ -11,6 +11,9 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
   const assessment1 = assessments[0]!;
   const assessment2 = assessments[1]!;
 
+  console.log('Assessment 1:', assessment1);
+  console.log('Assessment 2:', assessment2);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -101,36 +104,49 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
           </div>
 
           {/* RIASEC Section */}
-          {assessment1.riasec_scores && assessment2.riasec_scores && (
+          {(assessment1.riasec_scores || assessment2.riasec_scores) && (
             <div className="mb-8">
               <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span className="w-1.5 h-4 bg-blue-500 rounded-full"></span>
                 RIASEC Scores
               </h4>
               <div className="space-y-1">
-                {renderScoreComparison("Realistic", assessment1.riasec_scores.realistic, assessment2.riasec_scores.realistic)}
-                {renderScoreComparison("Investigative", assessment1.riasec_scores.investigative, assessment2.riasec_scores.investigative)}
-                {renderScoreComparison("Artistic", assessment1.riasec_scores.artistic, assessment2.riasec_scores.artistic)}
-                {renderScoreComparison("Social", assessment1.riasec_scores.social, assessment2.riasec_scores.social)}
-                {renderScoreComparison("Enterprising", assessment1.riasec_scores.enterprising, assessment2.riasec_scores.enterprising)}
-                {renderScoreComparison("Conventional", assessment1.riasec_scores.conventional, assessment2.riasec_scores.conventional)}
+                {renderScoreComparison("Realistic", assessment1.riasec_scores?.realistic, assessment2.riasec_scores?.realistic)}
+                {renderScoreComparison("Investigative", assessment1.riasec_scores?.investigative, assessment2.riasec_scores?.investigative)}
+                {renderScoreComparison("Artistic", assessment1.riasec_scores?.artistic, assessment2.riasec_scores?.artistic)}
+                {renderScoreComparison("Social", assessment1.riasec_scores?.social, assessment2.riasec_scores?.social)}
+                {renderScoreComparison("Enterprising", assessment1.riasec_scores?.enterprising, assessment2.riasec_scores?.enterprising)}
+                {renderScoreComparison("Conventional", assessment1.riasec_scores?.conventional, assessment2.riasec_scores?.conventional)}
               </div>
             </div>
           )}
 
           {/* Big Five Section */}
-          {assessment1.big_five_scores && assessment2.big_five_scores && (
+          {(assessment1.big_five_scores || assessment2.big_five_scores) && (
             <div className="mb-8">
               <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span className="w-1.5 h-4 bg-purple-500 rounded-full"></span>
                 Big Five Traits
               </h4>
               <div className="space-y-1">
-                {renderScoreComparison("Openness", assessment1.big_five_scores.openness, assessment2.big_five_scores.openness)}
-                {renderScoreComparison("Conscientiousness", assessment1.big_five_scores.conscientiousness, assessment2.big_five_scores.conscientiousness)}
-                {renderScoreComparison("Extraversion", assessment1.big_five_scores.extraversion, assessment2.big_five_scores.extraversion)}
-                {renderScoreComparison("Agreeableness", assessment1.big_five_scores.agreeableness, assessment2.big_five_scores.agreeableness)}
-                {renderScoreComparison("Neuroticism", assessment1.big_five_scores.neuroticism, assessment2.big_five_scores.neuroticism)}
+                {renderScoreComparison("Openness", assessment1.big_five_scores?.openness, assessment2.big_five_scores?.openness)}
+                {renderScoreComparison("Conscientiousness", assessment1.big_five_scores?.conscientiousness, assessment2.big_five_scores?.conscientiousness)}
+                {renderScoreComparison("Extraversion", assessment1.big_five_scores?.extraversion, assessment2.big_five_scores?.extraversion)}
+                {renderScoreComparison("Agreeableness", assessment1.big_five_scores?.agreeableness, assessment2.big_five_scores?.agreeableness)}
+                {renderScoreComparison("Neuroticism", assessment1.big_five_scores?.neuroticism, assessment2.big_five_scores?.neuroticism)}
+              </div>
+            </div>
+          )}
+
+          {/* Show message if no scores available */}
+          {!assessment1.riasec_scores && !assessment2.riasec_scores && !assessment1.big_five_scores && !assessment2.big_five_scores && (
+            <div className="text-center py-8">
+              <div className="text-gray-500 dark:text-gray-400 mb-4">
+                <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <p className="text-lg font-medium">No assessment data available</p>
+                <p className="text-sm">The selected assessments don't contain score data for comparison.</p>
               </div>
             </div>
           )}

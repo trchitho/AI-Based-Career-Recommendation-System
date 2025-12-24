@@ -206,12 +206,14 @@ async def payment_callback(
             plan_name = "Premium"  # Default plan
             
             # Logic để xác định plan dựa trên amount
-            if payment.amount >= 500000:  # 500k VND trở lên
+            if payment.amount >= 450000:  # 450k VND trở lên = Pro
                 plan_name = "Pro"
-            elif payment.amount >= 200000:  # 200k VND trở lên
+            elif payment.amount >= 250000:  # 250k VND trở lên = Premium
                 plan_name = "Premium"
+            elif payment.amount >= 80000:  # 80k VND trở lên = Basic
+                plan_name = "Basic"
             else:
-                plan_name = "basic"
+                plan_name = "Basic"  # Default to Basic for any paid plan
             
             # Upgrade user subscription
             upgrade_success = SubscriptionService.upgrade_user_subscription(
@@ -235,6 +237,115 @@ async def payment_callback(
     except Exception as e:
         logger.error(f"Callback error: {e}")
         return {"return_code": 0, "return_message": str(e)}
+
+
+@router.post("/force-check/{order_id}")
+def force_check_payment(
+    order_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Force check payment status from ZaloPay (for cases where callback fails)
+    """
+    user_id = current_user["user_id"]
+
+    payment = db.query(Payment).filter(
+        (Payment.app_trans_id == order_id) | (Payment.order_id == order_id),
+        Payment.user_id == user_id,
+    ).first()
+
+    if not payment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy đơn hàng",
+        )
+
+    # Only force check if payment is still pending
+    if payment.status != PaymentStatus.PENDING.value:
+        return {"message": "Payment already processed", "status": payment.status}
+    
+    # Query từ ZaloPay
+    if payment.app_trans_id:
+        zalopay = get_zalopay_service()
+        result = zalopay.query_order(payment.app_trans_id)
+        
+        logger.info(f"Force check result for {order_id}: {result}")
+        
+        # Cập nhật trạng thái dựa trên kết quả từ ZaloPay
+        result_status = result.get("status")
+        
+        if result_status == 1:  # Success
+            payment.status = PaymentStatus.SUCCESS.value
+            payment.paid_at = datetime.utcnow()
+            
+            # Auto-upgrade user subscription
+            try:
+                from app.core.subscription import SubscriptionService
+                
+                # Determine plan based on amount
+                plan_name = "Premium"  # Default plan
+                
+                if payment.amount >= 450000:  # 450k VND = Pro
+                    plan_name = "Pro"
+                elif payment.amount >= 250000:  # 250k VND = Premium
+                    plan_name = "Premium"
+                elif payment.amount >= 80000:  # 80k VND = Basic
+                    plan_name = "Basic"
+                else:
+                    plan_name = "Basic"
+                
+                # Upgrade user subscription
+                upgrade_success = SubscriptionService.upgrade_user_subscription(
+                    user_id=payment.user_id,
+                    plan_name=plan_name.strip(),
+                    payment_id=payment.id,
+                    session=db
+                )
+                
+                if upgrade_success:
+                    logger.info(f"User {payment.user_id} upgraded to {plan_name} plan via force check")
+                else:
+                    logger.error(f"Failed to upgrade user {payment.user_id} to {plan_name} plan via force check")
+                    
+            except Exception as upgrade_error:
+                logger.error(f"Error during auto-upgrade in force check: {upgrade_error}")
+            
+            db.commit()
+            logger.info(f"Payment {payment.order_id} marked as SUCCESS via force check")
+            
+        elif result_status == 2:  # Failed
+            payment.status = PaymentStatus.FAILED.value
+            db.commit()
+            logger.info(f"Payment {payment.order_id} marked as FAILED via force check")
+        elif result_status == 3:  # Cancelled  
+            payment.status = PaymentStatus.CANCELLED.value
+            db.commit()
+            logger.info(f"Payment {payment.order_id} marked as CANCELLED via force check")
+        else:
+            # If still pending after force check, check for timeout
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
+            created = payment.created_at
+            
+            # Ensure both datetimes are timezone-aware
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+            
+            time_elapsed = (now - created).total_seconds()
+            if time_elapsed > 900:  # 15 minutes timeout
+                payment.status = PaymentStatus.FAILED.value
+                db.commit()
+                logger.info(f"Payment {payment.order_id} marked as FAILED due to timeout after force check")
+        
+        # Return updated status
+        return {
+            "message": "Status updated", 
+            "status": payment.status,
+            "zalopay_result": result
+        }
+    
+    return {"message": "No app_trans_id to query", "status": payment.status}
 
 
 @router.get("/query/{order_id}", response_model=PaymentQueryResponse)
@@ -287,14 +398,16 @@ def query_payment(
                 from app.core.subscription import SubscriptionService
                 
                 # Xác định plan dựa trên amount
-                plan_name = "Premium"  # Default plan
+                plan_name = "Basic"  # Default plan
                 
-                if payment.amount >= 500000:  # 500k VND trở lên
+                if payment.amount >= 450000:  # 450k VND trở lên = Pro
                     plan_name = "Pro"
-                elif payment.amount >= 200000:  # 200k VND trở lên
+                elif payment.amount >= 250000:  # 250k VND trở lên = Premium
                     plan_name = "Premium"
+                elif payment.amount >= 80000:  # 80k VND trở lên = Basic
+                    plan_name = "Basic"
                 else:
-                    plan_name = "basic"
+                    plan_name = "Basic"  # Default to Basic for any paid plan
                 
                 # Upgrade user subscription
                 upgrade_success = SubscriptionService.upgrade_user_subscription(
@@ -332,10 +445,24 @@ def query_payment(
                 created = created.replace(tzinfo=timezone.utc)
             
             time_elapsed = (now - created).total_seconds()
-            if time_elapsed > 900:
+            if time_elapsed > 900:  # 15 minutes
                 payment.status = PaymentStatus.FAILED.value
                 db.commit()
                 logger.info(f"Payment {order_id} marked as FAILED due to timeout")
+        else:
+            # Unknown status, check timeout anyway
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
+            created = payment.created_at
+            
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+            
+            time_elapsed = (now - created).total_seconds()
+            if time_elapsed > 900:  # 15 minutes
+                payment.status = PaymentStatus.FAILED.value
+                db.commit()
+                logger.info(f"Payment {order_id} marked as FAILED due to timeout (unknown status: {result_status})")
 
     db.refresh(payment)
 

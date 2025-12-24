@@ -87,7 +87,7 @@ export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({
             </li>
             <li className="flex items-center gap-2">
               <Crown size={14} />
-              Không giới hạn sử dụng
+              Tư vấn nghề nghiệp không giới hạn
             </li>
           </ul>
         </div>

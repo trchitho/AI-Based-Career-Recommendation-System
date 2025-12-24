@@ -13,8 +13,6 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { checkAssessmentLimit } from '../services/subscriptionService';
-import { getPaymentHistory, Payment } from '../services/paymentService';
-import { getAccessToken } from '../utils/auth';
 
 type AssessmentStep = 'intro' | 'test' | 'essay' | 'processing';
 
@@ -37,74 +35,21 @@ const AssessmentPage = () => {
   const [usageInfo, setUsageInfo] = useState<any>(null);
   const [limitExceeded, setLimitExceeded] = useState(false);
 
-  // Add payment-based plan detection (same as PaymentPage)
-  const [detectedPlan, setDetectedPlan] = useState<string>('Free');
-  const isLoggedIn = !!getAccessToken();
-
   // Prompt essay lấy từ DB
   const [essayPrompt, setEssayPrompt] = useState<EssayPrompt | null>(null);
-
-  // Detect user plan from payment history (same logic as PaymentPage)
-  const detectUserPlan = async () => {
-    try {
-      const token = getAccessToken();
-      if (!token) return;
-
-      const payments = await getPaymentHistory(0, 10);
-      const successfulPayments = payments.filter((p: Payment) => p.status === 'success');
-      
-      if (successfulPayments.length > 0) {
-        const latestPayment = successfulPayments[0];
-        
-        if (latestPayment.description.includes('Cơ Bản') || 
-            (latestPayment.amount >= 99000 && latestPayment.amount < 250000)) {
-          setDetectedPlan('Basic');
-        } else if (latestPayment.description.includes('Premium') || 
-                  (latestPayment.amount >= 250000 && latestPayment.amount < 450000)) {
-          setDetectedPlan('Premium');
-        } else if (latestPayment.description.includes('Pro') || 
-                  latestPayment.amount >= 450000) {
-          setDetectedPlan('Pro');
-        }
-      }
-    } catch (error) {
-      console.error('Failed to detect user plan:', error);
-    }
-  };
-
-  // Load plan detection on mount
-  useEffect(() => {
-    if (isLoggedIn) {
-      detectUserPlan();
-    }
-  }, [isLoggedIn]);
-
-  // Enhanced assessment limit detection
-  const getAssessmentLimit = (): number => {
-    if (detectedPlan === 'Basic') {
-      return 20; // Basic plan has 20 assessments/month
-    } else if (detectedPlan === 'Premium' || detectedPlan === 'Pro') {
-      return -1; // Unlimited
-    }
-    
-    // Free plan or fallback
-    return subscriptionData?.usage?.find(u => u.feature === 'assessment')?.limit || 5;
-  };
 
   // Check assessment limit on component mount for users without unlimited_assessments feature
   useEffect(() => {
     const checkInitialLimit = async () => {
-      const currentLimit = getAssessmentLimit();
-      
-      if (currentLimit > 0) { // Has a limit (not unlimited)
+      if (!hasFeature('unlimited_assessments') && subscriptionData) {
         try {
-          const assessmentUsage = subscriptionData?.usage?.find(u => u.feature === 'assessment');
+          const assessmentUsage = subscriptionData.usage?.find(u => u.feature === 'assessment');
           if (assessmentUsage && !assessmentUsage.allowed) {
             setLimitExceeded(true);
             setUsageInfo({
               message: "Bạn đã sử dụng hết lượt test trong tháng này.",
               current_usage: assessmentUsage.current_usage,
-              limit: currentLimit // Use detected limit instead of backend limit
+              limit: assessmentUsage.limit
             });
           }
         } catch (err) {
@@ -114,20 +59,19 @@ const AssessmentPage = () => {
     };
 
     checkInitialLimit();
-  }, [subscriptionData, detectedPlan]); // Add detectedPlan to dependencies
+  }, [subscriptionData]); // Remove hasFeature from dependencies to prevent infinite loop
 
   const handleStartAssessment = async () => {
     setError(null);
     
-    // If limit already exceeded and user is on Free plan, show upgrade modal
-    if (limitExceeded && detectedPlan === 'Free') {
+    // If limit already exceeded, show upgrade modal
+    if (limitExceeded) {
       setUpgradeRequired(true);
       return;
     }
     
-    // Check assessment limit using enhanced detection - only for Free plan
-    const currentLimit = getAssessmentLimit();
-    if (currentLimit > 0 && detectedPlan === 'Free') { // Only check limits for Free plan
+    // Check assessment limit for users without unlimited_assessments feature
+    if (!hasFeature('unlimited_assessments')) {
       try {
         const limitCheck = await checkAssessmentLimit();
         if (!limitCheck.allowed) {
@@ -136,7 +80,7 @@ const AssessmentPage = () => {
           setUsageInfo({
             message: limitCheck.message,
             current_usage: subscriptionData?.usage?.find(u => u.feature === 'assessment')?.current_usage || 0,
-            limit: currentLimit
+            limit: subscriptionData?.usage?.find(u => u.feature === 'assessment')?.limit || 5
           });
           return;
         }
@@ -168,8 +112,7 @@ const AssessmentPage = () => {
       }
       
       // Track assessment usage (only for limited plans)
-      const currentLimit = getAssessmentLimit();
-      if (currentLimit > 0) { // Has a limit (not unlimited)
+      if (!hasFeature('unlimited_assessments')) {
         incrementUsage('assessment');
       }
       
@@ -353,7 +296,7 @@ const AssessmentPage = () => {
                 </div>
 
                 {/* Limit exceeded warning */}
-                {limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' && (
+                {limitExceeded && !hasFeature('unlimited_assessments') && (
                   <div className="mb-8 p-6 bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/20 dark:via-red-900/20 dark:to-pink-900/20 border-2 border-orange-200 dark:border-orange-800 rounded-2xl">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 text-white flex items-center justify-center shrink-0 shadow-lg">
@@ -366,10 +309,8 @@ const AssessmentPage = () => {
                           Đã hết lượt test trong tháng
                         </h4>
                         <p className="text-orange-700 dark:text-orange-300 text-sm">
-                          Bạn đã sử dụng {usageInfo?.current_usage || 0}/{getAssessmentLimit()} lượt test trong tháng này. 
-                          {detectedPlan === 'Free' ? ' Nâng cấp gói Cơ Bản để có 20 bài kiểm tra/tháng!' : 
-                           detectedPlan === 'Basic' ? ' Nâng cấp Premium để test không giới hạn!' : 
-                           ' Nâng cấp Premium để test không giới hạn!'}
+                          Bạn đã sử dụng {usageInfo?.current_usage || 0}/{usageInfo?.limit || 5} lượt test trong tháng này. 
+                          {(usageInfo?.limit || 5) === 5 ? ' Nâng cấp gói Cơ Bản để có 20 bài kiểm tra/tháng!' : ' Nâng cấp Premium để test không giới hạn!'}
                         </p>
                       </div>
                       <button 
@@ -385,9 +326,9 @@ const AssessmentPage = () => {
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
                   <button
                     onClick={handleStartAssessment}
-                    disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
+                    disabled={limitExceeded && !hasFeature('unlimited_assessments')}
                     className={`group relative flex-1 inline-flex items-center justify-center px-10 py-5 text-white rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${
-                      limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'
+                      limitExceeded && !hasFeature('unlimited_assessments')
                         ? 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 shadow-red-600/30 hover:shadow-red-600/50 cursor-pointer'
                         : 'bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-2'
                     }`}
@@ -396,7 +337,7 @@ const AssessmentPage = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                     
                     {/* Floating particles for disabled state */}
-                    {limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' && (
+                    {limitExceeded && !hasFeature('unlimited_assessments') && (
                       <>
                         <div className="absolute inset-0 overflow-hidden rounded-2xl">
                           {[...Array(8)].map((_, i) => (
@@ -416,10 +357,10 @@ const AssessmentPage = () => {
                     )}
                     
                     <span className="relative z-10">
-                      {limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? 'Đã hết lượt - Nâng cấp' : 'Start →'}
+                      {limitExceeded && !hasFeature('unlimited_assessments') ? 'Đã hết lượt - Nâng cấp' : 'Start →'}
                     </span>
                     <svg className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M13 7l5 5m0 0l-5 5m5-5H6"} />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={limitExceeded && !hasFeature('unlimited_assessments') ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M13 7l5 5m0 0l-5 5m5-5H6"} />
                     </svg>
                   </button>
                   <div className="flex items-center justify-center gap-3 text-base font-semibold text-gray-600 dark:text-gray-400 px-6 py-3 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl backdrop-blur-sm">
@@ -504,55 +445,48 @@ const AssessmentPage = () => {
         {!upgradeRequired && step === 'intro' && (
           <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 pb-8">
             <div className={`border rounded-2xl p-6 shadow-lg ${
-              getAssessmentLimit() === -1 // Unlimited
+              hasFeature('unlimited_assessments') 
                 ? 'bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border-green-200 dark:border-green-800'
                 : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${
-                    getAssessmentLimit() === -1 // Unlimited
+                    hasFeature('unlimited_assessments') 
                       ? 'bg-gradient-to-br from-green-500 to-emerald-500'
                       : 'bg-gradient-to-br from-blue-500 to-indigo-500'
                   }`}>
-                    <span className="text-2xl">{getAssessmentLimit() === -1 ? '⭐' : '📊'}</span>
+                    <span className="text-2xl">{hasFeature('unlimited_assessments') ? '⭐' : '📊'}</span>
                   </div>
                   <div>
                     <h3 className={`text-lg font-bold mb-1 ${
-                      getAssessmentLimit() === -1 // Unlimited
+                      hasFeature('unlimited_assessments') 
                         ? 'text-green-900 dark:text-green-100'
                         : 'text-blue-900 dark:text-blue-100'
                     }`}>
-                      {detectedPlan === 'Premium' || detectedPlan === 'Pro' ? 'Premium/Pro Active' : 
-                       detectedPlan === 'Basic' ? 'Gói Cơ Bản Active' : 'Sử dụng thông minh'}
+                      {hasFeature('unlimited_assessments') ? 'Premium/Pro Active' : 'Sử dụng thông minh'}
                     </h3>
                     <p className={`text-sm ${
-                      getAssessmentLimit() === -1 // Unlimited
+                      hasFeature('unlimited_assessments') 
                         ? 'text-green-700 dark:text-green-300'
                         : 'text-blue-700 dark:text-blue-300'
                     }`}>
-                      {getAssessmentLimit() === -1 
+                      {hasFeature('unlimited_assessments') 
                         ? 'Bạn có quyền truy cập không giới hạn tất cả tính năng Premium. Tận hưởng trải nghiệm đầy đủ!'
-                        : `Bạn có ${getAssessmentLimit()} lần test mỗi tháng. ${
-                            detectedPlan === 'Free' ? 'Nâng cấp gói Cơ Bản để có 20 bài kiểm tra/tháng' : 
-                            detectedPlan === 'Basic' ? 'Bạn đang dùng gói Cơ Bản. Nâng cấp Premium để test không giới hạn' : 
-                            'Nâng cấp Premium để test không giới hạn'
-                          }.`
+                        : `Bạn có ${subscriptionData?.usage?.find(u => u.feature === 'assessment')?.limit || 5} lần test mỗi tháng. ${(subscriptionData?.usage?.find(u => u.feature === 'assessment')?.limit || 5) === 5 ? 'Nâng cấp gói Cơ Bản (Basic) để có 20 bài kiểm tra/tháng' : 'Nâng cấp Premium để test không giới hạn'}.`
                       }
                     </p>
                   </div>
                 </div>
-                {getAssessmentLimit() > 0 && (
+                {!hasFeature('unlimited_assessments') && (
                   <button 
                     onClick={() => navigate('/pricing')}
                     className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
-                    {detectedPlan === 'Free' ? 'Xem Gói Cơ Bản' : 
-                     detectedPlan === 'Basic' ? 'Xem Gói Premium' : 
-                     'Xem Gói Premium'}
+                    {(subscriptionData?.usage?.find(u => u.feature === 'assessment')?.limit || 5) === 5 ? 'Xem Gói Cơ Bản' : 'Xem Gói Premium'}
                   </button>
                 )}
-                {getAssessmentLimit() === -1 && (
+                {hasFeature('unlimited_assessments') && (
                   <div className="flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-xl font-semibold">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -562,7 +496,7 @@ const AssessmentPage = () => {
                 )}
               </div>
             </div>
-            {getAssessmentLimit() > 0 && (
+            {!hasFeature('unlimited_assessments') && (
               <div className="mt-4">
                 <UsageStatus />
               </div>

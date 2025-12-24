@@ -13,6 +13,12 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
   const [showComparison, setShowComparison] = useState(false);
   const [selectedAssessments, setSelectedAssessments] = useState<string[]>([]);
 
+  // Debug logging
+  console.log('🎯 [AssessmentHistorySection] Received assessmentHistory:', assessmentHistory);
+
+  // Use real assessment history data
+  const enrichedHistory = assessmentHistory;
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -34,6 +40,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
   };
 
   const getRiasecSummary = (scores?: any) => {
+    console.log('🔍 [getRiasecSummary] Input scores:', scores);
     if (!scores) return 'N/A';
     const entries = Object.entries(scores);
     if (entries.length === 0) return 'N/A';
@@ -44,10 +51,13 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
     const value = topEntry[1] as number;
     // Use shared util for consistent Title Case display
     const fullName = getRIASECFullName(trait);
-    return `${fullName} (${value.toFixed(0)})`;
+    const result = `${fullName} (${value.toFixed(0)})`;
+    console.log('✅ [getRiasecSummary] Result:', result);
+    return result;
   };
 
   const getBigFiveSummary = (scores?: any) => {
+    console.log('🔍 [getBigFiveSummary] Input scores:', scores);
     if (!scores) return 'N/A';
     const entries = Object.entries(scores);
     if (entries.length === 0) return 'N/A';
@@ -56,12 +66,14 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
     if (!topEntry || !topEntry[0]) return 'N/A';
     const trait = topEntry[0];
     const value = topEntry[1] as number;
-    return `${trait.charAt(0).toUpperCase() + trait.slice(1)} (${value.toFixed(0)})`;
+    const result = `${trait.charAt(0).toUpperCase() + trait.slice(1)} (${value.toFixed(0)})`;
+    console.log('✅ [getBigFiveSummary] Result:', result);
+    return result;
   };
 
   const comparisonData =
     showComparison && selectedAssessments.length === 2
-      ? assessmentHistory.filter((a) => selectedAssessments.includes(a.id))
+      ? enrichedHistory.filter((a) => selectedAssessments.includes(a.id))
       : [];
 
   return (
@@ -78,12 +90,12 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
             <h3 className="text-2xl font-extrabold text-white mb-1 tracking-tight">
               Assessment History
             </h3>
-            <p className="text-green-100 font-medium text-sm">
+            <p className="text-green-100 text-sm font-medium">
               Track your career assessment journey and growth
             </p>
           </div>
 
-          {assessmentHistory.length >= 2 && (
+          {enrichedHistory.length >= 2 && (
             <button
               onClick={() => selectedAssessments.length === 2 && setShowComparison(true)}
               disabled={selectedAssessments.length !== 2}
@@ -100,7 +112,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
 
       <div className="p-8">
 
-        {assessmentHistory.length === 0 ? (
+        {enrichedHistory.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
             <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-gray-100 dark:border-gray-600">
               <svg className="w-10 h-10 text-gray-300 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,38 +123,35 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
               No Assessments Yet
             </h4>
             <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto text-sm font-medium">
-              Start your career journey by taking your first assessment to discover your ideal career path.
+              Take your first career assessment to start tracking your professional development journey.
             </p>
             <button
               onClick={() => navigate('/assessment')}
-              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold shadow-lg shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-0.5 transition-all flex items-center gap-2 mx-auto"
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-lg"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
               Take Assessment
             </button>
           </div>
         ) : (
           <>
-            {assessmentHistory.length >= 2 && (
+            {enrichedHistory.length >= 2 && (
               <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl flex items-start gap-3">
                 <div className="p-1.5 bg-blue-100 dark:bg-blue-800/40 rounded-full shrink-0 text-blue-600 dark:text-blue-400">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mt-0.5">
-                  Select two assessments to compare your results and see how your profile has evolved.
+                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                  Select two assessments to compare your progress over time.
                 </p>
               </div>
             )}
 
-            <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
-              <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
                 <thead className="bg-gray-50/80 dark:bg-gray-900/50">
                   <tr>
-                    {assessmentHistory.length >= 2 && (
+                    {enrichedHistory.length >= 2 && (
                       <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">
                         Select
                       </th>
@@ -159,37 +168,39 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Top Big Five
                     </th>
-                    <th className="px-6 py-4 relative">
-                      <span className="sr-only">Actions</span>
+                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Actions
                     </th>
                   </tr>
                 </thead>
 
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
-                  {assessmentHistory.map((assessment) => (
+                  {enrichedHistory.map((assessment) => (
                     <tr
                       key={assessment.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors group"
                     >
-                      {assessmentHistory.length >= 2 && (
+                      {enrichedHistory.length >= 2 && (
                         <td className="px-6 py-5 align-middle">
                           <input
                             type="checkbox"
                             checked={selectedAssessments.includes(assessment.id)}
                             onChange={() => handleCheckboxChange(assessment.id)}
-                            className="w-5 h-5 text-green-600 rounded-md border-gray-300 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 cursor-pointer transition-all"
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                           />
                         </td>
                       )}
 
                       <td className="px-6 py-5 whitespace-nowrap">
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">{formatDate(assessment.completed_at)}</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
+                          {formatDate(assessment.completed_at)}
+                        </div>
                       </td>
 
                       <td className="px-6 py-5 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                          {getTestTypeLabel(assessment.test_types)}
-                        </span>
+                        <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
+                          {getTestTypeLabel(assessment.test_types || [])}
+                        </div>
                       </td>
 
                       <td className="px-6 py-5 whitespace-nowrap">

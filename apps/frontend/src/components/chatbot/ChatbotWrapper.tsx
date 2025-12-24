@@ -5,7 +5,8 @@ import { ChatbotButton } from './ChatbotButton';
 export const ChatbotWrapper: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
 
-  // Chỉ hiển thị chatbot khi user đã đăng nhập
+  // Hiển thị chatbot cho tất cả user đã đăng nhập
+  // Tính năng nâng cao sẽ được kiểm tra bên trong Chatbot component
   if (!isAuthenticated || !user) {
     return null;
   }

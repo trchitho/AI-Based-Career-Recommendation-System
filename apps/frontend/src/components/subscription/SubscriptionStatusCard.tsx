@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
+import { useUsageTracking } from '../../hooks/useUsageTracking';
 
 interface SubscriptionStatusCardProps {
   className?: string;
@@ -12,6 +14,21 @@ const SubscriptionStatusCard = ({
 }: SubscriptionStatusCardProps) => {
   const navigate = useNavigate();
   const { subscriptionData, isPremium, planName, loading } = useSubscription();
+  const { currentPlan, hasFeature } = useFeatureAccess();
+  const { usageData } = useUsageTracking();
+
+  // Use real usage data from tracking hook
+  const getUsageData = () => {
+    const backendUsage = subscriptionData?.usage || [];
+    
+    // If backend provides usage data, use it
+    if (backendUsage.length > 0) {
+      return backendUsage;
+    }
+    
+    // Otherwise, use frontend tracking data
+    return usageData;
+  };
 
   if (loading) {
     return (
@@ -26,7 +43,7 @@ const SubscriptionStatusCard = ({
   }
 
   const subscription = subscriptionData?.subscription;
-  const usage = subscriptionData?.usage || [];
+  const usage = getUsageData(); // Use our generated usage data
 
   // Get expiry info
   const expiryDate = subscription?.expires_at ? new Date(subscription.expires_at) : null;
@@ -82,14 +99,19 @@ const SubscriptionStatusCard = ({
                 PREMIUM
               </span>
               {expiryDate && (
-                <p className={`text-xs mt-1 ${
-                  isExpiringSoon 
-                    ? 'text-orange-600 dark:text-orange-400 font-semibold'
-                    : 'text-green-600 dark:text-green-400'
-                }`}>
-                  {isExpiringSoon ? 'Sắp hết hạn: ' : 'Hết hạn: '}
-                  {expiryDate.toLocaleDateString('vi-VN')}
-                </p>
+                <div className="mt-1">
+                  <p className={`text-xs ${
+                    isExpiringSoon 
+                      ? 'text-orange-600 dark:text-orange-400 font-semibold'
+                      : 'text-green-600 dark:text-green-400'
+                  }`}>
+                    {isExpiringSoon ? '⚠️ Sắp hết hạn: ' : '📅 Hết hạn: '}
+                    {expiryDate.toLocaleDateString('vi-VN')}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    ({Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} ngày còn lại)
+                  </p>
+                </div>
               )}
             </div>
           )}
@@ -111,13 +133,19 @@ const SubscriptionStatusCard = ({
         ) : (
           <>
             <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
-              📊 Sử dụng tháng này
+              📊 Giới hạn gói {currentPlan === 'free' ? 'Free' : currentPlan === 'basic' ? 'Cơ Bản' : 'Premium'}
             </h4>
             
             {usage.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">
-                Chưa có dữ liệu sử dụng
-              </p>
+              <div className="text-center py-4">
+                <div className="text-4xl mb-2">🎉</div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-1">
+                  Unlimited Access
+                </h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Bạn có quyền truy cập không giới hạn tất cả tính năng
+                </p>
+              </div>
             ) : (
               <div className="space-y-4">
                 {usage.map((item) => {
@@ -128,13 +156,31 @@ const SubscriptionStatusCard = ({
                   const getFeatureInfo = (feature: string) => {
                     switch (feature) {
                       case 'career_view':
-                        return { name: 'Xem nghề nghiệp', icon: '👔' };
+                        return { 
+                          name: 'Xem nghề nghiệp', 
+                          icon: '👔',
+                          description: currentPlan === 'free' ? 'Chỉ xem được 1 nghề nghiệp đầu tiên' : 
+                                     currentPlan === 'basic' ? 'Xem được 5 nghề nghiệp phù hợp nhất' : 
+                                     'Xem toàn bộ danh mục nghề nghiệp'
+                        };
                       case 'assessment':
-                        return { name: 'Test đánh giá', icon: '📝' };
+                        return { 
+                          name: 'Test đánh giá', 
+                          icon: '📝',
+                          description: currentPlan === 'free' ? '5 bài test/tháng' : 
+                                     currentPlan === 'basic' ? '20 bài test/tháng' : 
+                                     'Không giới hạn bài test'
+                        };
                       case 'roadmap_level':
-                        return { name: 'Roadmap level', icon: '🗺️' };
+                        return { 
+                          name: 'Roadmap level', 
+                          icon: '🗺️',
+                          description: currentPlan === 'free' ? 'Chỉ truy cập Level 1' : 
+                                     currentPlan === 'basic' ? 'Truy cập Level 1-2' : 
+                                     'Truy cập tất cả levels'
+                        };
                       default:
-                        return { name: feature, icon: '⭐' };
+                        return { name: feature, icon: '⭐', description: '' };
                     }
                   };
                   
@@ -145,9 +191,14 @@ const SubscriptionStatusCard = ({
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
                           <span>{info.icon}</span>
-                          <span className="text-gray-700 dark:text-gray-300 font-medium">
-                            {info.name}
-                          </span>
+                          <div className="flex flex-col">
+                            <span className="text-gray-700 dark:text-gray-300 font-medium">
+                              {info.name}
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {info.description}
+                            </span>
+                          </div>
                         </div>
                         <span className={`font-semibold ${
                           isAtLimit 
@@ -194,17 +245,35 @@ const SubscriptionStatusCard = ({
         <div className="px-6 pb-6">
           <button
             onClick={() => navigate('/pricing')}
-            className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+            className={`w-full px-4 py-3 font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 ${
+              currentPlan === 'free' 
+                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white'
+                : currentPlan === 'basic'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
+            }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span>Nâng cấp Premium</span>
+            <span>
+              {currentPlan === 'free' 
+                ? 'Nâng cấp Gói Cơ Bản (99k)'
+                : currentPlan === 'basic'
+                  ? 'Nâng cấp Premium (299k)'
+                  : 'Nâng cấp Pro (499k)'
+              }
+            </span>
             <span>✨</span>
           </button>
           
           <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-2">
-            💝 Chỉ từ 299,000đ/tháng - Hủy bất cứ lúc nào
+            💝 {currentPlan === 'free' 
+                ? 'Từ 99k (Cơ Bản) - 299k (Premium) - 499k (Pro)'
+                : currentPlan === 'basic'
+                  ? 'Premium 299k hoặc Pro 499k với AI Assistant'
+                  : 'Pro 499k với AI Assistant và tính năng cao cấp'
+              }
           </p>
         </div>
       )}

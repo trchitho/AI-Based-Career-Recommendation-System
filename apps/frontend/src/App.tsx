@@ -37,6 +37,7 @@ import { PaymentPage } from './pages/PaymentPage';
 import PaymentReturn from './components/payment/PaymentReturn';
 import DebugAuthPage from './pages/DebugAuthPage';
 import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
+import ProgressComparisonPage from './pages/ProgressComparisonPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -228,6 +229,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RoadmapPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/progress-comparison"
+                element={
+                  <ProtectedRoute>
+                    <ProgressComparisonPage />
                   </ProtectedRoute>
                 }
               />

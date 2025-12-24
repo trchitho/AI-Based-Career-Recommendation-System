@@ -22,8 +22,10 @@ const PaymentReturn = () => {
           return;
         }
 
-        // Poll payment status
-        const result = await paymentService.pollPaymentStatus(orderId, 10, 3000);
+        // Poll payment status with enhanced settings
+        const result = await paymentService.pollPaymentStatus(orderId, 60, 2000); // 60 attempts, 2 seconds each = 2 minutes total
+        
+        console.log('🎯 [PaymentReturn] Final poll result:', result);
         
         if (result.success && result.payment.status === 'success') {
           setStatus('success');

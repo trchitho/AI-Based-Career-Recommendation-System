@@ -63,7 +63,28 @@ export const assessmentService = {
 
   async getResults(assessmentId: string) {
     const response = await api.get(`/api/assessments/${assessmentId}/results`);
-    return response.data;
+    const results = response.data;
+    
+    // Save the processed results back to database for persistence
+    try {
+      await this.saveProcessedResults(assessmentId, results);
+    } catch (error) {
+      console.warn('Failed to save processed results:', error);
+      // Don't throw error - results are still valid even if saving fails
+    }
+    
+    return results;
+  },
+
+  async saveProcessedResults(assessmentId: string, results: any) {
+    // Save the processed RIASEC and Big Five scores to database
+    await api.post(`/api/assessments/${assessmentId}/save-results`, {
+      riasec_scores: results.riasec_scores,
+      big_five_scores: results.big_five_scores,
+      top_interest: results.top_interest,
+      career_recommendations: results.career_recommendations,
+      essay_analysis: results.essay_analysis
+    });
   },
 
   async getSessionResults(sessionId: string) {
@@ -74,5 +95,50 @@ export const assessmentService = {
   async getUserSessions() {
     const response = await api.get('/api/assessments/user/sessions');
     return response.data;
+  },
+
+  async getHistory() {
+    try {
+      console.log('🔍 [AssessmentService] Getting assessment history...');
+      
+      // Get user sessions with assessment data
+      const sessions = await this.getUserSessions();
+      console.log('📊 [AssessmentService] Raw sessions data:', sessions);
+      
+      // Transform sessions into assessment history format
+      const history = [];
+      
+      for (const session of sessions.sessions || []) {
+        console.log('🔄 [AssessmentService] Processing session:', session);
+        
+        // Each session can have multiple assessments, add them individually
+        if (session.assessments && session.assessments.length > 0) {
+          for (const assessment of session.assessments) {
+            console.log('📝 [AssessmentService] Adding assessment:', assessment);
+            history.push(assessment);
+          }
+        } else {
+          console.log('⚠️ [AssessmentService] Session has no assessments, using fallback');
+          // Fallback for sessions without detailed assessment data
+          history.push({
+            id: session.session_id.toString(),
+            completed_at: session.created_at,
+            test_types: session.assessment_types ? session.assessment_types.split(', ') : [],
+            riasec_scores: undefined,
+            big_five_scores: undefined
+          });
+        }
+      }
+      
+      // Sort by completion date (newest first)
+      history.sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime());
+      
+      console.log('✅ [AssessmentService] Final history:', history);
+      return history;
+    } catch (error) {
+      console.error('❌ [AssessmentService] Failed to get assessment history:', error);
+      // Return empty array instead of throwing
+      return [];
+    }
   },
 };
