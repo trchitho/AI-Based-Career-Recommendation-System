@@ -127,6 +127,11 @@ const DashboardPage = () => {
           {/* --- DASHBOARD CONTENT --- */}
           {!loading && !error && dashboardData && (
             <div className="space-y-10 animate-fade-in-up">
+              {/* Debug logging */}
+              {console.log('🎯 [DashboardPage] dashboardData:', dashboardData)}
+              {console.log('🎯 [DashboardPage] hasCompletedAssessment:', dashboardData.hasCompletedAssessment)}
+              {console.log('🎯 [DashboardPage] topCareerSuggestions:', dashboardData.topCareerSuggestions)}
+              {console.log('🎯 [DashboardPage] topCareerSuggestions.length:', dashboardData.topCareerSuggestions.length)}
 
               {/* TOP ROW: Profile & Metrics */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -148,8 +153,8 @@ const DashboardPage = () => {
                 )}
               </div>
 
-              {/* SECTION: Career Suggestions */}
-              {dashboardData.hasCompletedAssessment ? (
+              {/* SECTION: Career Suggestions - Only show if user has completed assessments */}
+              {dashboardData.hasCompletedAssessment && dashboardData.topCareerSuggestions.length > 0 ? (
                 <div className="space-y-6">
                   {/* Section Header */}
                   <div className="flex flex-wrap items-end justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-4">
@@ -187,29 +192,43 @@ const DashboardPage = () => {
                     </div>
                   </div>
 
-                  {/* Cards Grid */}
-                  {dashboardData.topCareerSuggestions.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {dashboardData.topCareerSuggestions.map((career) => (
-                        <div key={career.id} className="h-full transform hover:-translate-y-1 transition-transform duration-300">
-                          <CareerSuggestionCard career={career} />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-[24px] p-10 text-center shadow-sm">
-                      <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-yellow-600 dark:text-yellow-400">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  {/* Career Cards Grid - Show top 3 career suggestions */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {dashboardData.topCareerSuggestions.map((career) => (
+                      <div key={career.id} className="h-full transform hover:-translate-y-1 transition-transform duration-300">
+                        <CareerSuggestionCard career={career} />
                       </div>
-                      <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Analysis in Progress</h4>
-                      <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                        {t('dashboard.careerSuggestions.analyzing')}
-                      </p>
+                    ))}
+                  </div>
+                </div>
+              ) : dashboardData.hasCompletedAssessment && dashboardData.topCareerSuggestions.length === 0 ? (
+                // Show analyzing state if user has assessments but no career suggestions yet
+                <div className="space-y-6">
+                  <div className="flex flex-wrap items-end justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                        <span className="flex h-3 w-3 relative">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                        </span>
+                        {t('dashboard.careerSuggestions.title')}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6">Processing your assessment results</p>
                     </div>
-                  )}
+                  </div>
+                  
+                  <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-[24px] p-10 text-center shadow-sm">
+                    <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-yellow-600 dark:text-yellow-400">
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Analysis in Progress</h4>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                      {t('dashboard.careerSuggestions.analyzing')}
+                    </p>
+                  </div>
                 </div>
               ) : (
-                // --- NO ASSESSMENT STATE ---
+                // --- NO ASSESSMENT STATE - Only show if user hasn't completed any assessments ---
                 <div className="bg-white dark:bg-gray-800 rounded-[32px] border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none p-1.5">
                   <NoAssessmentPrompt />
                 </div>

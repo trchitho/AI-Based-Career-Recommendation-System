@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import { careerService, CareerItem } from '../services/careerService';
-import UpgradePrompt from '../components/subscription/UpgradePrompt';
+import { useUsageTracking } from '../hooks/useUsageTracking';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
 
 const CareerDetailPage = () => {
   // ==========================================
@@ -10,15 +11,45 @@ const CareerDetailPage = () => {
   // ==========================================
   const { idOrSlug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [item, setItem] = useState<CareerItem | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Add usage tracking
+  const { incrementUsage, canUseFeature } = useUsageTracking();
+  const { hasFeature, currentPlan } = useFeatureAccess();
+  const hasTrackedUsageRef = useRef(false);
 
   useEffect(() => {
     const run = async () => {
       try {
         if (!idOrSlug) return;
+        
+        // For Basic plan: Check if already reached 25 career limit before loading
+        if (currentPlan === 'basic' && !hasFeature('unlimited_careers')) {
+          const canView = canUseFeature('career_view');
+          if (!canView) {
+            // Redirect to pricing if limit exceeded
+            window.location.href = '/pricing';
+            return;
+          }
+        }
+        
         const data = await careerService.get(idOrSlug);
         setItem(data);
+        
+        // Track career viewing usage - ONLY when navigating from CareersPage
+        const isFromCareersPage = location.state?.fromCareersPage === true;
+        
+        if (!hasTrackedUsageRef.current && !hasFeature('unlimited_careers') && isFromCareersPage) {
+          console.log('🔄 Tracking career view usage (from CareersPage)...');
+          incrementUsage('career_view');
+          hasTrackedUsageRef.current = true;
+        } else if (!isFromCareersPage) {
+          console.log('ℹ️ Direct URL access - not tracking usage');
+        } else if (hasFeature('unlimited_careers')) {
+          console.log('ℹ️ Unlimited plan - not tracking usage');
+        }
       } catch (err: any) {
         console.error(err);
       } finally {
@@ -26,7 +57,7 @@ const CareerDetailPage = () => {
       }
     };
     run();
-  }, [idOrSlug]);
+  }, [idOrSlug]); // Remove incrementUsage and hasFeature from dependencies to prevent infinite loop
 
   // ==========================================
   // 2. NEW DESIGN UI

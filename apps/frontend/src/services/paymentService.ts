@@ -1,123 +1,176 @@
+/**
+ * Payment Service
+ * 
+ * Handles payment-related API calls including:
+ * - Creating payments (ZaloPay, VNPay)
+ * - Checking payment status
+ * - Getting payment history
+ * - Force checking payment status
+ */
+
 import api from '../lib/api';
 
-export interface PaymentCreateRequest {
+export interface PaymentHistory {
+  id: number;
+  user_id: number;
+  tier: string;
   amount: number;
-  description: string;
-  payment_method: 'zalopay' | 'vnpay' | 'momo';
+  provider: string;
+  status: string;
+  transaction_id?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
-export interface PaymentCreateResponse {
-  success: boolean;
-  order_id: string;
-  order_url?: string;
+export interface CreatePaymentRequest {
+  tier: string;
+  provider: 'zalopay' | 'vnpay';
+}
+
+export interface CreatePaymentResponse {
+  payment_id: number;
+  order_url: string;
+  app_trans_id?: string;
+  zp_trans_token?: string;
+}
+
+export interface PaymentStatusResponse {
+  payment_id: number;
+  status: string;
+  tier?: string;
   message?: string;
 }
 
-export interface Payment {
-  id: number;
-  order_id: string;
-  amount: number;
-  description: string;
-  status: string;
-  created_at: string;
-  paid_at?: string;
-}
-
-export interface PaymentQueryResponse {
-  success: boolean;
-  status: string;
-  payment: Payment;
-}
-
-class PaymentService {
-  async createPayment(request: PaymentCreateRequest): Promise<PaymentCreateResponse> {
-    const response = await api.post('/api/payment/create', request);
+export const paymentService = {
+  /**
+   * Create a new payment
+   */
+  async createPayment(data: CreatePaymentRequest): Promise<CreatePaymentResponse> {
+    const response = await api.post('/api/payment/create', data);
     return response.data;
-  }
+  },
 
-  async queryPayment(orderId: string): Promise<PaymentQueryResponse> {
+  /**
+   * Check payment status by order ID
+   */
+  async checkStatus(orderId: string): Promise<PaymentStatusResponse> {
     const response = await api.get(`/api/payment/query/${orderId}`);
     return response.data;
-  }
+  },
 
-  async getPaymentHistory(skip = 0, limit = 20) {
-    const response = await api.get('/api/payment/history', {
-      params: { skip, limit }
-    });
+  /**
+   * Force check payment status (queries payment provider directly)
+   */
+  async forceCheckStatus(orderId: string): Promise<PaymentStatusResponse> {
+    const response = await api.post(`/api/payment/force-check/${orderId}`);
     return response.data;
-  }
+  },
 
-  // Poll payment status until completion
-  async pollPaymentStatus(orderId: string, maxAttempts = 30, intervalMs = 2000): Promise<PaymentQueryResponse> {
+  /**
+   * Get payment history for current user
+   */
+  async getHistory(): Promise<PaymentHistory[]> {
+    const response = await api.get('/api/payment/history');
+    return response.data;
+  },
+
+  /**
+   * Get payment by order ID
+   */
+  async getPayment(orderId: string): Promise<PaymentHistory> {
+    const response = await api.get(`/api/payment/query/${orderId}`);
+    return response.data;
+  },
+
+  /**
+   * Poll payment status until success/failure or timeout
+   * Enhanced: 2 minutes polling with force-check attempts
+   */
+  async pollStatus(
+    orderId: string,
+    maxAttempts: number = 60,
+    intervalMs: number = 2000,
+    onStatusChange?: (status: string) => void
+  ): Promise<PaymentStatusResponse> {
     let attempts = 0;
-    
+    let lastStatus = '';
+
     while (attempts < maxAttempts) {
       try {
-        const result = await this.queryPayment(orderId);
+        // Force check at specific intervals (after 20s and 60s)
+        const shouldForceCheck = attempts === 10 || attempts === 30;
         
-        // If payment is completed (success or failed), return result
-        if (result.payment.status !== 'pending') {
+        const result = shouldForceCheck
+          ? await this.forceCheckStatus(orderId)
+          : await this.checkStatus(orderId);
+
+        if (result.status !== lastStatus) {
+          lastStatus = result.status;
+          onStatusChange?.(result.status);
+        }
+
+        // Success or failure - stop polling
+        if (result.status === 'SUCCESS' || result.status === 'COMPLETED' || result.status === 'success') {
+          return { ...result, status: 'SUCCESS' };
+        }
+        if (result.status === 'FAILED' || result.status === 'CANCELLED' || result.status === 'failed') {
           return result;
         }
-        
-        // Wait before next attempt
-        await new Promise(resolve => setTimeout(resolve, intervalMs));
+
         attempts++;
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
       } catch (error) {
         console.error('Error polling payment status:', error);
         attempts++;
-        
-        if (attempts >= maxAttempts) {
-          throw error;
-        }
-        
         await new Promise(resolve => setTimeout(resolve, intervalMs));
       }
     }
-    
-    throw new Error('Payment status polling timeout');
-  }
 
-  // Trigger subscription refresh after successful payment
-  triggerSubscriptionRefresh() {
-    // Use localStorage to communicate between components
-    localStorage.setItem('payment_success', Date.now().toString());
-    
-    // Dispatch custom event
-    window.dispatchEvent(new CustomEvent('payment_success', {
-      detail: { timestamp: Date.now() }
-    }));
-  }
-
-  // Handle payment success redirect
-  handlePaymentSuccess(orderId?: string) {
-    if (orderId) {
-      // Store successful order ID
-      localStorage.setItem('last_successful_payment', orderId);
+    // Timeout - do one final force check
+    try {
+      const finalResult = await this.forceCheckStatus(orderId);
+      return finalResult;
+    } catch {
+      return { payment_id: 0, status: 'TIMEOUT', message: 'Payment status check timed out' };
     }
-    
-    this.triggerSubscriptionRefresh();
-    
-    // Redirect to payment return page for status checking
-    window.location.href = `/payment/return${orderId ? `?order_id=${orderId}` : ''}`;
-  }
+  },
+
+  /**
+   * Poll payment status (alias for pollStatus with different return format)
+   * Used by PaymentReturn component
+   */
+  async pollPaymentStatus(
+    orderId: string,
+    maxAttempts: number = 60,
+    intervalMs: number = 2000
+  ): Promise<{ success: boolean; payment: { status: string; tier?: string | undefined } }> {
+    const result = await this.pollStatus(orderId, maxAttempts, intervalMs);
+    const isSuccess = result.status === 'SUCCESS' || result.status === 'success' || result.status === 'COMPLETED';
+    const paymentResult: { status: string; tier?: string | undefined } = {
+      status: isSuccess ? 'success' : result.status.toLowerCase(),
+    };
+    if (result.tier) {
+      paymentResult.tier = result.tier;
+    }
+    return {
+      success: isSuccess,
+      payment: paymentResult,
+    };
+  },
+
+  /**
+   * Trigger subscription refresh event
+   */
+  triggerSubscriptionRefresh(): void {
+    window.dispatchEvent(new CustomEvent('subscription-updated'));
+  },
+};
+
+/**
+ * Get payment history (standalone function for backward compatibility)
+ */
+export async function getPaymentHistory(): Promise<PaymentHistory[]> {
+  return paymentService.getHistory();
 }
 
-export const paymentService = new PaymentService();
-
-// Named exports for backward compatibility
-export const createPayment = (request: PaymentCreateRequest) => {
-  return paymentService.createPayment(request);
-};
-
-export const queryPayment = (orderId: string) => {
-  return paymentService.queryPayment(orderId);
-};
-
-export const getPaymentHistory = (skip = 0, limit = 20) => {
-  return paymentService.getPaymentHistory(skip, limit);
-};
-
-export const pollPaymentStatus = (orderId: string, maxAttempts = 30, intervalMs = 2000) => {
-  return paymentService.pollPaymentStatus(orderId, maxAttempts, intervalMs);
-};
+export default paymentService;

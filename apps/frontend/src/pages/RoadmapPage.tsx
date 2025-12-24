@@ -9,8 +9,9 @@ import RoadmapFooter from '../components/roadmap/RoadmapFooter';
 import { Roadmap } from '../types/roadmap';
 import MainLayout from '../components/layout/MainLayout';
 import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh';
-import EnterpriseRoadmapFeatures from '../components/enterprise/EnterpriseRoadmapFeatures';
 import { useSubscription } from '../hooks/useSubscription';
+import { useUsageTracking } from '../hooks/useUsageTracking';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { getRIASECFullName } from '../utils/riasec';
 
 const buildGenericMilestones = (): any[] => [
@@ -99,23 +100,30 @@ const RoadmapPage = () => {
   const [maxFreeLevel, setMaxFreeLevel] = useState(1);
 
   const { subscriptionData, isPremium } = useSubscription();
+  const { incrementUsage } = useUsageTracking();
+  const { currentPlan, hasFeature } = useFeatureAccess();
   const hasLoadedTraitEvidenceRef = useRef(false);
+  const hasTrackedUsageRef = useRef(false);
 
-  // Watch for subscription changes
+  // Watch for subscription changes - Updated to use useFeatureAccess
   useEffect(() => {
-    if (!subscriptionData) return;
-    const limits = subscriptionData?.subscription?.limits;
-    const roadmapMaxLevel = limits?.['roadmap_max_level'];
-    const isApiPremium = subscriptionData?.subscription?.is_premium;
-
-    if (roadmapMaxLevel === -1 || isApiPremium === true || isPremium) {
+    // Use consistent plan detection from useFeatureAccess
+    const hasUnlimitedCareers = hasFeature('unlimited_careers');
+    
+    if (hasUnlimitedCareers) {
+      // Premium/Pro users get full roadmap
       setUpgradeRequired(false);
       setMaxFreeLevel(-1);
-    } else {
+    } else if (currentPlan === 'basic') {
+      // Basic users get Level 1-2
       setUpgradeRequired(true);
-      setMaxFreeLevel(roadmapMaxLevel || 1);
+      setMaxFreeLevel(2);
+    } else {
+      // Free users get Level 1 only
+      setUpgradeRequired(true);
+      setMaxFreeLevel(1);
     }
-  }, [subscriptionData, isPremium]);
+  }, [currentPlan, hasFeature]);
 
   const fetchRoadmap = useCallback(async () => {
     if (!careerId) return;
@@ -157,26 +165,38 @@ const RoadmapPage = () => {
       }
 
       const normalized = withFallbackMilestones(data);
-      const limits = subscriptionData?.subscription?.limits;
-      const roadmapMaxLevel = limits?.['roadmap_max_level'];
-      const isApiPremium = subscriptionData?.subscription?.is_premium;
-
-      if (roadmapMaxLevel === -1 || isApiPremium) {
+      
+      // Apply 4-tier roadmap access logic using useFeatureAccess
+      const hasUnlimitedCareers = hasFeature('unlimited_careers');
+      
+      if (hasUnlimitedCareers) {
+        // Premium/Pro users get full roadmap
         setUpgradeRequired(false);
         setMaxFreeLevel(-1);
-      } else {
+      } else if (currentPlan === 'basic') {
+        // Basic users get Level 1-2
         setUpgradeRequired(true);
-        setMaxFreeLevel(roadmapMaxLevel || 1);
+        setMaxFreeLevel(2);
+      } else {
+        // Free users get Level 1 only
+        setUpgradeRequired(true);
+        setMaxFreeLevel(1);
       }
 
       setRoadmap(normalized);
+      
+      // Track roadmap usage (only once per page load, only for limited plans)
+      if (!hasTrackedUsageRef.current && !isPremium) {
+        incrementUsage('roadmap_level');
+        hasTrackedUsageRef.current = true;
+      }
     } catch (err) {
       console.error(err);
       setError('Failed to load roadmap.');
     } finally {
       setLoading(false);
     }
-  }, [careerId, navState.description, navState.title, subscriptionData]);
+  }, [careerId, navState.description, navState.title, currentPlan]);
 
   const loadTraitEvidence = useCallback(async () => {
     if (!careerId || hasLoadedTraitEvidenceRef.current) return;
@@ -448,10 +468,17 @@ const RoadmapPage = () => {
                             <span className="text-2xl">✨</span>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-xl font-bold mb-2">Mở khóa toàn bộ lộ trình học tập chuyên nghiệp</h3>
+                            <h3 className="text-xl font-bold mb-2">
+                              {maxFreeLevel === 1 ? 'Nâng cấp để xem lộ trình đầy đủ' : 'Mở khóa toàn bộ lộ trình học tập chuyên nghiệp'}
+                            </h3>
                             <p className="text-white/90 text-sm mb-3">
-                              Bạn đang xem <span className="font-semibold">{maxFreeLevel === -1 ? 'tất cả' : maxFreeLevel} level{maxFreeLevel === -1 ? '' : ' miễn phí'}</span>.
-                              {maxFreeLevel !== -1 && <> Nâng cấp để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span> với tài liệu chuyên sâu.</>}
+                              {maxFreeLevel === 1 ? (
+                                <>Bạn đang xem <span className="font-semibold">Level 1 miễn phí</span>. Nâng cấp <span className="font-semibold">Gói Cơ Bản (99k)</span> để xem Level 1-2 hoặc <span className="font-semibold">Gói Premium (299k)</span> để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span>.</>
+                              ) : maxFreeLevel === 2 ? (
+                                <>Bạn đang xem <span className="font-semibold">Level 1-2 (Gói Cơ Bản)</span>. Nâng cấp <span className="font-semibold">Gói Premium (299k)</span> để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span> với tài liệu chuyên sâu.</>
+                              ) : (
+                                <>Bạn đang xem <span className="font-semibold">{maxFreeLevel} level miễn phí</span>. Nâng cấp để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span> với tài liệu chuyên sâu.</>
+                              )}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
                               {['🎯 Tài liệu học tập chuyên sâu', '📚 Khóa học và bài tập thực hành', '🔄 Cập nhật nội dung liên tục', '💬 Hỗ trợ cộng đồng Premium'].map((benefit, index) => (
@@ -465,9 +492,11 @@ const RoadmapPage = () => {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
-                            Nâng cấp Premium<span>⚡</span>
+                            {maxFreeLevel === 1 ? 'Xem các gói' : 'Nâng cấp Premium'}<span>⚡</span>
                           </button>
-                          <p className="text-white/70 text-xs text-center">Chỉ từ 299,000đ/tháng</p>
+                          <p className="text-white/70 text-xs text-center">
+                            {maxFreeLevel === 1 ? 'Từ 99k (Cơ Bản) - 299k (Premium)' : 'Chỉ từ 299,000đ'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -484,7 +513,6 @@ const RoadmapPage = () => {
                 </div>
               </div>
 
-              <EnterpriseRoadmapFeatures />
               <RoadmapFooter milestones={roadmap.milestones} userProgress={roadmap.userProgress} />
             </div>
           )}

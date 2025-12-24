@@ -385,6 +385,65 @@ def api_get_essay_prompt(
     )
 
 
+@router.post("/{assessment_id}/save-results")
+def api_save_processed_results(
+    assessment_id: int,
+    body: dict,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Save processed assessment results (RIASEC/Big Five scores) back to database.
+    This ensures the processed results are persisted for assessment history.
+    """
+    try:
+        # Verify the assessment belongs to the user
+        assessment = db.get(Assessment, assessment_id)
+        if not assessment or assessment.user_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not allowed to save results for this assessment"
+            )
+        
+        # Update the assessment with processed results
+        if 'riasec_scores' in body and body['riasec_scores']:
+            # Convert percentage scores back to 0-1 scale for storage
+            riasec_scores = {}
+            for key, value in body['riasec_scores'].items():
+                if isinstance(value, (int, float)):
+                    riasec_scores[key] = value / 100.0
+            assessment.processed_riasec_scores = riasec_scores
+        
+        if 'big_five_scores' in body and body['big_five_scores']:
+            # Convert percentage scores back to 0-1 scale for storage
+            big_five_scores = {}
+            for key, value in body['big_five_scores'].items():
+                if isinstance(value, (int, float)):
+                    big_five_scores[key] = value / 100.0
+            assessment.processed_big_five_scores = big_five_scores
+        
+        if 'top_interest' in body:
+            assessment.top_interest = body['top_interest']
+        
+        if 'career_recommendations' in body:
+            assessment.career_recommendations = body['career_recommendations']
+        
+        if 'essay_analysis' in body:
+            assessment.essay_analysis = body['essay_analysis']
+        
+        db.commit()
+        
+        return {"ok": True, "message": "Processed results saved successfully"}
+        
+    except Exception as e:
+        db.rollback()
+        print(f"[assessments] save_processed_results error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save processed results"
+        )
+
+
 @router.post("/{assessment_id}/feedback")
 def api_submit_feedback(
     assessment_id: int,
@@ -518,7 +577,7 @@ def get_user_sessions(
     current_user_id: int = Depends(_current_user_id),
 ):
     """
-    Lấy danh sách tất cả sessions của user.
+    Lấy danh sách tất cả sessions của user với processed results.
     """
     try:
         # Lấy sessions của user
@@ -535,11 +594,37 @@ def get_user_sessions(
             
             assessment_types = [a.a_type for a in assessments]
             
+            # Get processed results for each assessment
+            session_assessments = []
+            for assessment in assessments:
+                assessment_data = {
+                    "id": str(assessment.id),
+                    "completed_at": assessment.created_at.isoformat(),
+                    "test_types": [assessment.a_type],
+                    "riasec_scores": None,
+                    "big_five_scores": None,
+                    "top_interest": assessment.top_interest
+                }
+                
+                # Convert processed scores from 0-1 scale to 0-100 scale for frontend
+                if assessment.processed_riasec_scores:
+                    assessment_data["riasec_scores"] = {
+                        key: value * 100 for key, value in assessment.processed_riasec_scores.items()
+                    }
+                
+                if assessment.processed_big_five_scores:
+                    assessment_data["big_five_scores"] = {
+                        key: value * 100 for key, value in assessment.processed_big_five_scores.items()
+                    }
+                
+                session_assessments.append(assessment_data)
+            
             sessions_data.append({
                 "session_id": session.id,
                 "created_at": session.created_at.isoformat(),
                 "assessment_count": len(assessments),
-                "assessment_types": ", ".join(assessment_types)
+                "assessment_types": ", ".join(assessment_types),
+                "assessments": session_assessments
             })
         
         return {

@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, X, Minimize2, Maximize2, History, RotateCcw, Mic, MicOff, FileText, Crown, Volume2 } from 'lucide-react';
+import { Send, Bot, User, X, Minimize2, Maximize2, History, RotateCcw, Mic, MicOff, FileText, Crown, Volume2, VolumeX } from 'lucide-react';
 import { ChatHistorySimple } from './ChatHistorySimple';
 import { PremiumFeaturePrompt } from './PremiumFeaturePrompt';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { blogService } from '../../services/blogService';
 
 interface Message {
@@ -19,7 +20,8 @@ interface ChatbotProps {
 }
 
 export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
-  const { isPremium, planName } = useSubscription();
+  const { planName } = useSubscription();
+  const { hasFeature } = useFeatureAccess();
   
   // Helper function để format time an toàn
   const formatMessageTime = (timestamp: Date | string | null | undefined): string => {
@@ -39,15 +41,23 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
+  // Initialize messages with a default welcome message
+  const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Initialize welcome message based on user plan
+  useEffect(() => {
+    const welcomeText = hasFeature('career_counseling') 
+      ? 'Xin chào! Tôi là AI Career Assistant - trợ lý ảo tư vấn nghề nghiệp 24/7 được tích hợp công nghệ Gemini API. Tôi có thể giúp bạn:\n\n🎯 Định hướng nghề nghiệp phù hợp\n📊 Phân tích kỹ năng và sở thích\n💼 Tư vấn lộ trình phát triển\n📈 Thông tin xu hướng ngành nghề\n💰 Tư vấn mức lương và cơ hội\n🎓 Gợi ý khóa học từ Coursera, LinkedIn Learning\n\nBạn đang quan tâm đến việc định hướng nghề nghiệp nào?'
+      : 'Xin chào! Tôi là AI Career Assistant - trợ lý tư vấn nghề nghiệp thông minh. Tôi có thể giúp bạn:\n\n🎯 Tư vấn định hướng nghề nghiệp\n📊 Phân tích kết quả đánh giá\n💼 Gợi ý lộ trình phát triển\n📈 Thông tin cơ bản về ngành nghề\n\n💎 Nâng cấp lên Gói Pro để trải nghiệm:\n🤖 AI Assistant 24/7 với Gemini API\n🎤 Tương tác bằng giọng nói\n🔊 Text-to-speech đa ngôn ngữ\n📝 Tạo blog từ cuộc trò chuyện\n\nBạn muốn tôi hỗ trợ điều gì?';
+
+    setMessages([{
       id: '1',
-      text: 'Xin chào! Tôi là chatbot tư vấn nghề nghiệp AI. Tôi có thể giúp bạn:\n\n• Tư vấn lựa chọn nghề nghiệp\n• Lập kế hoạch phát triển kỹ năng\n• Phân tích thị trường việc làm\n• Đưa ra lời khuyên về sự nghiệp\n\nBạn muốn tôi hỗ trợ điều gì?',
+      text: welcomeText,
       sender: 'bot',
       timestamp: new Date(),
       type: 'text'
-    }
-  ]);
+    }]);
+  }, []); // Empty dependency array - only run once on mount
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -60,6 +70,9 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
   const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
   const [premiumFeature, setPremiumFeature] = useState<'voice' | 'blog' | 'tts'>('voice');
   const [speechRecognition, setSpeechRecognition] = useState<any>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentSpeakingMessageId, setCurrentSpeakingMessageId] = useState<string | null>(null);
+  const [currentLanguage, setCurrentLanguage] = useState<string>('vi-VN');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -70,9 +83,11 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize speech recognition for premium users
+  // Initialize speech recognition for Pro users only
   useEffect(() => {
-    if (isPremium && 'webkitSpeechRecognition' in window) {
+    const hasCareerCounseling = hasFeature('career_counseling');
+    
+    if (hasCareerCounseling && 'webkitSpeechRecognition' in window) {
       const recognition = new (window as any).webkitSpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
@@ -93,12 +108,14 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
       };
       
       setSpeechRecognition(recognition);
+    } else {
+      setSpeechRecognition(null);
     }
-  }, [isPremium]);
+  }, []); // Empty dependency array - only run once on mount
 
-  // Voice input function
+  // Voice input function - chỉ cho gói Pro
   const startVoiceInput = () => {
-    if (!isPremium) {
+    if (!hasFeature('career_counseling')) {
       setPremiumFeature('voice');
       setShowPremiumPrompt(true);
       return;
@@ -117,25 +134,131 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  // Text-to-speech function for premium users
-  const speakMessage = (text: string) => {
-    if (!isPremium) {
+  // Language detection function
+  const detectLanguage = (text: string): string => {
+    // Remove special characters and numbers for better detection
+    const cleanText = text.replace(/[^\p{L}\s]/gu, '').toLowerCase();
+    
+    // Vietnamese patterns
+    const vietnamesePatterns = [
+      /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/,
+      /\b(và|của|trong|với|để|từ|về|cho|khi|như|có|được|sẽ|đã|đang|các|những|này|đó|tôi|bạn|chúng|họ)\b/,
+      /\b(nghề nghiệp|kỹ năng|phát triển|học tập|công việc|lương|kinh nghiệm|tương lai)\b/
+    ];
+    
+    // English patterns
+    const englishPatterns = [
+      /\b(the|and|of|in|to|for|with|on|at|by|from|about|into|through|during|before|after|above|below|between|among|under|over)\b/,
+      /\b(career|skills|development|learning|job|salary|experience|future|professional|industry)\b/,
+      /\b(you|your|we|our|they|their|this|that|these|those|what|where|when|why|how)\b/
+    ];
+    
+    // Count matches
+    let vietnameseScore = 0;
+    let englishScore = 0;
+    
+    vietnamesePatterns.forEach(pattern => {
+      const matches = cleanText.match(pattern);
+      if (matches) vietnameseScore += matches.length;
+    });
+    
+    englishPatterns.forEach(pattern => {
+      const matches = cleanText.match(pattern);
+      if (matches) englishScore += matches.length;
+    });
+    
+    // Check for Vietnamese diacritics (strong indicator)
+    const hasDiacritics = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(text);
+    if (hasDiacritics) vietnameseScore += 10;
+    
+    // Determine language
+    if (vietnameseScore > englishScore) {
+      return 'vi-VN';
+    } else if (englishScore > vietnameseScore) {
+      return 'en-US';
+    } else {
+      // Default to Vietnamese for career counseling context
+      return 'vi-VN';
+    }
+  };
+
+  // Text-to-speech function với stop functionality và language detection
+  const speakMessage = (text: string, messageId?: string) => {
+    if (!hasFeature('career_counseling')) {
       setPremiumFeature('tts');
       setShowPremiumPrompt(true);
       return;
     }
     
+    // Nếu đang nói cùng message, thì stop
+    if (isSpeaking && currentSpeakingMessageId === messageId) {
+      stopSpeaking();
+      return;
+    }
+    
+    // Stop any current speech
+    if (isSpeaking) {
+      stopSpeaking();
+    }
+    
     if ('speechSynthesis' in window) {
+      // Detect language automatically
+      const detectedLang = detectLanguage(text);
+      setCurrentLanguage(detectedLang);
+      
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'vi-VN';
+      utterance.lang = detectedLang;
       utterance.rate = 0.9;
+      
+      // Adjust voice settings based on language
+      if (detectedLang === 'en-US') {
+        utterance.rate = 1.0; // Slightly faster for English
+        utterance.pitch = 1.0;
+      } else {
+        utterance.rate = 0.9; // Slower for Vietnamese
+        utterance.pitch = 1.1; // Slightly higher pitch for Vietnamese
+      }
+      
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        setCurrentSpeakingMessageId(messageId || null);
+      };
+      
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        setCurrentSpeakingMessageId(null);
+      };
+      
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        setCurrentSpeakingMessageId(null);
+      };
+      
       speechSynthesis.speak(utterance);
     }
   };
 
-  // Blog creation function
+  // Stop TTS function
+  const stopSpeaking = () => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setCurrentSpeakingMessageId(null);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (isSpeaking) {
+        stopSpeaking();
+      }
+    };
+  }, [isSpeaking]);
+
+  // Blog creation function - chỉ cho gói Pro
   const createBlogFromChat = async () => {
-    if (!isPremium) {
+    if (!hasFeature('career_counseling')) {
       setPremiumFeature('blog');
       setShowPremiumPrompt(true);
       return;
@@ -320,10 +443,15 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
         const data = await response.json();
         const loadedMessages: Message[] = [];
         
-        // Add welcome message
+        // Add welcome message phù hợp với user plan
+        const hasCareerCounseling = hasFeature('career_counseling');
+        const welcomeMessage = hasCareerCounseling 
+          ? 'Xin chào! Tôi là AI Career Assistant - trợ lý ảo tư vấn nghề nghiệp 24/7 được tích hợp công nghệ Gemini API. Tôi có thể giúp bạn:\n\n🎯 Định hướng nghề nghiệp phù hợp\n📊 Phân tích kỹ năng và sở thích\n💼 Tư vấn lộ trình phát triển\n📈 Thông tin xu hướng ngành nghề\n💰 Tư vấn mức lương và cơ hội\n🎓 Gợi ý khóa học từ Coursera, LinkedIn Learning\n\nBạn đang quan tâm đến việc định hướng nghề nghiệp nào?'
+          : 'Xin chào! Tôi là AI Career Assistant - trợ lý tư vấn nghề nghiệp thông minh. Tôi có thể giúp bạn:\n\n🎯 Tư vấn định hướng nghề nghiệp\n📊 Phân tích kết quả đánh giá\n💼 Gợi ý lộ trình phát triển\n📈 Thông tin cơ bản về ngành nghề\n\n💎 Nâng cấp lên Gói Pro để trải nghiệm:\n🤖 AI Assistant 24/7 với Gemini API\n🎤 Tương tác bằng giọng nói\n🔊 Text-to-speech đa ngôn ngữ\n📝 Tạo blog từ cuộc trò chuyện\n\nBạn muốn tôi hỗ trợ điều gì?';
+
         loadedMessages.push({
           id: '1',
-          text: 'Xin chào! Tôi là chatbot tư vấn nghề nghiệp AI. Tôi có thể giúp bạn:\n\n• Tư vấn lựa chọn nghề nghiệp\n• Lập kế hoạch phát triển kỹ năng\n• Phân tích thị trường việc làm\n• Đưa ra lời khuyên về sự nghiệp\n\nBạn muốn tôi hỗ trợ điều gì?',
+          text: welcomeMessage,
           sender: 'bot',
           timestamp: new Date(),
           type: 'text'
@@ -411,10 +539,15 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
         setCurrentSessionId(null);
       }
       
-      // Reset messages về trạng thái ban đầu
+      // Reset messages về trạng thái ban đầu với welcome message phù hợp
+      const hasCareerCounseling = hasFeature('career_counseling');
+      const welcomeMessage = hasCareerCounseling 
+        ? 'Xin chào! Tôi là AI Career Assistant - trợ lý ảo tư vấn nghề nghiệp 24/7 được tích hợp công nghệ Gemini API. Tôi có thể giúp bạn:\n\n🎯 Định hướng nghề nghiệp phù hợp\n📊 Phân tích kỹ năng và sở thích\n💼 Tư vấn lộ trình phát triển\n📈 Thông tin xu hướng ngành nghề\n💰 Tư vấn mức lương và cơ hội\n🎓 Gợi ý khóa học từ Coursera, LinkedIn Learning\n\nBạn đang quan tâm đến việc định hướng nghề nghiệp nào?'
+        : 'Xin chào! Tôi là AI Career Assistant - trợ lý tư vấn nghề nghiệp thông minh. Tôi có thể giúp bạn:\n\n🎯 Tư vấn định hướng nghề nghiệp\n📊 Phân tích kết quả đánh giá\n💼 Gợi ý lộ trình phát triển\n📈 Thông tin cơ bản về ngành nghề\n\n💎 Nâng cấp lên Gói Pro để trải nghiệm:\n🤖 AI Assistant 24/7 với Gemini API\n🎤 Tương tác bằng giọng nói\n🔊 Text-to-speech đa ngôn ngữ\n📝 Tạo blog từ cuộc trò chuyện\n\nBạn muốn tôi hỗ trợ điều gì?';
+
       setMessages([{
         id: '1',
-        text: 'Xin chào! Tôi là chatbot tư vấn nghề nghiệp AI. Tôi có thể giúp bạn:\n\n• Tư vấn lựa chọn nghề nghiệp\n• Lập kế hoạch phát triển kỹ năng\n• Phân tích thị trường việc làm\n• Đưa ra lời khuyên về sự nghiệp\n\nBạn muốn tôi hỗ trợ điều gì?',
+        text: welcomeMessage,
         sender: 'bot',
         timestamp: new Date(),
         type: 'text'
@@ -424,11 +557,16 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
       
     } catch (error) {
       console.error('Error creating new session:', error);
-      // Fallback: chỉ reset local state
+      // Fallback: chỉ reset local state với welcome message phù hợp
       setCurrentSessionId(null);
+      const hasCareerCounseling = hasFeature('career_counseling');
+      const welcomeMessage = hasCareerCounseling 
+        ? 'Xin chào! Tôi là AI Career Assistant - trợ lý ảo tư vấn nghề nghiệp 24/7 được tích hợp công nghệ Gemini API. Tôi có thể giúp bạn:\n\n🎯 Định hướng nghề nghiệp phù hợp\n📊 Phân tích kỹ năng và sở thích\n💼 Tư vấn lộ trình phát triển\n📈 Thông tin xu hướng ngành nghề\n💰 Tư vấn mức lương và cơ hội\n🎓 Gợi ý khóa học từ Coursera, LinkedIn Learning\n\nBạn đang quan tâm đến việc định hướng nghề nghiệp nào?'
+        : 'Xin chào! Tôi là AI Career Assistant - trợ lý tư vấn nghề nghiệp thông minh. Tôi có thể giúp bạn:\n\n🎯 Tư vấn định hướng nghề nghiệp\n📊 Phân tích kỹ năng và sở thích\n💼 Gợi ý lộ trình phát triển\n📈 Thông tin cơ bản về ngành nghề\n\n💎 Nâng cấp lên Gói Pro để trải nghiệm:\n🤖 AI Assistant 24/7 với Gemini API\n🎤 Tương tác bằng giọng nói\n🔊 Text-to-speech đa ngôn ngữ\n📝 Tạo blog từ cuộc trò chuyện\n\nBạn muốn tôi hỗ trợ điều gì?';
+
       setMessages([{
         id: '1',
-        text: 'Xin chào! Tôi là chatbot tư vấn nghề nghiệp AI. Tôi có thể giúp bạn:\n\n• Tư vấn lựa chọn nghề nghiệp\n• Lập kế hoạch phát triển kỹ năng\n• Phân tích thị trường việc làm\n• Đưa ra lời khuyên về sự nghiệp\n\nBạn muốn tôi hỗ trợ điều gì?',
+        text: welcomeMessage,
         sender: 'bot',
         timestamp: new Date(),
         type: 'text'
@@ -455,7 +593,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
   const premiumActions = [
     {
       label: '🎤 Tạo blog từ chat',
-      action: () => isPremium ? setShowBlogCreator(true) : (setPremiumFeature('blog'), setShowPremiumPrompt(true)),
+      action: () => hasFeature('career_counseling') ? setShowBlogCreator(true) : (setPremiumFeature('blog'), setShowPremiumPrompt(true)),
       premium: true
     }
   ];
@@ -467,12 +605,12 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
       isMinimized ? 'w-80 h-12' : 'w-96 h-[600px]'
     }`}>
       {/* Header */}
-      <div className={`bg-gradient-to-r ${isPremium ? 'from-purple-600 to-blue-600' : 'from-blue-600 to-blue-700'} text-white p-4 rounded-t-lg flex justify-between items-center`}>
+      <div className={`bg-gradient-to-r ${hasFeature('career_counseling') ? 'from-purple-600 to-blue-600' : 'from-blue-600 to-blue-700'} text-white p-4 rounded-t-lg flex justify-between items-center`}>
         <div className="flex items-center gap-2">
           <div className="relative">
             <Bot size={20} />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
-            {isPremium && (
+            {hasFeature('career_counseling') && (
               <div className="absolute -bottom-1 -right-1">
                 <Crown size={12} className="text-yellow-300" />
               </div>
@@ -481,25 +619,34 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-sm">AI Career Assistant</span>
-              {isPremium && (
+              {hasFeature('career_counseling') && (
                 <span className="text-xs bg-yellow-400 text-purple-800 px-2 py-0.5 rounded-full font-medium">
-                  {planName}
+                  {planName?.includes('Pro') ? 'Pro' : planName}
                 </span>
               )}
             </div>
             <div className="text-xs opacity-90">
-              {currentSessionId ? `Session #${currentSessionId}` : 'Tư vấn nghề nghiệp thông minh'}
+              {currentSessionId ? `Session #${currentSessionId}` : (hasFeature('career_counseling') ? 'Gemini API • 24/7 Support' : 'Tư vấn nghề nghiệp thông minh')}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-1">
-          {isPremium && (
+          {hasFeature('career_counseling') && (
             <button
               onClick={() => setShowBlogCreator(true)}
               className="text-white hover:text-gray-200 p-1 rounded"
               title="Tạo blog từ cuộc trò chuyện"
             >
               <FileText size={16} />
+            </button>
+          )}
+          {isSpeaking && (
+            <button
+              onClick={stopSpeaking}
+              className="text-red-300 hover:text-red-100 p-1 rounded animate-pulse"
+              title="Dừng đọc"
+            >
+              <VolumeX size={16} />
             </button>
           )}
           <button
@@ -533,7 +680,58 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
 
       {!isMinimized && (
         <>
-          {/* Quick Actions - chỉ hiện khi chưa có tin nhắn nào */}
+          {/* Premium Features Bar - hiển thị khi có career_counseling */}
+          {hasFeature('career_counseling') && (
+            <div className="px-3 py-2 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-purple-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Crown size={14} className="text-purple-600" />
+                  <span className="text-xs font-medium text-purple-700">Premium Features</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={isRecording ? stopVoiceInput : startVoiceInput}
+                    disabled={isLoading}
+                    className={`p-1.5 rounded-md transition-colors flex items-center justify-center text-xs ${
+                      isRecording 
+                        ? 'bg-red-500 text-white hover:bg-red-600' 
+                        : 'bg-purple-500 text-white hover:bg-purple-600'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    title={isRecording ? "Dừng ghi âm" : "Voice Input"}
+                  >
+                    {isRecording ? <MicOff size={12} /> : <Mic size={12} />}
+                  </button>
+                  <button
+                    onClick={() => setShowBlogCreator(true)}
+                    className="p-1.5 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                    title="Tạo Blog"
+                  >
+                    <FileText size={12} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      const lastBotMessage = messages.filter(m => m.sender === 'bot').pop();
+                      if (lastBotMessage) speakMessage(lastBotMessage.text, lastBotMessage.id);
+                    }}
+                    className={`p-1.5 rounded-md transition-colors ${
+                      isSpeaking ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-blue-500 text-white hover:bg-blue-600'
+                    }`}
+                    title={
+                      isSpeaking 
+                        ? `Dừng đọc (${currentLanguage === 'vi-VN' ? 'Tiếng Việt' : 'English'})` 
+                        : (() => {
+                            const lastBotMessage = messages.filter(m => m.sender === 'bot').pop();
+                            const lang = lastBotMessage ? detectLanguage(lastBotMessage.text) : 'vi-VN';
+                            return `Text-to-Speech (${lang === 'vi-VN' ? 'Tiếng Việt' : 'English'})`;
+                          })()
+                    }
+                  >
+                    {isSpeaking ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {messages.length <= 1 && (
             <div className="p-3 bg-gray-50 border-b">
               <div className="text-xs text-gray-600 mb-2">Gợi ý:</div>
@@ -549,7 +747,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                   </button>
                 ))}
               </div>
-              {isPremium && (
+              {hasFeature('career_counseling') && (
                 <div>
                   <div className="text-xs text-purple-600 mb-1 font-medium">Premium:</div>
                   <div className="flex flex-wrap gap-1">
@@ -594,13 +792,25 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                       <div className="text-sm whitespace-pre-wrap leading-relaxed">
                         {message.text}
                       </div>
-                      {message.sender === 'bot' && isPremium && (
+                      {message.sender === 'bot' && hasFeature('career_counseling') && (
                         <button
-                          onClick={() => speakMessage(message.text)}
-                          className="mt-1 text-blue-500 hover:text-blue-700 p-1 rounded"
-                          title="Đọc tin nhắn"
+                          onClick={() => speakMessage(message.text, message.id)}
+                          className={`mt-1 p-1 rounded transition-colors ${
+                            isSpeaking && currentSpeakingMessageId === message.id
+                              ? 'text-red-500 hover:text-red-700 animate-pulse'
+                              : 'text-blue-500 hover:text-blue-700'
+                          }`}
+                          title={
+                            isSpeaking && currentSpeakingMessageId === message.id
+                              ? `Dừng đọc (${currentLanguage === 'vi-VN' ? 'Tiếng Việt' : 'English'})`
+                              : `Đọc tin nhắn (${detectLanguage(message.text) === 'vi-VN' ? 'Tiếng Việt' : 'English'})`
+                          }
                         >
-                          <Volume2 size={12} />
+                          {isSpeaking && currentSpeakingMessageId === message.id ? (
+                            <VolumeX size={12} />
+                          ) : (
+                            <Volume2 size={12} />
+                          )}
                         </button>
                       )}
                     </div>
@@ -639,11 +849,11 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isPremium ? "Nhập câu hỏi hoặc dùng giọng nói..." : "Nhập câu hỏi..."}
+                placeholder={hasFeature('career_counseling') ? "Nhập câu hỏi hoặc dùng giọng nói..." : "Nhập câu hỏi..."}
                 className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 disabled={isLoading}
               />
-              {isPremium && (
+              {hasFeature('career_counseling') && (
                 <button
                   onClick={isRecording ? stopVoiceInput : startVoiceInput}
                   disabled={isLoading}
@@ -666,7 +876,26 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
             <div className="text-xs text-gray-500 mt-1 text-center">
-              {isPremium ? "Enter để gửi • Mic để nói • Premium features enabled" : "Enter để gửi"}
+              {hasFeature('career_counseling') ? (
+                <span className="flex items-center justify-center gap-1">
+                  <Crown size={10} className="text-purple-500" />
+                  <span className="text-purple-600 font-medium">Premium Active</span>
+                  <span className="text-gray-400">•</span>
+                  <span>Voice • TTS</span>
+                  {isSpeaking && (
+                    <>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-blue-600 font-medium">
+                        {currentLanguage === 'vi-VN' ? '🇻🇳 VI' : '🇺🇸 EN'}
+                      </span>
+                    </>
+                  )}
+                  <span className="text-gray-400">•</span>
+                  <span>Blog</span>
+                </span>
+              ) : (
+                "Enter để gửi"
+              )}
             </div>
           </div>
         </>

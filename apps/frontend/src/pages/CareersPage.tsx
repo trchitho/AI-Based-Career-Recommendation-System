@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import { careerService, CareerItem } from '../services/careerService';
 import { Link } from 'react-router-dom';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import { useUsageTracking } from '../hooks/useUsageTracking';
 
 const CareersPage = () => {
   // ==========================================
@@ -13,6 +15,30 @@ const CareersPage = () => {
   const [pageSize] = useState(9);
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState('');
+  
+  const { hasFeature, currentPlan, getPlanInfo } = useFeatureAccess();
+  const { canUseFeature, incrementUsage } = useUsageTracking();
+
+  // Handle career click - REMOVED usage tracking from here
+  const handleCareerClick = (career: CareerItem, isLocked: boolean) => {
+    // If locked, redirect to pricing
+    if (isLocked) {
+      return;
+    }
+
+    // For Basic plan: Check if already reached 25 career limit
+    if (currentPlan === 'basic' && !hasFeature('unlimited_careers')) {
+      const canView = canUseFeature('career_view');
+      if (!canView) {
+        // Redirect to pricing if limit exceeded
+        window.location.href = '/pricing';
+        return;
+      }
+    }
+
+    // DON'T track usage here - let CareerDetailPage handle it
+    // This prevents double tracking
+  };
 
   // 🟢 Lấy dữ liệu
   useEffect(() => {
@@ -110,6 +136,44 @@ const CareersPage = () => {
           ) : items.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up">
               {items.map((c, index) => {
+                // Check if this career is locked based on 4-tier system
+                const isLocked = (() => {
+                  if (hasFeature('unlimited_careers')) {
+                    return false; // Premium/Pro users can view all careers
+                  }
+                  
+                  // For Basic plan: check if exceeded 25 career limit
+                  if (currentPlan === 'basic') {
+                    return !canUseFeature('career_view'); // Lock if no remaining usage
+                  }
+                  
+                  // For Free users: check if they have remaining usage
+                  if (currentPlan === 'free') {
+                    const canView = canUseFeature('career_view');
+                    // If no remaining usage, lock ALL careers
+                    if (!canView) {
+                      return true;
+                    }
+                    // If has remaining usage, only allow first career (index 0)
+                    return index > 0;
+                  }
+                  
+                  return false;
+                })();
+                
+                const requiredPlan = (() => {
+                  if (!isLocked) return null;
+                  
+                  // For Basic users who exceeded usage, suggest Premium
+                  if (currentPlan === 'basic') {
+                    return 'premium';
+                  }
+                  
+                  // For Free users, suggest Basic
+                  return 'basic';
+                })();
+                const requiredPlanInfo = requiredPlan ? getPlanInfo(requiredPlan) : null;
+
                 // Gradient backgrounds for placeholders
                 const gradients = [
                   'from-green-500 to-teal-600',
@@ -121,47 +185,144 @@ const CareersPage = () => {
                 ];
                 const bgGradient = gradients[index % gradients.length];
 
-                return (
-                  <Link
-                    key={c.id}
-                    to={`/careers/${(c as any).slug || c.id}`}
-                    className="group bg-white dark:bg-gray-800 rounded-[32px] border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-300 flex flex-col overflow-hidden h-full"
-                  >
+                const CardContent = (
+                  <div className={`group bg-white dark:bg-gray-800 rounded-[32px] border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-300 flex flex-col overflow-hidden h-full relative ${isLocked ? 'opacity-75' : ''}`}>
+                    
+                    {/* Premium overlay for locked careers */}
+                    {isLocked && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none z-10">
+                        <div className="absolute top-4 right-4">
+                          <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${
+                            requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
+                            requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                            'bg-gradient-to-r from-purple-500 to-pink-500'
+                          }`}>
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                            </svg>
+                            {requiredPlanInfo?.name.replace('Gói ', '') || 'PRO'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Image Placeholder */}
                     <div className={`h-48 bg-gradient-to-br ${bgGradient} flex items-center justify-center relative overflow-hidden`}>
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-all duration-500"></div>
+                      <div className={`absolute inset-0 ${isLocked ? 'bg-black/30' : 'bg-black/10 group-hover:bg-black/0'} transition-all duration-500`}></div>
 
                       {/* Icon */}
-                      <div className="relative z-10 w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
+                      <div className={`relative z-10 w-16 h-16 ${isLocked ? 'bg-white/10' : 'bg-white/20'} backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 text-white shadow-lg ${!isLocked ? 'group-hover:scale-110' : ''} transition-transform duration-300`}>
+                        {isLocked ? (
+                          <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        )}
                       </div>
                     </div>
 
                     {/* Content */}
                     <div className="p-8 flex-grow flex flex-col">
                       <div className="mb-4">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 h-14 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                        <h3 className={`text-xl font-bold mb-2 line-clamp-2 h-14 transition-colors ${
+                          isLocked 
+                            ? 'text-gray-600 dark:text-gray-400' 
+                            : 'text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400'
+                        }`}>
                           {c.title}
                         </h3>
-                        <div className="w-12 h-1 bg-gray-100 dark:bg-gray-700 rounded-full group-hover:bg-green-500 transition-colors"></div>
+                        <div className={`w-12 h-1 rounded-full transition-colors ${
+                          isLocked 
+                            ? 'bg-gray-200 dark:bg-gray-600' 
+                            : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-green-500'
+                        }`}></div>
                       </div>
 
-                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 flex-grow mb-6 leading-relaxed">
-                        {c.short_desc || c.description || 'Explore this exciting career path and see if it fits your profile.'}
+                      <p className={`text-sm line-clamp-3 flex-grow mb-6 leading-relaxed ${
+                        isLocked 
+                          ? 'text-gray-400 dark:text-gray-500' 
+                          : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                        {isLocked 
+                          ? (() => {
+                              if (currentPlan === 'free') {
+                                const canView = canUseFeature('career_view');
+                                if (!canView) {
+                                  return `Bạn đã hết lượt xem nghề nghiệp miễn phí. Nâng cấp Gói Cơ Bản (99k) để xem thêm nghề nghiệp hoặc Gói Premium (299k) để xem không giới hạn.`;
+                                } else {
+                                  return `Nâng cấp Gói Cơ Bản (99k) để xem nghề nghiệp này hoặc Gói Premium (299k) để xem không giới hạn.`;
+                                }
+                              } else if (currentPlan === 'basic') {
+                                return `Bạn đã xem hết 25 nghề nghiệp của Gói Cơ Bản. Nâng cấp Gói Premium (299k) để xem không giới hạn.`;
+                              } else {
+                                return `Nâng cấp ${requiredPlanInfo?.name || 'Premium'} để xem chi tiết nghề nghiệp này.`;
+                              }
+                            })()
+                          : (c.short_desc || c.description || 'Explore this exciting career path and see if it fits your profile.')
+                        }
                       </p>
 
                       <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-100 dark:border-gray-700">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Full Time</span>
-                        <div className="flex items-center text-green-600 dark:text-green-400 text-sm font-bold group-hover:translate-x-1 transition-transform">
-                          Details
-                          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                          </svg>
+                        <span className={`text-xs font-bold uppercase tracking-wider ${
+                          isLocked ? 'text-gray-300 dark:text-gray-600' : 'text-gray-400'
+                        }`}>
+                          {isLocked ? 'Locked' : 'Full Time'}
+                        </span>
+                        <div className={`flex items-center text-sm font-bold transition-transform ${
+                          isLocked 
+                            ? 'text-purple-600 dark:text-purple-400' 
+                            : 'text-green-600 dark:text-green-400 group-hover:translate-x-1'
+                        }`}>
+                          {isLocked ? (
+                            <>
+                              Upgrade
+                              <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" />
+                              </svg>
+                            </>
+                          ) : (
+                            <>
+                              Details
+                              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                              </svg>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
+                  </div>
+                );
+
+                return isLocked ? (
+                  <Link
+                    key={c.id}
+                    to="/pricing"
+                    state={{
+                      feature: 'career_recommendations',
+                      message: currentPlan === 'free' 
+                        ? (canUseFeature('career_view') 
+                          ? `Nâng cấp Gói Cơ Bản để xem nghề nghiệp này.`
+                          : `Bạn đã hết lượt xem nghề nghiệp miễn phí. Nâng cấp để xem thêm.`)
+                        : `Bạn đã xem hết 25 nghề nghiệp của Gói Cơ Bản. Nâng cấp Premium để xem không giới hạn.`,
+                      requiredPlan: requiredPlan,
+                      redirectTo: `/careers/${(c as any).slug || c.id}`,
+                    }}
+                    onClick={() => handleCareerClick(c, isLocked)}
+                  >
+                    {CardContent}
+                  </Link>
+                ) : (
+                  <Link
+                    key={c.id}
+                    to={`/careers/${(c as any).slug || c.id}`}
+                    state={{ fromCareersPage: true }}
+                    onClick={() => handleCareerClick(c, isLocked)}
+                  >
+                    {CardContent}
                   </Link>
                 );
               })}

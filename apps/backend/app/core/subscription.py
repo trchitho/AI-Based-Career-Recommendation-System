@@ -15,11 +15,46 @@ from .db import SessionLocal
 class SubscriptionService:
     """Service để quản lý subscription và usage tracking"""
     
-    # Default limits cho free plan
+    # Enhanced limits for 4-tier system
     FREE_LIMITS = {
-        "career_detail_level": "basic",  # basic or full
         "assessments_per_month": 5,
-        "roadmap_max_level": 1  # Chỉ cho phép free user xem level 1
+        "career_views": 1,
+        "roadmap_max_level": 1,
+        "ai_analysis": "basic",
+        "pdf_export": False,
+        "ai_assistant": False,
+        "history_comparison": False
+    }
+    
+    BASIC_LIMITS = {
+        "assessments_per_month": 20,
+        "career_views": 5,
+        "roadmap_max_level": 2,
+        "ai_analysis": "summary",
+        "pdf_export": False,
+        "ai_assistant": False,
+        "history_comparison": False
+    }
+    
+    PREMIUM_LIMITS = {
+        "assessments_per_month": -1,  # Unlimited
+        "career_views": -1,           # Unlimited
+        "roadmap_max_level": -1,      # All levels
+        "ai_analysis": "detailed",
+        "pdf_export": False,
+        "ai_assistant": False,
+        "history_comparison": False
+    }
+    
+    PRO_LIMITS = {
+        "assessments_per_month": -1,  # Unlimited
+        "career_views": -1,           # Unlimited
+        "roadmap_max_level": -1,      # All levels
+        "ai_analysis": "detailed",
+        "pdf_export": True,
+        "ai_assistant": True,         # Gemini API
+        "history_comparison": True,
+        "course_recommendations": True
     }
     
     @staticmethod
@@ -47,10 +82,21 @@ class SubscriptionService:
         result = session.execute(query, {"user_id": user_id}).fetchone()
         
         if result:
+            # Determine limits based on plan name
+            plan_name = result.plan_name
+            if plan_name in ['Basic', 'Cơ Bản', 'Gói Cơ Bản']:
+                limits = SubscriptionService.BASIC_LIMITS
+            elif plan_name in ['Premium', 'Gói Premium']:
+                limits = SubscriptionService.PREMIUM_LIMITS
+            elif plan_name in ['Pro', 'Gói Pro', 'CareerAI Professional']:
+                limits = SubscriptionService.PRO_LIMITS
+            else:
+                limits = result.limits or SubscriptionService.FREE_LIMITS
+            
             return {
                 "subscription_id": result.subscription_id,
                 "plan_name": result.plan_name,
-                "limits": result.limits or {},
+                "limits": limits,
                 "features": result.features or {},
                 "status": result.status,
                 "expires_at": result.expires_at,
@@ -264,12 +310,9 @@ class SubscriptionService:
             session.execute(deactivate_query, {"user_id": user_id})
             
             # Tạo subscription mới
-            # Tính expires_at: 1 tháng từ bây giờ
-            expires_at = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            if expires_at.month == 12:
-                expires_at = expires_at.replace(year=expires_at.year + 1, month=1)
-            else:
-                expires_at = expires_at.replace(month=expires_at.month + 1)
+            # Tính expires_at: 1 năm từ bây giờ (không phải 1 tháng)
+            now = datetime.now(timezone.utc)
+            expires_at = datetime(now.year + 1, now.month, now.day, now.hour, now.minute, now.second, tzinfo=timezone.utc)
             
             create_subscription_query = text("""
             INSERT INTO core.user_subscriptions 

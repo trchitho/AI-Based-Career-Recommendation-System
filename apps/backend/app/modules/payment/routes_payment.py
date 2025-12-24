@@ -8,10 +8,11 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import text
 from loguru import logger
 
-from app.core.db import get_db
+from app.core.db import get_db, engine
 from app.core.jwt import get_current_user
 from .models import Payment, PaymentStatus, PaymentMethod
 from .schemas import (
@@ -24,6 +25,56 @@ from .zalopay_service import ZaloPayService
 import os
 
 router = APIRouter()
+
+# Session factory for audit logs
+_AuditSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+
+def _log_audit(
+    session: Session,
+    user_id: int,
+    action: str,
+    resource_type: str,
+    resource_id: str = None,
+    details: dict = None,
+    ip_address: str = None,
+):
+    """Ghi audit log vào database - dùng session riêng"""
+    try:
+        new_session = _AuditSessionLocal()
+        try:
+            details_json = json.dumps(details) if details else None
+            entity_id_val = None
+            if resource_id:
+                try:
+                    entity_id_val = int(resource_id)
+                except (ValueError, TypeError):
+                    entity_id_val = None
+            
+            new_session.execute(text("""
+                INSERT INTO core.audit_logs 
+                (actor_id, action, entity, entity_id, data_json, user_id, resource_type, resource_id, details, ip_address, created_at)
+                VALUES 
+                (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :user_id, :resource_type, :resource_id, CAST(:details AS jsonb), :ip_address, NOW())
+            """), {
+                "actor_id": user_id,
+                "action": action,
+                "entity": resource_type,
+                "entity_id": entity_id_val,
+                "data_json": details_json,
+                "user_id": user_id,
+                "resource_type": resource_type,
+                "resource_id": resource_id,
+                "details": details_json,
+                "ip_address": ip_address,
+            })
+            new_session.commit()
+            logger.info(f"Audit log saved: user={user_id}, action={action}")
+        finally:
+            new_session.close()
+    except Exception as e:
+        logger.error(f"Failed to log audit: {e}")
+
 
 @router.get("/test")
 def test_payment_api():
@@ -124,6 +175,22 @@ def create_payment(
                 except Exception as e:
                     logger.error(f"Failed to update payment: {e}")
             
+            # Ghi audit log cho payment create
+            client_ip = request.client.host if request.client else None
+            forwarded = request.headers.get("x-forwarded-for")
+            if forwarded:
+                client_ip = forwarded.split(",")[0].strip()
+            
+            _log_audit(
+                session=db,
+                user_id=user_id,
+                action="payment_create",
+                resource_type="payment",
+                resource_id=order_id,
+                details={"amount": payment_req.amount, "description": payment_req.description, "method": payment_req.payment_method},
+                ip_address=client_ip,
+            )
+            
             return PaymentCreateResponse(
                 success=True,
                 order_id=order_id,
@@ -198,6 +265,17 @@ async def payment_callback(
         
         logger.info(f"Payment {payment.order_id} marked as SUCCESS")
         
+        # Ghi audit log cho payment success
+        _log_audit(
+            session=db,
+            user_id=payment.user_id,
+            action="payment_success",
+            resource_type="payment",
+            resource_id=payment.order_id,
+            details={"amount": payment.amount, "app_trans_id": app_trans_id},
+            ip_address=None,
+        )
+        
         # Auto-upgrade user subscription sau khi thanh toán thành công
         try:
             from app.core.subscription import SubscriptionService
@@ -206,12 +284,14 @@ async def payment_callback(
             plan_name = "Premium"  # Default plan
             
             # Logic để xác định plan dựa trên amount
-            if payment.amount >= 500000:  # 500k VND trở lên
+            if payment.amount >= 450000:  # 450k VND trở lên = Pro
                 plan_name = "Pro"
-            elif payment.amount >= 200000:  # 200k VND trở lên
+            elif payment.amount >= 250000:  # 250k VND trở lên = Premium
                 plan_name = "Premium"
+            elif payment.amount >= 80000:  # 80k VND trở lên = Basic
+                plan_name = "Basic"
             else:
-                plan_name = "basic"
+                plan_name = "Basic"  # Default to Basic for any paid plan
             
             # Upgrade user subscription
             upgrade_success = SubscriptionService.upgrade_user_subscription(
@@ -235,6 +315,115 @@ async def payment_callback(
     except Exception as e:
         logger.error(f"Callback error: {e}")
         return {"return_code": 0, "return_message": str(e)}
+
+
+@router.post("/force-check/{order_id}")
+def force_check_payment(
+    order_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Force check payment status from ZaloPay (for cases where callback fails)
+    """
+    user_id = current_user["user_id"]
+
+    payment = db.query(Payment).filter(
+        (Payment.app_trans_id == order_id) | (Payment.order_id == order_id),
+        Payment.user_id == user_id,
+    ).first()
+
+    if not payment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy đơn hàng",
+        )
+
+    # Only force check if payment is still pending
+    if payment.status != PaymentStatus.PENDING.value:
+        return {"message": "Payment already processed", "status": payment.status}
+    
+    # Query từ ZaloPay
+    if payment.app_trans_id:
+        zalopay = get_zalopay_service()
+        result = zalopay.query_order(payment.app_trans_id)
+        
+        logger.info(f"Force check result for {order_id}: {result}")
+        
+        # Cập nhật trạng thái dựa trên kết quả từ ZaloPay
+        result_status = result.get("status")
+        
+        if result_status == 1:  # Success
+            payment.status = PaymentStatus.SUCCESS.value
+            payment.paid_at = datetime.utcnow()
+            
+            # Auto-upgrade user subscription
+            try:
+                from app.core.subscription import SubscriptionService
+                
+                # Determine plan based on amount
+                plan_name = "Premium"  # Default plan
+                
+                if payment.amount >= 450000:  # 450k VND = Pro
+                    plan_name = "Pro"
+                elif payment.amount >= 250000:  # 250k VND = Premium
+                    plan_name = "Premium"
+                elif payment.amount >= 80000:  # 80k VND = Basic
+                    plan_name = "Basic"
+                else:
+                    plan_name = "Basic"
+                
+                # Upgrade user subscription
+                upgrade_success = SubscriptionService.upgrade_user_subscription(
+                    user_id=payment.user_id,
+                    plan_name=plan_name.strip(),
+                    payment_id=payment.id,
+                    session=db
+                )
+                
+                if upgrade_success:
+                    logger.info(f"User {payment.user_id} upgraded to {plan_name} plan via force check")
+                else:
+                    logger.error(f"Failed to upgrade user {payment.user_id} to {plan_name} plan via force check")
+                    
+            except Exception as upgrade_error:
+                logger.error(f"Error during auto-upgrade in force check: {upgrade_error}")
+            
+            db.commit()
+            logger.info(f"Payment {payment.order_id} marked as SUCCESS via force check")
+            
+        elif result_status == 2:  # Failed
+            payment.status = PaymentStatus.FAILED.value
+            db.commit()
+            logger.info(f"Payment {payment.order_id} marked as FAILED via force check")
+        elif result_status == 3:  # Cancelled  
+            payment.status = PaymentStatus.CANCELLED.value
+            db.commit()
+            logger.info(f"Payment {payment.order_id} marked as CANCELLED via force check")
+        else:
+            # If still pending after force check, check for timeout
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
+            created = payment.created_at
+            
+            # Ensure both datetimes are timezone-aware
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+            
+            time_elapsed = (now - created).total_seconds()
+            if time_elapsed > 900:  # 15 minutes timeout
+                payment.status = PaymentStatus.FAILED.value
+                db.commit()
+                logger.info(f"Payment {payment.order_id} marked as FAILED due to timeout after force check")
+        
+        # Return updated status
+        return {
+            "message": "Status updated", 
+            "status": payment.status,
+            "zalopay_result": result
+        }
+    
+    return {"message": "No app_trans_id to query", "status": payment.status}
 
 
 @router.get("/query/{order_id}", response_model=PaymentQueryResponse)
@@ -287,14 +476,16 @@ def query_payment(
                 from app.core.subscription import SubscriptionService
                 
                 # Xác định plan dựa trên amount
-                plan_name = "Premium"  # Default plan
+                plan_name = "Basic"  # Default plan
                 
-                if payment.amount >= 500000:  # 500k VND trở lên
+                if payment.amount >= 450000:  # 450k VND trở lên = Pro
                     plan_name = "Pro"
-                elif payment.amount >= 200000:  # 200k VND trở lên
+                elif payment.amount >= 250000:  # 250k VND trở lên = Premium
                     plan_name = "Premium"
+                elif payment.amount >= 80000:  # 80k VND trở lên = Basic
+                    plan_name = "Basic"
                 else:
-                    plan_name = "basic"
+                    plan_name = "Basic"  # Default to Basic for any paid plan
                 
                 # Upgrade user subscription
                 upgrade_success = SubscriptionService.upgrade_user_subscription(
@@ -332,10 +523,24 @@ def query_payment(
                 created = created.replace(tzinfo=timezone.utc)
             
             time_elapsed = (now - created).total_seconds()
-            if time_elapsed > 900:
+            if time_elapsed > 900:  # 15 minutes
                 payment.status = PaymentStatus.FAILED.value
                 db.commit()
                 logger.info(f"Payment {order_id} marked as FAILED due to timeout")
+        else:
+            # Unknown status, check timeout anyway
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
+            created = payment.created_at
+            
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+            
+            time_elapsed = (now - created).total_seconds()
+            if time_elapsed > 900:  # 15 minutes
+                payment.status = PaymentStatus.FAILED.value
+                db.commit()
+                logger.info(f"Payment {order_id} marked as FAILED due to timeout (unknown status: {result_status})")
 
     db.refresh(payment)
 
@@ -421,3 +626,485 @@ def get_payment_history(
     )
 
     return [_payment_response(p) for p in payments]
+
+
+# ==================== ADMIN ENDPOINTS ====================
+
+@router.get("/admin/payments")
+def admin_list_payments(
+    page: int = 1,
+    per_page: int = 20,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    search: str = None,
+    status_filter: str = None,
+    payment_method: str = None,
+    date_from: str = None,
+    date_to: str = None,
+    user_id: int = None,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Admin: Lấy danh sách tất cả payments với filter và pagination
+    """
+    # Check admin role
+    if current_user.get("role") not in ["admin", "superadmin"]:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from sqlalchemy import text
+        
+        # Build query
+        where_clauses = []
+        params = {}
+        
+        if search:
+            where_clauses.append("""
+                (p.order_id ILIKE :search 
+                OR p.app_trans_id ILIKE :search 
+                OR u.email ILIKE :search 
+                OR u.full_name ILIKE :search)
+            """)
+            params["search"] = f"%{search}%"
+        
+        if status_filter:
+            where_clauses.append("p.status = :status_filter")
+            params["status_filter"] = status_filter
+        
+        if payment_method:
+            where_clauses.append("p.payment_method = :payment_method")
+            params["payment_method"] = payment_method
+        
+        if date_from:
+            where_clauses.append("p.created_at >= :date_from")
+            params["date_from"] = date_from
+        
+        if date_to:
+            where_clauses.append("p.created_at <= :date_to::date + interval '1 day'")
+            params["date_to"] = date_to
+        
+        if user_id:
+            where_clauses.append("p.user_id = :user_id")
+            params["user_id"] = user_id
+        
+        where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
+        
+        # Validate sort_by
+        valid_sort_columns = ["created_at", "amount", "order_id", "status"]
+        if sort_by not in valid_sort_columns:
+            sort_by = "created_at"
+        
+        sort_direction = "DESC" if sort_order.lower() == "desc" else "ASC"
+        
+        # Count total
+        count_sql = text(f"""
+            SELECT COUNT(*) 
+            FROM core.payments p
+            LEFT JOIN core.users u ON p.user_id = u.id
+            WHERE {where_sql}
+        """)
+        total = db.execute(count_sql, params).scalar() or 0
+        
+        # Get paginated data
+        offset = (page - 1) * per_page
+        params["limit"] = per_page
+        params["offset"] = offset
+        
+        data_sql = text(f"""
+            SELECT 
+                p.id,
+                p.user_id,
+                u.email as user_email,
+                u.full_name as user_name,
+                p.order_id,
+                p.app_trans_id,
+                p.amount,
+                p.description,
+                p.payment_method,
+                p.status,
+                p.created_at,
+                p.paid_at as updated_at,
+                p.callback_data as gateway_response
+            FROM core.payments p
+            LEFT JOIN core.users u ON p.user_id = u.id
+            WHERE {where_sql}
+            ORDER BY p.{sort_by} {sort_direction}
+            LIMIT :limit OFFSET :offset
+        """)
+        
+        result = db.execute(data_sql, params)
+        rows = result.fetchall()
+        
+        items = []
+        for row in rows:
+            items.append({
+                "id": row.id,
+                "user_id": row.user_id,
+                "user_email": row.user_email,
+                "user_name": row.user_name,
+                "order_id": row.order_id or row.app_trans_id,
+                "amount": row.amount,
+                "description": row.description,
+                "payment_method": row.payment_method,
+                "status": row.status,
+                "transaction_id": row.app_trans_id,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+                "gateway_response": json.loads(row.gateway_response) if row.gateway_response else None,
+            })
+        
+        total_pages = (total + per_page - 1) // per_page
+        
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listing admin payments: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/admin/payments/stats")
+def admin_payment_stats(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Admin: Thống kê payments
+    """
+    if current_user.get("role") not in ["admin", "superadmin"]:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from sqlalchemy import text
+        
+        # Dùng LOWER() để so sánh không phân biệt hoa thường
+        stats_sql = text("""
+            SELECT 
+                COUNT(*) as total_payments,
+                COALESCE(SUM(amount), 0) as total_amount,
+                COUNT(*) FILTER (WHERE LOWER(status) = 'success') as completed_payments,
+                COALESCE(SUM(amount) FILTER (WHERE LOWER(status) = 'success'), 0) as completed_amount,
+                COUNT(*) FILTER (WHERE LOWER(status) = 'pending') as pending_payments,
+                COUNT(*) FILTER (WHERE LOWER(status) IN ('failed', 'failure')) as failed_payments,
+                COUNT(*) FILTER (WHERE LOWER(status) IN ('cancelled', 'refunded')) as refunded_payments,
+                COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) as today_payments,
+                COALESCE(SUM(amount) FILTER (WHERE created_at >= CURRENT_DATE), 0) as today_amount
+            FROM core.payments
+        """)
+        
+        result = db.execute(stats_sql).fetchone()
+        
+        return {
+            "total_payments": result.total_payments or 0,
+            "total_amount": float(result.total_amount or 0),
+            "completed_payments": result.completed_payments or 0,
+            "completed_amount": float(result.completed_amount or 0),
+            "pending_payments": result.pending_payments or 0,
+            "failed_payments": result.failed_payments or 0,
+            "refunded_payments": result.refunded_payments or 0,
+            "today_payments": result.today_payments or 0,
+            "today_amount": float(result.today_amount or 0),
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting payment stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/admin/payments/export")
+def admin_export_payments(
+    format: str = "json",
+    status_filter: str = None,
+    payment_method: str = None,
+    date_from: str = None,
+    date_to: str = None,
+    user_id: int = None,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Admin: Export payments to CSV or JSON
+    """
+    if current_user.get("role") not in ["admin", "superadmin"]:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from sqlalchemy import text
+        from fastapi.responses import Response
+        import csv
+        import io
+        
+        # Build query
+        where_clauses = []
+        params = {}
+        
+        if status_filter:
+            where_clauses.append("p.status = :status_filter")
+            params["status_filter"] = status_filter
+        
+        if payment_method:
+            where_clauses.append("p.payment_method = :payment_method")
+            params["payment_method"] = payment_method
+        
+        if date_from:
+            where_clauses.append("p.created_at >= :date_from")
+            params["date_from"] = date_from
+        
+        if date_to:
+            where_clauses.append("p.created_at <= :date_to::date + interval '1 day'")
+            params["date_to"] = date_to
+        
+        if user_id:
+            where_clauses.append("p.user_id = :user_id")
+            params["user_id"] = user_id
+        
+        where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
+        
+        data_sql = text(f"""
+            SELECT 
+                p.id,
+                p.user_id,
+                u.email as user_email,
+                u.full_name as user_name,
+                p.order_id,
+                p.app_trans_id,
+                p.amount,
+                p.description,
+                p.payment_method,
+                p.status,
+                p.created_at,
+                p.paid_at
+            FROM core.payments p
+            LEFT JOIN core.users u ON p.user_id = u.id
+            WHERE {where_sql}
+            ORDER BY p.created_at DESC
+            LIMIT 10000
+        """)
+        
+        result = db.execute(data_sql, params)
+        rows = result.fetchall()
+        
+        if format == "csv":
+            output = io.StringIO()
+            
+            # Thêm sep=, ở dòng đầu để Excel tự nhận diện delimiter
+            output.write("sep=,\n")
+            
+            writer = csv.writer(output, delimiter=',', quoting=csv.QUOTE_ALL)
+            
+            # Header
+            writer.writerow([
+                "ID", "User ID", "Email", "Ten", "Order ID", "Transaction ID",
+                "So tien", "Mo ta", "Phuong thuc", "Trang thai", "Ngay tao", "Ngay thanh toan"
+            ])
+            
+            # Data
+            for row in rows:
+                # Format datetime đẹp hơn cho Excel
+                created_str = row.created_at.strftime("%d/%m/%Y %H:%M:%S") if row.created_at else ""
+                paid_str = row.paid_at.strftime("%d/%m/%Y %H:%M:%S") if row.paid_at else ""
+                
+                writer.writerow([
+                    row.id,
+                    row.user_id,
+                    row.user_email or "",
+                    row.user_name or "",
+                    row.order_id or row.app_trans_id or "",
+                    row.app_trans_id or "",
+                    row.amount,
+                    row.description or "",
+                    row.payment_method or "",
+                    row.status or "",
+                    created_str,
+                    paid_str,
+                ])
+            
+            csv_content = output.getvalue()
+            output.close()
+            
+            # Thêm BOM UTF-8 để Excel nhận diện encoding đúng
+            csv_bytes = b'\xef\xbb\xbf' + csv_content.encode('utf-8')
+            
+            return Response(
+                content=csv_bytes,
+                media_type="text/csv; charset=utf-8",
+                headers={
+                    "Content-Disposition": f"attachment; filename=payments_export_{datetime.utcnow().strftime('%Y%m%d')}.csv"
+                }
+            )
+        else:
+            # JSON format
+            items = []
+            for row in rows:
+                items.append({
+                    "id": row.id,
+                    "user_id": row.user_id,
+                    "user_email": row.user_email,
+                    "user_name": row.user_name,
+                    "order_id": row.order_id or row.app_trans_id,
+                    "transaction_id": row.app_trans_id,
+                    "amount": row.amount,
+                    "description": row.description,
+                    "payment_method": row.payment_method,
+                    "status": row.status,
+                    "created_at": row.created_at.isoformat() if row.created_at else None,
+                    "paid_at": row.paid_at.isoformat() if row.paid_at else None,
+                })
+            
+            return items
+        
+    except Exception as e:
+        logger.error(f"Error exporting payments: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/admin/payments/users/search")
+def admin_search_users(
+    q: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Admin: Tìm kiếm users để filter payments
+    """
+    if current_user.get("role") not in ["admin", "superadmin"]:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from sqlalchemy import text
+        
+        search_sql = text("""
+            SELECT DISTINCT u.id, u.email, u.full_name
+            FROM core.users u
+            WHERE u.email ILIKE :search OR u.full_name ILIKE :search
+            LIMIT 20
+        """)
+        
+        result = db.execute(search_sql, {"search": f"%{q}%"})
+        rows = result.fetchall()
+        
+        return [
+            {
+                "id": row.id,
+                "email": row.email,
+                "full_name": row.full_name
+            }
+            for row in rows
+        ]
+        
+    except Exception as e:
+        logger.error(f"Error searching users: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/admin/payments/user/{user_id}")
+def admin_user_payments(
+    user_id: int,
+    page: int = 1,
+    per_page: int = 10,
+    status_filter: str = None,
+    date_from: str = None,
+    date_to: str = None,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Admin: Lấy lịch sử thanh toán của một user cụ thể
+    """
+    if current_user.get("role") not in ["admin", "superadmin"]:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        from sqlalchemy import text
+        
+        # Build query
+        where_clauses = ["p.user_id = :user_id"]
+        params = {"user_id": user_id}
+        
+        if status_filter:
+            where_clauses.append("p.status = :status_filter")
+            params["status_filter"] = status_filter
+        
+        if date_from:
+            where_clauses.append("p.created_at >= :date_from")
+            params["date_from"] = date_from
+        
+        if date_to:
+            where_clauses.append("p.created_at <= :date_to::date + interval '1 day'")
+            params["date_to"] = date_to
+        
+        where_sql = " AND ".join(where_clauses)
+        
+        # Count total
+        count_sql = text(f"""
+            SELECT COUNT(*) 
+            FROM core.payments p
+            WHERE {where_sql}
+        """)
+        total = db.execute(count_sql, params).scalar() or 0
+        
+        # Get paginated data
+        offset = (page - 1) * per_page
+        params["limit"] = per_page
+        params["offset"] = offset
+        
+        data_sql = text(f"""
+            SELECT 
+                p.id,
+                p.user_id,
+                u.email as user_email,
+                u.full_name as user_name,
+                p.order_id,
+                p.app_trans_id,
+                p.amount,
+                p.description,
+                p.payment_method,
+                p.status,
+                p.created_at,
+                p.paid_at as updated_at
+            FROM core.payments p
+            LEFT JOIN core.users u ON p.user_id = u.id
+            WHERE {where_sql}
+            ORDER BY p.created_at DESC
+            LIMIT :limit OFFSET :offset
+        """)
+        
+        result = db.execute(data_sql, params)
+        rows = result.fetchall()
+        
+        items = []
+        for row in rows:
+            items.append({
+                "id": row.id,
+                "user_id": row.user_id,
+                "user_email": row.user_email,
+                "user_name": row.user_name,
+                "order_id": row.order_id or row.app_trans_id,
+                "amount": row.amount,
+                "description": row.description,
+                "payment_method": row.payment_method,
+                "status": row.status,
+                "transaction_id": row.app_trans_id,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+            })
+        
+        total_pages = (total + per_page - 1) // per_page
+        
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting user payments: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

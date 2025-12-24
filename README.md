@@ -5,6 +5,37 @@
 Monorepo gồm **Frontend (React/Vite)**, **Backend (FastAPI – BFF)** và **AI-Core (PhoBERT · vi-SBERT · NeuMF · Bandit)**.
 Backend chỉ giao tiếp với Frontend qua **BFF**; mọi logic AI tách ra thành **AI-Core service riêng**.
 
+## 💎 4-Tier Premium System
+
+Hệ thống bao gồm 4 gói dịch vụ:
+
+### 🆓 **Free Plan** (Miễn phí)
+- 5 bài kiểm tra / tháng
+- Xem 1 nghề nghiệp đầu tiên
+- Roadmap Level 1 only
+- Chatbot cơ bản
+
+### 💙 **Basic Plan** (99.000đ)
+- 20 bài kiểm tra / tháng
+- Xem 5 nghề nghiệp / tháng (tối đa 25 nghề)
+- Roadmap Level 1-2
+- Phân tích RIASEC & Big Five
+
+### 💚 **Premium Plan** (299.000đ)
+- Bài kiểm tra không giới hạn
+- Xem toàn bộ danh mục nghề nghiệp
+- Full Roadmap (tất cả levels)
+- View Full Report
+- Phân tích AI chi tiết
+
+### 💜 **Pro Plan** (499.000đ)
+- Tất cả tính năng Premium
+- 🤖 AI Career Assistant 24/7 (Gemini API)
+- 📄 Xuất báo cáo PDF chuyên sâu
+- 📊 So sánh lịch sử phát triển
+- 🎤 Voice input & Text-to-speech
+- 📝 Tạo blog từ cuộc trò chuyện
+
 ---
 
 # 1) Tổng quan
@@ -190,7 +221,41 @@ npm run dev
 
 ---
 
-# 6) CI / Code style
+# 6) 🚀 Quick Setup Guide
+
+## Database Setup
+```bash
+# Run SQL setup for 4-tier system
+psql -U your_username -d your_database -f database_setup.sql
+```
+
+## Environment Variables
+```env
+# Database
+DATABASE_URL=postgresql://username:password@localhost/dbname
+
+# ZaloPay (for payments)
+ZALOPAY_APP_ID=your_app_id
+ZALOPAY_KEY1=your_key1
+ZALOPAY_KEY2=your_key2
+
+# AI Features (for Pro plan)
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+## Test Accounts
+| Email | Plan | Features |
+|-------|------|----------|
+| `free@test.com` | Free | 5 tests/month, 1 career |
+| `basic@test.com` | Basic | 20 tests/month, 5 careers/month |
+| `premium@test.com` | Premium | Unlimited tests/careers |
+| `pro@test.com` | Pro | All features + AI Assistant |
+
+📖 **Xem chi tiết**: `SETUP_GUIDE.md` và `DEPLOYMENT_CHECKLIST.md`
+
+---
+
+# 7) CI / Code style
 
 **FE:** eslint + prettier
 **BE:** ruff + black + pytest
@@ -198,25 +263,22 @@ npm run dev
 
 ---
 
-# 7) Ghi chú quan trọng cho nhánh `chore/ai-core-merge`
+# 8) Ghi chú quan trọng cho nhánh `chore/ai-core-merge`
 
 * Đây là **nhánh hợp nhất AI-core vào monorepo** (theo subtree workflow).
 * AI không còn phát triển ở nhánh `AI` cũ → mọi code AI nằm ở `packages/ai-core`.
 * Backend và Frontend được cập nhật để gọi AI-Core API qua `http://localhost:9000`.
-* Đảm bảo đồng bộ:
-
-  * `apps/backend/app/services/ai_client.py`
-  * `apps/frontend/src/services/traitsService.ts`
-  * `apps/frontend/src/services/retrievalService.ts` (nếu có)
+* **4-tier premium system** đã được implement hoàn chỉnh với user data isolation và feature access control.
 
 ---
 
-# 8) Định hướng tiếp theo
+# 9) Định hướng tiếp theo
 
 * Hoàn thiện **Bandit Online**
 * Tích hợp **Neo4j explainability**
 * Chuẩn hóa BFF contract
 * Kết nối frontend App Router (nếu cần)
 * Tối ưu pipeline encode + pgvector refresh
+* **Monitor 4-tier system performance** và user engagement
 
 ---

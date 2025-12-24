@@ -34,7 +34,7 @@ const ProfileAvatar = ({ name = '', email = '', size = 'lg' }: ProfileAvatarProp
   const getPremiumStyling = () => {
     const plan = planName?.toLowerCase() || '';
     
-    if (plan.includes('enterprise') || plan.includes('doanh nghiệp')) {
+    if (plan.includes('pro')) {
       return {
         gradient: 'from-purple-500 via-pink-500 to-purple-600',
         ringColor: 'ring-purple-500/50',
@@ -44,13 +44,23 @@ const ProfileAvatar = ({ name = '', email = '', size = 'lg' }: ProfileAvatarProp
       };
     }
     
-    if (plan.includes('premium') || plan.includes('pro')) {
+    if (plan.includes('premium')) {
       return {
         gradient: 'from-green-500 via-emerald-500 to-green-600',
         ringColor: 'ring-green-500/50',
         badgeColor: 'from-green-500 to-emerald-500',
         icon: '⭐',
         glow: 'shadow-green-500/25'
+      };
+    }
+    
+    if (plan.includes('basic') || plan.includes('cơ bản')) {
+      return {
+        gradient: 'from-blue-500 via-cyan-500 to-blue-600',
+        ringColor: 'ring-blue-500/50',
+        badgeColor: 'from-blue-500 to-cyan-500',
+        icon: '✨',
+        glow: 'shadow-blue-500/25'
       };
     }
     

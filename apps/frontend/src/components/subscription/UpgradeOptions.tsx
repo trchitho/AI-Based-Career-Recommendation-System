@@ -17,33 +17,46 @@ const UpgradeOptions = ({ currentPlan, onClose }: UpgradeOptionsProps) => {
   const getAvailablePlans = () => {
     const allPlans = [
       {
+        id: 'basic',
+        name: 'Gói Cơ Bản',
+        price: 99000,
+        description: 'Dành cho người dùng mới muốn thử nghiệm',
+        features: [
+          'Tối đa 20 bài kiểm tra / tháng',
+          'Xem 5 nghề nghiệp phù hợp nhất',
+          'Lộ trình học tập cơ bản (Level 1-2)',
+          'Phân tích tóm tắt RIASEC & Big Five',
+          'Hỗ trợ thông thường qua Email'
+        ],
+        gradient: 'from-blue-500 to-cyan-500',
+        available: true,
+      },
+      {
         id: 'premium',
         name: 'Gói Premium',
         price: 299000,
-        description: 'Phổ biến nhất - Không giới hạn',
+        description: 'Gói phổ biến nhất - Định hướng rõ ràng',
         features: [
-          'Không giới hạn bài test',
-          'Xem tất cả nghề nghiệp',
-          'Roadmap đầy đủ',
-          'Phân tích AI chi tiết',
-          'Hỗ trợ ưu tiên',
+          'Làm bài kiểm tra không giới hạn',
+          'Xem toàn bộ danh mục nghề nghiệp',
+          'Lộ trình học tập đầy đủ (Full Roadmap)',
+          'Phân tích AI chi tiết tính cách & tiềm năng',
+          'Ưu tiên hỗ trợ kỹ thuật và tư vấn'
         ],
         gradient: 'from-green-500 to-emerald-500',
-        available: false, // User already has Premium
+        available: true,
       },
       {
-        id: 'enterprise',
-        name: 'Gói Doanh Nghiệp',
-        price: 999000,
-        description: 'Giải pháp cho tổ chức',
+        id: 'pro',
+        name: 'Gói Pro (CareerAI Professional)',
+        price: 499000,
+        description: 'Người cố vấn số đồng hành suốt hành trình',
         features: [
-          'Tất cả tính năng Premium',
-          'Quản lý nhiều người dùng',
-          'API tích hợp',
-          'Hỗ trợ 24/7',
-          'Tùy chỉnh theo yêu cầu',
-          'Báo cáo chi tiết',
-          'Đào tạo nhóm',
+          'Tất cả tính năng gói Premium',
+          '🤖 Trợ lý ảo AI 24/7 (Gemini API)',
+          '📄 Xuất báo cáo PDF chuyên sâu',
+          '📊 So sánh lịch sử phát triển',
+          '🎓 Gợi ý khóa học từ Coursera, LinkedIn'
         ],
         gradient: 'from-purple-500 to-pink-500',
         available: true,
@@ -53,13 +66,16 @@ const UpgradeOptions = ({ currentPlan, onClose }: UpgradeOptionsProps) => {
     // Filter based on current plan
     const current = currentPlan?.toLowerCase() || '';
     return allPlans.filter(plan => {
-      if (current.includes('enterprise') || current.includes('doanh nghiệp')) {
+      if (current.includes('pro')) {
         return false; // Already has highest plan
       }
-      if (current.includes('premium') || current.includes('pro')) {
-        return plan.id === 'enterprise'; // Can only upgrade to Enterprise
+      if (current.includes('premium')) {
+        return plan.id === 'pro'; // Can only upgrade to Pro
       }
-      return plan.available;
+      if (current.includes('basic') || current.includes('cơ bản')) {
+        return plan.id === 'premium' || plan.id === 'pro'; // Can upgrade to Premium or Pro
+      }
+      return plan.available; // Free users can upgrade to any plan
     });
   };
 

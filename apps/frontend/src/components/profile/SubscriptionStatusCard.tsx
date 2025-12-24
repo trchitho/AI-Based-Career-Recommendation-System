@@ -10,18 +10,18 @@ const SubscriptionStatusCard = () => {
   const getPlanDetails = () => {
     const plan = planName?.toLowerCase() || 'free';
     
-    if (plan.includes('enterprise') || plan.includes('doanh nghiệp')) {
+    if (plan.includes('pro')) {
       return {
-        name: 'Enterprise',
+        name: 'Pro',
         color: 'from-purple-500 to-pink-500',
         bgColor: 'from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20',
         borderColor: 'border-purple-200 dark:border-purple-700',
         icon: '👑',
-        badge: 'ENTERPRISE'
+        badge: 'PRO'
       };
     }
     
-    if (plan.includes('premium') || plan.includes('pro')) {
+    if (plan.includes('premium')) {
       return {
         name: 'Premium',
         color: 'from-green-500 to-emerald-500',
@@ -29,6 +29,17 @@ const SubscriptionStatusCard = () => {
         borderColor: 'border-green-200 dark:border-green-700',
         icon: '⭐',
         badge: 'PREMIUM'
+      };
+    }
+    
+    if (plan.includes('basic') || plan.includes('cơ bản')) {
+      return {
+        name: 'Basic',
+        color: 'from-blue-500 to-cyan-500',
+        bgColor: 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20',
+        borderColor: 'border-blue-200 dark:border-blue-700',
+        icon: '✨',
+        badge: 'BASIC'
       };
     }
     

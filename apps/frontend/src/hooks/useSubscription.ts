@@ -65,14 +65,10 @@ export const useSubscription = () => {
     fetchSubscriptionData();
   }, [fetchSubscriptionData]);
 
-
-
-
-
-  // Enhanced premium detection
+  // Enhanced premium detection - Include Basic as a paid plan
   const planName = subscriptionData?.subscription?.plan_name || 'Free';
   const isPremiumFromAPI = subscriptionData?.subscription?.is_premium === true;
-  const isPremiumFromPlan = planName === 'Pro' || planName === 'Premium' || planName === 'Enterprise';
+  const isPremiumFromPlan = planName === 'Pro' || planName === 'Premium' || planName === 'Enterprise' || planName === 'Basic';
   const finalIsPremium = isPremiumFromAPI || isPremiumFromPlan;
 
   return {
