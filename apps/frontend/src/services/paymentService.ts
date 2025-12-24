@@ -46,23 +46,23 @@ export const paymentService = {
    * Create a new payment
    */
   async createPayment(data: CreatePaymentRequest): Promise<CreatePaymentResponse> {
-    const response = await api.post('/api/payments/create', data);
+    const response = await api.post('/api/payment/create', data);
     return response.data;
   },
 
   /**
-   * Check payment status by payment ID
+   * Check payment status by order ID
    */
-  async checkStatus(paymentId: number): Promise<PaymentStatusResponse> {
-    const response = await api.get(`/api/payments/${paymentId}/status`);
+  async checkStatus(orderId: string): Promise<PaymentStatusResponse> {
+    const response = await api.get(`/api/payment/query/${orderId}`);
     return response.data;
   },
 
   /**
    * Force check payment status (queries payment provider directly)
    */
-  async forceCheckStatus(paymentId: number): Promise<PaymentStatusResponse> {
-    const response = await api.post(`/api/payments/${paymentId}/force-check`);
+  async forceCheckStatus(orderId: string): Promise<PaymentStatusResponse> {
+    const response = await api.post(`/api/payment/force-check/${orderId}`);
     return response.data;
   },
 
@@ -70,15 +70,15 @@ export const paymentService = {
    * Get payment history for current user
    */
   async getHistory(): Promise<PaymentHistory[]> {
-    const response = await api.get('/api/payments/history');
+    const response = await api.get('/api/payment/history');
     return response.data;
   },
 
   /**
-   * Get payment by ID
+   * Get payment by order ID
    */
-  async getPayment(paymentId: number): Promise<PaymentHistory> {
-    const response = await api.get(`/api/payments/${paymentId}`);
+  async getPayment(orderId: string): Promise<PaymentHistory> {
+    const response = await api.get(`/api/payment/query/${orderId}`);
     return response.data;
   },
 
@@ -87,7 +87,7 @@ export const paymentService = {
    * Enhanced: 2 minutes polling with force-check attempts
    */
   async pollStatus(
-    paymentId: number,
+    orderId: string,
     maxAttempts: number = 60,
     intervalMs: number = 2000,
     onStatusChange?: (status: string) => void
@@ -101,8 +101,8 @@ export const paymentService = {
         const shouldForceCheck = attempts === 10 || attempts === 30;
         
         const result = shouldForceCheck
-          ? await this.forceCheckStatus(paymentId)
-          : await this.checkStatus(paymentId);
+          ? await this.forceCheckStatus(orderId)
+          : await this.checkStatus(orderId);
 
         if (result.status !== lastStatus) {
           lastStatus = result.status;
@@ -110,10 +110,10 @@ export const paymentService = {
         }
 
         // Success or failure - stop polling
-        if (result.status === 'SUCCESS' || result.status === 'COMPLETED') {
+        if (result.status === 'SUCCESS' || result.status === 'COMPLETED' || result.status === 'success') {
           return { ...result, status: 'SUCCESS' };
         }
-        if (result.status === 'FAILED' || result.status === 'CANCELLED') {
+        if (result.status === 'FAILED' || result.status === 'CANCELLED' || result.status === 'failed') {
           return result;
         }
 
@@ -128,10 +128,10 @@ export const paymentService = {
 
     // Timeout - do one final force check
     try {
-      const finalResult = await this.forceCheckStatus(paymentId);
+      const finalResult = await this.forceCheckStatus(orderId);
       return finalResult;
     } catch {
-      return { payment_id: paymentId, status: 'TIMEOUT', message: 'Payment status check timed out' };
+      return { payment_id: 0, status: 'TIMEOUT', message: 'Payment status check timed out' };
     }
   },
 };
