@@ -240,22 +240,27 @@ def ai_metrics(request: Request):
             total_recs = session.execute(text(
                 "SELECT COUNT(*) FROM core.assessments WHERE career_recommendations IS NOT NULL"
             )).scalar() or 0
-        except:
-            pass
+        except Exception as e:
+            # Keep default total_recs=0 but record why the query failed
+            logger.debug("Failed to compute total career recommendations", exc_info=True)
         
         # Get assessments with essay - check essays table
         try:
             assessments_with_essay = session.execute(text(
                 "SELECT COUNT(*) FROM core.essays"
             )).scalar() or 0
-        except:
+        except Exception as e:
             # Fallback to essay_analysis column in assessments
             try:
                 assessments_with_essay = session.execute(text(
                     "SELECT COUNT(*) FROM core.assessments WHERE essay_analysis IS NOT NULL"
                 )).scalar() or 0
-            except:
-                pass
+            except Exception as e:
+                # If both queries fail, keep default assessments_with_essay=0
+                logger.debug(
+                    "Failed to compute assessments with essay from both essays table and essay_analysis column",
+                    exc_info=True,
+                )
         
         # RIASEC distribution - check all possible a_type values
         try:
