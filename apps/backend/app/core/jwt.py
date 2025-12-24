@@ -64,7 +64,8 @@ def require_admin(request: Request) -> int:
     sub = data.get("sub")
     if sub is None:
         raise HTTPException(status_code=401, detail="Token missing sub")
-    if role != "admin":
+    # Cho phép cả admin và superadmin
+    if role not in ("admin", "superadmin"):
         raise HTTPException(status_code=403, detail="Admin role required")
     try:
         return int(sub)

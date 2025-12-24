@@ -23,8 +23,11 @@ import UserManagementPage from "./UserManagementPage";
 import SettingsPage from "./SettingsPage";
 import BlogManagementPage from "./BlogManagementPage.tsx";
 import PaymentManagementPage from "./PaymentManagementPage.tsx";
-import PaymentManagementPageMock from "./PaymentManagementPageMock.tsx";
 import TransactionHistoryPage from "./TransactionHistoryPage";
+import AuditLogsPage from "./AuditLogsPage";
+import CareerTrendsPage from "./CareerTrendsPage";
+import AnomalyDetectionPage from "./AnomalyDetectionPage";
+import DataSyncPage from "./DataSyncPage";
 
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
@@ -67,23 +70,9 @@ const AdminDashboardPage = () => {
       <nav className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-10">
-              <h1 className="text-xl font-bold dark:text-white whitespace-nowrap">
-                Admin Panel
-              </h1>
-
-              <div className="flex items-center gap-6 flex-nowrap flex-shrink-0">
-                <NavItem to="/admin" label={t("admin.dashboard")} active={location.pathname === "/admin"} />
-                <NavItem to="/admin/users" label={t("admin.users")} active={isActive("/admin/users")} />
-                <NavItem to="/admin/payments" label="Thanh toán" active={isActive("/admin/payments")} />
-                <NavItem to="/admin/settings" label={t("admin.settings")} active={isActive("/admin/settings")} />
-                <NavItem to="/admin/blogs" label={t("admin.blogs")} active={isActive("/admin/blogs")} />
-                <NavItem to="/admin/careers" label={t("admin.careers")} active={isActive("/admin/careers")} />
-                <NavItem to="/admin/skills" label={t("admin.skills")} active={isActive("/admin/skills")} />
-                <NavItem to="/admin/questions" label={t("admin.questions")} active={isActive("/admin/questions")} />
-                <NavItem to="/admin/ai-monitoring" label={t("admin.monitoring")} active={isActive("/admin/ai-monitoring")} />
-              </div>
-            </div>
+            <h1 className="text-xl font-bold dark:text-white whitespace-nowrap">
+              Admin Panel
+            </h1>
 
             <div className="flex items-center gap-4 whitespace-nowrap">
               <LanguageSwitcher />
@@ -93,9 +82,28 @@ const AdminDashboardPage = () => {
                 to="/dashboard"
                 className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white inline-flex items-center whitespace-nowrap"
               >
-                ← {t("common.back")} {t("nav.dashboard")}
+                ← {t("common.back")}
               </Link>
             </div>
+          </div>
+        </div>
+        
+        {/* Navigation tabs - scrollable */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
+          <div className="flex items-center gap-1 py-2 min-w-max">
+            <NavItem to="/admin" label={t("admin.dashboard")} active={location.pathname === "/admin"} />
+            <NavItem to="/admin/users" label={t("admin.users")} active={isActive("/admin/users")} />
+            <NavItem to="/admin/payments" label="Thanh toán" active={isActive("/admin/payments")} />
+            <NavItem to="/admin/settings" label={t("admin.settings")} active={isActive("/admin/settings")} />
+            <NavItem to="/admin/blogs" label={t("admin.blogs")} active={isActive("/admin/blogs")} />
+            <NavItem to="/admin/careers" label={t("admin.careers")} active={isActive("/admin/careers")} />
+            <NavItem to="/admin/skills" label={t("admin.skills")} active={isActive("/admin/skills")} />
+            <NavItem to="/admin/questions" label={t("admin.questions")} active={isActive("/admin/questions")} />
+            <NavItem to="/admin/ai-monitoring" label="AI" active={isActive("/admin/ai-monitoring")} />
+            <NavItem to="/admin/audit-logs" label="Logs" active={isActive("/admin/audit-logs")} />
+            <NavItem to="/admin/career-trends" label="Trends" active={isActive("/admin/career-trends")} />
+            <NavItem to="/admin/anomalies" label="Alerts" active={isActive("/admin/anomalies")} />
+            <NavItem to="/admin/data-sync" label="Sync" active={isActive("/admin/data-sync")} />
           </div>
         </div>
       </nav>
@@ -123,6 +131,10 @@ const AdminDashboardPage = () => {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="blogs" element={<BlogManagementPage />} />
           <Route path="transactions" element={<TransactionHistoryPage />} />
+          <Route path="audit-logs" element={<AuditLogsPage />} />
+          <Route path="career-trends" element={<CareerTrendsPage />} />
+          <Route path="anomalies" element={<AnomalyDetectionPage />} />
+          <Route path="data-sync" element={<DataSyncPage />} />
         </Routes>
       </div>
     </div>

@@ -134,6 +134,36 @@ export const paymentService = {
       return { payment_id: 0, status: 'TIMEOUT', message: 'Payment status check timed out' };
     }
   },
+
+  /**
+   * Poll payment status (alias for pollStatus with different return format)
+   * Used by PaymentReturn component
+   */
+  async pollPaymentStatus(
+    orderId: string,
+    maxAttempts: number = 60,
+    intervalMs: number = 2000
+  ): Promise<{ success: boolean; payment: { status: string; tier?: string | undefined } }> {
+    const result = await this.pollStatus(orderId, maxAttempts, intervalMs);
+    const isSuccess = result.status === 'SUCCESS' || result.status === 'success' || result.status === 'COMPLETED';
+    const paymentResult: { status: string; tier?: string | undefined } = {
+      status: isSuccess ? 'success' : result.status.toLowerCase(),
+    };
+    if (result.tier) {
+      paymentResult.tier = result.tier;
+    }
+    return {
+      success: isSuccess,
+      payment: paymentResult,
+    };
+  },
+
+  /**
+   * Trigger subscription refresh event
+   */
+  triggerSubscriptionRefresh(): void {
+    window.dispatchEvent(new CustomEvent('subscription-updated'));
+  },
 };
 
 /**

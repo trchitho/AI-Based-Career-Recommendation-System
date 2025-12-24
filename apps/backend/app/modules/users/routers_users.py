@@ -1,18 +1,68 @@
 from datetime import date
+import json
 
 from fastapi import APIRouter, HTTPException, Request
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import select, text
+from sqlalchemy.orm import Session, sessionmaker
 
+from ...core.db import engine
 from ...core.jwt import require_admin, require_user  # hàm decode JWT → trả user_id
 from ..assessments.models import Assessment
 from .models import User
 
 router = APIRouter()
 
+# Session factory for audit logs
+_AuditSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
 
 def _db(req: Request) -> Session:
     return req.state.db
+
+
+def _log_audit(
+    session: Session,
+    user_id: int,
+    action: str,
+    resource_type: str,
+    resource_id: str = None,
+    details: dict = None,
+    ip_address: str = None,
+):
+    """Ghi audit log vào database - dùng session riêng"""
+    try:
+        new_session = _AuditSessionLocal()
+        try:
+            details_json = json.dumps(details) if details else None
+            entity_id_val = None
+            if resource_id:
+                try:
+                    entity_id_val = int(resource_id)
+                except (ValueError, TypeError):
+                    entity_id_val = None
+            
+            new_session.execute(text("""
+                INSERT INTO core.audit_logs 
+                (actor_id, action, entity, entity_id, data_json, user_id, resource_type, resource_id, details, ip_address, created_at)
+                VALUES 
+                (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :user_id, :resource_type, :resource_id, CAST(:details AS jsonb), :ip_address, NOW())
+            """), {
+                "actor_id": user_id,
+                "action": action,
+                "entity": resource_type,
+                "entity_id": entity_id_val,
+                "data_json": details_json,
+                "user_id": user_id,
+                "resource_type": resource_type,
+                "resource_id": resource_id,
+                "details": details_json,
+                "ip_address": ip_address,
+            })
+            new_session.commit()
+        finally:
+            new_session.close()
+    except Exception:
+        pass
 
 
 def _split_name(full_name: str | None) -> tuple[str | None, str | None]:
@@ -58,6 +108,9 @@ def update_me(request: Request, payload: dict):
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
 
+    # Track changes for audit log
+    changes = {}
+    
     # Map first/last name into full_name if provided
     first = payload.get("first_name")
     last = payload.get("last_name")
@@ -65,22 +118,51 @@ def update_me(request: Request, payload: dict):
         fn = (first or "").strip()
         ln = (last or "").strip()
         combined = (f"{fn} {ln}" if fn or ln else u.full_name) or None
+        if u.full_name != combined:
+            changes["full_name"] = {"old": u.full_name, "new": combined}
         u.full_name = combined
     if "full_name" in payload and payload.get("full_name"):
+        if u.full_name != payload.get("full_name"):
+            changes["full_name"] = {"old": u.full_name, "new": payload.get("full_name")}
         u.full_name = payload.get("full_name")
     if "avatar_url" in payload:
+        if u.avatar_url != payload.get("avatar_url"):
+            changes["avatar_url"] = {"old": u.avatar_url, "new": payload.get("avatar_url")}
         u.avatar_url = payload.get("avatar_url")
     if "date_of_birth" in payload:
         dob = payload.get("date_of_birth")
         if dob in (None, ""):
+            if u.date_of_birth is not None:
+                changes["date_of_birth"] = {"old": str(u.date_of_birth), "new": None}
             u.date_of_birth = None
         else:
             try:
-                u.date_of_birth = date.fromisoformat(str(dob))
+                new_dob = date.fromisoformat(str(dob))
+                if u.date_of_birth != new_dob:
+                    changes["date_of_birth"] = {"old": str(u.date_of_birth) if u.date_of_birth else None, "new": str(new_dob)}
+                u.date_of_birth = new_dob
             except Exception:
                 raise HTTPException(status_code=400, detail="Invalid date_of_birth (expected YYYY-MM-DD)")
     session.commit()
     session.refresh(u)
+    
+    # Ghi audit log cho profile update
+    if changes:
+        client_ip = request.client.host if request.client else None
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            client_ip = forwarded.split(",")[0].strip()
+        
+        _log_audit(
+            session=session,
+            user_id=user_id,
+            action="profile_update",
+            resource_type="user",
+            resource_id=str(user_id),
+            details={"changes": changes},
+            ip_address=client_ip,
+        )
+    
     return _profile_dict(u)
 
 

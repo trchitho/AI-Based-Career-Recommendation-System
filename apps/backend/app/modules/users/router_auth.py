@@ -1,4 +1,5 @@
 # apps/backend/app/modules/users/router_auth.py
+import json
 import logging
 import os
 import secrets
@@ -6,7 +7,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from ...core.db import engine
@@ -23,6 +24,54 @@ router = APIRouter()
 
 # Session factory for background tasks
 _SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+
+# ---------- Audit Log Helper ----------
+def log_audit(
+    session: Session,
+    user_id: int,
+    action: str,
+    resource_type: str,
+    resource_id: str = None,
+    details: dict = None,
+    ip_address: str = None,
+):
+    """Ghi audit log vào database - dùng session riêng để tránh conflict"""
+    try:
+        # Tạo session mới để insert audit log
+        new_session = _SessionLocal()
+        try:
+            details_json = json.dumps(details) if details else None
+            entity_id_val = None
+            if resource_id:
+                try:
+                    entity_id_val = int(resource_id)
+                except (ValueError, TypeError):
+                    entity_id_val = None
+            
+            new_session.execute(text("""
+                INSERT INTO core.audit_logs 
+                (actor_id, action, entity, entity_id, data_json, user_id, resource_type, resource_id, details, ip_address, created_at)
+                VALUES 
+                (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :user_id, :resource_type, :resource_id, CAST(:details AS jsonb), :ip_address, NOW())
+            """), {
+                "actor_id": user_id,
+                "action": action,
+                "entity": resource_type,
+                "entity_id": entity_id_val,
+                "data_json": details_json,
+                "user_id": user_id,
+                "resource_type": resource_type,
+                "resource_id": resource_id,
+                "details": details_json,
+                "ip_address": ip_address,
+            })
+            new_session.commit()
+            logger.info(f"Audit log saved: user={user_id}, action={action}")
+        finally:
+            new_session.close()
+    except Exception as e:
+        logger.error(f"Failed to log audit: {e}")
 
 
 # ---------- Schemas ----------
@@ -140,6 +189,22 @@ def register(request: Request, payload: RegisterPayload, background_tasks: Backg
     session.add(u)
     session.commit()
     session.refresh(u)
+    
+    # Ghi audit log cho register
+    client_ip = request.client.host if request.client else None
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        client_ip = forwarded.split(",")[0].strip()
+    
+    log_audit(
+        session=session,
+        user_id=u.id,
+        action="user_create",
+        resource_type="user",
+        resource_id=str(u.id),
+        details={"email": email, "full_name": full_name},
+        ip_address=client_ip,
+    )
 
     info = send_verification_email(session, u, minutes=DEFAULT_VERIFY_MINUTES)
     if not info.get("sent") and not info.get("dev_mode"):
@@ -155,6 +220,12 @@ def login(request: Request, payload: LoginPayload):
     session = _db(request)
     email = payload.email.strip().lower()
     password = payload.password
+    
+    # Get client IP
+    client_ip = request.client.host if request.client else None
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        client_ip = forwarded.split(",")[0].strip()
 
     u = session.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if not u:
@@ -195,6 +266,28 @@ def login(request: Request, payload: LoginPayload):
     )
     session.add(rt)
     session.commit()
+    
+    # Ghi audit log cho login
+    user_agent = request.headers.get("user-agent", "")
+    browser = "Unknown"
+    if "Chrome" in user_agent:
+        browser = "Chrome"
+    elif "Firefox" in user_agent:
+        browser = "Firefox"
+    elif "Safari" in user_agent:
+        browser = "Safari"
+    elif "Edge" in user_agent:
+        browser = "Edge"
+    
+    log_audit(
+        session=session,
+        user_id=u.id,
+        action="login",
+        resource_type="user",
+        resource_id=str(u.id),
+        details={"browser": browser, "user_agent": user_agent[:200]},
+        ip_address=client_ip,
+    )
 
     return {
         "access_token": token,
@@ -266,7 +359,11 @@ def refresh_token(request: Request, payload: dict):
     if rt.expires_at and rt.expires_at < now:
         raise HTTPException(status_code=401, detail="Refresh token expired")
 
-    new_access = create_access_token({"sub": str(rt.user_id), "role": "user"})
+    # Lấy role thực của user thay vì hardcode "user"
+    user = session.get(User, rt.user_id)
+    user_role = user.role if user else "user"
+    
+    new_access = create_access_token({"sub": str(rt.user_id), "role": user_role})
     return {"access_token": new_access}
 
 
@@ -280,6 +377,22 @@ def logout(request: Request, payload: dict):
     if rt:
         rt.revoked = True
         session.commit()
+        
+        # Ghi audit log cho logout
+        client_ip = request.client.host if request.client else None
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            client_ip = forwarded.split(",")[0].strip()
+        
+        log_audit(
+            session=session,
+            user_id=rt.user_id,
+            action="logout",
+            resource_type="user",
+            resource_id=str(rt.user_id),
+            details={"method": "refresh_token_revoke"},
+            ip_address=client_ip,
+        )
     return {"status": "ok"}
 
 
