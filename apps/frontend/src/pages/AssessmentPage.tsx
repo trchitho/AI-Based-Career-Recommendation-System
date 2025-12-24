@@ -13,7 +13,7 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { checkAssessmentLimit } from '../services/subscriptionService';
-import { getPaymentHistory, Payment } from '../services/paymentService';
+import { getPaymentHistory, PaymentHistory } from '../services/paymentService';
 import { getAccessToken } from '../utils/auth';
 
 type AssessmentStep = 'intro' | 'test' | 'essay' | 'processing';
@@ -50,8 +50,8 @@ const AssessmentPage = () => {
       const token = getAccessToken();
       if (!token) return;
 
-      const payments = await getPaymentHistory(0, 10);
-      const successfulPayments = payments.filter((p: Payment) => p.status === 'success');
+      const payments = await getPaymentHistory();
+      const successfulPayments = payments.filter((p: PaymentHistory) => p.status === 'success');
       
       if (successfulPayments.length > 0) {
         const latestPayment = successfulPayments[0];
