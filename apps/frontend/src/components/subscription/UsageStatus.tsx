@@ -2,7 +2,7 @@ import { useSubscription } from '../../hooks/useSubscription';
 import { useUsageTracking } from '../../hooks/useUsageTracking';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { useState, useEffect } from 'react';
-import { getPaymentHistory, Payment } from '../../services/paymentService';
+import { getPaymentHistory, PaymentHistory } from '../../services/paymentService';
 import { getAccessToken } from '../../utils/auth';
 import RoadmapCapability from './RoadmapCapability';
 
@@ -25,8 +25,8 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
       const token = getAccessToken();
       if (!token) return;
 
-      const payments = await getPaymentHistory(0, 10);
-      const successfulPayments = payments.filter((p: Payment) => p.status === 'success');
+      const payments = await getPaymentHistory();
+      const successfulPayments = payments.filter((p: PaymentHistory) => p.status === 'success');
       
       if (successfulPayments.length > 0) {
         const latestPayment = successfulPayments[0];

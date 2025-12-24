@@ -230,13 +230,11 @@ const triggerReactRefresh = () => {
     const events = [
         new StorageEvent('storage', {
             key: 'subscriptionData',
-            newValue: localStorage.getItem('subscriptionData'),
-            storageArea: localStorage
+            newValue: localStorage.getItem('subscriptionData')
         }),
         new StorageEvent('storage', {
             key: 'userPlan',
-            newValue: 'Basic',
-            storageArea: localStorage
+            newValue: 'Basic'
         }),
         new CustomEvent('subscription-refresh'),
         new CustomEvent('plan-updated', { 
