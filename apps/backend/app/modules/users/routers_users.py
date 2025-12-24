@@ -1,5 +1,6 @@
-from datetime import date
 import json
+import logging
+from datetime import date
 
 from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import select, text
@@ -11,6 +12,8 @@ from ..assessments.models import Assessment
 from .models import User
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 # Session factory for audit logs
 _AuditSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
@@ -40,29 +43,33 @@ def _log_audit(
                     entity_id_val = int(resource_id)
                 except (ValueError, TypeError):
                     entity_id_val = None
-            
-            new_session.execute(text("""
+
+            new_session.execute(
+                text("""
                 INSERT INTO core.audit_logs 
                 (actor_id, action, entity, entity_id, data_json, user_id, resource_type, resource_id, details, ip_address, created_at)
                 VALUES 
                 (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :user_id, :resource_type, :resource_id, CAST(:details AS jsonb), :ip_address, NOW())
-            """), {
-                "actor_id": user_id,
-                "action": action,
-                "entity": resource_type,
-                "entity_id": entity_id_val,
-                "data_json": details_json,
-                "user_id": user_id,
-                "resource_type": resource_type,
-                "resource_id": resource_id,
-                "details": details_json,
-                "ip_address": ip_address,
-            })
+            """),
+                {
+                    "actor_id": user_id,
+                    "action": action,
+                    "entity": resource_type,
+                    "entity_id": entity_id_val,
+                    "data_json": details_json,
+                    "user_id": user_id,
+                    "resource_type": resource_type,
+                    "resource_id": resource_id,
+                    "details": details_json,
+                    "ip_address": ip_address,
+                },
+            )
             new_session.commit()
         finally:
             new_session.close()
-    except Exception:
-        pass
+    except Exception as e:
+        # Log audit failures but don't propagate to avoid breaking the main flow
+        logger.error(f"Failed to log audit: {e}")
 
 
 def _split_name(full_name: str | None) -> tuple[str | None, str | None]:
@@ -110,7 +117,7 @@ def update_me(request: Request, payload: dict):
 
     # Track changes for audit log
     changes = {}
-    
+
     # Map first/last name into full_name if provided
     first = payload.get("first_name")
     last = payload.get("last_name")
@@ -145,14 +152,14 @@ def update_me(request: Request, payload: dict):
                 raise HTTPException(status_code=400, detail="Invalid date_of_birth (expected YYYY-MM-DD)")
     session.commit()
     session.refresh(u)
-    
+
     # Ghi audit log cho profile update
     if changes:
         client_ip = request.client.host if request.client else None
         forwarded = request.headers.get("x-forwarded-for")
         if forwarded:
             client_ip = forwarded.split(",")[0].strip()
-        
+
         _log_audit(
             session=session,
             user_id=user_id,
@@ -162,7 +169,7 @@ def update_me(request: Request, payload: dict):
             details={"changes": changes},
             ip_address=client_ip,
         )
-    
+
     return _profile_dict(u)
 
 
