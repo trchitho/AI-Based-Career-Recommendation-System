@@ -20,18 +20,26 @@ export interface PaymentHistory {
   transaction_id?: string;
   created_at: string;
   updated_at?: string;
+  description?: string;
+  order_id?: string;
 }
 
 export interface CreatePaymentRequest {
-  tier: string;
-  provider: 'zalopay' | 'vnpay';
+  tier?: string;
+  provider?: 'zalopay' | 'vnpay';
+  amount?: number;
+  description?: string;
+  payment_method?: string;
 }
 
 export interface CreatePaymentResponse {
-  payment_id: number;
+  payment_id?: number;
   order_url: string;
   app_trans_id?: string;
   zp_trans_token?: string;
+  success?: boolean;
+  order_id?: string;
+  message?: string;
 }
 
 export interface PaymentStatusResponse {
@@ -99,7 +107,7 @@ export const paymentService = {
       try {
         // Force check at specific intervals (after 20s and 60s)
         const shouldForceCheck = attempts === 10 || attempts === 30;
-        
+
         const result = shouldForceCheck
           ? await this.forceCheckStatus(orderId)
           : await this.checkStatus(orderId);

@@ -51,12 +51,14 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
 
             if (result.success && result.order_url) {
                 // Store order ID for tracking
-                localStorage.setItem('pending_payment_order', result.order_id);
-                
+                if (result.order_id) {
+                    localStorage.setItem('pending_payment_order', result.order_id);
+                }
+
                 // Chuyển hướng đến trang thanh toán ZaloPay
                 window.location.href = result.order_url;
 
-                if (onSuccess) {
+                if (onSuccess && result.order_id) {
                     onSuccess(result.order_id);
                 }
             } else {
@@ -64,9 +66,9 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
             }
         } catch (error: any) {
             console.error('Payment error:', error);
-            
+
             let errorMessage = 'Lỗi thanh toán';
-            
+
             if (error.code === 'ERR_NETWORK') {
                 errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.';
             } else if (error.response?.status === 500) {
