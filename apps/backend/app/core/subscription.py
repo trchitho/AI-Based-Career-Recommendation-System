@@ -28,7 +28,7 @@ class SubscriptionService:
     
     BASIC_LIMITS = {
         "assessments_per_month": 20,
-        "career_views": 5,
+        "career_views": 25,  # Basic plan: 25 career views (not 5!)
         "roadmap_max_level": 2,
         "ai_analysis": "summary",
         "pdf_export": False,
@@ -212,7 +212,8 @@ class SubscriptionService:
         # Kiểm tra theo từng feature type
         if feature_type == "career_view":
             limit = limits.get("career_views", 1)
-            if is_premium or limit == -1:  # Unlimited
+            # Only Premium/Pro have unlimited (-1), Basic has 25 limit
+            if limit == -1:  # Unlimited (Premium/Pro only)
                 return {
                     "allowed": True,
                     "reason": "Premium access",
@@ -223,14 +224,14 @@ class SubscriptionService:
                 allowed = current_usage < limit
                 return {
                     "allowed": allowed,
-                    "reason": "Free plan limit" if not allowed else "Within limit",
+                    "reason": "Plan limit reached" if not allowed else "Within limit",
                     "current_usage": current_usage,
                     "limit": limit
                 }
         
         elif feature_type == "assessment":
             limit = limits.get("assessments_per_month", 5)
-            if is_premium or limit == -1:  # Unlimited
+            if limit == -1:  # Unlimited (Premium/Pro only)
                 return {
                     "allowed": True,
                     "reason": "Premium access",
@@ -248,7 +249,7 @@ class SubscriptionService:
         
         elif feature_type == "roadmap_level":
             max_level = limits.get("roadmap_max_level", 1)
-            if is_premium or max_level == -1:  # Unlimited
+            if max_level == -1:  # Unlimited (Premium/Pro only)
                 return {
                     "allowed": True,
                     "reason": "Premium access",
@@ -259,7 +260,7 @@ class SubscriptionService:
                 allowed = (level or 1) <= max_level
                 return {
                     "allowed": allowed,
-                    "reason": f"Free plan only allows level {max_level}" if not allowed else "Within level limit",
+                    "reason": f"Plan only allows level {max_level}" if not allowed else "Within level limit",
                     "current_usage": level or 1,
                     "limit": max_level
                 }

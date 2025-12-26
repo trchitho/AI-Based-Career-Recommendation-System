@@ -1,7 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Question, QuestionResponse } from '../../types/assessment';
 import { assessmentService } from '../../services/assessmentService';
+
+// LocalStorage key for auto-save
+const AUTOSAVE_KEY = 'assessment_autosave';
+const AUTOSAVE_TIMESTAMP_KEY = 'assessment_autosave_timestamp';
+const AUTOSAVE_EXPIRY_HOURS = 24; // Dữ liệu hết hạn sau 24 giờ
+
+interface AutoSaveData {
+  responses: [string, string | number][];
+  currentPage: number;
+  questionsCount: number;
+  questionIds: string[]; // Lưu thứ tự câu hỏi để khôi phục đúng
+  questions: Question[]; // Lưu toàn bộ câu hỏi để không phụ thuộc API
+}
 
 interface CareerTestComponentProps {
   onComplete: (responses: QuestionResponse[]) => void;
@@ -15,12 +28,155 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const [responses, setResponses] = useState<Map<string, string | number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [savedProgress, setSavedProgress] = useState<AutoSaveData | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const questionsPerPage = 5;
+
+  // Check if saved data is expired
+  const isSavedDataValid = useCallback(() => {
+    const timestamp = localStorage.getItem(AUTOSAVE_TIMESTAMP_KEY);
+    if (!timestamp) return false;
+    
+    const savedTime = new Date(timestamp);
+    const now = new Date();
+    const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
+    
+    return hoursDiff < AUTOSAVE_EXPIRY_HOURS;
+  }, []);
+
+  // Load saved progress from localStorage
+  const loadSavedProgress = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(AUTOSAVE_KEY);
+      console.log('📂 Raw localStorage data:', saved);
+      
+      if (saved && isSavedDataValid()) {
+        const data: AutoSaveData = JSON.parse(saved);
+        console.log('📋 Parsed data:', data);
+        
+        // Validate data structure
+        if (data && Array.isArray(data.responses) && data.responses.length > 0) {
+          return data;
+        }
+      }
+      
+      // Check timestamp
+      const timestamp = localStorage.getItem(AUTOSAVE_TIMESTAMP_KEY);
+      console.log('⏰ Timestamp:', timestamp);
+      
+    } catch (e) {
+      console.error('❌ Error loading saved progress:', e);
+    }
+    return null;
+  }, [isSavedDataValid]);
+
+  // Save progress to localStorage - include questions for proper restoration
+  const saveProgress = useCallback((responsesMap: Map<string, string | number>, page: number, questions: Question[]) => {
+    try {
+      const data: AutoSaveData = {
+        responses: Array.from(responsesMap.entries()),
+        currentPage: page,
+        questionsCount: questions.length,
+        questionIds: questions.map(q => String(q.id)),
+        questions: questions, // Lưu toàn bộ câu hỏi
+      };
+      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+      localStorage.setItem(AUTOSAVE_TIMESTAMP_KEY, new Date().toISOString());
+      setLastSaved(new Date());
+      console.log('✅ Auto-saved:', data.responses.length, 'answers, page', page);
+    } catch (e) {
+      console.error('❌ Error saving progress:', e);
+    }
+  }, []);
+
+  // Clear saved progress
+  const clearSavedProgress = useCallback(() => {
+    localStorage.removeItem(AUTOSAVE_KEY);
+    localStorage.removeItem(AUTOSAVE_TIMESTAMP_KEY);
+    setSavedProgress(null);
+  }, []);
+
+  // Check for saved progress on mount
+  useEffect(() => {
+    console.log('🔍 Checking for saved progress...');
+    const saved = loadSavedProgress();
+    console.log('📦 Saved data:', saved);
+    
+    if (saved && saved.responses && saved.responses.length > 0) {
+      console.log('✅ Found saved progress:', saved.responses.length, 'answers');
+      console.log('🔔 Setting showResumeModal to TRUE');
+      setSavedProgress(saved);
+      setShowResumeModal(true);
+    } else {
+      console.log('❌ No saved progress found');
+    }
+  }, []); // Remove loadSavedProgress dependency to run only once
+
+  // Resume from saved progress
+  const handleResume = () => {
+    if (savedProgress) {
+      console.log('🔄 Resuming with', savedProgress.responses.length, 'answers');
+      
+      const restoredResponses = new Map(savedProgress.responses);
+      console.log('🗺️ Restored Map size:', restoredResponses.size);
+      
+      setResponses(restoredResponses);
+      setCurrentPage(savedProgress.currentPage);
+      
+      // Dùng câu hỏi đã lưu thay vì từ API
+      if (savedProgress.questions && savedProgress.questions.length > 0) {
+        console.log('✅ Using saved questions:', savedProgress.questions.length);
+        setAllQuestions(savedProgress.questions);
+        setLoading(false); // Không cần load từ API nữa
+      }
+      
+      setShowResumeModal(false);
+    }
+  };
+
+  // Start fresh (clear saved data)
+  const handleStartFresh = () => {
+    clearSavedProgress();
+    setShowResumeModal(false);
+    setResponses(new Map());
+    setCurrentPage(0);
+  };
 
   useEffect(() => {
     fetchQuestions();
   }, []);
+
+  // Save on page unload (when user closes tab or navigates away)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (responses.size > 0 && allQuestions.length > 0) {
+        // Force save before leaving
+        const data: AutoSaveData = {
+          responses: Array.from(responses.entries()),
+          currentPage: currentPage,
+          questionsCount: allQuestions.length,
+          questionIds: allQuestions.map(q => String(q.id)),
+          questions: allQuestions, // Lưu toàn bộ câu hỏi
+        };
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+        localStorage.setItem(AUTOSAVE_TIMESTAMP_KEY, new Date().toISOString());
+        console.log('💾 Saved on unload:', data.responses.length, 'answers');
+        
+        // Show confirmation dialog
+        e.preventDefault();
+        e.returnValue = 'Bạn có chắc muốn thoát? Tiến trình đã được lưu tự động.';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [responses, currentPage, allQuestions.length]);
 
   const fetchQuestions = async () => {
     try {
@@ -70,11 +226,15 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const totalPages = Math.ceil(allQuestions.length / questionsPerPage);
   const isLastPage = currentPage === totalPages - 1;
 
-  const handleAnswer = (questionId: string, answer: string | number) => {
+  const handleAnswer = (questionId: string | number, answer: string | number) => {
     const newResponses = new Map(responses);
-    newResponses.set(questionId, answer);
+    // Always use string key for consistency
+    newResponses.set(String(questionId), answer);
     setResponses(newResponses);
     setError(null);
+
+    // Auto-save to localStorage
+    saveProgress(newResponses, currentPage, allQuestions);
 
     // --- LOGIC TỰ ĐỘNG CUỘN VÀ CHUYỂN TRANG ---
     const currentIndex = pageQuestions.findIndex(q => q.id === questionId);
@@ -93,11 +253,15 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         }
       } else {
         // Nếu là câu cuối của trang (Câu thứ 5)
-        const allAnswered = pageQuestions.every(q => newResponses.has(q.id));
+        const allAnswered = pageQuestions.every(q => newResponses.has(String(q.id)));
 
         if (allAnswered && !isLastPage) {
           // Đã trả lời hết 5 câu và chưa phải trang cuối -> Qua trang mới & Lên đầu
-          setCurrentPage(prev => prev + 1);
+          const newPage = currentPage + 1;
+          setCurrentPage(newPage);
+          // Save với page mới
+          saveProgress(newResponses, newPage, allQuestions);
+          
           const element = document.getElementById('assessment-top');
           if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -132,12 +296,15 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   };
 
   const handleSubmit = () => {
-    const unansweredQuestions = allQuestions.filter(q => !responses.has(q.id));
+    const unansweredQuestions = allQuestions.filter(q => !responses.has(String(q.id)));
 
     if (unansweredQuestions.length > 0) {
       setError(`Please answer all questions. ${unansweredQuestions.length} question(s) remaining.`);
       return;
     }
+
+    // Clear saved progress on successful submit
+    clearSavedProgress();
 
     const responseArray: QuestionResponse[] = Array.from(responses.entries()).map(
       ([questionId, answer]) => ({
@@ -156,18 +323,68 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
   const areCurrentPageQuestionsAnswered = () => {
     const pageQuestions = getCurrentPageQuestions();
-    return pageQuestions.every(q => responses.has(q.id));
+    return pageQuestions.every(q => responses.has(String(q.id)));
   };
 
-  const getAnswer = (questionId: string) => {
-    return responses.get(questionId);
+  const getAnswer = (questionId: string | number) => {
+    // Try both string and number keys for compatibility
+    const strKey = String(questionId);
+    const numKey = Number(questionId);
+    
+    return responses.get(strKey) ?? responses.get(numKey) ?? responses.get(questionId);
   };
 
-  if (loading) {
+  if (loading && !showResumeModal) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 border-t-green-600 rounded-full animate-spin mb-4"></div>
         <p className="text-gray-500 dark:text-gray-400 font-medium">Loading questions...</p>
+      </div>
+    );
+  }
+
+  // Show resume modal even while loading
+  console.log('🎯 Render check - showResumeModal:', showResumeModal, 'savedProgress:', savedProgress?.responses?.length);
+  
+  if (showResumeModal && savedProgress) {
+    console.log('🔔 SHOWING RESUME MODAL!');
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-fade-in-up">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Tiếp tục bài test?
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Bạn có bài test chưa hoàn thành ({savedProgress.responses.length} câu đã trả lời).
+              Bạn muốn tiếp tục hay bắt đầu lại?
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            <button
+              onClick={handleResume}
+              className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Tiếp tục bài test ({savedProgress.responses.length} câu)
+            </button>
+            <button
+              onClick={handleStartFresh}
+              className="w-full px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-bold transition-all"
+            >
+              Bắt đầu lại từ đầu
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -192,6 +409,16 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
   return (
     <div id="assessment-top" className="w-full">
+
+      {/* Auto-save indicator - Hiển thị rõ ràng hơn */}
+      {lastSaved && (
+        <div className="fixed bottom-4 right-4 z-50 bg-green-500 text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-2xl animate-pulse">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          ✅ Đã lưu ({responses.size} câu)
+        </div>
+      )}
 
       {/* Progress Bar */}
       <div className="mb-10">
@@ -238,6 +465,12 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       <div className="space-y-6 mb-12">
         {pageQuestions.map((question, index) => {
           const answer = getAnswer(question.id);
+          
+          // Debug log
+          if (index === 0) {
+            console.log('🔍 Question ID:', question.id, 'Answer:', answer, 'Responses size:', responses.size);
+            console.log('🔍 All response keys:', Array.from(responses.keys()).slice(0, 5));
+          }
 
           return (
             <div

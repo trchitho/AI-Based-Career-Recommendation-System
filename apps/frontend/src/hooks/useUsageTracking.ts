@@ -103,8 +103,8 @@ export const useUsageTracking = () => {
       data.push({
         feature: 'career_view',
         current_usage: currentUsage,
-        limit: 5,
-        remaining: Math.max(0, 5 - currentUsage)
+        limit: 25, // Basic plan: 25 career views (not 5!)
+        remaining: Math.max(0, 25 - currentUsage)
       });
     }
     // Premium/Pro have unlimited career viewing

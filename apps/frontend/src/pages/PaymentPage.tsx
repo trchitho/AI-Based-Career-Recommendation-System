@@ -3,13 +3,13 @@
  */
 import React, { useState, useEffect } from 'react';
 import { PaymentButton } from '../components/payment/PaymentButton';
-import { getPaymentHistory, Payment } from '../services/paymentService';
+import { getPaymentHistory, PaymentHistory } from '../services/paymentService';
 import MainLayout from '../components/layout/MainLayout';
 import { getAccessToken } from '../utils/auth';
 import SubscriptionExpiryCard from '../components/subscription/SubscriptionExpiryCard';
 
 export const PaymentPage: React.FC = () => {
-    const [history, setHistory] = useState<Payment[]>([]);
+    const [history, setHistory] = useState<PaymentHistory[]>([]);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'plans' | 'history'>('plans');
     const isLoggedIn = !!getAccessToken();
@@ -90,7 +90,7 @@ export const PaymentPage: React.FC = () => {
             const token = getAccessToken();
             if (!token) return;
 
-            const data = await getPaymentHistory(0, 20);
+            const data = await getPaymentHistory();
             setHistory(data);
         } catch (error) {
             console.error('Load history error:', error);
@@ -104,21 +104,20 @@ export const PaymentPage: React.FC = () => {
             const token = getAccessToken();
             if (!token) return;
 
-            const payments = await getPaymentHistory(0, 10);
-            const successfulPayments = payments.filter((p: Payment) => p.status === 'success');
+            const payments = await getPaymentHistory();
+            const successfulPayments = payments.filter((p) => 
+                p.status?.toLowerCase() === 'success'
+            );
             
             if (successfulPayments.length > 0) {
                 const latestPayment = successfulPayments[0];
                 
-                if (latestPayment.description.includes('Cơ Bản') || 
-                    (latestPayment.amount >= 99000 && latestPayment.amount < 250000)) {
-                    setUserPlan('Basic');
-                } else if (latestPayment.description.includes('Premium') || 
-                          (latestPayment.amount >= 250000 && latestPayment.amount < 450000)) {
-                    setUserPlan('Premium');
-                } else if (latestPayment.description.includes('Pro') || 
-                          latestPayment.amount >= 450000) {
+                if (latestPayment && latestPayment.amount >= 450000) {
                     setUserPlan('Pro');
+                } else if (latestPayment && latestPayment.amount >= 250000) {
+                    setUserPlan('Premium');
+                } else if (latestPayment && latestPayment.amount >= 80000) {
+                    setUserPlan('Basic');
                 }
             }
         } catch (error) {
@@ -203,6 +202,32 @@ export const PaymentPage: React.FC = () => {
                                                 <span>Roadmap Level 1 only</span>
                                             </div>
                                         </div>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const token = getAccessToken();
+                                                    const response = await fetch('http://localhost:8000/api/subscription/force-sync', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Authorization': `Bearer ${token}`,
+                                                            'Content-Type': 'application/json'
+                                                        }
+                                                    });
+                                                    const result = await response.json();
+                                                    if (result.success) {
+                                                        alert(`✅ ${result.message}`);
+                                                        window.location.reload();
+                                                    } else {
+                                                        alert(`❌ ${result.message}`);
+                                                    }
+                                                } catch (err) {
+                                                    alert('Lỗi kết nối server');
+                                                }
+                                            }}
+                                            className="mt-4 text-sm text-blue-600 hover:text-blue-700 underline"
+                                        >
+                                            Đã thanh toán? Click để đồng bộ gói
+                                        </button>
                                     </div>
                                 </div>
                             </div>

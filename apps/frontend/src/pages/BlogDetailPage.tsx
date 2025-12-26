@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import { blogService, BlogPost } from '../services/blogService';
 
@@ -10,6 +10,7 @@ const BlogDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,6 +26,10 @@ const BlogDetailPage = () => {
         setLoading(true);
         const data = await blogService.get(slug);
         setPost(data);
+        
+        // Load related posts
+        const related = await blogService.getRelated(slug, 2);
+        setRelatedPosts(related);
       } catch (e: any) {
         setError(e?.response?.data?.detail || e?.message || 'Failed to load post');
       } finally {
@@ -190,24 +195,47 @@ const BlogDetailPage = () => {
             </div>
           </article>
 
-          {/* Related Posts Placeholder */}
-          <div className="mt-20">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Related Articles</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {[1, 2].map((i) => (
-                <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:-translate-y-1 transition-transform cursor-pointer group">
-                  <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl mb-4 overflow-hidden relative">
-                    <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors"></div>
-                  </div>
-                  <div className="text-xs text-green-600 font-bold uppercase tracking-wider mb-2">Career Advice</div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-green-600 transition-colors">
-                    The Future of Remote Work {i}
-                  </h3>
-                  <p className="text-gray-500 text-sm line-clamp-2">Explore how remote work is shaping the future landscape of careers...</p>
-                </div>
-              ))}
+          {/* Related Posts - Dynamic */}
+          {relatedPosts.length > 0 && (
+            <div className="mt-20">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Related Articles</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {relatedPosts.map((relatedPost) => (
+                  <Link 
+                    key={relatedPost.id} 
+                    to={`/blog/${relatedPost.slug}`}
+                    className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:-translate-y-1 transition-transform cursor-pointer group"
+                  >
+                    <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl mb-4 overflow-hidden relative">
+                      {relatedPost.featured_image ? (
+                        <img 
+                          src={relatedPost.featured_image} 
+                          alt={relatedPost.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors"></div>
+                    </div>
+                    <div className="text-xs text-green-600 font-bold uppercase tracking-wider mb-2">
+                      {relatedPost.category || 'Article'}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-green-600 transition-colors">
+                      {relatedPost.title}
+                    </h3>
+                    <p className="text-gray-500 text-sm line-clamp-2">
+                      {relatedPost.excerpt || relatedPost.content_md.substring(0, 100) + '...'}
+                    </p>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       </div>

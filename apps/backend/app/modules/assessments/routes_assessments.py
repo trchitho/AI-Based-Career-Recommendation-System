@@ -606,16 +606,35 @@ def get_user_sessions(
                     "top_interest": assessment.top_interest
                 }
                 
+                # Try to get processed scores first
+                has_riasec = False
+                has_bigfive = False
+                
                 # Convert processed scores from 0-1 scale to 0-100 scale for frontend
                 if assessment.processed_riasec_scores:
                     assessment_data["riasec_scores"] = {
                         key: value * 100 for key, value in assessment.processed_riasec_scores.items()
                     }
+                    has_riasec = True
                 
                 if assessment.processed_big_five_scores:
                     assessment_data["big_five_scores"] = {
                         key: value * 100 for key, value in assessment.processed_big_five_scores.items()
                     }
+                    has_bigfive = True
+                
+                # Fallback: if no processed scores, try to build from raw data
+                if not has_riasec or not has_bigfive:
+                    try:
+                        results = build_results(db, assessment.id)
+                        if not has_riasec and results.get("riasec_scores"):
+                            assessment_data["riasec_scores"] = results["riasec_scores"]
+                        if not has_bigfive and results.get("big_five_scores"):
+                            assessment_data["big_five_scores"] = results["big_five_scores"]
+                        if not assessment_data["top_interest"] and results.get("top_interest"):
+                            assessment_data["top_interest"] = results["top_interest"]
+                    except Exception as e:
+                        print(f"[assessments] Failed to build results for assessment {assessment.id}: {repr(e)}")
                 
                 session_assessments.append(assessment_data)
             

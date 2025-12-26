@@ -613,8 +613,87 @@ def get_payment_history(
 ):
     """
     Lấy lịch sử thanh toán của user
+    Auto-sync: Nếu có payment SUCCESS nhưng chưa có subscription, tự động upgrade
     """
     user_id = current_user["user_id"]
+    
+    # Auto-sync: Check if user has SUCCESS payment but no active paid subscription
+    try:
+        from app.core.subscription import SubscriptionService
+        
+        # Get current subscription
+        current_sub = SubscriptionService.get_user_subscription(user_id, db)
+        
+        # If user is on Free plan, check for SUCCESS payments
+        if current_sub.get("plan_name") == "Free":
+            # Find latest SUCCESS payment (case-insensitive)
+            from sqlalchemy import func
+            success_payment = (
+                db.query(Payment)
+                .filter(
+                    Payment.user_id == user_id,
+                    func.upper(Payment.status) == "SUCCESS"
+                )
+                .order_by(Payment.created_at.desc())
+                .first()
+            )
+            
+            if success_payment:
+                # Determine plan based on amount
+                plan_name = "Basic"
+                if success_payment.amount >= 450000:
+                    plan_name = "Pro"
+                elif success_payment.amount >= 250000:
+                    plan_name = "Premium"
+                elif success_payment.amount >= 80000:
+                    plan_name = "Basic"
+                
+                # Auto-upgrade
+                upgrade_success = SubscriptionService.upgrade_user_subscription(
+                    user_id=user_id,
+                    plan_name=plan_name,
+                    payment_id=success_payment.id,
+                    session=db
+                )
+                
+                if upgrade_success:
+                    logger.info(f"Auto-synced user {user_id} to {plan_name} plan from history endpoint")
+                else:
+                    logger.warning(f"Failed to auto-sync user {user_id} to {plan_name} plan")
+                    
+    except Exception as sync_error:
+        logger.error(f"Auto-sync error in history: {sync_error}")
+        # Don't fail the request, just log the error
+    
+    # Update expired PENDING payments to FAILED (15 minutes timeout)
+    try:
+        from datetime import timezone
+        from sqlalchemy import func
+        now = datetime.now(timezone.utc)
+        
+        pending_payments = (
+            db.query(Payment)
+            .filter(
+                Payment.user_id == user_id,
+                func.upper(Payment.status) == "PENDING"
+            )
+            .all()
+        )
+        
+        for payment in pending_payments:
+            created = payment.created_at
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+            
+            time_elapsed = (now - created).total_seconds()
+            if time_elapsed > 900:  # 15 minutes
+                payment.status = PaymentStatus.FAILED.value
+                logger.info(f"Payment {payment.order_id} marked as FAILED due to timeout")
+        
+        db.commit()
+    except Exception as timeout_error:
+        logger.error(f"Timeout check error: {timeout_error}")
+        db.rollback()
 
     payments = (
         db.query(Payment)

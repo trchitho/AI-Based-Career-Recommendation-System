@@ -1830,3 +1830,260 @@ def start_sync(request: Request, payload: dict):
     except Exception as e:
         logger.error(f"Error starting sync: {e}")
         raise HTTPException(status_code=500, detail="Failed to start sync job")
+
+
+# ----- Admin Notifications -----
+@router.get("/notifications")
+def list_admin_notifications(
+    request: Request,
+    type: str | None = Query(None, description="Filter by type"),
+    is_read: bool | None = Query(None, description="Filter by read status"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """List admin notifications with filtering - uses existing notifications table"""
+    _ = require_admin(request)
+    session = _db(request)
+    
+    try:
+        # Use existing notifications table
+        # Build query
+        query = "SELECT n.*, u.email as user_email FROM core.notifications n LEFT JOIN core.users u ON u.id = n.user_id WHERE 1=1"
+        count_query = "SELECT COUNT(*) FROM core.notifications WHERE 1=1"
+        params: dict = {}
+        
+        if type:
+            query += " AND n.type = :type"
+            count_query += " AND type = :type"
+            params["type"] = type
+        
+        if is_read is not None:
+            query += " AND n.is_read = :is_read"
+            count_query += " AND is_read = :is_read"
+            params["is_read"] = is_read
+        
+        # Get total count
+        total = session.execute(text(count_query), params).scalar() or 0
+        
+        # Get unread count
+        unread_count = session.execute(text(
+            "SELECT COUNT(*) FROM core.notifications WHERE is_read = FALSE"
+        )).scalar() or 0
+        
+        # Get items
+        query += " ORDER BY n.created_at DESC LIMIT :limit OFFSET :offset"
+        params["limit"] = limit
+        params["offset"] = offset
+        
+        rows = session.execute(text(query), params).mappings().all()
+        
+        items = []
+        for row in rows:
+            # Map type to severity for UI
+            notification_type = row.get("type", "info")
+            severity = "info"
+            if notification_type in ["error", "failed"]:
+                severity = "error"
+            elif notification_type in ["warning", "alert"]:
+                severity = "warning"
+            elif notification_type in ["success", "payment_success"]:
+                severity = "success"
+            
+            items.append({
+                "id": row.get("id"),
+                "user_id": row.get("user_id"),
+                "user_email": row.get("user_email"),
+                "type": notification_type,
+                "title": row.get("title"),
+                "message": row.get("message"),
+                "link": row.get("link"),
+                "severity": severity,
+                "is_read": row.get("is_read"),
+                "created_at": _iso_or_none(row.get("created_at")),
+            })
+        
+        return {
+            "items": items, 
+            "total": int(total), 
+            "unread_count": int(unread_count),
+            "limit": limit, 
+            "offset": offset
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching notifications: {e}")
+        return {"items": [], "total": 0, "unread_count": 0, "limit": limit, "offset": offset}
+
+
+@router.put("/notifications/{notification_id}/read")
+def mark_notification_read(request: Request, notification_id: int):
+    """Mark a notification as read"""
+    _ = require_admin(request)
+    session = _db(request)
+    
+    try:
+        result = session.execute(text("""
+            UPDATE core.notifications 
+            SET is_read = TRUE
+            WHERE id = :notification_id
+            RETURNING id
+        """), {"notification_id": notification_id})
+        
+        if not result.scalar():
+            raise HTTPException(status_code=404, detail="Notification not found")
+        
+        session.commit()
+        return {"status": "success", "message": "Notification marked as read"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error marking notification as read: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update notification")
+
+
+@router.put("/notifications/read-all")
+def mark_all_notifications_read(request: Request):
+    """Mark all notifications as read"""
+    _ = require_admin(request)
+    session = _db(request)
+    
+    try:
+        result = session.execute(text("""
+            UPDATE core.notifications 
+            SET is_read = TRUE
+            WHERE is_read = FALSE
+        """))
+        
+        session.commit()
+        return {"status": "success", "message": "All notifications marked as read", "count": result.rowcount}
+        
+    except Exception as e:
+        logger.error(f"Error marking all notifications as read: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update notifications")
+
+
+@router.delete("/notifications/{notification_id}")
+def delete_notification(request: Request, notification_id: int):
+    """Delete a notification"""
+    _ = require_admin(request)
+    session = _db(request)
+    
+    try:
+        result = session.execute(text("""
+            DELETE FROM core.notifications WHERE id = :notification_id
+            RETURNING id
+        """), {"notification_id": notification_id})
+        
+        if not result.scalar():
+            raise HTTPException(status_code=404, detail="Notification not found")
+        
+        session.commit()
+        return {"status": "success", "message": "Notification deleted"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting notification: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete notification")
+
+
+@router.post("/notifications")
+def create_admin_notification(request: Request, payload: dict):
+    """Create a new admin notification"""
+    _ = require_admin(request)
+    session = _db(request)
+    
+    notification_type = payload.get("type", "system")
+    title = payload.get("title", "")
+    message = payload.get("message", "")
+    link = payload.get("link", "")
+    user_id = payload.get("user_id")
+    
+    if not title:
+        raise HTTPException(status_code=400, detail="Title is required")
+    
+    try:
+        result = session.execute(text("""
+            INSERT INTO core.notifications (user_id, type, title, message, link, is_read)
+            VALUES (:user_id, :type, :title, :message, :link, FALSE)
+            RETURNING id, created_at
+        """), {
+            "user_id": user_id,
+            "type": notification_type,
+            "title": title,
+            "message": message,
+            "link": link,
+        })
+        
+        row = result.mappings().first()
+        session.commit()
+        
+        return {
+            "status": "success",
+            "notification": {
+                "id": row["id"] if row else None,
+                "type": notification_type,
+                "title": title,
+                "message": message,
+                "created_at": _iso_or_none(row["created_at"]) if row else None,
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating notification: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create notification")
+
+
+@router.post("/notifications/broadcast")
+def broadcast_notification(request: Request, payload: dict):
+    """Send notification to all users"""
+    _ = require_admin(request)
+    session = _db(request)
+    
+    notification_type = payload.get("type", "system")
+    title = payload.get("title", "")
+    message = payload.get("message", "")
+    link = payload.get("link", "")
+    
+    if not title:
+        raise HTTPException(status_code=400, detail="Title is required")
+    
+    try:
+        # Get all user IDs
+        users_result = session.execute(text("SELECT id FROM core.users")).fetchall()
+        user_ids = [row[0] for row in users_result]
+        
+        if not user_ids:
+            return {"status": "success", "message": "No users found", "count": 0}
+        
+        # Insert notification for each user
+        inserted_count = 0
+        for user_id in user_ids:
+            try:
+                session.execute(text("""
+                    INSERT INTO core.notifications (user_id, type, title, message, link, is_read)
+                    VALUES (:user_id, :type, :title, :message, :link, FALSE)
+                """), {
+                    "user_id": user_id,
+                    "type": notification_type,
+                    "title": title,
+                    "message": message,
+                    "link": link or None,
+                })
+                inserted_count += 1
+            except Exception as e:
+                logger.warning(f"Failed to insert notification for user {user_id}: {e}")
+        
+        session.commit()
+        
+        return {
+            "status": "success",
+            "message": f"Notification sent to {inserted_count} users",
+            "count": inserted_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Error broadcasting notification: {e}")
+        raise HTTPException(status_code=500, detail="Failed to broadcast notification")
+        raise HTTPException(status_code=500, detail="Failed to create notification")

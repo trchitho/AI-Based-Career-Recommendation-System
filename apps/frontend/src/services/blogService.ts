@@ -100,5 +100,19 @@ export const blogService = {
   async adminDelete(id: string): Promise<void> {
     await api.delete(`/api/admin/blog/${id}`);
   },
+
+  /**
+   * Get related blog posts (excluding current post)
+   */
+  async getRelated(currentSlug: string, limit: number = 4): Promise<BlogPost[]> {
+    try {
+      // Get recent posts and filter out current one
+      const res = await api.get(`/api/blog?limit=${limit + 1}&offset=0`);
+      const data = res.data as BlogListResponse;
+      return data.items.filter(post => post.slug !== currentSlug).slice(0, limit);
+    } catch {
+      return [];
+    }
+  },
 };
 

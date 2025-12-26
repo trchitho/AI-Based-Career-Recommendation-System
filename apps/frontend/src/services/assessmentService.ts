@@ -8,7 +8,11 @@ import {
 
 export const assessmentService = {
   async getQuestions(testType: 'RIASEC' | 'BIGFIVE'): Promise<Question[]> {
-    const perDim = 3;
+    // Để chia đều câu hỏi cho cả 2 loại test:
+    // RIASEC có 6 dimensions, BigFive có 5 dimensions
+    // Dùng per_dim khác nhau để tổng số câu gần bằng nhau
+    // RIASEC: 6 × 5 = 30 câu, BigFive: 5 × 6 = 30 câu
+    const perDim = testType === 'RIASEC' ? 5 : 6;
     const seed = Date.now();
 
     const response = await api.get<Question[]>(

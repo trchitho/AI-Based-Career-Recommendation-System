@@ -109,7 +109,25 @@ CREATE TABLE IF NOT EXISTS core.sync_jobs (
 CREATE INDEX IF NOT EXISTS idx_sync_jobs_status ON core.sync_jobs(status);
 CREATE INDEX IF NOT EXISTS idx_sync_jobs_created_at ON core.sync_jobs(created_at DESC);
 
--- 4. Career Recommendations table (if not exists) for tracking trends
+-- 4. Admin Notifications table
+CREATE TABLE IF NOT EXISTS core.admin_notifications (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(50) NOT NULL, -- 'new_user', 'payment', 'assessment', 'anomaly', 'system'
+    title VARCHAR(255) NOT NULL,
+    message TEXT,
+    severity VARCHAR(20) DEFAULT 'info', -- 'info', 'warning', 'error', 'success'
+    data JSONB,
+    is_read BOOLEAN DEFAULT FALSE,
+    read_at TIMESTAMP WITH TIME ZONE,
+    read_by INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_notifications_type ON core.admin_notifications(type);
+CREATE INDEX IF NOT EXISTS idx_admin_notifications_is_read ON core.admin_notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_admin_notifications_created_at ON core.admin_notifications(created_at DESC);
+
+-- 5. Career Recommendations table (if not exists) for tracking trends
 CREATE TABLE IF NOT EXISTS core.career_recommendations (
     id SERIAL PRIMARY KEY,
     user_id INTEGER,
@@ -168,6 +186,17 @@ VALUES
     ('ai_error', 'medium', 'AI recommendation timeout', 'Career recommendation took longer than 30 seconds', NOW() - interval '2 days'),
     ('performance', 'low', 'Slow database query', 'Query took 5 seconds to complete', NOW() - interval '3 days'),
     ('unusual_activity', 'critical', 'Unusual API access pattern', 'API endpoint accessed 1000 times in 1 minute', NOW() - interval '4 hours')
+ON CONFLICT DO NOTHING;
+
+-- Insert sample admin notifications
+INSERT INTO core.admin_notifications (type, title, message, severity, data, created_at)
+VALUES 
+    ('new_user', 'Người dùng mới đăng ký', 'User test@example.com vừa đăng ký tài khoản', 'info', '{"user_id": 10, "email": "test@example.com"}'::jsonb, NOW() - interval '1 hour'),
+    ('payment', 'Thanh toán thành công', 'Gói Premium đã được thanh toán bởi user@example.com', 'success', '{"amount": 299000, "tier": "Premium"}'::jsonb, NOW() - interval '2 hours'),
+    ('assessment', 'Bài test mới hoàn thành', '5 bài test mới được hoàn thành trong 1 giờ qua', 'info', '{"count": 5}'::jsonb, NOW() - interval '3 hours'),
+    ('anomaly', 'Phát hiện hoạt động bất thường', 'Nhiều lần đăng nhập thất bại từ IP 192.168.1.100', 'warning', '{"ip": "192.168.1.100", "attempts": 10}'::jsonb, NOW() - interval '4 hours'),
+    ('system', 'Cập nhật hệ thống', 'Database backup hoàn thành lúc 03:00 AM', 'success', '{"backup_size": "2.5GB"}'::jsonb, NOW() - interval '5 hours'),
+    ('payment', 'Thanh toán thất bại', 'Thanh toán của user123@example.com bị từ chối', 'error', '{"reason": "Insufficient funds"}'::jsonb, NOW() - interval '6 hours')
 ON CONFLICT DO NOTHING;
 
 

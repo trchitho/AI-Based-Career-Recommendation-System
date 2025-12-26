@@ -473,18 +473,20 @@ class RecService:
         assessment_id: int,
     ) -> Dict[str, Any]:
         """
-        Lấy RIASEC scores trực tiếp từ core.assessments (thang 1-5 gốc).
-        KHÔNG dùng fused traits vì đã bị normalize về 0-1.
+        Lấy RIASEC scores từ assessment cùng session với assessment_id hiện tại.
+        Nếu assessment_id là RIASEC thì dùng luôn scores của nó.
+        Nếu không, tìm RIASEC assessment trong cùng session (cùng user, trong 5 phút).
         
         Đảm bảo:
         - Thứ tự R, I, A, S, E, C đúng
         - Điểm gốc thang 1-5 (chưa normalize)
         - Deterministic 100%
+        - Mỗi bài test dùng RIASEC của chính session đó
         """
-        # 1) Lấy user_id từ assessment
+        # 1) Lấy thông tin assessment hiện tại
         sql = text(
             """
-            SELECT user_id
+            SELECT user_id, a_type, scores, created_at
             FROM core.assessments
             WHERE id = :aid
             LIMIT 1
@@ -496,29 +498,66 @@ class RecService:
             return {"riasec_top_dim": None, "riasec_values": None}
         
         user_id = row.get("user_id")
+        a_type = row.get("a_type")
+        current_scores = row.get("scores")
+        created_at = row.get("created_at")
+        
         if not user_id:
             logger.error(f"Assessment {assessment_id} has no user_id")
             return {"riasec_top_dim": None, "riasec_values": None}
         
-        # 2) Lấy RIASEC scores trực tiếp từ core.assessments (thang 1-5 gốc)
-        # Lấy assessment RIASEC mới nhất của user này
-        sql_riasec = text(
-            """
-            SELECT scores
-            FROM core.assessments
-            WHERE user_id = :uid AND a_type = 'RIASEC'
-            ORDER BY created_at DESC
-            LIMIT 1
-            """
-        )
-        riasec_row = db.execute(sql_riasec, {"uid": user_id}).mappings().first()
+        # 2) Nếu assessment hiện tại là RIASEC, dùng luôn scores của nó
+        scores_dict = None
+        if a_type == 'RIASEC' and current_scores:
+            scores_dict = current_scores
+            logger.info(f"Assessment {assessment_id} is RIASEC, using its own scores")
+        else:
+            # 3) Tìm RIASEC assessment trong cùng session (trong 5 phút)
+            sql_riasec = text(
+                """
+                SELECT scores
+                FROM core.assessments
+                WHERE user_id = :uid 
+                  AND a_type = 'RIASEC'
+                  AND scores IS NOT NULL
+                  AND ABS(EXTRACT(EPOCH FROM (created_at - :created_at))) < 300
+                ORDER BY ABS(EXTRACT(EPOCH FROM (created_at - :created_at))) ASC
+                LIMIT 1
+                """
+            )
+            riasec_row = db.execute(sql_riasec, {"uid": user_id, "created_at": created_at}).mappings().first()
+            
+            if riasec_row and riasec_row.get("scores"):
+                scores_dict = riasec_row.get("scores")
+                logger.info(f"Found RIASEC assessment in same session for assessment {assessment_id}")
+            else:
+                # Fallback: lấy RIASEC gần nhất trước thời điểm assessment này
+                sql_fallback = text(
+                    """
+                    SELECT scores
+                    FROM core.assessments
+                    WHERE user_id = :uid 
+                      AND a_type = 'RIASEC'
+                      AND scores IS NOT NULL
+                      AND created_at <= :created_at
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                )
+                fallback_row = db.execute(sql_fallback, {"uid": user_id, "created_at": created_at}).mappings().first()
+                
+                if fallback_row and fallback_row.get("scores"):
+                    scores_dict = fallback_row.get("scores")
+                    logger.info(f"Using closest RIASEC before assessment {assessment_id}")
+                else:
+                    logger.error(f"User {user_id} has no RIASEC assessment before assessment {assessment_id}")
+                    return {"riasec_top_dim": None, "riasec_values": None}
         
-        if not riasec_row or not riasec_row.get("scores"):
-            logger.error(f"User {user_id} has no RIASEC assessment")
+        if not scores_dict:
+            logger.error(f"No RIASEC scores found for assessment {assessment_id}")
             return {"riasec_top_dim": None, "riasec_values": None}
         
-        # 3) Parse scores dict → vector theo thứ tự R, I, A, S, E, C
-        scores_dict = riasec_row.get("scores") or {}
+        # 4) Parse scores dict → vector theo thứ tự R, I, A, S, E, C
         dims = ["R", "I", "A", "S", "E", "C"]
         
         riasec_vec: List[float] = []
@@ -529,7 +568,7 @@ class RecService:
                 return {"riasec_top_dim": None, "riasec_values": None}
             riasec_vec.append(float(score))
         
-        # 4) Tính top_dim với tie-breaking rule: R,I,A,S,E,C (index nhỏ hơn ưu tiên)
+        # 5) Tính top_dim với tie-breaking rule: R,I,A,S,E,C (index nhỏ hơn ưu tiên)
         # Sort với (-score, index) để đảm bảo deterministic khi có tie
         sorted_indices = sorted(range(6), key=lambda i: (-riasec_vec[i], i))
         top_dim = dims[sorted_indices[0]]

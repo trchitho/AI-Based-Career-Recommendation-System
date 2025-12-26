@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useSubscription } from '../hooks/useSubscription';
+import { assessmentService } from '../services/assessmentService';
 import '../styles/progress-comparison.css';
 
 interface AssessmentHistory {
@@ -12,16 +13,87 @@ interface AssessmentHistory {
   riasec_scores?: any;
 }
 
+interface GroupedSession {
+  sessionId: string;
+  timestamp: Date;
+  assessments: AssessmentHistory[];
+  hasBigFive: boolean;
+  hasRIASEC: boolean;
+  bigFiveScores?: any;
+  riasecScores?: any;
+}
+
 const ProgressComparisonPage: React.FC = () => {
   const { hasFeature, currentPlan } = useFeatureAccess();
   const subscription = useSubscription();
   const [assessments, setAssessments] = useState<AssessmentHistory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAssessments, setSelectedAssessments] = useState<number[]>([]);
+  const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
   const [showComparison, setShowComparison] = useState(false);
-  const [comparisonData, setComparisonData] = useState<{first: AssessmentHistory, second: AssessmentHistory} | null>(null);
+  const [comparisonData, setComparisonData] = useState<{first: GroupedSession, second: GroupedSession} | null>(null);
   const [animateScores, setAnimateScores] = useState(false);
   const hasLoadedRef = useRef(false); // Prevent multiple API calls
+
+  // Group assessments into sessions (within 5 minutes)
+  const groupedSessions = React.useMemo(() => {
+    console.log('🔄 [GroupSessions] Input assessments:', assessments);
+    if (!assessments.length) return [];
+    
+    const sorted = [...assessments].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    console.log('📊 [GroupSessions] Sorted assessments:', sorted);
+    
+    const sessions: GroupedSession[] = [];
+    let currentSession: AssessmentHistory[] = [];
+    let sessionStartTime: Date | null = null;
+    
+    sorted.forEach((assessment, idx) => {
+      const assessmentTime = new Date(assessment.created_at);
+      console.log(`📝 [GroupSessions] Processing #${idx}:`, assessment.id, assessmentTime, 'big5:', !!assessment.big5_scores, 'riasec:', !!assessment.riasec_scores);
+      
+      if (!sessionStartTime || (sessionStartTime.getTime() - assessmentTime.getTime()) > 5 * 60 * 1000) {
+        // Start new session
+        if (currentSession.length > 0) {
+          const bigFive = currentSession.find(a => a.big5_scores);
+          const riasec = currentSession.find(a => a.riasec_scores);
+          console.log('✅ [GroupSessions] Creating session with', currentSession.length, 'assessments, bigFive:', !!bigFive, 'riasec:', !!riasec);
+          sessions.push({
+            sessionId: `session-${sessions.length}`,
+            timestamp: sessionStartTime!,
+            assessments: currentSession,
+            hasBigFive: !!bigFive,
+            hasRIASEC: !!riasec,
+            bigFiveScores: bigFive?.big5_scores,
+            riasecScores: riasec?.riasec_scores,
+          });
+        }
+        currentSession = [assessment];
+        sessionStartTime = assessmentTime;
+      } else {
+        currentSession.push(assessment);
+      }
+    });
+    
+    // Don't forget the last session
+    if (currentSession.length > 0 && sessionStartTime) {
+      const bigFive = currentSession.find(a => a.big5_scores);
+      const riasec = currentSession.find(a => a.riasec_scores);
+      console.log('✅ [GroupSessions] Creating LAST session with', currentSession.length, 'assessments, bigFive:', !!bigFive, 'riasec:', !!riasec);
+      sessions.push({
+        sessionId: `session-${sessions.length}`,
+        timestamp: sessionStartTime,
+        assessments: currentSession,
+        hasBigFive: !!bigFive,
+        hasRIASEC: !!riasec,
+        bigFiveScores: bigFive?.big5_scores,
+        riasecScores: riasec?.riasec_scores,
+      });
+    }
+    
+    console.log('🎯 [GroupSessions] Final sessions:', sessions);
+    return sessions;
+  }, [assessments]);
 
   useEffect(() => {
     // Prevent multiple calls
@@ -50,82 +122,24 @@ const ProgressComparisonPage: React.FC = () => {
       setLoading(true);
       console.log('Loading assessment history for plan:', currentPlan);
       
-      // Always use mock data for Pro users to ensure functionality works
-      const mockAssessments = [
-        {
-          id: 1,
-          created_at: '2025-12-23T12:46:00Z',
-          big5_scores: { openness: 0.8, conscientiousness: 0.7, extraversion: 0.6, agreeableness: 0.9, neuroticism: 0.3 },
-          riasec_scores: null
-        },
-        {
-          id: 2,
-          created_at: '2025-12-23T12:46:00Z',
-          big5_scores: null,
-          riasec_scores: { realistic: 0.7, investigative: 0.8, artistic: 0.6, social: 0.9, enterprising: 0.5, conventional: 0.4 }
-        },
-        {
-          id: 3,
-          created_at: '2025-12-23T12:45:00Z',
-          big5_scores: null,
-          riasec_scores: { realistic: 0.6, investigative: 0.9, artistic: 0.7, social: 0.8, enterprising: 0.6, conventional: 0.5 }
-        },
-        {
-          id: 4,
-          created_at: '2025-12-23T12:45:00Z',
-          big5_scores: { openness: 0.9, conscientiousness: 0.8, extraversion: 0.7, agreeableness: 0.8, neuroticism: 0.2 },
-          riasec_scores: null
-        },
-        {
-          id: 5,
-          created_at: '2025-12-23T12:44:00Z',
-          big5_scores: { openness: 0.7, conscientiousness: 0.9, extraversion: 0.5, agreeableness: 0.7, neuroticism: 0.4 },
-          riasec_scores: null
-        },
-        {
-          id: 6,
-          created_at: '2025-12-23T12:44:00Z',
-          big5_scores: null,
-          riasec_scores: { realistic: 0.5, investigative: 0.7, artistic: 0.8, social: 0.9, enterprising: 0.7, conventional: 0.6 }
-        },
-        {
-          id: 7,
-          created_at: '2025-12-23T12:42:00Z',
-          big5_scores: { openness: 0.8, conscientiousness: 0.6, extraversion: 0.8, agreeableness: 0.6, neuroticism: 0.5 },
-          riasec_scores: null
-        },
-        {
-          id: 8,
-          created_at: '2025-12-23T12:42:00Z',
-          big5_scores: null,
-          riasec_scores: { realistic: 0.4, investigative: 0.6, artistic: 0.9, social: 0.8, enterprising: 0.8, conventional: 0.3 }
-        }
-      ];
+      // Load real data from API
+      const history = await assessmentService.getHistory();
+      console.log('📊 [ProgressComparison] Loaded history:', history);
       
-      console.log('Setting mock assessments:', mockAssessments.length, 'items');
-      setAssessments(mockAssessments);
+      // Transform to expected format
+      const transformedAssessments: AssessmentHistory[] = history.map((item: any) => ({
+        id: item.id || item.assessment_id,
+        created_at: item.completed_at || item.created_at,
+        big5_scores: item.big_five_scores || item.big5_scores,
+        riasec_scores: item.riasec_scores,
+      }));
+      
+      console.log('✅ [ProgressComparison] Transformed assessments:', transformedAssessments);
+      setAssessments(transformedAssessments);
       
     } catch (error) {
       console.error('Failed to load assessment history:', error);
-      
-      // Fallback mock data
-      const fallbackAssessments = [
-        {
-          id: 1,
-          created_at: '2025-12-23T12:46:00Z',
-          big5_scores: { openness: 0.8, conscientiousness: 0.7, extraversion: 0.6, agreeableness: 0.9, neuroticism: 0.3 },
-          riasec_scores: null
-        },
-        {
-          id: 2,
-          created_at: '2025-12-23T12:46:00Z',
-          big5_scores: null,
-          riasec_scores: { realistic: 0.7, investigative: 0.8, artistic: 0.6, social: 0.9, enterprising: 0.5, conventional: 0.4 }
-        }
-      ];
-      
-      console.log('Using fallback mock data');
-      setAssessments(fallbackAssessments);
+      setAssessments([]);
     } finally {
       setLoading(false);
     }
@@ -133,26 +147,26 @@ const ProgressComparisonPage: React.FC = () => {
 
   const handleCompareResults = () => {
     console.log('handleCompareResults called');
-    console.log('selectedAssessments:', selectedAssessments);
-    console.log('assessments:', assessments);
+    console.log('selectedSessions:', selectedSessions);
+    console.log('groupedSessions:', groupedSessions);
     
-    const firstAssessment = assessments.find(a => a.id === selectedAssessments[0]);
-    const secondAssessment = assessments.find(a => a.id === selectedAssessments[1]);
+    const firstSession = groupedSessions.find(s => s.sessionId === selectedSessions[0]);
+    const secondSession = groupedSessions.find(s => s.sessionId === selectedSessions[1]);
     
-    console.log('firstAssessment:', firstAssessment);
-    console.log('secondAssessment:', secondAssessment);
+    console.log('firstSession:', firstSession);
+    console.log('secondSession:', secondSession);
     
-    if (firstAssessment && secondAssessment) {
+    if (firstSession && secondSession) {
       // Sort by date to show older vs newer
-      const sortedAssessments = [firstAssessment, secondAssessment].sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      const sortedSessions = [firstSession, secondSession].sort(
+        (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
       );
       
-      console.log('sortedAssessments:', sortedAssessments);
+      console.log('sortedSessions:', sortedSessions);
       
       const comparisonResult = {
-        first: sortedAssessments[0]!, // Older assessment
-        second: sortedAssessments[1]! // Newer assessment
+        first: sortedSessions[0]!, // Older session
+        second: sortedSessions[1]! // Newer session
       };
       
       console.log('Setting comparison data:', comparisonResult);
@@ -165,7 +179,7 @@ const ProgressComparisonPage: React.FC = () => {
         setAnimateScores(true);
       }, 500);
     } else {
-      console.error('Could not find assessments for comparison');
+      console.error('Could not find sessions for comparison');
     }
   };
 
@@ -180,7 +194,16 @@ const ProgressComparisonPage: React.FC = () => {
   };
 
   const renderScoreComparison = (label: string, oldScore: number, newScore: number) => {
-    const diff = calculateScoreDifference(oldScore, newScore);
+    // Normalize scores - if they're already 0-100, don't multiply by 100
+    const normalizedOld = oldScore > 1 ? oldScore : oldScore * 100;
+    const normalizedNew = newScore > 1 ? newScore : newScore * 100;
+    
+    const diff = {
+      value: normalizedNew - normalizedOld,
+      percentage: ((normalizedNew - normalizedOld) / (normalizedOld || 1) * 100).toFixed(1),
+      isPositive: normalizedNew > normalizedOld,
+      isNegative: normalizedNew < normalizedOld
+    };
     
     return (
       <div className="comparison-card bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300">
@@ -191,13 +214,13 @@ const ProgressComparisonPage: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm text-gray-600 dark:text-gray-400">Trước</span>
-              <span className="font-semibold text-gray-900 dark:text-white">{(oldScore * 100).toFixed(0)}%</span>
+              <span className="font-semibold text-gray-900 dark:text-white">{normalizedOld.toFixed(0)}%</span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
               <div 
                 className="bg-blue-500 h-2 rounded-full progress-bar"
                 style={{ 
-                  width: animateScores ? `${oldScore * 100}%` : '0%',
+                  width: animateScores ? `${Math.min(normalizedOld, 100)}%` : '0%',
                   transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)'
                 }}
               ></div>
@@ -207,7 +230,7 @@ const ProgressComparisonPage: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm text-gray-600 dark:text-gray-400">Sau</span>
-              <span className="font-semibold text-gray-900 dark:text-white">{(newScore * 100).toFixed(0)}%</span>
+              <span className="font-semibold text-gray-900 dark:text-white">{normalizedNew.toFixed(0)}%</span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
               <div 
@@ -215,7 +238,7 @@ const ProgressComparisonPage: React.FC = () => {
                   diff.isPositive ? 'bg-green-500' : diff.isNegative ? 'bg-red-500' : 'bg-blue-500'
                 }`}
                 style={{ 
-                  width: animateScores ? `${newScore * 100}%` : '0%',
+                  width: animateScores ? `${Math.min(normalizedNew, 100)}%` : '0%',
                   transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.3s'
                 }}
               ></div>
@@ -231,7 +254,7 @@ const ProgressComparisonPage: React.FC = () => {
             {diff.isPositive && <span className="animate-bounce">↗</span>}
             {diff.isNegative && <span className="animate-bounce">↘</span>}
             {!diff.isPositive && !diff.isNegative && <span>→</span>}
-            {diff.isPositive ? '+' : ''}{(diff.value * 100).toFixed(0)}%
+            {diff.isPositive ? '+' : ''}{diff.value.toFixed(0)}%
           </span>
         </div>
       </div>
@@ -322,7 +345,7 @@ const ProgressComparisonPage: React.FC = () => {
               <button
                 onClick={() => {
                   setShowComparison(false);
-                  setSelectedAssessments([]);
+                  setSelectedSessions([]);
                   setComparisonData(null);
                   setAnimateScores(false);
                 }}
@@ -339,22 +362,22 @@ const ProgressComparisonPage: React.FC = () => {
                   Kết quả so sánh
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-400 animate-fade-in-delay">
-                  So sánh sự thay đổi giữa {new Date(comparisonData.first.created_at).toLocaleDateString('vi-VN')} và {new Date(comparisonData.second.created_at).toLocaleDateString('vi-VN')}
+                  So sánh sự thay đổi giữa {comparisonData.first.timestamp.toLocaleDateString('vi-VN')} và {comparisonData.second.timestamp.toLocaleDateString('vi-VN')}
                 </p>
                 
                 {/* Add comparison stats */}
                 <div className="flex justify-center gap-8 mt-6">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
-                      {Math.abs(new Date(comparisonData.second.created_at).getTime() - new Date(comparisonData.first.created_at).getTime()) / (1000 * 60 * 60 * 24) < 1 
+                      {Math.abs(comparisonData.second.timestamp.getTime() - comparisonData.first.timestamp.getTime()) / (1000 * 60 * 60 * 24) < 1 
                         ? '< 1 ngày' 
-                        : `${Math.floor(Math.abs(new Date(comparisonData.second.created_at).getTime() - new Date(comparisonData.first.created_at).getTime()) / (1000 * 60 * 60 * 24))} ngày`}
+                        : `${Math.floor(Math.abs(comparisonData.second.timestamp.getTime() - comparisonData.first.timestamp.getTime()) / (1000 * 60 * 60 * 24))} ngày`}
                     </div>
                     <div className="text-sm text-gray-500">Khoảng cách thời gian</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
-                      {comparisonData.first.big5_scores && comparisonData.second.big5_scores ? '5' : '0'} + {comparisonData.first.riasec_scores && comparisonData.second.riasec_scores ? '6' : '0'}
+                      {comparisonData.first.bigFiveScores && comparisonData.second.bigFiveScores ? '5' : '0'} + {comparisonData.first.riasecScores && comparisonData.second.riasecScores ? '6' : '0'}
                     </div>
                     <div className="text-sm text-gray-500">Chỉ số so sánh</div>
                   </div>
@@ -364,7 +387,7 @@ const ProgressComparisonPage: React.FC = () => {
 
             <div className="space-y-8">
               {/* Big Five Comparison */}
-              {comparisonData.first.big5_scores && comparisonData.second.big5_scores && (
+              {comparisonData.first.bigFiveScores && comparisonData.second.bigFiveScores && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 animate-slide-up">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
@@ -379,17 +402,17 @@ const ProgressComparisonPage: React.FC = () => {
                   </h2>
                   
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {renderScoreComparison('Cởi mở (Openness)', comparisonData.first.big5_scores.openness, comparisonData.second.big5_scores.openness)}
-                    {renderScoreComparison('Tận tâm (Conscientiousness)', comparisonData.first.big5_scores.conscientiousness, comparisonData.second.big5_scores.conscientiousness)}
-                    {renderScoreComparison('Hướng ngoại (Extraversion)', comparisonData.first.big5_scores.extraversion, comparisonData.second.big5_scores.extraversion)}
-                    {renderScoreComparison('Dễ chịu (Agreeableness)', comparisonData.first.big5_scores.agreeableness, comparisonData.second.big5_scores.agreeableness)}
-                    {renderScoreComparison('Lo âu (Neuroticism)', comparisonData.first.big5_scores.neuroticism, comparisonData.second.big5_scores.neuroticism)}
+                    {renderScoreComparison('Cởi mở (Openness)', comparisonData.first.bigFiveScores.openness, comparisonData.second.bigFiveScores.openness)}
+                    {renderScoreComparison('Tận tâm (Conscientiousness)', comparisonData.first.bigFiveScores.conscientiousness, comparisonData.second.bigFiveScores.conscientiousness)}
+                    {renderScoreComparison('Hướng ngoại (Extraversion)', comparisonData.first.bigFiveScores.extraversion, comparisonData.second.bigFiveScores.extraversion)}
+                    {renderScoreComparison('Dễ chịu (Agreeableness)', comparisonData.first.bigFiveScores.agreeableness, comparisonData.second.bigFiveScores.agreeableness)}
+                    {renderScoreComparison('Lo âu (Neuroticism)', comparisonData.first.bigFiveScores.neuroticism, comparisonData.second.bigFiveScores.neuroticism)}
                   </div>
                 </div>
               )}
 
               {/* RIASEC Comparison */}
-              {comparisonData.first.riasec_scores && comparisonData.second.riasec_scores && (
+              {comparisonData.first.riasecScores && comparisonData.second.riasecScores && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 animate-slide-up-delay">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
                     <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
@@ -404,12 +427,12 @@ const ProgressComparisonPage: React.FC = () => {
                   </h2>
                   
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {renderScoreComparison('Thực tế (Realistic)', comparisonData.first.riasec_scores.realistic, comparisonData.second.riasec_scores.realistic)}
-                    {renderScoreComparison('Nghiên cứu (Investigative)', comparisonData.first.riasec_scores.investigative, comparisonData.second.riasec_scores.investigative)}
-                    {renderScoreComparison('Nghệ thuật (Artistic)', comparisonData.first.riasec_scores.artistic, comparisonData.second.riasec_scores.artistic)}
-                    {renderScoreComparison('Xã hội (Social)', comparisonData.first.riasec_scores.social, comparisonData.second.riasec_scores.social)}
-                    {renderScoreComparison('Kinh doanh (Enterprising)', comparisonData.first.riasec_scores.enterprising, comparisonData.second.riasec_scores.enterprising)}
-                    {renderScoreComparison('Quy ước (Conventional)', comparisonData.first.riasec_scores.conventional, comparisonData.second.riasec_scores.conventional)}
+                    {renderScoreComparison('Thực tế (Realistic)', comparisonData.first.riasecScores.realistic, comparisonData.second.riasecScores.realistic)}
+                    {renderScoreComparison('Nghiên cứu (Investigative)', comparisonData.first.riasecScores.investigative, comparisonData.second.riasecScores.investigative)}
+                    {renderScoreComparison('Nghệ thuật (Artistic)', comparisonData.first.riasecScores.artistic, comparisonData.second.riasecScores.artistic)}
+                    {renderScoreComparison('Xã hội (Social)', comparisonData.first.riasecScores.social, comparisonData.second.riasecScores.social)}
+                    {renderScoreComparison('Kinh doanh (Enterprising)', comparisonData.first.riasecScores.enterprising, comparisonData.second.riasecScores.enterprising)}
+                    {renderScoreComparison('Quy ước (Conventional)', comparisonData.first.riasecScores.conventional, comparisonData.second.riasecScores.conventional)}
                   </div>
                 </div>
               )}
@@ -444,7 +467,7 @@ const ProgressComparisonPage: React.FC = () => {
                   <button
                     onClick={() => {
                       setShowComparison(false);
-                      setSelectedAssessments([]);
+                      setSelectedSessions([]);
                       setComparisonData(null);
                       setAnimateScores(false);
                     }}
@@ -497,7 +520,7 @@ const ProgressComparisonPage: React.FC = () => {
               <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-purple-600 animate-spin mb-4"></div>
               <p className="text-gray-500 dark:text-gray-400">Đang tải lịch sử đánh giá...</p>
             </div>
-          ) : assessments.length < 2 ? (
+          ) : groupedSessions.length < 2 ? (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
               <div className="text-center py-20">
                 <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -507,13 +530,13 @@ const ProgressComparisonPage: React.FC = () => {
                 </div>
                 
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  {assessments.length === 0 ? 'Chưa có dữ liệu đánh giá' : 'Cần thêm dữ liệu để so sánh'}
+                  {groupedSessions.length === 0 ? 'Chưa có dữ liệu đánh giá' : 'Cần thêm dữ liệu để so sánh'}
                 </h3>
                 
                 <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                  {assessments.length === 0 
+                  {groupedSessions.length === 0 
                     ? 'Bạn chưa có kết quả đánh giá nào. Hãy làm bài đánh giá đầu tiên để bắt đầu theo dõi tiến bộ.'
-                    : `Bạn có ${assessments.length} kết quả đánh giá. Cần ít nhất 2 kết quả để sử dụng tính năng so sánh.`
+                    : `Bạn có ${groupedSessions.length} phiên đánh giá. Cần ít nhất 2 phiên để sử dụng tính năng so sánh.`
                   }
                 </p>
 
@@ -529,41 +552,41 @@ const ProgressComparisonPage: React.FC = () => {
               </div>
             </div>
           ) : (
-            // Show comparison interface when we have 2+ assessments
+            // Show comparison interface when we have 2+ sessions
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                  Lịch sử đánh giá ({assessments.length} kết quả)
+                  Lịch sử đánh giá ({groupedSessions.length} phiên)
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Chọn 2 kết quả để so sánh sự thay đổi theo thời gian
+                  Chọn 2 phiên để so sánh sự thay đổi theo thời gian
                 </p>
               </div>
 
               <div className="grid gap-4 mb-8">
-                {assessments.map((assessment, index) => (
+                {groupedSessions.map((session, index) => (
                   <div
-                    key={assessment.id}
+                    key={session.sessionId}
                     className={`p-4 border rounded-xl cursor-pointer transition-all ${
-                      selectedAssessments.includes(assessment.id)
+                      selectedSessions.includes(session.sessionId)
                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
                     }`}
                     onClick={() => {
-                      if (selectedAssessments.includes(assessment.id)) {
-                        setSelectedAssessments(prev => prev.filter(id => id !== assessment.id));
-                      } else if (selectedAssessments.length < 2) {
-                        setSelectedAssessments(prev => [...prev, assessment.id]);
+                      if (selectedSessions.includes(session.sessionId)) {
+                        setSelectedSessions(prev => prev.filter(id => id !== session.sessionId));
+                      } else if (selectedSessions.length < 2) {
+                        setSelectedSessions(prev => [...prev, session.sessionId]);
                       }
                     }}
                   >
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-semibold text-gray-900 dark:text-white">
-                          Đánh giá #{assessments.length - index}
+                          Phiên đánh giá #{groupedSessions.length - index}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(assessment.created_at).toLocaleDateString('vi-VN', {
+                          {session.timestamp.toLocaleDateString('vi-VN', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
@@ -573,17 +596,17 @@ const ProgressComparisonPage: React.FC = () => {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        {assessment.big5_scores && (
+                        {session.hasBigFive && (
                           <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full">
                             Big Five
                           </span>
                         )}
-                        {assessment.riasec_scores && (
+                        {session.hasRIASEC && (
                           <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-full">
                             RIASEC
                           </span>
                         )}
-                        {selectedAssessments.includes(assessment.id) && (
+                        {selectedSessions.includes(session.sessionId) && (
                           <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
                             <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -596,17 +619,17 @@ const ProgressComparisonPage: React.FC = () => {
                 ))}
               </div>
 
-              {selectedAssessments.length === 2 && (
+              {selectedSessions.length === 2 && (
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-4">
-                    Đã chọn {selectedAssessments.length} đánh giá: {selectedAssessments.join(', ')}
+                    Đã chọn {selectedSessions.length} phiên đánh giá
                   </p>
                   <button
                     className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
                     onClick={() => {
                       console.log('Compare button clicked!');
-                      console.log('Selected assessments:', selectedAssessments);
-                      console.log('Available assessments:', assessments);
+                      console.log('Selected sessions:', selectedSessions);
+                      console.log('Available sessions:', groupedSessions);
                       handleCompareResults();
                     }}
                   >

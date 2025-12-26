@@ -50,8 +50,8 @@ class Payment(Base):
     # Thông tin thanh toán
     amount = Column(Integer, nullable=False)
     description = Column(Text, nullable=True)
-    payment_method = Column(SQLEnum(PaymentMethod), default=PaymentMethod.ZALOPAY)
-    status = Column(SQLEnum(PaymentStatus), default=PaymentStatus.PENDING, index=True)
+    payment_method = Column(String(50), default="zalopay")  # Changed to String for flexibility
+    status = Column(String(50), default="PENDING", index=True)  # Changed to String for flexibility
     
     # Thông tin từ gateway
     zp_trans_token = Column(String(255), nullable=True)
