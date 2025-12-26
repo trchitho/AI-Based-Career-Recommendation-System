@@ -91,7 +91,7 @@ const AdminNotificationsPage = () => {
   };
 
   const deleteNotification = async (id: number) => {
-    if (!confirm("Bạn có chắc muốn xóa thông báo này?")) return;
+    if (!confirm("Are you sure you want to delete this notification?")) return;
     try {
       await api.delete(`/api/admin/notifications/${id}`);
       loadNotifications();

@@ -136,19 +136,25 @@ const SkillManagementPage = () => {
     <div className="space-y-6">
         {/* HEADER */}
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Skill Management
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <span className="w-2 h-8 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
+              Skill Management
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-5">
+              Manage skills, knowledge and abilities
+            </p>
+          </div>
           <button
             onClick={handleCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+            className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5"
           >
             Add Skill
           </button>
         </div>
 
         {/* FILTERS & SEARCH */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 shadow-lg p-6">
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -159,7 +165,7 @@ const SkillManagementPage = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by name, category, or ONET code..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               />
             </div>
             
@@ -170,7 +176,7 @@ const SkillManagementPage = () => {
               <select
                 value={ksaTypeFilter}
                 onChange={(e) => setKsaTypeFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               >
                 <option value="">All Types</option>
                 <option value="Knowledge">Knowledge</option>
@@ -186,7 +192,7 @@ const SkillManagementPage = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               >
                 <option value="name">Name</option>
                 <option value="ksa_type">KSA Type</option>
@@ -200,14 +206,14 @@ const SkillManagementPage = () => {
             <div className="flex items-end gap-2">
               <button
                 type="submit"
-                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+                className="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-4 py-2.5 rounded-xl font-semibold transition-all"
               >
                 Search
               </button>
               <button
                 type="button"
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                className="px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold transition-colors"
                 title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
@@ -218,32 +224,25 @@ const SkillManagementPage = () => {
 
         {/* STATS */}
         {skillsData && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 shadow-lg p-4">
             <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
               <span>
                 Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, skillsData.total)} of {skillsData.total} skills
               </span>
-              <span>
-                Page {currentPage} of {skillsData.total_pages}
+              <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-medium">
+                Page {currentPage} / {skillsData.total_pages}
               </span>
-            </div>
-            
-            {/* Debug info */}
-            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Items in current page: {skillsData.items.length} | 
-              Unique IDs: {new Set(skillsData.items.map(item => item.id)).size} |
-              Per page setting: {perPage}
             </div>
           </div>
         )}
 
         {/* TABLE */}
         {loading ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            Loading...
+          <div className="flex items-center justify-center py-20">
+            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 shadow-lg overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>

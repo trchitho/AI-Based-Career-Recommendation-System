@@ -53,17 +53,25 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
           existingSession.bigfive_assessment = assessment;
           existingSession.big_five_scores = assessment.big_five_scores;
         }
+        // If assessment has both types, add both scores
+        if (assessment.riasec_scores && !existingSession.riasec_scores) {
+          existingSession.riasec_scores = assessment.riasec_scores;
+        }
+        if (assessment.big_five_scores && !existingSession.big_five_scores) {
+          existingSession.big_five_scores = assessment.big_five_scores;
+        }
       } else {
         // Create new session
         const newSession: GroupedSession = {
           session_id: assessment.id,
           created_at: assessment.completed_at,
         };
-        if (isRiasec) {
+        // Always try to get scores from assessment regardless of test_types
+        if (isRiasec || assessment.riasec_scores) {
           newSession.riasec_assessment = assessment;
           newSession.riasec_scores = assessment.riasec_scores;
         }
-        if (isBigFive) {
+        if (isBigFive || assessment.big_five_scores) {
           newSession.bigfive_assessment = assessment;
           newSession.big_five_scores = assessment.big_five_scores;
         }
@@ -290,115 +298,93 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                   {expandedSession === session.session_id && (
                     <div className="px-5 pb-5 pt-0 border-t border-gray-200 dark:border-gray-700">
                       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
-                        {/* RIASEC Section */}
+                        {/* RIASEC Score Details */}
                         {session.riasec_scores && (
-                          <div className="space-y-4 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center shrink-0">
-                                <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                              </div>
-                              <h4 className="font-bold text-gray-900 dark:text-white">RIASEC Interest Profile</h4>
-                            </div>
-                            
-                            {/* RIASEC Bar Chart */}
-                            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
-                              <div className="space-y-3">
-                                {(() => {
-                                  const riasecColors: Record<string, string> = {
-                                    realistic: '#EF4444',
-                                    investigative: '#F59E0B',
-                                    artistic: '#10B981',
-                                    social: '#3B82F6',
-                                    enterprising: '#8B5CF6',
-                                    conventional: '#EC4899'
-                                  };
-                                  const riasecNames: Record<string, string> = {
-                                    realistic: 'Realistic',
-                                    investigative: 'Investigative',
-                                    artistic: 'Artistic',
-                                    social: 'Social',
-                                    enterprising: 'Enterprising',
-                                    conventional: 'Conventional'
-                                  };
-                                  return Object.entries(session.riasec_scores)
-                                    .sort((a: any, b: any) => b[1] - a[1])
-                                    .map(([key, value]: [string, any]) => (
-                                      <div key={key} className="flex items-center gap-3">
-                                        <span className="text-xs text-gray-600 dark:text-gray-400 w-24 truncate font-medium">
-                                          {riasecNames[key.toLowerCase()] || getRIASECFullName(key)}
-                                        </span>
-                                        <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden min-w-0">
-                                          <div 
-                                            className="h-full rounded-full transition-all duration-300" 
-                                            style={{ 
-                                              width: `${Math.min(value, 100)}%`,
-                                              backgroundColor: riasecColors[key.toLowerCase()] || '#3B82F6'
-                                            }}
-                                          ></div>
-                                        </div>
-                                        <span 
-                                          className="text-xs font-bold w-8 text-right shrink-0"
-                                          style={{ color: riasecColors[key.toLowerCase()] || '#3B82F6' }}
-                                        >
-                                          {value.toFixed(0)}
-                                        </span>
+                          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                            <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Score Details</h5>
+                            <div className="space-y-3">
+                              {(() => {
+                                const riasecColors: Record<string, string> = {
+                                  realistic: '#EF4444',
+                                  investigative: '#F59E0B',
+                                  artistic: '#10B981',
+                                  social: '#3B82F6',
+                                  enterprising: '#8B5CF6',
+                                  conventional: '#EC4899'
+                                };
+                                const riasecNames: Record<string, string> = {
+                                  realistic: 'Realistic',
+                                  investigative: 'Investigative',
+                                  artistic: 'Artistic',
+                                  social: 'Social',
+                                  enterprising: 'Enterprising',
+                                  conventional: 'Conventional'
+                                };
+                                return Object.entries(session.riasec_scores)
+                                  .sort((a: any, b: any) => b[1] - a[1])
+                                  .map(([key, value]: [string, any]) => (
+                                    <div key={key} className="flex items-center gap-3">
+                                      <span className="text-xs text-gray-600 dark:text-gray-400 w-24 truncate font-medium">
+                                        {riasecNames[key.toLowerCase()] || getRIASECFullName(key)}
+                                      </span>
+                                      <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden min-w-0">
+                                        <div 
+                                          className="h-full rounded-full transition-all duration-300" 
+                                          style={{ 
+                                            width: `${Math.min(value, 100)}%`,
+                                            backgroundColor: riasecColors[key.toLowerCase()] || '#3B82F6'
+                                          }}
+                                        ></div>
                                       </div>
-                                    ));
-                                })()}
-                              </div>
+                                      <span 
+                                        className="text-xs font-bold w-8 text-right shrink-0"
+                                        style={{ color: riasecColors[key.toLowerCase()] || '#3B82F6' }}
+                                      >
+                                        {value.toFixed(0)}
+                                      </span>
+                                    </div>
+                                  ));
+                              })()}
                             </div>
                           </div>
                         )}
 
-                        {/* BigFive Section */}
+                        {/* BigFive Score Details */}
                         {session.big_five_scores && (
-                          <div className="space-y-4 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center shrink-0">
-                                <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                              </div>
-                              <h4 className="font-bold text-gray-900 dark:text-white">Big Five Personality</h4>
-                            </div>
-                            
-                            {/* Big Five Bar Chart */}
-                            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
-                              <div className="space-y-3">
-                                {(() => {
-                                  const traitColors: Record<string, string> = {
-                                    openness: '#8B5CF6',
-                                    conscientiousness: '#3B82F6',
-                                    extraversion: '#10B981',
-                                    agreeableness: '#F59E0B',
-                                    neuroticism: '#EF4444'
-                                  };
-                                  return Object.entries(session.big_five_scores)
-                                    .sort((a: any, b: any) => b[1] - a[1])
-                                    .map(([key, value]: [string, any]) => (
-                                      <div key={key} className="flex items-center gap-3">
-                                        <span className="text-xs text-gray-600 dark:text-gray-400 w-24 capitalize truncate font-medium">{key}</span>
-                                        <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden min-w-0">
-                                          <div 
-                                            className="h-full rounded-full transition-all duration-300" 
-                                            style={{ 
-                                              width: `${Math.min(value, 100)}%`,
-                                              backgroundColor: traitColors[key.toLowerCase()] || '#8B5CF6'
-                                            }}
-                                          ></div>
-                                        </div>
-                                        <span 
-                                          className="text-xs font-bold w-10 text-right shrink-0"
-                                          style={{ color: traitColors[key.toLowerCase()] || '#8B5CF6' }}
-                                        >
-                                          {value.toFixed(0)}%
-                                        </span>
+                          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                            <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Score Details</h5>
+                            <div className="space-y-3">
+                              {(() => {
+                                const traitColors: Record<string, string> = {
+                                  openness: '#8B5CF6',
+                                  conscientiousness: '#3B82F6',
+                                  extraversion: '#10B981',
+                                  agreeableness: '#F59E0B',
+                                  neuroticism: '#EF4444'
+                                };
+                                return Object.entries(session.big_five_scores)
+                                  .sort((a: any, b: any) => b[1] - a[1])
+                                  .map(([key, value]: [string, any]) => (
+                                    <div key={key} className="flex items-center gap-3">
+                                      <span className="text-xs text-gray-600 dark:text-gray-400 w-24 capitalize truncate font-medium">{key}</span>
+                                      <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden min-w-0">
+                                        <div 
+                                          className="h-full rounded-full transition-all duration-300" 
+                                          style={{ 
+                                            width: `${Math.min(value, 100)}%`,
+                                            backgroundColor: traitColors[key.toLowerCase()] || '#8B5CF6'
+                                          }}
+                                        ></div>
                                       </div>
-                                    ));
-                                })()}
-                              </div>
+                                      <span 
+                                        className="text-xs font-bold w-10 text-right shrink-0"
+                                        style={{ color: traitColors[key.toLowerCase()] || '#8B5CF6' }}
+                                      >
+                                        {value.toFixed(0)}%
+                                      </span>
+                                    </div>
+                                  ));
+                              })()}
                             </div>
                           </div>
                         )}

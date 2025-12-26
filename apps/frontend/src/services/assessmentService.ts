@@ -117,23 +117,14 @@ export const assessmentService = {
       for (const session of sessions.sessions || []) {
         console.log('🔄 [AssessmentService] Processing session:', session);
 
-        // Each session can have multiple assessments, add them individually
-        if (session.assessments && session.assessments.length > 0) {
-          for (const assessment of session.assessments) {
-            console.log('📝 [AssessmentService] Adding assessment:', assessment);
-            history.push(assessment);
-          }
-        } else {
-          console.log('⚠️ [AssessmentService] Session has no assessments, using fallback');
-          // Fallback for sessions without detailed assessment data
-          history.push({
-            id: session.session_id.toString(),
-            completed_at: session.created_at,
-            test_types: session.assessment_types ? session.assessment_types.split(', ') : [],
-            riasec_scores: undefined,
-            big_five_scores: undefined
-          });
-        }
+        // Use session data directly since it now includes scores
+        history.push({
+          id: session.id || session.session_id.toString(),
+          completed_at: session.created_at || session.completed_at,
+          test_types: session.assessment_types ? session.assessment_types.split(', ') : [],
+          riasec_scores: session.riasec_scores || undefined,
+          big_five_scores: session.big_five_scores || undefined
+        });
       }
 
       // Sort by completion date (newest first)

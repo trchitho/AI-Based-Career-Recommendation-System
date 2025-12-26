@@ -1044,9 +1044,13 @@ def build_results(session: Session, assessment_id: int) -> dict:
         + big_five_scores: openness, conscientiousness, ... (0–100)
     - top_interest: L1 dimension từ raw test scores (1-5, khớp với filter logic)
     """
+    print(f"[DEBUG build_results] START assessment_id={assessment_id}")
+    
     obj = session.get(Assessment, assessment_id)
     if not obj:
         raise NotFoundError("Assessment not found")
+    
+    print(f"[DEBUG build_results] Found assessment: a_type={obj.a_type}, user_id={obj.user_id}, scores={obj.scores}")
 
     user_id = int(obj.user_id)
     assessment_created_at = obj.created_at
@@ -1079,6 +1083,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
     
     if obj.a_type == "RIASEC" and obj.scores:
         riasec_scores_raw = obj.scores
+        print(f"[DEBUG build_results] Using RIASEC scores from current assessment: {riasec_scores_raw}")
     else:
         # Tìm RIASEC trong cùng session (trong 5 phút)
         riasec_row = (
@@ -1096,9 +1101,13 @@ def build_results(session: Session, assessment_id: int) -> dict:
         )
         if riasec_row and riasec_row.scores:
             riasec_scores_raw = riasec_row.scores
+            print(f"[DEBUG build_results] Found RIASEC in session: id={riasec_row.id}, scores={riasec_scores_raw}")
+        else:
+            print(f"[DEBUG build_results] No RIASEC found in session for user {user_id}")
     
     if obj.a_type == "BigFive" and obj.scores:
         bigfive_scores_raw = obj.scores
+        print(f"[DEBUG build_results] Using BigFive scores from current assessment: {bigfive_scores_raw}")
     else:
         # Tìm BigFive trong cùng session (trong 5 phút)
         bigfive_row = (
@@ -1116,23 +1125,32 @@ def build_results(session: Session, assessment_id: int) -> dict:
         )
         if bigfive_row and bigfive_row.scores:
             bigfive_scores_raw = bigfive_row.scores
+            print(f"[DEBUG build_results] Found BigFive in session: id={bigfive_row.id}, scores={bigfive_scores_raw}")
+        else:
+            print(f"[DEBUG build_results] No BigFive found in session for user {user_id}")
 
     # 2) Convert raw scores (1-5) to percentage (0-100)
     def _raw_to_percent(raw_scores: dict, letters: list, name_map: dict) -> dict:
         """Convert raw scores (1-5 scale) to percentage (0-100)"""
         result = {name_map[ch]: 0.0 for ch in letters}
         if not raw_scores:
+            print(f"[DEBUG _raw_to_percent] raw_scores is None/empty")
             return result
+        print(f"[DEBUG _raw_to_percent] raw_scores = {raw_scores}")
         for letter in letters:
             raw = float(raw_scores.get(letter, 0.0))
             # Scale from 1-5 to 0-100: (raw - 1) / 4 * 100
             if raw > 0:
                 percent = ((raw - 1) / 4) * 100
                 result[name_map[letter]] = round(max(0, min(100, percent)), 1)
+                print(f"[DEBUG _raw_to_percent] {letter}: raw={raw} -> percent={result[name_map[letter]]}")
         return result
 
     riasec_scores = _raw_to_percent(riasec_scores_raw, riasec_letters, riasec_name_map)
     big_five_scores = _raw_to_percent(bigfive_scores_raw, big5_letters, big5_name_map)
+    
+    print(f"[DEBUG build_results] Final riasec_scores = {riasec_scores}")
+    print(f"[DEBUG build_results] Final big_five_scores = {big_five_scores}")
 
     # 3) Tính top_interest từ RIASEC scores của session này
     top_interest: str | None = None
@@ -1166,53 +1184,67 @@ def build_results(session: Session, assessment_id: int) -> dict:
         # Get careers sorted by the top_interest RIASEC dimension
         interest_col = riasec_column_map[top_interest]
         
+        print(f"[DEBUG build_results] top_interest={top_interest}, interest_col={interest_col}")
+        
         # Query careers with highest score in the user's top interest dimension
         # Join with career_interests table and sort by the relevant RIASEC column
-        rec_query = text(f"""
-            SELECT c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vn, c.short_desc_en
-            FROM core.careers c
-            JOIN core.career_interests ci ON c.onet_code = ci.onet_code
-            WHERE ci.{interest_col} IS NOT NULL
-            ORDER BY ci.{interest_col} DESC, RANDOM()
-            LIMIT 5
-        """)
-        
-        rows = session.execute(rec_query).all()
-        
-        for rid, slug, tvi, ten, sdesc_vn, sdesc_en in rows:
-            rec_ids.append(str(rid))
-            title = tvi or ten or ((slug or "").replace("-", " ").title())
-            sdesc = sdesc_vn or sdesc_en or ""
-            careers_full.append({
-                "id": str(rid),
-                "title": title,
-                "description": sdesc,
-                "slug": slug,
-            })
+        try:
+            rec_query = text(f"""
+                SELECT c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vn, c.short_desc_en
+                FROM core.careers c
+                JOIN core.career_interests ci ON c.onet_code = ci.onet_code
+                WHERE ci.{interest_col} IS NOT NULL
+                ORDER BY ci.{interest_col} DESC, RANDOM()
+                LIMIT 5
+            """)
+            
+            rows = session.execute(rec_query).all()
+            print(f"[DEBUG build_results] career_interests query returned {len(rows)} rows")
+            
+            for rid, slug, tvi, ten, sdesc_vn, sdesc_en in rows:
+                rec_ids.append(str(rid))
+                title = tvi or ten or ((slug or "").replace("-", " ").title())
+                sdesc = sdesc_vn or sdesc_en or ""
+                careers_full.append({
+                    "id": str(rid),
+                    "title": title,
+                    "description": sdesc,
+                    "slug": slug,
+                })
+        except Exception as e:
+            print(f"[DEBUG build_results] career_interests query error: {repr(e)}")
     
     # Fallback: if no careers found via RIASEC, get random careers
     if not rec_ids:
-        rec_rows = session.execute(
-            select(
-                Career.id,
-                Career.slug,
-                Career.title_vi,
-                Career.title_en,
-                Career.short_desc_vn,
-                Career.short_desc_en,
-            ).order_by(func.random()).limit(5)
-        ).all()
-        
-        for rid, slug, tvi, ten, sdesc_vn, sdesc_en in rec_rows:
-            rec_ids.append(str(rid))
-            title = tvi or ten or ((slug or "").replace("-", " ").title())
-            sdesc = sdesc_vn or sdesc_en or ""
-            careers_full.append({
-                "id": str(rid),
-                "title": title,
-                "description": sdesc,
-                "slug": slug,
-            })
+        print(f"[DEBUG build_results] No careers from career_interests, trying fallback from careers table")
+        try:
+            rec_rows = session.execute(
+                select(
+                    Career.id,
+                    Career.slug,
+                    Career.title_vi,
+                    Career.title_en,
+                    Career.short_desc_vn,
+                    Career.short_desc_en,
+                ).order_by(func.random()).limit(5)
+            ).all()
+            
+            print(f"[DEBUG build_results] fallback careers query returned {len(rec_rows)} rows")
+            
+            for rid, slug, tvi, ten, sdesc_vn, sdesc_en in rec_rows:
+                rec_ids.append(str(rid))
+                title = tvi or ten or ((slug or "").replace("-", " ").title())
+                sdesc = sdesc_vn or sdesc_en or ""
+                careers_full.append({
+                    "id": str(rid),
+                    "title": title,
+                    "description": sdesc,
+                    "slug": slug,
+                })
+        except Exception as e:
+            print(f"[DEBUG build_results] fallback careers query error: {repr(e)}")
+    
+    print(f"[DEBUG build_results] Final: {len(rec_ids)} careers, riasec_scores={riasec_scores}")
 
     return {
         "assessment_id": int(obj.id),

@@ -2,11 +2,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Question, QuestionResponse } from '../../types/assessment';
 import { assessmentService } from '../../services/assessmentService';
+import { useAuth } from '../../contexts/AuthContext';
 
-// LocalStorage key for auto-save
-const AUTOSAVE_KEY = 'assessment_autosave';
-const AUTOSAVE_TIMESTAMP_KEY = 'assessment_autosave_timestamp';
+// LocalStorage key for auto-save - now includes userId for per-user storage
+const AUTOSAVE_KEY_PREFIX = 'assessment_autosave_';
+const AUTOSAVE_TIMESTAMP_KEY_PREFIX = 'assessment_autosave_timestamp_';
 const AUTOSAVE_EXPIRY_HOURS = 24; // Dữ liệu hết hạn sau 24 giờ
+
+// Helper to get user-specific keys
+const getAutosaveKey = (userId: number | string | undefined) => 
+  `${AUTOSAVE_KEY_PREFIX}${userId || 'guest'}`;
+const getAutosaveTimestampKey = (userId: number | string | undefined) => 
+  `${AUTOSAVE_TIMESTAMP_KEY_PREFIX}${userId || 'guest'}`;
 
 interface AutoSaveData {
   responses: [string, string | number][];
@@ -23,6 +30,9 @@ interface CareerTestComponentProps {
 
 const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const { t } = useTranslation();
+  const { user } = useAuth(); // Get current user
+  const userId = user?.id; // User ID for per-user storage
+  
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [responses, setResponses] = useState<Map<string, string | number>>(new Map());
@@ -36,7 +46,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
   // Check if saved data is expired
   const isSavedDataValid = useCallback(() => {
-    const timestamp = localStorage.getItem(AUTOSAVE_TIMESTAMP_KEY);
+    const timestamp = localStorage.getItem(getAutosaveTimestampKey(userId));
     if (!timestamp) return false;
 
     const savedTime = new Date(timestamp);
@@ -44,13 +54,14 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
 
     return hoursDiff < AUTOSAVE_EXPIRY_HOURS;
-  }, []);
+  }, [userId]);
 
   // Load saved progress from localStorage
   const loadSavedProgress = useCallback(() => {
     try {
-      const saved = localStorage.getItem(AUTOSAVE_KEY);
-      console.log('📂 Raw localStorage data:', saved);
+      const autosaveKey = getAutosaveKey(userId);
+      const saved = localStorage.getItem(autosaveKey);
+      console.log(`📂 Raw localStorage data for user ${userId}:`, saved);
 
       if (saved && isSavedDataValid()) {
         const data: AutoSaveData = JSON.parse(saved);
@@ -63,14 +74,14 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       }
 
       // Check timestamp
-      const timestamp = localStorage.getItem(AUTOSAVE_TIMESTAMP_KEY);
+      const timestamp = localStorage.getItem(getAutosaveTimestampKey(userId));
       console.log('⏰ Timestamp:', timestamp);
 
     } catch (e) {
       console.error('❌ Error loading saved progress:', e);
     }
     return null;
-  }, [isSavedDataValid]);
+  }, [isSavedDataValid, userId]);
 
   // Save progress to localStorage - include questions for proper restoration
   const saveProgress = useCallback((responsesMap: Map<string, string | number>, page: number, questions: Question[]) => {
@@ -82,25 +93,39 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         questionIds: questions.map(q => String(q.id)),
         questions: questions, // Lưu toàn bộ câu hỏi
       };
-      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
-      localStorage.setItem(AUTOSAVE_TIMESTAMP_KEY, new Date().toISOString());
+      const autosaveKey = getAutosaveKey(userId);
+      const timestampKey = getAutosaveTimestampKey(userId);
+      localStorage.setItem(autosaveKey, JSON.stringify(data));
+      localStorage.setItem(timestampKey, new Date().toISOString());
       setLastSaved(new Date());
-      console.log('✅ Auto-saved:', data.responses.length, 'answers, page', page);
+      console.log(`✅ Auto-saved for user ${userId}:`, data.responses.length, 'answers, page', page);
     } catch (e) {
       console.error('❌ Error saving progress:', e);
     }
-  }, []);
+  }, [userId]);
 
   // Clear saved progress
   const clearSavedProgress = useCallback(() => {
-    localStorage.removeItem(AUTOSAVE_KEY);
-    localStorage.removeItem(AUTOSAVE_TIMESTAMP_KEY);
+    const autosaveKey = getAutosaveKey(userId);
+    const timestampKey = getAutosaveTimestampKey(userId);
+    localStorage.removeItem(autosaveKey);
+    localStorage.removeItem(timestampKey);
     setSavedProgress(null);
-  }, []);
+    console.log(`🗑️ Cleared saved progress for user ${userId}`);
+  }, [userId]);
 
-  // Check for saved progress on mount
+  // Check for saved progress on mount and when userId changes
   useEffect(() => {
-    console.log('🔍 Checking for saved progress...');
+    // Cleanup old autosave data without userId (legacy format)
+    const oldAutosaveKey = 'assessment_autosave';
+    const oldTimestampKey = 'assessment_autosave_timestamp';
+    if (localStorage.getItem(oldAutosaveKey)) {
+      console.log('🧹 Cleaning up legacy autosave data (no userId)');
+      localStorage.removeItem(oldAutosaveKey);
+      localStorage.removeItem(oldTimestampKey);
+    }
+    
+    console.log(`🔍 Checking for saved progress for user ${userId}...`);
     const saved = loadSavedProgress();
     console.log('📦 Saved data:', saved);
 
@@ -111,8 +136,11 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       setShowResumeModal(true);
     } else {
       console.log('❌ No saved progress found');
+      // Reset state when switching users
+      setSavedProgress(null);
+      setShowResumeModal(false);
     }
-  }, []); // Remove loadSavedProgress dependency to run only once
+  }, [userId]); // Re-check when userId changes (user login/logout)
 
   // Resume from saved progress
   const handleResume = () => {
@@ -160,9 +188,11 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
           questionIds: allQuestions.map(q => String(q.id)),
           questions: allQuestions, // Lưu toàn bộ câu hỏi
         };
-        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
-        localStorage.setItem(AUTOSAVE_TIMESTAMP_KEY, new Date().toISOString());
-        console.log('💾 Saved on unload:', data.responses.length, 'answers');
+        const autosaveKey = getAutosaveKey(userId);
+        const timestampKey = getAutosaveTimestampKey(userId);
+        localStorage.setItem(autosaveKey, JSON.stringify(data));
+        localStorage.setItem(timestampKey, new Date().toISOString());
+        console.log(`💾 Saved on unload for user ${userId}:`, data.responses.length, 'answers');
 
         // Show confirmation dialog
         e.preventDefault();
@@ -176,7 +206,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [responses, currentPage, allQuestions.length]);
+  }, [responses, currentPage, allQuestions.length, userId]);
 
   const fetchQuestions = async () => {
     try {
