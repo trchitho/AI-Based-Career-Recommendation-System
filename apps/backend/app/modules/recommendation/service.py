@@ -393,10 +393,85 @@ class RecService:
         for idx, it in enumerate(items_filtered, start=1):
             it["position"] = idx
 
+        # 8) Save top 5 recommendations to core.career_recommendations table
+        # Only save when fetching full recommendations (top_k >= 5), not for dashboard preview (top_k=3)
+        if top_k >= 5:
+            self._save_career_recommendations(db, user_id, assessment_id, items_filtered[:5])
+
         return {
             "request_id": request_id,
             "items": items_filtered,
         }
+
+    def _save_career_recommendations(
+        self,
+        db: Session,
+        user_id: int,
+        assessment_id: int,
+        items: List[Dict[str, Any]],
+    ) -> None:
+        """
+        Save top career recommendations to core.career_recommendations table.
+        This persists the recommendations for history tracking.
+        """
+        if not items:
+            return
+        
+        try:
+            # First, delete any existing recommendations for this assessment
+            db.execute(
+                text(
+                    """
+                    DELETE FROM core.career_recommendations
+                    WHERE assessment_id = :assessment_id
+                    """
+                ),
+                {"assessment_id": assessment_id}
+            )
+            
+            # Insert new recommendations
+            for item in items:
+                # Get career_id from core.careers table using slug or onet_code
+                career_id_result = db.execute(
+                    text(
+                        """
+                        SELECT id FROM core.careers
+                        WHERE slug = :slug OR onet_code = :onet_code
+                        LIMIT 1
+                        """
+                    ),
+                    {
+                        "slug": item.get("slug"),
+                        "onet_code": item.get("job_onet") or item.get("career_id")
+                    }
+                ).fetchone()
+                
+                if career_id_result:
+                    career_id = career_id_result[0]
+                    db.execute(
+                        text(
+                            """
+                            INSERT INTO core.career_recommendations
+                                (user_id, assessment_id, career_id, score, rank)
+                            VALUES
+                                (:user_id, :assessment_id, :career_id, :score, :rank)
+                            """
+                        ),
+                        {
+                            "user_id": user_id,
+                            "assessment_id": assessment_id,
+                            "career_id": career_id,
+                            "score": item.get("display_match") or item.get("match_score", 0.0),
+                            "rank": item.get("position", 0)
+                        }
+                    )
+            
+            db.commit()
+            logger.info(f"Saved {len(items)} career recommendations for assessment {assessment_id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to save career recommendations: {e}")
+            db.rollback()
 
     # ====================================================================== #
     # 4. AI-core integration
@@ -473,18 +548,19 @@ class RecService:
         assessment_id: int,
     ) -> Dict[str, Any]:
         """
-        Lấy RIASEC scores trực tiếp từ core.assessments (thang 1-5 gốc).
-        KHÔNG dùng fused traits vì đã bị normalize về 0-1.
+        Lấy RIASEC scores từ assessment cùng session với assessment_id được truyền vào.
+        KHÔNG lấy từ assessment mới nhất của user.
         
         Đảm bảo:
+        - Lấy RIASEC assessment từ CÙNG SESSION với assessment_id
         - Thứ tự R, I, A, S, E, C đúng
         - Điểm gốc thang 1-5 (chưa normalize)
         - Deterministic 100%
         """
-        # 1) Lấy user_id từ assessment
+        # 1) Lấy user_id và session_id từ assessment
         sql = text(
             """
-            SELECT user_id
+            SELECT user_id, session_id
             FROM core.assessments
             WHERE id = :aid
             LIMIT 1
@@ -496,25 +572,45 @@ class RecService:
             return {"riasec_top_dim": None, "riasec_values": None}
         
         user_id = row.get("user_id")
+        session_id = row.get("session_id")
         if not user_id:
             logger.error(f"Assessment {assessment_id} has no user_id")
             return {"riasec_top_dim": None, "riasec_values": None}
         
-        # 2) Lấy RIASEC scores trực tiếp từ core.assessments (thang 1-5 gốc)
-        # Lấy assessment RIASEC mới nhất của user này
-        sql_riasec = text(
-            """
-            SELECT scores
-            FROM core.assessments
-            WHERE user_id = :uid AND a_type = 'RIASEC'
-            ORDER BY created_at DESC
-            LIMIT 1
-            """
-        )
-        riasec_row = db.execute(sql_riasec, {"uid": user_id}).mappings().first()
+        # 2) Lấy RIASEC scores từ assessment CÙNG SESSION (không phải mới nhất của user)
+        riasec_row = None
+        
+        if session_id:
+            # Lấy RIASEC assessment từ cùng session
+            sql_riasec = text(
+                """
+                SELECT scores
+                FROM core.assessments
+                WHERE session_id = :sid AND a_type = 'RIASEC'
+                LIMIT 1
+                """
+            )
+            riasec_row = db.execute(sql_riasec, {"sid": session_id}).mappings().first()
+            logger.info(f"Assessment {assessment_id}: Looking for RIASEC in session {session_id}")
+        
+        # Fallback: nếu không có session_id hoặc không tìm thấy RIASEC trong session
+        if not riasec_row or not riasec_row.get("scores"):
+            # Nếu assessment_id chính là RIASEC, dùng luôn
+            sql_check = text(
+                """
+                SELECT scores, a_type
+                FROM core.assessments
+                WHERE id = :aid
+                LIMIT 1
+                """
+            )
+            check_row = db.execute(sql_check, {"aid": assessment_id}).mappings().first()
+            if check_row and check_row.get("a_type") == "RIASEC":
+                riasec_row = check_row
+                logger.info(f"Assessment {assessment_id} is itself a RIASEC assessment")
         
         if not riasec_row or not riasec_row.get("scores"):
-            logger.error(f"User {user_id} has no RIASEC assessment")
+            logger.error(f"Assessment {assessment_id}: No RIASEC assessment found in session {session_id}")
             return {"riasec_top_dim": None, "riasec_values": None}
         
         # 3) Parse scores dict → vector theo thứ tự R, I, A, S, E, C

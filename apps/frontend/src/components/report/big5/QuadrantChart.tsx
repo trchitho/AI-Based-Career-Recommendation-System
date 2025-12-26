@@ -6,7 +6,8 @@
  * - Hover on card: corresponding slice highlights, others dim
  * - Default state: ALL slices/cards normal, NO auto-highlight
  * - Legend: horizontal row, label names only (no %)
- * - Color mapping: 1-1 between slice and card by sorted index
+ * - Color mapping: FIXED by label name (consistent across all tests)
+ * - Position: FIXED order (not sorted by percent)
  * - Print-optimized
  */
 
@@ -25,20 +26,83 @@ interface ColorDef {
     border: string;
 }
 
-// Fixed color palette - maps 1-1 with sorted labels by index
-const COLORS: ColorDef[] = [
-    { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },   // Purple (index 0 = highest %)
-    { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },   // Blue (index 1)
-    { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },   // Green (index 2)
-    { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },   // Amber (index 3 = lowest %)
-];
+// Fixed color palette by LABEL NAME - consistent across all tests
+// Each label always gets the same color regardless of percentage
+// Colors: Purple, Blue, Green, Amber (in fixed order per facet)
+const LABEL_COLORS: Record<string, ColorDef> = {
+    // Problem-Solving facet labels (order: innovator, humanitarian, caretaker, pragmatist)
+    'innovator': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },      // Purple
+    'humanitarian': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },   // Blue
+    'caretaker': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },      // Green
+    'pragmatist': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },     // Amber
+
+    // Motivation facet labels (order: ambitious, excitable, dutiful, casual)
+    'ambitious': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },      // Purple
+    'excitable': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },      // Blue
+    'dutiful': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },        // Green
+    'casual': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },         // Amber
+
+    // Interaction facet labels (order: gregarious, dominant, supportive, independent)
+    'gregarious': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },     // Purple
+    'dominant': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },       // Blue
+    'supportive': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },     // Green
+    'independent': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },    // Amber
+
+    // Communication facet labels (order: inspiring, informative, insightful, concise)
+    'inspiring': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },      // Purple
+    'informative': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },    // Blue
+    'insightful': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },     // Green
+    'concise': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },        // Amber
+
+    // Teamwork facet labels (order: taskmaster, empath, improviser, cooperator)
+    'taskmaster': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },     // Purple
+    'empath': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },         // Blue
+    'improviser': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },     // Green
+    'cooperator': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },     // Amber
+
+    // Task Management facet labels (order: director, visionary, inspector, responder)
+    'director': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },       // Purple
+    'visionary': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },      // Blue
+    'inspector': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },      // Green
+    'responder': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },      // Amber
+};
+
+// Fixed order for each facet (labels will always appear in this order)
+const FACET_LABEL_ORDER: Record<string, string[]> = {
+    'problemSolving': ['innovator', 'humanitarian', 'caretaker', 'pragmatist'],
+    'motivation': ['ambitious', 'excitable', 'dutiful', 'casual'],
+    'interaction': ['gregarious', 'dominant', 'supportive', 'independent'],
+    'communication': ['inspiring', 'informative', 'insightful', 'concise'],
+    'teamwork': ['taskmaster', 'empath', 'improviser', 'cooperator'],
+    'taskManagement': ['director', 'visionary', 'inspector', 'responder'],
+};
 
 const DEFAULT_COLOR: ColorDef = { bg: 'rgba(156, 163, 175, 0.75)', border: '#9CA3AF' };
 
-// Get color by sorted index (NOT by label name) - always returns ColorDef
-const getColorByIndex = (index: number): ColorDef => {
-    const color = COLORS[index];
-    return color !== undefined ? color : DEFAULT_COLOR;
+// Get color by label name (FIXED - consistent across all tests)
+const getColorByLabelName = (labelName: string): ColorDef => {
+    const lowerName = labelName.toLowerCase();
+    return LABEL_COLORS[lowerName] || DEFAULT_COLOR;
+};
+
+// Get fixed order for labels based on facet type
+const getFixedOrderLabels = (labels: FacetLabel[]): FacetLabel[] => {
+    // Detect facet type from label names
+    const labelNames = labels.map(l => l.name.toLowerCase());
+
+    for (const [, order] of Object.entries(FACET_LABEL_ORDER)) {
+        if (order.some(name => labelNames.includes(name))) {
+            // Sort labels according to fixed order
+            return [...labels].sort((a, b) => {
+                const aIndex = order.indexOf(a.name.toLowerCase());
+                const bIndex = order.indexOf(b.name.toLowerCase());
+                return aIndex - bIndex;
+            });
+        }
+    }
+
+    // Fallback: return as-is
+    return labels;
 };
 
 const QuadrantChart = ({
@@ -52,32 +116,25 @@ const QuadrantChart = ({
     // Use external hover if provided, otherwise internal
     const activeHover = hoveredLabel !== undefined ? hoveredLabel : internalHover;
 
-    // Sort labels by percent descending for consistent display
-    // This sorted order determines color assignment (index 0 = purple, etc.)
-    const sortedLabels = [...labels].sort((a, b) => b.percent - a.percent);
-
-    // Create a map from label name to its sorted index (for color lookup)
-    const labelToIndexMap = new Map<string, number>();
-    sortedLabels.forEach((label, index) => {
-        labelToIndexMap.set(label.name, index);
-    });
+    // Use FIXED order for labels (not sorted by percent)
+    const orderedLabels = getFixedOrderLabels(labels);
 
     // Calculate angles for each segment based on percentages
-    const total = sortedLabels.reduce((sum, l) => sum + l.percent, 0) || 1;
+    const total = orderedLabels.reduce((sum, l) => sum + l.percent, 0) || 1;
     let currentAngle = -90; // Start from top
 
-    const segments = sortedLabels.map((label, index) => {
+    const segments = orderedLabels.map((label) => {
         const angle = (label.percent / total) * 360;
         const startAngle = currentAngle;
         currentAngle += angle;
-        const color = getColorByIndex(index);
+        // Get color by label NAME (fixed, consistent across all tests)
+        const color = getColorByLabelName(label.name);
 
         return {
             ...label,
             startAngle,
             endAngle: currentAngle,
             color,
-            colorIndex: index,
         };
     });
 
@@ -163,10 +220,11 @@ const QuadrantChart = ({
                 />
             </svg>
 
-            {/* Legend - horizontal row, label names only (no %), centered */}
+            {/* Legend - horizontal row, label names only (no %), in fixed order */}
             <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2 print:mt-1.5">
-                {sortedLabels.map((label, index) => {
-                    const legendColor = getColorByIndex(index);
+                {orderedLabels.map((label) => {
+                    // Get color by label NAME (fixed, consistent)
+                    const legendColor = getColorByLabelName(label.name);
                     const isHovered = activeHover === label.name;
                     const isOtherHovered = activeHover !== null && activeHover !== label.name;
 

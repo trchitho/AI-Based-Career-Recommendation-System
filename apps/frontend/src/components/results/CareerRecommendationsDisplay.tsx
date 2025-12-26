@@ -67,11 +67,11 @@ const CareerRecommendationsDisplay = ({
 
       let message = '';
       if (currentPlan === 'free') {
-        message = `Nâng cấp ${planInfo?.name || 'Gói Cơ Bản'} để xem 2 nghề nghiệp phù hợp nhất.`;
+        message = `Upgrade to ${planInfo?.name || 'Basic'} to view top 2 career matches.`;
       } else if (currentPlan === 'basic') {
-        message = `Nâng cấp ${getPlanInfo('premium')?.name || 'Gói Premium'} để xem toàn bộ danh mục nghề nghiệp.`;
+        message = `Upgrade to ${getPlanInfo('premium')?.name || 'Premium'} for full career catalog access.`;
       } else {
-        message = `Nâng cấp ${getPlanInfo('premium')?.name || 'Gói Premium'} để xem toàn bộ danh mục nghề nghiệp.`;
+        message = `Upgrade to ${getPlanInfo('premium')?.name || 'Premium'} for full career catalog access.`;
       }
 
       navigate('/pricing', {
@@ -79,7 +79,7 @@ const CareerRecommendationsDisplay = ({
           feature: 'career_recommendations',
           message,
           requiredPlan: requiredPlan,
-          redirectTo: `/careers/${slugOrId}/roadmap`,
+          redirectTo: `/careers/${slugOrId}`,
           redirectState: { title, description: desc }
         }
       });
@@ -125,11 +125,11 @@ const CareerRecommendationsDisplay = ({
     clearDwellStart();
 
     // Navigate immediately, don't wait for tracking
-    navigate(`/careers/${slugOrId}/roadmap`, {
+    navigate(`/careers/${slugOrId}`, {
       state: {
         title,
         description: desc,
-        fromRoadmap: true, // Đánh dấu đây là navigation từ roadmap
+        fromResults: true, // Mark this as navigation from results page
       },
     });
   };
@@ -275,11 +275,11 @@ const CareerRecommendationsDisplay = ({
                     {isLocked
                       ? (() => {
                         if (currentPlan === 'free') {
-                          return `Nâng cấp Gói Cơ Bản (99k) để xem 2 nghề nghiệp phù hợp nhất hoặc Gói Premium (299k) để xem không giới hạn.`;
+                          return `Upgrade to Basic (99k) to view top 2 career matches or Premium (299k) for unlimited access.`;
                         } else if (currentPlan === 'basic') {
-                          return `Gói Cơ Bản chỉ xem được 2 nghề nghiệp đầu tiên. Nâng cấp Gói Premium (299k) để xem toàn bộ danh mục nghề nghiệp.`;
+                          return `Basic plan allows viewing first 2 careers only. Upgrade to Premium (299k) for full access.`;
                         } else {
-                          return `Nâng cấp ${requiredPlanInfo?.name || 'Premium'} để xem chi tiết nghề nghiệp này.`;
+                          return `Upgrade to ${requiredPlanInfo?.name || 'Premium'} to view this career details.`;
                         }
                       })()
                       : desc
@@ -301,13 +301,13 @@ const CareerRecommendationsDisplay = ({
                 >
                   {isLocked ? (() => {
                     if (currentPlan === 'free') {
-                      return 'Nâng cấp Gói Cơ Bản ✨';
+                      return 'Upgrade to Basic ✨';
                     } else if (currentPlan === 'basic') {
-                      return 'Nâng cấp Premium ✨';
+                      return 'Upgrade to Premium ✨';
                     } else {
-                      return `Nâng cấp ${requiredPlanInfo?.name || 'Premium'} ✨`;
+                      return `Upgrade to ${requiredPlanInfo?.name || 'Premium'} ✨`;
                     }
-                  })() : 'View Learning Roadmap'}
+                  })() : 'View Career Details'}
                 </button>
               </div>
             );

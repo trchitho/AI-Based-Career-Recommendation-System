@@ -191,6 +191,29 @@ export const reportService = {
             loggedEvents.clear();
         }
     },
+
+    /**
+     * Send report to email
+     */
+    async sendReportEmail(
+        assessmentId: number,
+        options: { useLoggedInEmail?: boolean; email?: string }
+    ): Promise<{ success: boolean; message: string; email_sent_to?: string }> {
+        try {
+            const res = await api.post<{ success: boolean; message: string; email_sent_to?: string }>(
+                '/api/reports/send-email',
+                {
+                    assessment_id: assessmentId,
+                    use_logged_in_email: options.useLoggedInEmail || false,
+                    email: options.email || null,
+                }
+            );
+            return res.data;
+        } catch (error: any) {
+            const message = error?.response?.data?.detail || error?.message || 'Failed to send email';
+            return { success: false, message };
+        }
+    },
 };
 
 export default reportService;

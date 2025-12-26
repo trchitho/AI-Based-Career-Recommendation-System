@@ -9,8 +9,9 @@ from .models import Career
 
 def list_careers(session: Session, q: str | None, category_id: int | None, limit: int, offset: int):
     # Select only portable columns to avoid schema drift
-    title_expr = func.coalesce(Career.title_vi, Career.title_en)
-    desc_expr = func.coalesce(Career.short_desc_vn, Career.short_desc_en)
+    # Prioritize English titles and descriptions
+    title_expr = func.coalesce(Career.title_en, Career.title_vi)
+    desc_expr = func.coalesce(Career.short_desc_en, Career.short_desc_vn)
     stmt = select(
         Career.id,
         Career.slug,
@@ -89,12 +90,15 @@ def get_career(session: Session, id_or_slug: str):
                 updated_at,
                 onet_code,
             ) = row
-            title = title_vi or title_en or ""
-            sdesc = short_desc_vn or short_desc_en or ""
+            # Prioritize English titles and descriptions
+            title = title_en or title_vi or ""
+            sdesc = short_desc_en or short_desc_vn or ""
             return {
                 "id": cid,
                 "slug": slug,
                 "title": title,
+                "title_en": title_en,
+                "title_vi": title_vi,
                 "short_desc": sdesc,
                 "description": sdesc,
                 "onet_code": onet_code,
@@ -137,21 +141,21 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
             (
                 1,
                 "Fundamentals",
-                "Nắm vững kiến thức nền tảng",
+                "Master the foundational knowledge and core concepts",
                 "2 weeks",
                 [{"title": "CS50 Lecture 1", "url": "https://cs50.harvard.edu/", "type": "course"}],
             ),
             (
                 2,
                 "Tools & Workflow",
-                "Làm quen công cụ và quy trình",
+                "Get familiar with essential tools and workflows",
                 "1 week",
                 [{"title": "Git Handbook", "url": "https://guides.github.com/", "type": "article"}],
             ),
             (
                 3,
                 "Project",
-                "Thực hành dự án nhỏ",
+                "Practice with a small hands-on project",
                 "2 weeks",
                 [{"title": "Build a Todo App", "url": "https://example.com/todo", "type": "video"}],
             ),
@@ -183,6 +187,7 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
             "description": m.description,
             "estimatedDuration": m.estimated_duration,
             "resources": m.resources_json or [],
+            "level": m.level or (m.order_no or 1),  # Use level column or fallback to order_no
         }
         for m in ms
     ]

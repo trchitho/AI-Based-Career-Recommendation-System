@@ -25,9 +25,9 @@ const PageContainer = ({ children, pageNo, pageKey, className = '' }: PageContai
             className={`
                 report-page
                 bg-white dark:bg-gray-800
-                w-full max-w-[850px] mx-auto
-                min-h-[1100px]
-                p-10
+                w-full max-w-[1400px] mx-auto
+                min-h-[1000px]
+                p-12
                 mb-6
                 rounded-lg
                 shadow-md

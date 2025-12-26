@@ -6,6 +6,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from .service import RecService, CareerEventsService
 from app.modules.auth.deps import get_current_user_optional
@@ -39,7 +40,83 @@ class RecommendationsRes(BaseModel):
     items: List[CareerDTO]
 
 
+class SavedCareerDTO(BaseModel):
+    career_id: int
+    slug: Optional[str] = None
+    title_vi: Optional[str] = None
+    title_en: Optional[str] = None
+    description: Optional[str] = None
+    score: float
+    rank: int
+
+
+class SavedRecommendationsRes(BaseModel):
+    assessment_id: int
+    items: List[SavedCareerDTO]
+
+
 # ===== ROUTES =====
+
+
+@router.get("/saved")
+def get_saved_recommendations(
+    request: Request,
+    assessment_id: int = Query(..., ge=1),
+    top_k: int = Query(3, ge=1, le=10),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """
+    GET /api/recommendations/saved?assessment_id=372&top_k=3
+    
+    Fetch saved career recommendations from core.career_recommendations table.
+    This is used by Dashboard to show career suggestions without calling AI-core.
+    """
+    db = _db(request)
+    
+    try:
+        # Query saved recommendations with career details
+        sql = text("""
+            SELECT 
+                cr.career_id,
+                cr.score,
+                cr.rank,
+                c.slug,
+                c.title_vi,
+                c.title_en,
+                c.short_desc_en,
+                c.short_desc_vn
+            FROM core.career_recommendations cr
+            JOIN core.careers c ON c.id = cr.career_id
+            WHERE cr.assessment_id = :assessment_id
+            ORDER BY cr.rank ASC
+            LIMIT :top_k
+        """)
+        
+        rows = db.execute(sql, {"assessment_id": assessment_id, "top_k": top_k}).fetchall()
+        
+        items = []
+        for row in rows:
+            items.append({
+                "career_id": row[0],
+                "score": float(row[1]) if row[1] else 0.0,
+                "rank": row[2],
+                "slug": row[3],
+                "title_vi": row[4],
+                "title_en": row[5],
+                "description": row[6] or row[7] or ""
+            })
+        
+        return {
+            "assessment_id": assessment_id,
+            "items": items
+        }
+        
+    except Exception as e:
+        print(f"[recommendations] get_saved_recommendations error: {repr(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch saved recommendations"
+        )
 
 
 @router.get("", response_model=RecommendationsRes)

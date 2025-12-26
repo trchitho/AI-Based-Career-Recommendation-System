@@ -19,6 +19,39 @@ export interface CareerItem {
   access_info?: any;
 }
 
+// Detailed career data from BFF catalog (5 tables)
+export interface CareerDetailDTO {
+  onet_code: string;
+  title: string;
+  short_desc?: string;
+  plan: string;
+  allowed_sections: string[];
+  locked_sections: string[];
+  sections: {
+    // From career_tasks
+    tasks: Array<{ task_text: string; importance: number | null }>;
+    // From career_technology
+    technology: Array<{ category: string | null; name: string; hot_flag: boolean | null }>;
+    // From career_ksas (ksa_type = 'skill')
+    skills: Array<{ ksa_type: string; name: string; category?: string | null; level: number | null; importance: number | null }>;
+    // From career_ksas (ksa_type = 'knowledge')
+    knowledge: Array<{ ksa_type: string; name: string; category?: string | null; level: number | null; importance: number | null }>;
+    // From career_ksas (ksa_type = 'ability')
+    abilities: Array<{ ksa_type: string; name: string; category?: string | null; level: number | null; importance: number | null }>;
+    // From career_outlook
+    outlook?: { summary_md?: string | null; growth_label?: string | null; openings_est?: number | null } | null;
+    // From career_overview
+    overview?: {
+      experience_text?: string | null;
+      degree_text?: string | null;
+      salary_min?: number | null;
+      salary_max?: number | null;
+      salary_avg?: number | null;
+      salary_currency?: string | null;
+    } | null;
+  };
+}
+
 export interface CareerListResponse {
   items: CareerItem[];
   total: number;
@@ -40,5 +73,13 @@ export const careerService = {
     const res = await api.get(`/api/careers/${idOrSlug}`);
     return res.data;
   },
+  /**
+   * Get detailed career info from BFF catalog (tasks, salary, outlook, etc.)
+   * @param onetCode - O*NET code or slug
+   * @param plan - User's subscription plan (free, basic, premium, pro)
+   */
+  async getDetail(onetCode: string, plan: string = 'free'): Promise<CareerDetailDTO> {
+    const res = await api.get(`/bff/catalog/career/${onetCode}?plan=${plan}`);
+    return res.data;
+  },
 };
-

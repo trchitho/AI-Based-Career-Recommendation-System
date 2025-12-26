@@ -54,10 +54,11 @@ const ResultsPage = () => {
   useEffect(() => {
     if (!assessmentId) return;
     fetchResults(assessmentId);
-    fetchRecommendations();
-    
+    // Don't fetch recommendations here - let the lazy load useEffect handle it
+    // fetchRecommendations();
 
-    
+
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId]);
 
@@ -115,7 +116,7 @@ const ResultsPage = () => {
       setErrorResults(null);
 
       const resultsData = await assessmentService.getResults(id);
-      
+
       setResults(resultsData);
     } catch (err) {
       console.error(err);

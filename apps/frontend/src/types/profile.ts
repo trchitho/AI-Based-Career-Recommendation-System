@@ -11,6 +11,7 @@ export interface UserProfile {
 
 export interface AssessmentHistoryItem {
   id: string;
+  session_id?: number;
   test_types: string[];
   completed_at: string;
   riasec_scores?: {
@@ -28,6 +29,7 @@ export interface AssessmentHistoryItem {
     agreeableness: number;
     neuroticism: number;
   };
+  top_interest?: string;
 }
 
 export interface RoadmapProgress {

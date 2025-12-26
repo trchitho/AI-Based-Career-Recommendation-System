@@ -1,86 +1,49 @@
 // apps/frontend/src/pages/RoadmapPage.tsx
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { roadmapService, TraitEvidence } from '../services/roadmapService';
+import { roadmapService } from '../services/roadmapService';
 import { careerService } from '../services/careerService';
 import RoadmapTimelineComponent from '../components/roadmap/RoadmapTimelineComponent';
-import RoadmapFooter from '../components/roadmap/RoadmapFooter';
 import { Roadmap } from '../types/roadmap';
 import MainLayout from '../components/layout/MainLayout';
 import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh';
 import { useSubscription } from '../hooks/useSubscription';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
-import { getRIASECFullName } from '../utils/riasec';
 
-const buildGenericMilestones = (): any[] => [
-  {
-    order: 1,
-    skillName: 'Learning foundations',
-    description: 'Build strong habits for learning and retaining new skills.',
-    estimatedDuration: '2-3 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/learn/learning-how-to-learn', type: 'course', title: 'Learning How to Learn' },
-      { url: 'https://www.coursera.org/learn/mindshift', type: 'course', title: 'Mindshift: Break Through Obstacles to Learning' },
-    ],
-  },
-  {
-    order: 2,
-    skillName: 'Communication & teamwork',
-    description: 'Improve communication, collaboration and feedback skills.',
-    estimatedDuration: '3-4 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/learn/wharton-communication-skills', type: 'course', title: 'Improving Communication Skills' },
-      { url: 'https://www.edx.org/course/communication-skills-and-teamwork', type: 'course', title: 'Communication Skills and Teamwork' },
-    ],
-  },
-  {
-    order: 3,
-    skillName: 'Problem solving & critical thinking',
-    description: 'Practice structured thinking and real-world problem solving.',
-    estimatedDuration: '3-4 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/learn/critical-thinking-skills', type: 'course', title: 'Creative Problem Solving' },
-      { url: 'https://www.edx.org/course/critical-thinking-reasoned-decision-making', type: 'course', title: 'Critical Thinking & Reasoned Decision Making' },
-    ],
-  },
-  {
-    order: 4,
-    skillName: 'Project & time management',
-    description: 'Plan, execute and deliver small projects on time.',
-    estimatedDuration: '2-3 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/learn/work-smarter-not-harder', type: 'course', title: 'Work Smarter, Not Harder' },
-      { url: 'https://www.coursera.org/specializations/project-management', type: 'course', title: 'Project Management Principles and Practices' },
-    ],
-  },
-  {
-    order: 5,
-    skillName: 'Leadership basics',
-    description: 'Develop core leadership behaviours for modern workplaces.',
-    estimatedDuration: '3-4 weeks',
-    resources: [
-      { url: 'https://online.hbs.edu/courses/leadership-principles/', type: 'course', title: 'Leadership Principles' },
-      { url: 'https://www.coursera.org/learn/foundations-of-everyday-leadership', type: 'course', title: 'Foundations of Everyday Leadership' },
-    ],
-  },
-  {
-    order: 6,
-    skillName: 'Career specialization',
-    description: 'Deepen expertise in a specialization related to your chosen career.',
-    estimatedDuration: '4-6 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/browse', type: 'catalog', title: 'Browse role-based learning paths on Coursera' },
-      { url: 'https://www.edx.org/learn', type: 'catalog', title: 'Browse professional certificates on edX' },
-    ],
-  },
-];
-
-const withFallbackMilestones = (roadmap: Roadmap): Roadmap => {
-  const count = roadmap.milestones?.length ?? 0;
-  if (count >= 6) return roadmap;
-  return { ...(roadmap as any), milestones: buildGenericMilestones() } as Roadmap;
+// Generate career levels based on milestone count
+const getCareerLevels = (milestoneCount: number) => {
+  if (milestoneCount <= 3) {
+    return [
+      { stage: 'entry', label: 'Entry' },
+      { stage: 'mid', label: 'Mid-Level' },
+      { stage: 'senior', label: 'Senior' },
+    ];
+  } else if (milestoneCount === 4) {
+    return [
+      { stage: 'entry', label: 'Entry' },
+      { stage: 'junior', label: 'Junior' },
+      { stage: 'mid', label: 'Mid-Level' },
+      { stage: 'senior', label: 'Senior' },
+    ];
+  } else if (milestoneCount === 5) {
+    return [
+      { stage: 'intern', label: 'Intern' },
+      { stage: 'entry', label: 'Entry' },
+      { stage: 'mid', label: 'Mid-Level' },
+      { stage: 'senior', label: 'Senior' },
+      { stage: 'lead', label: 'Lead' },
+    ];
+  } else {
+    return [
+      { stage: 'intern', label: 'Intern' },
+      { stage: 'junior', label: 'Junior' },
+      { stage: 'mid', label: 'Mid-Level' },
+      { stage: 'senior', label: 'Senior' },
+      { stage: 'lead', label: 'Lead' },
+      { stage: 'principal', label: 'Principal' },
+    ].slice(0, milestoneCount);
+  }
 };
 
 const RoadmapPage = () => {
@@ -94,32 +57,39 @@ const RoadmapPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [completingMilestone, setCompletingMilestone] = useState<string | null>(null);
   const [careerDesc, setCareerDesc] = useState<string>('');
-  const [showFullDesc, setShowFullDesc] = useState<boolean>(false);
-  const [traitEvidence, setTraitEvidence] = useState<TraitEvidence | null>(null);
   const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [maxFreeLevel, setMaxFreeLevel] = useState(1);
 
-  const { subscriptionData, isPremium } = useSubscription();
+  const { isPremium } = useSubscription();
   const { incrementUsage } = useUsageTracking();
   const { currentPlan, hasFeature } = useFeatureAccess();
-  const hasLoadedTraitEvidenceRef = useRef(false);
   const hasTrackedUsageRef = useRef(false);
 
-  // Watch for subscription changes - Updated to use useFeatureAccess
+  // Use refs to avoid infinite loop - these values are used inside fetchRoadmap
+  // but shouldn't trigger re-fetches when they change
+  const currentPlanRef = useRef(currentPlan);
+  const hasFeatureRef = useRef(hasFeature);
+  const isPremiumRef = useRef(isPremium);
+  const incrementUsageRef = useRef(incrementUsage);
+
+  // Keep refs updated
   useEffect(() => {
-    // Use consistent plan detection from useFeatureAccess
+    currentPlanRef.current = currentPlan;
+    hasFeatureRef.current = hasFeature;
+    isPremiumRef.current = isPremium;
+    incrementUsageRef.current = incrementUsage;
+  }, [currentPlan, hasFeature, isPremium, incrementUsage]);
+
+  // Update upgrade state when plan changes
+  useEffect(() => {
     const hasUnlimitedCareers = hasFeature('unlimited_careers');
-    
     if (hasUnlimitedCareers) {
-      // Premium/Pro users get full roadmap
       setUpgradeRequired(false);
       setMaxFreeLevel(-1);
     } else if (currentPlan === 'basic') {
-      // Basic users get Level 1-2
       setUpgradeRequired(true);
       setMaxFreeLevel(2);
     } else {
-      // Free users get Level 1 only
       setUpgradeRequired(true);
       setMaxFreeLevel(1);
     }
@@ -155,7 +125,7 @@ const RoadmapPage = () => {
 
       try {
         const c = await careerService.get(careerId);
-        const desc = navState.description || (c as any).short_desc_en || (c as any).description || (c as any).short_desc || '';
+        const desc = navState.description || (c as any).short_desc_en || (c as any).short_desc || (c as any).description || '';
         setCareerDesc(desc);
         const titleOverride = navState.title || (c as any).title_en || (c as any).title || data.careerTitle;
         data = { ...(data as any), careerTitle: titleOverride } as Roadmap;
@@ -164,30 +134,23 @@ const RoadmapPage = () => {
         if (navState.title) data = { ...(data as any), careerTitle: navState.title } as Roadmap;
       }
 
-      const normalized = withFallbackMilestones(data);
-      
-      // Apply 4-tier roadmap access logic using useFeatureAccess
-      const hasUnlimitedCareers = hasFeature('unlimited_careers');
-      
+      // Use refs to avoid dependency issues
+      const hasUnlimitedCareers = hasFeatureRef.current('unlimited_careers');
       if (hasUnlimitedCareers) {
-        // Premium/Pro users get full roadmap
         setUpgradeRequired(false);
         setMaxFreeLevel(-1);
-      } else if (currentPlan === 'basic') {
-        // Basic users get Level 1-2
+      } else if (currentPlanRef.current === 'basic') {
         setUpgradeRequired(true);
         setMaxFreeLevel(2);
       } else {
-        // Free users get Level 1 only
         setUpgradeRequired(true);
         setMaxFreeLevel(1);
       }
 
-      setRoadmap(normalized);
-      
-      // Track roadmap usage (only once per page load, only for limited plans)
-      if (!hasTrackedUsageRef.current && !isPremium) {
-        incrementUsage('roadmap_level');
+      setRoadmap(data);
+
+      if (!hasTrackedUsageRef.current && !isPremiumRef.current) {
+        incrementUsageRef.current('roadmap_level');
         hasTrackedUsageRef.current = true;
       }
     } catch (err) {
@@ -196,24 +159,12 @@ const RoadmapPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [careerId, navState.description, navState.title, currentPlan]);
-
-  const loadTraitEvidence = useCallback(async () => {
-    if (!careerId || hasLoadedTraitEvidenceRef.current) return;
-    hasLoadedTraitEvidenceRef.current = true;
-    try {
-      const data = await roadmapService.getTraitEvidence(careerId);
-      setTraitEvidence(data);
-    } catch (err: any) {
-      if (err?.response?.status !== 404) console.error('Failed to load trait evidence', err);
-    }
-  }, [careerId]);
+  }, [careerId, navState.description, navState.title]);
 
   useEffect(() => {
     if (!careerId) return;
     fetchRoadmap();
-    loadTraitEvidence();
-  }, [careerId, fetchRoadmap, loadTraitEvidence]);
+  }, [careerId, fetchRoadmap]);
 
   const handleCompleteMilestone = async (milestoneId: string) => {
     if (!careerId) return;
@@ -221,7 +172,6 @@ const RoadmapPage = () => {
       setCompletingMilestone(milestoneId);
       await roadmapService.completeMilestone(careerId, milestoneId);
       await fetchRoadmap();
-      await loadTraitEvidence();
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to mark complete.');
     } finally {
@@ -229,12 +179,13 @@ const RoadmapPage = () => {
     }
   };
 
+  const handleUpgradeDetected = () => fetchRoadmap();
+
   const totalMilestones = roadmap?.milestones?.length || 0;
   const completedCount = roadmap?.userProgress?.completed_milestones?.length || 0;
   const completionRatio = totalMilestones > 0 ? completedCount / totalMilestones : 0;
   const completionPercent = Math.round(completionRatio * 100);
-
-  const handleUpgradeDetected = () => fetchRoadmap();
+  const careerLevels = getCareerLevels(totalMilestones || 6);
 
   return (
     <MainLayout>
@@ -275,27 +226,26 @@ const RoadmapPage = () => {
 
           {!loading && roadmap && (
             <div className="animate-fade-in-up space-y-8">
-              {/* Hero Header Card */}
+              {/* Hero Header Card - Simplified */}
               <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 rounded-[32px] p-8 md:p-10 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
                 <div className="relative z-10">
+                  <button onClick={() => navigate(-1)} className="mb-4 flex items-center text-green-100 hover:text-white transition-colors text-sm font-bold uppercase tracking-wide">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                    Back
+                  </button>
                   <div className="flex items-center gap-3 mb-4">
                     <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/30">Career Path</span>
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8">{roadmap.careerTitle}</h1>
+                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">{roadmap.careerTitle}</h1>
+                  {careerDesc && <p className="text-green-100/80 max-w-2xl text-lg mb-8">{careerDesc}</p>}
 
+                  {/* Dynamic Career Levels */}
                   <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-hide snap-x">
-                    {[
-                      { stage: 'intern', label: 'Intern' },
-                      { stage: 'junior', label: 'Junior' },
-                      { stage: 'mid', label: 'Mid-Level' },
-                      { stage: 'senior', label: 'Senior' },
-                      { stage: 'lead', label: 'Lead' },
-                      { stage: 'principal', label: 'Principal' },
-                    ].map((item, idx) => {
-                      const total = totalMilestones || 6;
-                      const stageThreshold = ((idx + 1) * total) / 6;
-                      const prevThreshold = (idx * total) / 6;
+                    {careerLevels.map((item, idx) => {
+                      const total = totalMilestones || careerLevels.length;
+                      const stageThreshold = ((idx + 1) * total) / careerLevels.length;
+                      const prevThreshold = (idx * total) / careerLevels.length;
                       const isCompleted = completedCount >= stageThreshold;
                       const isCurrent = !isCompleted && completedCount >= prevThreshold;
 
@@ -309,7 +259,7 @@ const RoadmapPage = () => {
                             ) : (
                               <span className="text-lg font-bold">{idx + 1}</span>
                             )}
-                            {idx < 5 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-green-800'}`} />}
+                            {idx < careerLevels.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-green-800'}`} />}
                           </div>
                           <span className={`mt-3 text-xs font-bold uppercase tracking-wide ${isCompleted || isCurrent ? 'text-white' : 'text-green-200/60'}`}>{item.label}</span>
                         </div>
@@ -319,107 +269,7 @@ const RoadmapPage = () => {
                 </div>
               </div>
 
-              {/* Info Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                  {(careerDesc || navState.description) && (
-                    <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <span className="w-2 h-6 bg-green-500 rounded-full" />Overview
-                      </h3>
-                      <div className={`prose prose-green dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed ${showFullDesc ? '' : 'line-clamp-3'}`}>
-                        {navState.description || careerDesc}
-                      </div>
-                      {(navState.description || careerDesc).length > 250 && (
-                        <button onClick={() => setShowFullDesc(!showFullDesc)} className="mt-4 text-sm font-bold text-green-600 hover:text-green-700 dark:text-green-400 hover:underline focus:outline-none">
-                          {showFullDesc ? 'Show Less' : 'Read More'}
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                      <span className="w-2 h-6 bg-blue-500 rounded-full" />Key Requirements
-                    </h3>
-                    <div className="space-y-4">
-                      {['Strong communication and interpersonal skills', 'Ability to work independently and as part of a team', 'Problem-solving and analytical thinking abilities', 'Adaptability and willingness to learn new technologies'].map((req, idx) => (
-                        <div key={idx} className="flex items-start p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mt-0.5 mr-4">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                          <span className="text-gray-700 dark:text-gray-300 font-medium">{req}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {traitEvidence && (
-                    <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">How your assessment supports this career match</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        Below are some example items from the <span className="font-semibold">{getRIASECFullName(traitEvidence.scale)}</span> scales that were used when computing your profile.
-                      </p>
-                      <ul className="list-disc list-inside space-y-2">
-                        {traitEvidence.items.map((q, idx) => (
-                          <li key={idx} className="text-gray-700 dark:text-gray-300 text-sm">{q}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-8">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-[24px] border border-gray-200 dark:border-gray-700 text-center">
-                      <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Experience</p>
-                      <p className="text-lg font-extrabold text-gray-900 dark:text-white">{(roadmap as any).overview?.experienceText || '6 mo - 1 yr'}</p>
-                    </div>
-                    <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-[24px] border border-gray-200 dark:border-gray-700 text-center">
-                      <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Degree</p>
-                      <p className="text-lg font-extrabold text-gray-900 dark:text-white">{(roadmap as any).overview?.degreeText || 'Bachelor'}</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-900 dark:bg-gray-800 p-8 rounded-[32px] shadow-xl text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/20 rounded-full blur-3xl -mr-10 -mt-10" />
-                    <h3 className="text-lg font-bold mb-6 relative z-10">Salary Range</h3>
-                    <div className="space-y-6 relative z-10">
-                      <div>
-                        <div className="flex justify-between text-sm mb-1 text-gray-400">Entry Level</div>
-                        <div className="text-2xl font-extrabold">$40K - $60K</div>
-                      </div>
-                      <div className="w-full h-px bg-gray-700" />
-                      <div>
-                        <div className="flex justify-between text-sm mb-1 text-green-400 font-bold">Senior Level</div>
-                        <div className="text-3xl font-extrabold text-green-400">$80K - $120K</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Top Skills</h3>
-                    <div className="space-y-4">
-                      {[{ n: 'Technical Skills', p: 75 }, { n: 'Communication', p: 60 }, { n: 'Leadership', p: 40 }].map((s, i) => (
-                        <div key={i}>
-                          <div className="flex justify-between text-xs font-bold mb-1.5">
-                            <span className="text-gray-600 dark:text-gray-300">{s.n}</span>
-                            <span className="text-green-600">{s.p}%</span>
-                          </div>
-                          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-                            <div className="bg-green-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${s.p}%` }} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-
-              {/* Detailed Learning Path */}
+              {/* Live Roadmap Section */}
               <div className="relative bg-white dark:bg-gray-800 rounded-[40px] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <div className="relative bg-[#1a4731] dark:bg-gray-900 p-8 md:p-12 overflow-hidden">
                   <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
@@ -469,19 +319,19 @@ const RoadmapPage = () => {
                           </div>
                           <div className="flex-1">
                             <h3 className="text-xl font-bold mb-2">
-                              {maxFreeLevel === 1 ? 'Nâng cấp để xem lộ trình đầy đủ' : 'Mở khóa toàn bộ lộ trình học tập chuyên nghiệp'}
+                              {maxFreeLevel === 1 ? 'Upgrade to view full roadmap' : 'Unlock complete learning path'}
                             </h3>
                             <p className="text-white/90 text-sm mb-3">
                               {maxFreeLevel === 1 ? (
-                                <>Bạn đang xem <span className="font-semibold">Level 1 miễn phí</span>. Nâng cấp <span className="font-semibold">Gói Cơ Bản (99k)</span> để xem Level 1-2 hoặc <span className="font-semibold">Gói Premium (299k)</span> để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span>.</>
+                                <>You are viewing <span className="font-semibold">Level 1 (Free)</span>. Upgrade to <span className="font-semibold">Basic (99k)</span> for Level 1-2 or <span className="font-semibold">Premium (299k)</span> for all <span className="font-semibold">{totalMilestones} levels</span>.</>
                               ) : maxFreeLevel === 2 ? (
-                                <>Bạn đang xem <span className="font-semibold">Level 1-2 (Gói Cơ Bản)</span>. Nâng cấp <span className="font-semibold">Gói Premium (299k)</span> để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span> với tài liệu chuyên sâu.</>
+                                <>You are viewing <span className="font-semibold">Level 1-2 (Basic)</span>. Upgrade to <span className="font-semibold">Premium (299k)</span> for all <span className="font-semibold">{totalMilestones} levels</span> with advanced resources.</>
                               ) : (
-                                <>Bạn đang xem <span className="font-semibold">{maxFreeLevel} level miễn phí</span>. Nâng cấp để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span> với tài liệu chuyên sâu.</>
+                                <>You are viewing <span className="font-semibold">{maxFreeLevel} levels (Free)</span>. Upgrade for all <span className="font-semibold">{totalMilestones} levels</span> with advanced resources.</>
                               )}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                              {['🎯 Tài liệu học tập chuyên sâu', '📚 Khóa học và bài tập thực hành', '🔄 Cập nhật nội dung liên tục', '💬 Hỗ trợ cộng đồng Premium'].map((benefit, index) => (
+                              {['🎯 In-depth learning materials', '📚 Courses and practical exercises', '🔄 Continuous content updates', '💬 Premium community support'].map((benefit, index) => (
                                 <div key={index} className="flex items-center gap-2 text-white/80"><span>{benefit}</span></div>
                               ))}
                             </div>
@@ -492,10 +342,10 @@ const RoadmapPage = () => {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
-                            {maxFreeLevel === 1 ? 'Xem các gói' : 'Nâng cấp Premium'}<span>⚡</span>
+                            {maxFreeLevel === 1 ? 'View Plans' : 'Upgrade to Premium'}<span>⚡</span>
                           </button>
                           <p className="text-white/70 text-xs text-center">
-                            {maxFreeLevel === 1 ? 'Từ 99k (Cơ Bản) - 299k (Premium)' : 'Chỉ từ 299,000đ'}
+                            {maxFreeLevel === 1 ? 'From 99k (Basic) - 299k (Premium)' : 'Only 299,000đ'}
                           </p>
                         </div>
                       </div>
@@ -512,8 +362,6 @@ const RoadmapPage = () => {
                   />
                 </div>
               </div>
-
-              <RoadmapFooter milestones={roadmap.milestones} userProgress={roadmap.userProgress} />
             </div>
           )}
         </div>

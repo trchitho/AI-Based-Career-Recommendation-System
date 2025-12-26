@@ -64,25 +64,28 @@ export const assessmentService = {
   async getResults(assessmentId: string) {
     const response = await api.get(`/api/assessments/${assessmentId}/results`);
     const results = response.data;
-    
-    // Save the processed results back to database for persistence
-    try {
-      await this.saveProcessedResults(assessmentId, results);
-    } catch (error) {
-      console.warn('Failed to save processed results:', error);
-      // Don't throw error - results are still valid even if saving fails
+
+    // Only save processed results if they haven't been saved yet
+    // Check if the assessment already has processed scores to avoid overwriting old data
+    if (!results.already_processed) {
+      try {
+        await this.saveProcessedResults(assessmentId, results);
+      } catch (error) {
+        console.warn('Failed to save processed results:', error);
+        // Don't throw error - results are still valid even if saving fails
+      }
     }
-    
+
     return results;
   },
 
   async saveProcessedResults(assessmentId: string, results: any) {
     // Save the processed RIASEC and Big Five scores to database
+    // Note: career_recommendations are saved separately to core.career_recommendations table
     await api.post(`/api/assessments/${assessmentId}/save-results`, {
       riasec_scores: results.riasec_scores,
       big_five_scores: results.big_five_scores,
       top_interest: results.top_interest,
-      career_recommendations: results.career_recommendations,
       essay_analysis: results.essay_analysis
     });
   },
@@ -100,39 +103,25 @@ export const assessmentService = {
   async getHistory() {
     try {
       console.log('🔍 [AssessmentService] Getting assessment history...');
-      
-      // Get user sessions with assessment data
-      const sessions = await this.getUserSessions();
-      console.log('📊 [AssessmentService] Raw sessions data:', sessions);
-      
-      // Transform sessions into assessment history format
-      const history = [];
-      
-      for (const session of sessions.sessions || []) {
-        console.log('🔄 [AssessmentService] Processing session:', session);
-        
-        // Each session can have multiple assessments, add them individually
-        if (session.assessments && session.assessments.length > 0) {
-          for (const assessment of session.assessments) {
-            console.log('📝 [AssessmentService] Adding assessment:', assessment);
-            history.push(assessment);
-          }
-        } else {
-          console.log('⚠️ [AssessmentService] Session has no assessments, using fallback');
-          // Fallback for sessions without detailed assessment data
-          history.push({
-            id: session.session_id.toString(),
-            completed_at: session.created_at,
-            test_types: session.assessment_types ? session.assessment_types.split(', ') : [],
-            riasec_scores: undefined,
-            big_five_scores: undefined
-          });
-        }
-      }
-      
+
+      // Get user sessions with combined assessment data
+      const response = await this.getUserSessions();
+      console.log('📊 [AssessmentService] Raw sessions data:', response);
+
+      // Sessions are already in the correct format (1 session = 1 row with combined data)
+      const history = (response.sessions || []).map((session: any) => ({
+        id: session.id || session.session_id?.toString(),
+        session_id: session.session_id,
+        completed_at: session.completed_at || session.created_at,
+        test_types: session.assessment_types || [],
+        riasec_scores: session.riasec_scores,
+        big_five_scores: session.big_five_scores,
+        top_interest: session.top_interest
+      }));
+
       // Sort by completion date (newest first)
-      history.sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime());
-      
+      history.sort((a: any, b: any) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime());
+
       console.log('✅ [AssessmentService] Final history:', history);
       return history;
     } catch (error) {

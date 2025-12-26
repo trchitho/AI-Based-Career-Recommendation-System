@@ -29,8 +29,6 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
     });
   };
 
-  const getTestTypeLabel = (testTypes: string[]) => testTypes.join(', ');
-
   const handleCheckboxChange = (id: string) => {
     setSelectedAssessments((prev) => {
       if (prev.includes(id)) return prev.filter((p) => p !== id);
@@ -160,9 +158,6 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                       Date Completed
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Test Types
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Top RIASEC
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -194,12 +189,6 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="text-sm font-bold text-gray-900 dark:text-white">
                           {formatDate(assessment.completed_at)}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-5 whitespace-nowrap">
-                        <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                          {getTestTypeLabel(assessment.test_types || [])}
                         </div>
                       </td>
 

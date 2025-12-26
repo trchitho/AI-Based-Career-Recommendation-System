@@ -133,6 +133,15 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("ℹ️  Skip BFF router:", repr(e))
 
+    # BFF Career API (career details from 5 tables)
+    try:
+        from .api import bff_career
+
+        app.include_router(bff_career.router)
+        print("✅ BFF Career router registered at /bff/catalog/career/{onet_code}")
+    except Exception as e:
+        print("❌ Skip BFF Career router:", repr(e))
+
     # Auth / Users
     from .modules.users.router_auth import router as auth_router
     from .modules.users.routers_users import router as users_router

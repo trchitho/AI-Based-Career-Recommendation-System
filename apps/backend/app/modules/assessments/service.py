@@ -1038,67 +1038,30 @@ def build_results(session: Session, assessment_id: int) -> dict:
     Build kết quả cho 1 assessment cụ thể:
 
     - Lấy Assessment (RIASEC hoặc BigFive) theo id.
-    - Lấy snapshot traits cho user (test + essay + fused) qua get_user_traits().
+    - Nếu assessment đã có processed scores → dùng luôn (không gọi get_user_traits)
+    - Nếu chưa có → lấy snapshot traits cho user (test + essay + fused) qua get_user_traits().
     - Chuẩn hoá điểm cho FE:
         + riasec_scores: realistic, investigative, ... (0–100)
         + big_five_scores: openness, conscientiousness, ... (0–100)
-      → Ưu tiên dùng fused (0-1) rồi nhân 100; nếu không có fused thì dùng test (0-1).
     - top_interest: L1 dimension từ raw test scores (1-5, khớp với filter logic)
-    - Lấy top 3 careers (tạm thời placeholder như logic cũ).
     
     CRITICAL: 
-    - riasec_scores cho chart dùng vector 0-1 (fused hoặc test) rồi nhân 100
-    - top_interest dùng raw scores 1-5 từ core.assessments để khớp với filter logic
-    - KHÔNG được ghi đè riasec_vec (0-1) bằng raw_scores (1-5)
+    - Nếu đã có processed scores trong DB → dùng luôn, không tính lại
+    - Trả về already_processed=true để FE biết không cần save lại
     """
     obj = session.get(Assessment, assessment_id)
     if not obj:
         raise NotFoundError("Assessment not found")
 
     user_id = int(obj.user_id)
+    session_id = obj.session_id
     
     # Lấy điểm số trực tiếp từ assessment này
     assessment_scores = obj.scores or {}
     assessment_type = obj.a_type
 
-    # 1) Lấy snapshot traits (đã fuse) cho user để trả về thêm thông tin
-    traits_snapshot: TraitSnapshot = get_user_traits(
-        session=session,
-        user_id=user_id,
-    )
-
-    # 2) Chọn vector 0-1 để dùng cho chart (KHÔNG PHẢI raw 1-5)
-    # Ưu tiên fused, fallback về test
-    riasec_vec_for_chart = traits_snapshot.riasec_fused or traits_snapshot.riasec_test
-    big5_vec = traits_snapshot.big5_fused or traits_snapshot.big5_test
-
     # Map thứ tự vector → tên dimension FE đang dùng
     riasec_letters = ["R", "I", "A", "S", "E", "C"]
-    
-    # 2.1) Tính top_interest từ RAW test scores (1-5 scale) - khớp với filter logic
-    # Đây là L1 dimension dùng trong recommendation filter
-    # TIE-BREAKING RULE: Nếu 2 dimension có điểm bằng nhau, ưu tiên theo thứ tự R,I,A,S,E,C
-    # CRITICAL: Dùng biến riêng (raw_riasec_vec), KHÔNG ghi đè riasec_vec_for_chart
-    top_interest: str | None = None
-    riasec_row = (
-        session.query(Assessment)
-        .filter(
-            Assessment.user_id == user_id,
-            Assessment.a_type == "RIASEC",
-        )
-        .order_by(Assessment.created_at.desc())
-        .first()
-    )
-    if riasec_row and riasec_row.scores:
-        raw_scores = riasec_row.scores
-        # Build vector 1-5 theo thứ tự R,I,A,S,E,C (CHỈ dùng để tính top_interest)
-        raw_riasec_vec = [float(raw_scores.get(dim, 0.0)) for dim in riasec_letters]
-        # Sort với tie-breaker: (-score, index) để index nhỏ hơn được ưu tiên khi score bằng nhau
-        sorted_indices = sorted(
-            range(6),
-            key=lambda i: (-raw_riasec_vec[i], i)
-        )
-        top_interest = riasec_letters[sorted_indices[0]]
     riasec_name_map = {
         "R": "realistic",
         "I": "investigative",
@@ -1107,7 +1070,6 @@ def build_results(session: Session, assessment_id: int) -> dict:
         "E": "enterprising",
         "C": "conventional",
     }
-
     big5_letters = ["O", "C", "E", "A", "N"]
     big5_name_map = {
         "O": "openness",
@@ -1117,81 +1079,119 @@ def build_results(session: Session, assessment_id: int) -> dict:
         "N": "neuroticism",
     }
 
-    def _vec_to_percent_scores(
-        vec: Optional[list[float]],
-        letters: list[str],
-        name_map: dict[str, str],
-    ) -> dict[str, float]:
-        """
-        vec: list[float] 0..1 (theo thứ tự letters).
-        Trả: { display_name: value_0_100 }.
-        """
-        scores: dict[str, float] = {
-            name_map[ch]: 0.0 for ch in letters
+    # Check if this session already has processed scores saved
+    # Get all assessments in this session
+    riasec_assessment = None
+    bigfive_assessment = None
+    
+    if session_id:
+        session_assessments = session.query(Assessment).filter(
+            Assessment.session_id == session_id
+        ).all()
+        for a in session_assessments:
+            if a.a_type == "RIASEC":
+                riasec_assessment = a
+            elif a.a_type == "BigFive":
+                bigfive_assessment = a
+    else:
+        # No session, just use this assessment
+        if obj.a_type == "RIASEC":
+            riasec_assessment = obj
+        elif obj.a_type == "BigFive":
+            bigfive_assessment = obj
+
+    # Check if already processed
+    already_processed = False
+    riasec_scores = {}
+    big_five_scores = {}
+    top_interest = None
+
+    # Try to get RIASEC scores from saved data
+    if riasec_assessment and riasec_assessment.processed_riasec_scores:
+        already_processed = True
+        riasec_scores = {
+            key: round(value * 100, 1) 
+            for key, value in riasec_assessment.processed_riasec_scores.items()
         }
-        if not vec or len(vec) < len(letters):
-            return scores
+        top_interest = riasec_assessment.top_interest
 
-        for idx, ch in enumerate(letters):
-            raw = float(vec[idx])
-            # clip 0..1 rồi *100
-            if raw < 0.0:
-                raw = 0.0
-            if raw > 1.0:
-                raw = 1.0
-            scores[name_map[ch]] = round(raw * 100.0, 1)
+    # Try to get BigFive scores from saved data
+    # First check BigFive assessment, then fallback to RIASEC assessment (old data)
+    if bigfive_assessment and bigfive_assessment.processed_big_five_scores:
+        already_processed = True
+        big_five_scores = {
+            key: round(value * 100, 1) 
+            for key, value in bigfive_assessment.processed_big_five_scores.items()
+        }
+    elif riasec_assessment and riasec_assessment.processed_big_five_scores:
+        # Fallback: old data saved BigFive scores to RIASEC row
+        already_processed = True
+        big_five_scores = {
+            key: round(value * 100, 1) 
+            for key, value in riasec_assessment.processed_big_five_scores.items()
+        }
 
-        return scores
-
-    riasec_scores = _vec_to_percent_scores(
-        riasec_vec_for_chart, riasec_letters, riasec_name_map
-    )
-    big_five_scores = _vec_to_percent_scores(
-        big5_vec, big5_letters, big5_name_map
-    )
-
-    # 3) Nếu vì lý do nào đó chưa có trait → fallback nhẹ từ responses (map 1..5 -> 0..100)
-    if (
-        not any(riasec_scores.values())
-        and not any(big_five_scores.values())
-    ):
-        resp_rows = (
-            session.execute(
-                select(AssessmentResponse).where(
-                    AssessmentResponse.assessment_id == obj.id
-                )
-            )
-            .scalars()
-            .all()
+    # If not already processed, compute from traits
+    if not already_processed:
+        # Lấy snapshot traits (đã fuse) cho user
+        traits_snapshot: TraitSnapshot = get_user_traits(
+            session=session,
+            user_id=user_id,
         )
 
-        riasec_acc: dict[str, list[float]] = {
-            v: [] for v in riasec_name_map.values()
-        }
-        big5_acc: dict[str, list[float]] = {
-            v: [] for v in big5_name_map.values()
-        }
+        # Chọn vector 0-1 để dùng cho chart
+        riasec_vec_for_chart = traits_snapshot.riasec_fused or traits_snapshot.riasec_test
+        big5_vec = traits_snapshot.big5_fused or traits_snapshot.big5_test
 
-        # reverse-map key chữ cái → tên hiển thị
-        riasec_key_map = {
-            "R": "realistic",
-            "I": "investigative",
-            "A": "artistic",
-            "S": "social",
-            "E": "enterprising",
-            "C": "conventional",
-        }
-    
+        def _vec_to_percent_scores(
+            vec: Optional[list[float]],
+            letters: list[str],
+            name_map: dict[str, str],
+        ) -> dict[str, float]:
+            scores: dict[str, float] = {
+                name_map[ch]: 0.0 for ch in letters
+            }
+            if not vec or len(vec) < len(letters):
+                return scores
+            for idx, ch in enumerate(letters):
+                raw = float(vec[idx])
+                if raw < 0.0:
+                    raw = 0.0
+                if raw > 1.0:
+                    raw = 1.0
+                scores[name_map[ch]] = round(raw * 100.0, 1)
+            return scores
+
+        riasec_scores = _vec_to_percent_scores(
+            riasec_vec_for_chart, riasec_letters, riasec_name_map
+        )
+        big_five_scores = _vec_to_percent_scores(
+            big5_vec, big5_letters, big5_name_map
+        )
+
+        # Tính top_interest từ RAW test scores (1-5 scale)
+        if riasec_assessment and riasec_assessment.scores:
+            raw_scores = riasec_assessment.scores
+            raw_riasec_vec = [float(raw_scores.get(dim, 0.0)) for dim in riasec_letters]
+            sorted_indices = sorted(
+                range(6),
+                key=lambda i: (-raw_riasec_vec[i], i)
+            )
+            top_interest = riasec_letters[sorted_indices[0]]
+
+    # Ensure we have default values
+    if not riasec_scores:
+        riasec_scores = {name: 0.0 for name in riasec_name_map.values()}
     if not big_five_scores:
-        big_five_scores = {
-            "openness": 0.0,
-            "conscientiousness": 0.0,
-            "extraversion": 0.0,
-            "agreeableness": 0.0,
-            "neuroticism": 0.0,
-        }
+        big_five_scores = {name: 0.0 for name in big5_name_map.values()}
 
-    # 4) Gợi ý nghề giống logic cũ (placeholder)
+    # Get traits snapshot for response (always fresh)
+    traits_snapshot: TraitSnapshot = get_user_traits(
+        session=session,
+        user_id=user_id,
+    )
+
+    # Gợi ý nghề (placeholder)
     rec_rows = session.execute(
         select(Career.id).order_by(Career.id.asc()).limit(3)
     ).all()
@@ -1228,10 +1228,11 @@ def build_results(session: Session, assessment_id: int) -> dict:
         "user_id": user_id,
         "riasec_scores": riasec_scores,
         "big_five_scores": big_five_scores,
-        "top_interest": top_interest,  # L1 từ raw test scores - khớp với filter
+        "top_interest": top_interest,
         "traits": traits_snapshot.model_dump(),
         "career_recommendations": rec_ids,
         "career_recommendations_full": careers_full,
+        "already_processed": already_processed,
         "completed_at": (
             obj.created_at.isoformat()
             if getattr(obj, "created_at", None)

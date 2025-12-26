@@ -16,6 +16,8 @@ from .schemas import (
     ReportResponse,
     ReportEventCreate,
     ReportEventResponse,
+    SendReportEmailRequest,
+    SendReportEmailResponse,
     CoverData,
     NarrativeData,
     ScoreItem,
@@ -139,25 +141,69 @@ async def get_full_report(
     big5_scores = None
     riasec_scores = None
     
-    # Check if scores contain Big5 or RIASEC data
-    if "openness" in scores or "conscientiousness" in scores:
-        big5_scores = {
-            "openness": scores.get("openness", 50),
-            "conscientiousness": scores.get("conscientiousness", 50),
-            "extraversion": scores.get("extraversion", 50),
-            "agreeableness": scores.get("agreeableness", 50),
-            "neuroticism": scores.get("neuroticism", 50),
-        }
+    # Helper to extract Big5 scores - supports both letter keys (O,C,E,A,N) and full names
+    def _extract_big5(s: dict, a_type: str = None) -> dict | None:
+        # Only extract if this is a BigFive assessment or has Big5-specific keys
+        has_big5_keys = "O" in s or "N" in s  # O and N are unique to Big5
+        has_full_names = "openness" in s or "conscientiousness" in s or "neuroticism" in s
+        
+        if a_type == "BigFive" or has_big5_keys or has_full_names:
+            if has_big5_keys:
+                # Scores are stored as 1-5 scale, convert to 0-100
+                return {
+                    "openness": (float(s.get("O", 3.0)) - 1) * 25,
+                    "conscientiousness": (float(s.get("C", 3.0)) - 1) * 25,
+                    "extraversion": (float(s.get("E", 3.0)) - 1) * 25,
+                    "agreeableness": (float(s.get("A", 3.0)) - 1) * 25,
+                    "neuroticism": (float(s.get("N", 3.0)) - 1) * 25,
+                }
+            elif has_full_names:
+                return {
+                    "openness": float(s.get("openness", 50)),
+                    "conscientiousness": float(s.get("conscientiousness", 50)),
+                    "extraversion": float(s.get("extraversion", 50)),
+                    "agreeableness": float(s.get("agreeableness", 50)),
+                    "neuroticism": float(s.get("neuroticism", 50)),
+                }
+        return None
     
-    if "realistic" in scores or "investigative" in scores:
-        riasec_scores = {
-            "realistic": scores.get("realistic", 50),
-            "investigative": scores.get("investigative", 50),
-            "artistic": scores.get("artistic", 50),
-            "social": scores.get("social", 50),
-            "enterprising": scores.get("enterprising", 50),
-            "conventional": scores.get("conventional", 50),
-        }
+    # Helper to extract RIASEC scores - supports both letter keys and full names
+    def _extract_riasec(s: dict, a_type: str = None) -> dict | None:
+        # Only extract if this is a RIASEC assessment or has RIASEC-specific keys
+        has_riasec_keys = "R" in s or "I" in s or "S" in s  # R, I, S are unique to RIASEC
+        has_full_names = "realistic" in s or "investigative" in s or "social" in s
+        
+        if a_type == "RIASEC" or has_riasec_keys or has_full_names:
+            if has_riasec_keys:
+                # Scores are stored as 1-5 scale, convert to 0-100
+                return {
+                    "realistic": (float(s.get("R", 3.0)) - 1) * 25,
+                    "investigative": (float(s.get("I", 3.0)) - 1) * 25,
+                    "artistic": (float(s.get("A", 3.0)) - 1) * 25,
+                    "social": (float(s.get("S", 3.0)) - 1) * 25,
+                    "enterprising": (float(s.get("E", 3.0)) - 1) * 25,
+                    "conventional": (float(s.get("C", 3.0)) - 1) * 25,
+                }
+            elif has_full_names:
+                return {
+                    "realistic": float(s.get("realistic", 50)),
+                    "investigative": float(s.get("investigative", 50)),
+                    "artistic": float(s.get("artistic", 50)),
+                    "social": float(s.get("social", 50)),
+                    "enterprising": float(s.get("enterprising", 50)),
+                    "conventional": float(s.get("conventional", 50)),
+                }
+        return None
+    
+    # Check current assessment scores based on type
+    if assessment.a_type == "BigFive":
+        big5_scores = _extract_big5(scores, "BigFive")
+    elif assessment.a_type == "RIASEC":
+        riasec_scores = _extract_riasec(scores, "RIASEC")
+    else:
+        # Try both formats for generic assessment
+        big5_scores = _extract_big5(scores)
+        riasec_scores = _extract_riasec(scores)
     
     # Try to get scores from related assessments if not in current one
     if not big5_scores or not riasec_scores:
@@ -171,23 +217,10 @@ async def get_full_report(
             
             for rel in related:
                 rel_scores = rel.scores or {}
-                if not big5_scores and ("openness" in rel_scores or rel.a_type == "BigFive"):
-                    big5_scores = {
-                        "openness": rel_scores.get("openness", 50),
-                        "conscientiousness": rel_scores.get("conscientiousness", 50),
-                        "extraversion": rel_scores.get("extraversion", 50),
-                        "agreeableness": rel_scores.get("agreeableness", 50),
-                        "neuroticism": rel_scores.get("neuroticism", 50),
-                    }
-                if not riasec_scores and ("realistic" in rel_scores or rel.a_type == "RIASEC"):
-                    riasec_scores = {
-                        "realistic": rel_scores.get("realistic", 50),
-                        "investigative": rel_scores.get("investigative", 50),
-                        "artistic": rel_scores.get("artistic", 50),
-                        "social": rel_scores.get("social", 50),
-                        "enterprising": rel_scores.get("enterprising", 50),
-                        "conventional": rel_scores.get("conventional", 50),
-                    }
+                if not big5_scores and rel.a_type == "BigFive":
+                    big5_scores = _extract_big5(rel_scores, "BigFive")
+                if not riasec_scores and rel.a_type == "RIASEC":
+                    riasec_scores = _extract_riasec(rel_scores, "RIASEC")
     
     # Generate reports
     big5_report = None
@@ -275,3 +308,188 @@ async def log_report_event(
             return ReportEventResponse(success=True, message="Event already logged")
     except Exception as e:
         return ReportEventResponse(success=False, message=str(e))
+
+
+@router.post("/send-email", response_model=SendReportEmailResponse)
+async def send_report_email(
+    payload: SendReportEmailRequest,
+    db: Session = Depends(get_db),
+    current_user_data: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Send the full report to an email address.
+    
+    - If use_logged_in_email is True, send to the logged-in user's email
+    - Otherwise, send to the provided email address
+    """
+    from ...core.email_utils import send_email
+    from datetime import datetime
+    
+    user_id = current_user_data.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    # Get user from DB
+    current_user = _get_user_from_db(db, user_id)
+    
+    # Verify assessment belongs to user
+    assessment = db.query(Assessment).filter(Assessment.id == payload.assessment_id).first()
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    if assessment.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this assessment")
+    
+    # Determine target email
+    if payload.use_logged_in_email:
+        target_email = current_user.email
+    elif payload.email:
+        target_email = payload.email
+    else:
+        return SendReportEmailResponse(
+            success=False,
+            message="Please provide an email address or select 'Send to my email'"
+        )
+    
+    # Get report data
+    service = ReportService(db)
+    user_name = current_user.full_name or current_user.email
+    scores = assessment.scores or {}
+    
+    # Extract scores
+    big5_scores = None
+    riasec_scores = None
+    
+    if assessment.a_type == "BigFive" or "O" in scores or "openness" in scores:
+        if "O" in scores:
+            big5_scores = {
+                "openness": (float(scores.get("O", 3.0)) - 1) * 25,
+                "conscientiousness": (float(scores.get("C", 3.0)) - 1) * 25,
+                "extraversion": (float(scores.get("E", 3.0)) - 1) * 25,
+                "agreeableness": (float(scores.get("A", 3.0)) - 1) * 25,
+                "neuroticism": (float(scores.get("N", 3.0)) - 1) * 25,
+            }
+        elif "openness" in scores:
+            big5_scores = {
+                "openness": float(scores.get("openness", 50)),
+                "conscientiousness": float(scores.get("conscientiousness", 50)),
+                "extraversion": float(scores.get("extraversion", 50)),
+                "agreeableness": float(scores.get("agreeableness", 50)),
+                "neuroticism": float(scores.get("neuroticism", 50)),
+            }
+    
+    if assessment.a_type == "RIASEC" or "R" in scores or "realistic" in scores:
+        if "R" in scores:
+            riasec_scores = {
+                "realistic": (float(scores.get("R", 3.0)) - 1) * 25,
+                "investigative": (float(scores.get("I", 3.0)) - 1) * 25,
+                "artistic": (float(scores.get("A", 3.0)) - 1) * 25,
+                "social": (float(scores.get("S", 3.0)) - 1) * 25,
+                "enterprising": (float(scores.get("E", 3.0)) - 1) * 25,
+                "conventional": (float(scores.get("C", 3.0)) - 1) * 25,
+            }
+        elif "realistic" in scores:
+            riasec_scores = {
+                "realistic": float(scores.get("realistic", 50)),
+                "investigative": float(scores.get("investigative", 50)),
+                "artistic": float(scores.get("artistic", 50)),
+                "social": float(scores.get("social", 50)),
+                "enterprising": float(scores.get("enterprising", 50)),
+                "conventional": float(scores.get("conventional", 50)),
+            }
+    
+    # Build email content
+    subject = f"CareerBridge AI - Your Personality & Career Report"
+    
+    # Build report summary
+    report_date = assessment.created_at.strftime("%B %d, %Y") if assessment.created_at else datetime.now().strftime("%B %d, %Y")
+    
+    body_lines = [
+        f"Hello {user_name},",
+        "",
+        "Thank you for completing your personality assessment with CareerBridge AI!",
+        "",
+        "=" * 60,
+        "YOUR ASSESSMENT REPORT",
+        "=" * 60,
+        "",
+        f"Name: {user_name}",
+        f"Email: {current_user.email}",
+        f"Assessment Date: {report_date}",
+        f"Assessment ID: {payload.assessment_id}",
+        "",
+    ]
+    
+    # Add Big Five scores if available
+    if big5_scores:
+        body_lines.extend([
+            "-" * 40,
+            "BIG FIVE PERSONALITY SCORES",
+            "-" * 40,
+            "",
+            f"  Openness:          {big5_scores['openness']:.0f}%",
+            f"  Conscientiousness: {big5_scores['conscientiousness']:.0f}%",
+            f"  Extraversion:      {big5_scores['extraversion']:.0f}%",
+            f"  Agreeableness:     {big5_scores['agreeableness']:.0f}%",
+            f"  Neuroticism:       {big5_scores['neuroticism']:.0f}%",
+            "",
+        ])
+    
+    # Add RIASEC scores if available
+    if riasec_scores:
+        body_lines.extend([
+            "-" * 40,
+            "RIASEC CAREER INTEREST SCORES",
+            "-" * 40,
+            "",
+            f"  Realistic:     {riasec_scores['realistic']:.0f}%",
+            f"  Investigative: {riasec_scores['investigative']:.0f}%",
+            f"  Artistic:      {riasec_scores['artistic']:.0f}%",
+            f"  Social:        {riasec_scores['social']:.0f}%",
+            f"  Enterprising:  {riasec_scores['enterprising']:.0f}%",
+            f"  Conventional:  {riasec_scores['conventional']:.0f}%",
+            "",
+        ])
+    
+    body_lines.extend([
+        "=" * 60,
+        "",
+        "To view your full interactive report with detailed analysis,",
+        "career recommendations, and personalized insights, please visit:",
+        "",
+        f"  https://careerbridge.ai/results/{payload.assessment_id}/report",
+        "",
+        "(Or log in to your CareerBridge AI account and go to Assessment History)",
+        "",
+        "-" * 60,
+        "",
+        "This report was generated by CareerBridge AI System.",
+        "If you have any questions, please contact us at support@careerbridge.ai",
+        "",
+        "Best regards,",
+        "The CareerBridge AI Team",
+        "",
+        "© 2025 CareerBridge AI System. All rights reserved.",
+    ])
+    
+    body = "\n".join(body_lines)
+    
+    # Send email
+    sent_ok, error_msg, dev_fallback = send_email(target_email, subject, body)
+    
+    if sent_ok:
+        return SendReportEmailResponse(
+            success=True,
+            message="Report sent successfully!",
+            email_sent_to=target_email
+        )
+    elif dev_fallback:
+        return SendReportEmailResponse(
+            success=True,
+            message="Report logged (development mode - email not actually sent)",
+            email_sent_to=target_email
+        )
+    else:
+        return SendReportEmailResponse(
+            success=False,
+            message=f"Failed to send email: {error_msg or 'Unknown error'}"
+        )

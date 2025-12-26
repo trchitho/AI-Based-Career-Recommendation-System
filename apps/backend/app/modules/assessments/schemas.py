@@ -30,6 +30,7 @@ class AssessmentResultsOut(BaseModel):
     career_recommendations: List[str] = []
     career_recommendations_full: List[Dict[str, Any]] = []
 
+    already_processed: bool = False  # True if scores were loaded from DB (don't save again)
     completed_at: Optional[str] = None
 
 

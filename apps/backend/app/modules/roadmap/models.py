@@ -26,6 +26,7 @@ class RoadmapMilestone(Base):
     description = Column(Text)
     estimated_duration = Column(Text)
     resources_json = Column(JSONB)
+    level = Column(Integer, default=1)  # Level of milestone (1-6)
 
 
 class UserProgress(Base):

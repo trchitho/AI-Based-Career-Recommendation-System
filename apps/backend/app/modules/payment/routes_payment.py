@@ -200,7 +200,7 @@ def create_payment(
             # Cập nhật trạng thái failed (nếu có payment record)
             if payment:
                 try:
-                    payment.status = PaymentStatus.FAILED
+                    payment.status = PaymentStatus.FAILED.value
                     db.commit()
                 except Exception as e:
                     logger.error(f"Failed to update payment status: {e}")
@@ -351,9 +351,10 @@ def force_check_payment(
         logger.info(f"Force check result for {order_id}: {result}")
         
         # Cập nhật trạng thái dựa trên kết quả từ ZaloPay
+        # zalopay_service.query_order() returns status as string: "success", "failed", "cancelled", "pending"
         result_status = result.get("status")
         
-        if result_status == 1:  # Success
+        if result_status == "success":  # Success (string, not integer)
             payment.status = PaymentStatus.SUCCESS.value
             payment.paid_at = datetime.utcnow()
             
@@ -392,11 +393,11 @@ def force_check_payment(
             db.commit()
             logger.info(f"Payment {payment.order_id} marked as SUCCESS via force check")
             
-        elif result_status == 2:  # Failed
+        elif result_status == "failed":  # Failed (string)
             payment.status = PaymentStatus.FAILED.value
             db.commit()
             logger.info(f"Payment {payment.order_id} marked as FAILED via force check")
-        elif result_status == 3:  # Cancelled  
+        elif result_status == "cancelled":  # Cancelled (string)
             payment.status = PaymentStatus.CANCELLED.value
             db.commit()
             logger.info(f"Payment {payment.order_id} marked as CANCELLED via force check")
@@ -466,7 +467,7 @@ def query_payment(
         result_status = result.get("status")
         
         if result_status == "success":
-            payment.status = PaymentStatus.SUCCESS
+            payment.status = PaymentStatus.SUCCESS.value
             payment.paid_at = datetime.utcnow()
             db.commit()
             logger.info(f"Payment {order_id} updated to SUCCESS")
@@ -504,12 +505,12 @@ def query_payment(
                 logger.error(f"Error during auto-upgrade: {upgrade_error}")
         elif result_status == "cancelled":
             # Đơn hàng bị hủy
-            payment.status = PaymentStatus.CANCELLED
+            payment.status = PaymentStatus.CANCELLED.value
             db.commit()
             logger.info(f"Payment {order_id} updated to CANCELLED")
         elif result_status in ["failed", "error"]:
             # Thanh toán thất bại
-            payment.status = PaymentStatus.FAILED
+            payment.status = PaymentStatus.FAILED.value
             db.commit()
             logger.info(f"Payment {order_id} updated to FAILED (reason: {result_status})")
         elif result_status == "pending":
