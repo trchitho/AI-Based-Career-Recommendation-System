@@ -109,7 +109,7 @@ const RoadmapPage = () => {
   useEffect(() => {
     // Use consistent plan detection from useFeatureAccess
     const hasUnlimitedCareers = hasFeature('unlimited_careers');
-    
+
     if (hasUnlimitedCareers) {
       // Premium/Pro users get full roadmap
       setUpgradeRequired(false);
@@ -165,10 +165,10 @@ const RoadmapPage = () => {
       }
 
       const normalized = withFallbackMilestones(data);
-      
+
       // Apply 4-tier roadmap access logic using useFeatureAccess
       const hasUnlimitedCareers = hasFeature('unlimited_careers');
-      
+
       if (hasUnlimitedCareers) {
         // Premium/Pro users get full roadmap
         setUpgradeRequired(false);
@@ -184,7 +184,7 @@ const RoadmapPage = () => {
       }
 
       setRoadmap(normalized);
-      
+
       // Track roadmap usage (only once per page load, only for limited plans)
       if (!hasTrackedUsageRef.current && !isPremium) {
         incrementUsage('roadmap_level');

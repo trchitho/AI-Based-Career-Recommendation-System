@@ -38,11 +38,11 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const isSavedDataValid = useCallback(() => {
     const timestamp = localStorage.getItem(AUTOSAVE_TIMESTAMP_KEY);
     if (!timestamp) return false;
-    
+
     const savedTime = new Date(timestamp);
     const now = new Date();
     const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
-    
+
     return hoursDiff < AUTOSAVE_EXPIRY_HOURS;
   }, []);
 
@@ -51,21 +51,21 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     try {
       const saved = localStorage.getItem(AUTOSAVE_KEY);
       console.log('📂 Raw localStorage data:', saved);
-      
+
       if (saved && isSavedDataValid()) {
         const data: AutoSaveData = JSON.parse(saved);
         console.log('📋 Parsed data:', data);
-        
+
         // Validate data structure
         if (data && Array.isArray(data.responses) && data.responses.length > 0) {
           return data;
         }
       }
-      
+
       // Check timestamp
       const timestamp = localStorage.getItem(AUTOSAVE_TIMESTAMP_KEY);
       console.log('⏰ Timestamp:', timestamp);
-      
+
     } catch (e) {
       console.error('❌ Error loading saved progress:', e);
     }
@@ -103,7 +103,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     console.log('🔍 Checking for saved progress...');
     const saved = loadSavedProgress();
     console.log('📦 Saved data:', saved);
-    
+
     if (saved && saved.responses && saved.responses.length > 0) {
       console.log('✅ Found saved progress:', saved.responses.length, 'answers');
       console.log('🔔 Setting showResumeModal to TRUE');
@@ -118,20 +118,20 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const handleResume = () => {
     if (savedProgress) {
       console.log('🔄 Resuming with', savedProgress.responses.length, 'answers');
-      
+
       const restoredResponses = new Map(savedProgress.responses);
       console.log('🗺️ Restored Map size:', restoredResponses.size);
-      
+
       setResponses(restoredResponses);
       setCurrentPage(savedProgress.currentPage);
-      
+
       // Dùng câu hỏi đã lưu thay vì từ API
       if (savedProgress.questions && savedProgress.questions.length > 0) {
         console.log('✅ Using saved questions:', savedProgress.questions.length);
         setAllQuestions(savedProgress.questions);
         setLoading(false); // Không cần load từ API nữa
       }
-      
+
       setShowResumeModal(false);
     }
   };
@@ -163,7 +163,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
         localStorage.setItem(AUTOSAVE_TIMESTAMP_KEY, new Date().toISOString());
         console.log('💾 Saved on unload:', data.responses.length, 'answers');
-        
+
         // Show confirmation dialog
         e.preventDefault();
         e.returnValue = 'Bạn có chắc muốn thoát? Tiến trình đã được lưu tự động.';
@@ -172,7 +172,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
@@ -261,7 +261,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
           setCurrentPage(newPage);
           // Save với page mới
           saveProgress(newResponses, newPage, allQuestions);
-          
+
           const element = document.getElementById('assessment-top');
           if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -329,9 +329,8 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const getAnswer = (questionId: string | number) => {
     // Try both string and number keys for compatibility
     const strKey = String(questionId);
-    const numKey = Number(questionId);
-    
-    return responses.get(strKey) ?? responses.get(numKey) ?? responses.get(questionId);
+
+    return responses.get(strKey);
   };
 
   if (loading && !showResumeModal) {
@@ -345,7 +344,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
   // Show resume modal even while loading
   console.log('🎯 Render check - showResumeModal:', showResumeModal, 'savedProgress:', savedProgress?.responses?.length);
-  
+
   if (showResumeModal && savedProgress) {
     console.log('🔔 SHOWING RESUME MODAL!');
     return (
@@ -358,14 +357,14 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
               </svg>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Tiếp tục bài test?
+              Continue Assessment?
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Bạn có bài test chưa hoàn thành ({savedProgress.responses.length} câu đã trả lời).
-              Bạn muốn tiếp tục hay bắt đầu lại?
+              You have an incomplete assessment ({savedProgress.responses.length} questions answered).
+              Would you like to continue or start fresh?
             </p>
           </div>
-          
+
           <div className="space-y-3">
             <button
               onClick={handleResume}
@@ -375,13 +374,13 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Tiếp tục bài test ({savedProgress.responses.length} câu)
+              Continue ({savedProgress.responses.length} answers)
             </button>
             <button
               onClick={handleStartFresh}
               className="w-full px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-bold transition-all"
             >
-              Bắt đầu lại từ đầu
+              Start Fresh
             </button>
           </div>
         </div>
@@ -410,16 +409,6 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   return (
     <div id="assessment-top" className="w-full">
 
-      {/* Auto-save indicator - Hiển thị rõ ràng hơn */}
-      {lastSaved && (
-        <div className="fixed bottom-4 right-4 z-50 bg-green-500 text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-2xl animate-pulse">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          ✅ Đã lưu ({responses.size} câu)
-        </div>
-      )}
-
       {/* Progress Bar */}
       <div className="mb-10">
         <div className="flex justify-between items-center mb-3">
@@ -437,6 +426,18 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
             style={{ width: `${getProgress()}%` }}
           ></div>
         </div>
+
+        {/* Auto-save indicator - Centered below progress bar */}
+        {lastSaved && responses.size > 0 && (
+          <div className="flex justify-center mt-4">
+            <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-green-200 dark:border-green-800">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Saved ({responses.size} answers)
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Title */}
@@ -465,7 +466,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       <div className="space-y-6 mb-12">
         {pageQuestions.map((question, index) => {
           const answer = getAnswer(question.id);
-          
+
           // Debug log
           if (index === 0) {
             console.log('🔍 Question ID:', question.id, 'Answer:', answer, 'Responses size:', responses.size);
@@ -526,8 +527,8 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
           onClick={handlePrevious}
           disabled={currentPage === 0}
           className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${currentPage === 0
-              ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

@@ -17,10 +17,10 @@ interface BigFiveBarChartProps {
 
 const BigFiveBarChart = ({ scores, compact = false }: BigFiveBarChartProps) => {
   // Check if we have real data or should use fallback
-  
+
   // Fallback data nếu không có scores thực
   const hasRealData = scores && Object.values(scores).some(score => score > 0);
-  
+
   const data = [
     { trait: 'Openness', score: scores?.openness || (hasRealData ? 0 : 75), color: '#8B5CF6' }, // Violet
     { trait: 'Conscientiousness', score: scores?.conscientiousness || (hasRealData ? 0 : 68), color: '#3B82F6' }, // Blue
@@ -54,7 +54,7 @@ const BigFiveBarChart = ({ scores, compact = false }: BigFiveBarChartProps) => {
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
             <span className="text-lg">📊</span>
-            Đây là dữ liệu mẫu. Hoàn thành assessment để xem kết quả thực tế của bạn.
+            This is sample data. Complete the assessment to see your actual results.
           </p>
         </div>
       )}

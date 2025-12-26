@@ -26,7 +26,7 @@ const ResultsPage = () => {
   // ==========================================
   const { assessmentId } = useParams<{ assessmentId: string }>();
   const { user } = useAuth();
-  const { hasFeature, currentPlan, getNextUpgradePlan } = useFeatureAccess();
+  const { hasFeature, currentPlan } = useFeatureAccess();
 
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [loadingResults, setLoadingResults] = useState(true);
@@ -120,9 +120,16 @@ const ResultsPage = () => {
       const resultsData = await assessmentService.getResults(id);
 
       setResults(resultsData);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setErrorResults('Failed to load assessment results. Please try again.');
+      // Handle 404 - assessment not found
+      if (err?.response?.status === 404) {
+        setErrorResults(`Assessment #${id} not found. It may have been deleted or the ID is incorrect.`);
+      } else if (err?.response?.status === 403) {
+        setErrorResults('You do not have permission to view this assessment.');
+      } else {
+        setErrorResults('Failed to load assessment results. Please try again.');
+      }
     } finally {
       setLoadingResults(false);
     }
@@ -498,31 +505,31 @@ const ResultsPage = () => {
                             RIASEC Interest Profile
                           </h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Sở thích nghề nghiệp của bạn theo mô hình Holland
+                            Your career interests based on the Holland model
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-6">
                         {/* Spider Chart */}
                         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Biểu đồ Radar</h4>
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Radar Chart</h4>
                           <div className="h-[350px] w-full flex items-center justify-center">
                             <RIASECSpiderChart scores={results.riasec_scores} />
                           </div>
                         </div>
-                        
+
                         {/* Line Chart */}
                         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Biểu đồ đường</h4>
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Line Chart</h4>
                           <div className="h-[300px] w-full">
                             <RIASECLineChart scores={results.riasec_scores} />
                           </div>
                         </div>
-                        
+
                         {/* Progress bars with details */}
                         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Chi tiết điểm số</h4>
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Score Details</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {Object.entries(results.riasec_scores)
                               .sort((a, b) => b[1] - a[1])
@@ -546,7 +553,7 @@ const ResultsPage = () => {
                                       </span>
                                     </div>
                                     <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                      <div 
+                                      <div
                                         className={`h-full bg-gradient-to-r ${colors[index % colors.length]} rounded-full transition-all duration-700`}
                                         style={{ width: `${Math.min(value, 100)}%` }}
                                       ></div>
@@ -572,71 +579,25 @@ const ResultsPage = () => {
                             Big Five Personality Traits
                           </h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            5 đặc điểm tính cách chính của bạn
+                            Your 5 core personality dimensions
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-6">
                         {/* Bar Chart */}
                         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Biểu đồ cột</h4>
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Bar Chart</h4>
                           <div className="h-[350px] w-full">
                             <BigFiveBarChart scores={results.big_five_scores} />
                           </div>
                         </div>
-                        
+
                         {/* Line Chart */}
                         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Biểu đồ đường</h4>
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Line Chart</h4>
                           <div className="h-[300px] w-full">
                             <BigFiveLineChart scores={results.big_five_scores} />
-                          </div>
-                        </div>
-                        
-                        {/* Progress bars with details */}
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Chi tiết điểm số</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {Object.entries(results.big_five_scores)
-                              .sort((a, b) => b[1] - a[1])
-                              .map(([key, value], index) => {
-                                const colors = [
-                                  'from-purple-500 to-purple-600',
-                                  'from-blue-500 to-blue-600',
-                                  'from-green-500 to-green-600',
-                                  'from-orange-500 to-orange-600',
-                                  'from-red-500 to-red-600',
-                                ];
-                                const descriptions: Record<string, string> = {
-                                  openness: 'Sáng tạo, tò mò, cởi mở với trải nghiệm mới',
-                                  conscientiousness: 'Có tổ chức, kỷ luật, đáng tin cậy',
-                                  extraversion: 'Hướng ngoại, năng động, thích giao tiếp',
-                                  agreeableness: 'Hợp tác, đồng cảm, thân thiện',
-                                  neuroticism: 'Nhạy cảm với căng thẳng và cảm xúc tiêu cực',
-                                };
-                                return (
-                                  <div key={key} className="space-y-1">
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 capitalize">
-                                        {key}
-                                      </span>
-                                      <span className="text-sm font-bold text-gray-900 dark:text-white">
-                                        {value.toFixed(0)}%
-                                      </span>
-                                    </div>
-                                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                      <div 
-                                        className={`h-full bg-gradient-to-r ${colors[index % colors.length]} rounded-full transition-all duration-700`}
-                                        style={{ width: `${Math.min(value, 100)}%` }}
-                                      ></div>
-                                    </div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                                      {descriptions[key.toLowerCase()] || ''}
-                                    </p>
-                                  </div>
-                                );
-                              })}
                           </div>
                         </div>
                       </div>

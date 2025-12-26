@@ -1,8 +1,7 @@
 import { useSubscription } from '../../hooks/useSubscription';
 import { useUsageTracking } from '../../hooks/useUsageTracking';
-import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { useState, useEffect } from 'react';
-import { getPaymentHistory, Payment } from '../../services/paymentService';
+import { getPaymentHistory, PaymentHistory } from '../../services/paymentService';
 import { getAccessToken } from '../../utils/auth';
 import RoadmapCapability from './RoadmapCapability';
 
@@ -11,10 +10,9 @@ interface UsageStatusProps {
 }
 
 const UsageStatus = ({ className = "" }: UsageStatusProps) => {
-  const { subscriptionData, loading } = useSubscription();
+  const { loading } = useSubscription();
   const { usageData } = useUsageTracking();
-  const { currentPlan } = useFeatureAccess();
-  
+
   // Add payment-based plan detection (same as AssessmentPage)
   const [detectedPlan, setDetectedPlan] = useState<string>('Free');
   const isLoggedIn = !!getAccessToken();
@@ -25,20 +23,22 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
       const token = getAccessToken();
       if (!token) return;
 
-      const payments = await getPaymentHistory(0, 10);
-      const successfulPayments = payments.filter((p: Payment) => p.status === 'success');
-      
+      const payments = await getPaymentHistory();
+      const successfulPayments = payments.filter((p: PaymentHistory) => p.status === 'success');
+
       if (successfulPayments.length > 0) {
         const latestPayment = successfulPayments[0];
-        
-        if (latestPayment.description.includes('Cơ Bản') || 
-            (latestPayment.amount >= 99000 && latestPayment.amount < 250000)) {
+        const amount = latestPayment?.amount ?? 0;
+        const description = latestPayment?.description ?? '';
+
+        if (description.includes('Cơ Bản') ||
+          (amount >= 99000 && amount < 250000)) {
           setDetectedPlan('Basic');
-        } else if (latestPayment.description.includes('Premium') || 
-                  (latestPayment.amount >= 250000 && latestPayment.amount < 450000)) {
+        } else if (description.includes('Premium') ||
+          (amount >= 250000 && amount < 450000)) {
           setDetectedPlan('Premium');
-        } else if (latestPayment.description.includes('Pro') || 
-                  latestPayment.amount >= 450000) {
+        } else if (description.includes('Pro') ||
+          amount >= 450000) {
           setDetectedPlan('Pro');
         }
       }
@@ -70,7 +70,7 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
     } else if (detectedPlan === 'Premium' || detectedPlan === 'Pro') {
       return -1; // Unlimited for Premium/Pro
     }
-    
+
     // Free plan defaults
     return originalLimit;
   };
@@ -91,11 +91,11 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
     }
     return originalUsage;
   };
-  
+
   // FIXED: Use actual frontend data instead of forcing to 0
   const getMergedUsageData = () => {
     const frontendData = usageData || [];
-    
+
     // Use frontend data with proper usage tracking
     if (frontendData.length > 0) {
       return frontendData.map(item => {
@@ -110,21 +110,21 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
         };
       });
     }
-    
+
     // If no frontend data, return empty (no backend fallback)
     return [];
   };
-  
+
   const displayUsageData = getMergedUsageData();
 
   const getFeatureInfo = (feature: string) => {
     switch (feature) {
       case 'career_view':
-        return { name: 'Xem nghề nghiệp', icon: '👔', color: 'blue' };
+        return { name: 'Career Views', icon: '👔', color: 'blue' };
       case 'assessment':
-        return { name: 'Test đánh giá', icon: '📝', color: 'green' };
+        return { name: 'Assessments', icon: '📝', color: 'green' };
       case 'roadmap_level':
-        return { name: 'Roadmap level', icon: '🗺️', color: 'purple' };
+        return { name: 'Roadmap Level', icon: '🗺️', color: 'purple' };
       default:
         return { name: feature, icon: '⭐', color: 'gray' };
     }
@@ -138,7 +138,7 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
       if (percentage >= 70) return 'bg-blue-500';   // Informational blue
       return 'bg-green-500';
     }
-    
+
     // Default logic for other features
     const percentage = (usage / limit) * 100;
     if (percentage >= 90) return 'bg-red-500';
@@ -164,25 +164,25 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 ${className}`}>
       <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-        📊 Sử dụng tháng này
+        📊 Monthly Usage
       </h3>
-      
+
       <div className="space-y-3">
         {/* Display usage tracking for non-roadmap features */}
         {displayUsageData.filter(usage => usage.feature !== 'roadmap_level').map((usage) => {
           const info = getFeatureInfo(usage.feature);
-          
+
           // Special handling for career_view in Basic plan
-          let displayLimit = usage.limit;
+          const displayLimit = usage.limit;
           let percentage = 0;
-          
+
           if (usage.feature === 'career_view' && detectedPlan === 'Basic' && usage.limit === 25) {
             // Show as X/25 and calculate progress based on total limit (25), not monthly limit
             percentage = (usage.current_usage / usage.limit) * 100;
           } else if (usage.limit > 0) {
             percentage = (usage.current_usage / usage.limit) * 100;
           }
-          
+
           return (
             <div key={usage.feature} className="space-y-1">
               <div className="flex items-center justify-between text-sm">
@@ -194,48 +194,48 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
                   {usage.current_usage}/{displayLimit > 0 ? displayLimit : '∞'}
                 </span>
               </div>
-              
+
               {displayLimit > 0 && (
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                  <div 
+                  <div
                     className={`h-1.5 rounded-full transition-all duration-300 ${getProgressColor(usage.current_usage, displayLimit, usage.feature)}`}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   ></div>
                 </div>
               )}
-              
+
               {usage.remaining === 0 && usage.limit > 0 && detectedPlan === 'Free' && (
                 <p className="text-xs text-red-600 dark:text-red-400">
-                  Đã hết lượt sử dụng miễn phí
+                  Free usage limit reached
                 </p>
               )}
-              
+
               {usage.feature === 'career_view' && usage.current_usage >= 5 && usage.limit === 25 && detectedPlan === 'Basic' && (
                 <p className="text-xs text-blue-600 dark:text-blue-400">
-                  Đã xem {usage.current_usage} nghề nghiệp tháng này. Gói Basic cho phép xem tối đa 25 nghề nghiệp
+                  Viewed {usage.current_usage} careers this month. Basic plan allows up to 25 careers
                 </p>
               )}
-              
+
               {usage.current_usage > usage.limit && usage.limit > 0 && usage.feature !== 'career_view' && detectedPlan === 'Basic' && (
                 <p className="text-xs text-orange-600 dark:text-orange-400">
-                  Đã vượt giới hạn gói Cơ Bản. Nâng cấp Premium để sử dụng không giới hạn
+                  Basic plan limit exceeded. Upgrade to Premium for unlimited access
                 </p>
               )}
             </div>
           );
         })}
-        
+
         {/* Replace roadmap usage tracking with capability display */}
         <RoadmapCapability />
       </div>
-      
+
       <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          💡 {detectedPlan === 'Free' 
-            ? 'Nâng cấp gói Cơ Bản để có thêm lượt sử dụng' 
-            : detectedPlan === 'Basic' 
-            ? 'Nâng cấp Premium để sử dụng không giới hạn'
-            : 'Bạn đang sử dụng gói Premium/Pro'
+          💡 {detectedPlan === 'Free'
+            ? 'Upgrade to Basic for more usage'
+            : detectedPlan === 'Basic'
+              ? 'Upgrade to Premium for unlimited access'
+              : 'You are on Premium/Pro plan'
           }
         </p>
       </div>

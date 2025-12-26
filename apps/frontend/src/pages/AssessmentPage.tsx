@@ -25,7 +25,7 @@ const AssessmentPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { subscriptionData } = useSubscription();
-  const { hasFeature } = useFeatureAccess();
+  useFeatureAccess(); // Used for side effects
   const { incrementUsage } = useUsageTracking();
 
   const [step, setStep] = useState<AssessmentStep>('intro');
@@ -52,18 +52,20 @@ const AssessmentPage = () => {
 
       const payments = await getPaymentHistory();
       const successfulPayments = payments.filter((p: PaymentHistory) => p.status === 'success');
-      
+
       if (successfulPayments.length > 0) {
         const latestPayment = successfulPayments[0];
-        
-        if (latestPayment.description.includes('Cơ Bản') || 
-            (latestPayment.amount >= 99000 && latestPayment.amount < 250000)) {
+        const description = latestPayment?.description ?? '';
+        const amount = latestPayment?.amount ?? 0;
+
+        if (description.includes('Cơ Bản') ||
+          (amount >= 99000 && amount < 250000)) {
           setDetectedPlan('Basic');
-        } else if (latestPayment.description.includes('Premium') || 
-                  (latestPayment.amount >= 250000 && latestPayment.amount < 450000)) {
+        } else if (description.includes('Premium') ||
+          (amount >= 250000 && amount < 450000)) {
           setDetectedPlan('Premium');
-        } else if (latestPayment.description.includes('Pro') || 
-                  latestPayment.amount >= 450000) {
+        } else if (description.includes('Pro') ||
+          amount >= 450000) {
           setDetectedPlan('Pro');
         }
       }
@@ -86,7 +88,7 @@ const AssessmentPage = () => {
     } else if (detectedPlan === 'Premium' || detectedPlan === 'Pro') {
       return -1; // Unlimited
     }
-    
+
     // Free plan or fallback
     return subscriptionData?.usage?.find(u => u.feature === 'assessment')?.limit || 5;
   };
@@ -95,14 +97,14 @@ const AssessmentPage = () => {
   useEffect(() => {
     const checkInitialLimit = async () => {
       const currentLimit = getAssessmentLimit();
-      
+
       if (currentLimit > 0) { // Has a limit (not unlimited)
         try {
           const assessmentUsage = subscriptionData?.usage?.find(u => u.feature === 'assessment');
           if (assessmentUsage && !assessmentUsage.allowed) {
             setLimitExceeded(true);
             setUsageInfo({
-              message: "Bạn đã sử dụng hết lượt test trong tháng này.",
+              message: "You have used all your monthly assessments.",
               current_usage: assessmentUsage.current_usage,
               limit: currentLimit // Use detected limit instead of backend limit
             });
@@ -118,13 +120,13 @@ const AssessmentPage = () => {
 
   const handleStartAssessment = async () => {
     setError(null);
-    
+
     // If limit already exceeded and user is on Free plan, show upgrade modal
     if (limitExceeded && detectedPlan === 'Free') {
       setUpgradeRequired(true);
       return;
     }
-    
+
     // Check assessment limit using enhanced detection - only for Free plan
     const currentLimit = getAssessmentLimit();
     if (currentLimit > 0 && detectedPlan === 'Free') { // Only check limits for Free plan
@@ -144,7 +146,7 @@ const AssessmentPage = () => {
         console.error('Failed to check assessment limit:', err);
       }
     }
-    
+
     setStep('test');
   };
 
@@ -166,17 +168,17 @@ const AssessmentPage = () => {
       if (result.usage_info) {
         setUsageInfo(result.usage_info);
       }
-      
+
       // Track assessment usage (only for limited plans)
       const currentLimit = getAssessmentLimit();
       if (currentLimit > 0) { // Has a limit (not unlimited)
         incrementUsage('assessment');
       }
-      
+
       setStep('essay');
     } catch (err: any) {
       console.error('Error submitting assessment:', err);
-      
+
       // Handle 402 Payment Required error
       if (err?.response?.status === 402) {
         setUpgradeRequired(true);
@@ -363,20 +365,20 @@ const AssessmentPage = () => {
                       </div>
                       <div className="flex-1">
                         <h4 className="font-bold text-orange-900 dark:text-orange-100 text-lg mb-1">
-                          Đã hết lượt test trong tháng
+                          Monthly Limit Reached
                         </h4>
                         <p className="text-orange-700 dark:text-orange-300 text-sm">
-                          Bạn đã sử dụng {usageInfo?.current_usage || 0}/{getAssessmentLimit()} lượt test trong tháng này. 
-                          {detectedPlan === 'Free' ? ' Nâng cấp gói Cơ Bản để có 20 bài kiểm tra/tháng!' : 
-                           detectedPlan === 'Basic' ? ' Nâng cấp Premium để test không giới hạn!' : 
-                           ' Nâng cấp Premium để test không giới hạn!'}
+                          You have used {usageInfo?.current_usage || 0}/{getAssessmentLimit()} assessments this month.
+                          {detectedPlan === 'Free' ? ' Upgrade to Basic for 20 assessments/month!' :
+                            detectedPlan === 'Basic' ? ' Upgrade to Premium for unlimited assessments!' :
+                              ' Upgrade to Premium for unlimited assessments!'}
                         </p>
                       </div>
-                      <button 
+                      <button
                         onClick={() => navigate('/pricing')}
                         className="px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
                       >
-                        Nâng cấp ngay
+                        Upgrade Now
                       </button>
                     </div>
                   </div>
@@ -386,15 +388,14 @@ const AssessmentPage = () => {
                   <button
                     onClick={handleStartAssessment}
                     disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
-                    className={`group relative flex-1 inline-flex items-center justify-center px-10 py-5 text-white rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${
-                      limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'
-                        ? 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 shadow-red-600/30 hover:shadow-red-600/50 cursor-pointer'
-                        : 'bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-2'
-                    }`}
+                    className={`group relative flex-1 inline-flex items-center justify-center px-10 py-5 text-white rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'
+                      ? 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 shadow-red-600/30 hover:shadow-red-600/50 cursor-pointer'
+                      : 'bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-2'
+                      }`}
                   >
                     {/* Button shine effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                    
+
                     {/* Floating particles for disabled state */}
                     {limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' && (
                       <>
@@ -414,9 +415,9 @@ const AssessmentPage = () => {
                         </div>
                       </>
                     )}
-                    
+
                     <span className="relative z-10">
-                      {limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? 'Đã hết lượt - Nâng cấp' : 'Start →'}
+                      {limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? 'Limit Reached - Upgrade' : 'Start →'}
                     </span>
                     <svg className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M13 7l5 5m0 0l-5 5m5-5H6"} />
@@ -437,7 +438,7 @@ const AssessmentPage = () => {
                     backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2310b981' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                   }}></div>
                 </div>
-                
+
                 {/* Floating orbs */}
                 <div className="absolute top-10 right-10 w-32 h-32 bg-gradient-to-br from-green-400/30 to-emerald-400/30 rounded-full blur-2xl animate-pulse"></div>
                 <div className="absolute bottom-10 left-10 w-40 h-40 bg-gradient-to-br from-blue-400/30 to-cyan-400/30 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -453,18 +454,18 @@ const AssessmentPage = () => {
                       <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
                       <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" style={{ animationDelay: '1s' }}></div>
                     </div>
-                    
+
                     {/* Progress bar */}
                     <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full mb-6 overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full animate-pulse" style={{ width: '65%' }}></div>
                     </div>
-                    
+
                     {/* Question preview */}
                     <div className="space-y-4 mb-6">
                       <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded animate-pulse"></div>
                       <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded w-4/5 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
                     </div>
-                    
+
                     {/* Answer options */}
                     <div className="space-y-3">
                       {[1, 2, 3, 4].map((i) => (
@@ -474,7 +475,7 @@ const AssessmentPage = () => {
                         </div>
                       ))}
                     </div>
-                    
+
                     {/* Floating icons */}
                     <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white shadow-lg animate-bounce">
                       <span className="text-sm">🧠</span>
@@ -483,13 +484,13 @@ const AssessmentPage = () => {
                       <span className="text-sm">📊</span>
                     </div>
                   </div>
-                  
+
                   {/* Floating result cards */}
                   <div className="absolute -top-8 -left-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 shadow-xl border border-white/50 dark:border-gray-700 transform rotate-12 hover:rotate-6 transition-transform duration-500">
                     <div className="text-2xl mb-2">📈</div>
                     <div className="text-xs font-semibold text-gray-600 dark:text-gray-400">Results</div>
                   </div>
-                  
+
                   <div className="absolute -bottom-8 -right-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 shadow-xl border border-white/50 dark:border-gray-700 transform -rotate-12 hover:-rotate-6 transition-transform duration-500">
                     <div className="text-2xl mb-2">🎯</div>
                     <div className="text-xs font-semibold text-gray-600 dark:text-gray-400">Insights</div>
@@ -503,53 +504,48 @@ const AssessmentPage = () => {
         {/* --- USAGE STATUS (Moved to bottom) --- */}
         {!upgradeRequired && step === 'intro' && (
           <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 pb-8">
-            <div className={`border rounded-2xl p-6 shadow-lg ${
-              getAssessmentLimit() === -1 // Unlimited
-                ? 'bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border-green-200 dark:border-green-800'
-                : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800'
-            }`}>
+            <div className={`border rounded-2xl p-6 shadow-lg ${getAssessmentLimit() === -1 // Unlimited
+              ? 'bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border-green-200 dark:border-green-800'
+              : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800'
+              }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${
-                    getAssessmentLimit() === -1 // Unlimited
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-500'
-                      : 'bg-gradient-to-br from-blue-500 to-indigo-500'
-                  }`}>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${getAssessmentLimit() === -1 // Unlimited
+                    ? 'bg-gradient-to-br from-green-500 to-emerald-500'
+                    : 'bg-gradient-to-br from-blue-500 to-indigo-500'
+                    }`}>
                     <span className="text-2xl">{getAssessmentLimit() === -1 ? '⭐' : '📊'}</span>
                   </div>
                   <div>
-                    <h3 className={`text-lg font-bold mb-1 ${
-                      getAssessmentLimit() === -1 // Unlimited
-                        ? 'text-green-900 dark:text-green-100'
-                        : 'text-blue-900 dark:text-blue-100'
-                    }`}>
-                      {detectedPlan === 'Premium' || detectedPlan === 'Pro' ? 'Premium/Pro Active' : 
-                       detectedPlan === 'Basic' ? 'Gói Cơ Bản Active' : 'Sử dụng thông minh'}
+                    <h3 className={`text-lg font-bold mb-1 ${getAssessmentLimit() === -1 // Unlimited
+                      ? 'text-green-900 dark:text-green-100'
+                      : 'text-blue-900 dark:text-blue-100'
+                      }`}>
+                      {detectedPlan === 'Premium' || detectedPlan === 'Pro' ? 'Premium/Pro Active' :
+                        detectedPlan === 'Basic' ? 'Basic Plan Active' : 'Smart Usage'}
                     </h3>
-                    <p className={`text-sm ${
-                      getAssessmentLimit() === -1 // Unlimited
-                        ? 'text-green-700 dark:text-green-300'
-                        : 'text-blue-700 dark:text-blue-300'
-                    }`}>
-                      {getAssessmentLimit() === -1 
-                        ? 'Bạn có quyền truy cập không giới hạn tất cả tính năng Premium. Tận hưởng trải nghiệm đầy đủ!'
-                        : `Bạn có ${getAssessmentLimit()} lần test mỗi tháng. ${
-                            detectedPlan === 'Free' ? 'Nâng cấp gói Cơ Bản để có 20 bài kiểm tra/tháng' : 
-                            detectedPlan === 'Basic' ? 'Bạn đang dùng gói Cơ Bản. Nâng cấp Premium để test không giới hạn' : 
-                            'Nâng cấp Premium để test không giới hạn'
-                          }.`
+                    <p className={`text-sm ${getAssessmentLimit() === -1 // Unlimited
+                      ? 'text-green-700 dark:text-green-300'
+                      : 'text-blue-700 dark:text-blue-300'
+                      }`}>
+                      {getAssessmentLimit() === -1
+                        ? 'You have unlimited access to all Premium features. Enjoy the full experience!'
+                        : `You have ${getAssessmentLimit()} assessments per month. ${detectedPlan === 'Free' ? 'Upgrade to Basic for 20 assessments/month' :
+                          detectedPlan === 'Basic' ? 'You are on Basic plan. Upgrade to Premium for unlimited assessments' :
+                            'Upgrade to Premium for unlimited assessments'
+                        }.`
                       }
                     </p>
                   </div>
                 </div>
                 {getAssessmentLimit() > 0 && (
-                  <button 
+                  <button
                     onClick={() => navigate('/pricing')}
                     className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
-                    {detectedPlan === 'Free' ? 'Xem Gói Cơ Bản' : 
-                     detectedPlan === 'Basic' ? 'Xem Gói Premium' : 
-                     'Xem Gói Premium'}
+                    {detectedPlan === 'Free' ? 'View Basic Plan' :
+                      detectedPlan === 'Basic' ? 'View Premium Plan' :
+                        'View Premium Plan'}
                   </button>
                 )}
                 {getAssessmentLimit() === -1 && (

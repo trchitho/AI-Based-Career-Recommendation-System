@@ -8,11 +8,10 @@ import {
 
 export const assessmentService = {
   async getQuestions(testType: 'RIASEC' | 'BIGFIVE'): Promise<Question[]> {
-    // Để chia đều câu hỏi cho cả 2 loại test:
-    // RIASEC có 6 dimensions, BigFive có 5 dimensions
-    // Dùng per_dim khác nhau để tổng số câu gần bằng nhau
-    // RIASEC: 6 × 5 = 30 câu, BigFive: 5 × 6 = 30 câu
-    const perDim = testType === 'RIASEC' ? 5 : 6;
+    // Total 44 questions mixed between 11 dimensions (6 RIASEC + 5 Big Five)
+    // Each dimension gets 4 questions: 6 × 4 = 24 RIASEC, 5 × 4 = 20 Big Five
+    // Total: 24 + 20 = 44 questions
+    const perDim = 4;
     const seed = Date.now();
 
     const response = await api.get<Question[]>(
@@ -107,17 +106,17 @@ export const assessmentService = {
   async getHistory() {
     try {
       console.log('🔍 [AssessmentService] Getting assessment history...');
-      
+
       // Get user sessions with assessment data
       const sessions = await this.getUserSessions();
       console.log('📊 [AssessmentService] Raw sessions data:', sessions);
-      
+
       // Transform sessions into assessment history format
       const history = [];
-      
+
       for (const session of sessions.sessions || []) {
         console.log('🔄 [AssessmentService] Processing session:', session);
-        
+
         // Each session can have multiple assessments, add them individually
         if (session.assessments && session.assessments.length > 0) {
           for (const assessment of session.assessments) {
@@ -136,10 +135,10 @@ export const assessmentService = {
           });
         }
       }
-      
+
       // Sort by completion date (newest first)
       history.sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime());
-      
+
       console.log('✅ [AssessmentService] Final history:', history);
       return history;
     } catch (error) {

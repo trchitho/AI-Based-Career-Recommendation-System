@@ -33,7 +33,7 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
         <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-red-50/50 to-pink-50/50 dark:from-orange-900/10 dark:via-red-900/10 dark:to-pink-900/10"></div>
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-red-400/20 rounded-full blur-2xl"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-pink-400/20 to-purple-400/20 rounded-full blur-2xl"></div>
-        
+
         <div className="relative z-10">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
@@ -42,10 +42,10 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Giới hạn đã đạt
+                  Limit Reached
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Nâng cấp để tiếp tục
+                  Upgrade to continue
                 </p>
               </div>
             </div>
@@ -56,22 +56,22 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
               <X size={20} />
             </button>
           </div>
-          
+
           <div className="text-center mb-8">
             <div className="mb-6 flex justify-center text-6xl">
               🚫
             </div>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-              {message || "Bạn đã sử dụng hết lượt test miễn phí trong tháng này. Nâng cấp Premium để tiếp tục khám phá nghề nghiệp phù hợp!"}
+              {message || "You have used all your free assessments this month. Upgrade to Premium to continue exploring your career path!"}
             </p>
-            
+
             <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl p-6 mb-8 border border-orange-200 dark:border-orange-700">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">Sử dụng tháng này</span>
+                <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">Monthly Usage</span>
                 <span className="font-bold text-orange-800 dark:text-orange-200 text-lg">{currentUsage}/{limit}</span>
               </div>
               <div className="w-full bg-orange-200 dark:bg-orange-800 rounded-full h-4 overflow-hidden shadow-inner">
-                <div 
+                <div
                   className="bg-gradient-to-r from-orange-500 to-red-500 h-4 rounded-full transition-all duration-500 shadow-sm relative overflow-hidden"
                   style={{ width: `${Math.min((currentUsage / limit) * 100, 100)}%` }}
                 >
@@ -88,41 +88,41 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
             <div className="flex items-center gap-3 mb-4">
               <Crown className="text-green-600 dark:text-green-400" size={24} />
               <h4 className="font-bold text-green-800 dark:text-green-200 text-lg">
-                Nâng cấp Premium
+                Upgrade to Premium
               </h4>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
                 <Zap size={16} className="text-green-500" />
-                <span>Test không giới hạn</span>
+                <span>Unlimited Tests</span>
               </div>
               <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
                 <Zap size={16} className="text-green-500" />
-                <span>Phân tích AI chi tiết</span>
+                <span>Detailed AI Analysis</span>
               </div>
               <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
                 <Zap size={16} className="text-green-500" />
-                <span>Roadmap đầy đủ</span>
+                <span>Full Roadmap</span>
               </div>
               <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
                 <Zap size={16} className="text-green-500" />
-                <span>Hỗ trợ ưu tiên</span>
+                <span>Priority Support</span>
               </div>
             </div>
           </div>
-          
+
           <div className="flex gap-4">
             <button
               onClick={onClose}
               className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-semibold"
             >
-              Để sau
+              Maybe Later
             </button>
             <button
               onClick={handleUpgrade}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white rounded-xl transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
             >
-              <span>Nâng cấp ngay</span>
+              <span>Upgrade Now</span>
               <ArrowRight size={18} />
             </button>
           </div>

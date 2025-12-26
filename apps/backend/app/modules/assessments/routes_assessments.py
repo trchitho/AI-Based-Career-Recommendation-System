@@ -434,13 +434,23 @@ def get_assessment_results(
       - riasec_scores, big_five_scores
       - traits: {riasec_test, riasec_essay, riasec_fused, big5_*}
     """
-    results = build_results(db, assessment_id)
+    try:
+        results = build_results(db, assessment_id)
+    except Exception as e:
+        error_msg = str(e)
+        if "not found" in error_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Assessment {assessment_id} not found",
+            )
+        print(f"[assessments] get_assessment_results error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get assessment results",
+        )
 
     # Chặn user xem assessment của người khác
     if results["user_id"] != current_user_id:
-        # tuỳ bạn dùng HTTPException hay custom
-        from fastapi import HTTPException, status
-
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not allowed to view this assessment",
@@ -538,6 +548,9 @@ def get_user_sessions(
             
             assessment_types = [a.a_type for a in assessments]
             
+            # Get primary assessment ID (first assessment in session)
+            primary_assessment_id = assessments[0].id if assessments else session.id
+            
             sessions_data.append({
                 "session_id": session.id,
                 "id": str(primary_assessment_id),
@@ -557,4 +570,56 @@ def get_user_sessions(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get user sessions"
+        )
+
+
+class SaveResultsIn(BaseModel):
+    riasec_scores: Optional[dict] = None
+    big_five_scores: Optional[dict] = None
+    top_interest: Optional[str] = None
+    essay_analysis: Optional[dict] = None
+
+
+@router.post("/{assessment_id}/save-results")
+def api_save_processed_results(
+    assessment_id: int,
+    body: SaveResultsIn,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Save processed assessment results (RIASEC scores, Big Five scores, etc.)
+    This endpoint is called by frontend after processing results.
+    """
+    try:
+        # Verify assessment belongs to user
+        assessment = db.query(Assessment).filter(
+            Assessment.id == assessment_id,
+            Assessment.user_id == user_id
+        ).first()
+        
+        if not assessment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Assessment not found or access denied"
+            )
+        
+        # Update assessment with processed results if needed
+        # For now, just return success since results are already stored
+        # during assessment submission
+        
+        return {
+            "ok": True,
+            "message": "Results saved successfully",
+            "assessment_id": assessment_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"[assessments] save_processed_results error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save results"
         )

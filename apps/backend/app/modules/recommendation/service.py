@@ -334,8 +334,18 @@ class RecService:
             raise RuntimeError(f"Assessment {assessment_id} not found or invalid")
 
         # 2) Gọi AI-core
+        logger.info(f"[get_main_recommendations] Calling AI-core for assessment {assessment_id}")
         scored = self._call_ai_core_top_careers(assessment_id, internal_top_k)
+        logger.info(f"[get_main_recommendations] AI-core returned {len(scored) if scored else 0} items")
+        
+        # 2.1) Nếu AI-core không trả về kết quả, thử lấy từ saved recommendations
         if not scored:
+            logger.warning(f"AI-core returned no results, trying saved recommendations for assessment {assessment_id}")
+            saved_items = self._get_saved_recommendations_from_db(db, assessment_id, top_k)
+            if saved_items:
+                logger.info(f"Returning {len(saved_items)} saved recommendations")
+                return {"request_id": None, "items": saved_items}
+            logger.warning(f"No saved recommendations found for assessment {assessment_id}")
             return {"request_id": None, "items": []}
 
         # 3) Snapshot traits của **chính assessment này**
@@ -473,6 +483,73 @@ class RecService:
             logger.error(f"Failed to save career recommendations: {e}")
             db.rollback()
 
+    def _get_saved_recommendations_from_db(
+        self,
+        db: Session,
+        assessment_id: int,
+        top_k: int,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get saved career recommendations from core.career_recommendations table.
+        Used as fallback when AI-core is not available.
+        """
+        try:
+            sql = text(
+                """
+                SELECT 
+                    cr.career_id,
+                    cr.score,
+                    cr.rank,
+                    c.slug,
+                    c.onet_code,
+                    c.title_vi,
+                    c.title_en,
+                    c.short_desc_en,
+                    c.short_desc_vn,
+                    COALESCE(
+                        array_agg(rl.code) FILTER (WHERE rl.code IS NOT NULL),
+                        '{}'
+                    ) AS riasec_codes
+                FROM core.career_recommendations cr
+                JOIN core.careers c ON c.id = cr.career_id
+                LEFT JOIN core.career_riasec_map m ON m.career_id = c.id
+                LEFT JOIN core.riasec_labels rl ON rl.id = m.label_id
+                WHERE cr.assessment_id = :assessment_id
+                GROUP BY cr.career_id, cr.score, cr.rank, c.slug, c.onet_code,
+                         c.title_vi, c.title_en, c.short_desc_en, c.short_desc_vn
+                ORDER BY cr.rank ASC
+                LIMIT :top_k
+                """
+            )
+            
+            rows = db.execute(sql, {"assessment_id": assessment_id, "top_k": top_k}).fetchall()
+            
+            items = []
+            for row in rows:
+                riasec_codes = row[9] if row[9] else []
+                if isinstance(riasec_codes, (list, tuple)):
+                    riasec_codes = [str(x) for x in riasec_codes if x is not None]
+                
+                items.append({
+                    "career_id": row[3] or str(row[0]),  # slug or career_id
+                    "slug": row[3],
+                    "job_onet": row[4],
+                    "title_vi": row[5],
+                    "title_en": row[6],
+                    "description": row[7] or row[8] or "",
+                    "match_score": float(row[1]) if row[1] else 0.0,
+                    "display_match": float(row[1]) if row[1] else 0.0,
+                    "tags": riasec_codes,
+                    "job_zone": None,
+                    "position": row[2] or 0,
+                })
+            
+            return items
+            
+        except Exception as e:
+            logger.error(f"Failed to get saved recommendations: {e}")
+            return []
+
     # ====================================================================== #
     # 4. AI-core integration
     # ====================================================================== #
@@ -491,17 +568,17 @@ class RecService:
                 
             if resp.status_code != 200:
                 print(f"AI-core error {resp.status_code}: {resp.text}")
-                return self._get_fallback_recommendations(top_k)
+                return []  # Return empty to trigger saved recommendations fallback
 
             data = resp.json()
             items = data.get("items", [])
             if not isinstance(items, list):
                 print("AI-core returned invalid format")
-                return self._get_fallback_recommendations(top_k)
+                return []  # Return empty to trigger saved recommendations fallback
 
         except Exception as e:
             print(f"AI-core not reachable: {e}")
-            return self._get_fallback_recommendations(top_k)
+            return []  # Return empty to trigger saved recommendations fallback
 
         out: List[Dict[str, Any]] = []
         for it in items:
@@ -617,6 +694,12 @@ class RecService:
         
         # 4) Parse scores dict → vector theo thứ tự R, I, A, S, E, C
         dims = ["R", "I", "A", "S", "E", "C"]
+        
+        # Get scores from riasec_row
+        scores_dict = riasec_row.get("scores")
+        if not scores_dict or not isinstance(scores_dict, dict):
+            logger.error(f"Assessment {assessment_id}: Invalid RIASEC scores format")
+            return {"riasec_top_dim": None, "riasec_values": None}
         
         riasec_vec: List[float] = []
         for dim in dims:
