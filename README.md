@@ -206,7 +206,11 @@ pip install -r requirements.txt
 # nếu cần development mode cho AI-core
 pip install -e ../../packages/ai-core
 
-uvicorn app.main:app --reload --port 8000
+# Option 1: Optimized run (recommended for Windows to prevent socket exhaustion)
+python run_dev.py
+
+# Option 2: Standard uvicorn (may cause WinError 10055 on Windows)
+# uvicorn app.main:app --reload --port 8000
 ```
 
 ---

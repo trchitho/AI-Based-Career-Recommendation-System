@@ -1,5 +1,8 @@
+/**
+ * AUDIT LOGS PAGE - English Only
+ */
+
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import api from "../../lib/api";
 
 interface AuditLog {
@@ -26,7 +29,6 @@ interface AuditLogFilters {
 }
 
 const AuditLogsPage = () => {
-  const { t: _t } = useTranslation();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -36,30 +38,30 @@ const AuditLogsPage = () => {
   });
 
   const actionTypes = [
-    { value: "", label: "Tất cả" },
-    { value: "login", label: "Đăng nhập" },
-    { value: "logout", label: "Đăng xuất" },
-    { value: "profile_update", label: "Cập nhật profile" },
-    { value: "password_change", label: "Đổi mật khẩu" },
-    { value: "settings_change", label: "Thay đổi cài đặt" },
-    { value: "user_create", label: "Tạo user" },
-    { value: "user_update", label: "Cập nhật user" },
-    { value: "user_delete", label: "Xóa user" },
-    { value: "career_create", label: "Tạo nghề nghiệp" },
-    { value: "career_update", label: "Cập nhật nghề nghiệp" },
-    { value: "career_delete", label: "Xóa nghề nghiệp" },
-    { value: "payment_create", label: "Tạo thanh toán" },
-    { value: "payment_success", label: "Thanh toán thành công" },
+    { value: "", label: "All Actions" },
+    { value: "login", label: "Login" },
+    { value: "logout", label: "Logout" },
+    { value: "profile_update", label: "Profile Update" },
+    { value: "password_change", label: "Password Change" },
+    { value: "settings_change", label: "Settings Change" },
+    { value: "user_create", label: "User Create" },
+    { value: "user_update", label: "User Update" },
+    { value: "user_delete", label: "User Delete" },
+    { value: "career_create", label: "Career Create" },
+    { value: "career_update", label: "Career Update" },
+    { value: "career_delete", label: "Career Delete" },
+    { value: "payment_create", label: "Payment Create" },
+    { value: "payment_success", label: "Payment Success" },
   ];
 
   const resourceTypes = [
-    { value: "", label: "Tất cả" },
+    { value: "", label: "All Resources" },
     { value: "user", label: "User" },
-    { value: "career", label: "Nghề nghiệp" },
-    { value: "skill", label: "Kỹ năng" },
-    { value: "question", label: "Câu hỏi" },
-    { value: "payment", label: "Thanh toán" },
-    { value: "settings", label: "Cài đặt" },
+    { value: "career", label: "Career" },
+    { value: "skill", label: "Skill" },
+    { value: "question", label: "Question" },
+    { value: "payment", label: "Payment" },
+    { value: "settings", label: "Settings" },
     { value: "blog", label: "Blog" },
   ];
 
@@ -101,7 +103,7 @@ const AuditLogsPage = () => {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString("vi-VN");
+    return new Date(dateStr).toLocaleString("en-US");
   };
 
   const totalPages = Math.ceil(total / filters.pageSize);
@@ -111,7 +113,7 @@ const AuditLogsPage = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold dark:text-white">Audit Logs</h1>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          Tổng: {total} bản ghi
+          Total: {total} records
         </span>
       </div>
 
@@ -120,7 +122,7 @@ const AuditLogsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Hành động
+              Action
             </label>
             <select
               value={filters.action || ""}
@@ -135,7 +137,7 @@ const AuditLogsPage = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Loại tài nguyên
+              Resource Type
             </label>
             <select
               value={filters.resource_type || ""}
@@ -150,7 +152,7 @@ const AuditLogsPage = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Từ ngày
+              From Date
             </label>
             <input
               type="date"
@@ -162,7 +164,7 @@ const AuditLogsPage = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Đến ngày
+              To Date
             </label>
             <input
               type="date"
@@ -177,7 +179,7 @@ const AuditLogsPage = () => {
               onClick={() => setFilters({ page: 1, pageSize: 20 })}
               className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-500"
             >
-              Xóa bộ lọc
+              Clear Filters
             </button>
           </div>
         </div>
@@ -187,11 +189,11 @@ const AuditLogsPage = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            Đang tải...
+            Loading...
           </div>
         ) : logs.length === 0 ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            Không có dữ liệu audit log
+            No audit logs found
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -199,22 +201,22 @@ const AuditLogsPage = () => {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Thời gian
+                    Time
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     User
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Hành động
+                    Action
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Tài nguyên
+                    Resource
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     IP Address
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Chi tiết
+                    Details
                   </th>
                 </tr>
               </thead>
@@ -253,22 +255,22 @@ const AuditLogsPage = () => {
         {totalPages > 1 && (
           <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Trang {filters.page} / {totalPages}
+              Page {filters.page} / {totalPages}
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
                 disabled={filters.page <= 1}
-                className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white"
               >
-                Trước
+                Previous
               </button>
               <button
                 onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
                 disabled={filters.page >= totalPages}
-                className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white"
               >
-                Sau
+                Next
               </button>
             </div>
           </div>

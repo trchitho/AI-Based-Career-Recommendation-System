@@ -1,5 +1,8 @@
+/**
+ * ANOMALY DETECTION PAGE - English Only
+ */
+
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import api from "../../lib/api";
 
 interface Anomaly {
@@ -27,7 +30,6 @@ interface AnomalyStats {
 }
 
 const AnomalyDetectionPage = () => {
-  const { t } = useTranslation();
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [stats, setStats] = useState<AnomalyStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,25 +95,25 @@ const AnomalyDetectionPage = () => {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      security: "Bảo mật",
-      ai_error: "Lỗi AI",
-      performance: "Hiệu suất",
-      unusual_activity: "Hoạt động bất thường",
+      security: "Security",
+      ai_error: "AI Error",
+      performance: "Performance",
+      unusual_activity: "Unusual Activity",
     };
     return labels[type] || type;
   };
 
-  const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString("vi-VN");
+  const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString("en-US");
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold dark:text-white">Phát hiện bất thường</h1>
+        <h1 className="text-2xl font-bold dark:text-white">Anomaly Detection</h1>
         <button
           onClick={loadAnomalies}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          Làm mới
+          Refresh
         </button>
       </div>
 
@@ -119,11 +121,11 @@ const AnomalyDetectionPage = () => {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Tổng cảnh báo</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Total Alerts</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Chưa xử lý</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Unresolved</p>
             <p className="text-2xl font-bold text-orange-600">{stats.unresolved}</p>
           </div>
           <div className="bg-red-50 dark:bg-red-900/20 rounded-lg shadow p-4">
@@ -153,11 +155,11 @@ const AnomalyDetectionPage = () => {
             onChange={(e) => setFilter({ ...filter, type: e.target.value || undefined })}
             className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           >
-            <option value="">Tất cả loại</option>
-            <option value="security">Bảo mật</option>
-            <option value="ai_error">Lỗi AI</option>
-            <option value="performance">Hiệu suất</option>
-            <option value="unusual_activity">Hoạt động bất thường</option>
+            <option value="">All Types</option>
+            <option value="security">Security</option>
+            <option value="ai_error">AI Error</option>
+            <option value="performance">Performance</option>
+            <option value="unusual_activity">Unusual Activity</option>
           </select>
 
           <select
@@ -165,7 +167,7 @@ const AnomalyDetectionPage = () => {
             onChange={(e) => setFilter({ ...filter, severity: e.target.value || undefined })}
             className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           >
-            <option value="">Tất cả mức độ</option>
+            <option value="">All Severities</option>
             <option value="critical">Critical</option>
             <option value="high">High</option>
             <option value="medium">Medium</option>
@@ -177,9 +179,9 @@ const AnomalyDetectionPage = () => {
             onChange={(e) => setFilter({ ...filter, resolved: e.target.value === "" ? undefined : e.target.value === "true" })}
             className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           >
-            <option value="">Tất cả trạng thái</option>
-            <option value="false">Chưa xử lý</option>
-            <option value="true">Đã xử lý</option>
+            <option value="">All Status</option>
+            <option value="false">Unresolved</option>
+            <option value="true">Resolved</option>
           </select>
         </div>
       </div>
@@ -187,10 +189,10 @@ const AnomalyDetectionPage = () => {
       {/* Anomalies List */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Đang tải...</div>
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
         ) : anomalies.length === 0 ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            Không có cảnh báo bất thường
+            No anomalies detected
           </div>
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -210,7 +212,7 @@ const AnomalyDetectionPage = () => {
                       </span>
                       {anomaly.resolved && (
                         <span className="px-2 py-0.5 text-xs font-medium rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                          Đã xử lý
+                          Resolved
                         </span>
                       )}
                     </div>
@@ -220,7 +222,7 @@ const AnomalyDetectionPage = () => {
                       <span>{formatDate(anomaly.created_at)}</span>
                       {anomaly.user_email && <span>User: {anomaly.user_email}</span>}
                       {anomaly.resolved_at && (
-                        <span>Xử lý lúc: {formatDate(anomaly.resolved_at)}</span>
+                        <span>Resolved at: {formatDate(anomaly.resolved_at)}</span>
                       )}
                     </div>
                   </div>
@@ -229,7 +231,7 @@ const AnomalyDetectionPage = () => {
                       onClick={() => resolveAnomaly(anomaly.id)}
                       className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
                     >
-                      Đánh dấu đã xử lý
+                      Mark Resolved
                     </button>
                   )}
                 </div>

@@ -564,21 +564,55 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
     big5_assess: Assessment | None = None
 
     if riasec_scores:
+        # Calculate processed RIASEC scores (normalize to 0-1 scale)
+        processed_riasec = {}
+        riasec_name_map = {
+            "R": "realistic", "I": "investigative", "A": "artistic",
+            "S": "social", "E": "enterprising", "C": "conventional"
+        }
+        for letter, name in riasec_name_map.items():
+            raw = riasec_scores.get(letter, 0.0)
+            # Convert 1-5 scale to 0-1 scale: (raw - 1) / 4
+            processed_riasec[name] = round((raw - 1) / 4, 3) if raw > 0 else 0.0
+        
+        # Calculate top interest (highest scoring dimension)
+        top_interest = max(riasec_scores.keys(), key=lambda k: riasec_scores.get(k, 0))
+        
         riasec_assess = Assessment(
             user_id=user_id,
             a_type="RIASEC",
             scores=riasec_scores,
             session_id=assess_session.id,
+            processed_riasec_scores=processed_riasec,
+            processed_big_five_scores={},
+            top_interest=top_interest,
         )
         session.add(riasec_assess)
         session.flush()
 
     if big5_scores:
+        # Calculate processed Big Five scores (normalize to 0-1 scale)
+        processed_big5 = {}
+        big5_name_map = {
+            "O": "openness", "C": "conscientiousness", "E": "extraversion",
+            "A": "agreeableness", "N": "neuroticism"
+        }
+        for letter, name in big5_name_map.items():
+            raw = big5_scores.get(letter, 0.0)
+            # Convert 1-5 scale to 0-1 scale: (raw - 1) / 4
+            processed_big5[name] = round((raw - 1) / 4, 3) if raw > 0 else 0.0
+        
+        # Calculate top trait for Big Five
+        top_trait = max(big5_scores.keys(), key=lambda k: big5_scores.get(k, 0))
+        
         big5_assess = Assessment(
             user_id=user_id,
             a_type="BigFive",
             scores=big5_scores,
             session_id=assess_session.id,
+            processed_riasec_scores={},
+            processed_big_five_scores=processed_big5,
+            top_interest=top_trait,
         )
         session.add(big5_assess)
         session.flush()

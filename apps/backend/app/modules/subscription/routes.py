@@ -207,10 +207,11 @@ def force_sync_subscription(request: Request):
         return {"success": False, "message": "Không tìm thấy giao dịch thành công"}
     
     # Xác định plan từ amount
+    # Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
     plan_name = "Basic"
-    if payment.amount >= 450000:
+    if payment.amount >= 280000:
         plan_name = "Pro"
-    elif payment.amount >= 250000:
+    elif payment.amount >= 180000:
         plan_name = "Premium"
     elif payment.amount >= 80000:
         plan_name = "Basic"

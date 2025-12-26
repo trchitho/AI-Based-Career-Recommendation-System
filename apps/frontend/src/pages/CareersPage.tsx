@@ -4,6 +4,7 @@ import { careerService, CareerItem } from '../services/careerService';
 import { Link } from 'react-router-dom';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useUsageTracking } from '../hooks/useUsageTracking';
+import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh';
 
 const CareersPage = () => {
   // ==========================================
@@ -15,7 +16,7 @@ const CareersPage = () => {
   const [pageSize] = useState(9);
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState('');
-  
+
   const { hasFeature, currentPlan, getPlanInfo } = useFeatureAccess();
   const { canUseFeature, incrementUsage } = useUsageTracking();
 
@@ -70,6 +71,7 @@ const CareersPage = () => {
   // ==========================================
   return (
     <MainLayout>
+      <SubscriptionRefresh />
       <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-hidden pb-20">
 
         {/* --- CSS INJECTION --- */}
@@ -141,12 +143,12 @@ const CareersPage = () => {
                   if (hasFeature('unlimited_careers')) {
                     return false; // Premium/Pro users can view all careers
                   }
-                  
+
                   // For Basic plan: check if exceeded 25 career limit
                   if (currentPlan === 'basic') {
                     return !canUseFeature('career_view'); // Lock if no remaining usage
                   }
-                  
+
                   // For Free users: check if they have remaining usage
                   if (currentPlan === 'free') {
                     const canView = canUseFeature('career_view');
@@ -157,18 +159,18 @@ const CareersPage = () => {
                     // If has remaining usage, only allow first career (index 0)
                     return index > 0;
                   }
-                  
+
                   return false;
                 })();
-                
+
                 const requiredPlan = (() => {
                   if (!isLocked) return null;
-                  
+
                   // For Basic users who exceeded usage, suggest Premium
                   if (currentPlan === 'basic') {
                     return 'premium';
                   }
-                  
+
                   // For Free users, suggest Basic
                   return 'basic';
                 })();
@@ -187,20 +189,19 @@ const CareersPage = () => {
 
                 const CardContent = (
                   <div className={`group bg-white dark:bg-gray-800 rounded-[32px] border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-300 flex flex-col overflow-hidden h-full relative ${isLocked ? 'opacity-75' : ''}`}>
-                    
+
                     {/* Premium overlay for locked careers */}
                     {isLocked && (
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none z-10">
                         <div className="absolute top-4 right-4">
-                          <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${
-                            requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
+                          <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
                             requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                            'bg-gradient-to-r from-purple-500 to-pink-500'
-                          }`}>
+                              'bg-gradient-to-r from-purple-500 to-pink-500'
+                            }`}>
                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                             </svg>
-                            {requiredPlanInfo?.name.replace('Gói ', '') || 'PRO'}
+                            {requiredPlanInfo?.name || 'PRO'}
                           </span>
                         </div>
                       </div>
@@ -227,55 +228,50 @@ const CareersPage = () => {
                     {/* Content */}
                     <div className="p-8 flex-grow flex flex-col">
                       <div className="mb-4">
-                        <h3 className={`text-xl font-bold mb-2 line-clamp-2 h-14 transition-colors ${
-                          isLocked 
-                            ? 'text-gray-600 dark:text-gray-400' 
-                            : 'text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400'
-                        }`}>
+                        <h3 className={`text-xl font-bold mb-2 line-clamp-2 h-14 transition-colors ${isLocked
+                          ? 'text-gray-600 dark:text-gray-400'
+                          : 'text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400'
+                          }`}>
                           {c.title}
                         </h3>
-                        <div className={`w-12 h-1 rounded-full transition-colors ${
-                          isLocked 
-                            ? 'bg-gray-200 dark:bg-gray-600' 
-                            : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-green-500'
-                        }`}></div>
+                        <div className={`w-12 h-1 rounded-full transition-colors ${isLocked
+                          ? 'bg-gray-200 dark:bg-gray-600'
+                          : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-green-500'
+                          }`}></div>
                       </div>
 
-                      <p className={`text-sm line-clamp-3 flex-grow mb-6 leading-relaxed ${
-                        isLocked 
-                          ? 'text-gray-400 dark:text-gray-500' 
-                          : 'text-gray-500 dark:text-gray-400'
-                      }`}>
-                        {isLocked 
+                      <p className={`text-sm line-clamp-3 flex-grow mb-6 leading-relaxed ${isLocked
+                        ? 'text-gray-400 dark:text-gray-500'
+                        : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                        {isLocked
                           ? (() => {
-                              if (currentPlan === 'free') {
-                                const canView = canUseFeature('career_view');
-                                if (!canView) {
-                                  return `Bạn đã hết lượt xem nghề nghiệp miễn phí. Nâng cấp Gói Cơ Bản (99k) để xem thêm nghề nghiệp hoặc Gói Premium (299k) để xem không giới hạn.`;
-                                } else {
-                                  return `Nâng cấp Gói Cơ Bản (99k) để xem nghề nghiệp này hoặc Gói Premium (299k) để xem không giới hạn.`;
-                                }
-                              } else if (currentPlan === 'basic') {
-                                return `Bạn đã xem hết 25 nghề nghiệp của Gói Cơ Bản. Nâng cấp Gói Premium (299k) để xem không giới hạn.`;
+                            if (currentPlan === 'free') {
+                              const canView = canUseFeature('career_view');
+                              if (!canView) {
+                                return `You have used all free career views. Upgrade to Basic Plan (99k) to view more careers or Premium Plan (199k) for unlimited access.`;
                               } else {
-                                return `Nâng cấp ${requiredPlanInfo?.name || 'Premium'} để xem chi tiết nghề nghiệp này.`;
+                                return `Upgrade to Basic Plan (99k) to view this career or Premium Plan (199k) for unlimited access.`;
                               }
-                            })()
+                            } else if (currentPlan === 'basic') {
+                              return `You have viewed all 25 careers in Basic Plan. Upgrade to Premium Plan (199k) for unlimited access.`;
+                            } else {
+                              return `Upgrade to ${requiredPlanInfo?.name || 'Premium'} to view this career details.`;
+                            }
+                          })()
                           : (c.short_desc || c.description || 'Explore this exciting career path and see if it fits your profile.')
                         }
                       </p>
 
                       <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-100 dark:border-gray-700">
-                        <span className={`text-xs font-bold uppercase tracking-wider ${
-                          isLocked ? 'text-gray-300 dark:text-gray-600' : 'text-gray-400'
-                        }`}>
+                        <span className={`text-xs font-bold uppercase tracking-wider ${isLocked ? 'text-gray-300 dark:text-gray-600' : 'text-gray-400'
+                          }`}>
                           {isLocked ? 'Locked' : 'Full Time'}
                         </span>
-                        <div className={`flex items-center text-sm font-bold transition-transform ${
-                          isLocked 
-                            ? 'text-purple-600 dark:text-purple-400' 
-                            : 'text-green-600 dark:text-green-400 group-hover:translate-x-1'
-                        }`}>
+                        <div className={`flex items-center text-sm font-bold transition-transform ${isLocked
+                          ? 'text-purple-600 dark:text-purple-400'
+                          : 'text-green-600 dark:text-green-400 group-hover:translate-x-1'
+                          }`}>
                           {isLocked ? (
                             <>
                               Upgrade
@@ -303,11 +299,11 @@ const CareersPage = () => {
                     to="/pricing"
                     state={{
                       feature: 'career_recommendations',
-                      message: currentPlan === 'free' 
-                        ? (canUseFeature('career_view') 
-                          ? `Nâng cấp Gói Cơ Bản để xem nghề nghiệp này.`
-                          : `Bạn đã hết lượt xem nghề nghiệp miễn phí. Nâng cấp để xem thêm.`)
-                        : `Bạn đã xem hết 25 nghề nghiệp của Gói Cơ Bản. Nâng cấp Premium để xem không giới hạn.`,
+                      message: currentPlan === 'free'
+                        ? (canUseFeature('career_view')
+                          ? `Upgrade to Basic Plan to view this career.`
+                          : `You have used all free career views. Upgrade to view more.`)
+                        : `You have viewed all 25 careers in Basic Plan. Upgrade to Premium for unlimited access.`,
                       requiredPlan: requiredPlan,
                       redirectTo: `/careers/${(c as any).slug || c.id}`,
                     }}

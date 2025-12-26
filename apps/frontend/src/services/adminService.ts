@@ -38,15 +38,15 @@ export const adminService = {
 
   // Career Management
   async getAllCareers(
-    industryCategory?: string,
+    riasecCode?: string,
     opts?: { page?: number; pageSize?: number; q?: string }
   ): Promise<{ items: Career[]; total: number; limit: number; offset: number }> {
     const page = opts?.page ?? 1;
     const pageSize = opts?.pageSize ?? 20;
     const offset = (page - 1) * pageSize;
     const q = opts?.q ? `&q=${encodeURIComponent(opts.q)}` : '';
-    const ic = industryCategory ? `&industryCategory=${encodeURIComponent(industryCategory)}` : '';
-    const response = await api.get(`/api/admin/careers?limit=${pageSize}&offset=${offset}${q}${ic}`);
+    const rc = riasecCode ? `&riasecCode=${encodeURIComponent(riasecCode)}` : '';
+    const response = await api.get(`/api/admin/careers?limit=${pageSize}&offset=${offset}${q}${rc}`);
     return response.data;
   },
 
@@ -196,7 +196,7 @@ export const adminService = {
     const res = await api.put('/api/admin/settings', payload);
     return res.data;
   },
-   async uploadMedia(file: File): Promise<{ url: string; path: string; filename: string }> {
+  async uploadMedia(file: File): Promise<{ url: string; path: string; filename: string }> {
     const fd = new FormData();
     fd.append('file', file);
     const res = await api.post('/api/admin/upload', fd, {

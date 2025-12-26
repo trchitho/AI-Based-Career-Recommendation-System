@@ -93,7 +93,7 @@ export const goalsService = {
     return this.createGoal({
       career_id: careerId,
       career_name: careerName,
-      goal_text: `Trở thành ${careerName}`,
+      goal_text: `Become a ${careerName}`,
       goal_type: 'long_term',
       priority: 3
     });

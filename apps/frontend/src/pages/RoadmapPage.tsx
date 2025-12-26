@@ -5,7 +5,6 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { roadmapService, TraitEvidence } from '../services/roadmapService';
 import { careerService } from '../services/careerService';
 import RoadmapTimelineComponent from '../components/roadmap/RoadmapTimelineComponent';
-import RoadmapFooter from '../components/roadmap/RoadmapFooter';
 import { Roadmap } from '../types/roadmap';
 import MainLayout from '../components/layout/MainLayout';
 import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh';
@@ -13,75 +12,6 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { getRIASECFullName } from '../utils/riasec';
-
-const buildGenericMilestones = (): any[] => [
-  {
-    order: 1,
-    skillName: 'Learning foundations',
-    description: 'Build strong habits for learning and retaining new skills.',
-    estimatedDuration: '2-3 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/learn/learning-how-to-learn', type: 'course', title: 'Learning How to Learn' },
-      { url: 'https://www.coursera.org/learn/mindshift', type: 'course', title: 'Mindshift: Break Through Obstacles to Learning' },
-    ],
-  },
-  {
-    order: 2,
-    skillName: 'Communication & teamwork',
-    description: 'Improve communication, collaboration and feedback skills.',
-    estimatedDuration: '3-4 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/learn/wharton-communication-skills', type: 'course', title: 'Improving Communication Skills' },
-      { url: 'https://www.edx.org/course/communication-skills-and-teamwork', type: 'course', title: 'Communication Skills and Teamwork' },
-    ],
-  },
-  {
-    order: 3,
-    skillName: 'Problem solving & critical thinking',
-    description: 'Practice structured thinking and real-world problem solving.',
-    estimatedDuration: '3-4 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/learn/critical-thinking-skills', type: 'course', title: 'Creative Problem Solving' },
-      { url: 'https://www.edx.org/course/critical-thinking-reasoned-decision-making', type: 'course', title: 'Critical Thinking & Reasoned Decision Making' },
-    ],
-  },
-  {
-    order: 4,
-    skillName: 'Project & time management',
-    description: 'Plan, execute and deliver small projects on time.',
-    estimatedDuration: '2-3 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/learn/work-smarter-not-harder', type: 'course', title: 'Work Smarter, Not Harder' },
-      { url: 'https://www.coursera.org/specializations/project-management', type: 'course', title: 'Project Management Principles and Practices' },
-    ],
-  },
-  {
-    order: 5,
-    skillName: 'Leadership basics',
-    description: 'Develop core leadership behaviours for modern workplaces.',
-    estimatedDuration: '3-4 weeks',
-    resources: [
-      { url: 'https://online.hbs.edu/courses/leadership-principles/', type: 'course', title: 'Leadership Principles' },
-      { url: 'https://www.coursera.org/learn/foundations-of-everyday-leadership', type: 'course', title: 'Foundations of Everyday Leadership' },
-    ],
-  },
-  {
-    order: 6,
-    skillName: 'Career specialization',
-    description: 'Deepen expertise in a specialization related to your chosen career.',
-    estimatedDuration: '4-6 weeks',
-    resources: [
-      { url: 'https://www.coursera.org/browse', type: 'catalog', title: 'Browse role-based learning paths on Coursera' },
-      { url: 'https://www.edx.org/learn', type: 'catalog', title: 'Browse professional certificates on edX' },
-    ],
-  },
-];
-
-const withFallbackMilestones = (roadmap: Roadmap): Roadmap => {
-  const count = roadmap.milestones?.length ?? 0;
-  if (count >= 6) return roadmap;
-  return { ...(roadmap as any), milestones: buildGenericMilestones() } as Roadmap;
-};
 
 const RoadmapPage = () => {
   const { careerId } = useParams<{ careerId: string }>();
@@ -99,27 +29,21 @@ const RoadmapPage = () => {
   const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [maxFreeLevel, setMaxFreeLevel] = useState(1);
 
-  const { subscriptionData, isPremium } = useSubscription();
+  const { isPremium } = useSubscription();
   const { incrementUsage } = useUsageTracking();
   const { currentPlan, hasFeature } = useFeatureAccess();
   const hasLoadedTraitEvidenceRef = useRef(false);
   const hasTrackedUsageRef = useRef(false);
 
-  // Watch for subscription changes - Updated to use useFeatureAccess
   useEffect(() => {
-    // Use consistent plan detection from useFeatureAccess
     const hasUnlimitedCareers = hasFeature('unlimited_careers');
-
     if (hasUnlimitedCareers) {
-      // Premium/Pro users get full roadmap
       setUpgradeRequired(false);
       setMaxFreeLevel(-1);
     } else if (currentPlan === 'basic') {
-      // Basic users get Level 1-2
       setUpgradeRequired(true);
       setMaxFreeLevel(2);
     } else {
-      // Free users get Level 1 only
       setUpgradeRequired(true);
       setMaxFreeLevel(1);
     }
@@ -164,28 +88,20 @@ const RoadmapPage = () => {
         if (navState.title) data = { ...(data as any), careerTitle: navState.title } as Roadmap;
       }
 
-      const normalized = withFallbackMilestones(data);
-
-      // Apply 4-tier roadmap access logic using useFeatureAccess
       const hasUnlimitedCareers = hasFeature('unlimited_careers');
-
       if (hasUnlimitedCareers) {
-        // Premium/Pro users get full roadmap
         setUpgradeRequired(false);
         setMaxFreeLevel(-1);
       } else if (currentPlan === 'basic') {
-        // Basic users get Level 1-2
         setUpgradeRequired(true);
         setMaxFreeLevel(2);
       } else {
-        // Free users get Level 1 only
         setUpgradeRequired(true);
         setMaxFreeLevel(1);
       }
 
-      setRoadmap(normalized);
+      setRoadmap(data);
 
-      // Track roadmap usage (only once per page load, only for limited plans)
       if (!hasTrackedUsageRef.current && !isPremium) {
         incrementUsage('roadmap_level');
         hasTrackedUsageRef.current = true;
@@ -254,7 +170,7 @@ const RoadmapPage = () => {
         <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-green-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
         <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-blue-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           {loading && (
             <div className="flex flex-col items-center justify-center py-32 animate-pulse">
               <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-green-600 mb-4 animate-spin" />
@@ -275,7 +191,7 @@ const RoadmapPage = () => {
 
           {!loading && roadmap && (
             <div className="animate-fade-in-up space-y-8">
-              {/* Hero Header Card */}
+              {/* Hero Header - Career Title + Stages */}
               <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 rounded-[32px] p-8 md:p-10 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
                 <div className="relative z-10">
@@ -284,220 +200,145 @@ const RoadmapPage = () => {
                   </div>
                   <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8">{roadmap.careerTitle}</h1>
 
-                  <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-hide snap-x">
-                    {[
-                      { stage: 'intern', label: 'Intern' },
-                      { stage: 'junior', label: 'Junior' },
-                      { stage: 'mid', label: 'Mid-Level' },
-                      { stage: 'senior', label: 'Senior' },
-                      { stage: 'lead', label: 'Lead' },
-                      { stage: 'principal', label: 'Principal' },
-                    ].map((item, idx) => {
-                      const total = totalMilestones || 6;
-                      const stageThreshold = ((idx + 1) * total) / 6;
-                      const prevThreshold = (idx * total) / 6;
-                      const isCompleted = completedCount >= stageThreshold;
-                      const isCurrent = !isCompleted && completedCount >= prevThreshold;
+                  {/* Dynamic career stages based on milestones count */}
+                  {(() => {
+                    const milestonesCount = roadmap.milestones?.length || 0;
+                    const numStages = Math.max(3, Math.min(6, milestonesCount || 3));
 
-                      return (
-                        <div key={idx} className="flex-shrink-0 flex flex-col items-center snap-center group cursor-default">
-                          <div className={`relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-green-700 border-white' : isCurrent ? 'bg-green-600 text-white border-white ring-4 ring-white/30' : 'bg-green-800/50 text-green-300 border-green-700/50'}`}>
-                            {isCompleted ? (
-                              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            ) : (
-                              <span className="text-lg font-bold">{idx + 1}</span>
-                            )}
-                            {idx < 5 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-green-800'}`} />}
-                          </div>
-                          <span className={`mt-3 text-xs font-bold uppercase tracking-wide ${isCompleted || isCurrent ? 'text-white' : 'text-green-200/60'}`}>{item.label}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                    const stageLabels: { [key: number]: string[] } = {
+                      3: ['Entry', 'Mid-Level', 'Senior'],
+                      4: ['Entry', 'Junior', 'Mid-Level', 'Senior'],
+                      5: ['Intern', 'Junior', 'Mid-Level', 'Senior', 'Lead'],
+                      6: ['Intern', 'Junior', 'Mid-Level', 'Senior', 'Lead', 'Principal'],
+                    };
+
+                    const stages: string[] = stageLabels[numStages] ?? ['Entry', 'Mid-Level', 'Senior'];
+
+                    return (
+                      <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-hide snap-x">
+                        {stages.map((label, idx) => {
+                          const stageThreshold = ((idx + 1) * milestonesCount) / numStages;
+                          const prevThreshold = (idx * milestonesCount) / numStages;
+                          const isCompleted = completedCount >= stageThreshold;
+                          const isCurrent = !isCompleted && completedCount >= prevThreshold;
+
+                          return (
+                            <div key={idx} className="flex-shrink-0 flex flex-col items-center snap-center group cursor-default">
+                              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-green-700 border-white' : isCurrent ? 'bg-green-600 text-white border-white ring-4 ring-white/30' : 'bg-green-800/50 text-green-300 border-green-700/50'}`}>
+                                {isCompleted ? (
+                                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                ) : (
+                                  <span className="text-lg font-bold">{idx + 1}</span>
+                                )}
+                                {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-green-800'}`} />}
+                              </div>
+                              <span className={`mt-2 text-xs font-bold uppercase tracking-wide ${isCompleted || isCurrent ? 'text-white' : 'text-green-200/60'}`}>{label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
-              {/* Info Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                  {(careerDesc || navState.description) && (
-                    <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <span className="w-2 h-6 bg-green-500 rounded-full" />Overview
-                      </h3>
-                      <div className={`prose prose-green dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed ${showFullDesc ? '' : 'line-clamp-3'}`}>
-                        {navState.description || careerDesc}
-                      </div>
-                      {(navState.description || careerDesc).length > 250 && (
-                        <button onClick={() => setShowFullDesc(!showFullDesc)} className="mt-4 text-sm font-bold text-green-600 hover:text-green-700 dark:text-green-400 hover:underline focus:outline-none">
-                          {showFullDesc ? 'Show Less' : 'Read More'}
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                      <span className="w-2 h-6 bg-blue-500 rounded-full" />Key Requirements
-                    </h3>
-                    <div className="space-y-4">
-                      {['Strong communication and interpersonal skills', 'Ability to work independently and as part of a team', 'Problem-solving and analytical thinking abilities', 'Adaptability and willingness to learn new technologies'].map((req, idx) => (
-                        <div key={idx} className="flex items-start p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mt-0.5 mr-4">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                          <span className="text-gray-700 dark:text-gray-300 font-medium">{req}</span>
-                        </div>
-                      ))}
-                    </div>
+              {/* Overview - Career Description */}
+              {(careerDesc || navState.description) && (
+                <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <span className="w-2 h-6 bg-green-500 rounded-full" />Overview
+                  </h3>
+                  <div className={`prose prose-green dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed ${showFullDesc ? '' : 'line-clamp-3'}`}>
+                    {navState.description || careerDesc}
                   </div>
-
-                  {traitEvidence && (
-                    <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">How your assessment supports this career match</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        Below are some example items from the <span className="font-semibold">{getRIASECFullName(traitEvidence.scale)}</span> scales that were used when computing your profile.
-                      </p>
-                      <ul className="list-disc list-inside space-y-2">
-                        {traitEvidence.items.map((q, idx) => (
-                          <li key={idx} className="text-gray-700 dark:text-gray-300 text-sm">{q}</li>
-                        ))}
-                      </ul>
-                    </div>
+                  {(navState.description || careerDesc).length > 250 && (
+                    <button onClick={() => setShowFullDesc(!showFullDesc)} className="mt-4 text-sm font-bold text-green-600 hover:text-green-700 dark:text-green-400 hover:underline focus:outline-none">
+                      {showFullDesc ? 'Show Less' : 'Read More'}
+                    </button>
                   )}
                 </div>
+              )}
 
-                <div className="space-y-8">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-[24px] border border-gray-200 dark:border-gray-700 text-center">
-                      <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Experience</p>
-                      <p className="text-lg font-extrabold text-gray-900 dark:text-white">{(roadmap as any).overview?.experienceText || '6 mo - 1 yr'}</p>
-                    </div>
-                    <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-[24px] border border-gray-200 dark:border-gray-700 text-center">
-                      <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">Degree</p>
-                      <p className="text-lg font-extrabold text-gray-900 dark:text-white">{(roadmap as any).overview?.degreeText || 'Bachelor'}</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-900 dark:bg-gray-800 p-8 rounded-[32px] shadow-xl text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/20 rounded-full blur-3xl -mr-10 -mt-10" />
-                    <h3 className="text-lg font-bold mb-6 relative z-10">Salary Range</h3>
-                    <div className="space-y-6 relative z-10">
-                      <div>
-                        <div className="flex justify-between text-sm mb-1 text-gray-400">Entry Level</div>
-                        <div className="text-2xl font-extrabold">$40K - $60K</div>
-                      </div>
-                      <div className="w-full h-px bg-gray-700" />
-                      <div>
-                        <div className="flex justify-between text-sm mb-1 text-green-400 font-bold">Senior Level</div>
-                        <div className="text-3xl font-extrabold text-green-400">$80K - $120K</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Top Skills</h3>
-                    <div className="space-y-4">
-                      {[{ n: 'Technical Skills', p: 75 }, { n: 'Communication', p: 60 }, { n: 'Leadership', p: 40 }].map((s, i) => (
-                        <div key={i}>
-                          <div className="flex justify-between text-xs font-bold mb-1.5">
-                            <span className="text-gray-600 dark:text-gray-300">{s.n}</span>
-                            <span className="text-green-600">{s.p}%</span>
-                          </div>
-                          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-                            <div className="bg-green-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${s.p}%` }} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              {/* Trait Evidence - Why this career matches */}
+              {traitEvidence && (
+                <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <span className="w-2 h-6 bg-blue-500 rounded-full" />How your assessment supports this career match
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Below are some example items from the <span className="font-semibold">{getRIASECFullName(traitEvidence.scale)}</span> scales that were used when computing your profile.
+                  </p>
+                  <ul className="space-y-2">
+                    {traitEvidence.items.map((q, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-gray-700 dark:text-gray-300 text-sm">
+                        <span className="mt-1 w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+                        {q}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              )}
 
-
-              {/* Detailed Learning Path */}
-              <div className="relative bg-white dark:bg-gray-800 rounded-[40px] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <div className="relative bg-[#1a4731] dark:bg-gray-900 p-8 md:p-12 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
-                    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                      <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
-                    </svg>
-                  </div>
+              {/* Learning Journey Timeline */}
+              <div className="relative bg-white dark:bg-gray-800 rounded-[32px] shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div className="relative bg-[#1a4731] dark:bg-gray-900 p-8 md:p-10 overflow-hidden">
                   <div className="absolute -right-10 -top-10 w-64 h-64 bg-green-500/20 rounded-full blur-3xl" />
 
-                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="text-white text-center md:text-left">
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-400/30 text-green-300 text-xs font-bold uppercase tracking-wider mb-4">
                         <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />Live Roadmap
                       </div>
-                      <h2 className="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight">Your Learning Journey</h2>
-                      <p className="text-green-100/80 max-w-lg text-lg">Master skills one step at a time. Track your progress and reach your career goals.</p>
+                      <h2 className="text-2xl md:text-3xl font-extrabold mb-2 tracking-tight">Your Learning Journey</h2>
+                      <p className="text-green-100/80 max-w-lg">Master skills one step at a time. Track your progress and reach your career goals.</p>
                     </div>
 
-                    <div className="flex items-center gap-6 bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
-                      <div className="relative w-20 h-20 flex-shrink-0">
+                    <div className="flex items-center gap-4 bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
+                      <div className="relative w-16 h-16 flex-shrink-0">
                         <svg className="w-full h-full transform -rotate-90">
-                          <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-green-900/50" />
-                          <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={226} strokeDashoffset={226 - 226 * completionRatio} className="text-green-400 transition-all duration-1000 ease-out" strokeLinecap="round" />
+                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-green-900/50" />
+                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={176} strokeDashoffset={176 - 176 * completionRatio} className="text-green-400 transition-all duration-1000 ease-out" strokeLinecap="round" />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center flex-col text-white">
-                          <span className="text-xl font-bold">{completionPercent}%</span>
+                          <span className="text-lg font-bold">{completionPercent}%</span>
                         </div>
                       </div>
                       <div className="text-white">
                         <div className="text-xs text-green-300 font-bold uppercase tracking-wide">Milestones</div>
-                        <div className="text-2xl font-bold">{completedCount}<span className="text-white/50 text-lg ml-1">/{totalMilestones || 0}</span></div>
+                        <div className="text-xl font-bold">{completedCount}<span className="text-white/50 text-base ml-1">/{totalMilestones || 0}</span></div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-8 md:p-12 bg-gray-50/50 dark:bg-gray-800/50">
+                <div className="p-8 md:p-10 bg-gray-50/50 dark:bg-gray-800/50">
                   {upgradeRequired && (
-                    <div className="mb-8 relative overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-2xl p-6 text-white shadow-2xl">
-                      <div className="absolute inset-0 opacity-20">
-                        <div className="absolute inset-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }}></div>
-                      </div>
-                      <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div className="flex items-start gap-4 flex-1">
-                          <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-2xl">✨</span>
+                    <div className="mb-6 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg">
+                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-xl">✨</span>
                           </div>
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold mb-2">
-                              {maxFreeLevel === 1 ? 'Nâng cấp để xem lộ trình đầy đủ' : 'Mở khóa toàn bộ lộ trình học tập chuyên nghiệp'}
+                          <div>
+                            <h3 className="text-lg font-bold mb-1">
+                              {maxFreeLevel === 1 ? 'Upgrade to view full roadmap' : 'Unlock full learning roadmap'}
                             </h3>
-                            <p className="text-white/90 text-sm mb-3">
-                              {maxFreeLevel === 1 ? (
-                                <>Bạn đang xem <span className="font-semibold">Level 1 miễn phí</span>. Nâng cấp <span className="font-semibold">Gói Cơ Bản (99k)</span> để xem Level 1-2 hoặc <span className="font-semibold">Gói Premium (299k)</span> để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span>.</>
-                              ) : maxFreeLevel === 2 ? (
-                                <>Bạn đang xem <span className="font-semibold">Level 1-2 (Gói Cơ Bản)</span>. Nâng cấp <span className="font-semibold">Gói Premium (299k)</span> để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span> với tài liệu chuyên sâu.</>
-                              ) : (
-                                <>Bạn đang xem <span className="font-semibold">{maxFreeLevel} level miễn phí</span>. Nâng cấp để truy cập <span className="font-semibold">{totalMilestones} levels đầy đủ</span> với tài liệu chuyên sâu.</>
-                              )}
+                            <p className="text-white/90 text-sm">
+                              {maxFreeLevel === 1
+                                ? `You are viewing Level 1 (Free). Upgrade to access all ${totalMilestones} levels.`
+                                : `You are viewing Level 1-2. Upgrade to Premium to access all ${totalMilestones} levels.`
+                              }
                             </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                              {['🎯 Tài liệu học tập chuyên sâu', '📚 Khóa học và bài tập thực hành', '🔄 Cập nhật nội dung liên tục', '💬 Hỗ trợ cộng đồng Premium'].map((benefit, index) => (
-                                <div key={index} className="flex items-center gap-2 text-white/80"><span>{benefit}</span></div>
-                              ))}
-                            </div>
                           </div>
                         </div>
-                        <div className="flex flex-col gap-2 w-full md:w-auto">
-                          <button onClick={() => navigate('/pricing')} className="px-6 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            {maxFreeLevel === 1 ? 'Xem các gói' : 'Nâng cấp Premium'}<span>⚡</span>
-                          </button>
-                          <p className="text-white/70 text-xs text-center">
-                            {maxFreeLevel === 1 ? 'Từ 99k (Cơ Bản) - 299k (Premium)' : 'Chỉ từ 299,000đ'}
-                          </p>
-                        </div>
+                        <button onClick={() => navigate('/pricing')} className="px-5 py-2.5 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100 transition-all shadow-lg flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          View Plans
+                        </button>
                       </div>
                     </div>
                   )}
@@ -512,8 +353,6 @@ const RoadmapPage = () => {
                   />
                 </div>
               </div>
-
-              <RoadmapFooter milestones={roadmap.milestones} userProgress={roadmap.userProgress} />
             </div>
           )}
         </div>

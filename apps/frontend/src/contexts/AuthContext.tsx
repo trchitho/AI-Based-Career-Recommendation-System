@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import api from '../lib/api';
+import { clearSubscriptionCache } from '../hooks/useSubscription';
 
 interface User {
   id: string;
@@ -156,6 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    clearSubscriptionCache(); // Clear subscription cache on logout
     setUser(null);
     window.location.href = '/login';
   };

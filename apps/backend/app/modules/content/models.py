@@ -44,6 +44,7 @@ class Career(Base):
     created_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     onet_code: Mapped[Optional[str]] = mapped_column(Text, unique=True)
+    industry_category: Mapped[Optional[str]] = mapped_column(Text)
 
     def to_dict(self) -> dict:
         # Fallback title from slug if localized titles are missing
@@ -209,3 +210,48 @@ class CareerKSA(Base):
             "created_at": self.fetched_at.isoformat() if self.fetched_at else None,
             "updated_at": self.fetched_at.isoformat() if self.fetched_at else None,
         }
+
+
+# bảng core.career_interests (RIASEC scores)
+class CareerInterest(Base):
+    __tablename__ = "career_interests"
+    __table_args__ = {"schema": "core"}
+    onet_code = Column(Text, primary_key=True)
+    r = Column(Numeric(6, 3))  # Realistic
+    i = Column(Numeric(6, 3))  # Investigative
+    a = Column(Numeric(6, 3))  # Artistic
+    s = Column(Numeric(6, 3))  # Social
+    e = Column(Numeric(6, 3))  # Enterprising
+    c = Column(Numeric(6, 3))  # Conventional
+    source = Column(Text)
+    fetched_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    def get_dominant_code(self) -> str:
+        """Return the dominant RIASEC code (highest score)"""
+        scores = [
+            ('R', float(self.r or 0)),
+            ('I', float(self.i or 0)),
+            ('A', float(self.a or 0)),
+            ('S', float(self.s or 0)),
+            ('E', float(self.e or 0)),
+            ('C', float(self.c or 0)),
+        ]
+        scores.sort(key=lambda x: x[1], reverse=True)
+        if scores[0][1] == 0:
+            return 'N/A'
+        return scores[0][0]
+
+
+# bảng core.career_overview (salary info)
+class CareerOverview(Base):
+    __tablename__ = "career_overview"
+    __table_args__ = {"schema": "core"}
+    id = Column(BigInteger, primary_key=True)
+    career_id = Column(BigInteger, nullable=False)
+    experience_text = Column(Text)
+    degree_text = Column(Text)
+    salary_min = Column(Numeric(12, 2))
+    salary_max = Column(Numeric(12, 2))
+    salary_avg = Column(Numeric(12, 2))
+    salary_currency = Column(Text, default='VND')
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

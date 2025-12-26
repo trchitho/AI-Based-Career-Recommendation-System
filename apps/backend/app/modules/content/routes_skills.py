@@ -98,9 +98,9 @@ def get_skills(
                 )
             )
         
-        # Lọc theo KSA type
+        # Lọc theo KSA type (case-insensitive)
         if ksa_type:
-            query = query.filter(CareerKSA.ksa_type == ksa_type)
+            query = query.filter(func.lower(CareerKSA.ksa_type) == ksa_type.lower())
         
         # Lọc theo ONET code
         if onet_code:

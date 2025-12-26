@@ -25,15 +25,13 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
         const amount = latestPayment?.amount ?? 0;
         const description = latestPayment?.description ?? '';
 
-        if (description.includes('Cơ Bản') ||
-          (amount >= 99000 && amount < 250000)) {
-          setDetectedPlan('Basic');
-        } else if (description.includes('Premium') ||
-          (amount >= 250000 && amount < 450000)) {
-          setDetectedPlan('Premium');
-        } else if (description.includes('Pro') ||
-          amount >= 450000) {
+        // Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
+        if (description.toLowerCase().includes('pro') || amount >= 280000) {
           setDetectedPlan('Pro');
+        } else if (description.toLowerCase().includes('premium') || amount >= 180000) {
+          setDetectedPlan('Premium');
+        } else if (description.toLowerCase().includes('basic') || amount >= 80000) {
+          setDetectedPlan('Basic');
         }
       }
     } catch (error) {

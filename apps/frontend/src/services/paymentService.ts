@@ -169,7 +169,12 @@ export const paymentService = {
    * Trigger subscription refresh event
    */
   triggerSubscriptionRefresh(): void {
+    // Dispatch both events for compatibility
     window.dispatchEvent(new CustomEvent('subscription-updated'));
+    window.dispatchEvent(new CustomEvent('payment_success', { detail: { timestamp: Date.now() } }));
+
+    // Also set localStorage for cross-tab communication
+    localStorage.setItem('payment_success', Date.now().toString());
   },
 };
 

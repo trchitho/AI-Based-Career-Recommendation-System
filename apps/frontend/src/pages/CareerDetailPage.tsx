@@ -115,12 +115,43 @@ const CareerDetailPage = () => {
                       </div>
                       {/* Tab Content */}
                       <div className="space-y-3">
-                        {(activeTab === 'knowledge' ? detail.sections.knowledge : activeTab === 'skills' ? detail.sections.skills : detail.sections.abilities).slice(0, 10).map((item, i) => (
-                          <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <span className="text-gray-700 dark:text-gray-300 font-medium">{item.name}</span>
-                            {item.importance && (<div className="flex items-center gap-2"><div className="w-24 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden"><div className="h-full bg-teal-500 rounded-full" style={{ width: `${Math.min(item.importance, 100)}%` }}></div></div><span className="text-xs text-gray-500 dark:text-gray-400 w-8">{item.importance.toFixed(0)}</span></div>)}
-                          </div>
-                        ))}
+                        {(activeTab === 'knowledge' ? detail.sections.knowledge : activeTab === 'skills' ? detail.sections.skills : detail.sections.abilities).slice(0, 10).map((item, i) => {
+                          // Capitalize each word in the name
+                          const capitalizedName = item.name.split(' ').map(word =>
+                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                          ).join(' ');
+                          // Use level and importance directly from DB (scale 0-5)
+                          const levelValue = item.level ?? 0;
+                          const importanceValue = item.importance ?? 0;
+
+                          return (
+                            <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg gap-4">
+                              <span className="text-gray-700 dark:text-gray-300 font-medium flex-1 min-w-0">{capitalizedName}</span>
+                              <div className="flex items-center gap-4 flex-shrink-0">
+                                {/* Level */}
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-400 dark:text-gray-500 w-8">Level</span>
+                                  <div className="w-20 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden flex">
+                                    {[1, 2, 3, 4, 5].map(seg => (
+                                      <div key={seg} className={`flex-1 ${seg <= Math.round(levelValue) ? 'bg-teal-500' : ''}`} style={{ borderRight: seg < 5 ? '1px solid rgba(156,163,175,0.3)' : 'none' }}></div>
+                                    ))}
+                                  </div>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 w-6 text-right">{levelValue.toFixed(1)}</span>
+                                </div>
+                                {/* Importance */}
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-400 dark:text-gray-500 w-12">Import.</span>
+                                  <div className="w-20 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden flex">
+                                    {[1, 2, 3, 4, 5].map(seg => (
+                                      <div key={seg} className={`flex-1 ${seg <= Math.round(importanceValue) ? 'bg-orange-500' : ''}`} style={{ borderRight: seg < 5 ? '1px solid rgba(156,163,175,0.3)' : 'none' }}></div>
+                                    ))}
+                                  </div>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 w-6 text-right">{importanceValue.toFixed(1)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                         {(activeTab === 'knowledge' ? detail.sections.knowledge : activeTab === 'skills' ? detail.sections.skills : detail.sections.abilities).length === 0 && (<p className="text-gray-400 italic">No {activeTab} data available.</p>)}
                       </div>
                     </div>

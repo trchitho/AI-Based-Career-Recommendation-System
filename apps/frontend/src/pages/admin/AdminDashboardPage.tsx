@@ -3,7 +3,6 @@ import { Routes, Route, Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { adminService } from "../../services/adminService";
 import { AdminDashboardMetrics, AIMetrics } from "../../types/admin";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
 import ThemeToggle from "../../components/ThemeToggle";
 
 // Admin pages
@@ -62,25 +61,14 @@ const AdminDashboardPage = () => {
       {/* NAVBAR */}
       <nav className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <h1 className="text-xl font-bold dark:text-white whitespace-nowrap">
+          <div className="flex justify-between h-14 items-center">
+            <Link to="/admin" className="text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Admin Panel
-            </h1>
-
-            <div className="flex items-center gap-4 whitespace-nowrap">
-              <LanguageSwitcher />
-              <ThemeToggle />
-
-              <Link
-                to="/dashboard"
-                className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white inline-flex items-center whitespace-nowrap"
-              >
-                ← {t("common.back")}
-              </Link>
-            </div>
+            </Link>
+            <ThemeToggle />
           </div>
         </div>
-        
+
         {/* Navigation tabs - scrollable */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
           <div className="flex items-center gap-1 py-2 min-w-max">
@@ -140,16 +128,18 @@ const AdminDashboardPage = () => {
 const NavItem = ({ to, label, active }: { to: string; label: string; active: boolean }) => (
   <Link
     to={to}
-    className={`relative px-2 py-3 text-sm font-medium transition whitespace-nowrap
-      ${active ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"}
+    className={`
+      relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap
+      ${active
+        ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40"
+        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+      }
     `}
   >
     {label}
-    <span
-      className={`absolute left-0 -bottom-[3px] h-[2px] w-full bg-blue-500 rounded-full transition-transform duration-300 origin-left
-        ${active ? "scale-x-100" : "scale-x-0"}
-      `}
-    />
+    {active && (
+      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full" />
+    )}
   </Link>
 );
 

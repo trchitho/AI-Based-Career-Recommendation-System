@@ -54,7 +54,7 @@ const PaymentManagementPage = () => {
   const [showUserHistory, setShowUserHistory] = useState<number | null>(null);
   const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
   const [showUserSearch, setShowUserSearch] = useState(false);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
@@ -70,7 +70,7 @@ const PaymentManagementPage = () => {
         sort_by: sortBy,
         sort_order: sortOrder,
       });
-      
+
       const query = searchQuery !== undefined ? searchQuery : searchTerm;
       if (query) params.append('search', query);
       if (statusFilter) params.append('status_filter', statusFilter);
@@ -78,7 +78,7 @@ const PaymentManagementPage = () => {
       if (dateFrom) params.append('date_from', dateFrom);
       if (dateTo) params.append('date_to', dateTo);
       if (selectedUserId) params.append('user_id', selectedUserId.toString());
-      
+
       const response = await api.get(`/api/payment/admin/payments?${params}`);
       setPaymentsData(response.data);
     } catch (error) {
@@ -132,7 +132,7 @@ const PaymentManagementPage = () => {
       setUserSearchResults([]);
       return;
     }
-    
+
     try {
       const response = await api.get(`/api/payment/admin/payments/users/search?q=${encodeURIComponent(query)}`);
       setUserSearchResults(response.data);
@@ -171,17 +171,17 @@ const PaymentManagementPage = () => {
     try {
       const params = new URLSearchParams();
       params.append('format', format);
-      
+
       if (statusFilter) params.append('status_filter', statusFilter);
       if (paymentMethodFilter) params.append('payment_method', paymentMethodFilter);
       if (dateFrom) params.append('date_from', dateFrom);
       if (dateTo) params.append('date_to', dateTo);
       if (selectedUserId) params.append('user_id', selectedUserId.toString());
-      
+
       const response = await api.get(`/api/payment/admin/payments/export?${params}`, {
         responseType: format === 'csv' ? 'blob' : 'json'
       });
-      
+
       if (format === 'csv') {
         const blob = new Blob([response.data], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
@@ -378,7 +378,7 @@ const PaymentManagementPage = () => {
                 className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               />
             </div>
-            
+
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Filter by User
@@ -403,7 +403,7 @@ const PaymentManagementPage = () => {
                   </button>
                 )}
               </div>
-              
+
               {/* User Search Results */}
               {showUserSearch && userSearchResults.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -515,7 +515,7 @@ const PaymentManagementPage = () => {
                 Clear Filters
               </button>
             </div>
-            
+
             {selectedUserId && (
               <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
                 Filtering by user ID: {selectedUserId}
@@ -549,7 +549,7 @@ const PaymentManagementPage = () => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th 
+                <th
                   className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   onClick={() => handleSort('order_id')}
                 >
@@ -563,7 +563,7 @@ const PaymentManagementPage = () => {
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   User
                 </th>
-                <th 
+                <th
                   className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   onClick={() => handleSort('amount')}
                 >
@@ -580,7 +580,7 @@ const PaymentManagementPage = () => {
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
-                <th 
+                <th
                   className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   onClick={() => handleSort('created_at')}
                 >
@@ -611,7 +611,7 @@ const PaymentManagementPage = () => {
                       ID: {payment.id}
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {payment.user_email}
@@ -620,21 +620,21 @@ const PaymentManagementPage = () => {
                       {payment.user_name || `User #${payment.user_id}`}
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                     {formatAmount(payment.amount)}
                   </td>
-                  
+
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
                     {getPaymentMethodText(payment.payment_method)}
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.status)}`}>
                       {getStatusText(payment.status)}
                     </span>
                   </td>
-                  
+
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
                     {formatDate(payment.created_at)}
                   </td>
@@ -846,14 +846,14 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
         page: currentPage.toString(),
         per_page: '10',
       });
-      
+
       if (statusFilter) params.append('status_filter', statusFilter);
       if (dateFrom) params.append('date_from', dateFrom);
       if (dateTo) params.append('date_to', dateTo);
-      
+
       const response = await api.get(`/api/payment/admin/payments/user/${userId}?${params}`);
       setUserPayments(response.data);
-      
+
       // Lấy thông tin user từ payment đầu tiên
       if (response.data.items.length > 0) {
         const firstPayment = response.data.items[0];
@@ -969,7 +969,7 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
                 <div className="text-lg font-bold text-purple-900 dark:text-purple-100">{formatAmount(stats.totalAmount)}</div>
               </div>
               <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
-                <div className="text-sm text-orange-600 dark:text-orange-400">Đã thanh toán</div>
+                <div className="text-sm text-orange-600 dark:text-orange-400">Paid</div>
                 <div className="text-lg font-bold text-orange-900 dark:text-orange-100">{formatAmount(stats.successAmount)}</div>
               </div>
             </div>

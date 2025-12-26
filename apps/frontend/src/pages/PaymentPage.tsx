@@ -7,6 +7,7 @@ import { getPaymentHistory, PaymentHistory } from '../services/paymentService';
 import MainLayout from '../components/layout/MainLayout';
 import { getAccessToken } from '../utils/auth';
 import SubscriptionExpiryCard from '../components/subscription/SubscriptionExpiryCard';
+import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh';
 
 export const PaymentPage: React.FC = () => {
     const [history, setHistory] = useState<PaymentHistory[]>([]);
@@ -21,41 +22,42 @@ export const PaymentPage: React.FC = () => {
     const plans = [
         {
             id: 'basic',
-            name: 'Gói Cơ Bản',
+            name: 'Basic Plan',
             price: 99000,
-            description: 'Dành cho người dùng mới muốn thử nghiệm',
+            description: 'For new users who want to explore',
             features: [
-                'Tối đa 20 bài kiểm tra / tháng',
-                'Xem 5 nghề nghiệp phù hợp nhất',
-                'Lộ trình học tập cơ bản (Level 1-2)',
-                'Phân tích tóm tắt RIASEC & Big Five'
+                'Up to 20 assessments per month',
+                'View top 5 career matches',
+                'Basic learning roadmap (Level 1-2)',
+                'Summary RIASEC & Big Five analysis'
             ],
             gradient: 'from-blue-500 to-cyan-500',
         },
         {
             id: 'premium',
-            name: 'Gói Premium',
-            price: 299000,
-            description: 'Gói phổ biến nhất - Định hướng rõ ràng',
+            name: 'Premium Plan',
+            price: 199000,
+            description: 'Most popular - Clear career guidance',
             features: [
-                'Làm bài kiểm tra không giới hạn',
-                'Xem toàn bộ danh mục nghề nghiệp',
-                'Lộ trình học tập đầy đủ (Full Roadmap)',
-                'Phân tích AI chi tiết tính cách & tiềm năng'
+                'Unlimited assessments',
+                'View all career categories',
+                'Full learning roadmap',
+                'Detailed Knowledge, Skills, and Abilities analysis'
             ],
             gradient: 'from-green-500 to-emerald-500',
             popular: true,
         },
         {
             id: 'pro',
-            name: 'Gói Pro',
-            price: 499000,
-            description: 'Người cố vấn số đồng hành suốt hành trình',
+            name: 'Pro Plan',
+            price: 299000,
+            description: 'Your digital career advisor',
             features: [
-                'Tất cả tính năng gói Premium',
-                '🤖 Trợ lý ảo AI 24/7',
-                '📄 Xuất báo cáo PDF chuyên sâu',
-                '📊 So sánh lịch sử phát triển'
+                'All Premium features',
+                'AI Assistant 24/7',
+                'Export detailed PDF reports',
+                'Progress history comparison',
+                'Full career-related information'
             ],
             gradient: 'from-purple-500 to-pink-500',
         },
@@ -104,17 +106,37 @@ export const PaymentPage: React.FC = () => {
             const token = getAccessToken();
             if (!token) return;
 
+            // First try to get plan from subscription API
+            try {
+                const response = await fetch('http://localhost:8000/api/subscription/subscription', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.plan_name && data.plan_name !== 'Free') {
+                        setUserPlan(data.plan_name);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log('Subscription API not available, falling back to payment history');
+            }
+
+            // Fallback to payment history
             const payments = await getPaymentHistory();
-            const successfulPayments = payments.filter((p) => 
+            const successfulPayments = payments.filter((p) =>
                 p.status?.toLowerCase() === 'success'
             );
-            
+
             if (successfulPayments.length > 0) {
                 const latestPayment = successfulPayments[0];
-                
-                if (latestPayment && latestPayment.amount >= 450000) {
+                // Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
+                if (latestPayment && latestPayment.amount >= 280000) {
                     setUserPlan('Pro');
-                } else if (latestPayment && latestPayment.amount >= 250000) {
+                } else if (latestPayment && latestPayment.amount >= 180000) {
                     setUserPlan('Premium');
                 } else if (latestPayment && latestPayment.amount >= 80000) {
                     setUserPlan('Basic');
@@ -145,10 +167,10 @@ export const PaymentPage: React.FC = () => {
         };
 
         const labels = {
-            pending: 'Đang xử lý',
-            success: 'Thành công',
-            failed: 'Thất bại',
-            cancelled: 'Đã hủy',
+            pending: 'Pending',
+            success: 'Success',
+            failed: 'Failed',
+            cancelled: 'Cancelled',
         };
 
         return (
@@ -160,9 +182,10 @@ export const PaymentPage: React.FC = () => {
 
     return (
         <MainLayout>
+            <SubscriptionRefresh />
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    
+
                     {/* Header */}
                     <div className="text-center mb-16">
                         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
@@ -184,18 +207,18 @@ export const PaymentPage: React.FC = () => {
                                 <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 border-2 border-dashed border-gray-300 dark:border-gray-600">
                                     <div className="text-center">
                                         <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <span className="text-2xl">🆓</span>
+                                            <span className="text-lg font-bold text-gray-500">Free</span>
                                         </div>
-                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Gói Free (Hiện tại)</h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Miễn phí - Mặc định cho tất cả người dùng</p>
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Free Plan (Current)</h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Free - Default for all users</p>
                                         <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                                             <div className="flex items-center justify-center gap-2">
                                                 <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                                                <span>5 bài kiểm tra / tháng</span>
+                                                <span>5 assessments per month</span>
                                             </div>
                                             <div className="flex items-center justify-center gap-2">
                                                 <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                                                <span>Xem 1 nghề nghiệp đầu tiên</span>
+                                                <span>View first career only</span>
                                             </div>
                                             <div className="flex items-center justify-center gap-2">
                                                 <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
@@ -215,18 +238,18 @@ export const PaymentPage: React.FC = () => {
                                                     });
                                                     const result = await response.json();
                                                     if (result.success) {
-                                                        alert(`✅ ${result.message}`);
+                                                        alert(`Success: ${result.message}`);
                                                         window.location.reload();
                                                     } else {
-                                                        alert(`❌ ${result.message}`);
+                                                        alert(`Error: ${result.message}`);
                                                     }
                                                 } catch (err) {
-                                                    alert('Lỗi kết nối server');
+                                                    alert('Server connection error');
                                                 }
                                             }}
                                             className="mt-4 text-sm text-blue-600 hover:text-blue-700 underline"
                                         >
-                                            Đã thanh toán? Click để đồng bộ gói
+                                            Already paid? Click to sync your plan
                                         </button>
                                     </div>
                                 </div>
@@ -240,23 +263,21 @@ export const PaymentPage: React.FC = () => {
                             <div className="bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
                                 <button
                                     onClick={() => setActiveTab('plans')}
-                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${
-                                        activeTab === 'plans'
-                                            ? 'bg-gray-900 text-white'
-                                            : 'text-gray-500 hover:text-gray-900'
-                                    }`}
+                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${activeTab === 'plans'
+                                        ? 'bg-gray-900 text-white'
+                                        : 'text-gray-500 hover:text-gray-900'
+                                        }`}
                                 >
-                                    Chọn gói
+                                    Choose Plan
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('history')}
-                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${
-                                        activeTab === 'history'
-                                            ? 'bg-gray-900 text-white'
-                                            : 'text-gray-500 hover:text-gray-900'
-                                    }`}
+                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${activeTab === 'history'
+                                        ? 'bg-gray-900 text-white'
+                                        : 'text-gray-500 hover:text-gray-900'
+                                        }`}
                                 >
-                                    Lịch sử giao dịch
+                                    Transaction History
                                 </button>
                             </div>
                         </div>
@@ -274,45 +295,43 @@ export const PaymentPage: React.FC = () => {
                                         </svg>
                                     </div>
                                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                                        Bạn đã có gói cao nhất!
+                                        You have the highest plan!
                                     </h3>
                                     <p className="text-gray-600 dark:text-gray-400 mb-8">
-                                        Bạn đang sử dụng gói {userPlan} - gói cao nhất của chúng tôi với đầy đủ tính năng.
+                                        You are using the {userPlan} plan - our highest tier with all features included.
                                     </p>
                                     <button
                                         onClick={() => window.location.href = '/dashboard'}
                                         className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-lg"
                                     >
-                                        Quay lại Dashboard
+                                        Back to Dashboard
                                     </button>
                                 </div>
                             ) : (
                                 <>
                                     <div className="text-center mb-12">
                                         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                                            {userPlan === 'Free' ? 'Gói Thanh Toán' : 'Nâng Cấp Gói'}
+                                            {userPlan === 'Free' ? 'Payment Plans' : 'Upgrade Plan'}
                                         </h2>
                                         <p className="text-gray-600 dark:text-gray-400">
-                                            {userPlan === 'Free' 
-                                                ? 'Chọn gói phù hợp để mở khóa toàn bộ tiềm năng nghề nghiệp của bạn'
-                                                : 'Nâng cấp lên gói cao hơn để trải nghiệm thêm nhiều tính năng'
+                                            {userPlan === 'Free'
+                                                ? 'Choose the right plan to unlock your full career potential'
+                                                : 'Upgrade to a higher plan to experience more features'
                                             }
                                         </p>
                                     </div>
-                                    
-                                    <div className={`grid gap-8 max-w-6xl mx-auto ${
-                                        availablePlans.length === 1 ? 'grid-cols-1 max-w-md' : 
-                                        availablePlans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-4xl' : 
-                                        'grid-cols-1 md:grid-cols-3'
-                                    }`}>
+
+                                    <div className={`grid gap-8 max-w-6xl mx-auto ${availablePlans.length === 1 ? 'grid-cols-1 max-w-md' :
+                                        availablePlans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-4xl' :
+                                            'grid-cols-1 md:grid-cols-3'
+                                        }`}>
                                         {availablePlans.map((plan) => (
                                             <div
                                                 key={plan.id}
-                                                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border transition-all duration-300 ${
-                                                    plan.popular
-                                                        ? 'border-green-500 ring-2 ring-green-500/20 scale-105'
-                                                        : 'border-gray-200 dark:border-gray-700 hover:shadow-xl'
-                                                }`}
+                                                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border transition-all duration-300 ${plan.popular
+                                                    ? 'border-green-500 ring-2 ring-green-500/20 scale-105'
+                                                    : 'border-gray-200 dark:border-gray-700 hover:shadow-xl'
+                                                    }`}
                                             >
                                                 {plan.popular && (
                                                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -334,7 +353,7 @@ export const PaymentPage: React.FC = () => {
                                                         </span>
                                                         <span className="text-gray-400 text-lg font-bold ml-1">đ</span>
                                                     </div>
-                                                    <p className="text-xs text-gray-400 mt-1">thanh toán một lần</p>
+                                                    <p className="text-xs text-gray-400 mt-1">one-time payment</p>
                                                 </div>
 
                                                 <ul className="space-y-4 mb-8">
@@ -352,7 +371,7 @@ export const PaymentPage: React.FC = () => {
 
                                                 <PaymentButton
                                                     amount={plan.price}
-                                                    description={`Thanh toán ${plan.name}`}
+                                                    description={`Payment for ${plan.name}`}
                                                     onSuccess={(orderId) => {
                                                         console.log('Payment initiated', plan.name, orderId);
                                                         // Reload page after payment
@@ -362,7 +381,7 @@ export const PaymentPage: React.FC = () => {
                                                     }}
                                                     className={`w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r ${plan.gradient} hover:opacity-90 transition-all`}
                                                 >
-                                                    {userPlan === 'Free' ? 'Chọn Gói Này' : 'Nâng Cấp'}
+                                                    {userPlan === 'Free' ? 'Choose This Plan' : 'Upgrade'}
                                                 </PaymentButton>
                                             </div>
                                         ))}
@@ -376,8 +395,8 @@ export const PaymentPage: React.FC = () => {
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">Transaction History</h3>
-                                <button 
-                                    onClick={loadHistory} 
+                                <button
+                                    onClick={loadHistory}
                                     className="text-sm font-medium text-blue-600 hover:text-blue-700"
                                 >
                                     Refresh
@@ -414,7 +433,7 @@ export const PaymentPage: React.FC = () => {
                                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                             {history.map((payment) => (
                                                 <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                    <td className="px-6 py-4 text-sm font-mono text-gray-600">#{payment.order_id.slice(-8)}</td>
+                                                    <td className="px-6 py-4 text-sm font-mono text-gray-600">#{(payment.order_id ?? '').slice(-8)}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{payment.description}</td>
                                                     <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(payment.amount)}</td>
                                                     <td className="px-6 py-4">{getStatusBadge(payment.status)}</td>

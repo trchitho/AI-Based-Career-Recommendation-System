@@ -573,25 +573,25 @@ def generate_ai_milestones(request: Request, goal_id: int, payload: GenerateMile
     # Check if time is too short
     time_warning = None
     if target_months < recommended_months * 0.5:
-        time_warning = f"⚠️ Thời gian {target_months} tháng có thể quá ngắn. Khuyến nghị tối thiểu {recommended_months} tháng để hoàn thành đầy đủ lộ trình."
+        time_warning = f"Warning: {target_months} months may be too short. Recommended minimum is {recommended_months} months to complete the full roadmap."
     elif target_months < recommended_months * 0.75:
-        time_warning = f"⚡ Thời gian {target_months} tháng khá gấp. Bạn cần học tập chăm chỉ hơn bình thường."
+        time_warning = f"Note: {target_months} months is a tight timeline. You will need to study more intensively than usual."
     
     # Build prompt for AI - keep it short for faster response
     roadmap_info = ""
     if roadmap_data and roadmap_data.get("milestones"):
-        roadmap_info = f"Lộ trình có sẵn: "
+        roadmap_info = f"Available roadmap: "
         skills = [m['skill_name'] for m in roadmap_data["milestones"][:5]]  # Limit to 5
         roadmap_info += ", ".join(skills)
     
-    prompt = f"""Tạo 5 milestone cho mục tiêu "{goal_text}" ({career_name}) trong {target_months} tháng.
+    prompt = f"""Create 5 milestones for the goal "{goal_text}" ({career_name}) within {target_months} months.
 
 {roadmap_info}
 
-Trả về JSON array:
+Return JSON array:
 [{{"title":"...","description":"...","estimated_weeks":4}}]
 
-CHỈ JSON, không text khác."""
+ONLY JSON, no other text."""
 
     try:
         # Use fallback function that tries multiple models
@@ -678,7 +678,7 @@ CHỈ JSON, không text khác."""
             "recommended_months": recommended_months,
             "target_months": target_months,
             "warning": time_warning,
-            "message": f"Đã tạo {len(created_milestones)} milestone cho mục tiêu của bạn",
+            "message": f"Created {len(created_milestones)} milestones for your goal",
             "ai_generated": True
         }
         
@@ -703,38 +703,38 @@ def _create_fallback_milestones(session: Session, goal_id: int, career_name: str
     # Tech/IT careers
     if any(word in career_lower for word in ['developer', 'engineer', 'programmer', 'software', 'data', 'web', 'mobile', 'devops', 'cloud', 'ai', 'machine learning']):
         basic_milestones = [
-            {"title": "Học ngôn ngữ lập trình cơ bản", "description": f"Nắm vững ngôn ngữ lập trình chính cho {career_name}. Hoàn thành các bài tập cơ bản.", "weeks": 4},
-            {"title": "Xây dựng kiến thức nền tảng", "description": "Học cấu trúc dữ liệu, thuật toán, và các khái niệm cốt lõi.", "weeks": 6},
-            {"title": "Thực hành với dự án nhỏ", "description": "Xây dựng 2-3 dự án nhỏ để áp dụng kiến thức đã học.", "weeks": 6},
-            {"title": "Học framework/công cụ chuyên sâu", "description": "Nắm vững các framework và công cụ phổ biến trong ngành.", "weeks": 8},
-            {"title": "Xây dựng portfolio & tìm việc", "description": "Hoàn thiện portfolio với các dự án thực tế, chuẩn bị CV và phỏng vấn.", "weeks": 4},
+            {"title": "Learn core programming language", "description": f"Master the main programming language for {career_name}. Complete basic exercises.", "weeks": 4},
+            {"title": "Build foundational knowledge", "description": "Learn data structures, algorithms, and core concepts.", "weeks": 6},
+            {"title": "Practice with small projects", "description": "Build 2-3 small projects to apply what you've learned.", "weeks": 6},
+            {"title": "Learn advanced frameworks/tools", "description": "Master popular frameworks and tools in the industry.", "weeks": 8},
+            {"title": "Build portfolio & job search", "description": "Complete portfolio with real projects, prepare CV and interviews.", "weeks": 4},
         ]
     # Design careers
     elif any(word in career_lower for word in ['design', 'ui', 'ux', 'graphic', 'creative']):
         basic_milestones = [
-            {"title": "Học công cụ thiết kế", "description": "Thành thạo Figma, Adobe XD hoặc các công cụ thiết kế chính.", "weeks": 4},
-            {"title": "Nắm vững nguyên tắc thiết kế", "description": "Học về typography, color theory, layout và composition.", "weeks": 4},
-            {"title": "Thực hành thiết kế", "description": "Redesign các ứng dụng/website có sẵn để luyện tập.", "weeks": 6},
-            {"title": "Xây dựng case studies", "description": "Tạo 3-5 case studies chi tiết cho portfolio.", "weeks": 6},
-            {"title": "Portfolio & networking", "description": "Hoàn thiện portfolio, tham gia cộng đồng design.", "weeks": 4},
+            {"title": "Learn design tools", "description": "Master Figma, Adobe XD or other main design tools.", "weeks": 4},
+            {"title": "Master design principles", "description": "Learn typography, color theory, layout and composition.", "weeks": 4},
+            {"title": "Practice design work", "description": "Redesign existing apps/websites for practice.", "weeks": 6},
+            {"title": "Build case studies", "description": "Create 3-5 detailed case studies for portfolio.", "weeks": 6},
+            {"title": "Portfolio & networking", "description": "Complete portfolio, join design communities.", "weeks": 4},
         ]
     # Marketing careers
     elif any(word in career_lower for word in ['marketing', 'seo', 'content', 'social media', 'digital']):
         basic_milestones = [
-            {"title": "Học nền tảng marketing", "description": "Nắm vững các khái niệm marketing cơ bản và digital marketing.", "weeks": 4},
-            {"title": "Thành thạo công cụ", "description": "Học Google Analytics, Facebook Ads, Google Ads.", "weeks": 4},
-            {"title": "Thực hành chiến dịch", "description": "Chạy các chiến dịch marketing thử nghiệm.", "weeks": 6},
-            {"title": "Xây dựng case studies", "description": "Tổng hợp kết quả và tạo case studies.", "weeks": 4},
-            {"title": "Tìm kiếm cơ hội", "description": "Chuẩn bị portfolio, CV và tìm việc.", "weeks": 4},
+            {"title": "Learn marketing fundamentals", "description": "Master basic marketing concepts and digital marketing.", "weeks": 4},
+            {"title": "Master tools", "description": "Learn Google Analytics, Facebook Ads, Google Ads.", "weeks": 4},
+            {"title": "Practice campaigns", "description": "Run experimental marketing campaigns.", "weeks": 6},
+            {"title": "Build case studies", "description": "Compile results and create case studies.", "weeks": 4},
+            {"title": "Job search", "description": "Prepare portfolio, CV and find opportunities.", "weeks": 4},
         ]
     # Default for other careers
     else:
         basic_milestones = [
-            {"title": "Nghiên cứu ngành nghề", "description": f"Tìm hiểu sâu về {career_name}, các kỹ năng cần thiết và xu hướng ngành.", "weeks": 2},
-            {"title": "Học kiến thức nền tảng", "description": "Hoàn thành các khóa học cơ bản và lấy chứng chỉ nếu cần.", "weeks": 6},
-            {"title": "Phát triển kỹ năng thực hành", "description": "Thực hành qua các dự án, bài tập thực tế.", "weeks": 8},
-            {"title": "Xây dựng kinh nghiệm", "description": "Tìm cơ hội thực tập, freelance hoặc dự án thực tế.", "weeks": 6},
-            {"title": "Tìm việc chính thức", "description": "Chuẩn bị CV, portfolio và ứng tuyển.", "weeks": 4},
+            {"title": "Research the industry", "description": f"Deep dive into {career_name}, required skills and industry trends.", "weeks": 2},
+            {"title": "Learn foundational knowledge", "description": "Complete basic courses and get certifications if needed.", "weeks": 6},
+            {"title": "Develop practical skills", "description": "Practice through projects and real-world exercises.", "weeks": 8},
+            {"title": "Build experience", "description": "Find internship, freelance or real project opportunities.", "weeks": 6},
+            {"title": "Full-time job search", "description": "Prepare CV, portfolio and apply for positions.", "weeks": 4},
         ]
     
     # Scale milestones to fit target_months
@@ -783,6 +783,6 @@ def _create_fallback_milestones(session: Session, goal_id: int, career_name: str
         "recommended_months": recommended_months,
         "target_months": target_months,
         "warning": time_warning,
-        "message": f"Đã tạo {len(created_milestones)} milestone cho mục tiêu của bạn",
+        "message": f"Created {len(created_milestones)} milestones for your goal",
         "ai_generated": False
     }

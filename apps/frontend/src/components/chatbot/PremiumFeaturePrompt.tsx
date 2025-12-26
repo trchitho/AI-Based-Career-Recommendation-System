@@ -8,28 +8,28 @@ interface PremiumFeaturePromptProps {
   feature: 'voice' | 'blog' | 'tts';
 }
 
-export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({ 
-  isOpen, 
-  onClose, 
-  feature 
+export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({
+  isOpen,
+  onClose,
+  feature
 }) => {
   const navigate = useNavigate();
 
   const featureInfo = {
     voice: {
       icon: <Mic className="text-purple-600" size={24} />,
-      title: 'Nhập liệu bằng giọng nói',
-      description: 'Nói trực tiếp với AI thay vì gõ phím. Tiện lợi và nhanh chóng!'
+      title: 'Voice Input',
+      description: 'Speak directly to AI instead of typing. Convenient and fast!'
     },
     blog: {
       icon: <FileText className="text-purple-600" size={24} />,
-      title: 'Tạo blog từ cuộc trò chuyện',
-      description: 'Chuyển đổi cuộc trò chuyện thành bài blog hoàn chỉnh chỉ với một cú click!'
+      title: 'Create Blog from Conversation',
+      description: 'Convert your conversation into a complete blog post with just one click!'
     },
     tts: {
       icon: <Volume2 className="text-purple-600" size={24} />,
-      title: 'Đọc tin nhắn bằng giọng nói',
-      description: 'AI sẽ đọc to các câu trả lời để bạn có thể nghe trong khi làm việc khác!'
+      title: 'Text-to-Speech',
+      description: 'AI will read responses aloud so you can listen while doing other tasks!'
     }
   };
 
@@ -48,7 +48,7 @@ export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <Crown className="text-purple-600" size={24} />
-            <h3 className="text-xl font-bold text-gray-900">Tính năng Premium</h3>
+            <h3 className="text-xl font-bold text-gray-900">Premium Feature</h3>
           </div>
           <button
             onClick={onClose}
@@ -57,7 +57,7 @@ export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="text-center mb-6">
           <div className="mb-4 flex justify-center">
             {currentFeature.icon}
@@ -71,39 +71,39 @@ export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({
         </div>
 
         <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
-          <h5 className="font-semibold text-purple-800 mb-2">Nâng cấp Premium để có:</h5>
+          <h5 className="font-semibold text-purple-800 mb-2">Upgrade to Premium for:</h5>
           <ul className="text-sm text-purple-700 space-y-1">
             <li className="flex items-center gap-2">
               <Mic size={14} />
-              Nhập liệu bằng giọng nói
+              Voice input
             </li>
             <li className="flex items-center gap-2">
               <Volume2 size={14} />
-              Đọc tin nhắn bằng giọng nói
+              Text-to-speech
             </li>
             <li className="flex items-center gap-2">
               <FileText size={14} />
-              Tạo blog từ cuộc trò chuyện
+              Create blog from conversation
             </li>
             <li className="flex items-center gap-2">
               <Crown size={14} />
-              Tư vấn nghề nghiệp không giới hạn
+              Unlimited career counseling
             </li>
           </ul>
         </div>
-        
+
         <div className="flex gap-3">
           <button
             onClick={onClose}
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Để sau
+            Later
           </button>
           <button
             onClick={handleUpgrade}
             className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium"
           >
-            Nâng cấp ngay
+            Upgrade Now
           </button>
         </div>
       </div>

@@ -284,9 +284,10 @@ async def payment_callback(
             plan_name = "Premium"  # Default plan
             
             # Logic để xác định plan dựa trên amount
-            if payment.amount >= 450000:  # 450k VND trở lên = Pro
+            # Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
+            if payment.amount >= 280000:  # 280k VND trở lên = Pro
                 plan_name = "Pro"
-            elif payment.amount >= 250000:  # 250k VND trở lên = Premium
+            elif payment.amount >= 180000:  # 180k VND trở lên = Premium
                 plan_name = "Premium"
             elif payment.amount >= 80000:  # 80k VND trở lên = Basic
                 plan_name = "Basic"
@@ -362,11 +363,12 @@ def force_check_payment(
                 from app.core.subscription import SubscriptionService
                 
                 # Determine plan based on amount
+                # Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
                 plan_name = "Premium"  # Default plan
                 
-                if payment.amount >= 450000:  # 450k VND = Pro
+                if payment.amount >= 280000:  # 280k VND = Pro
                     plan_name = "Pro"
-                elif payment.amount >= 250000:  # 250k VND = Premium
+                elif payment.amount >= 180000:  # 180k VND = Premium
                     plan_name = "Premium"
                 elif payment.amount >= 80000:  # 80k VND = Basic
                     plan_name = "Basic"
@@ -476,11 +478,12 @@ def query_payment(
                 from app.core.subscription import SubscriptionService
                 
                 # Xác định plan dựa trên amount
+                # Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
                 plan_name = "Basic"  # Default plan
                 
-                if payment.amount >= 450000:  # 450k VND trở lên = Pro
+                if payment.amount >= 280000:  # 280k VND trở lên = Pro
                     plan_name = "Pro"
-                elif payment.amount >= 250000:  # 250k VND trở lên = Premium
+                elif payment.amount >= 180000:  # 180k VND trở lên = Premium
                     plan_name = "Premium"
                 elif payment.amount >= 80000:  # 80k VND trở lên = Basic
                     plan_name = "Basic"
@@ -640,10 +643,11 @@ def get_payment_history(
             
             if success_payment:
                 # Determine plan based on amount
+                # Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
                 plan_name = "Basic"
-                if success_payment.amount >= 450000:
+                if success_payment.amount >= 280000:
                     plan_name = "Pro"
-                elif success_payment.amount >= 250000:
+                elif success_payment.amount >= 180000:
                     plan_name = "Premium"
                 elif success_payment.amount >= 80000:
                     plan_name = "Basic"

@@ -83,7 +83,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
   }, [assessmentHistory]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -161,10 +161,10 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h3 className="text-2xl font-extrabold text-white mb-1 tracking-tight">
-              Lịch sử đánh giá
+              Assessment History
             </h3>
             <p className="text-green-100 text-sm font-medium">
-              Theo dõi hành trình phát triển nghề nghiệp của bạn
+              Track your career development journey
             </p>
           </div>
 
@@ -177,7 +177,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              So sánh ({selectedSessions.length}/2)
+              Compare ({selectedSessions.length}/2)
             </button>
           )}
         </div>
@@ -193,16 +193,16 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
               </svg>
             </div>
             <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Chưa có bài test nào
+              No assessments yet
             </h4>
             <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto text-sm font-medium">
-              Hãy thực hiện bài đánh giá đầu tiên để bắt đầu hành trình phát triển nghề nghiệp.
+              Take your first assessment to start your career development journey.
             </p>
             <button
               onClick={() => navigate('/assessment')}
               className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-lg"
             >
-              Bắt đầu đánh giá
+              Start Assessment
             </button>
           </div>
         ) : (
@@ -215,7 +215,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                   </svg>
                 </div>
                 <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                  Chọn 2 bài test để so sánh tiến trình của bạn theo thời gian.
+                  Select 2 tests to compare your progress over time.
                 </p>
               </div>
             )}
@@ -246,7 +246,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                           {getSessionTestTypes(session)}
                         </span>
                       </div>
-                      
+
                       <div className="flex flex-wrap gap-4 text-sm">
                         {session.riasec_scores && (
                           <div className="flex items-center gap-2">
@@ -271,12 +271,12 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                       <button
                         onClick={() => setExpandedSession(expandedSession === session.session_id ? null : session.session_id)}
                         className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                        title="Xem chi tiết"
+                        title="View details"
                       >
-                        <svg 
-                          className={`w-5 h-5 transition-transform ${expandedSession === session.session_id ? 'rotate-180' : ''}`} 
-                          fill="none" 
-                          stroke="currentColor" 
+                        <svg
+                          className={`w-5 h-5 transition-transform ${expandedSession === session.session_id ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -289,7 +289,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                         }}
                         className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg transition-colors"
                       >
-                        Xem kết quả
+                        View Results
                       </button>
                     </div>
                   </div>
@@ -328,15 +328,15 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                                         {riasecNames[key.toLowerCase()] || getRIASECFullName(key)}
                                       </span>
                                       <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden min-w-0">
-                                        <div 
-                                          className="h-full rounded-full transition-all duration-300" 
-                                          style={{ 
+                                        <div
+                                          className="h-full rounded-full transition-all duration-300"
+                                          style={{
                                             width: `${Math.min(value, 100)}%`,
                                             backgroundColor: riasecColors[key.toLowerCase()] || '#3B82F6'
                                           }}
                                         ></div>
                                       </div>
-                                      <span 
+                                      <span
                                         className="text-xs font-bold w-8 text-right shrink-0"
                                         style={{ color: riasecColors[key.toLowerCase()] || '#3B82F6' }}
                                       >
@@ -368,15 +368,15 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                                     <div key={key} className="flex items-center gap-3">
                                       <span className="text-xs text-gray-600 dark:text-gray-400 w-24 capitalize truncate font-medium">{key}</span>
                                       <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden min-w-0">
-                                        <div 
-                                          className="h-full rounded-full transition-all duration-300" 
-                                          style={{ 
+                                        <div
+                                          className="h-full rounded-full transition-all duration-300"
+                                          style={{
                                             width: `${Math.min(value, 100)}%`,
                                             backgroundColor: traitColors[key.toLowerCase()] || '#8B5CF6'
                                           }}
                                         ></div>
                                       </div>
-                                      <span 
+                                      <span
                                         className="text-xs font-bold w-10 text-right shrink-0"
                                         style={{ color: traitColors[key.toLowerCase()] || '#8B5CF6' }}
                                       >
