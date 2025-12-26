@@ -12,9 +12,10 @@ import { BigFiveScores } from '../../types/results';
 
 interface BigFiveBarChartProps {
   scores: BigFiveScores;
+  compact?: boolean; // Chế độ compact cho profile page
 }
 
-const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
+const BigFiveBarChart = ({ scores, compact = false }: BigFiveBarChartProps) => {
   // Check if we have real data or should use fallback
   
   // Fallback data nếu không có scores thực
@@ -65,24 +66,24 @@ const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
         <p className="text-sm text-gray-500">Your personality profile across five key dimensions.</p>
       </div> */}
 
-      <div className="flex flex-col md:flex-row items-center gap-6 mt-2">
+      <div className={`flex ${compact ? 'flex-col' : 'flex-col md:flex-row'} items-center gap-6 mt-2`}>
 
         {/* Phần Chart - Bên trái */}
-        <div className="w-full md:w-3/5 h-[300px]">
+        <div className={`w-full ${compact ? '' : 'md:w-3/5'} ${compact ? 'h-[180px]' : 'h-[300px]'}`}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
               layout="vertical"
               margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
-              barSize={24} // Độ dày của thanh
+              barSize={compact ? 16 : 24} // Độ dày của thanh
             >
               <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} stroke="#E5E7EB" />
               <XAxis type="number" domain={[0, 100]} hide />
               <YAxis
                 type="category"
                 dataKey="trait"
-                width={120} // Tăng độ rộng để tên Trait không bị cắt
-                tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 500 }}
+                width={compact ? 100 : 120} // Giảm độ rộng cho compact mode
+                tick={{ fill: '#4b5563', fontSize: compact ? 10 : 12, fontWeight: 500 }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -102,37 +103,39 @@ const BigFiveBarChart = ({ scores }: BigFiveBarChartProps) => {
           </ResponsiveContainer>
         </div>
 
-        {/* Phần List chi tiết - Bên phải */}
-        <div className="w-full md:w-2/5 flex flex-col gap-3">
-          {data.map((item) => (
-            <div
-              key={item.trait}
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100"
-            >
-              <div className="flex items-center gap-3">
-                {/* Dấu chấm màu */}
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: item.color }}
-                ></div>
+        {/* Phần List chi tiết - Bên phải (ẩn trong compact mode) */}
+        {!compact && (
+          <div className="w-full md:w-2/5 flex flex-col gap-3">
+            {data.map((item) => (
+              <div
+                key={item.trait}
+                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100"
+              >
+                <div className="flex items-center gap-3">
+                  {/* Dấu chấm màu */}
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: item.color }}
+                  ></div>
 
-                <span className="text-sm font-semibold text-gray-700">
-                  {item.trait}
-                </span>
-              </div>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {item.trait}
+                  </span>
+                </div>
 
-              {/* Điểm số */}
-              <div className="flex items-center bg-gray-100 px-3 py-1 rounded-md flex-shrink-0">
-                <span
-                  className="text-sm font-bold"
-                  style={{ color: item.color }}
-                >
-                  {item.score.toFixed(0)}%
-                </span>
+                {/* Điểm số */}
+                <div className="flex items-center bg-gray-100 px-3 py-1 rounded-md flex-shrink-0">
+                  <span
+                    className="text-sm font-bold"
+                    style={{ color: item.color }}
+                  >
+                    {item.score.toFixed(0)}%
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

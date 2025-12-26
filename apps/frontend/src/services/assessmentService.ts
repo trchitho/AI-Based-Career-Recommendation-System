@@ -8,7 +8,11 @@ import {
 
 export const assessmentService = {
   async getQuestions(testType: 'RIASEC' | 'BIGFIVE'): Promise<Question[]> {
-    const perDim = 3;
+    // Để chia đều câu hỏi cho cả 2 loại test:
+    // RIASEC có 6 dimensions, BigFive có 5 dimensions
+    // Dùng per_dim khác nhau để tổng số câu gần bằng nhau
+    // RIASEC: 6 × 5 = 30 câu, BigFive: 5 × 6 = 30 câu
+    const perDim = testType === 'RIASEC' ? 5 : 6;
     const seed = Date.now();
 
     const response = await api.get<Question[]>(
@@ -103,25 +107,39 @@ export const assessmentService = {
   async getHistory() {
     try {
       console.log('🔍 [AssessmentService] Getting assessment history...');
-
-      // Get user sessions with combined assessment data
-      const response = await this.getUserSessions();
-      console.log('📊 [AssessmentService] Raw sessions data:', response);
-
-      // Sessions are already in the correct format (1 session = 1 row with combined data)
-      const history = (response.sessions || []).map((session: any) => ({
-        id: session.id || session.session_id?.toString(),
-        session_id: session.session_id,
-        completed_at: session.completed_at || session.created_at,
-        test_types: session.assessment_types || [],
-        riasec_scores: session.riasec_scores,
-        big_five_scores: session.big_five_scores,
-        top_interest: session.top_interest
-      }));
-
+      
+      // Get user sessions with assessment data
+      const sessions = await this.getUserSessions();
+      console.log('📊 [AssessmentService] Raw sessions data:', sessions);
+      
+      // Transform sessions into assessment history format
+      const history = [];
+      
+      for (const session of sessions.sessions || []) {
+        console.log('🔄 [AssessmentService] Processing session:', session);
+        
+        // Each session can have multiple assessments, add them individually
+        if (session.assessments && session.assessments.length > 0) {
+          for (const assessment of session.assessments) {
+            console.log('📝 [AssessmentService] Adding assessment:', assessment);
+            history.push(assessment);
+          }
+        } else {
+          console.log('⚠️ [AssessmentService] Session has no assessments, using fallback');
+          // Fallback for sessions without detailed assessment data
+          history.push({
+            id: session.session_id.toString(),
+            completed_at: session.created_at,
+            test_types: session.assessment_types ? session.assessment_types.split(', ') : [],
+            riasec_scores: undefined,
+            big_five_scores: undefined
+          });
+        }
+      }
+      
       // Sort by completion date (newest first)
-      history.sort((a: any, b: any) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime());
-
+      history.sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime());
+      
       console.log('✅ [AssessmentService] Final history:', history);
       return history;
     } catch (error) {

@@ -385,104 +385,6 @@ def api_get_essay_prompt(
     )
 
 
-@router.post("/{assessment_id}/save-results")
-def api_save_processed_results(
-    assessment_id: int,
-    body: dict,
-    db: Session = Depends(_db),
-    user_id: int = Depends(_current_user_id),
-):
-    """
-    Save processed assessment results (RIASEC/Big Five scores) back to database.
-    This ensures the processed results are persisted for assessment history.
-    
-    IMPORTANT: Saves RIASEC scores to RIASEC assessment row and BigFive scores to BigFive assessment row.
-    """
-    try:
-        # Verify the assessment belongs to the user
-        assessment = db.get(Assessment, assessment_id)
-        if not assessment or assessment.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not allowed to save results for this assessment"
-            )
-        
-        session_id = assessment.session_id
-        
-        # Get all assessments in this session
-        session_assessments = db.query(Assessment).filter(
-            Assessment.session_id == session_id
-        ).all() if session_id else [assessment]
-        
-        # Find RIASEC and BigFive assessments
-        riasec_assessment = None
-        bigfive_assessment = None
-        for a in session_assessments:
-            if a.a_type == "RIASEC":
-                riasec_assessment = a
-            elif a.a_type == "BigFive":
-                bigfive_assessment = a
-        
-        # Save RIASEC scores to RIASEC assessment row
-        if 'riasec_scores' in body and body['riasec_scores'] and riasec_assessment:
-            riasec_scores = {}
-            for key, value in body['riasec_scores'].items():
-                if isinstance(value, (int, float)):
-                    riasec_scores[key] = value / 100.0
-            riasec_assessment.processed_riasec_scores = riasec_scores
-            # Set empty dict for big_five_scores (not null)
-            if riasec_assessment.processed_big_five_scores is None:
-                riasec_assessment.processed_big_five_scores = {}
-            # Set empty dict for essay_analysis (not null)
-            if riasec_assessment.essay_analysis is None:
-                riasec_assessment.essay_analysis = {}
-        
-        # Save BigFive scores to BigFive assessment row
-        if 'big_five_scores' in body and body['big_five_scores'] and bigfive_assessment:
-            big_five_scores = {}
-            top_big_five = None
-            max_score = -1
-            for key, value in body['big_five_scores'].items():
-                if isinstance(value, (int, float)):
-                    big_five_scores[key] = value / 100.0
-                    # Track top BigFive trait
-                    if value > max_score:
-                        max_score = value
-                        top_big_five = key[0].upper()  # First letter: O, C, E, A, N
-            bigfive_assessment.processed_big_five_scores = big_five_scores
-            # Set empty dict for riasec_scores (not null)
-            if bigfive_assessment.processed_riasec_scores is None:
-                bigfive_assessment.processed_riasec_scores = {}
-            # Set top_interest for BigFive (top BigFive trait letter)
-            if top_big_five:
-                bigfive_assessment.top_interest = top_big_five
-            # Set empty dict for essay_analysis (not null)
-            if bigfive_assessment.essay_analysis is None:
-                bigfive_assessment.essay_analysis = {}
-        
-        # Save top_interest to RIASEC assessment
-        if 'top_interest' in body and riasec_assessment:
-            riasec_assessment.top_interest = body['top_interest']
-        
-        # essay_analysis can go to the main assessment
-        if 'essay_analysis' in body and body['essay_analysis']:
-            assessment.essay_analysis = body['essay_analysis']
-        elif assessment.essay_analysis is None:
-            assessment.essay_analysis = {}
-        
-        db.commit()
-        
-        return {"ok": True, "message": "Processed results saved successfully"}
-        
-    except Exception as e:
-        db.rollback()
-        print(f"[assessments] save_processed_results error: {repr(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to save processed results"
-        )
-
-
 @router.post("/{assessment_id}/feedback")
 def api_submit_feedback(
     assessment_id: int,
@@ -616,8 +518,7 @@ def get_user_sessions(
     current_user_id: int = Depends(_current_user_id),
 ):
     """
-    Lấy danh sách tất cả sessions của user với processed results.
-    Returns 1 row per session with combined RIASEC + BigFive data.
+    Lấy danh sách tất cả sessions của user.
     """
     try:
         # Lấy sessions của user
@@ -637,56 +538,13 @@ def get_user_sessions(
             
             assessment_types = [a.a_type for a in assessments]
             
-            # Combine RIASEC and BigFive data into single session row
-            riasec_scores = None
-            big_five_scores = None
-            top_interest = None
-            primary_assessment_id = None  # Use first assessment ID for navigation
-            
-            # First pass: get scores from correct assessment types
-            riasec_assessment = None
-            bigfive_assessment = None
-            
-            for assessment in assessments:
-                if assessment.a_type == "RIASEC":
-                    riasec_assessment = assessment
-                    primary_assessment_id = assessment.id
-                elif assessment.a_type == "BigFive":
-                    bigfive_assessment = assessment
-                    if primary_assessment_id is None:
-                        primary_assessment_id = assessment.id
-            
-            # Get RIASEC scores from RIASEC assessment
-            if riasec_assessment:
-                if riasec_assessment.processed_riasec_scores:
-                    riasec_scores = {
-                        key: value * 100 for key, value in riasec_assessment.processed_riasec_scores.items()
-                    }
-                top_interest = riasec_assessment.top_interest
-            
-            # Get BigFive scores - first try BigFive assessment, then fallback to RIASEC assessment
-            # (for backward compatibility with old data where both were saved to RIASEC row)
-            if bigfive_assessment and bigfive_assessment.processed_big_five_scores:
-                big_five_scores = {
-                    key: value * 100 for key, value in bigfive_assessment.processed_big_five_scores.items()
-                }
-            elif riasec_assessment and riasec_assessment.processed_big_five_scores:
-                # Fallback: old data saved BigFive scores to RIASEC row
-                big_five_scores = {
-                    key: value * 100 for key, value in riasec_assessment.processed_big_five_scores.items()
-                }
-            
-            # Create single session entry with combined data
             sessions_data.append({
                 "session_id": session.id,
                 "id": str(primary_assessment_id),
                 "created_at": session.created_at.isoformat(),
                 "completed_at": session.created_at.isoformat(),
                 "assessment_count": len(assessments),
-                "assessment_types": assessment_types,
-                "riasec_scores": riasec_scores,
-                "big_five_scores": big_five_scores,
-                "top_interest": top_interest
+                "assessment_types": ", ".join(assessment_types)
             })
         
         return {

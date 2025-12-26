@@ -107,7 +107,6 @@ export const paymentService = {
       try {
         // Force check at specific intervals (after 20s and 60s)
         const shouldForceCheck = attempts === 10 || attempts === 30;
-
         const result = shouldForceCheck
           ? await this.forceCheckStatus(orderId)
           : await this.checkStatus(orderId);

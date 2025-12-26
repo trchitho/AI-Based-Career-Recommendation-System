@@ -548,14 +548,16 @@ class RecService:
         assessment_id: int,
     ) -> Dict[str, Any]:
         """
-        Lấy RIASEC scores từ assessment cùng session với assessment_id được truyền vào.
-        KHÔNG lấy từ assessment mới nhất của user.
+        Lấy RIASEC scores từ assessment cùng session với assessment_id hiện tại.
+        Nếu assessment_id là RIASEC thì dùng luôn scores của nó.
+        Nếu không, tìm RIASEC assessment trong cùng session (cùng user, trong 5 phút).
         
         Đảm bảo:
         - Lấy RIASEC assessment từ CÙNG SESSION với assessment_id
         - Thứ tự R, I, A, S, E, C đúng
         - Điểm gốc thang 1-5 (chưa normalize)
         - Deterministic 100%
+        - Mỗi bài test dùng RIASEC của chính session đó
         """
         # 1) Lấy user_id và session_id từ assessment
         sql = text(
@@ -613,8 +615,7 @@ class RecService:
             logger.error(f"Assessment {assessment_id}: No RIASEC assessment found in session {session_id}")
             return {"riasec_top_dim": None, "riasec_values": None}
         
-        # 3) Parse scores dict → vector theo thứ tự R, I, A, S, E, C
-        scores_dict = riasec_row.get("scores") or {}
+        # 4) Parse scores dict → vector theo thứ tự R, I, A, S, E, C
         dims = ["R", "I", "A", "S", "E", "C"]
         
         riasec_vec: List[float] = []
@@ -625,7 +626,7 @@ class RecService:
                 return {"riasec_top_dim": None, "riasec_values": None}
             riasec_vec.append(float(score))
         
-        # 4) Tính top_dim với tie-breaking rule: R,I,A,S,E,C (index nhỏ hơn ưu tiên)
+        # 5) Tính top_dim với tie-breaking rule: R,I,A,S,E,C (index nhỏ hơn ưu tiên)
         # Sort với (-score, index) để đảm bảo deterministic khi có tie
         sorted_indices = sorted(range(6), key=lambda i: (-riasec_vec[i], i))
         top_dim = dims[sorted_indices[0]]

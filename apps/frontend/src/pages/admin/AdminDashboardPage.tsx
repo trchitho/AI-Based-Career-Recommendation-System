@@ -28,6 +28,7 @@ import AuditLogsPage from "./AuditLogsPage";
 import CareerTrendsPage from "./CareerTrendsPage";
 import AnomalyDetectionPage from "./AnomalyDetectionPage";
 import DataSyncPage from "./DataSyncPage";
+import AdminNotificationsPage from "./AdminNotificationsPage";
 
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
@@ -104,6 +105,7 @@ const AdminDashboardPage = () => {
             <NavItem to="/admin/career-trends" label="Trends" active={isActive("/admin/career-trends")} />
             <NavItem to="/admin/anomalies" label="Alerts" active={isActive("/admin/anomalies")} />
             <NavItem to="/admin/data-sync" label="Sync" active={isActive("/admin/data-sync")} />
+            <NavItem to="/admin/notifications" label="Thông báo" active={isActive("/admin/notifications")} />
           </div>
         </div>
       </nav>
@@ -135,6 +137,7 @@ const AdminDashboardPage = () => {
           <Route path="career-trends" element={<CareerTrendsPage />} />
           <Route path="anomalies" element={<AnomalyDetectionPage />} />
           <Route path="data-sync" element={<DataSyncPage />} />
+          <Route path="notifications" element={<AdminNotificationsPage />} />
         </Routes>
       </div>
     </div>

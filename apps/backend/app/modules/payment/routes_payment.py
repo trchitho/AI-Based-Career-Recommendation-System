@@ -200,7 +200,7 @@ def create_payment(
             # Cập nhật trạng thái failed (nếu có payment record)
             if payment:
                 try:
-                    payment.status = PaymentStatus.FAILED.value
+                    payment.status = PaymentStatus.FAILED
                     db.commit()
                 except Exception as e:
                     logger.error(f"Failed to update payment status: {e}")
@@ -351,10 +351,9 @@ def force_check_payment(
         logger.info(f"Force check result for {order_id}: {result}")
         
         # Cập nhật trạng thái dựa trên kết quả từ ZaloPay
-        # zalopay_service.query_order() returns status as string: "success", "failed", "cancelled", "pending"
         result_status = result.get("status")
         
-        if result_status == "success":  # Success (string, not integer)
+        if result_status == 1:  # Success
             payment.status = PaymentStatus.SUCCESS.value
             payment.paid_at = datetime.utcnow()
             
@@ -393,11 +392,11 @@ def force_check_payment(
             db.commit()
             logger.info(f"Payment {payment.order_id} marked as SUCCESS via force check")
             
-        elif result_status == "failed":  # Failed (string)
+        elif result_status == 2:  # Failed
             payment.status = PaymentStatus.FAILED.value
             db.commit()
             logger.info(f"Payment {payment.order_id} marked as FAILED via force check")
-        elif result_status == "cancelled":  # Cancelled (string)
+        elif result_status == 3:  # Cancelled  
             payment.status = PaymentStatus.CANCELLED.value
             db.commit()
             logger.info(f"Payment {payment.order_id} marked as CANCELLED via force check")
@@ -467,7 +466,7 @@ def query_payment(
         result_status = result.get("status")
         
         if result_status == "success":
-            payment.status = PaymentStatus.SUCCESS.value
+            payment.status = PaymentStatus.SUCCESS
             payment.paid_at = datetime.utcnow()
             db.commit()
             logger.info(f"Payment {order_id} updated to SUCCESS")
@@ -505,12 +504,12 @@ def query_payment(
                 logger.error(f"Error during auto-upgrade: {upgrade_error}")
         elif result_status == "cancelled":
             # Đơn hàng bị hủy
-            payment.status = PaymentStatus.CANCELLED.value
+            payment.status = PaymentStatus.CANCELLED
             db.commit()
             logger.info(f"Payment {order_id} updated to CANCELLED")
         elif result_status in ["failed", "error"]:
             # Thanh toán thất bại
-            payment.status = PaymentStatus.FAILED.value
+            payment.status = PaymentStatus.FAILED
             db.commit()
             logger.info(f"Payment {order_id} updated to FAILED (reason: {result_status})")
         elif result_status == "pending":
@@ -614,8 +613,87 @@ def get_payment_history(
 ):
     """
     Lấy lịch sử thanh toán của user
+    Auto-sync: Nếu có payment SUCCESS nhưng chưa có subscription, tự động upgrade
     """
     user_id = current_user["user_id"]
+    
+    # Auto-sync: Check if user has SUCCESS payment but no active paid subscription
+    try:
+        from app.core.subscription import SubscriptionService
+        
+        # Get current subscription
+        current_sub = SubscriptionService.get_user_subscription(user_id, db)
+        
+        # If user is on Free plan, check for SUCCESS payments
+        if current_sub.get("plan_name") == "Free":
+            # Find latest SUCCESS payment (case-insensitive)
+            from sqlalchemy import func
+            success_payment = (
+                db.query(Payment)
+                .filter(
+                    Payment.user_id == user_id,
+                    func.upper(Payment.status) == "SUCCESS"
+                )
+                .order_by(Payment.created_at.desc())
+                .first()
+            )
+            
+            if success_payment:
+                # Determine plan based on amount
+                plan_name = "Basic"
+                if success_payment.amount >= 450000:
+                    plan_name = "Pro"
+                elif success_payment.amount >= 250000:
+                    plan_name = "Premium"
+                elif success_payment.amount >= 80000:
+                    plan_name = "Basic"
+                
+                # Auto-upgrade
+                upgrade_success = SubscriptionService.upgrade_user_subscription(
+                    user_id=user_id,
+                    plan_name=plan_name,
+                    payment_id=success_payment.id,
+                    session=db
+                )
+                
+                if upgrade_success:
+                    logger.info(f"Auto-synced user {user_id} to {plan_name} plan from history endpoint")
+                else:
+                    logger.warning(f"Failed to auto-sync user {user_id} to {plan_name} plan")
+                    
+    except Exception as sync_error:
+        logger.error(f"Auto-sync error in history: {sync_error}")
+        # Don't fail the request, just log the error
+    
+    # Update expired PENDING payments to FAILED (15 minutes timeout)
+    try:
+        from datetime import timezone
+        from sqlalchemy import func
+        now = datetime.now(timezone.utc)
+        
+        pending_payments = (
+            db.query(Payment)
+            .filter(
+                Payment.user_id == user_id,
+                func.upper(Payment.status) == "PENDING"
+            )
+            .all()
+        )
+        
+        for payment in pending_payments:
+            created = payment.created_at
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+            
+            time_elapsed = (now - created).total_seconds()
+            if time_elapsed > 900:  # 15 minutes
+                payment.status = PaymentStatus.FAILED.value
+                logger.info(f"Payment {payment.order_id} marked as FAILED due to timeout")
+        
+        db.commit()
+    except Exception as timeout_error:
+        logger.error(f"Timeout check error: {timeout_error}")
+        db.rollback()
 
     payments = (
         db.query(Payment)

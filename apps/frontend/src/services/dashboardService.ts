@@ -5,6 +5,7 @@ import {
   ProgressMetrics,
 } from '../types/dashboard';
 import { assessmentService } from './assessmentService';
+import { recommendationService } from './recommendationService';
 
 export const dashboardService = {
   async getDashboardData(): Promise<DashboardData> {
@@ -50,46 +51,81 @@ export const dashboardService = {
 
       if (hasCompletedAssessment && latestAssessment) {
         console.log(
-          '🎯 [DashboardService] Getting saved career recommendations from DB for assessment:',
+          '🎯 [DashboardService] Getting career recommendations from latest assessment results:',
           latestAssessment.id,
         );
 
-        // Fetch saved recommendations from DB (not calling AI-core)
+        // Use the SAME API as Results page - recommendationService.getMain()
         try {
-          const savedRecResponse = await api.get('/api/recommendations/saved', {
-            params: {
-              assessment_id: latestAssessment.id,
-              top_k: 3
-            }
-          });
+          const recData = await recommendationService.getMain(
+            latestAssessment.id,
+            3,
+          ); // Get top 3 careers
           console.log(
-            '📋 [DashboardService] Saved recommendations from DB:',
-            savedRecResponse.data,
+            '📋 [DashboardService] Recommendations from BFF:',
+            recData,
           );
 
-          if (savedRecResponse.data.items && savedRecResponse.data.items.length > 0) {
-            topCareerSuggestions = savedRecResponse.data.items.map((career: any) => ({
-              id: career.career_id.toString(),
-              slug: career.slug || career.career_id.toString(),
+          if (recData.items && recData.items.length > 0) {
+            topCareerSuggestions = recData.items.slice(0, 3).map((career) => ({
+              id: career.career_id,
+              slug: career.slug || career.career_id,
               title: career.title_en || career.title_vi || 'Unknown Career',
               description: career.description || 'No description available',
-              matchPercentage: career.score || 0,
+              matchPercentage: career.display_match || career.match_score || 0,
             }));
 
             console.log(
-              '✅ [DashboardService] Career suggestions from DB:',
+              '✅ [DashboardService] Career suggestions from BFF:',
               topCareerSuggestions,
             );
           } else {
             console.log(
-              '⚠️ [DashboardService] No saved career recommendations in DB',
+              '⚠️ [DashboardService] No career recommendations from BFF',
             );
           }
         } catch (error) {
           console.error(
-            '❌ [DashboardService] Error fetching saved recommendations:',
+            '❌ [DashboardService] Error fetching recommendations from BFF:',
             error,
           );
+
+          // Fallback: try to get from assessment results
+          try {
+            const resultsResponse = await api.get(
+              `/api/assessments/${latestAssessment.id}/results`,
+            );
+            const results = resultsResponse.data;
+            console.log(
+              '📋 [DashboardService] Fallback - Assessment results:',
+              results,
+            );
+
+            if (
+              results.career_recommendations_full &&
+              results.career_recommendations_full.length > 0
+            ) {
+              topCareerSuggestions = results.career_recommendations_full
+                .slice(0, 3)
+                .map((career: any, index: number) => ({
+                  id: career.id,
+                  slug: career.slug,
+                  title: career.title,
+                  description: career.description,
+                  matchPercentage: 95 - index * 5,
+                }));
+
+              console.log(
+                '✅ [DashboardService] Fallback career suggestions:',
+                topCareerSuggestions,
+              );
+            }
+          } catch (fallbackError) {
+            console.error(
+              '❌ [DashboardService] Fallback also failed:',
+              fallbackError,
+            );
+          }
         }
 
         // Fetch user progress data

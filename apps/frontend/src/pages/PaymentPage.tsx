@@ -105,20 +105,19 @@ export const PaymentPage: React.FC = () => {
             if (!token) return;
 
             const payments = await getPaymentHistory();
-            const successfulPayments = payments.filter((p: PaymentHistory) => p.status === 'success');
-
+            const successfulPayments = payments.filter((p) => 
+                p.status?.toLowerCase() === 'success'
+            );
+            
             if (successfulPayments.length > 0) {
                 const latestPayment = successfulPayments[0];
-
-                if (latestPayment?.description?.includes('Cơ Bản') ||
-                    ((latestPayment?.amount ?? 0) >= 99000 && (latestPayment?.amount ?? 0) < 250000)) {
-                    setUserPlan('Basic');
-                } else if (latestPayment?.description?.includes('Premium') ||
-                    ((latestPayment?.amount ?? 0) >= 250000 && (latestPayment?.amount ?? 0) < 450000)) {
-                    setUserPlan('Premium');
-                } else if (latestPayment?.description?.includes('Pro') ||
-                    (latestPayment?.amount ?? 0) >= 450000) {
+                
+                if (latestPayment && latestPayment.amount >= 450000) {
                     setUserPlan('Pro');
+                } else if (latestPayment && latestPayment.amount >= 250000) {
+                    setUserPlan('Premium');
+                } else if (latestPayment && latestPayment.amount >= 80000) {
+                    setUserPlan('Basic');
                 }
             }
         } catch (error) {
@@ -163,7 +162,7 @@ export const PaymentPage: React.FC = () => {
         <MainLayout>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
+                    
                     {/* Header */}
                     <div className="text-center mb-16">
                         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
@@ -203,6 +202,32 @@ export const PaymentPage: React.FC = () => {
                                                 <span>Roadmap Level 1 only</span>
                                             </div>
                                         </div>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const token = getAccessToken();
+                                                    const response = await fetch('http://localhost:8000/api/subscription/force-sync', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Authorization': `Bearer ${token}`,
+                                                            'Content-Type': 'application/json'
+                                                        }
+                                                    });
+                                                    const result = await response.json();
+                                                    if (result.success) {
+                                                        alert(`✅ ${result.message}`);
+                                                        window.location.reload();
+                                                    } else {
+                                                        alert(`❌ ${result.message}`);
+                                                    }
+                                                } catch (err) {
+                                                    alert('Lỗi kết nối server');
+                                                }
+                                            }}
+                                            className="mt-4 text-sm text-blue-600 hover:text-blue-700 underline"
+                                        >
+                                            Đã thanh toán? Click để đồng bộ gói
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -215,19 +240,21 @@ export const PaymentPage: React.FC = () => {
                             <div className="bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
                                 <button
                                     onClick={() => setActiveTab('plans')}
-                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${activeTab === 'plans'
-                                        ? 'bg-gray-900 text-white'
-                                        : 'text-gray-500 hover:text-gray-900'
-                                        }`}
+                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${
+                                        activeTab === 'plans'
+                                            ? 'bg-gray-900 text-white'
+                                            : 'text-gray-500 hover:text-gray-900'
+                                    }`}
                                 >
                                     Chọn gói
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('history')}
-                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${activeTab === 'history'
-                                        ? 'bg-gray-900 text-white'
-                                        : 'text-gray-500 hover:text-gray-900'
-                                        }`}
+                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${
+                                        activeTab === 'history'
+                                            ? 'bg-gray-900 text-white'
+                                            : 'text-gray-500 hover:text-gray-900'
+                                    }`}
                                 >
                                     Lịch sử giao dịch
                                 </button>
@@ -266,24 +293,26 @@ export const PaymentPage: React.FC = () => {
                                             {userPlan === 'Free' ? 'Gói Thanh Toán' : 'Nâng Cấp Gói'}
                                         </h2>
                                         <p className="text-gray-600 dark:text-gray-400">
-                                            {userPlan === 'Free'
+                                            {userPlan === 'Free' 
                                                 ? 'Chọn gói phù hợp để mở khóa toàn bộ tiềm năng nghề nghiệp của bạn'
                                                 : 'Nâng cấp lên gói cao hơn để trải nghiệm thêm nhiều tính năng'
                                             }
                                         </p>
                                     </div>
-
-                                    <div className={`grid gap-8 max-w-6xl mx-auto ${availablePlans.length === 1 ? 'grid-cols-1 max-w-md' :
-                                        availablePlans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-4xl' :
-                                            'grid-cols-1 md:grid-cols-3'
-                                        }`}>
+                                    
+                                    <div className={`grid gap-8 max-w-6xl mx-auto ${
+                                        availablePlans.length === 1 ? 'grid-cols-1 max-w-md' : 
+                                        availablePlans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-4xl' : 
+                                        'grid-cols-1 md:grid-cols-3'
+                                    }`}>
                                         {availablePlans.map((plan) => (
                                             <div
                                                 key={plan.id}
-                                                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border transition-all duration-300 ${plan.popular
-                                                    ? 'border-green-500 ring-2 ring-green-500/20 scale-105'
-                                                    : 'border-gray-200 dark:border-gray-700 hover:shadow-xl'
-                                                    }`}
+                                                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border transition-all duration-300 ${
+                                                    plan.popular
+                                                        ? 'border-green-500 ring-2 ring-green-500/20 scale-105'
+                                                        : 'border-gray-200 dark:border-gray-700 hover:shadow-xl'
+                                                }`}
                                             >
                                                 {plan.popular && (
                                                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -347,8 +376,8 @@ export const PaymentPage: React.FC = () => {
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">Transaction History</h3>
-                                <button
-                                    onClick={loadHistory}
+                                <button 
+                                    onClick={loadHistory} 
                                     className="text-sm font-medium text-blue-600 hover:text-blue-700"
                                 >
                                     Refresh
@@ -385,8 +414,8 @@ export const PaymentPage: React.FC = () => {
                                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                             {history.map((payment) => (
                                                 <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                    <td className="px-6 py-4 text-sm font-mono text-gray-600">#{payment.order_id?.slice(-8) ?? payment.id}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{payment.description ?? payment.tier}</td>
+                                                    <td className="px-6 py-4 text-sm font-mono text-gray-600">#{payment.order_id.slice(-8)}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{payment.description}</td>
                                                     <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(payment.amount)}</td>
                                                     <td className="px-6 py-4">{getStatusBadge(payment.status)}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-500">{formatDate(payment.created_at)}</td>
