@@ -245,8 +245,8 @@ Lưu ý: Thẻ quốc tế (Visa/Mastercard) và các ngân hàng khác không h
 ZaloPay sandbox hỗ trợ thanh toán qua QR code bằng app ZaloPay hoặc thẻ quốc tế:
 - Loại thẻ: Visa
 - Số thẻ: 4111111111111111
-- Tên chủ thẻ: TEST
-- Ngày hết hạn: 01/25
+- Tên chủ thẻ: NGUYEN VAN A
+- Ngày hết hạn: 06/26
 - Mã CVV: 123
 
 ---
