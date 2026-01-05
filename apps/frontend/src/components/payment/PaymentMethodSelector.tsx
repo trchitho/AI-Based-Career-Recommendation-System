@@ -193,17 +193,10 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                         <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs space-y-2">
                             {selectedMethod === 'vnpay' ? (
                                 <>
-                                    <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-700">
-                                        <span className="text-gray-500">ATM NCB</span>
-                                        <code className="bg-white dark:bg-gray-900 px-2 py-1 rounded font-mono select-all">9704198526191432198</code>
-                                    </div>
-                                    <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-700">
-                                        <span className="text-gray-500">Visa</span>
-                                        <code className="bg-white dark:bg-gray-900 px-2 py-1 rounded font-mono select-all">4111111111111111</code>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-500">Chung</span>
-                                        <span className="text-gray-600 dark:text-gray-400">Tên: NGUYEN VAN A | OTP: 123456</span>
+                                    <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
+                                        <p className="text-gray-500 mb-1">Thẻ ATM NCB (duy nhất hoạt động trên sandbox):</p>
+                                        <p className="text-gray-700 dark:text-gray-300">Số thẻ: <code className="bg-white dark:bg-gray-900 px-2 py-0.5 rounded font-mono select-all">9704198526191432198</code></p>
+                                        <p className="text-gray-700 dark:text-gray-300">Tên: NGUYEN VAN A | Ngày: 07/15 | OTP: 123456</p>
                                     </div>
                                 </>
                             ) : (

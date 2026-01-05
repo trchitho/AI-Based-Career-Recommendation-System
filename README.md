@@ -190,34 +190,22 @@ Hệ thống tích hợp 2 cổng thanh toán VNPay và ZaloPay ở chế độ 
 
 **VNPay Sandbox**
 
-Thẻ ATM ngân hàng NCB:
+VNPay sandbox chỉ hỗ trợ thẻ ATM nội địa ngân hàng NCB:
 - Ngân hàng: NCB
 - Số thẻ: 9704198526191432198
 - Tên chủ thẻ: NGUYEN VAN A
 - Ngày phát hành: 07/15
 - Mã OTP: 123456
 
-Thẻ ATM ngân hàng Vietcombank:
-- Ngân hàng: Vietcombank
-- Số thẻ: 9704366614626746
-- Tên chủ thẻ: NGUYEN VAN A
-- Ngày phát hành: 07/15
-- Mã OTP: 123456
-
-Thẻ quốc tế Visa:
-- Loại thẻ: Visa
-- Số thẻ: 4111111111111111
-- Tên chủ thẻ: NGUYEN VAN A
-- Ngày hết hạn: 12/25
-- Mã CVV: 123
+Lưu ý: Thẻ quốc tế (Visa/Mastercard) và các ngân hàng khác không hoạt động trên môi trường sandbox. Khi triển khai production sẽ hỗ trợ đầy đủ tất cả phương thức thanh toán.
 
 **ZaloPay Sandbox**
 
-Thẻ quốc tế Visa:
+ZaloPay sandbox hỗ trợ thanh toán qua QR code bằng app ZaloPay hoặc thẻ quốc tế:
 - Loại thẻ: Visa
 - Số thẻ: 4111111111111111
 - Tên chủ thẻ: TEST
-- Ngày hết hạn: 12/25
+- Ngày hết hạn: 01/25
 - Mã CVV: 123
 
 ---
