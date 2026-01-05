@@ -85,50 +85,91 @@ Frontend giao tiếp với Backend thông qua các endpoint BFF (Backend For Fro
 
 ```
 AI-Based-Career-Recommendation-System/
-|
-|-- apps/
-|   |-- backend/              # FastAPI server
-|   |   |-- app/
-|   |   |   |-- main.py
-|   |   |   |-- bff/          # Backend For Frontend endpoints
-|   |   |   |-- core/         # Config, database, authentication
-|   |   |   |-- modules/      # Các module nghiệp vụ
-|   |   |   |   |-- auth/
-|   |   |   |   |-- users/
-|   |   |   |   |-- assessments/
-|   |   |   |   |-- payment/
-|   |   |   |   |-- recommendation/
-|   |   |   |   |-- ...
-|   |   |-- requirements.txt
-|   |
-|   |-- frontend/             # React application
-|       |-- src/
-|       |   |-- components/
-|       |   |-- pages/
-|       |   |-- services/
-|       |   |-- contexts/
-|       |-- package.json
-|
-|-- packages/
-|   |-- ai-core/              # AI service (port 9000)
-|       |-- src/
-|           |-- ai_core/
-|           |   |-- nlp/
-|           |   |-- retrieval/
-|           |   |-- recsys/
-|           |-- api/
-|
-|-- db/
-|   |-- init/                 # Database initialization scripts
-|
-|-- doc/                      # Tài liệu dự án
-|
-|-- README.md
+├── apps/
+│   ├── backend/                    # FastAPI server
+│   │   ├── app/
+│   │   │   ├── main.py            # Entry point
+│   │   │   ├── bff/               # Backend For Frontend endpoints
+│   │   │   ├── core/              # Config, database, authentication
+│   │   │   ├── modules/           # Các module nghiệp vụ
+│   │   │   │   ├── auth/          # Authentication & authorization
+│   │   │   │   ├── users/         # User management
+│   │   │   │   ├── assessments/   # Bài test tâm lý (RIASEC, Big Five)
+│   │   │   │   ├── payment/       # VNPay, ZaloPay integration
+│   │   │   │   ├── recommendation/# AI recommendation engine
+│   │   │   │   ├── chatbot/       # Gemini AI chatbot
+│   │   │   │   ├── careers/       # Career catalog management
+│   │   │   │   ├── content/       # Skills, roadmap content
+│   │   │   │   └── reports/       # PDF reports generation
+│   │   │   ├── services/          # External API clients
+│   │   │   └── tests/             # Unit tests
+│   │   ├── requirements.txt       # Python dependencies
+│   │   └── .env.example          # Environment variables template
+│   │
+│   └── frontend/                  # React + Vite application
+│       ├── src/
+│       │   ├── components/        # Reusable UI components
+│       │   ├── pages/            # Route pages
+│       │   ├── services/         # API clients
+│       │   ├── contexts/         # React contexts
+│       │   ├── hooks/            # Custom React hooks
+│       │   └── utils/            # Utility functions
+│       ├── package.json          # Node.js dependencies
+│       └── .env.example         # Frontend environment variables
+│
+├── packages/
+│   └── ai-core/                   # AI service (port 9000)
+│       ├── src/
+│       │   ├── ai_core/
+│       │   │   ├── nlp/          # PhoBERT, vi-SBERT processing
+│       │   │   ├── retrieval/    # pgvector similarity search
+│       │   │   └── recsys/       # NeuMF recommendation system
+│       │   └── api/              # FastAPI endpoints
+│       ├── models/               # Pre-trained AI models
+│       ├── data/                 # Training datasets & embeddings
+│       ├── tests/                # AI model tests
+│       └── requirements.txt      # AI dependencies
+│
+├── db/
+│   ├── init/                     # Database initialization scripts
+│   └── backup/                   # Database backup files
+│       └── dev_snapshot_utf8.sql # Full database dump
+│
+├── docker-compose.yml            # PostgreSQL + pgvector container
+├── README.md                     # Project documentation
+├── QUICK_START.md               # Quick setup guide
+└── CONTRIBUTING.md              # Development guidelines
 ```
 
 ---
 
 ## Hướng dẫn cài đặt
+
+### B1: Khởi tạo Database
+
+**Terminal : Database**
+
+```bash
+cd AI-Based-Career-Recommendation-System
+docker compose down -v ; docker compose up -d
+```
+
+```bash
+# 1) Đá hết connection đang giữ DB
+docker compose exec -T postgres psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='career_ai';"
+
+# 2) Xoá DB cũ và tạo mới
+docker compose exec -T postgres psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS career_ai;"
+docker compose exec -T postgres psql -U postgres -d postgres -c "CREATE DATABASE career_ai;"
+
+# 3) Copy file dump vào container (nếu file nằm trên host)
+docker compose cp db/backup/dev_snapshot_utf8.sql postgres:/tmp/dev_snapshot_utf8.sql
+
+# 4) Import vào DB
+docker compose exec -T postgres psql -U postgres -d career_ai -v ON_ERROR_STOP=1 -f /tmp/dev_snapshot_utf8.sql
+```
+
+### B2: Cài đặt thư viện và chạy dự án
 
 Cần mở 3 terminal để chạy đồng thời 3 service.
 
@@ -167,7 +208,7 @@ Sau khi chạy xong, truy cập http://localhost:3000 để sử dụng ứng d�
 Tạo file .env trong thư mục apps/backend với nội dung sau:
 
 ```
-DATABASE_URL=postgresql://postgres:password@localhost:5432/career_ai
+DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
 AI_CORE_BASE=http://localhost:9000
 ALLOWED_ORIGINS=http://localhost:3000
 SECRET_KEY=your_secret_key
@@ -240,4 +281,4 @@ ZaloPay sandbox hỗ trợ thanh toán qua QR code bằng app ZaloPay hoặc th�
 
 ## Liên hệ
 
-Mọi thắc mắc về dự án vui lòng liên hệ qua email hoặc tạo issue trên repository.
+Mọi thắc mắc về dự án vui lòng liên hệ qua email: tranchitho160704@gmail.com.
