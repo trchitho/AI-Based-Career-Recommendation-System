@@ -1,190 +1,138 @@
-# 🧠 AI-Based Career Recommendation System
+# AI-Based Career Recommendation System
 
-### *(Hệ thống gợi ý nghề nghiệp cá nhân hóa bằng trí tuệ nhân tạo)*
+Hệ thống gợi ý nghề nghiệp cá nhân hóa sử dụng trí tuệ nhân tạo, được xây dựng theo kiến trúc monorepo với Frontend (React/Vite), Backend (FastAPI) và AI-Core (PhoBERT, vi-SBERT, NeuMF).
 
-Monorepo gồm **Frontend (React/Vite)**, **Backend (FastAPI – BFF)** và **AI-Core (PhoBERT · vi-SBERT · NeuMF · Bandit)**.
-Backend chỉ giao tiếp với Frontend qua **BFF**; mọi logic AI tách ra thành **AI-Core service riêng**.
+---
 
-## 💎 4-Tier Premium System
+## Mục lục
 
-Hệ thống bao gồm 4 gói dịch vụ:
+1. [Giới thiệu](#giới-thiệu)
+2. [Các gói dịch vụ](#các-gói-dịch-vụ)
+3. [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
+4. [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+5. [Hướng dẫn cài đặt](#hướng-dẫn-cài-đặt)
+6. [Cấu hình môi trường](#cấu-hình-môi-trường)
+7. [Hướng dẫn test thanh toán](#hướng-dẫn-test-thanh-toán)
+8. [Công nghệ sử dụng](#công-nghệ-sử-dụng)
 
-### 🆓 **Free Plan** (Miễn phí)
-- 5 bài kiểm tra / tháng
-- Xem 1 nghề nghiệp đầu tiên
-- Roadmap Level 1 only
-- Chatbot cơ bản
+---
 
-### 💙 **Basic Plan** (99.000đ)
-- 20 bài kiểm tra / tháng
-- Xem 5 nghề nghiệp / tháng (tối đa 25 nghề)
-- Roadmap Level 1-2
-- Phân tích RIASEC & Big Five
+## Giới thiệu
 
-### 💚 **Premium Plan** (299.000đ)
-- Bài kiểm tra không giới hạn
+Hệ thống phân tích đặc điểm tính cách người dùng thông qua các bài kiểm tra RIASEC, Big Five và phân tích văn bản (essay) để đưa ra gợi ý nghề nghiệp phù hợp. Các thuật toán AI được sử dụng bao gồm:
+
+- Phân tích văn bản với PhoBERT và vi-SBERT
+- Vector search với pgvector (768 chiều)
+- Xếp hạng nghề nghiệp với NeuMF/MLP
+- Tối ưu hóa gợi ý theo thời gian thực với Thompson Sampling
+
+---
+
+## Các gói dịch vụ
+
+Hệ thống cung cấp 4 gói dịch vụ với các tính năng khác nhau:
+
+**Free (Miễn phí)**
+- Giới hạn 5 bài kiểm tra mỗi tháng
+- Xem được 1 nghề nghiệp gợi ý
+- Lộ trình học tập cấp độ 1
+- Chatbot hỗ trợ cơ bản
+
+**Basic (99.000đ)**
+- Giới hạn 20 bài kiểm tra mỗi tháng
+- Xem được 5 nghề nghiệp mỗi tháng
+- Lộ trình học tập cấp độ 1-2
+- Phân tích chi tiết RIASEC và Big Five
+
+**Premium (199.000đ)**
+- Không giới hạn bài kiểm tra
 - Xem toàn bộ danh mục nghề nghiệp
-- Full Roadmap (tất cả levels)
-- View Full Report
-- Phân tích AI chi tiết
+- Lộ trình học tập đầy đủ tất cả cấp độ
+- Báo cáo phân tích AI chi tiết
 
-### 💜 **Pro Plan** (499.000đ)
-- Tất cả tính năng Premium
-- 🤖 AI Career Assistant 24/7 (Gemini API)
-- 📄 Xuất báo cáo PDF chuyên sâu
-- 📊 So sánh lịch sử phát triển
-- 🎤 Voice input & Text-to-speech
-- 📝 Tạo blog từ cuộc trò chuyện
+**Pro (299.000đ)**
+- Bao gồm tất cả tính năng Premium
+- Trợ lý AI hỗ trợ 24/7 (tích hợp Gemini API)
+- Xuất báo cáo PDF chuyên sâu
+- So sánh lịch sử phát triển cá nhân
+- Nhập liệu bằng giọng nói và đọc văn bản
+- Tạo bài viết blog từ cuộc trò chuyện
 
 ---
 
-# 1) Tổng quan
-
-Hệ thống gợi ý nghề nghiệp dựa trên nhiều nguồn dữ liệu:
-
-* **RIASEC** & **Big Five** (từ bài test)
-* **Essay analysis** (PhoBERT/vi-SBERT)
-* **Career embeddings** (pgvector 768D)
-* **Ranking** bằng **NeuMF/MLP**
-* **Online re-ranking** bằng **Thompson Sampling (Bandit)**
-
-**Luồng xử lý tổng quát**
+## Kiến trúc hệ thống
 
 ```
-Frontend (React + Vite SPA)
-        ↓ via /bff/*
+Frontend (React + Vite)
+        |
+        | HTTP Request qua /bff/*
+        v
 Backend (FastAPI BFF + Modules)
-        ↓
-AI-Core API (PhoBERT · vi-SBERT · NeuMF · RL)
-        ↓
-PostgreSQL + pgvector + (Neo4j optional)
+        |
+        | Internal API Call
+        v
+AI-Core Service (PhoBERT, vi-SBERT, NeuMF)
+        |
+        v
+PostgreSQL + pgvector
 ```
+
+Frontend giao tiếp với Backend thông qua các endpoint BFF (Backend For Frontend). Backend điều phối các request đến AI-Core service và database.
 
 ---
 
-# 2) Kiến trúc monorepo
+## Cấu trúc thư mục
 
 ```
 AI-Based-Career-Recommendation-System/
-├─ apps/
-│  ├─ backend/          # FastAPI (BFF + modules)
-│  └─ frontend/         # React + Vite SPA (components, pages, services)
-├─ packages/
-│  └─ ai-core/          # AI service (API riêng port 9000)
-├─ .github/workflows/   # FE / BE / AI CI pipelines
-└─ README.md
-```
-
-**Nhánh `chore/ai-core-merge`** hợp nhất toàn bộ mã nguồn AI-core cũ → `packages/ai-core`.
-
----
-
-# 3) Thành phần chi tiết
-
-## 3.1 Frontend (React + Vite + Tailwind)
-
-* SPA dùng **React Router**
-* Các service gọi API qua `src/services/*`
-* Components chia domain: `assessment`, `results`, `dashboard`, `profile`, `roadmap`, `admin`
-* Contexts: Auth, Theme, Settings, Socket
-* Các trang (pages) map 1–1 với BFF
-
-**ENV (FE)**
-
-```
-VITE_API_BASE=http://localhost:8000
-```
-
----
-
-## 3.2 Backend (FastAPI Modular + BFF)
-
-**Cấu trúc BE**
-
-```
-apps/backend/app/
-├─ main.py
-├─ bff/
-│   ├─ router.py    # endpoint theo màn hình FE
-│   └─ dto.py       # kiểu trả về cho FE
-├─ core/
-│   config.py · db.py · jwt.py · security.py
-├─ modules/
-│   auth/ users/ assessments/ content/
-│   recommendation/ search/ graph/ nlu/ retrieval/
-│   realtime/ notifications/ admin/ system/
-├─ scripts/
-│   create_admin.py · seed_bulk.py
-└─ tests/
-```
-
-**Backend xử lý:**
-
-* Validate & chuẩn hóa dữ liệu
-* Điều phối AI-Core
-* Gọi pgvector search
-* Trả DTO gọn cho FE
-
-**ENV (BE)**
-
-```
-DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
-AI_CORE_BASE=http://localhost:9000
-ALLOWED_ORIGINS=http://localhost:5173
+|
+|-- apps/
+|   |-- backend/              # FastAPI server
+|   |   |-- app/
+|   |   |   |-- main.py
+|   |   |   |-- bff/          # Backend For Frontend endpoints
+|   |   |   |-- core/         # Config, database, authentication
+|   |   |   |-- modules/      # Các module nghiệp vụ
+|   |   |   |   |-- auth/
+|   |   |   |   |-- users/
+|   |   |   |   |-- assessments/
+|   |   |   |   |-- payment/
+|   |   |   |   |-- recommendation/
+|   |   |   |   |-- ...
+|   |   |-- requirements.txt
+|   |
+|   |-- frontend/             # React application
+|       |-- src/
+|       |   |-- components/
+|       |   |-- pages/
+|       |   |-- services/
+|       |   |-- contexts/
+|       |-- package.json
+|
+|-- packages/
+|   |-- ai-core/              # AI service (port 9000)
+|       |-- src/
+|           |-- ai_core/
+|           |   |-- nlp/
+|           |   |-- retrieval/
+|           |   |-- recsys/
+|           |-- api/
+|
+|-- db/
+|   |-- init/                 # Database initialization scripts
+|
+|-- doc/                      # Tài liệu dự án
+|
+|-- README.md
 ```
 
 ---
 
-## 3.3 AI-Core (API Service)
+## Hướng dẫn cài đặt
 
-AI-Core chạy độc lập như một **service riêng** (port 9000):
+Cần mở 3 terminal để chạy đồng thời 3 service.
 
-```
-packages/ai-core/
-├─ src/ai_core/
-│   ├─ nlp/              # PhoBERT/essay_infer
-│   ├─ retrieval/        # pgvector + FAISS
-│   ├─ recsys/neumf/     # train/infer ranking
-│   ├─ training/         # dataset + regression
-│   ├─ utils/
-│   └─ ...
-└─ src/api/
-    ├─ main.py           # API FastAPI
-    ├─ routes_traits.py
-    ├─ routes_retrieval.py
-    └─ config.py
-```
-
-**AI-Core cung cấp:**
-
-* `/traits/infer` → RIASEC / BigFive từ essay
-* `/retrieval/search_vec` → cosine search pgvector
-* `/rank/infer` → điểm NeuMF
-* Hỗ trợ training, encode corpus, seed dữ liệu
-
----
-
-# 4) Database (PostgreSQL + pgvector)
-
-**Các nhóm bảng chính**
-
-* `core.users`, `core.assessments`, `core.essays`
-* `core.careers` + 20 bảng phụ (tags/ksas/tasks/etc.)
-* `ai.career_embeddings` (vector 768D)
-* `ai.user_embeddings`
-* `ai.retrieval_jobs_visbert`
-
-**pgvector**
-
-* cosine distance
-* IVF index (tùy chọn)
-* stored embeddings
-
----
-
-# 5) Hướng dẫn chạy (3 terminal – bản chuẩn nhánh `chore/ai-core-merge`)
-
-## 🖥 **Terminal 1 – AI-Core Service (port 9000)**
+**Terminal 1: AI-Core Service (port 9000)**
 
 ```bash
 cd packages/ai-core
@@ -192,30 +140,17 @@ pip install -r requirements.txt
 uvicorn src.api.main:app --reload --port 9000
 ```
 
----
-
-## 🖥 **Terminal 2 – Backend FastAPI (port 8000)**
+**Terminal 2: Backend (port 8000)**
 
 ```bash
 cd apps/backend
 python -m venv .venv
-. .venv/Scripts/activate
-
+.venv\Scripts\activate
 pip install -r requirements.txt
-
-# nếu cần development mode cho AI-core
-pip install -e ../../packages/ai-core
-
-# Option 1: Optimized run (recommended for Windows to prevent socket exhaustion)
 python run_dev.py
-
-# Option 2: Standard uvicorn (may cause WinError 10055 on Windows)
-# uvicorn app.main:app --reload --port 8000
 ```
 
----
-
-## 🖥 **Terminal 3 – Frontend (port 5173)**
+**Terminal 3: Frontend (port 3000)**
 
 ```bash
 cd apps/frontend
@@ -223,66 +158,98 @@ npm install
 npm run dev
 ```
 
+Sau khi chạy xong, truy cập http://localhost:3000 để sử dụng ứng dụng.
+
 ---
 
-# 6) 🚀 Quick Setup Guide
+## Cấu hình môi trường
 
-## Database Setup
-```bash
-# Run SQL setup for 4-tier system
-psql -U your_username -d your_database -f database_setup.sql
+Tạo file .env trong thư mục apps/backend với nội dung sau:
+
 ```
+DATABASE_URL=postgresql://postgres:password@localhost:5432/career_ai
+AI_CORE_BASE=http://localhost:9000
+ALLOWED_ORIGINS=http://localhost:3000
+SECRET_KEY=your_secret_key
 
-## Environment Variables
-```env
-# Database
-DATABASE_URL=postgresql://username:password@localhost/dbname
+VNPAY_TMN_CODE=CGXZLS0Z
+VNPAY_HASH_SECRET=XNBCJFAKAZQSGTARRLGCHVZWCIOIGSHN
 
-# ZaloPay (for payments)
-ZALOPAY_APP_ID=your_app_id
-ZALOPAY_KEY1=your_key1
-ZALOPAY_KEY2=your_key2
+ZALOPAY_APP_ID=2553
+ZALOPAY_KEY1=PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL
+ZALOPAY_KEY2=kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz
 
-# AI Features (for Pro plan)
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-## Test Accounts
-| Email | Plan | Features |
-|-------|------|----------|
-| `free@test.com` | Free | 5 tests/month, 1 career |
-| `basic@test.com` | Basic | 20 tests/month, 5 careers/month |
-| `premium@test.com` | Premium | Unlimited tests/careers |
-| `pro@test.com` | Pro | All features + AI Assistant |
+---
 
-📖 **Xem chi tiết**: `SETUP_GUIDE.md` và `DEPLOYMENT_CHECKLIST.md`
+## Hướng dẫn test thanh toán
+
+Hệ thống tích hợp 2 cổng thanh toán VNPay và ZaloPay ở chế độ sandbox để test.
+
+**VNPay Sandbox**
+
+Thẻ ATM ngân hàng NCB:
+- Ngân hàng: NCB
+- Số thẻ: 9704198526191432198
+- Tên chủ thẻ: NGUYEN VAN A
+- Ngày phát hành: 07/15
+- Mã OTP: 123456
+
+Thẻ ATM ngân hàng Vietcombank:
+- Ngân hàng: Vietcombank
+- Số thẻ: 9704366614626746
+- Tên chủ thẻ: NGUYEN VAN A
+- Ngày phát hành: 07/15
+- Mã OTP: 123456
+
+Thẻ quốc tế Visa:
+- Loại thẻ: Visa
+- Số thẻ: 4111111111111111
+- Tên chủ thẻ: NGUYEN VAN A
+- Ngày hết hạn: 12/25
+- Mã CVV: 123
+
+**ZaloPay Sandbox**
+
+Thẻ quốc tế Visa:
+- Loại thẻ: Visa
+- Số thẻ: 4111111111111111
+- Tên chủ thẻ: TEST
+- Ngày hết hạn: 12/25
+- Mã CVV: 123
 
 ---
 
-# 7) CI / Code style
+## Công nghệ sử dụng
 
-**FE:** eslint + prettier
-**BE:** ruff + black + pytest
-**AI-Core:** python-ci workflow
+**Frontend**
+- React 18
+- Vite
+- Tailwind CSS
+- React Router
+- Axios
+
+**Backend**
+- FastAPI
+- SQLAlchemy
+- PostgreSQL
+- pgvector
+- JWT Authentication
+
+**AI-Core**
+- PhoBERT
+- vi-SBERT
+- NeuMF
+- FAISS
+
+**Thanh toán**
+- VNPay
+- ZaloPay
 
 ---
 
-# 8) Ghi chú quan trọng cho nhánh `chore/ai-core-merge`
+## Liên hệ
 
-* Đây là **nhánh hợp nhất AI-core vào monorepo** (theo subtree workflow).
-* AI không còn phát triển ở nhánh `AI` cũ → mọi code AI nằm ở `packages/ai-core`.
-* Backend và Frontend được cập nhật để gọi AI-Core API qua `http://localhost:9000`.
-* **4-tier premium system** đã được implement hoàn chỉnh với user data isolation và feature access control.
-
----
-
-# 9) Định hướng tiếp theo
-
-* Hoàn thiện **Bandit Online**
-* Tích hợp **Neo4j explainability**
-* Chuẩn hóa BFF contract
-* Kết nối frontend App Router (nếu cần)
-* Tối ưu pipeline encode + pgvector refresh
-* **Monitor 4-tier system performance** và user engagement
-
----
+Mọi thắc mắc về dự án vui lòng liên hệ qua email hoặc tạo issue trên repository.
