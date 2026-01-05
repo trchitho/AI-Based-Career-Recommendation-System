@@ -98,10 +98,20 @@ class ZaloPayService:
             logger.info(f"ZaloPay create order response: {result}")
             
             if result.get("return_code") == 1:
+                zp_trans_token = result.get("zp_trans_token")
+                
+                # ZaloPay Sandbox URLs:
+                # - order_url: QR code page (qcgateway.zalopay.vn) - cho mobile scan
+                # - cashier_order_url: Onelink page - redirect to app
+                # - Gateway URL: sbgateway.zalopay.vn - có CORS issues
+                # 
+                # Dùng order_url gốc từ ZaloPay response
+                payment_url = result.get("order_url")
+                
                 return {
                     "success": True,
-                    "order_url": result.get("order_url"),
-                    "zp_trans_token": result.get("zp_trans_token"),
+                    "order_url": payment_url,
+                    "zp_trans_token": zp_trans_token,
                     "app_trans_id": app_trans_id,
                     "order_id": order_id,
                 }

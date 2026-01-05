@@ -22,6 +22,7 @@ from .schemas import (
     PaymentQueryResponse,
 )
 from .zalopay_service import ZaloPayService
+from .vnpay_service import VNPayService
 import os
 
 router = APIRouter()
@@ -90,8 +91,18 @@ def get_zalopay_service() -> ZaloPayService:
         key2=os.getenv("ZALOPAY_KEY2", "kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz"),
         endpoint=os.getenv("ZALOPAY_ENDPOINT", "https://sb-openapi.zalopay.vn/v2/create"),
         callback_url=os.getenv("ZALOPAY_CALLBACK_URL", "http://localhost:8000/api/payment/callback"),
-        # Mặc định redirect về backend để tự query cập nhật trạng thái; FE có thể override env này
         redirect_url=os.getenv("ZALOPAY_REDIRECT_URL", "http://localhost:8000/api/payment/redirect"),
+    )
+
+
+def get_vnpay_service() -> VNPayService:
+    """Init VNPay service from env"""
+    return VNPayService(
+        tmn_code=os.getenv("VNPAY_TMN_CODE", "CGXZLS0Z"),
+        hash_secret=os.getenv("VNPAY_HASH_SECRET", "XNBCJFAKAZQSGTARRLGCHVZWCIOIGSHN"),
+        payment_url=os.getenv("VNPAY_PAYMENT_URL", "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"),
+        return_url=os.getenv("VNPAY_RETURN_URL", "http://localhost:8000/api/payment/vnpay/return"),
+        api_url=os.getenv("VNPAY_API_URL", "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction"),
     )
 
 
@@ -121,13 +132,20 @@ def create_payment(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Tạo đơn thanh toán mới
+    Tạo đơn thanh toán mới - hỗ trợ ZaloPay, VNPay, MoMo
     """
     try:
         user_id = current_user["user_id"]
         order_id = f"ORDER_{user_id}_{int(datetime.utcnow().timestamp())}"
+        payment_method = payment_req.payment_method or "vnpay"
         
-        # Try to create payment record, fallback if DB fails
+        # Get client IP
+        client_ip = request.client.host if request.client else "127.0.0.1"
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            client_ip = forwarded.split(",")[0].strip()
+        
+        # Create payment record
         payment = None
         try:
             payment = Payment(
@@ -135,19 +153,32 @@ def create_payment(
                 order_id=order_id,
                 amount=payment_req.amount,
                 description=payment_req.description,
-                payment_method=payment_req.payment_method,
+                payment_method=payment_method,
                 status=PaymentStatus.PENDING,
             )
-            
             db.add(payment)
             db.commit()
             db.refresh(payment)
         except Exception as db_error:
             logger.error(f"Database error: {db_error}")
-            # Continue without DB record for now
         
-        # Gọi ZaloPay API thực tế
-        try:
+        result = {"success": False, "message": "Unknown payment method"}
+        
+        # Route to appropriate payment provider
+        if payment_method == "vnpay":
+            # VNPay - thẻ Visa/Mastercard/ATM
+            vnpay = get_vnpay_service()
+            result = vnpay.create_payment_url(
+                amount=payment_req.amount,
+                order_id=order_id,
+                order_info=payment_req.description or f"Thanh toan don hang {order_id}",
+                ip_addr=client_ip,
+            )
+            if result.get("success"):
+                result["order_url"] = result.get("payment_url")
+                
+        elif payment_method == "zalopay":
+            # ZaloPay
             zalopay = get_zalopay_service()
             result = zalopay.create_order(
                 amount=payment_req.amount,
@@ -155,39 +186,32 @@ def create_payment(
                 user_id=user_id,
                 order_id=order_id,
             )
-        except Exception as e:
-            logger.error(f"ZaloPay API error: {e}")
-            # Fallback nếu ZaloPay API fail
+            
+        elif payment_method == "momo":
+            # MoMo - placeholder (cần đăng ký merchant)
             result = {
-                "success": False, 
-                "message": f"Lỗi kết nối ZaloPay: {str(e)}"
+                "success": False,
+                "message": "MoMo chưa được tích hợp. Vui lòng chọn VNPay hoặc ZaloPay.",
             }
         
         if result.get("success"):
-            # Cập nhật payment với thông tin từ ZaloPay (nếu có)
+            # Update payment record
             if payment:
                 try:
-                    payment.app_trans_id = result.get("app_trans_id")
-                    payment.zp_trans_token = result.get("zp_trans_token")
+                    payment.app_trans_id = result.get("app_trans_id") or order_id
                     payment.order_url = result.get("order_url")
-                    # Giữ status PENDING, sẽ update khi có callback từ ZaloPay
                     db.commit()
                 except Exception as e:
                     logger.error(f"Failed to update payment: {e}")
             
-            # Ghi audit log cho payment create
-            client_ip = request.client.host if request.client else None
-            forwarded = request.headers.get("x-forwarded-for")
-            if forwarded:
-                client_ip = forwarded.split(",")[0].strip()
-            
+            # Audit log
             _log_audit(
                 session=db,
                 user_id=user_id,
                 action="payment_create",
                 resource_type="payment",
                 resource_id=order_id,
-                details={"amount": payment_req.amount, "description": payment_req.description, "method": payment_req.payment_method},
+                details={"amount": payment_req.amount, "method": payment_method},
                 ip_address=client_ip,
             )
             
@@ -197,7 +221,6 @@ def create_payment(
                 order_url=result.get("order_url"),
             )
         else:
-            # Cập nhật trạng thái failed (nếu có payment record)
             if payment:
                 try:
                     payment.status = PaymentStatus.FAILED
@@ -218,6 +241,89 @@ def create_payment(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Lỗi tạo thanh toán: {str(e)}"
         )
+
+
+@router.get("/vnpay/return")
+def vnpay_return(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    VNPay return URL handler - xử lý khi user thanh toán xong hoặc hủy
+    """
+    try:
+        params = dict(request.query_params)
+        logger.info(f"VNPay return params: {params}")
+        
+        # Frontend chạy trên port 3000
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        order_id = params.get("vnp_TxnRef", "")
+        response_code = params.get("vnp_ResponseCode", "")
+        
+        # Xử lý trường hợp hủy giao dịch (code 24)
+        if response_code == "24":
+            logger.info(f"Payment {order_id} cancelled by user")
+            # Update payment status
+            payment = db.query(Payment).filter(Payment.order_id == order_id).first()
+            if payment:
+                payment.status = PaymentStatus.CANCELLED.value
+                db.commit()
+            # Redirect về trang pricing
+            return RedirectResponse(url=f"{frontend_url}/pricing?status=cancelled&order_id={order_id}")
+        
+        vnpay = get_vnpay_service()
+        result = vnpay.verify_return(params.copy())
+        
+        # Find payment record
+        payment = db.query(Payment).filter(Payment.order_id == order_id).first()
+        
+        if payment:
+            if result.get("success") and result.get("status") == "success":
+                payment.status = PaymentStatus.SUCCESS.value
+                payment.paid_at = datetime.utcnow()
+                payment.transaction_id = params.get("vnp_TransactionNo")
+                db.commit()
+                
+                logger.info(f"Payment {order_id} marked as SUCCESS via VNPay")
+                
+                # Auto-upgrade subscription
+                try:
+                    from app.core.subscription import SubscriptionService
+                    
+                    plan_name = "Basic"
+                    if payment.amount >= 280000:
+                        plan_name = "Pro"
+                    elif payment.amount >= 180000:
+                        plan_name = "Premium"
+                    elif payment.amount >= 80000:
+                        plan_name = "Basic"
+                    
+                    SubscriptionService.upgrade_user_subscription(
+                        user_id=payment.user_id,
+                        plan_name=plan_name,
+                        payment_id=payment.id,
+                        session=db
+                    )
+                    logger.info(f"User {payment.user_id} upgraded to {plan_name}")
+                except Exception as e:
+                    logger.error(f"Auto-upgrade error: {e}")
+                    
+                # Redirect về trang thành công
+                return RedirectResponse(url=f"{frontend_url}/payment/return?status=success&order_id={order_id}")
+            else:
+                payment.status = PaymentStatus.FAILED.value
+                db.commit()
+                logger.info(f"Payment {order_id} marked as FAILED: {result.get('message', '')}")
+                # Redirect về trang pricing với thông báo lỗi
+                return RedirectResponse(url=f"{frontend_url}/pricing?status=failed&order_id={order_id}")
+        
+        # Fallback redirect
+        return RedirectResponse(url=f"{frontend_url}/pricing?status=error")
+        
+    except Exception as e:
+        logger.error(f"VNPay return error: {e}")
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        return RedirectResponse(url=f"{frontend_url}/pricing?status=error")
 
 
 @router.post("/callback")
@@ -561,50 +667,81 @@ def payment_redirect(
     db: Session = Depends(get_db),
 ):
     """
-    Điểm redirect sau khi thanh toán. Tự động query trạng thái và cập nhật DB.
+    ZaloPay redirect handler - xử lý khi user thanh toán xong hoặc hủy
     """
+    # Frontend chạy trên port 3000
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    
     app_trans_id = apptransid or order_id
     if not app_trans_id:
-        return HTMLResponse("<h3>Thiếu apptransid/order_id</h3>", status_code=400)
+        return RedirectResponse(url=f"{frontend_url}/pricing?status=error&message=missing_order_id")
 
-    payment = db.query(Payment).filter(Payment.app_trans_id == app_trans_id).first()
+    # Query trạng thái từ ZaloPay
     zalopay = get_zalopay_service()
     result = zalopay.query_order(app_trans_id)
     status_result = result.get("status", "unknown")
+    
+    logger.info(f"ZaloPay redirect - order: {app_trans_id}, status: {status_result}")
+
+    # Tìm payment record
+    payment = db.query(Payment).filter(
+        (Payment.app_trans_id == app_trans_id) | (Payment.order_id == order_id)
+    ).first()
 
     if payment:
         if status_result == "success":
             payment.status = PaymentStatus.SUCCESS.value
+            payment.paid_at = datetime.utcnow()
+            db.commit()
+            
+            logger.info(f"Payment {app_trans_id} marked as SUCCESS via ZaloPay redirect")
+            
+            # Auto-upgrade subscription
+            try:
+                from app.core.subscription import SubscriptionService
+                
+                plan_name = "Basic"
+                if payment.amount >= 280000:
+                    plan_name = "Pro"
+                elif payment.amount >= 180000:
+                    plan_name = "Premium"
+                elif payment.amount >= 80000:
+                    plan_name = "Basic"
+                
+                SubscriptionService.upgrade_user_subscription(
+                    user_id=payment.user_id,
+                    plan_name=plan_name,
+                    payment_id=payment.id,
+                    session=db
+                )
+                logger.info(f"User {payment.user_id} upgraded to {plan_name} via ZaloPay")
+            except Exception as e:
+                logger.error(f"Auto-upgrade error: {e}")
+            
+            # Redirect về trang thành công
+            return RedirectResponse(url=f"{frontend_url}/payment/return?status=success&order_id={app_trans_id}")
+            
         elif status_result == "cancelled":
             payment.status = PaymentStatus.CANCELLED.value
+            db.commit()
+            logger.info(f"Payment {app_trans_id} cancelled via ZaloPay")
+            # Redirect về trang pricing
+            return RedirectResponse(url=f"{frontend_url}/pricing?status=cancelled")
+            
         elif status_result in ["failed", "error"]:
             payment.status = PaymentStatus.FAILED.value
+            db.commit()
+            logger.info(f"Payment {app_trans_id} failed via ZaloPay")
+            return RedirectResponse(url=f"{frontend_url}/pricing?status=failed")
+            
         elif status_result == "pending":
-            payment.status = PaymentStatus.PENDING.value
+            # Vẫn đang pending - redirect về trang chờ
+            return RedirectResponse(url=f"{frontend_url}/payment/return?status=pending&order_id={app_trans_id}")
+        
         db.commit()
-        db.refresh(payment)
 
-    # Redirect về FE (nếu cấu hình); không ép về /home khi không có cấu hình
-    return_url = (
-        os.getenv("PAYMENT_RETURN_URL")
-        or os.getenv("FRONTEND_URL")
-        or os.getenv("ZALOPAY_REDIRECT_URL")
-    )
-    if return_url:
-        sep = "&" if "?" in return_url else "?"
-        target = f"{return_url}{sep}status={status_result}&apptransid={app_trans_id}"
-        return RedirectResponse(target)
-
-    # Fallback: trả HTML nếu không cấu hình URL đích
-    html = f"""
-    <html><body>
-    <h3>Trạng thái đơn: {status_result.upper()}</h3>
-    <p>app_trans_id: {app_trans_id}</p>
-    <p>message: {result.get('message','')}</p>
-    <p>Bạn có thể đóng trang này và quay lại ứng dụng.</p>
-    </body></html>
-    """
-    return HTMLResponse(html)
+    # Fallback redirect
+    return RedirectResponse(url=f"{frontend_url}/pricing?status={status_result}&order_id={app_trans_id}")
 
 
 @router.get("/history", response_model=List[PaymentResponse])
