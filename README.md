@@ -145,6 +145,52 @@ AI-Based-Career-Recommendation-System/
 
 ## Hướng dẫn cài đặt
 
+### Yêu cầu hệ thống
+
+Trước khi chạy dự án, đảm bảo máy tính đã cài đặt các phần mềm sau:
+
+#### 🐳 **Docker Desktop** (Bắt buộc)
+- **Windows:** [Download Docker Desktop for Windows](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe)
+- **macOS:** [Download Docker Desktop for Mac](https://desktop.docker.com/mac/main/amd64/Docker.dmg)
+- **Linux:** [Install Docker Engine](https://docs.docker.com/engine/install/)
+- **Kiểm tra:** `docker --version` và `docker compose --version`
+
+#### 🐍 **Python 3.11+** (Bắt buộc)
+- **Windows:** [Download Python](https://www.python.org/downloads/windows/)
+- **macOS:** `brew install python@3.11` hoặc [Download Python](https://www.python.org/downloads/macos/)
+- **Linux:** `sudo apt install python3.11 python3.11-venv python3-pip`
+- **Kiểm tra:** `python --version` (phải ≥ 3.11)
+
+#### 📦 **Node.js 18+** (Bắt buộc)
+- **Tất cả OS:** [Download Node.js LTS](https://nodejs.org/en/download/)
+- **Hoặc dùng nvm:** `nvm install 18 && nvm use 18`
+- **Kiểm tra:** `node --version` và `npm --version`
+
+#### 🔧 **Git** (Khuyến nghị)
+- **Windows:** [Download Git for Windows](https://git-scm.com/download/win)
+- **macOS:** `brew install git` hoặc Xcode Command Line Tools
+- **Linux:** `sudo apt install git`
+- **Kiểm tra:** `git --version`
+
+#### 💾 **Dung lượng ổ cứng**
+- **Tối thiểu:** 5GB trống
+- **Khuyến nghị:** 10GB+ (bao gồm Docker images, AI models, dependencies)
+
+#### 🖥️ **RAM**
+- **Tối thiểu:** 8GB RAM
+- **Khuyến nghị:** 16GB+ (AI models cần nhiều memory)
+
+#### ⚡ **Kiểm tra nhanh**
+```bash
+# Chạy lệnh này để kiểm tra tất cả requirements
+docker --version
+python --version
+node --version
+git --version
+```
+
+---
+
 ### B1: Khởi tạo Database
 
 **Terminal : Database**
