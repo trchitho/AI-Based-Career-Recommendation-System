@@ -147,7 +147,7 @@ cd apps/backend
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python run_dev.py
+uvicorn app.main:app --reload --port 8000
 ```
 
 **Terminal 3: Frontend (port 3000)**
