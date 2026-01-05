@@ -1,0 +1,279 @@
+AI FLOW END-TO-END: AI-Based Career Recommendation System
+A. QUICK MAP (1 trang)
+(1) Frontend Entrypoints
+Page	Path	Mô tả
+AssessmentPage	apps/frontend/src/pages/AssessmentPage.tsx	Điểm bắt đầu làm bài test RIASEC/Big5 + Essay
+ResultsPage	apps/frontend/src/pages/ResultsPage.tsx	Hiển thị kết quả assessment + career recommendations
+ReportPage	apps/frontend/src/pages/ReportPage.tsx	Report chi tiết Big5/RIASEC (PDF-style)
+AssessmentHistoryPage	apps/frontend/src/pages/AssessmentHistoryPage.tsx	Lịch sử các bài test
+(2) Backend Entrypoints (FastAPI)
+Router	Prefix	File Path
+Main App	/	apps/backend/app/main.py
+BFF Router	/bff	apps/backend/app/bff/router.py
+Assessments	/api/assessments	apps/backend/app/modules/assessments/routes_assessments.py
+Recommendations	/api/recommendations	apps/backend/app/modules/recommendation/routes_recommendations.py
+Reports	/api/reports	apps/backend/app/modules/reports/routes.py
+Careers	/api/careers	apps/backend/app/modules/content/routes_careers.py
+(3) AI-Core Entrypoints (FastAPI - Port 9000)
+Router	Prefix	File Path
+Main App	/	packages/ai-core/src/api/main.py
+Traits (Essay Infer)	/ai	packages/ai-core/src/api/routes_traits.py
+Retrieval (pgvector)	/search	packages/ai-core/src/api/routes_retrieval.py
+Ranking (NeuMF)	/rank	packages/ai-core/src/api/routes_rank.py
+Recommendations	/recs	packages/ai-core/src/api/routes_recs.py
+Điểm chạm DB
+Component	File	Tables đọc/ghi
+Backend DB	apps/backend/app/core/db.py	core.assessments, core.assessment_sessions, core.assessment_responses, core.careers, core.career_recommendations, core.users
+AI-Core DB	packages/ai-core/src/ai_core/db.py	ai.user_embeddings, ai.user_trait_preds, ai.user_trait_fused, ai.retrieval_jobs_visbert
+B. END-TO-END FLOW A→Z (Chi tiết)
+1. User Authentication Flow
+FE:
+
+apps/frontend/src/contexts/AuthContext.tsx - quản lý auth state
+apps/frontend/src/utils/auth.ts - function getAccessToken()
+apps/frontend/src/services/authTokenService.ts - gọi API auth
+BE:
+
+apps/backend/app/modules/auth/routes_tokens.py - endpoint /api/auth/*
+apps/backend/app/modules/auth/deps.py - dependency get_current_user_optional
+apps/backend/app/core/jwt.py - JWT verification
+Middleware:
+
+apps/backend/app/main.py → db_session_middleware gắn request.state.db
+2. User làm bài test RIASEC/Big5 + Essay
+FE Component:
+
+apps/frontend/src/pages/AssessmentPage.tsx - main page
+apps/frontend/src/components/assessment/CareerTestComponent.tsx - render form câu hỏi
+apps/frontend/src/components/assessment/EssayModalComponent.tsx - modal nhập essay
+FE Service:
+
+apps/frontend/src/services/assessmentService.ts
+getQuestions(testType) → GET /api/assessments/questions/{test_type}
+submitAssessment(submission) → POST /api/assessments/submit
+submitEssay(payload) → POST /api/assessments/essay
+getEssayPrompt(lang) → GET /api/assessments/essay-prompt
+BE Endpoint:
+
+apps/backend/app/modules/assessments/routes_assessments.py
+GET /api/assessments/questions/{test_type} → function api_get_questions()
+POST /api/assessments/submit → function api_submit_assessment()
+POST /api/assessments/essay → function api_submit_essay()
+BE Service:
+
+apps/backend/app/modules/assessments/service.py
+get_questions() - lấy câu hỏi từ core.assessment_questions
+save_assessment() - lưu vào core.assessment_sessions, core.assessments, core.assessment_responses
+save_essay() - lưu essay vào core.essays
+infer_user_traits_for_essay() - gọi AI-core để infer traits
+DB Tables ghi:
+
+core.assessment_sessions - 1 session/lần test
+core.assessments - 1-2 rows (RIASEC, BigFive)
+core.assessment_responses - từng câu trả lời
+core.essays - bài essay
+3. AI Scoring từ Essay (PhoBERT Regression)
+BE gọi AI-core:
+
+File: apps/backend/app/modules/assessments/service.py
+Function: infer_user_traits_for_essay()
+HTTP Call: POST {AI_CORE_URL}/ai/infer_user_traits
+AI_CORE_URL: env var, default http://localhost:9000
+AI-Core xử lý:
+
+File: packages/ai-core/src/api/routes_traits.py
+Endpoint: POST /ai/infer_user_traits
+Function: infer_user_traits_api()
+AI-Core NLP Module:
+
+File: packages/ai-core/src/ai_core/nlp/essay_infer.py
+Function: infer_user_traits(essay_text, language)
+Models:
+RIASEC: models/riasec_phobert/best.pt → predict_riasec_vi()
+Big5: models/big5_phobert/best.pt → predict_big5_vi()
+Embedding: models/vi_sbert_768/ → encode_user_embedding()
+Output:
+
+riasec: array 6 floats (R,I,A,S,E,C)
+big5: array 5 floats (O,C,E,A,N)
+embedding: array 768 floats (vi-SBERT)
+BE lưu vào DB:
+
+Function: save_essay_traits() trong apps/backend/app/modules/assessments/service.py
+Tables:
+ai.user_embeddings - vector 768D, source='essay'
+ai.user_trait_preds - riasec_pred, big5_pred arrays
+4. Semantic Retrieval (vi-SBERT + pgvector)
+FE gọi:
+
+File: apps/frontend/src/services/recommendationService.ts
+Function: getMain(assessmentId, topK) → GET /api/recommendations?assessment_id=xxx&top_k=5
+BE Route:
+
+File: apps/backend/app/modules/recommendation/routes_recommendations.py
+Endpoint: GET /api/recommendations
+Function: get_recommendations()
+BE Service:
+
+File: apps/backend/app/modules/recommendation/service.py
+Class: RecService
+Function: get_main_recommendations()
+Gọi AI-core: _call_ai_core_top_careers() → POST {AI_CORE_BASE_URL}/recs/top_careers
+AI-Core Retrieval:
+
+File: packages/ai-core/src/api/routes_recs.py
+Endpoint: POST /recs/top_careers
+Function: top_careers()
+Retrieval Logic:
+
+File: packages/ai-core/src/ai_core/retrieval/service_pgvector.py
+Function: search_candidates_for_embedding(user_vec, top_n)
+SQL Query:
+SELECT job_id, 1 - (embedding <=> %s::vector(768)) AS score_sim
+FROM ai.retrieval_jobs_visbert
+ORDER BY embedding <-> %s::vector(768)
+LIMIT %s
+pgvector Table:
+
+ai.retrieval_jobs_visbert - columns: job_id, title, embedding vector(768), tag_tokens
+5. Ranking / Re-ranking (NeuMF/MLP)
+AI-Core Ranking:
+
+File: packages/ai-core/src/api/routes_rank.py
+Endpoint: POST /rank
+Function: rank_careers()
+NeuMF Infer:
+
+File: packages/ai-core/src/ai_core/recsys/neumf/infer.py
+Class: Ranker
+Function: infer_scores(user_id, candidate_ids)
+Model: models/recsys_mlp/best.pt
+Features: data/processed/user_feats.json, data/processed/item_feats.json
+Cold-start Fallback:
+
+Trong packages/ai-core/src/api/routes_recs.py → function top_careers()
+Nếu NeuMF không có user_id trong user_feats → dùng retrieval scores làm final scores
+Bandit (stub):
+
+File: packages/ai-core/src/ai_core/recsys/bandit.py
+Function: recommend_with_bandit() - hiện tại là stub, trả về ranked items
+6. Trả kết quả về FE
+BE Post-processing:
+
+File: apps/backend/app/modules/recommendation/service.py
+Function: _attach_career_meta() - join với core.careers để lấy slug, title, description
+Function: _filter_by_riasec_top2() - filter theo RIASEC L1/L2 của user
+Function: _apply_display_match() - chuẩn hóa display score
+Function: _save_career_recommendations() - lưu vào core.career_recommendations
+FE Results Page:
+
+File: apps/frontend/src/pages/ResultsPage.tsx
+Components:
+RIASECSpiderChart - apps/frontend/src/components/results/RIASECSpiderChart.tsx
+BigFiveBarChart - apps/frontend/src/components/results/BigFiveBarChart.tsx
+CareerRecommendationsDisplay - apps/frontend/src/components/results/CareerRecommendationsDisplay.tsx
+FE Report Page:
+
+File: apps/frontend/src/pages/ReportPage.tsx
+Service: apps/frontend/src/services/reportService.ts → GET /api/reports/{assessment_id}
+Components: apps/frontend/src/components/report/big5/, apps/frontend/src/components/report/riasec/
+Session/History:
+
+Table: core.career_recommendations - lưu top 5 recommendations
+Endpoint: GET /api/recommendations/saved?assessment_id=xxx
+FE: apps/frontend/src/services/assessmentService.ts → getUserSessions(), getHistory()
+C. SEQUENCE DIAGRAM (Mermaid)
+sequenceDiagram
+    participant FE as Frontend<br/>(AssessmentPage.tsx)
+    participant BE as Backend<br/>(FastAPI :8000)
+    participant AI as AI-Core<br/>(FastAPI :9000)
+    participant DB as PostgreSQL<br/>(pgvector)
+
+    Note over FE,DB: 1. User làm bài test RIASEC/Big5
+    FE->>BE: GET /api/assessments/questions/RIASEC<br/>(routes_assessments.py)
+    BE->>DB: SELECT FROM core.assessment_questions
+    DB-->>BE: questions[]
+    BE-->>FE: questions[]
+
+    FE->>BE: POST /api/assessments/submit<br/>(routes_assessments.py)
+    BE->>DB: INSERT core.assessment_sessions<br/>INSERT core.assessments<br/>INSERT core.assessment_responses
+    DB-->>BE: assessment_id
+    BE-->>FE: {assessmentId}
+
+    Note over FE,DB: 2. User submit Essay
+    FE->>BE: POST /api/assessments/essay<br/>(routes_assessments.py)
+    BE->>DB: INSERT core.essays
+    
+    Note over BE,AI: 3. AI Scoring (PhoBERT)
+    BE->>AI: POST /ai/infer_user_traits<br/>(routes_traits.py)
+    AI->>AI: essay_infer.py<br/>PhoBERT RIASEC/Big5<br/>vi-SBERT embedding
+    AI-->>BE: {riasec[], big5[], embedding[768]}
+    
+    BE->>DB: UPSERT ai.user_embeddings<br/>UPSERT ai.user_trait_preds
+    BE-->>FE: {essayId, traits}
+
+    Note over FE,DB: 4. Get Recommendations
+    FE->>BE: GET /api/recommendations?assessment_id=xxx<br/>(routes_recommendations.py)
+    
+    Note over BE,AI: 5. Retrieval + Ranking
+    BE->>AI: POST /recs/top_careers<br/>(routes_recs.py)
+    
+    AI->>DB: SELECT emb FROM ai.user_embeddings<br/>(traits/loader.py)
+    DB-->>AI: user_embedding[768]
+    
+    AI->>DB: SELECT job_id, score FROM ai.retrieval_jobs_visbert<br/>ORDER BY embedding <-> query<br/>(service_pgvector.py)
+    DB-->>AI: candidates[200]
+    
+    AI->>AI: NeuMF re-rank<br/>(neumf/infer.py)
+    AI-->>BE: {items: [{career_id, final_score}]}
+    
+    Note over BE,DB: 6. Post-processing
+    BE->>DB: SELECT FROM core.careers<br/>JOIN core.career_riasec_map
+    DB-->>BE: career metadata + RIASEC tags
+    BE->>BE: Filter by RIASEC L1/L2<br/>(service.py)
+    BE->>DB: INSERT core.career_recommendations
+    BE-->>FE: {request_id, items[]}
+
+    Note over FE: 7. Display Results
+    FE->>FE: ResultsPage.tsx<br/>RIASECSpiderChart<br/>CareerRecommendationsDisplay
+D. "WHERE IN CODE" INDEX
+Step	FE Files	BE Files	AI-Core Files
+A1. Auth	contexts/AuthContext.tsx, utils/auth.ts	modules/auth/deps.py, core/jwt.py	-
+A2. Get Questions	services/assessmentService.ts	modules/assessments/routes_assessments.py → api_get_questions()	-
+A3. Submit Test	pages/AssessmentPage.tsx, services/assessmentService.ts	modules/assessments/routes_assessments.py → api_submit_assessment(), service.py → save_assessment()	-
+A4. Submit Essay	components/assessment/EssayModalComponent.tsx	routes_assessments.py → api_submit_essay(), service.py → save_essay()	-
+A5. Essay Infer	-	service.py → infer_user_traits_for_essay()	api/routes_traits.py, nlp/essay_infer.py
+A6. Save Traits	-	service.py → save_essay_traits()	-
+A7. Get Recommendations	services/recommendationService.ts	modules/recommendation/routes_recommendations.py → get_recommendations()	-
+A8. Call AI-Core	-	recommendation/service.py → _call_ai_core_top_careers()	api/routes_recs.py → top_careers()
+A9. Load Snapshot	-	-	traits/loader.py → load_traits_and_embedding_for_assessment()
+A10. Retrieval	-	-	retrieval/service_pgvector.py → search_candidates_for_embedding()
+A11. Ranking	-	-	recsys/neumf/infer.py → Ranker.infer_scores()
+A12. RIASEC Filter	-	recommendation/service.py → _filter_by_riasec_top2()	-
+A13. Display Results	pages/ResultsPage.tsx, components/results/*	-	-
+A14. Report	pages/ReportPage.tsx, services/reportService.ts	modules/reports/routes.py	-
+E. VERIFICATION CHECKLIST
+#	Check	Kết quả	File/Location
+1	Endpoint /api/assessments/submit tồn tại	✅ FOUND	routes_assessments.py line ~150 @router.post("/submit")
+2	Function save_assessment() ghi vào core.assessments	✅ FOUND	service.py line ~350 Assessment(...)
+3	AI-core URL config	✅ FOUND	service.py line ~25 AI_CORE_URL = os.getenv("AI_CORE_URL", "http://localhost:9000")
+4	Endpoint /ai/infer_user_traits	✅ FOUND	routes_traits.py line ~20 @router.post("/ai/infer_user_traits")
+5	PhoBERT model paths	✅ FOUND	essay_infer.py lines ~25-27 PHOBERT_RIASEC_DIR, PHOBERT_BIG5_DIR
+6	pgvector table ai.retrieval_jobs_visbert	✅ FOUND	service_pgvector.py line ~95, config.py line ~10
+7	pgvector query với <=> operator	✅ FOUND	service_pgvector.py line ~94-97
+8	NeuMF model path	✅ FOUND	infer.py line ~70 models/recsys_mlp/best.pt
+9	Table ai.user_embeddings	✅ FOUND	service.py line ~79, service_pgvector.py line ~69
+10	Table ai.user_trait_preds	✅ FOUND	service.py line ~90
+11	Endpoint /recs/top_careers	✅ FOUND	routes_recs.py line ~25 @router.post("/recs/top_careers")
+12	RIASEC filter logic	✅ FOUND	recommendation/service.py function _filter_by_riasec_top2()
+13	Router mount trong main.py	✅ FOUND	main.py lines ~130-220 các app.include_router()
+14	FAISS references	⚠️ LEGACY	build_mini_index.py - chỉ dùng cho offline index building, NOT used in production retrieval
+15	DB setup location	✅ FOUND	db/init/*.sql - không còn thư mục infra
+FAISS Status (Legacy)
+FAISS được reference trong:
+
+packages/ai-core/pyproject.toml - dependency faiss-cpu
+packages/ai-core/src/ai_core/retrieval/build_mini_index.py - script offline để build mini index
+KHÔNG DÙNG trong production retrieval. Production retrieval sử dụng pgvector qua service_pgvector.py.
+
+Tài liệu này được tạo 100% dựa trên code trong repo, không suy đoán.
