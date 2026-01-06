@@ -223,7 +223,12 @@ Cần mở 3 terminal để chạy đồng thời 3 service.
 
 ```bash
 cd packages/ai-core
+pip install sqlalchemy
 pip install -r requirements.txt
+python -m venv .venv
+. .venv/Scripts/activate
+pip install uvicorn
+pip install -e .
 uvicorn src.api.main:app --reload --port 9000
 ```
 
@@ -231,9 +236,9 @@ uvicorn src.api.main:app --reload --port 9000
 
 ```bash
 cd apps/backend
-python -m venv .venv
-.venv\Scripts\activate
+python -m venv .venv ; .\.venv\Scripts\activate
 pip install -r requirements.txt
+pip install -e ../../packages/ai-core
 uvicorn app.main:app --reload --port 8000
 ```
 
