@@ -137,7 +137,7 @@ const AIMonitoringPage = () => {
           <MetricCard
             title="Total Recommendations"
             value={metrics.totalRecommendations}
-            subtitle={`${metrics.avgRecommendationsPerAssessment} per assessment`}
+            subtitle={`${metrics.avgRecommendationsPerAssessment.toFixed(1)} per assessment`}
           />
 
           <MetricCard
