@@ -203,7 +203,7 @@ const RoadmapPage = () => {
                   {/* Dynamic career stages based on milestones count */}
                   {(() => {
                     const milestonesCount = roadmap.milestones?.length || 0;
-                    const numStages = Math.max(3, Math.min(6, milestonesCount || 3));
+                    const numStages = Math.max(3, Math.min(6, milestonesCount));
 
                     const stageLabels: { [key: number]: string[] } = {
                       3: ['Entry', 'Mid-Level', 'Senior'],
