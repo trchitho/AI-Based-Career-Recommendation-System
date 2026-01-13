@@ -12,9 +12,15 @@ export interface AdminDashboardMetrics {
 
 export interface AIMetrics {
   totalRecommendations: number;
+  totalAssessments: number;
   avgRecommendationsPerAssessment: number;
   assessmentsWithEssay: number;
   avgProcessingTime: number;
+  errorRate: number;
+  errorCount: number;
+  successCount: number;
+  avgFeedbackRating: number;
+  totalFeedback: number;
   riasecDistribution: {
     realistic: string;
     investigative: string;
@@ -135,7 +141,8 @@ export interface QuestionFormData {
 export interface UserFeedback {
   id: string;
   userId: string;
-  assessmentId: string;
+  userName: string;
+  assessmentId: string | null;
   rating: number;
   comment: string;
   createdAt: string;

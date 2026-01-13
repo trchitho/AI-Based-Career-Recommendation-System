@@ -3,7 +3,7 @@ Pydantic schemas for report API.
 """
 
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 
@@ -27,6 +27,13 @@ class ReportEventCreate(BaseModel):
     page_no: Optional[int] = None
     page_key: Optional[str] = None  # 'cover', 'summary', 'facets-1', etc.
     meta: Optional[Dict[str, Any]] = None
+
+
+class SendReportEmailRequest(BaseModel):
+    """Request to send report via email."""
+    assessment_id: int
+    email: Optional[str] = None  # If None, use logged-in user's email
+    use_logged_in_email: bool = False  # If True, send to logged-in user's email
 
 
 # ============ Response Schemas ============
@@ -99,3 +106,10 @@ class ReportEventResponse(BaseModel):
     success: bool
     event_id: Optional[int] = None
     message: Optional[str] = None
+
+
+class SendReportEmailResponse(BaseModel):
+    """Response after sending report email."""
+    success: bool
+    message: str
+    email_sent_to: Optional[str] = None

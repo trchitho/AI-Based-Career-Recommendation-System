@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { getPaymentHistory, PaymentHistory } from '../../services/paymentService';
 import { getAccessToken } from '../../utils/auth';
 
@@ -8,8 +7,6 @@ interface RoadmapCapabilityProps {
 }
 
 const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" }) => {
-  const { currentPlan } = useFeatureAccess();
-  
   // Add payment-based plan detection (same as other components)
   const [detectedPlan, setDetectedPlan] = useState<string>('Free');
   const isLoggedIn = !!getAccessToken();
@@ -22,19 +19,19 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
 
       const payments = await getPaymentHistory();
       const successfulPayments = payments.filter((p: PaymentHistory) => p.status === 'success');
-      
+
       if (successfulPayments.length > 0) {
         const latestPayment = successfulPayments[0];
-        
-        if (latestPayment.description.includes('Cơ Bản') || 
-            (latestPayment.amount >= 99000 && latestPayment.amount < 250000)) {
-          setDetectedPlan('Basic');
-        } else if (latestPayment.description.includes('Premium') || 
-                  (latestPayment.amount >= 250000 && latestPayment.amount < 450000)) {
-          setDetectedPlan('Premium');
-        } else if (latestPayment.description.includes('Pro') || 
-                  latestPayment.amount >= 450000) {
+        const amount = latestPayment?.amount ?? 0;
+        const description = latestPayment?.description ?? '';
+
+        // Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
+        if (description.toLowerCase().includes('pro') || amount >= 280000) {
           setDetectedPlan('Pro');
+        } else if (description.toLowerCase().includes('premium') || amount >= 180000) {
+          setDetectedPlan('Premium');
+        } else if (description.toLowerCase().includes('basic') || amount >= 80000) {
+          setDetectedPlan('Basic');
         }
       }
     } catch (error) {
@@ -48,16 +45,16 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
       detectUserPlan();
     }
   }, [isLoggedIn]);
-  
+
   const getRoadmapCapability = () => {
     // Use detected plan instead of currentPlan for more accurate detection
     const planToUse = detectedPlan.toLowerCase();
-    
+
     switch (planToUse) {
       case 'free':
         return {
           levels: [1],
-          description: 'Truy cập Level 1 (Nền tảng)',
+          description: 'Access Level 1 (Foundation)',
           color: 'text-gray-600',
           bgColor: 'bg-gray-100',
           icon: '🔒'
@@ -65,7 +62,7 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
       case 'basic':
         return {
           levels: [1, 2],
-          description: 'Truy cập Level 1-2 (Nền tảng & Cơ bản)',
+          description: 'Access Level 1-2 (Foundation & Basic)',
           color: 'text-blue-600',
           bgColor: 'bg-blue-100',
           icon: '📚'
@@ -74,7 +71,7 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
       case 'pro':
         return {
           levels: [1, 2, 3, 4, 5],
-          description: 'Truy cập tất cả Level (Đầy đủ)',
+          description: 'Access All Levels (Full)',
           color: 'text-green-600',
           bgColor: 'bg-green-100',
           icon: '🚀'
@@ -82,16 +79,16 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
       default:
         return {
           levels: [1],
-          description: 'Truy cập Level 1',
+          description: 'Access Level 1',
           color: 'text-gray-600',
           bgColor: 'bg-gray-100',
           icon: '🔒'
         };
     }
   };
-  
+
   const capability = getRoadmapCapability();
-  
+
   return (
     <div className={`${className}`}>
       <div className="flex items-center justify-between mb-2">
@@ -105,29 +102,28 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
           {capability.icon} Level {capability.levels.join(', ')}
         </span>
       </div>
-      
+
       <div className="flex gap-1 mb-2">
         {[1, 2, 3, 4, 5].map((level) => (
           <div
             key={level}
-            className={`flex-1 h-2 rounded-full ${
-              capability.levels.includes(level)
-                ? 'bg-green-500'
-                : 'bg-gray-200 dark:bg-gray-700'
-            }`}
+            className={`flex-1 h-2 rounded-full ${capability.levels.includes(level)
+              ? 'bg-green-500'
+              : 'bg-gray-200 dark:bg-gray-700'
+              }`}
           />
         ))}
       </div>
-      
+
       <p className={`text-xs ${capability.color}`}>
         {capability.description}
       </p>
-      
+
       {detectedPlan !== 'Pro' && detectedPlan !== 'Premium' && (
         <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-          💡 {detectedPlan === 'Free' 
-            ? 'Nâng cấp gói Cơ Bản để truy cập Level 1-2'
-            : 'Nâng cấp Premium để truy cập tất cả Level'
+          💡 {detectedPlan === 'Free'
+            ? 'Upgrade to Basic for Level 1-2 access'
+            : 'Upgrade to Premium for all levels'
           }
         </p>
       )}

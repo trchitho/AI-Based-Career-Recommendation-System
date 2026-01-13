@@ -257,249 +257,31 @@ def compute_scores_json(big5_scores: Dict[str, float]) -> List[Dict[str, Any]]:
 
 
 def generate_narrative(big5_scores: Dict[str, float]) -> Dict[str, Any]:
-    """Generate personality type narrative based on Big Five scores."""
-    # Identify dominant traits
-    high_traits = [t for t, s in big5_scores.items() if s > 70]
-    low_traits = [t for t, s in big5_scores.items() if s < 30]
+    """Generate personality type narrative based on Big Five scores.
     
-    # Determine personality type name based on trait combinations
-    type_name = "Balanced Professional"
-    type_description = "You have a well-rounded personality profile."
+    Uses the comprehensive personality_types module with 50+ scientifically-based types.
+    Each type is determined by the combination of High/Medium/Low levels across all 5 traits.
+    """
+    from .personality_types import get_personality_type, get_narrative_from_type
     
-    if "openness" in high_traits and "agreeableness" in high_traits:
-        type_name = "Persuasive Idealist"
-        type_description = "You combine creativity with empathy, driven by a desire to make meaningful contributions."
-    elif "extraversion" in high_traits and "conscientiousness" in high_traits:
-        type_name = "Dynamic Achiever"
-        type_description = "You are energetic and goal-oriented, thriving in leadership and achievement-focused roles."
-    elif "openness" in high_traits and "extraversion" in high_traits:
-        type_name = "Creative Communicator"
-        type_description = "You excel at inspiring others with innovative ideas and enthusiastic communication."
-    elif "conscientiousness" in high_traits and "agreeableness" in high_traits:
-        type_name = "Reliable Collaborator"
-        type_description = "You are dependable and cooperative, valued for your consistent and supportive approach."
-    elif "openness" in high_traits:
-        type_name = "Innovative Thinker"
-        type_description = "You are curious and creative, always seeking new ideas and experiences."
-    elif "conscientiousness" in high_traits:
-        type_name = "Organized Achiever"
-        type_description = "You are disciplined and goal-focused, excelling in structured environments."
-    elif "extraversion" in high_traits:
-        type_name = "Social Energizer"
-        type_description = "You are outgoing and energetic, thriving in social and collaborative settings."
-    elif "agreeableness" in high_traits:
-        type_name = "Supportive Helper"
-        type_description = "You are caring and cooperative, focused on helping others and maintaining harmony."
-    
-    paragraphs = [
-        type_description,
-        "Your unique combination of traits shapes how you approach work, relationships, and personal growth.",
-        "Understanding these patterns can help you make better career decisions and leverage your natural strengths.",
-    ]
-    
-    return {
-        "type_name": type_name,
-        "type_description": type_description,
-        "paragraphs": paragraphs,
-    }
+    personality_type = get_personality_type(big5_scores)
+    return get_narrative_from_type(personality_type)
 
 
 def generate_strengths(big5_scores: Dict[str, float]) -> List[str]:
-    """Generate strengths based on Big Five scores.
+    """Generate strengths based on Big Five scores using the personality_types module."""
+    from .personality_types import get_personality_type, get_strengths_from_type
     
-    Truity-style narrative paragraphs (3-5 sentences each).
-    Uses career psychology language: "You are... / You tend to... / This means that..."
-    Clusters multiple traits for deeper insights.
-    """
-    strengths = []
-    O = big5_scores.get("openness", 50)
-    C = big5_scores.get("conscientiousness", 50)
-    E = big5_scores.get("extraversion", 50)
-    A = big5_scores.get("agreeableness", 50)
-    N = big5_scores.get("neuroticism", 50)
-    
-    # Creative Problem-Solver (High O)
-    if O > 60:
-        strengths.append(
-            "You are a naturally creative thinker who approaches problems with curiosity and imagination. "
-            "You tend to see possibilities where others see obstacles, and you're comfortable exploring "
-            "unconventional solutions. This means that you bring fresh perspectives to your work and can "
-            "help teams break through creative blocks. You may find that you're often the one generating "
-            "new ideas in brainstorming sessions or proposing innovative approaches to longstanding challenges."
-        )
-    
-    # Reliable Achiever (High C)
-    if C > 60:
-        strengths.append(
-            "You are someone who takes commitments seriously and follows through on your responsibilities. "
-            "You tend to be organized, detail-oriented, and focused on achieving your goals. This means "
-            "that colleagues and managers can count on you to deliver quality work on time. You may find "
-            "that your reliability builds trust and opens doors to greater responsibility and leadership "
-            "opportunities in your career."
-        )
-    
-    # Social Connector (High E)
-    if E > 60:
-        strengths.append(
-            "You are energized by social interaction and naturally draw people toward you. You tend to "
-            "communicate with enthusiasm and build rapport easily with colleagues, clients, and stakeholders. "
-            "This means that you excel in roles requiring networking, collaboration, or public-facing work. "
-            "You may find that your ability to connect with others helps you build influential relationships "
-            "and navigate organizational dynamics effectively."
-        )
-    
-    # Collaborative Team Player (High A)
-    if A > 60:
-        strengths.append(
-            "You are someone who values harmony and genuinely cares about the well-being of others. You tend "
-            "to be cooperative, supportive, and skilled at resolving conflicts diplomatically. This means that "
-            "you create positive team environments where people feel valued and heard. You may find that your "
-            "empathetic approach helps you build strong, lasting professional relationships and earn the trust "
-            "of diverse colleagues."
-        )
-    
-    # Emotionally Resilient (Low N)
-    if N < 40:
-        strengths.append(
-            "You are emotionally stable and maintain your composure even in challenging situations. You tend "
-            "to approach stress with a calm, measured response rather than becoming overwhelmed. This means "
-            "that you can be a stabilizing presence for your team during high-pressure periods. You may find "
-            "that your resilience allows you to make clear-headed decisions when others are struggling with "
-            "anxiety or uncertainty."
-        )
-    
-    # Visionary Leader (High O + High E)
-    if O > 55 and E > 55:
-        strengths.append(
-            "You combine creative vision with the social skills to inspire others. You tend to articulate "
-            "compelling ideas and rally people around shared goals. This means that you're well-suited for "
-            "leadership roles that require both innovation and influence. You may find that your ability to "
-            "communicate a vision and build enthusiasm makes you effective at driving change and motivating teams."
-        )
-    
-    # Dependable Leader (High C + High E)
-    if C > 55 and E > 55:
-        strengths.append(
-            "You blend disciplined execution with strong interpersonal skills. You tend to set clear goals "
-            "and hold yourself and others accountable while maintaining positive relationships. This means "
-            "that you can lead teams effectively without sacrificing either results or morale. You may find "
-            "that your combination of reliability and charisma earns you respect and followership."
-        )
-    
-    # Ensure minimum strengths
-    if len(strengths) < 3:
-        default_strengths = [
-            "You demonstrate a balanced approach to work that allows you to adapt to various situations. "
-            "You tend to draw on different aspects of your personality depending on what the context requires. "
-            "This means that you can be flexible in how you approach challenges and collaborate with others. "
-            "You may find that this adaptability serves you well in dynamic work environments.",
-            
-            "You show capacity for both independent work and collaborative engagement. You tend to be "
-            "comfortable working alone when focus is needed, yet can also contribute effectively in team "
-            "settings. This means that you can thrive in various work arrangements. You may find that this "
-            "versatility makes you valuable in organizations with diverse project structures.",
-        ]
-        for s in default_strengths:
-            if len(strengths) < 4:
-                strengths.append(s)
-    
-    return strengths[:5]
+    personality_type = get_personality_type(big5_scores)
+    return get_strengths_from_type(personality_type)
 
 
 def generate_challenges(big5_scores: Dict[str, float]) -> List[str]:
-    """Generate potential challenges based on Big Five scores.
+    """Generate potential challenges based on Big Five scores using the personality_types module."""
+    from .personality_types import get_personality_type, get_challenges_from_type
     
-    Truity-style narrative paragraphs (3-5 sentences each).
-    Uses career psychology language: "You may find... / This can mean... / Consider..."
-    Focuses on growth opportunities, not limitations.
-    """
-    challenges = []
-    O = big5_scores.get("openness", 50)
-    C = big5_scores.get("conscientiousness", 50)
-    E = big5_scores.get("extraversion", 50)
-    A = big5_scores.get("agreeableness", 50)
-    N = big5_scores.get("neuroticism", 50)
-    
-    # Preference for Stability (Low O)
-    if O < 40:
-        challenges.append(
-            "You may find that rapidly changing environments or ambiguous situations feel uncomfortable. "
-            "You tend to prefer proven methods and established routines, which can sometimes limit your "
-            "openness to new approaches. This can mean that you might initially resist changes that could "
-            "ultimately benefit you or your team. Consider practicing small experiments with new ideas to "
-            "build your comfort with uncertainty while maintaining your appreciation for what works."
-        )
-    
-    # Structure and Follow-Through (Low C)
-    if C < 40:
-        challenges.append(
-            "You may find that maintaining organization and following through on long-term projects requires "
-            "extra effort. You tend to be more spontaneous and flexible, which can sometimes lead to missed "
-            "deadlines or incomplete tasks. This can mean that others may perceive you as unreliable, even "
-            "when your intentions are good. Consider implementing simple systems like checklists or calendar "
-            "reminders to help you stay on track without sacrificing your natural flexibility."
-        )
-    
-    # Social Energy Management (Low E)
-    if E < 40:
-        challenges.append(
-            "You may find that highly social work environments or networking-heavy roles drain your energy. "
-            "You tend to prefer deeper one-on-one connections over large group interactions, which can limit "
-            "your visibility in some organizational cultures. This can mean that you might be overlooked for "
-            "opportunities that go to more vocal colleagues. Consider strategic networking approaches that "
-            "play to your strengths, such as written communication or small-group settings."
-        )
-    
-    # Directness and Conflict (Low A)
-    if A < 40:
-        challenges.append(
-            "You may find that your direct communication style sometimes creates friction with colleagues. "
-            "You tend to prioritize honesty and efficiency over diplomacy, which can come across as blunt "
-            "or insensitive to others. This can mean that building consensus or navigating office politics "
-            "requires more conscious effort. Consider developing your active listening skills and practicing "
-            "perspective-taking to balance your analytical approach with interpersonal sensitivity."
-        )
-    
-    # Stress and Emotional Regulation (High N)
-    if N > 60:
-        challenges.append(
-            "You may find that you experience stress and emotional reactions more intensely than others. "
-            "You tend to be sensitive to criticism and may worry about potential problems before they occur. "
-            "This can mean that high-pressure situations feel overwhelming and affect your performance. "
-            "Consider developing stress management techniques such as mindfulness, regular exercise, or "
-            "building a support network to help you maintain equilibrium during challenging periods."
-        )
-    
-    # Ideas vs. Execution (High O + Low C)
-    if O > 55 and C < 45:
-        challenges.append(
-            "You may find that your creative ideas sometimes outpace your ability to implement them. "
-            "You tend to generate many possibilities but can struggle to follow through on the details. "
-            "This can mean that promising projects stall or that others see you as a dreamer rather than "
-            "a doer. Consider partnering with detail-oriented colleagues or breaking big ideas into smaller, "
-            "actionable steps to bridge the gap between vision and execution."
-        )
-    
-    # Ensure minimum challenges
-    if len(challenges) < 2:
-        default_challenges = [
-            "You may find that certain aspects of your work require you to operate outside your natural "
-            "comfort zone. You tend to have clear preferences for how you work best, which can sometimes "
-            "limit your flexibility in diverse team environments. This can mean that adapting to different "
-            "work styles or organizational cultures takes conscious effort. Consider viewing these situations "
-            "as opportunities for growth rather than obstacles to overcome.",
-            
-            "You may find that balancing competing priorities and managing multiple demands is an ongoing "
-            "challenge. You tend to have your own rhythm and approach to work, which may not always align "
-            "with external expectations. This can mean that you need to develop strategies for prioritization "
-            "and boundary-setting. Consider regular reflection on your workload and proactive communication "
-            "with stakeholders about realistic timelines and capacity.",
-        ]
-        for c in default_challenges:
-            if len(challenges) < 3:
-                challenges.append(c)
-    
-    return challenges[:4]
+    personality_type = get_personality_type(big5_scores)
+    return get_challenges_from_type(personality_type)
 
 
 def generate_cover(user_name: Optional[str], completed_at: datetime, report_type: str) -> Dict[str, Any]:
@@ -544,8 +326,13 @@ def generate_cover(user_name: Optional[str], completed_at: datetime, report_type
 
 
 def compute_source_hash(scores: Dict[str, float]) -> str:
-    """Compute hash of input scores to detect stale reports."""
-    data = json.dumps(scores, sort_keys=True)
+    """Compute hash of input scores to detect stale reports.
+    
+    Includes a version string to force regeneration when formulas change.
+    """
+    # Version bump this when formulas or logic changes to force regeneration
+    VERSION = "v2_dynamic_facets"
+    data = json.dumps({"version": VERSION, "scores": scores}, sort_keys=True)
     return hashlib.md5(data.encode()).hexdigest()
 
 

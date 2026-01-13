@@ -54,7 +54,7 @@ const PaymentManagementPage = () => {
   const [showUserHistory, setShowUserHistory] = useState<number | null>(null);
   const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
   const [showUserSearch, setShowUserSearch] = useState(false);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
@@ -70,7 +70,7 @@ const PaymentManagementPage = () => {
         sort_by: sortBy,
         sort_order: sortOrder,
       });
-      
+
       const query = searchQuery !== undefined ? searchQuery : searchTerm;
       if (query) params.append('search', query);
       if (statusFilter) params.append('status_filter', statusFilter);
@@ -78,7 +78,7 @@ const PaymentManagementPage = () => {
       if (dateFrom) params.append('date_from', dateFrom);
       if (dateTo) params.append('date_to', dateTo);
       if (selectedUserId) params.append('user_id', selectedUserId.toString());
-      
+
       const response = await api.get(`/api/payment/admin/payments?${params}`);
       setPaymentsData(response.data);
     } catch (error) {
@@ -132,7 +132,7 @@ const PaymentManagementPage = () => {
       setUserSearchResults([]);
       return;
     }
-    
+
     try {
       const response = await api.get(`/api/payment/admin/payments/users/search?q=${encodeURIComponent(query)}`);
       setUserSearchResults(response.data);
@@ -171,17 +171,17 @@ const PaymentManagementPage = () => {
     try {
       const params = new URLSearchParams();
       params.append('format', format);
-      
+
       if (statusFilter) params.append('status_filter', statusFilter);
       if (paymentMethodFilter) params.append('payment_method', paymentMethodFilter);
       if (dateFrom) params.append('date_from', dateFrom);
       if (dateTo) params.append('date_to', dateTo);
       if (selectedUserId) params.append('user_id', selectedUserId.toString());
-      
+
       const response = await api.get(`/api/payment/admin/payments/export?${params}`, {
         responseType: format === 'csv' ? 'blob' : 'json'
       });
-      
+
       if (format === 'csv') {
         const blob = new Blob([response.data], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
@@ -205,19 +205,19 @@ const PaymentManagementPage = () => {
       }
     } catch (error) {
       console.error('Error exporting data:', error);
-      alert('Có lỗi xảy ra khi xuất dữ liệu');
+      alert('Error exporting data');
     }
   };
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'VND'
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('vi-VN');
+    return new Date(dateString).toLocaleString('en-US');
   };
 
   const getStatusColor = (status: string) => {
@@ -237,10 +237,10 @@ const PaymentManagementPage = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'success': return 'Thành công';
-      case 'pending': return 'Đang xử lý';
-      case 'failed': return 'Thất bại';
-      case 'cancelled': return 'Đã hủy';
+      case 'success': return 'Success';
+      case 'pending': return 'Processing';
+      case 'failed': return 'Failed';
+      case 'cancelled': return 'Cancelled';
       default: return status;
     }
   };
@@ -258,89 +258,103 @@ const PaymentManagementPage = () => {
     <div className="space-y-6">
       {/* HEADER */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Quản lý lịch sử thanh toán
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+            <span className="w-2 h-8 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full"></span>
+            Payment Management
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-5">
+            Manage all payment transactions
+          </p>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={() => exportData('csv')}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-green-500/30 transition-all hover:-translate-y-0.5"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Xuất CSV
+            Export CSV
           </button>
           <button
             onClick={() => exportData('json')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Xuất JSON
+            Export JSON
           </button>
         </div>
       </div>
 
       {/* STATS */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="relative group bg-white dark:bg-gray-800 rounded-2xl p-5 border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-t-2xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl"></div>
+            <div className="relative z-10 flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Tổng thanh toán</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.total_payments}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{formatAmount(stats.total_amount)}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Payments</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total_payments}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{formatAmount(stats.total_amount)}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="relative group bg-white dark:bg-gray-800 rounded-2xl p-5 border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-t-2xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl"></div>
+            <div className="relative z-10 flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Thành công</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.completed_payments}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{formatAmount(stats.completed_amount)}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Successful</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.completed_payments}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{formatAmount(stats.completed_amount)}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="relative group bg-white dark:bg-gray-800 rounded-2xl p-5 border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-t-2xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-yellow-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl"></div>
+            <div className="relative z-10 flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Đang xử lý</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.pending_payments}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Processing</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pending_payments}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="relative group bg-white dark:bg-gray-800 rounded-2xl p-5 border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-t-2xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl"></div>
+            <div className="relative z-10 flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Hôm nay</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.today_payments}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{formatAmount(stats.today_amount)}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Today</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.today_payments}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{formatAmount(stats.today_amount)}</p>
               </div>
             </div>
           </div>
@@ -348,34 +362,34 @@ const PaymentManagementPage = () => {
       )}
 
       {/* FILTERS & SEARCH */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 p-6 shadow-lg">
         <form onSubmit={handleSearch} className="space-y-4">
           {/* Row 1: Search and User Filter */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Tìm kiếm chung
+                General Search
               </label>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Email, Order ID, Transaction ID, tên người dùng..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                placeholder="Email, Order ID, Transaction ID, username..."
+                className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               />
             </div>
-            
+
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Lọc theo người dùng
+                Filter by User
               </label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={userFilter}
                   onChange={(e) => handleUserFilterChange(e.target.value)}
-                  placeholder="Tìm người dùng theo email hoặc tên..."
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Search user by email or name..."
+                  className="flex-1 px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
                 />
                 {selectedUserId && (
                   <button
@@ -389,7 +403,7 @@ const PaymentManagementPage = () => {
                   </button>
                 )}
               </div>
-              
+
               {/* User Search Results */}
               {showUserSearch && userSearchResults.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -417,31 +431,31 @@ const PaymentManagementPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Trạng thái
+                Status
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               >
-                <option value="">Tất cả</option>
-                <option value="success">Thành công</option>
-                <option value="pending">Đang xử lý</option>
-                <option value="failed">Thất bại</option>
-                <option value="cancelled">Đã hủy</option>
+                <option value="">All</option>
+                <option value="success">Success</option>
+                <option value="pending">Processing</option>
+                <option value="failed">Failed</option>
+                <option value="cancelled">Cancelled</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Phương thức
+                Method
               </label>
               <select
                 value={paymentMethodFilter}
                 onChange={(e) => setPaymentMethodFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               >
-                <option value="">Tất cả</option>
+                <option value="">All</option>
                 <option value="zalopay">ZaloPay</option>
                 <option value="vnpay">VNPay</option>
                 <option value="momo">MoMo</option>
@@ -450,25 +464,25 @@ const PaymentManagementPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Từ ngày
+                From Date
               </label>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Đến ngày
+                To Date
               </label>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               />
             </div>
           </div>
@@ -478,12 +492,12 @@ const PaymentManagementPage = () => {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
+                className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Tìm kiếm
+                Search
               </button>
               <button
                 type="button"
@@ -496,15 +510,15 @@ const PaymentManagementPage = () => {
                   clearUserFilter();
                   setCurrentPage(1);
                 }}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+                className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl font-semibold border-2 border-gray-200 dark:border-gray-600 transition-colors"
               >
-                Xóa bộ lọc
+                Clear Filters
               </button>
             </div>
-            
+
             {selectedUserId && (
-              <div className="text-sm text-blue-600 dark:text-blue-400">
-                Đang lọc theo người dùng ID: {selectedUserId}
+              <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                Filtering by user ID: {selectedUserId}
               </div>
             )}
           </div>
@@ -513,13 +527,13 @@ const PaymentManagementPage = () => {
 
       {/* STATS INFO */}
       {paymentsData && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 p-4 shadow-lg">
           <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
             <span>
-              Hiển thị {((currentPage - 1) * perPage) + 1} đến {Math.min(currentPage * perPage, paymentsData.total)} của {paymentsData.total} thanh toán
+              Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, paymentsData.total)} of {paymentsData.total} payments
             </span>
-            <span>
-              Trang {currentPage} / {paymentsData.total_pages}
+            <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-medium">
+              Page {currentPage} / {paymentsData.total_pages}
             </span>
           </div>
         </div>
@@ -527,58 +541,58 @@ const PaymentManagementPage = () => {
 
       {/* TABLE */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          Đang tải...
+        <div className="flex items-center justify-center py-20">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 shadow-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                <th
+                  className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   onClick={() => handleSort('order_id')}
                 >
                   <div className="flex items-center gap-1">
                     Order ID
                     {sortBy === 'order_id' && (
-                      <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Người dùng
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  User
                 </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                <th
+                  className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   onClick={() => handleSort('amount')}
                 >
                   <div className="flex items-center gap-1">
-                    Số tiền
+                    Amount
                     {sortBy === 'amount' && (
-                      <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Phương thức
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Method
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Trạng thái
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Status
                 </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                <th
+                  className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   onClick={() => handleSort('created_at')}
                 >
                   <div className="flex items-center gap-1">
-                    Ngày tạo
+                    Created At
                     {sortBy === 'created_at' && (
-                      <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                      <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </div>
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Thao tác
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -597,7 +611,7 @@ const PaymentManagementPage = () => {
                       ID: {payment.id}
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {payment.user_email}
@@ -606,21 +620,21 @@ const PaymentManagementPage = () => {
                       {payment.user_name || `User #${payment.user_id}`}
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                     {formatAmount(payment.amount)}
                   </td>
-                  
+
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
                     {getPaymentMethodText(payment.payment_method)}
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.status)}`}>
                       {getStatusText(payment.status)}
                     </span>
                   </td>
-                  
+
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
                     {formatDate(payment.created_at)}
                   </td>
@@ -629,15 +643,15 @@ const PaymentManagementPage = () => {
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => setShowDetail(payment)}
-                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-semibold border border-blue-200 dark:border-blue-800 transition-colors"
                       >
-                        Chi tiết
+                        Details
                       </button>
                       <button
                         onClick={() => setShowUserHistory(payment.user_id)}
-                        className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                        className="px-3 py-1.5 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 rounded-lg text-xs font-semibold border border-green-200 dark:border-green-800 transition-colors"
                       >
-                        Lịch sử
+                        History
                       </button>
                     </div>
                   </td>
@@ -647,8 +661,11 @@ const PaymentManagementPage = () => {
           </table>
 
           {paymentsData?.items.length === 0 && (
-            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-              Không tìm thấy thanh toán nào
+            <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+              <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              No payments found
             </div>
           )}
         </div>
@@ -829,14 +846,14 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
         page: currentPage.toString(),
         per_page: '10',
       });
-      
+
       if (statusFilter) params.append('status_filter', statusFilter);
       if (dateFrom) params.append('date_from', dateFrom);
       if (dateTo) params.append('date_to', dateTo);
-      
+
       const response = await api.get(`/api/payment/admin/payments/user/${userId}?${params}`);
       setUserPayments(response.data);
-      
+
       // Lấy thông tin user từ payment đầu tiên
       if (response.data.items.length > 0) {
         const firstPayment = response.data.items[0];
@@ -952,7 +969,7 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
                 <div className="text-lg font-bold text-purple-900 dark:text-purple-100">{formatAmount(stats.totalAmount)}</div>
               </div>
               <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
-                <div className="text-sm text-orange-600 dark:text-orange-400">Đã thanh toán</div>
+                <div className="text-sm text-orange-600 dark:text-orange-400">Paid</div>
                 <div className="text-lg font-bold text-orange-900 dark:text-orange-100">{formatAmount(stats.successAmount)}</div>
               </div>
             </div>

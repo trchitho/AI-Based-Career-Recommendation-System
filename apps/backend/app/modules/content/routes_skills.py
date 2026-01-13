@@ -65,7 +65,7 @@ def get_skills(
     ksa_type: Optional[str] = Query(None, description="Lọc theo loại KSA"),
     onet_code: Optional[str] = Query(None, description="Lọc theo ONET code"),
     sort_by: str = Query("name", description="Sắp xếp theo field"),
-    sort_order: str = Query("asc", regex="^(asc|desc)$", description="Thứ tự sắp xếp"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$", description="Thứ tự sắp xếp"),
     db: Session = Depends(_db),
     _: dict = Depends(require_admin),
 ):
@@ -98,9 +98,9 @@ def get_skills(
                 )
             )
         
-        # Lọc theo KSA type
+        # Lọc theo KSA type (case-insensitive)
         if ksa_type:
-            query = query.filter(CareerKSA.ksa_type == ksa_type)
+            query = query.filter(func.lower(CareerKSA.ksa_type) == ksa_type.lower())
         
         # Lọc theo ONET code
         if onet_code:

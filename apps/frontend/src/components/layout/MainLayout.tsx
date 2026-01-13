@@ -3,7 +3,6 @@ import { NavLink, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import ThemeToggle from "../ThemeToggle";
-import LanguageSwitcher from "../LanguageSwitcher";
 import { useAppSettings } from "../../contexts/AppSettingsContext";
 import AppLogo from "../common/AppLogo";
 import NotificationCenter from "../notifications/NotificationCenter";
@@ -93,7 +92,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
             {/* Utilities Group */}
             <div className="flex items-center gap-1 pr-3 border-r border-gray-200 dark:border-gray-700">
-              <LanguageSwitcher />
               <ThemeToggle />
 
               {user && (

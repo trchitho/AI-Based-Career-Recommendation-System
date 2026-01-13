@@ -22,7 +22,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     onSuccess,
     onError,
     className = '',
-    children = 'Thanh toán',
+    children = 'Pay Now',
 }) => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -31,18 +31,18 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
         try {
             setLoading(true);
 
-            // Lấy token từ localStorage
+            // Get token from localStorage
             const token = getAccessToken();
             if (!token) {
-                // Redirect đến login
-                alert('Vui lòng đăng nhập để thanh toán');
+                // Redirect to login
+                alert('Please login to make payment');
                 navigate('/login');
                 return;
             }
 
             console.log('Token found:', token.substring(0, 20) + '...');
 
-            // Tạo đơn thanh toán
+            // Create payment order
             const result = await paymentService.createPayment({
                 amount,
                 description,
@@ -55,26 +55,26 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                     localStorage.setItem('pending_payment_order', result.order_id);
                 }
 
-                // Chuyển hướng đến trang thanh toán ZaloPay
+                // Redirect to ZaloPay payment page
                 window.location.href = result.order_url;
 
                 if (onSuccess && result.order_id) {
                     onSuccess(result.order_id);
                 }
             } else {
-                throw new Error(result.message || 'Không thể tạo đơn thanh toán');
+                throw new Error(result.message || 'Unable to create payment order');
             }
         } catch (error: any) {
             console.error('Payment error:', error);
 
-            let errorMessage = 'Lỗi thanh toán';
+            let errorMessage = 'Payment error';
 
             if (error.code === 'ERR_NETWORK') {
-                errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.';
+                errorMessage = 'Cannot connect to server. Please check your network connection.';
             } else if (error.response?.status === 500) {
-                errorMessage = 'Lỗi server. Vui lòng thử lại sau.';
+                errorMessage = 'Server error. Please try again later.';
             } else if (error.response?.status === 401) {
-                errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+                errorMessage = 'Session expired. Please login again.';
             } else if (error.response?.data?.detail) {
                 errorMessage = error.response.data.detail;
             } else if (error.message) {
@@ -121,7 +121,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                     </svg>
-                    Đang xử lý...
+                    Processing...
                 </span>
             ) : (
                 children

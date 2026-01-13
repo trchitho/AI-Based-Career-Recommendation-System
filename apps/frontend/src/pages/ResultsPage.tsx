@@ -9,7 +9,9 @@ import {
 } from '../services/recommendationService';
 import { AssessmentResults } from '../types/results';
 import RIASECSpiderChart from '../components/results/RIASECSpiderChart';
+import RIASECLineChart from '../components/results/RIASECLineChart';
 import BigFiveBarChart from '../components/results/BigFiveBarChart';
+import BigFiveLineChart from '../components/results/BigFiveLineChart';
 import CareerRecommendationsDisplay from '../components/results/CareerRecommendationsDisplay';
 import { feedbackService } from '../services/feedbackService';
 import MainLayout from '../components/layout/MainLayout';
@@ -24,7 +26,7 @@ const ResultsPage = () => {
   // ==========================================
   const { assessmentId } = useParams<{ assessmentId: string }>();
   const { user } = useAuth();
-  const { hasFeature, currentPlan, getNextUpgradePlan } = useFeatureAccess();
+  const { hasFeature, currentPlan } = useFeatureAccess();
 
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [loadingResults, setLoadingResults] = useState(true);
@@ -54,10 +56,11 @@ const ResultsPage = () => {
   useEffect(() => {
     if (!assessmentId) return;
     fetchResults(assessmentId);
-    fetchRecommendations();
-    
+    // Don't fetch recommendations here - let the lazy load useEffect handle it
+    // fetchRecommendations();
 
-    
+
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId]);
 
@@ -115,11 +118,18 @@ const ResultsPage = () => {
       setErrorResults(null);
 
       const resultsData = await assessmentService.getResults(id);
-      
+
       setResults(resultsData);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setErrorResults('Failed to load assessment results. Please try again.');
+      // Handle 404 - assessment not found
+      if (err?.response?.status === 404) {
+        setErrorResults(`Assessment #${id} not found. It may have been deleted or the ID is incorrect.`);
+      } else if (err?.response?.status === 403) {
+        setErrorResults('You do not have permission to view this assessment.');
+      } else {
+        setErrorResults('Failed to load assessment results. Please try again.');
+      }
     } finally {
       setLoadingResults(false);
     }
@@ -481,22 +491,115 @@ const ResultsPage = () => {
 
                 {/* TAB: DETAILED */}
                 {activeTab === 'detailed' && (
-                  <div className="grid grid-cols-1 gap-8 animate-fade-in-up">
+                  <div className="space-y-8 animate-fade-in-up">
+                    {/* RIASEC Section */}
                     <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
-                        RIASEC Interest Profile
-                      </h3>
-                      <div className="h-[400px] w-full flex items-center justify-center">
-                        <RIASECSpiderChart scores={results.riasec_scores} />
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
+                          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                            RIASEC Interest Profile
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Your career interests based on the Holland model
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        {/* Spider Chart */}
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Radar Chart</h4>
+                          <div className="h-[350px] w-full flex items-center justify-center">
+                            <RIASECSpiderChart scores={results.riasec_scores} />
+                          </div>
+                        </div>
+
+                        {/* Line Chart */}
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Line Chart</h4>
+                          <div className="h-[300px] w-full">
+                            <RIASECLineChart scores={results.riasec_scores} />
+                          </div>
+                        </div>
+
+                        {/* Progress bars with details */}
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Score Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {Object.entries(results.riasec_scores)
+                              .sort((a, b) => b[1] - a[1])
+                              .map(([key, value], index) => {
+                                const colors = [
+                                  'from-blue-500 to-blue-600',
+                                  'from-green-500 to-green-600',
+                                  'from-purple-500 to-purple-600',
+                                  'from-orange-500 to-orange-600',
+                                  'from-pink-500 to-pink-600',
+                                  'from-cyan-500 to-cyan-600',
+                                ];
+                                return (
+                                  <div key={key} className="space-y-1">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        {getRIASECFullName(key)}
+                                      </span>
+                                      <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                        {value.toFixed(0)}/100
+                                      </span>
+                                    </div>
+                                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                      <div
+                                        className={`h-full bg-gradient-to-r ${colors[index % colors.length]} rounded-full transition-all duration-700`}
+                                        style={{ width: `${Math.min(value, 100)}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
+                    {/* Big Five Section */}
                     <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
-                        Big Five Personality Traits
-                      </h3>
-                      <div className="h-[400px] w-full">
-                        <BigFiveBarChart scores={results.big_five_scores} />
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-xl flex items-center justify-center">
+                          <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                            Big Five Personality Traits
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Your 5 core personality dimensions
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        {/* Bar Chart */}
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Bar Chart</h4>
+                          <div className="h-[350px] w-full">
+                            <BigFiveBarChart scores={results.big_five_scores} />
+                          </div>
+                        </div>
+
+                        {/* Line Chart */}
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Line Chart</h4>
+                          <div className="h-[300px] w-full">
+                            <BigFiveLineChart scores={results.big_five_scores} />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

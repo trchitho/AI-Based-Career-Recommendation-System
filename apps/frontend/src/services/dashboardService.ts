@@ -89,43 +89,6 @@ export const dashboardService = {
             '❌ [DashboardService] Error fetching recommendations from BFF:',
             error,
           );
-
-          // Fallback: try to get from assessment results
-          try {
-            const resultsResponse = await api.get(
-              `/api/assessments/${latestAssessment.id}/results`,
-            );
-            const results = resultsResponse.data;
-            console.log(
-              '📋 [DashboardService] Fallback - Assessment results:',
-              results,
-            );
-
-            if (
-              results.career_recommendations_full &&
-              results.career_recommendations_full.length > 0
-            ) {
-              topCareerSuggestions = results.career_recommendations_full
-                .slice(0, 3)
-                .map((career: any, index: number) => ({
-                  id: career.id,
-                  slug: career.slug,
-                  title: career.title,
-                  description: career.description,
-                  matchPercentage: 95 - index * 5,
-                }));
-
-              console.log(
-                '✅ [DashboardService] Fallback career suggestions:',
-                topCareerSuggestions,
-              );
-            }
-          } catch (fallbackError) {
-            console.error(
-              '❌ [DashboardService] Fallback also failed:',
-              fallbackError,
-            );
-          }
         }
 
         // Fetch user progress data

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSubscription } from '../../hooks/useSubscription';
+import { useSubscription, clearSubscriptionCache } from '../../hooks/useSubscription';
 
 interface SubscriptionRefreshProps {
   onUpgradeDetected?: () => void;
@@ -16,14 +16,14 @@ const SubscriptionRefresh = ({ onUpgradeDetected }: SubscriptionRefreshProps) =>
       if (planName !== 'Free' && lastPlanName === 'Free') {
         setShowUpgradeSuccess(true);
         onUpgradeDetected?.();
-        
+
         // Auto hide after 5 seconds
         setTimeout(() => {
           setShowUpgradeSuccess(false);
         }, 5000);
       }
     }
-    
+
     if (subscriptionData) {
       setLastPlanName(planName);
     }
@@ -33,15 +33,23 @@ const SubscriptionRefresh = ({ onUpgradeDetected }: SubscriptionRefreshProps) =>
   useEffect(() => {
     const handlePaymentSuccess = () => {
       console.log('Payment success detected, refreshing subscription...');
+      // Clear cache first to ensure fresh data
+      clearSubscriptionCache();
       // Refresh subscription after payment success
       setTimeout(() => {
         refreshSubscription();
-      }, 2000); // Wait 2 seconds for backend to process
+      }, 1000); // Wait 1 second for backend to process
     };
 
     // Listen for custom events
     const handleCustomEvent = (e: CustomEvent) => {
       console.log('Payment success event received:', e.detail);
+      handlePaymentSuccess();
+    };
+
+    // Listen for subscription-updated event (from paymentService)
+    const handleSubscriptionUpdated = () => {
+      console.log('Subscription updated event received');
       handlePaymentSuccess();
     };
 
@@ -54,14 +62,15 @@ const SubscriptionRefresh = ({ onUpgradeDetected }: SubscriptionRefreshProps) =>
     };
 
     window.addEventListener('payment_success', handleCustomEvent as EventListener);
+    window.addEventListener('subscription-updated', handleSubscriptionUpdated);
     window.addEventListener('storage', handleStorageChange);
-    
+
     // Check URL params for payment success on mount
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('payment') === 'success') {
       console.log('Payment success detected in URL params');
       handlePaymentSuccess();
-      
+
       // Clean up URL params
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete('payment');
@@ -73,7 +82,7 @@ const SubscriptionRefresh = ({ onUpgradeDetected }: SubscriptionRefreshProps) =>
     if (lastPaymentSuccess) {
       const timestamp = parseInt(lastPaymentSuccess);
       const now = Date.now();
-      
+
       // If payment success was within last 5 minutes, refresh
       if (now - timestamp < 5 * 60 * 1000) {
         console.log('Recent payment success detected in localStorage');
@@ -84,6 +93,7 @@ const SubscriptionRefresh = ({ onUpgradeDetected }: SubscriptionRefreshProps) =>
 
     return () => {
       window.removeEventListener('payment_success', handleCustomEvent as EventListener);
+      window.removeEventListener('subscription-updated', handleSubscriptionUpdated);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [refreshSubscription]);
@@ -101,32 +111,32 @@ const SubscriptionRefresh = ({ onUpgradeDetected }: SubscriptionRefreshProps) =>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          
+
           <div className="flex-1">
             <h3 className="font-bold text-lg mb-1">
-              🎉 Nâng cấp thành công!
+              Upgrade Successful!
             </h3>
             <p className="text-white/90 text-sm mb-3">
-              Bạn đã được nâng cấp lên gói <span className="font-semibold">{planName}</span>. 
-              Tất cả tính năng premium đã được mở khóa!
+              You have been upgraded to <span className="font-semibold">{planName}</span> plan.
+              All premium features are now unlocked!
             </p>
-            
+
             <div className="flex gap-2">
               <button
                 onClick={() => window.location.reload()}
                 className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
               >
-                Làm mới trang
+                Refresh Page
               </button>
               <button
                 onClick={() => setShowUpgradeSuccess(false)}
                 className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors"
               >
-                Đóng
+                Close
               </button>
             </div>
           </div>
-          
+
           <button
             onClick={() => setShowUpgradeSuccess(false)}
             className="text-white/70 hover:text-white transition-colors"

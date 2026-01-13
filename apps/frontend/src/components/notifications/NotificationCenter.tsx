@@ -105,7 +105,24 @@ const NotificationCenter = () => {
       case 'MILESTONE_ACHIEVEMENT':
         return '🎉';
       case 'SYSTEM_UPDATE':
+      case 'system':
         return '🔔';
+      case 'payment':
+      case 'payment_success':
+        return '💳';
+      case 'assessment':
+        return '📝';
+      case 'promotion':
+        return '🎁';
+      case 'announcement':
+        return '📢';
+      case 'warning':
+      case 'alert':
+        return '⚠️';
+      case 'success':
+        return '✅';
+      case 'error':
+        return '❌';
       default:
         return '📬';
     }
@@ -119,11 +136,11 @@ const NotificationCenter = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
   };
 
   return (
@@ -165,13 +182,13 @@ const NotificationCenter = () => {
         <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[600px] flex flex-col">
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Thông báo</h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
                 className="text-xs text-[#4A7C59] dark:text-green-400 hover:text-[#3d6449] dark:hover:text-green-500 font-medium"
               >
-                Mark all as read
+                Đánh dấu đã đọc
               </button>
             )}
           </div>
@@ -184,7 +201,10 @@ const NotificationCenter = () => {
               </div>
             ) : notifications.length === 0 ? (
               <div className="text-center py-8 px-4">
-                <p className="text-gray-500">No notifications yet</p>
+                <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <p className="text-gray-500">Chưa có thông báo nào</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">

@@ -12,55 +12,55 @@ const PremiumBenefitsCard = () => {
     {
       icon: '🚀',
       title: 'Unlimited Assessments',
-      description: isPro ? 'Không giới hạn bài kiểm tra' : (isPremium ? 'Không giới hạn bài kiểm tra' : 'Tối đa 20 bài kiểm tra/tháng'),
+      description: isPro ? 'Unlimited assessments' : (isPremium ? 'Unlimited assessments' : 'Up to 20 assessments/month'),
       active: true
     },
     {
       icon: '🎯',
       title: 'Career Recommendations',
-      description: isPro ? 'Toàn bộ danh mục nghề nghiệp' : (isPremium ? 'Toàn bộ danh mục nghề nghiệp' : '5 nghề nghiệp phù hợp nhất'),
+      description: isPro ? 'Full career catalog' : (isPremium ? 'Full career catalog' : '5 best matching careers'),
       active: true
     },
     {
       icon: '🗺️',
       title: 'Learning Roadmaps',
-      description: isPro ? 'Lộ trình đầy đủ + cá nhân hóa' : (isPremium ? 'Lộ trình học tập đầy đủ' : 'Lộ trình cơ bản (Level 1-2)'),
+      description: isPro ? 'Complete + personalized roadmaps' : (isPremium ? 'Complete learning roadmaps' : 'Basic roadmaps (Level 1-2)'),
       active: true
     },
     {
       icon: '🧠',
       title: 'AI Analysis',
-      description: isPro ? 'Phân tích AI chuyên sâu' : (isPremium ? 'Phân tích AI chi tiết tính cách & tiềm năng' : 'Phân tích tóm tắt RIASEC & Big Five'),
+      description: isPro ? 'Advanced AI analysis' : (isPremium ? 'Detailed AI personality & potential analysis' : 'RIASEC & Big Five summary'),
       active: true
     },
     {
       icon: '⚡',
       title: 'Priority Support',
-      description: isPro ? 'Hỗ trợ ưu tiên 24/7' : (isPremium ? 'Ưu tiên hỗ trợ kỹ thuật và tư vấn' : 'Hỗ trợ thông thường qua Email'),
+      description: isPro ? '24/7 priority support' : (isPremium ? 'Priority technical support & consulting' : 'Standard email support'),
       active: true
     },
     {
       icon: '🤖',
       title: 'AI Career Assistant',
-      description: 'Trợ lý ảo AI 24/7 với Gemini API',
+      description: '24/7 AI assistant powered by Gemini API',
       active: isPremium || isPro
     },
     {
       icon: '📄',
       title: 'PDF Reports',
-      description: 'Xuất báo cáo PDF chuyên sâu với biểu đồ RIASEC & Big Five',
+      description: 'Export detailed PDF reports with RIASEC & Big Five charts',
       active: isPro
     },
     {
       icon: '📊',
       title: 'Progress Tracking',
-      description: 'So sánh lịch sử phát triển qua các lần kiểm tra',
+      description: 'Compare development history across assessments',
       active: isPro
     },
     {
       icon: '🎓',
       title: 'Course Recommendations',
-      description: 'Gợi ý khóa học từ Coursera, LinkedIn Learning',
+      description: 'Course suggestions from Coursera, LinkedIn Learning',
       active: isPro
     }
   ];
@@ -71,7 +71,7 @@ const PremiumBenefitsCard = () => {
       <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
         <div className={`w-full h-full bg-gradient-to-br ${isPro ? 'from-purple-400 to-pink-500' : 'from-green-400 to-emerald-500'} rounded-full blur-2xl`}></div>
       </div>
-      
+
       {/* Premium badge */}
       <div className="absolute -top-2 -right-2">
         <div className={`px-3 py-1 bg-gradient-to-r ${isPro ? 'from-purple-500 to-pink-500' : 'from-green-500 to-emerald-500'} text-white text-xs font-bold rounded-full shadow-lg transform rotate-12`}>
@@ -98,41 +98,37 @@ const PremiumBenefitsCard = () => {
         {/* Benefits grid */}
         <div className="space-y-3">
           {benefits.map((benefit, index) => (
-            <div 
+            <div
               key={index}
-              className={`flex items-start gap-3 p-3 rounded-xl transition-all ${
-                benefit.active 
-                  ? `bg-white/70 dark:bg-gray-800/70 border ${isPro ? 'border-purple-200 dark:border-purple-700' : 'border-green-200 dark:border-green-700'}` 
+              className={`flex items-start gap-3 p-3 rounded-xl transition-all ${benefit.active
+                  ? `bg-white/70 dark:bg-gray-800/70 border ${isPro ? 'border-purple-200 dark:border-purple-700' : 'border-green-200 dark:border-green-700'}`
                   : 'bg-gray-100/50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 opacity-60'
-              }`}
+                }`}
             >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                benefit.active 
-                  ? `bg-gradient-to-r ${isPro ? 'from-purple-500 to-pink-500' : 'from-green-500 to-emerald-500'} shadow-lg` 
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${benefit.active
+                  ? `bg-gradient-to-r ${isPro ? 'from-purple-500 to-pink-500' : 'from-green-500 to-emerald-500'} shadow-lg`
                   : 'bg-gray-300 dark:bg-gray-600'
-              }`}>
+                }`}>
                 <span className={`text-lg ${benefit.active ? 'text-white' : 'text-gray-500'}`}>
                   {benefit.icon}
                 </span>
               </div>
-              
+
               <div className="flex-1">
-                <h5 className={`font-semibold text-sm ${
-                  benefit.active 
-                    ? 'text-gray-900 dark:text-white' 
+                <h5 className={`font-semibold text-sm ${benefit.active
+                    ? 'text-gray-900 dark:text-white'
                     : 'text-gray-500 dark:text-gray-400'
-                }`}>
+                  }`}>
                   {benefit.title}
                 </h5>
-                <p className={`text-xs mt-1 ${
-                  benefit.active 
-                    ? 'text-gray-600 dark:text-gray-300' 
+                <p className={`text-xs mt-1 ${benefit.active
+                    ? 'text-gray-600 dark:text-gray-300'
                     : 'text-gray-400 dark:text-gray-500'
-                }`}>
+                  }`}>
                   {benefit.description}
                 </p>
               </div>
-              
+
               {benefit.active && (
                 <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                   <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">

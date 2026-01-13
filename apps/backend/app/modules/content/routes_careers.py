@@ -54,12 +54,12 @@ def get_career(request: Request, id_or_slug: str):
             "description": (obj.get("description", "") or obj.get("short_desc", ""))[:200] + "..." if len(obj.get("description", "") or obj.get("short_desc", "")) > 200 else (obj.get("description", "") or obj.get("short_desc", "")),
             # Remove or limit advanced details
             "skills": [],  # Hide detailed skills
-            "education_requirements": "🔒 Nâng cấp để xem yêu cầu học vấn chi tiết",
-            "salary_range": "🔒 Nâng cấp để xem thông tin lương chi tiết", 
-            "job_outlook": "🔒 Nâng cấp để xem triển vọng nghề nghiệp chi tiết",
-            "detailed_description": "🔒 Nâng cấp để xem mô tả đầy đủ",
-            "career_path": "🔒 Nâng cấp để xem lộ trình phát triển",
-            "work_environment": "🔒 Nâng cấp để xem môi trường làm việc",
+            "education_requirements": "🔒 Upgrade to view detailed education requirements",
+            "salary_range": "🔒 Upgrade to view detailed salary information", 
+            "job_outlook": "🔒 Upgrade to view detailed job outlook",
+            "detailed_description": "🔒 Upgrade to view full description",
+            "career_path": "🔒 Upgrade to view career development path",
+            "work_environment": "🔒 Upgrade to view work environment details",
             # Add upgrade info
             "access_level": "basic",
             "upgrade_required": False,  # Can view but with limitations
@@ -67,7 +67,7 @@ def get_career(request: Request, id_or_slug: str):
             "access_info": {
                 "allowed": True,
                 "level": "basic",
-                "message": "Bạn đang xem ở mức cơ bản. Nâng cấp Premium để xem thông tin chi tiết đầy đủ."
+                "message": "You are viewing at basic level. Upgrade to Premium for full detailed information."
             }
         }
 
@@ -106,7 +106,7 @@ def get_roadmap(request: Request, career_id: str):
         # Check if this level should be locked for free users
         if not is_premium and max_level != -1 and i > max_level:
             level_data.update({
-                "description": f"🔒 Nâng cấp tài khoản để mở khóa {milestone.get('skillName', f'Level {i}')}",
+                "description": f"🔒 Upgrade your account to unlock {milestone.get('skillName', f'Level {i}')}",
                 "milestones": [],
                 "locked": True,
                 "upgrade_required": True

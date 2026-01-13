@@ -4,6 +4,7 @@ import api from "../lib/api";
 export interface CareerRecommendationDTO {
   career_id: string;
   slug?: string | null;
+  job_onet?: string | null;  // O*NET code from backend
   title_vi?: string | null;
   title_en?: string | null;
   description?: string | null;

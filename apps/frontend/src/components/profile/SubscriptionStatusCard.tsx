@@ -9,7 +9,7 @@ const SubscriptionStatusCard = () => {
   // Get plan details for styling
   const getPlanDetails = () => {
     const plan = planName?.toLowerCase() || 'free';
-    
+
     if (plan.includes('pro')) {
       return {
         name: 'Pro',
@@ -20,7 +20,7 @@ const SubscriptionStatusCard = () => {
         badge: 'PRO'
       };
     }
-    
+
     if (plan.includes('premium')) {
       return {
         name: 'Premium',
@@ -31,7 +31,7 @@ const SubscriptionStatusCard = () => {
         badge: 'PREMIUM'
       };
     }
-    
+
     if (plan.includes('basic') || plan.includes('cơ bản')) {
       return {
         name: 'Basic',
@@ -42,7 +42,7 @@ const SubscriptionStatusCard = () => {
         badge: 'BASIC'
       };
     }
-    
+
     return {
       name: 'Free',
       color: 'from-gray-400 to-gray-500',
@@ -61,7 +61,7 @@ const SubscriptionStatusCard = () => {
       <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
         <div className={`w-full h-full bg-gradient-to-br ${planDetails.color} rounded-full blur-2xl`}></div>
       </div>
-      
+
       {/* Premium badge */}
       {isPremium && (
         <div className="absolute -top-2 -right-2">
@@ -78,7 +78,7 @@ const SubscriptionStatusCard = () => {
             <span className="text-2xl">{planDetails.icon}</span>
             Subscription Status
           </h4>
-          
+
           {isPremium && (
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -100,7 +100,7 @@ const SubscriptionStatusCard = () => {
             <>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Status:</span>
-                <span className="text-green-600 dark:text-green-400 font-semibold text-sm">Đã thanh toán</span>
+                <span className="text-green-600 dark:text-green-400 font-semibold text-sm">Paid</span>
               </div>
 
               {expiryDate && (

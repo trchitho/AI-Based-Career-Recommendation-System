@@ -1,7 +1,7 @@
 import { useSubscription } from './useSubscription';
 
 export type PlanType = 'free' | 'basic' | 'premium' | 'pro';
-export type FeatureType = 
+export type FeatureType =
   | 'career_recommendations'  // Đề xuất nghề nghiệp
   | 'unlimited_assessments'   // Không giới hạn bài test định hướng
   | 'unlimited_careers'       // Xem tất cả nghề nghiệp
@@ -83,7 +83,7 @@ export const useFeatureAccess = () => {
   // Determine current plan type
   const getCurrentPlanType = (): PlanType => {
     if (!isPremium) return 'free';
-    
+
     // Map database plan names to our plan types based on 4-tier structure
     // Database: Basic (99k) → basic features
     // Database: Premium (299k) → premium features  
@@ -102,19 +102,19 @@ export const useFeatureAccess = () => {
       default:
         // Check by plan name patterns as fallback
         const plan = planName.toLowerCase();
-        
+
         if (plan.includes('pro')) {
           return 'pro';
         }
-        
+
         if (plan.includes('premium')) {
           return 'premium';
         }
-        
+
         if (plan.includes('basic') || plan.includes('cơ bản') || plan.includes('co ban')) {
           return 'basic';
         }
-        
+
         // For any paid plan that doesn't match, default to basic
         return isPremium ? 'basic' : 'free';
     }
@@ -156,13 +156,13 @@ export const useFeatureAccess = () => {
   const getNextUpgradePlan = (): PlanType | null => {
     const currentLevel = PLAN_HIERARCHY[currentPlan];
     const nextLevel = currentLevel + 1;
-    
+
     for (const [plan, level] of Object.entries(PLAN_HIERARCHY)) {
       if (level === nextLevel) {
         return plan as PlanType;
       }
     }
-    
+
     return null;
   };
 
@@ -257,10 +257,10 @@ export const useFeatureAccess = () => {
   // Get plan display info
   const getPlanInfo = (plan: PlanType) => {
     const planInfo = {
-      free: { name: 'Miễn phí', color: 'gray', price: 0 },
-      basic: { name: 'Gói Cơ Bản', color: 'blue', price: 99000 },
-      premium: { name: 'Gói Premium', color: 'green', price: 299000 },
-      pro: { name: 'Gói Pro (CareerAI Professional)', color: 'purple', price: 499000 }
+      free: { name: 'Free', color: 'gray', price: 0 },
+      basic: { name: 'Basic', color: 'blue', price: 99000 },
+      premium: { name: 'Premium', color: 'green', price: 299000 },
+      pro: { name: 'Pro', color: 'purple', price: 499000 }
     };
 
     return planInfo[plan];

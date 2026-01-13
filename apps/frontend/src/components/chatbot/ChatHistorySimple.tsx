@@ -30,60 +30,60 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Hàm format date đơn giản - luôn trả về giá trị hợp lệ
+  // Simple date format function - always returns valid value
   const formatDate = (dateInput: any): string => {
-    // Nếu không có dữ liệu, trả về mặc định
+    // If no data, return default
     if (!dateInput || dateInput === 'null' || dateInput === 'undefined') {
-      return 'Hôm nay';
+      return 'Today';
     }
-    
+
     try {
-      // Thử parse date
+      // Try to parse date
       const date = new Date(dateInput);
-      
-      // Nếu date không hợp lệ, trả về mặc định
+
+      // If date is invalid, return default
       if (isNaN(date.getTime())) {
-        return 'Gần đây';
+        return 'Recently';
       }
-      
+
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
-      
-      // Nếu thời gian âm (tương lai), trả về mặc định
+
+      // If time is negative (future), return default
       if (diffMs < 0) {
-        return 'Vừa xong';
+        return 'Just now';
       }
-      
+
       const diffMinutes = Math.floor(diffMs / (1000 * 60));
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      
-      // Trả về thời gian tương đối
-      if (diffMinutes < 1) return 'Vừa xong';
-      if (diffMinutes < 60) return `${diffMinutes} phút trước`;
-      if (diffHours < 24) return `${diffHours} giờ trước`;
-      if (diffDays === 1) return 'Hôm qua';
-      if (diffDays < 7) return `${diffDays} ngày trước`;
-      if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
-      
-      // Fallback cho ngày cũ
-      return 'Lâu rồi';
-      
+
+      // Return relative time
+      if (diffMinutes < 1) return 'Just now';
+      if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+      if (diffHours < 24) return `${diffHours} hours ago`;
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+
+      // Fallback for old dates
+      return 'Long ago';
+
     } catch (error) {
-      // Nếu có lỗi gì, trả về mặc định
-      return 'Không rõ';
+      // If any error, return default
+      return 'Unknown';
     }
   };
 
   const fetchSessions = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const token = localStorage.getItem('accessToken');
-      
+
       if (!token) {
-        setError('Vui lòng đăng nhập để xem lịch sử');
+        setError('Please login to view history');
         return;
       }
 
@@ -93,46 +93,46 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const sessionsList = data.sessions || [];
-        
+
         // Debug log để xem dữ liệu thực tế
         console.log('📋 Sessions API Response:', data);
         console.log('📋 Sessions List:', sessionsList);
-        
-        // Đảm bảo mỗi session có đầy đủ dữ liệu
+
+        // Ensure each session has complete data
         const safeSessions = sessionsList.map((session: any, index: number) => ({
           id: session.id || (1000 + index),
-          title: session.title || `Cuộc trò chuyện ${index + 1}`,
-          created_at: session.created_at || new Date(Date.now() - index * 3600000).toISOString(), // Mỗi session cách nhau 1 giờ
-          updated_at: session.updated_at || new Date(Date.now() - index * 1800000).toISOString(), // Update gần hơn
+          title: session.title || `Conversation ${index + 1}`,
+          created_at: session.created_at || new Date(Date.now() - index * 3600000).toISOString(),
+          updated_at: session.updated_at || new Date(Date.now() - index * 1800000).toISOString(),
           is_active: session.is_active !== undefined ? Boolean(session.is_active) : (index === 0),
           message_count: Number(session.message_count) || (Math.floor(Math.random() * 10) + 1),
-          last_message: session.last_message || `Tin nhắn cuối của cuộc trò chuyện ${index + 1}`
+          last_message: session.last_message || `Last message of conversation ${index + 1}`
         }));
-        
-        // Nếu không có sessions, tạo dữ liệu mẫu để test
+
+        // If no sessions, create sample data for testing
         if (safeSessions.length === 0) {
           const sampleSessions = [
             {
               id: 1,
-              title: 'Tư vấn nghề nghiệp IT',
-              created_at: new Date(Date.now() - 2 * 3600000).toISOString(), // 2 giờ trước
-              updated_at: new Date(Date.now() - 1800000).toISOString(), // 30 phút trước
+              title: 'IT Career Counseling',
+              created_at: new Date(Date.now() - 2 * 3600000).toISOString(),
+              updated_at: new Date(Date.now() - 1800000).toISOString(),
               is_active: true,
               message_count: 5,
-              last_message: 'Cảm ơn bạn đã tư vấn về lộ trình học lập trình'
+              last_message: 'Thank you for the programming roadmap advice'
             },
             {
               id: 2,
-              title: 'Hỏi về Data Science',
-              created_at: new Date(Date.now() - 24 * 3600000).toISOString(), // 1 ngày trước
-              updated_at: new Date(Date.now() - 12 * 3600000).toISOString(), // 12 giờ trước
+              title: 'Data Science Questions',
+              created_at: new Date(Date.now() - 24 * 3600000).toISOString(),
+              updated_at: new Date(Date.now() - 12 * 3600000).toISOString(),
               is_active: false,
               message_count: 3,
-              last_message: 'Tôi muốn tìm hiểu về machine learning'
+              last_message: 'I want to learn about machine learning'
             }
           ];
           setSessions(sampleSessions);
@@ -142,29 +142,29 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
         setError(null);
       } else {
         if (response.status === 401) {
-          setError('Phiên đăng nhập hết hạn');
+          setError('Session expired');
         } else {
-          setError(`Lỗi tải dữ liệu (${response.status})`);
+          setError(`Error loading data (${response.status})`);
         }
       }
     } catch (error) {
       console.error('Fetch sessions error:', error);
-      setError('Không thể kết nối server');
+      setError('Cannot connect to server');
     } finally {
       setLoading(false);
     }
   };
 
   const deleteSession = async (sessionId: number) => {
-    if (!confirm('Xóa cuộc trò chuyện này?')) return;
-    
+    if (!confirm('Delete this conversation?')) return;
+
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/chatbot/sessions/${sessionId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (response.ok) {
         setSessions(prev => prev.filter(s => s.id !== sessionId));
       }
@@ -188,13 +188,13 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
         <div className="flex items-center justify-between p-4 border-b bg-blue-50">
           <div className="flex items-center gap-2">
             <History size={20} className="text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-800">Lịch sử trò chuyện</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Chat History</h2>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={fetchSessions}
               className="p-2 text-gray-500 hover:text-blue-600 rounded"
-              title="Làm mới"
+              title="Refresh"
             >
               <RefreshCw size={16} />
             </button>
@@ -203,7 +203,7 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
               className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
             >
               <Plus size={16} />
-              Mới
+              New
             </button>
             <button
               onClick={onClose}
@@ -219,7 +219,7 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
           {loading ? (
             <div className="flex flex-col items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-              <p className="text-sm text-gray-500">Đang tải...</p>
+              <p className="text-sm text-gray-500">Loading...</p>
             </div>
           ) : error ? (
             <div className="text-center py-8">
@@ -229,24 +229,24 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
                 onClick={fetchSessions}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mr-2"
               >
-                Thử lại
+                Retry
               </button>
               <button
                 onClick={onNewSession}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
-                Chat mới
+                New Chat
               </button>
             </div>
           ) : sessions.length === 0 ? (
             <div className="text-center py-8">
               <MessageSquare size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600 mb-2">Chưa có cuộc trò chuyện</p>
+              <p className="text-gray-600 mb-2">No conversations yet</p>
               <button
                 onClick={onNewSession}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Bắt đầu chat
+                Start Chat
               </button>
             </div>
           ) : (
@@ -254,11 +254,10 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
               {sessions.map((session) => (
                 <div
                   key={session.id}
-                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
-                    session.id === currentSessionId
-                      ? 'bg-blue-50 border-blue-300'
-                      : 'bg-white border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${session.id === currentSessionId
+                    ? 'bg-blue-50 border-blue-300'
+                    : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}
                   onClick={() => onSelectSession(session.id)}
                 >
                   <div className="flex items-start justify-between">
@@ -266,17 +265,17 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
                       <h3 className="font-medium text-gray-900 truncate mb-1">
                         {session.title}
                       </h3>
-                      
+
                       {session.last_message && (
                         <p className="text-sm text-gray-600 truncate mb-2">
                           {session.last_message}
                         </p>
                       )}
-                      
+
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span className="flex items-center gap-1">
                           <MessageSquare size={12} />
-                          {session.message_count} tin nhắn
+                          {session.message_count} messages
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock size={12} />
@@ -284,19 +283,19 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
                         </span>
                         {session.is_active && (
                           <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                            Đang hoạt động
+                            Active
                           </span>
                         )}
                       </div>
                     </div>
-                    
+
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteSession(session.id);
                       }}
                       className="p-2 text-gray-400 hover:text-red-600 ml-2"
-                      title="Xóa"
+                      title="Delete"
                     >
                       <Trash2 size={16} />
                     </button>

@@ -334,8 +334,18 @@ class RecService:
             raise RuntimeError(f"Assessment {assessment_id} not found or invalid")
 
         # 2) Gọi AI-core
+        logger.info(f"[get_main_recommendations] Calling AI-core for assessment {assessment_id}")
         scored = self._call_ai_core_top_careers(assessment_id, internal_top_k)
+        logger.info(f"[get_main_recommendations] AI-core returned {len(scored) if scored else 0} items")
+        
+        # 2.1) Nếu AI-core không trả về kết quả, thử lấy từ saved recommendations
         if not scored:
+            logger.warning(f"AI-core returned no results, trying saved recommendations for assessment {assessment_id}")
+            saved_items = self._get_saved_recommendations_from_db(db, assessment_id, top_k)
+            if saved_items:
+                logger.info(f"Returning {len(saved_items)} saved recommendations")
+                return {"request_id": None, "items": saved_items}
+            logger.warning(f"No saved recommendations found for assessment {assessment_id}")
             return {"request_id": None, "items": []}
 
         # 3) Snapshot traits của **chính assessment này**
@@ -393,10 +403,152 @@ class RecService:
         for idx, it in enumerate(items_filtered, start=1):
             it["position"] = idx
 
+        # 8) Save top 5 recommendations to core.career_recommendations table
+        # Only save when fetching full recommendations (top_k >= 5), not for dashboard preview (top_k=3)
+        if top_k >= 5:
+            self._save_career_recommendations(db, user_id, assessment_id, items_filtered[:5])
+
         return {
             "request_id": request_id,
             "items": items_filtered,
         }
+
+    def _save_career_recommendations(
+        self,
+        db: Session,
+        user_id: int,
+        assessment_id: int,
+        items: List[Dict[str, Any]],
+    ) -> None:
+        """
+        Save top career recommendations to core.career_recommendations table.
+        This persists the recommendations for history tracking.
+        """
+        if not items:
+            return
+        
+        try:
+            # First, delete any existing recommendations for this assessment
+            db.execute(
+                text(
+                    """
+                    DELETE FROM core.career_recommendations
+                    WHERE assessment_id = :assessment_id
+                    """
+                ),
+                {"assessment_id": assessment_id}
+            )
+            
+            # Insert new recommendations
+            for item in items:
+                # Get career_id from core.careers table using slug or onet_code
+                career_id_result = db.execute(
+                    text(
+                        """
+                        SELECT id FROM core.careers
+                        WHERE slug = :slug OR onet_code = :onet_code
+                        LIMIT 1
+                        """
+                    ),
+                    {
+                        "slug": item.get("slug"),
+                        "onet_code": item.get("job_onet") or item.get("career_id")
+                    }
+                ).fetchone()
+                
+                if career_id_result:
+                    career_id = career_id_result[0]
+                    db.execute(
+                        text(
+                            """
+                            INSERT INTO core.career_recommendations
+                                (user_id, assessment_id, career_id, score, rank)
+                            VALUES
+                                (:user_id, :assessment_id, :career_id, :score, :rank)
+                            """
+                        ),
+                        {
+                            "user_id": user_id,
+                            "assessment_id": assessment_id,
+                            "career_id": career_id,
+                            "score": item.get("display_match") or item.get("match_score", 0.0),
+                            "rank": item.get("position", 0)
+                        }
+                    )
+            
+            db.commit()
+            logger.info(f"Saved {len(items)} career recommendations for assessment {assessment_id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to save career recommendations: {e}")
+            db.rollback()
+
+    def _get_saved_recommendations_from_db(
+        self,
+        db: Session,
+        assessment_id: int,
+        top_k: int,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get saved career recommendations from core.career_recommendations table.
+        Used as fallback when AI-core is not available.
+        """
+        try:
+            sql = text(
+                """
+                SELECT 
+                    cr.career_id,
+                    cr.score,
+                    cr.rank,
+                    c.slug,
+                    c.onet_code,
+                    c.title_vi,
+                    c.title_en,
+                    c.short_desc_en,
+                    c.short_desc_vn,
+                    COALESCE(
+                        array_agg(rl.code) FILTER (WHERE rl.code IS NOT NULL),
+                        '{}'
+                    ) AS riasec_codes
+                FROM core.career_recommendations cr
+                JOIN core.careers c ON c.id = cr.career_id
+                LEFT JOIN core.career_riasec_map m ON m.career_id = c.id
+                LEFT JOIN core.riasec_labels rl ON rl.id = m.label_id
+                WHERE cr.assessment_id = :assessment_id
+                GROUP BY cr.career_id, cr.score, cr.rank, c.slug, c.onet_code,
+                         c.title_vi, c.title_en, c.short_desc_en, c.short_desc_vn
+                ORDER BY cr.rank ASC
+                LIMIT :top_k
+                """
+            )
+            
+            rows = db.execute(sql, {"assessment_id": assessment_id, "top_k": top_k}).fetchall()
+            
+            items = []
+            for row in rows:
+                riasec_codes = row[9] if row[9] else []
+                if isinstance(riasec_codes, (list, tuple)):
+                    riasec_codes = [str(x) for x in riasec_codes if x is not None]
+                
+                items.append({
+                    "career_id": row[3] or str(row[0]),  # slug or career_id
+                    "slug": row[3],
+                    "job_onet": row[4],
+                    "title_vi": row[5],
+                    "title_en": row[6],
+                    "description": row[7] or row[8] or "",
+                    "match_score": float(row[1]) if row[1] else 0.0,
+                    "display_match": float(row[1]) if row[1] else 0.0,
+                    "tags": riasec_codes,
+                    "job_zone": None,
+                    "position": row[2] or 0,
+                })
+            
+            return items
+            
+        except Exception as e:
+            logger.error(f"Failed to get saved recommendations: {e}")
+            return []
 
     # ====================================================================== #
     # 4. AI-core integration
@@ -416,17 +568,17 @@ class RecService:
                 
             if resp.status_code != 200:
                 print(f"AI-core error {resp.status_code}: {resp.text}")
-                return self._get_fallback_recommendations(top_k)
+                return []  # Return empty to trigger saved recommendations fallback
 
             data = resp.json()
             items = data.get("items", [])
             if not isinstance(items, list):
                 print("AI-core returned invalid format")
-                return self._get_fallback_recommendations(top_k)
+                return []  # Return empty to trigger saved recommendations fallback
 
         except Exception as e:
             print(f"AI-core not reachable: {e}")
-            return self._get_fallback_recommendations(top_k)
+            return []  # Return empty to trigger saved recommendations fallback
 
         out: List[Dict[str, Any]] = []
         for it in items:
@@ -473,18 +625,21 @@ class RecService:
         assessment_id: int,
     ) -> Dict[str, Any]:
         """
-        Lấy RIASEC scores trực tiếp từ core.assessments (thang 1-5 gốc).
-        KHÔNG dùng fused traits vì đã bị normalize về 0-1.
+        Lấy RIASEC scores từ assessment cùng session với assessment_id hiện tại.
+        Nếu assessment_id là RIASEC thì dùng luôn scores của nó.
+        Nếu không, tìm RIASEC assessment trong cùng session (cùng user, trong 5 phút).
         
         Đảm bảo:
+        - Lấy RIASEC assessment từ CÙNG SESSION với assessment_id
         - Thứ tự R, I, A, S, E, C đúng
         - Điểm gốc thang 1-5 (chưa normalize)
         - Deterministic 100%
+        - Mỗi bài test dùng RIASEC của chính session đó
         """
-        # 1) Lấy user_id từ assessment
+        # 1) Lấy user_id và session_id từ assessment
         sql = text(
             """
-            SELECT user_id
+            SELECT user_id, session_id
             FROM core.assessments
             WHERE id = :aid
             LIMIT 1
@@ -496,30 +651,55 @@ class RecService:
             return {"riasec_top_dim": None, "riasec_values": None}
         
         user_id = row.get("user_id")
+        session_id = row.get("session_id")
         if not user_id:
             logger.error(f"Assessment {assessment_id} has no user_id")
             return {"riasec_top_dim": None, "riasec_values": None}
         
-        # 2) Lấy RIASEC scores trực tiếp từ core.assessments (thang 1-5 gốc)
-        # Lấy assessment RIASEC mới nhất của user này
-        sql_riasec = text(
-            """
-            SELECT scores
-            FROM core.assessments
-            WHERE user_id = :uid AND a_type = 'RIASEC'
-            ORDER BY created_at DESC
-            LIMIT 1
-            """
-        )
-        riasec_row = db.execute(sql_riasec, {"uid": user_id}).mappings().first()
+        # 2) Lấy RIASEC scores từ assessment CÙNG SESSION (không phải mới nhất của user)
+        riasec_row = None
+        
+        if session_id:
+            # Lấy RIASEC assessment từ cùng session
+            sql_riasec = text(
+                """
+                SELECT scores
+                FROM core.assessments
+                WHERE session_id = :sid AND a_type = 'RIASEC'
+                LIMIT 1
+                """
+            )
+            riasec_row = db.execute(sql_riasec, {"sid": session_id}).mappings().first()
+            logger.info(f"Assessment {assessment_id}: Looking for RIASEC in session {session_id}")
+        
+        # Fallback: nếu không có session_id hoặc không tìm thấy RIASEC trong session
+        if not riasec_row or not riasec_row.get("scores"):
+            # Nếu assessment_id chính là RIASEC, dùng luôn
+            sql_check = text(
+                """
+                SELECT scores, a_type
+                FROM core.assessments
+                WHERE id = :aid
+                LIMIT 1
+                """
+            )
+            check_row = db.execute(sql_check, {"aid": assessment_id}).mappings().first()
+            if check_row and check_row.get("a_type") == "RIASEC":
+                riasec_row = check_row
+                logger.info(f"Assessment {assessment_id} is itself a RIASEC assessment")
         
         if not riasec_row or not riasec_row.get("scores"):
-            logger.error(f"User {user_id} has no RIASEC assessment")
+            logger.error(f"Assessment {assessment_id}: No RIASEC assessment found in session {session_id}")
             return {"riasec_top_dim": None, "riasec_values": None}
         
-        # 3) Parse scores dict → vector theo thứ tự R, I, A, S, E, C
-        scores_dict = riasec_row.get("scores") or {}
+        # 4) Parse scores dict → vector theo thứ tự R, I, A, S, E, C
         dims = ["R", "I", "A", "S", "E", "C"]
+        
+        # Get scores from riasec_row
+        scores_dict = riasec_row.get("scores")
+        if not scores_dict or not isinstance(scores_dict, dict):
+            logger.error(f"Assessment {assessment_id}: Invalid RIASEC scores format")
+            return {"riasec_top_dim": None, "riasec_values": None}
         
         riasec_vec: List[float] = []
         for dim in dims:
@@ -529,7 +709,7 @@ class RecService:
                 return {"riasec_top_dim": None, "riasec_values": None}
             riasec_vec.append(float(score))
         
-        # 4) Tính top_dim với tie-breaking rule: R,I,A,S,E,C (index nhỏ hơn ưu tiên)
+        # 5) Tính top_dim với tie-breaking rule: R,I,A,S,E,C (index nhỏ hơn ưu tiên)
         # Sort với (-score, index) để đảm bảo deterministic khi có tie
         sorted_indices = sorted(range(6), key=lambda i: (-riasec_vec[i], i))
         top_dim = dims[sorted_indices[0]]

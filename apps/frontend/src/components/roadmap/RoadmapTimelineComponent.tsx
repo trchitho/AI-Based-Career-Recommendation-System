@@ -85,7 +85,7 @@ const RoadmapTimelineComponent = ({
         }
 
       `}</style>
-      
+
       {/* Timeline Line */}
       <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-gray-200 via-purple-200 to-gray-200 dark:from-gray-700 dark:via-purple-700 dark:to-gray-700"></div>
 
@@ -102,10 +102,9 @@ const RoadmapTimelineComponent = ({
             <div key={milestone.order} className="relative pl-16">
               {/* Timeline Node */}
               <div
-                className={`absolute left-5 top-2 w-6 h-6 rounded-full border-4 transition-all duration-300 ${
-                  isLocked
-                    ? 'bg-gradient-to-br from-purple-400 to-pink-400 border-purple-200 dark:border-purple-600 shadow-lg'
-                    : isCompleted
+                className={`absolute left-5 top-2 w-6 h-6 rounded-full border-4 transition-all duration-300 ${isLocked
+                  ? 'bg-gradient-to-br from-purple-400 to-pink-400 border-purple-200 dark:border-purple-600 shadow-lg'
+                  : isCompleted
                     ? 'bg-[#4A7C59] dark:bg-green-600 border-[#E8F5E9] dark:border-green-300'
                     : isCurrent
                       ? 'bg-orange-500 dark:bg-orange-600 border-orange-100 dark:border-orange-900 animate-pulse'
@@ -141,10 +140,9 @@ const RoadmapTimelineComponent = ({
 
               {/* Milestone Card */}
               <div
-                className={`relative overflow-hidden rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl ${
-                  isLocked
-                    ? 'locked-card bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/10 dark:to-pink-900/10 border-purple-200 dark:border-purple-700'
-                    : isCurrent
+                className={`relative overflow-hidden rounded-2xl shadow-lg border transition-all duration-300 hover:shadow-xl ${isLocked
+                  ? 'locked-card bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/10 dark:to-pink-900/10 border-purple-200 dark:border-purple-700'
+                  : isCurrent
                     ? 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-300 dark:border-orange-600 shadow-orange-200/50 dark:shadow-orange-900/20'
                     : isCompleted
                       ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-300 dark:border-green-600'
@@ -184,7 +182,7 @@ const RoadmapTimelineComponent = ({
                         {milestone.skillName}
                       </h3>
                       <p className={`text-sm mb-3 ${isLocked ? 'text-gray-500 dark:text-gray-400' : 'text-gray-600 dark:text-gray-400'}`}>
-                        {isLocked ? 'Mở khóa để truy cập nội dung học tập chuyên sâu' : milestone.description}
+                        {isLocked ? 'Unlock to access in-depth learning content' : milestone.description}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,7 +216,7 @@ const RoadmapTimelineComponent = ({
                   <div className="relative">
                     {/* Gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-gray-800 dark:via-gray-800/80 pointer-events-none z-10"></div>
-                    
+
                     <div className="px-6 pb-6 pt-4 relative">
                       {/* Blurred preview content */}
                       <div className="filter blur-sm opacity-50 mb-4">
@@ -228,7 +226,7 @@ const RoadmapTimelineComponent = ({
                           <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
                         </div>
                       </div>
-                      
+
                       {/* Unlock CTA */}
                       <div className="absolute inset-x-6 bottom-6 z-20">
                         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-xl border border-gray-200 dark:border-gray-700">
@@ -238,18 +236,18 @@ const RoadmapTimelineComponent = ({
                                 <path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" />
                               </svg>
                             </div>
-                            <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Nội dung Premium</h4>
+                            <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Premium Content</h4>
                             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                              Tài liệu học tập, bài tập thực hành và hướng dẫn chi tiết
+                              Learning materials, practical exercises and detailed guides
                             </p>
-                            <button 
+                            <button
                               onClick={() => window.location.href = '/pricing'}
                               className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                               </svg>
-                              Mở khóa ngay
+                              Unlock Now
                               <span>✨</span>
                             </button>
                           </div>

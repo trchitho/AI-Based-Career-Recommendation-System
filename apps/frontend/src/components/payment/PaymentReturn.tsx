@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { paymentService } from '../../services/paymentService';
+import { clearSubscriptionCache } from '../../hooks/useSubscription';
 
 const PaymentReturn = () => {
   const [searchParams] = useSearchParams();
@@ -18,42 +19,45 @@ const PaymentReturn = () => {
 
         if (!orderId) {
           setStatus('failed');
-          setMessage('Không tìm thấy thông tin đơn hàng');
+          setMessage('Order information not found');
           return;
         }
 
         // Poll payment status with enhanced settings
         const result = await paymentService.pollPaymentStatus(orderId, 60, 2000); // 60 attempts, 2 seconds each = 2 minutes total
-        
+
         console.log('🎯 [PaymentReturn] Final poll result:', result);
-        
+
         if (result.success && result.payment.status === 'success') {
           setStatus('success');
-          setMessage('Thanh toán thành công! Tài khoản của bạn đã được nâng cấp.');
-          
+          setMessage('Payment successful! Your account has been upgraded.');
+
+          // Clear subscription cache to force refresh
+          clearSubscriptionCache();
+
           // Trigger subscription refresh
           paymentService.triggerSubscriptionRefresh();
-          
+
           // Clean up
           localStorage.removeItem('pending_payment_order');
-          
+
           // Redirect after 3 seconds
           setTimeout(() => {
             navigate('/roadmap?payment=success');
           }, 3000);
-          
+
         } else if (result.payment.status === 'cancelled') {
           setStatus('cancelled');
-          setMessage('Thanh toán đã bị hủy');
+          setMessage('Payment was cancelled');
         } else {
           setStatus('failed');
-          setMessage('Thanh toán thất bại');
+          setMessage('Payment failed');
         }
-        
+
       } catch (error: any) {
         console.error('Error checking payment status:', error);
         setStatus('failed');
-        setMessage('Không thể kiểm tra trạng thái thanh toán');
+        setMessage('Unable to check payment status');
       }
     };
 
@@ -109,13 +113,13 @@ const PaymentReturn = () => {
   const getStatusTitle = () => {
     switch (status) {
       case 'checking':
-        return 'Đang kiểm tra thanh toán...';
+        return 'Checking payment...';
       case 'success':
-        return 'Thanh toán thành công!';
+        return 'Payment Successful!';
       case 'failed':
-        return 'Thanh toán thất bại';
+        return 'Payment Failed';
       case 'cancelled':
-        return 'Thanh toán đã hủy';
+        return 'Payment Cancelled';
     }
   };
 
@@ -125,45 +129,45 @@ const PaymentReturn = () => {
         <div className="flex justify-center mb-6">
           {getStatusIcon()}
         </div>
-        
+
         <h1 className={`text-2xl font-bold mb-4 ${getStatusColor()}`}>
           {getStatusTitle()}
         </h1>
-        
+
         <p className="text-gray-600 dark:text-gray-400 mb-8">
           {message}
         </p>
-        
+
         <div className="space-y-3">
           {status === 'success' && (
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Đang chuyển hướng về trang chính...
+              Redirecting to main page...
             </div>
           )}
-          
+
           {(status === 'failed' || status === 'cancelled') && (
             <div className="space-y-3">
               <button
                 onClick={() => navigate('/pricing')}
                 className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
-                Thử lại thanh toán
+                Try payment again
               </button>
               <button
                 onClick={() => navigate('/')}
                 className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
               >
-                Về trang chủ
+                Go to homepage
               </button>
             </div>
           )}
-          
+
           {status === 'checking' && (
             <button
               onClick={() => navigate('/')}
               className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
             >
-              Về trang chủ
+              Go to homepage
             </button>
           )}
         </div>

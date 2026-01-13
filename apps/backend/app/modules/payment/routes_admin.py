@@ -138,7 +138,7 @@ def get_payments(
     date_to: Optional[str] = Query(None, description="Lọc đến ngày (YYYY-MM-DD)"),
     user_id: Optional[int] = Query(None, description="Lọc theo ID người dùng"),
     sort_by: str = Query("created_at", description="Sắp xếp theo field"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$", description="Thứ tự sắp xếp"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Thứ tự sắp xếp"),
     db: Session = Depends(_db),
     _: dict = Depends(require_admin),
 ):
@@ -409,7 +409,7 @@ def search_users(
 
 @router.get("/export")
 def export_payments(
-    format: str = Query("csv", regex="^(csv|json)$", description="Định dạng xuất"),
+    format: str = Query("csv", pattern="^(csv|json)$", description="Định dạng xuất"),
     status_filter: Optional[str] = Query(None, description="Lọc theo trạng thái"),
     payment_method: Optional[str] = Query(None, description="Lọc theo phương thức thanh toán"),
     date_from: Optional[str] = Query(None, description="Lọc từ ngày (YYYY-MM-DD)"),

@@ -1,7 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Question, QuestionResponse } from '../../types/assessment';
 import { assessmentService } from '../../services/assessmentService';
+import { useAuth } from '../../contexts/AuthContext';
+
+// LocalStorage key for auto-save - now includes userId for per-user storage
+const AUTOSAVE_KEY_PREFIX = 'assessment_autosave_';
+const AUTOSAVE_TIMESTAMP_KEY_PREFIX = 'assessment_autosave_timestamp_';
+const AUTOSAVE_EXPIRY_HOURS = 24; // Dữ liệu hết hạn sau 24 giờ
+
+// Helper to get user-specific keys
+const getAutosaveKey = (userId: number | string | undefined) => 
+  `${AUTOSAVE_KEY_PREFIX}${userId || 'guest'}`;
+const getAutosaveTimestampKey = (userId: number | string | undefined) => 
+  `${AUTOSAVE_TIMESTAMP_KEY_PREFIX}${userId || 'guest'}`;
+
+interface AutoSaveData {
+  responses: [string, string | number][];
+  currentPage: number;
+  questionsCount: number;
+  questionIds: string[]; // Lưu thứ tự câu hỏi để khôi phục đúng
+  questions: Question[]; // Lưu toàn bộ câu hỏi để không phụ thuộc API
+}
 
 interface CareerTestComponentProps {
   onComplete: (responses: QuestionResponse[]) => void;
@@ -10,17 +30,183 @@ interface CareerTestComponentProps {
 
 const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const { t } = useTranslation();
+  const { user } = useAuth(); // Get current user
+  const userId = user?.id; // User ID for per-user storage
+  
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [responses, setResponses] = useState<Map<string, string | number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [savedProgress, setSavedProgress] = useState<AutoSaveData | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const questionsPerPage = 5;
+
+  // Check if saved data is expired
+  const isSavedDataValid = useCallback(() => {
+    const timestamp = localStorage.getItem(getAutosaveTimestampKey(userId));
+    if (!timestamp) return false;
+
+    const savedTime = new Date(timestamp);
+    const now = new Date();
+    const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
+
+    return hoursDiff < AUTOSAVE_EXPIRY_HOURS;
+  }, [userId]);
+
+  // Load saved progress from localStorage
+  const loadSavedProgress = useCallback(() => {
+    try {
+      const autosaveKey = getAutosaveKey(userId);
+      const saved = localStorage.getItem(autosaveKey);
+      console.log(`📂 Raw localStorage data for user ${userId}:`, saved);
+
+      if (saved && isSavedDataValid()) {
+        const data: AutoSaveData = JSON.parse(saved);
+        console.log('📋 Parsed data:', data);
+
+        // Validate data structure
+        if (data && Array.isArray(data.responses) && data.responses.length > 0) {
+          return data;
+        }
+      }
+
+      // Check timestamp
+      const timestamp = localStorage.getItem(getAutosaveTimestampKey(userId));
+      console.log('⏰ Timestamp:', timestamp);
+
+    } catch (e) {
+      console.error('❌ Error loading saved progress:', e);
+    }
+    return null;
+  }, [isSavedDataValid, userId]);
+
+  // Save progress to localStorage - include questions for proper restoration
+  const saveProgress = useCallback((responsesMap: Map<string, string | number>, page: number, questions: Question[]) => {
+    try {
+      const data: AutoSaveData = {
+        responses: Array.from(responsesMap.entries()),
+        currentPage: page,
+        questionsCount: questions.length,
+        questionIds: questions.map(q => String(q.id)),
+        questions: questions, // Lưu toàn bộ câu hỏi
+      };
+      const autosaveKey = getAutosaveKey(userId);
+      const timestampKey = getAutosaveTimestampKey(userId);
+      localStorage.setItem(autosaveKey, JSON.stringify(data));
+      localStorage.setItem(timestampKey, new Date().toISOString());
+      setLastSaved(new Date());
+      console.log(`✅ Auto-saved for user ${userId}:`, data.responses.length, 'answers, page', page);
+    } catch (e) {
+      console.error('❌ Error saving progress:', e);
+    }
+  }, [userId]);
+
+  // Clear saved progress
+  const clearSavedProgress = useCallback(() => {
+    const autosaveKey = getAutosaveKey(userId);
+    const timestampKey = getAutosaveTimestampKey(userId);
+    localStorage.removeItem(autosaveKey);
+    localStorage.removeItem(timestampKey);
+    setSavedProgress(null);
+    console.log(`🗑️ Cleared saved progress for user ${userId}`);
+  }, [userId]);
+
+  // Check for saved progress on mount and when userId changes
+  useEffect(() => {
+    // Cleanup old autosave data without userId (legacy format)
+    const oldAutosaveKey = 'assessment_autosave';
+    const oldTimestampKey = 'assessment_autosave_timestamp';
+    if (localStorage.getItem(oldAutosaveKey)) {
+      console.log('🧹 Cleaning up legacy autosave data (no userId)');
+      localStorage.removeItem(oldAutosaveKey);
+      localStorage.removeItem(oldTimestampKey);
+    }
+    
+    console.log(`🔍 Checking for saved progress for user ${userId}...`);
+    const saved = loadSavedProgress();
+    console.log('📦 Saved data:', saved);
+
+    if (saved && saved.responses && saved.responses.length > 0) {
+      console.log('✅ Found saved progress:', saved.responses.length, 'answers');
+      console.log('🔔 Setting showResumeModal to TRUE');
+      setSavedProgress(saved);
+      setShowResumeModal(true);
+    } else {
+      console.log('❌ No saved progress found');
+      // Reset state when switching users
+      setSavedProgress(null);
+      setShowResumeModal(false);
+    }
+  }, [userId]); // Re-check when userId changes (user login/logout)
+
+  // Resume from saved progress
+  const handleResume = () => {
+    if (savedProgress) {
+      console.log('🔄 Resuming with', savedProgress.responses.length, 'answers');
+
+      const restoredResponses = new Map(savedProgress.responses);
+      console.log('🗺️ Restored Map size:', restoredResponses.size);
+
+      setResponses(restoredResponses);
+      setCurrentPage(savedProgress.currentPage);
+
+      // Dùng câu hỏi đã lưu thay vì từ API
+      if (savedProgress.questions && savedProgress.questions.length > 0) {
+        console.log('✅ Using saved questions:', savedProgress.questions.length);
+        setAllQuestions(savedProgress.questions);
+        setLoading(false); // Không cần load từ API nữa
+      }
+
+      setShowResumeModal(false);
+    }
+  };
+
+  // Start fresh (clear saved data)
+  const handleStartFresh = () => {
+    clearSavedProgress();
+    setShowResumeModal(false);
+    setResponses(new Map());
+    setCurrentPage(0);
+  };
 
   useEffect(() => {
     fetchQuestions();
   }, []);
+
+  // Save on page unload (when user closes tab or navigates away)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (responses.size > 0 && allQuestions.length > 0) {
+        // Force save before leaving
+        const data: AutoSaveData = {
+          responses: Array.from(responses.entries()),
+          currentPage: currentPage,
+          questionsCount: allQuestions.length,
+          questionIds: allQuestions.map(q => String(q.id)),
+          questions: allQuestions, // Lưu toàn bộ câu hỏi
+        };
+        const autosaveKey = getAutosaveKey(userId);
+        const timestampKey = getAutosaveTimestampKey(userId);
+        localStorage.setItem(autosaveKey, JSON.stringify(data));
+        localStorage.setItem(timestampKey, new Date().toISOString());
+        console.log(`💾 Saved on unload for user ${userId}:`, data.responses.length, 'answers');
+
+        // Show confirmation dialog
+        e.preventDefault();
+        e.returnValue = 'Bạn có chắc muốn thoát? Tiến trình đã được lưu tự động.';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [responses, currentPage, allQuestions.length, userId]);
 
   const fetchQuestions = async () => {
     try {
@@ -70,11 +256,15 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const totalPages = Math.ceil(allQuestions.length / questionsPerPage);
   const isLastPage = currentPage === totalPages - 1;
 
-  const handleAnswer = (questionId: string, answer: string | number) => {
+  const handleAnswer = (questionId: string | number, answer: string | number) => {
     const newResponses = new Map(responses);
-    newResponses.set(questionId, answer);
+    // Always use string key for consistency
+    newResponses.set(String(questionId), answer);
     setResponses(newResponses);
     setError(null);
+
+    // Auto-save to localStorage
+    saveProgress(newResponses, currentPage, allQuestions);
 
     // --- LOGIC TỰ ĐỘNG CUỘN VÀ CHUYỂN TRANG ---
     const currentIndex = pageQuestions.findIndex(q => q.id === questionId);
@@ -93,11 +283,15 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         }
       } else {
         // Nếu là câu cuối của trang (Câu thứ 5)
-        const allAnswered = pageQuestions.every(q => newResponses.has(q.id));
+        const allAnswered = pageQuestions.every(q => newResponses.has(String(q.id)));
 
         if (allAnswered && !isLastPage) {
           // Đã trả lời hết 5 câu và chưa phải trang cuối -> Qua trang mới & Lên đầu
-          setCurrentPage(prev => prev + 1);
+          const newPage = currentPage + 1;
+          setCurrentPage(newPage);
+          // Save với page mới
+          saveProgress(newResponses, newPage, allQuestions);
+
           const element = document.getElementById('assessment-top');
           if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -132,12 +326,15 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   };
 
   const handleSubmit = () => {
-    const unansweredQuestions = allQuestions.filter(q => !responses.has(q.id));
+    const unansweredQuestions = allQuestions.filter(q => !responses.has(String(q.id)));
 
     if (unansweredQuestions.length > 0) {
       setError(`Please answer all questions. ${unansweredQuestions.length} question(s) remaining.`);
       return;
     }
+
+    // Clear saved progress on successful submit
+    clearSavedProgress();
 
     const responseArray: QuestionResponse[] = Array.from(responses.entries()).map(
       ([questionId, answer]) => ({
@@ -156,18 +353,67 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
   const areCurrentPageQuestionsAnswered = () => {
     const pageQuestions = getCurrentPageQuestions();
-    return pageQuestions.every(q => responses.has(q.id));
+    return pageQuestions.every(q => responses.has(String(q.id)));
   };
 
-  const getAnswer = (questionId: string) => {
-    return responses.get(questionId);
+  const getAnswer = (questionId: string | number) => {
+    // Try both string and number keys for compatibility
+    const strKey = String(questionId);
+
+    return responses.get(strKey);
   };
 
-  if (loading) {
+  if (loading && !showResumeModal) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 border-t-green-600 rounded-full animate-spin mb-4"></div>
         <p className="text-gray-500 dark:text-gray-400 font-medium">Loading questions...</p>
+      </div>
+    );
+  }
+
+  // Show resume modal even while loading
+  console.log('🎯 Render check - showResumeModal:', showResumeModal, 'savedProgress:', savedProgress?.responses?.length);
+
+  if (showResumeModal && savedProgress) {
+    console.log('🔔 SHOWING RESUME MODAL!');
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-fade-in-up">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Continue Assessment?
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              You have an incomplete assessment ({savedProgress.responses.length} questions answered).
+              Would you like to continue or start fresh?
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleResume}
+              className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Continue ({savedProgress.responses.length} answers)
+            </button>
+            <button
+              onClick={handleStartFresh}
+              className="w-full px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-bold transition-all"
+            >
+              Start Fresh
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -210,6 +456,18 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
             style={{ width: `${getProgress()}%` }}
           ></div>
         </div>
+
+        {/* Auto-save indicator - Centered below progress bar */}
+        {lastSaved && responses.size > 0 && (
+          <div className="flex justify-center mt-4">
+            <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-green-200 dark:border-green-800">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Saved ({responses.size} answers)
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Title */}
@@ -238,6 +496,12 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       <div className="space-y-6 mb-12">
         {pageQuestions.map((question, index) => {
           const answer = getAnswer(question.id);
+
+          // Debug log
+          if (index === 0) {
+            console.log('🔍 Question ID:', question.id, 'Answer:', answer, 'Responses size:', responses.size);
+            console.log('🔍 All response keys:', Array.from(responses.keys()).slice(0, 5));
+          }
 
           return (
             <div
@@ -293,8 +557,8 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
           onClick={handlePrevious}
           disabled={currentPage === 0}
           className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${currentPage === 0
-              ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

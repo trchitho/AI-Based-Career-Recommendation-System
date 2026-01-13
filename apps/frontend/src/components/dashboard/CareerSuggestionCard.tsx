@@ -11,9 +11,9 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
   const navigate = useNavigate();
   useTranslation();
 
-  const handleViewRoadmap = () => {
+  const handleViewCareer = () => {
     const key = (career as any).slug || career.id;
-    navigate(`/careers/${key}/roadmap`);
+    navigate(`/careers/${key}`);
   };
 
   const displayTitle =
@@ -26,7 +26,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
 
   return (
     <div
-      onClick={handleViewRoadmap}
+      onClick={handleViewCareer}
       className="group bg-white dark:bg-gray-800 rounded-[24px] border border-gray-100 dark:border-gray-700 p-6 md:p-8 
                  shadow-sm hover:shadow-xl hover:shadow-green-900/10 dark:shadow-none 
                  transition-all duration-300 cursor-pointer flex flex-col justify-between h-full min-h-[320px]"
@@ -74,7 +74,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
       {/* Footer Action */}
       <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between group/btn">
         <span className="text-sm font-bold text-gray-400 group-hover/btn:text-gray-600 dark:group-hover/btn:text-gray-300 transition-colors">
-          View Roadmap
+          View Career Details
         </span>
         <button
           className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-green-500/30"

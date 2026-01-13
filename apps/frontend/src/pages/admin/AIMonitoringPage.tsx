@@ -1,12 +1,41 @@
+/**
+ * AI MONITORING PAGE - English Only, 100% Dynamic Data
+ */
+
 import { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
-import { AIMetrics, UserFeedback } from '../../types/admin';
-import { useTranslation } from "react-i18next";
+
+/* ---------------------------------------------
+   TYPES
+---------------------------------------------- */
+interface AIMetrics {
+  totalRecommendations: number;
+  totalAssessments: number;
+  avgRecommendationsPerAssessment: number;
+  assessmentsWithEssay: number;
+  avgProcessingTime: number;
+  errorRate: number;
+  errorCount: number;
+  successCount: number;
+  avgFeedbackRating: number;
+  totalFeedback: number;
+  riasecDistribution: Record<string, string>;
+  bigFiveDistribution: Record<string, string>;
+}
+
+interface UserFeedback {
+  id: string;
+  userId: string;
+  userName: string;
+  assessmentId: string | null;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
 
 /* ---------------------------------------------
    SHARED STYLE CONSTANTS
 ---------------------------------------------- */
-
 const baseInput =
   "w-full px-3 py-2 rounded-lg border " +
   "bg-white dark:bg-[#1E293B] " +
@@ -25,10 +54,7 @@ const tableHead =
 /* ---------------------------------------------
    MAIN COMPONENT
 ---------------------------------------------- */
-
 const AIMonitoringPage = () => {
-  const { t } = useTranslation();
-
   const [metrics, setMetrics] = useState<AIMetrics | null>(null);
   const [feedback, setFeedback] = useState<UserFeedback[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,25 +71,22 @@ const AIMonitoringPage = () => {
     loadFeedback();
   }, []);
 
-  /* ------------ Load Metrics ------------- */
   const loadMetrics = async () => {
     try {
       setLoading(true);
       const data = await adminService.getAIMetrics();
       setMetrics(data);
     } catch (error) {
-      console.error(t("ai.errorLoadingMetrics"), error);
+      console.error("Error loading metrics:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  /* ------------ Load Feedback ------------- */
   const loadFeedback = async () => {
     try {
       setFeedbackLoading(true);
-
-      const params: any = {};
+      const params: Record<string, string | number> = {};
       if (filters.startDate) params.startDate = filters.startDate;
       if (filters.endDate) params.endDate = filters.endDate;
       if (filters.minRating) params.minRating = Number(filters.minRating);
@@ -71,7 +94,7 @@ const AIMonitoringPage = () => {
       const data = await adminService.getUserFeedback(params);
       setFeedback(data.feedback || []);
     } catch (error) {
-      console.error(t("ai.errorLoadingFeedback"), error);
+      console.error("Error loading feedback:", error);
     } finally {
       setFeedbackLoading(false);
     }
@@ -84,7 +107,7 @@ const AIMonitoringPage = () => {
   if (loading) {
     return (
       <div className="h-64 flex justify-center items-center text-gray-500 dark:text-gray-400">
-        {t("ai.loadingMetrics")}
+        Loading metrics...
       </div>
     );
   }
@@ -92,62 +115,87 @@ const AIMonitoringPage = () => {
   if (!metrics) {
     return (
       <div className={`${cardClass} text-red-500`}>
-        {t("ai.failedToLoadMetrics")}
+        Failed to load metrics
       </div>
     );
   }
 
   return (
     <div className="space-y-10">
-
       {/* TITLE */}
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-        {t("ai.performanceMonitoring")}
+        AI Performance Monitoring
       </h1>
 
-      {/* ---------------------------------- */}
       {/* PERFORMANCE METRICS */}
-      {/* ---------------------------------- */}
       <section>
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          {t("ai.performanceMetrics")}
+          Performance Metrics
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
-            title={t("ai.totalRecommendations")}
+            title="Total Recommendations"
             value={metrics.totalRecommendations}
-            subtitle={`${metrics.avgRecommendationsPerAssessment.toFixed(1)} ${t("ai.perAssessment")}`}
+            subtitle={`${metrics.avgRecommendationsPerAssessment.toFixed(1)} per assessment`}
           />
 
           <MetricCard
-            title={t("ai.essayAnalysis")}
+            title="Essay Analysis"
             value={metrics.assessmentsWithEssay}
-            subtitle={t("ai.assessmentsAnalyzed")}
+            subtitle="Assessments analyzed"
           />
 
           <MetricCard
-            title={t("ai.avgProcessingTime")}
+            title="Avg Processing Time"
             value={`${metrics.avgProcessingTime}s`}
-            subtitle={t("ai.perAssessment")}
+            subtitle="per assessment"
             status={metrics.avgProcessingTime < 30 ? 'good' : 'warning'}
           />
 
           <MetricCard
-            title={t("ai.errorRate")}
-            value="0.5%"
-            subtitle={t("ai.last30Days")}
+            title="Error Rate"
+            value={`${metrics.errorRate}%`}
+            subtitle="Last 30 days"
+            status={metrics.errorRate < 5 ? 'good' : metrics.errorRate < 10 ? 'warning' : 'error'}
+          />
+        </div>
+
+        {/* Additional Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+          <MetricCard
+            title="Total Assessments"
+            value={metrics.totalAssessments}
+            subtitle="All time"
+          />
+
+          <MetricCard
+            title="Success Operations"
+            value={metrics.successCount}
+            subtitle="Last 30 days"
             status="good"
+          />
+
+          <MetricCard
+            title="Error Operations"
+            value={metrics.errorCount}
+            subtitle="Last 30 days"
+            status={metrics.errorCount === 0 ? 'good' : 'warning'}
+          />
+
+          <MetricCard
+            title="Avg Feedback Rating"
+            value={metrics.avgFeedbackRating > 0 ? `${metrics.avgFeedbackRating} ★` : 'N/A'}
+            subtitle={`${metrics.totalFeedback} total reviews`}
+            status={metrics.avgFeedbackRating >= 4 ? 'good' : metrics.avgFeedbackRating >= 3 ? 'warning' : 'error'}
           />
         </div>
       </section>
 
-      {/* ---------------------------------- */}
       {/* RIASEC DISTRIBUTION */}
-      {/* ---------------------------------- */}
       <section>
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          {t("ai.riasecDistribution")}
+          RIASEC Distribution
         </h2>
 
         <div className={cardClass}>
@@ -160,11 +208,10 @@ const AIMonitoringPage = () => {
                   </span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">{value}</span>
                 </div>
-
                 <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full">
                   <div
                     className="bg-blue-600 h-2 rounded-full"
-                    style={{ width: `${parseFloat(value)}%` }}
+                    style={{ width: value }}
                   />
                 </div>
               </div>
@@ -173,12 +220,10 @@ const AIMonitoringPage = () => {
         </div>
       </section>
 
-      {/* ---------------------------------- */}
-      {/* BIG FIVE */}
-      {/* ---------------------------------- */}
+      {/* BIG FIVE DISTRIBUTION */}
       <section>
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          {t("ai.bigFiveDistribution")}
+          Big Five Distribution
         </h2>
 
         <div className={cardClass}>
@@ -191,11 +236,10 @@ const AIMonitoringPage = () => {
                   </span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">{value}</span>
                 </div>
-
                 <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full">
                   <div
                     className="bg-green-600 h-2 rounded-full"
-                    style={{ width: `${parseFloat(value)}%` }}
+                    style={{ width: value }}
                   />
                 </div>
               </div>
@@ -204,21 +248,18 @@ const AIMonitoringPage = () => {
         </div>
       </section>
 
-      {/* ---------------------------------- */}
       {/* USER FEEDBACK */}
-      {/* ---------------------------------- */}
       <section>
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          {t("ai.userFeedback")}
+          User Feedback
         </h2>
 
         {/* Filters */}
-        <div className={cardClass}>
+        <div className={`${cardClass} mb-6`}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t("ai.startDate")}
+                Start Date
               </label>
               <input
                 type="date"
@@ -230,7 +271,7 @@ const AIMonitoringPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t("ai.endDate")}
+                End Date
               </label>
               <input
                 type="date"
@@ -242,19 +283,19 @@ const AIMonitoringPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t("ai.minRating")}
+                Min Rating
               </label>
               <select
                 value={filters.minRating}
                 onChange={(e) => handleFilter("minRating", e.target.value)}
                 className={baseInput}
               >
-                <option value="">{t("ai.allRatings")}</option>
-                <option value="1">1+ {t("ai.stars")}</option>
-                <option value="2">2+ {t("ai.stars")}</option>
-                <option value="3">3+ {t("ai.stars")}</option>
-                <option value="4">4+ {t("ai.stars")}</option>
-                <option value="5">5 {t("ai.stars")}</option>
+                <option value="">All Ratings</option>
+                <option value="1">1+ Stars</option>
+                <option value="2">2+ Stars</option>
+                <option value="3">3+ Stars</option>
+                <option value="4">4+ Stars</option>
+                <option value="5">5 Stars</option>
               </select>
             </div>
 
@@ -263,49 +304,34 @@ const AIMonitoringPage = () => {
                 onClick={loadFeedback}
                 className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
               >
-                {t("ai.applyFilters")}
+                Apply Filters
               </button>
             </div>
-
           </div>
         </div>
 
         {/* Feedback List */}
         {feedbackLoading ? (
           <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-            {t("ai.loadingFeedback")}
+            Loading feedback...
           </div>
         ) : feedback.length > 0 ? (
-          <div className={`${cardClass} overflow-hidden`}>
+          <div className={`${cardClass} overflow-hidden p-0`}>
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className={tableHead}>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    {t("ai.user")}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    {t("ai.rating")}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    {t("ai.comment")}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    {t("ai.date")}
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
-                    {t("ai.actions")}
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">User</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Rating</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Comment</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
                 </tr>
               </thead>
-
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-[#0F172A]">
                 {feedback.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-gray-100 dark:hover:bg-[#1E293B] text-gray-900 dark:text-white"
-                  >
-                    <td className="px-6 py-4">{item.userId}</td>
-
+                  <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-[#1E293B]">
+                    <td className="px-6 py-4 text-gray-900 dark:text-white">
+                      {item.userName}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
@@ -318,70 +344,53 @@ const AIMonitoringPage = () => {
                         ))}
                       </div>
                     </td>
-
-                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
-                      {item.comment}
+                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300 max-w-md truncate">
+                      {item.comment || '-'}
                     </td>
-
                     <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </td>
-
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-blue-600 dark:text-blue-400 mr-3">
-                        {t("ai.viewDetails")}
-                      </button>
-                      <button className="text-red-600 dark:text-red-400">
-                        {t("ai.flag")}
-                      </button>
+                      {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-'}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-
         ) : (
           <div className={`${cardClass} text-center py-10`}>
-            <p className="text-gray-600 dark:text-gray-400">
-              {t("ai.noFeedback")}
-            </p>
+            <p className="text-gray-600 dark:text-gray-400">No feedback found</p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {t("ai.feedbackAppearsWhenUsersRate")}
+              Feedback will appear here when users rate their assessments
             </p>
           </div>
         )}
       </section>
 
-      {/* ---------------------------------- */}
       {/* SYSTEM HEALTH */}
-      {/* ---------------------------------- */}
       <section>
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          {t("ai.systemHealth")}
+          System Health
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <HealthIndicator
-            title={t("ai.serviceStatus")}
+            title="Service Status"
             status="operational"
-            message={t("ai.allSystemsOperational")}
+            message="All systems operational"
           />
 
           <HealthIndicator
-            title={t("ai.responseTime")}
-            status="good"
-            message={`${t("ai.avg")}: ${metrics.avgProcessingTime}s (${t("ai.target")} < 30s)`}
+            title="Response Time"
+            status={metrics.avgProcessingTime < 30 ? 'good' : 'warning'}
+            message={`Avg: ${metrics.avgProcessingTime}s (Target < 30s)`}
           />
 
           <HealthIndicator
-            title={t("ai.successRate")}
-            status="good"
-            message={t("ai.successRateMessage")}
+            title="Success Rate"
+            status={metrics.errorRate < 5 ? 'good' : 'warning'}
+            message={`${(100 - metrics.errorRate).toFixed(1)}% success rate`}
           />
         </div>
       </section>
-
     </div>
   );
 };
@@ -389,7 +398,6 @@ const AIMonitoringPage = () => {
 /* ---------------------------------------------
    METRIC CARD
 ---------------------------------------------- */
-
 interface MetricProps {
   title: string;
   value: string | number;
@@ -405,15 +413,9 @@ const MetricCard: React.FC<MetricProps> = ({ title, value, subtitle, status }) =
   };
 
   return (
-    <div
-      className={`
-        ${cardClass}
-        ${status ? `border-l-4 ${statusColors[status]}` : ""}
-      `}
-    >
+    <div className={`${cardClass} ${status ? `border-l-4 ${statusColors[status]}` : ""}`}>
       <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{title}</p>
       <p className="text-3xl font-semibold text-gray-900 dark:text-white mt-1">{value}</p>
-
       {subtitle && (
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{subtitle}</p>
       )}
@@ -422,9 +424,8 @@ const MetricCard: React.FC<MetricProps> = ({ title, value, subtitle, status }) =
 };
 
 /* ---------------------------------------------
-   HEALTH CARD
+   HEALTH INDICATOR
 ---------------------------------------------- */
-
 interface HealthProps {
   title: string;
   status: 'operational' | 'good' | 'warning' | 'error';
@@ -432,26 +433,31 @@ interface HealthProps {
 }
 
 const HealthIndicator: React.FC<HealthProps> = ({ title, status, message }) => {
-  const statusColors: any = {
+  const statusColors: Record<string, string> = {
     operational: "bg-green-500",
     good: "bg-green-500",
     warning: "bg-yellow-500",
     error: "bg-red-500",
   };
 
+  const statusLabels: Record<string, string> = {
+    operational: "Operational",
+    good: "Good",
+    warning: "Warning",
+    error: "Error",
+  };
+
   return (
     <div className={cardClass}>
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-sm font-medium text-gray-900 dark:text-white">{title}</h3>
-
         <div className="flex items-center">
           <div className={`w-3 h-3 rounded-full ${statusColors[status]} mr-2`} />
-          <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
-            {status}
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            {statusLabels[status]}
           </span>
         </div>
       </div>
-
       <p className="text-sm text-gray-600 dark:text-gray-400">{message}</p>
     </div>
   );

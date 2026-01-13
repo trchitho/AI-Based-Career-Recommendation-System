@@ -18,6 +18,10 @@ export default defineConfig({
         target: 'http://localhost:8000', // 🔄 Proxy API backend
         changeOrigin: true,
       },
+      '/bff': {
+        target: 'http://localhost:8000', // 🔄 Proxy BFF endpoints
+        changeOrigin: true,
+      },
     },
   },
 })

@@ -104,6 +104,56 @@ def get_user_subscription(request: Request):
     return subscription
 
 
+@router.get("/debug-subscription")
+def debug_user_subscription(request: Request):
+    """Debug: Xem tất cả subscription của user trong database"""
+    user_id = require_user(request)
+    session = _db(request)
+    
+    # Get all subscriptions for this user
+    query = text("""
+        SELECT 
+            us.id,
+            us.user_id,
+            us.plan_id,
+            sp.name as plan_name,
+            us.status,
+            us.payment_id,
+            us.expires_at,
+            us.created_at,
+            us.updated_at
+        FROM core.user_subscriptions us
+        JOIN core.subscription_plans sp ON us.plan_id = sp.id
+        WHERE us.user_id = :user_id
+        ORDER BY us.created_at DESC
+    """)
+    
+    result = session.execute(query, {"user_id": user_id}).fetchall()
+    
+    subscriptions = []
+    for row in result:
+        subscriptions.append({
+            "id": row.id,
+            "user_id": row.user_id,
+            "plan_id": row.plan_id,
+            "plan_name": row.plan_name,
+            "status": row.status,
+            "payment_id": row.payment_id,
+            "expires_at": str(row.expires_at) if row.expires_at else None,
+            "created_at": str(row.created_at) if row.created_at else None,
+            "updated_at": str(row.updated_at) if row.updated_at else None
+        })
+    
+    # Also get current subscription from service
+    current = SubscriptionService.get_user_subscription(user_id, session)
+    
+    return {
+        "user_id": user_id,
+        "all_subscriptions": subscriptions,
+        "current_subscription": current
+    }
+
+
 @router.post("/debug/upgrade")
 def debug_upgrade_user(request: Request, payload: dict):
     """Debug endpoint để manual upgrade user"""
@@ -132,3 +182,57 @@ def debug_upgrade_user(request: Request, payload: dict):
             
     except Exception as e:
         return {"success": False, "message": str(e)}
+
+
+
+@router.post("/force-sync")
+def force_sync_subscription(request: Request):
+    """Force sync subscription từ payment thành công gần nhất"""
+    user_id = require_user(request)
+    session = _db(request)
+    
+    # Tìm payment SUCCESS gần nhất
+    payment_query = text("""
+        SELECT id, amount, description, status, created_at
+        FROM core.payments
+        WHERE user_id = :user_id
+        AND UPPER(status) = 'SUCCESS'
+        ORDER BY created_at DESC
+        LIMIT 1
+    """)
+    
+    payment = session.execute(payment_query, {"user_id": user_id}).fetchone()
+    
+    if not payment:
+        return {"success": False, "message": "Không tìm thấy giao dịch thành công"}
+    
+    # Xác định plan từ amount
+    # Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
+    plan_name = "Basic"
+    if payment.amount >= 280000:
+        plan_name = "Pro"
+    elif payment.amount >= 180000:
+        plan_name = "Premium"
+    elif payment.amount >= 80000:
+        plan_name = "Basic"
+    
+    # Upgrade
+    success = SubscriptionService.upgrade_user_subscription(
+        user_id=user_id,
+        plan_name=plan_name,
+        payment_id=payment.id,
+        session=session
+    )
+    
+    if success:
+        return {
+            "success": True,
+            "message": f"Đã nâng cấp lên gói {plan_name}",
+            "plan": plan_name,
+            "payment_amount": payment.amount
+        }
+    else:
+        return {
+            "success": False,
+            "message": f"Không thể nâng cấp. Plan '{plan_name}' có thể không tồn tại trong database."
+        }

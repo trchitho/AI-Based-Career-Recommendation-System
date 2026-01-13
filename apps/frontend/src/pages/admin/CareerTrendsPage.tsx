@@ -1,5 +1,8 @@
+/**
+ * CAREER TRENDS PAGE - English Only
+ */
+
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import api from "../../lib/api";
 
 interface CareerTrend {
@@ -17,7 +20,6 @@ interface TrendData {
 }
 
 const CareerTrendsPage = () => {
-  const { t } = useTranslation();
   const [data, setData] = useState<TrendData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<"7d" | "30d" | "90d" | "all">("30d");
@@ -59,22 +61,21 @@ const CareerTrendsPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold dark:text-white">Xu hướng nghề nghiệp</h1>
+        <h1 className="text-2xl font-bold dark:text-white">Career Trends</h1>
         <div className="flex gap-2">
           {[
-            { value: "7d", label: "7 ngày" },
-            { value: "30d", label: "30 ngày" },
-            { value: "90d", label: "90 ngày" },
-            { value: "all", label: "Tất cả" },
+            { value: "7d", label: "7 Days" },
+            { value: "30d", label: "30 Days" },
+            { value: "90d", label: "90 Days" },
+            { value: "all", label: "All Time" },
           ].map((p) => (
             <button
               key={p.value}
-              onClick={() => setPeriod(p.value as any)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                period === p.value
+              onClick={() => setPeriod(p.value as typeof period)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition ${period === p.value
                   ? "bg-blue-600 text-white"
                   : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-              }`}
+                }`}
             >
               {p.label}
             </button>
@@ -84,30 +85,30 @@ const CareerTrendsPage = () => {
 
       {loading ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center text-gray-500 dark:text-gray-400">
-          Đang tải...
+          Loading...
         </div>
       ) : !data ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center text-gray-500 dark:text-gray-400">
-          Không có dữ liệu
+          No data available
         </div>
       ) : (
         <>
           {/* Summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Tổng đề xuất</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Recommendations</p>
               <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                 {data.totalRecommendations.toLocaleString()}
               </p>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Top nghề nghiệp</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Top Careers</p>
               <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                 {data.topCareers.length}
               </p>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Khoảng thời gian</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Time Period</p>
               <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                 {data.periodLabel}
               </p>
@@ -117,15 +118,14 @@ const CareerTrendsPage = () => {
           {/* Top Careers Chart */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold mb-4 dark:text-white">
-              Top 10 nghề nghiệp được đề xuất nhiều nhất
+              Top 10 Most Recommended Careers
             </h2>
             <div className="space-y-4">
               {data.topCareers.slice(0, 10).map((career, index) => (
                 <div key={career.career_id} className="flex items-center gap-4">
                   <div className="w-8 text-center">
-                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                      index < 3 ? "bg-yellow-400 text-yellow-900" : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
-                    }`}>
+                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${index < 3 ? "bg-yellow-400 text-yellow-900" : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
+                      }`}>
                       {index + 1}
                     </span>
                   </div>
@@ -156,7 +156,7 @@ const CareerTrendsPage = () => {
           {/* Industry Distribution */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold mb-4 dark:text-white">
-              Phân bố theo ngành
+              Distribution by Industry
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Object.entries(

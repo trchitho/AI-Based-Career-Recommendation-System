@@ -130,7 +130,7 @@ def get_payments(
     date_from: Optional[date] = Query(None, description="Từ ngày (YYYY-MM-DD)"),
     date_to: Optional[date] = Query(None, description="Đến ngày (YYYY-MM-DD)"),
     sort_by: str = Query("created_at", description="Sắp xếp theo field"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$", description="Thứ tự sắp xếp"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Thứ tự sắp xếp"),
     db: Session = Depends(_db),
     _: dict = Depends(require_admin),
 ):
