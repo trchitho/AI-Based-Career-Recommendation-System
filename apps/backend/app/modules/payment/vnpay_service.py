@@ -96,6 +96,8 @@ class VNPayService:
             payment_url = f"{self.payment_url}?{query_string}&vnp_SecureHash={secure_hash}"
             
             logger.info(f"VNPay payment URL created for order {order_id}")
+            logger.info(f"VNPay return_url: {self.return_url}")
+            logger.info(f"VNPay payment_url: {payment_url[:200]}...")  # Log first 200 chars
             
             return {
                 "success": True,

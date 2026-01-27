@@ -13,6 +13,7 @@ import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import AssessmentPage from './pages/AssessmentPage';
+import QuizModeSelectorPage from './pages/QuizModeSelectorPage';
 import ResultsPage from './pages/ResultsPage';
 import SessionResultsPage from './pages/SessionResultsPage';
 import AssessmentHistoryPage from './pages/AssessmentHistoryPage';
@@ -126,6 +127,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AssessmentPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/quiz-mode-selector"
+                element={
+                  <ProtectedRoute>
+                    <QuizModeSelectorPage />
                   </ProtectedRoute>
                 }
               />

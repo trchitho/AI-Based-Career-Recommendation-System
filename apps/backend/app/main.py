@@ -165,10 +165,18 @@ def create_app() -> FastAPI:
     # Assessments (nếu có thêm)
     try:
         from .modules.assessments import routes_assessments as assess_router
-
         app.include_router(assess_router.router, prefix="/api/assessments", tags=["assessments"])
+        print("✅ Assessments router registered")
     except Exception as e:
         print("ℹ️  Skip assessments router:", repr(e))
+    
+    # Gamification (optional - can be enabled after assessments work)
+    try:
+        from .modules.assessments import routes_gamification as gamification_router
+        app.include_router(gamification_router.router, prefix="/api/assessments", tags=["gamification"])
+        print("✅ Gamification router registered")
+    except Exception as e:
+        print("ℹ️  Skip gamification router:", repr(e))
 
     # Admin (dashboard, careers, questions, skills)
     try:
