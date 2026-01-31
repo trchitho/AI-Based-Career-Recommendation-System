@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { EssayPrompt, QuestionResponse, AssessmentResult } from '../types/assessment';
 import EssayModalComponent from '../components/assessment/EssayModalComponent';
 import EnhancedAssessmentFlow from '../components/assessment/EnhancedAssessmentFlow';
+import CareerTestComponent from '../components/assessment/CareerTestComponent';
 import { assessmentService } from '../services/assessmentService';
 import MainLayout from '../components/layout/MainLayout';
 import UsageStatus from '../components/subscription/UsageStatus';
@@ -634,7 +635,7 @@ const AssessmentPage = () => {
               )}
 
               <div className="flex-1">
-                <EnhancedAssessmentFlow
+                <CareerTestComponent
                   onComplete={handleTestComplete}
                   onCancel={handleCancel}
                 />
