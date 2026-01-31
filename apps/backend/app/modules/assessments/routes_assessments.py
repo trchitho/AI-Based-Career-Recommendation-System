@@ -669,3 +669,91 @@ def api_save_processed_results(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to save results"
         )
+
+
+# -------------------------------------------------------------------
+# Story Generator Endpoint
+# -------------------------------------------------------------------
+
+class QuestionForStory(BaseModel):
+    id: str
+    question_text: str
+    dimension: Optional[str] = None
+    test_type: str
+
+class GenerateStoryRequest(BaseModel):
+    questions: List[QuestionForStory]
+    group_index: int
+
+@router.post("/generate-story")
+def generate_story_scenarios(
+    request: GenerateStoryRequest
+):
+    """
+    Generate story scenarios for a group of questions using Gemini AI
+    
+    POST /api/assessments/generate-story
+    Body: {
+        "questions": [
+            {"id": "1", "question_text": "...", "dimension": "realistic", "test_type": "RIASEC"},
+            ...
+        ],
+        "group_index": 0
+    }
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Fix import path - assessment not assessments
+        import sys
+        import os
+        
+        # Add parent directory to path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(current_dir)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        
+        from assessment.story_generator import StoryGeneratorService
+        
+        logger.info(f"Generating story for group {request.group_index} with {len(request.questions)} questions")
+        
+        story_service = StoryGeneratorService()
+        
+        # Convert Pydantic models to dicts
+        questions_data = [q.dict() for q in request.questions]
+        
+        result = story_service.generate_group_story(questions_data, request.group_index)
+        
+        logger.info(f"Successfully generated story for group {request.group_index}")
+        
+        return {
+            "success": True,
+            "data": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating story: {e}", exc_info=True)
+        
+        # Return fallback on error
+        return {
+            "success": False,
+            "error": str(e),
+            "data": {
+                "groupScenario": {
+                    "emoji": "📖",
+                    "title": "Tình Huống",
+                    "introduction": "Hãy trải nghiệm các tình huống sau..."
+                },
+                "questionScenarios": [
+                    {
+                        "emoji": "💭",
+                        "title": f"Tình Huống {idx + 1}",
+                        "context": "Hãy suy nghĩ về tình huống này...",
+                        "situation": q.question_text
+                    }
+                    for idx, q in enumerate(request.questions)
+                ]
+            }
+        }

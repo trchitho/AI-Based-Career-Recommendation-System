@@ -247,7 +247,9 @@ uvicorn app.main:app --reload --port 8000
 ```bash
 cd apps/frontend
 npm install
-npm run dev
+npm run devnpm run dev
+npm install page-flip
+npm install react-pageflip
 ```
 
 Sau khi chạy xong, truy cập http://localhost:3000 để sử dụng ứng dụng.
