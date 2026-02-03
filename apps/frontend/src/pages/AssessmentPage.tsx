@@ -600,9 +600,9 @@ const AssessmentPage = () => {
 
           {/* --- STEP 2: TEST INTERFACE (SINGLE CARD) --- */}
           {step === 'test' && (
-            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 w-full max-w-5xl p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
-              <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 w-full max-w-[95vw] p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
+              <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-6 px-4">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                   {quizMode === 'game' ? '🎮 Game Mode Assessment' : 
                    quizMode === 'standard' ? '📋 Standard Assessment' : 
                    t('assessment.title')}
