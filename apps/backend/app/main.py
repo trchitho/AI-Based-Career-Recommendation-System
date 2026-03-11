@@ -300,6 +300,16 @@ def create_app() -> FastAPI:
         app.include_router(chatbot_router.router, tags=["chatbot"])
     except Exception as e:
         print("??  Skip chatbot router:", repr(e))
+
+    # Skill Gap Analysis
+    try:
+        from .modules.skill_gap import routes as skill_gap_router
+
+        app.include_router(skill_gap_router.router, prefix="/api/skill-gap", tags=["skill-gap"])
+        print("✅ Skill Gap Analysis router registered")
+    except Exception as e:
+        print("??  Skip skill gap router:", repr(e))
+    
     # Career 
     try:
         from .modules.careers import routes_trait_evidence as career_router

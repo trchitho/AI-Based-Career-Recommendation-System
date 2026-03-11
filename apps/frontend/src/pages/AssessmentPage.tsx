@@ -163,8 +163,13 @@ const AssessmentPage = () => {
         incrementUsage('assessment');
       }
 
-      // Navigate directly to results with the assessment data
-      navigate(`/results/${result.id}`, { state: { assessmentResult: result } });
+      // Story mode already includes essay, so skip essay step and go directly to results
+      console.log('[AssessmentPage] Story mode completed, redirecting to results...');
+      setStep('processing');
+      
+      setTimeout(() => {
+        navigate(`/results/${result.id}`);
+      }, 1500);
     } catch (err: any) {
       console.error('Error processing enhanced assessment:', err);
       setError('Failed to process assessment. Please try again.');
@@ -189,6 +194,7 @@ const AssessmentPage = () => {
       const result = await assessmentService.submitAssessment({
         testTypes: ['RIASEC', 'BIG_FIVE'],
         responses,
+        test_mode: 'traditional',
       }) as { assessmentId: string; usage_info?: any };
 
       setAssessmentId(result.assessmentId);
@@ -455,8 +461,9 @@ const AssessmentPage = () => {
                       </>
                     )}
 
-                    <span className="relative z-10">
-                      {limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? 'Limit Reached - Upgrade' : '🚀 Start Interactive Assessment'}
+                    <span className="relative z-10 flex flex-col items-center gap-1">
+                      <span>{limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? 'Limit Reached - Upgrade' : '🚀 Start Interactive Assessment'}</span>
+                      <span className="text-xs font-normal opacity-75">Story-based experience</span>
                     </span>
                     <svg className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M13 7l5 5m0 0l-5 5m5-5H6"} />
@@ -469,7 +476,10 @@ const AssessmentPage = () => {
                     disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
                     className="group relative flex-1 inline-flex items-center justify-center px-8 py-4 text-gray-700 dark:text-gray-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-600 rounded-2xl font-semibold text-lg hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300 hover:shadow-lg"
                   >
-                    <span className="relative z-10">📝 Traditional Test</span>
+                    <span className="relative z-10 flex flex-col items-center gap-1">
+                      <span>📝 Traditional Test</span>
+                      <span className="text-xs font-normal opacity-75">Standard questionnaire</span>
+                    </span>
                   </button>
                   
                   <div className="flex items-center justify-center gap-3 text-base font-semibold text-gray-600 dark:text-gray-400 px-6 py-3 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl backdrop-blur-sm">

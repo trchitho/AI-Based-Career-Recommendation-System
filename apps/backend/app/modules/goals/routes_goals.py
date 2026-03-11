@@ -396,12 +396,12 @@ def _get_gemini_models():
     
     # Prioritize fast models - same as chatbot
     return [
-        "models/gemma-3-4b-it",  # Free model, no rate limit
+        "models/gemini-2.5-flash",       # Fast and efficient (2025)
+        "models/gemini-2.0-flash",       # Stable alternative
+        "models/gemini-flash-latest",    # Always latest
+        "models/gemma-3-4b-it",          # Free model, no rate limit
         "models/gemma-3-1b-it",
-        "gemini-2.0-flash",
         "models/gemini-2.0-flash-lite",
-        "gemini-1.5-flash-latest",
-        "gemini-pro",
     ]
 
 

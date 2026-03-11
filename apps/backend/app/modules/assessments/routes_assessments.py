@@ -152,6 +152,7 @@ class QuestionResponseIn(BaseModel):
 class AssessmentSubmitIn(BaseModel):
     testTypes: List[str] = []
     responses: List[QuestionResponseIn]
+    test_mode: Optional[str] = None  # 'traditional', 'story', or None
 
 
 class EssaySubmitIn(BaseModel):
@@ -220,6 +221,9 @@ def api_submit_assessment(
     Nhận toàn bộ bài làm trắc nghiệm và trả về assessmentId.
     user_id lấy từ _current_user_id (dựa trên req.state / header / JWT).
     """
+    
+    print(f"[DEBUG] 🔥 Submit assessment - test_mode from body: {getattr(body, 'test_mode', 'NOT FOUND')}")
+    print(f"[DEBUG] 🔥 Body dump: {body.model_dump()}")
     
     # Check subscription status
     subscription = SubscriptionService.get_user_subscription(user_id, db)
@@ -562,8 +566,13 @@ def get_user_sessions(
             # Get RIASEC and BigFive scores from assessments
             riasec_scores = None
             big_five_scores = None
+            test_mode = None  # Track test_mode from assessments
             
             for assessment in assessments:
+                # Get test_mode from any assessment in the session
+                if assessment.test_mode and not test_mode:
+                    test_mode = assessment.test_mode
+                    
                 if assessment.a_type == "RIASEC" and assessment.scores:
                     # Convert raw scores (1-5) to percentage (0-100)
                     riasec_name_map = {
@@ -601,6 +610,7 @@ def get_user_sessions(
                 "completed_at": session.created_at.isoformat(),
                 "assessment_count": len(assessments),
                 "assessment_types": ", ".join(assessment_types),
+                "test_mode": test_mode,
                 "riasec_scores": riasec_scores,
                 "big_five_scores": big_five_scores,
             })

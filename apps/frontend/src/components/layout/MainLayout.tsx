@@ -38,6 +38,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
     { to: "/assessment", label: "Assessment" },
+    { to: "/skill-gap", label: "Skill Gap" },
     { to: "/blog", label: "Blog" },
     { to: "/careers", label: "Careers" },
     { to: "/pricing", label: "Pricing" },

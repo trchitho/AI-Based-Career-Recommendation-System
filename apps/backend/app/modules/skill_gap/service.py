@@ -1,0 +1,294 @@
+"""
+Service layer for Skill Gap Analysis
+"""
+from typing import Dict, List
+from sqlalchemy.orm import Session
+from fastapi import UploadFile
+
+from .cv_parser import CVParser
+from .cv_parser_v2 import CVParserV2
+from .graph_analyzer import SkillGraphAnalyzer
+from .models import SkillGapAnalysis
+from app.modules.graph.neo4j_client import get_driver
+
+
+class SkillGapService:
+    """Service để xử lý skill gap analysis"""
+    
+    def __init__(self, db: Session, neo4j_driver=None):
+        """
+        Initialize service
+        
+        Args:
+            db: Database session
+            neo4j_driver: Neo4j driver (optional)
+        """
+        self.db = db
+        self.cv_parser = CVParser(db_session=db)
+        self.cv_parser_v2 = CVParserV2(db_session=db)  # New AI-first parser
+        self.graph_analyzer = SkillGraphAnalyzer(neo4j_driver, db_session=db)
+    
+    async def analyze_cv(
+        self, 
+        user_id: int, 
+        cv_file: UploadFile, 
+        career_id: str
+    ) -> Dict:
+        """
+        Phân tích CV và so sánh với yêu cầu công việc
+        
+        Args:
+            user_id: ID người dùng
+            cv_file: File CV upload
+            career_id: ID nghề nghiệp mục tiêu
+            
+        Returns:
+            Dict: Kết quả phân tích
+        """
+        import time
+        start_time = time.time()
+        
+        # Read file content
+        print(f"[1/4] Reading file: {cv_file.filename}")
+        file_content = await cv_file.read()
+        
+        # Detect file type
+        file_ext = cv_file.filename.split('.')[-1].lower() if '.' in cv_file.filename else 'pdf'
+        if file_ext in ['jpg', 'jpeg', 'png']:
+            file_type = 'image'
+        else:
+            file_type = 'pdf'
+        
+        print(f"  File size: {len(file_content)} bytes, Type: {file_type}")
+        
+        # Parse CV
+        print(f"[2/4] Parsing CV with AI (reading full content)...")
+        parse_start = time.time()
+        
+        # Use V2 parser - AI reads entire CV
+        cv_data = self.cv_parser_v2.parse_cv_complete(file_content, file_type, target_career=career_id)
+        
+        # Extract results
+        personal_info = cv_data.get('personal_info', {})
+        cv_skills = cv_data.get('skills', [])
+        
+        # If AI didn't find skills, fallback to hybrid method
+        if not cv_skills or len(cv_skills) == 0:
+            print("  ⚠️ AI found no skills, using hybrid fallback...")
+            text = cv_data.get('text', '')
+            if file_type == 'image':
+                text = self.cv_parser.extract_text_from_image(file_content)
+            else:
+                text = self.cv_parser.extract_text_from_pdf(file_content)
+            
+            cv_skills = self.cv_parser.extract_skills_hybrid(text, target_career=career_id)
+            
+            # Also try to extract personal info with fallback
+            if not personal_info.get('name'):
+                personal_info = self.cv_parser.extract_personal_info(text)
+        
+        print(f"  Extracted {len(cv_skills)} skills in {time.time() - parse_start:.2f}s")
+        
+        # Analyze skill gap
+        print(f"[3/4] Analyzing skill gap...")
+        analyze_start = time.time()
+        analysis_result = self.graph_analyzer.analyze_skill_gap(cv_skills, career_id)
+        print(f"  Analysis complete in {time.time() - analyze_start:.2f}s")
+        
+        # Save to database
+        print(f"[4/4] Saving to database...")
+        db_start = time.time()
+        
+        # Extract personal info
+        personal_info = cv_data.get('personal_info', {})
+        
+        # Get text preview safely
+        text_preview = cv_data.get('text', '')
+        if not text_preview and file_type == 'image':
+            text_preview = 'Image CV - OCR not available'
+        
+        skill_gap_record = SkillGapAnalysis(
+            user_id=user_id,
+            career_id=career_id,
+            cv_filename=cv_file.filename,
+            cv_text_preview=text_preview[:500] if text_preview else '',
+            cv_name=personal_info.get('name') or None,
+            cv_email=personal_info.get('email') or None,
+            cv_phone=personal_info.get('phone') or None,
+            cv_skills=cv_skills,
+            job_skills=self.graph_analyzer.get_job_required_skills(career_id),
+            matched_skills=analysis_result.get('matched_skills', []),
+            skill_gaps=analysis_result.get('skill_gaps', {}),
+            extra_skills=analysis_result.get('extra_skills', []),
+            match_percentage=analysis_result.get('match_percentage', 0),
+            total_required_skills=analysis_result.get('total_required_skills', 0),
+            matched_skills_count=analysis_result.get('matched_skills_count', 0),
+            missing_skills_count=analysis_result.get('missing_skills_count', 0)
+        )
+        
+        self.db.add(skill_gap_record)
+        self.db.commit()
+        self.db.refresh(skill_gap_record)
+        print(f"  Saved in {time.time() - db_start:.2f}s")
+        
+        total_time = time.time() - start_time
+        print(f"Total analysis time: {total_time:.2f}s")
+        
+        return {
+            'analysis_id': skill_gap_record.id,
+            'career_id': career_id,
+            'cv_filename': cv_file.filename,
+            'cv_skills_count': len(cv_skills),
+            'personal_info': personal_info,
+            'processing_time': round(total_time, 2),
+            **analysis_result
+        }
+    
+    def get_user_analyses(self, user_id: int, limit: int = 10) -> List[SkillGapAnalysis]:
+        """
+        Lấy danh sách phân tích của user
+        
+        Args:
+            user_id: ID người dùng
+            limit: Số lượng kết quả
+            
+        Returns:
+            List[SkillGapAnalysis]: Danh sách phân tích
+        """
+        return self.db.query(SkillGapAnalysis)\
+            .filter(SkillGapAnalysis.user_id == user_id)\
+            .order_by(SkillGapAnalysis.created_at.desc())\
+            .limit(limit)\
+            .all()
+    
+    def get_analysis_by_id(self, analysis_id: int, user_id: int) -> SkillGapAnalysis:
+        """
+        Lấy chi tiết một phân tích
+        
+        Args:
+            analysis_id: ID phân tích
+            user_id: ID người dùng
+            
+        Returns:
+            SkillGapAnalysis: Chi tiết phân tích
+        """
+        return self.db.query(SkillGapAnalysis)\
+            .filter(
+                SkillGapAnalysis.id == analysis_id,
+                SkillGapAnalysis.user_id == user_id
+            )\
+            .first()
+    
+    def generate_heatmap_data(self, analysis_id: int, user_id: int) -> Dict:
+        """
+        Tạo dữ liệu cho heatmap visualization
+        
+        Args:
+            analysis_id: ID phân tích
+            user_id: ID người dùng
+            
+        Returns:
+            Dict: Dữ liệu heatmap
+        """
+        analysis = self.get_analysis_by_id(analysis_id, user_id)
+        if not analysis:
+            return None
+        
+        nodes = []
+        links = []
+        
+        # Add career node (center)
+        nodes.append({
+            'id': f'career_{analysis.career_id}',
+            'name': analysis.career_id,
+            'type': 'career',
+            'color': '#667eea'
+        })
+        
+        # Ensure skill_gaps is a dict with default structure
+        skill_gaps = analysis.skill_gaps if isinstance(analysis.skill_gaps, dict) else {}
+        if not skill_gaps:
+            skill_gaps = {'critical': [], 'important': [], 'nice_to_have': []}
+        
+        # Ensure matched_skills is a list
+        matched_skills = analysis.matched_skills if isinstance(analysis.matched_skills, list) else []
+        
+        # Add matched skills (green)
+        for skill in matched_skills:
+            nodes.append({
+                'id': f'skill_{skill["name"]}',
+                'name': skill['name'],
+                'type': 'matched',
+                'category': skill.get('category', 'Other'),
+                'color': '#10b981',  # Green
+                'importance': skill.get('importance', 0.5)
+            })
+            links.append({
+                'source': f'career_{analysis.career_id}',
+                'target': f'skill_{skill["name"]}',
+                'strength': skill.get('importance', 0.5)
+            })
+        
+        # Add critical gaps (red)
+        for skill in skill_gaps.get('critical', []):
+            nodes.append({
+                'id': f'skill_{skill["name"]}',
+                'name': skill['name'],
+                'type': 'critical_gap',
+                'category': skill.get('category', 'Other'),
+                'color': '#ef4444',  # Red
+                'importance': skill.get('importance', 0.8)
+            })
+            links.append({
+                'source': f'career_{analysis.career_id}',
+                'target': f'skill_{skill["name"]}',
+                'strength': skill.get('importance', 0.8),
+                'style': 'dashed'
+            })
+        
+        # Add important gaps (orange)
+        for skill in skill_gaps.get('important', []):
+            nodes.append({
+                'id': f'skill_{skill["name"]}',
+                'name': skill['name'],
+                'type': 'important_gap',
+                'category': skill.get('category', 'Other'),
+                'color': '#f59e0b',  # Orange
+                'importance': skill.get('importance', 0.5)
+            })
+            links.append({
+                'source': f'career_{analysis.career_id}',
+                'target': f'skill_{skill["name"]}',
+                'strength': skill.get('importance', 0.5),
+                'style': 'dashed'
+            })
+        
+        # Add nice-to-have gaps (yellow)
+        for skill in skill_gaps.get('nice_to_have', []):
+            nodes.append({
+                'id': f'skill_{skill["name"]}',
+                'name': skill['name'],
+                'type': 'nice_to_have_gap',
+                'category': skill.get('category', 'Other'),
+                'color': '#eab308',  # Yellow
+                'importance': skill.get('importance', 0.3)
+            })
+            links.append({
+                'source': f'career_{analysis.career_id}',
+                'target': f'skill_{skill["name"]}',
+                'strength': skill.get('importance', 0.3),
+                'style': 'dotted'
+            })
+        
+        return {
+            'nodes': nodes,
+            'links': links,
+            'match_percentage': analysis.match_percentage,
+            'career_name': analysis.career_id,
+            'legend': {
+                'matched': {'color': '#10b981', 'label': 'Kỹ năng đã có'},
+                'critical_gap': {'color': '#ef4444', 'label': 'Lỗ hổng quan trọng'},
+                'important_gap': {'color': '#f59e0b', 'label': 'Lỗ hổng cần bổ sung'},
+                'nice_to_have_gap': {'color': '#eab308', 'label': 'Kỹ năng khuyến nghị'}
+            }
+        }

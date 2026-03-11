@@ -218,16 +218,45 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         assessmentService.getQuestions('BIGFIVE'),
       ]);
 
-      const rQueue = [...riasec];
-      const bQueue = [...bigFive];
+      // Group RIASEC questions by label (R, I, A, S, E, C)
+      const riasecByLabel: { [key: string]: Question[] } = {};
+      riasec.forEach(q => {
+        const label = q.dimension || q.id.toString().charAt(0); // Extract first character (R, I, A, S, E, C)
+        if (!riasecByLabel[label]) {
+          riasecByLabel[label] = [];
+        }
+        riasecByLabel[label].push(q);
+      });
+
+      // Group Big Five questions by label (O, C, E, A, N)
+      const bigFiveByLabel: { [key: string]: Question[] } = {};
+      bigFive.forEach(q => {
+        const label = q.dimension || q.id.toString().charAt(0); // Extract first character
+        if (!bigFiveByLabel[label]) {
+          bigFiveByLabel[label] = [];
+        }
+        bigFiveByLabel[label].push(q);
+      });
+
+      // Combine questions by alternating labels
+      const riasecLabels = Object.keys(riasecByLabel).sort(); // R, I, A, S, E, C
+      const bigFiveLabels = Object.keys(bigFiveByLabel).sort(); // A, C, E, N, O
       const combined: Question[] = [];
 
-      while (rQueue.length > 0 || bQueue.length > 0) {
-        if (rQueue.length > 0) {
-          combined.push(rQueue.shift()!);
+      // Interleave label groups: R group, O group, I group, C group, etc.
+      const maxLabels = Math.max(riasecLabels.length, bigFiveLabels.length);
+      for (let i = 0; i < maxLabels; i++) {
+        if (i < riasecLabels.length) {
+          const label = riasecLabels[i];
+          if (label && riasecByLabel[label]) {
+            combined.push(...riasecByLabel[label]);
+          }
         }
-        if (bQueue.length > 0) {
-          combined.push(bQueue.shift()!);
+        if (i < bigFiveLabels.length) {
+          const label = bigFiveLabels[i];
+          if (label && bigFiveByLabel[label]) {
+            combined.push(...bigFiveByLabel[label]);
+          }
         }
       }
 
@@ -496,6 +525,22 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       <div className="space-y-6 mb-12">
         {pageQuestions.map((question, index) => {
           const answer = getAnswer(question.id);
+          const currentLabel = question.dimension || question.id.toString().charAt(0);
+          const prevQuestion = index > 0 ? pageQuestions[index - 1] : null;
+          const prevLabel = prevQuestion ? (prevQuestion.dimension || prevQuestion.id.toString().charAt(0)) : null;
+          const isNewLabelGroup = currentLabel !== prevLabel;
+
+          // Label descriptions
+          const labelDescriptions: { [key: string]: { name: string; description: string; color: string } } = {
+            'R': { name: 'Realistic', description: 'Hands-on, practical, mechanical work', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700' },
+            'I': { name: 'Investigative', description: 'Research, analysis, problem-solving', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' },
+            'A': { name: 'Artistic', description: 'Creative, expressive, innovative work', color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-700' },
+            'S': { name: 'Social', description: 'Helping, teaching, caring for others', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700' },
+            'E': { name: 'Enterprising', description: 'Leadership, persuasion, business', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
+            'C': { name: 'Conventional', description: 'Organization, detail-oriented, structured', color: 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' },
+            'O': { name: 'Openness', description: 'Curiosity, imagination, creativity', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700' },
+            'N': { name: 'Neuroticism', description: 'Emotional stability, stress management', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700' },
+          };
 
           // Debug log
           if (index === 0) {
@@ -504,46 +549,63 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
           }
 
           return (
-            <div
-              id={`question-${question.id}`}
-              key={question.id}
-              className="group bg-gray-50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md scroll-mt-24"
-            >
-              <div className="flex flex-col md:flex-row md:items-center gap-6">
-                {/* Question Text */}
-                <div className="flex-1">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1 block">Question {(currentPage * questionsPerPage) + index + 1}</span>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-snug">
-                    {question.question_text}
-                  </h3>
+            <div key={question.id}>
+              {/* Label Group Header */}
+              {isNewLabelGroup && labelDescriptions[currentLabel] && (
+                <div className={`mb-4 p-4 rounded-xl border-2 ${labelDescriptions[currentLabel].color}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center font-bold text-lg shadow-md">
+                      {currentLabel}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-lg">{labelDescriptions[currentLabel].name}</h4>
+                      <p className="text-sm opacity-80">{labelDescriptions[currentLabel].description}</p>
+                    </div>
+                  </div>
                 </div>
+              )}
 
-                {/* Answer Options */}
-                <div className="flex items-center justify-between md:justify-end gap-3 md:gap-6 w-full md:w-auto mt-4 md:mt-0">
-                  {[
-                    { value: 1, color: 'bg-red-100', active: 'bg-red-500', ring: 'ring-red-200' },
-                    { value: 2, color: 'bg-orange-100', active: 'bg-orange-400', ring: 'ring-orange-200' },
-                    { value: 3, color: 'bg-gray-100', active: 'bg-gray-400', ring: 'ring-gray-200' },
-                    { value: 4, color: 'bg-green-100', active: 'bg-green-500', ring: 'ring-green-200' },
-                    { value: 5, color: 'bg-emerald-100', active: 'bg-emerald-600', ring: 'ring-emerald-200' }
-                  ].map(({ value, color, active, ring }) => (
-                    <button
-                      key={value}
-                      onClick={() => handleAnswer(question.id, value)}
-                      className={`
+              {/* Question Card */}
+              <div
+                id={`question-${question.id}`}
+                className="group bg-gray-50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-md scroll-mt-24"
+              >
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  {/* Question Text */}
+                  <div className="flex-1">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1 block">Question {(currentPage * questionsPerPage) + index + 1}</span>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-snug">
+                      {question.question_text}
+                    </h3>
+                  </div>
+
+                  {/* Answer Options */}
+                  <div className="flex items-center justify-between md:justify-end gap-3 md:gap-6 w-full md:w-auto mt-4 md:mt-0">
+                    {[
+                      { value: 1, color: 'bg-red-100', active: 'bg-red-500', ring: 'ring-red-200' },
+                      { value: 2, color: 'bg-orange-100', active: 'bg-orange-400', ring: 'ring-orange-200' },
+                      { value: 3, color: 'bg-gray-100', active: 'bg-gray-400', ring: 'ring-gray-200' },
+                      { value: 4, color: 'bg-green-100', active: 'bg-green-500', ring: 'ring-green-200' },
+                      { value: 5, color: 'bg-emerald-100', active: 'bg-emerald-600', ring: 'ring-emerald-200' }
+                    ].map(({ value, color, active, ring }) => (
+                      <button
+                        key={value}
+                        onClick={() => handleAnswer(question.id, value)}
+                        className={`
                                     relative w-10 h-10 md:w-12 md:h-12 rounded-full transition-all duration-300 flex items-center justify-center
                                     ${answer === value
-                          ? `${active} text-white scale-110 shadow-lg ring-4 ${ring}`
-                          : `${color} dark:bg-gray-700 text-transparent hover:scale-110`
-                        }
+                            ? `${active} text-white scale-110 shadow-lg ring-4 ${ring}`
+                            : `${color} dark:bg-gray-700 text-transparent hover:scale-110`
+                          }
                                 `}
-                      aria-label={`Rate ${value}`}
-                    >
-                      {answer === value && (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                      )}
-                    </button>
-                  ))}
+                        aria-label={`Rate ${value}`}
+                      >
+                        {answer === value && (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

@@ -24,13 +24,15 @@ class GeminiChatbotService:
     def _initialize_model(self):
         """Initialize model with fallback options"""
         fallback_models = [
-            self.model_name,
-            "models/gemma-3-4b-it",
+            self.model_name,                    # Use model from .env first
+            "models/gemini-2.5-flash",          # Fast and efficient (2025)
+            "models/gemini-2.0-flash",          # Stable alternative
+            "models/gemini-flash-latest",       # Always latest
+            "models/gemma-3-4b-it",             # Smaller model fallback
             "models/gemma-3-1b-it",
             "models/gemini-2.0-flash-lite",
             "models/gemini-flash-lite-latest",
             "models/gemini-2.5-flash-lite",
-            "models/gemini-flash-latest"
         ]
         
         for model_name in fallback_models:

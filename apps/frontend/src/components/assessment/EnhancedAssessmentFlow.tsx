@@ -16,8 +16,9 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
   const [currentStep, setCurrentStep] = useState<FlowStep>('intro');
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
 
-  const handleAssessmentComplete = async (responses: QuestionResponse[]) => {
+  const handleAssessmentComplete = async (responses: QuestionResponse[], essayText?: string) => {
     console.log('[EnhancedAssessmentFlow] Starting assessment submission...', responses);
+    console.log('[EnhancedAssessmentFlow] Essay text:', essayText);
     setCurrentStep('processing');
 
     try {
@@ -27,6 +28,7 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
       
       // Submit to backend API
       console.log('[EnhancedAssessmentFlow] Submitting to backend...');
+      console.log('[EnhancedAssessmentFlow] 🔥 SENDING test_mode: story');
       const submitResponse = await fetch('/api/assessments/submit', {
         method: 'POST',
         headers: {
@@ -35,7 +37,8 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
         },
         body: JSON.stringify({
           testTypes: ['RIASEC', 'BIGFIVE'],
-          responses: responses
+          responses: responses,
+          test_mode: 'story'
         })
       });
 
@@ -50,6 +53,29 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
       const submitData = await submitResponse.json();
       console.log('[EnhancedAssessmentFlow] Submit data:', submitData);
       const assessmentId = submitData.assessmentId;
+
+      // Submit essay if provided
+      if (essayText && essayText.trim().length > 0) {
+        console.log('[EnhancedAssessmentFlow] Submitting essay...');
+        try {
+          await fetch('/api/assessments/essay', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              assessmentId: assessmentId,
+              essayText: essayText,
+              lang: 'vi'
+            })
+          });
+          console.log('[EnhancedAssessmentFlow] Essay submitted successfully');
+        } catch (essayError) {
+          console.error('[EnhancedAssessmentFlow] Essay submission failed:', essayError);
+          // Don't fail the whole process if essay fails
+        }
+      }
 
       // Get results from backend (with AI-core predictions)
       console.log('[EnhancedAssessmentFlow] Fetching results for assessment:', assessmentId);

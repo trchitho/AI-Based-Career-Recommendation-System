@@ -60,7 +60,8 @@ class Assessment(Base):
     a_type = Column(Text, nullable=False)          # 'RIASEC' | 'BigFive'
     scores = Column(JSONB, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    session_id = Column(BigInteger)                # <<< THÊM DÒNG NÀY
+    session_id = Column(BigInteger)
+    test_mode = Column(Text, nullable=True)        # 'traditional' | 'story' | 'enhanced'
     
     # Processed results fields for persistence
     processed_riasec_scores = Column(JSONB, nullable=True)

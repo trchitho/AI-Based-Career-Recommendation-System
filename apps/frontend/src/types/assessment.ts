@@ -4,7 +4,7 @@ export interface Question {
   question_text: string;
   question_type: 'MULTIPLE_CHOICE' | 'SCALE';
   options?: string[];
-  dimension?: string;
+  dimension?: string; // Label/tag for grouping (R, I, A, S, E, C for RIASEC; O, C, E, A, N for Big Five)
   order_index: number;
 }
 
@@ -16,6 +16,7 @@ export interface QuestionResponse {
 export interface AssessmentSubmission {
   testTypes: string[];
   responses: QuestionResponse[];
+  test_mode?: string;
 }
 
 export interface EssaySubmission {

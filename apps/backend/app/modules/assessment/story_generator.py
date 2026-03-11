@@ -14,25 +14,28 @@ class StoryGeneratorService:
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
         self.model_name = os.getenv("GEMINI_MODEL", "gemini-pro")
-        
-        if not self.api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
-        
-        genai.configure(api_key=self.api_key)
         self.model = None
-        self._initialize_model()
+        
+        # Try to initialize model, but don't fail if it doesn't work
+        if self.api_key:
+            try:
+                genai.configure(api_key=self.api_key)
+                self._initialize_model()
+                logger.info("Gemini AI initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Gemini AI: {e}")
+                logger.info("Will use fallback scenarios instead")
+        else:
+            logger.warning("GEMINI_API_KEY not found - using fallback scenarios")
     
     def _initialize_model(self):
-        """Initialize Gemini model with fallback - same as chatbot"""
+        """Initialize Gemini model with fallback - updated model names for 2025"""
         models_to_try = [
-            "models/gemma-3-4b-it",  # Free model, works well
-            "models/gemma-3-1b-it",
-            "models/gemini-2.0-flash-lite",
-            "models/gemini-flash-lite-latest",
-            "models/gemini-2.5-flash-lite",
-            "models/gemini-flash-latest",
-            "gemini-1.5-flash",
-            "gemini-pro"
+            self.model_name,                # Use model from .env first
+            "models/gemini-2.5-flash",      # Fast and efficient (2025)
+            "models/gemini-2.0-flash",      # Stable alternative
+            "models/gemini-flash-latest",   # Always latest
+            "models/gemma-3-4b-it",         # Smaller model fallback
         ]
         
         for model_name in models_to_try:
@@ -51,6 +54,7 @@ class StoryGeneratorService:
                 
                 logger.info(f"Successfully initialized Gemini model: {model_name}")
                 self.model = model
+                self.model_name = model_name
                 return
             except Exception as e:
                 logger.warning(f"Failed to initialize model {model_name}: {e}")
@@ -84,6 +88,19 @@ class StoryGeneratorService:
             
             result = json.loads(response_text)
             
+            # Validate that we have the correct number of scenarios
+            question_scenarios = result.get('questions', [])
+            if len(question_scenarios) < len(questions):
+                logger.warning(f"AI returned {len(question_scenarios)} scenarios but expected {len(questions)}. Filling with fallback.")
+                # Fill missing scenarios
+                for idx in range(len(question_scenarios), len(questions)):
+                    question_scenarios.append({
+                        'emoji': '💭',
+                        'title': f'Tình Huống {idx + 1}',
+                        'context': 'Hãy suy nghĩ về tình huống này...',
+                        'situation': questions[idx].get('question_text', '')
+                    })
+            
             return {
                 'groupScenario': {
                     'emoji': result.get('groupScenario', {}).get('emoji', '📖'),
@@ -115,24 +132,25 @@ class StoryGeneratorService:
         return f"""
 Bạn là một chuyên gia tạo câu chuyện tương tác cho bài đánh giá nghề nghiệp.
 
-NHIỆM VỤ: Tạo một câu chuyện liên kết cho nhóm 5 câu hỏi sau, biến chúng thành một tình huống thực tế, sinh động.
+NHIỆM VỤ: Tạo một câu chuyện liên kết cho nhóm {len(questions)} câu hỏi sau, biến chúng thành một tình huống thực tế, sinh động.
 
 NHÓM CÂU HỎI {group_index + 1}:
 {questions_list}
 
 YÊU CẦU:
-1. Tạo một bối cảnh chung (scenario) cho cả nhóm 5 câu hỏi
+1. Tạo một bối cảnh chung (scenario) cho cả nhóm {len(questions)} câu hỏi
 2. Mỗi câu hỏi là một phần của câu chuyện đó
 3. Câu chuyện phải mạch lạc, liên kết với nhau
 4. Sử dụng ngôn ngữ Việt Nam tự nhiên, thân thiện
 5. Tạo cảm giác như người dùng đang trải nghiệm một tình huống thực tế
+6. QUAN TRỌNG: Phải tạo CHÍNH XÁC {len(questions)} scenarios trong mảng "questions"
 
 TRẢ VỀ JSON FORMAT (chỉ JSON, không có text khác):
 {{
   "groupScenario": {{
     "emoji": "emoji phù hợp với nhóm (ví dụ: 🏢, 🎨, 🔬, 🤝)",
     "title": "Tiêu đề cho nhóm tình huống (3-6 từ, tiếng Việt)",
-    "introduction": "Giới thiệu bối cảnh chung cho 5 câu hỏi (2-3 câu, tiếng Việt)"
+    "introduction": "Giới thiệu bối cảnh chung cho {len(questions)} câu hỏi (2-3 câu, tiếng Việt)"
   }},
   "questions": [
     {{
@@ -141,6 +159,7 @@ TRẢ VỀ JSON FORMAT (chỉ JSON, không có text khác):
       "context": "Kịch bản/bối cảnh chi tiết của tình huống (2-3 câu, mô tả sinh động)",
       "situation": "Câu hỏi ngắn gọn dựa trên câu hỏi gốc (1 câu)"
     }}
+    // ... tổng cộng {len(questions)} items
   ]
 }}
 
@@ -162,7 +181,7 @@ Nhóm câu hỏi về công việc văn phòng:
   ]
 }}
 
-BẮT ĐẦU TẠO CHO NHÓM CÂU HỎI TRÊN:
+BẮT ĐẦU TẠO CHO NHÓM CÂU HỎI TRÊN (nhớ tạo đủ {len(questions)} scenarios):
 """
     
     def _get_fallback_group_story(self, questions: List[Dict[str, Any]], group_index: int) -> Dict[str, Any]:
