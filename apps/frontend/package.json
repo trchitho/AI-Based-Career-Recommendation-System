@@ -17,7 +17,7 @@
     "@tailwindcss/line-clamp": "^0.4.4",
     "@tanstack/react-query": "^5.12.2",
     "@vitalets/google-translate-api": "^9.2.1",
-    "axios": "^1.6.2",
+    "axios": "^1.13.5",
     "i18next": "^25.6.0",
     "i18next-browser-languagedetector": "^8.2.0",
     "lucide-react": "^0.546.0",
