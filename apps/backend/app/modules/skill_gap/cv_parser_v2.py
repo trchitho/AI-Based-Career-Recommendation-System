@@ -1,11 +1,13 @@
 """
 CV Parser V2 - Improved version with AI-first approach
 Đọc toàn bộ CV bằng AI để extract chính xác
+Updated to use 3-stream system
 """
 import re
 from typing import List, Dict
 import PyPDF2
 from io import BytesIO
+from app.core.gemini_manager import multi_stream_manager
 
 
 class CVParserV2:
@@ -18,6 +20,7 @@ class CVParserV2:
     def extract_text_with_ai_vision(self, file_content: bytes, is_pdf: bool = False) -> str:
         """
         Dùng Gemini Vision API để đọc PDF/Image trực tiếp
+        Updated to use CV analysis stream
         
         Args:
             file_content: Nội dung file
@@ -32,19 +35,15 @@ class CVParserV2:
             from PIL import Image
             import io
             
-            api_key = os.getenv('GEMINI_API_KEY')
-            if not api_key:
-                print("  ⚠️ GEMINI_API_KEY not found")
+            # Use the dedicated CV analysis stream
+            cv_stream = multi_stream_manager.get_cv_stream()
+            
+            if not cv_stream.is_available():
+                print("  ⚠️ CV analysis stream not available")
                 return ''
             
-            genai.configure(api_key=api_key)
-            
-            # Use vision model - gemini-2.5-flash supports vision
-            model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
-            model_name = model_name.replace('models/', '').replace('model/', '')
-            
-            print(f"  🤖 Using {model_name} for vision...")
-            model = genai.GenerativeModel(model_name)
+            print(f"Using CV analysis stream: {cv_stream.model_name}")
+            model = cv_stream.model
             
             prompt = """
 Read this CV/Resume image carefully and extract ALL text content.
@@ -71,8 +70,12 @@ Use clear formatting with line breaks between sections.
                     full_text = ""
                     for i, img in enumerate(images):
                         print(f"  📸 Processing page {i+1} with AI Vision...")
-                        response = model.generate_content([prompt, img])
-                        full_text += response.text + "\n\n"
+                        # Use CV stream for content generation
+                        response_text = cv_stream.generate_content_with_retry(
+                            [prompt, img]
+                        )
+                        if response_text:
+                            full_text += response_text + "\n\n"
                     
                     print(f"  ✅ AI Vision extracted {len(full_text)} characters from PDF")
                     return full_text
@@ -91,16 +94,28 @@ Use clear formatting with line breaks between sections.
                     print(f"  🔄 Resizing image from {img.size} to fit {max_size}")
                     img.thumbnail(max_size, Image.Resampling.LANCZOS)
                 
-                response = model.generate_content([prompt, img])
-                text = response.text
+                # Use CV stream for content generation
+                response_text = cv_stream.generate_content_with_retry([prompt, img])
                 
-                print(f"  ✅ AI Vision extracted {len(text)} characters from image")
-                return text
+                if response_text:
+                    print(f"  ✅ AI Vision extracted {len(response_text)} characters from image")
+                    return response_text
+                else:
+                    print("  ⚠️ AI Vision returned no text")
+                    return ""
             
         except Exception as e:
-            print(f"  ❌ AI Vision extraction failed: {e}")
-            import traceback
-            traceback.print_exc()
+            error_msg = str(e)
+            print(f"  ❌ AI Vision extraction failed: {error_msg}")
+            
+            # Check for fast fail conditions
+            if any(keyword in error_msg.lower() for keyword in ['quota', '429', 'rate limit', 'api key', 'expired', 'invalid']):
+                print("  ⚡ FAST FAIL - API quota/key issue detected")
+            else:
+                print("  ⚠️ Unexpected vision error")
+                import traceback
+                traceback.print_exc()
+            
             return ''
     
     def extract_text_from_pdf(self, file_content: bytes) -> str:
@@ -269,19 +284,25 @@ Use clear formatting with line breaks between sections.
             import os
             import json
             
+            # Check if Gemini is enabled
+            gemini_enabled = os.getenv('GEMINI_ENABLED', 'true').lower() == 'true'
+            if not gemini_enabled:
+                print("  ⚠️ Gemini AI is disabled (GEMINI_ENABLED=false)")
+                return self._get_fallback_data()
+            
             api_key = os.getenv('GEMINI_API_KEY')
             if not api_key:
-                print("⚠️ GEMINI_API_KEY not found")
+                print("  ⚠️ GEMINI_API_KEY not found")
                 return self._get_fallback_data()
             
             genai.configure(api_key=api_key)
             
             # Get model name from env - use exactly as specified
-            model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+            model_name = os.getenv('GEMINI_MODEL', 'gemini-flash-latest')
             # Remove any 'models/' prefix if present
             model_name = model_name.replace('models/', '').replace('model/', '')
             
-            print(f"  Using Gemini model: {model_name}")
+            print(f"Using Gemini model: {model_name}")
             model = genai.GenerativeModel(model_name)
             
             # Use full CV text
@@ -353,8 +374,18 @@ CRITICAL RULES:
 - If information not found, use empty string ""
 """
             
-            response = model.generate_content(prompt)
-            response_text = response.text.strip()
+            # Use CV stream for content generation
+            cv_stream = multi_stream_manager.get_cv_stream()
+            
+            if not cv_stream.is_available():
+                print("  ⚠️ CV analysis stream not available")
+                return {}
+            
+            response_text = cv_stream.generate_content_with_retry(prompt)
+            
+            if not response_text:
+                print("  ⚠️ AI complete extraction failed")
+                return {}
             
             print(f"\n📥 AI RESPONSE RECEIVED:")
             print(f"   Length: {len(response_text)} chars")
@@ -427,9 +458,17 @@ CRITICAL RULES:
             }
             
         except Exception as e:
-            print(f"  ⚠️ AI complete extraction failed: {e}")
-            import traceback
-            traceback.print_exc()
+            error_msg = str(e)
+            print(f"  ⚠️ AI complete extraction failed: {error_msg}")
+            
+            # Check for fast fail conditions
+            if any(keyword in error_msg.lower() for keyword in ['quota', '429', 'rate limit', 'api key', 'expired', 'invalid']):
+                print("  ⚡ FAST FAIL - API quota/key issue detected, using fallback immediately")
+            else:
+                print("  ⚠️ Unexpected AI error, using fallback")
+                import traceback
+                traceback.print_exc()
+            
             return self._get_fallback_data()
     
     def _get_fallback_data(self) -> Dict:

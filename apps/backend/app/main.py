@@ -24,6 +24,9 @@ except Exception:
 from app.core.db import engine, test_connection
 from sqlalchemy.orm import sessionmaker
 
+# Initialize multi-stream Gemini manager
+from app.core.gemini_manager import multi_stream_manager
+
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 

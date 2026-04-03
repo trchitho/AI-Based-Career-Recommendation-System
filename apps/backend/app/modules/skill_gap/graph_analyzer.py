@@ -44,75 +44,10 @@ class SkillGraphAnalyzer:
             Dict: {matched_skills, missing_skills, match_scores}
         """
         try:
-            import google.generativeai as genai
-            import os
-            import json
+            from .gemini_utils import gemini_manager
             
-            # Check if AI matching is enabled
-            use_ai = os.getenv('USE_AI_MATCHING', 'true').lower() == 'true'
-            if not use_ai:
-                print("  ⚠️ AI matching disabled (USE_AI_MATCHING=false)")
-                return None
-            
-            api_key = os.getenv('GEMINI_API_KEY')
-            if not api_key:
-                print("  ⚠️ GEMINI_API_KEY not found, using fallback matching")
-                return None
-            
-            genai.configure(api_key=api_key)
-            model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash').replace('models/', '')
-            model = genai.GenerativeModel(model_name)
-            
-            # Prepare data for AI
-            cv_skill_names = [s['name'] for s in cv_skills]
-            job_skill_names = [s['name'] for s in job_skills]
-            
-            prompt = f"""
-You are an expert career analyst. Analyze the skill match between a CV and job requirements.
-
-Career: {career_name}
-
-Job Required Skills:
-{', '.join(job_skill_names)}
-
-CV Skills:
-{', '.join(cv_skill_names)}
-
-Task: Match CV skills to job requirements using semantic understanding.
-
-For example:
-- "AutoCAD" matches "Computer-aided design software" or "CAD software"
-- "GPS" matches "GPS Technology" or "Geographic positioning"
-- "Surveying" matches "Surveying techniques" or "Land surveying"
-- "Python" matches "Programming" or "Software development"
-
-Return JSON with:
-{{
-  "matched_pairs": [
-    {{"cv_skill": "AutoCAD", "job_skill": "CAD software", "confidence": 0.95, "reason": "AutoCAD is a CAD software"}},
-    ...
-  ],
-  "unmatched_cv_skills": ["skill1", "skill2"],
-  "unmatched_job_skills": ["skill1", "skill2"],
-  "overall_match_percentage": 75.5
-}}
-
-CRITICAL: Return ONLY valid JSON, no markdown, no explanations.
-"""
-            
-            print(f"  🤖 AI analyzing semantic skill matching for {career_name}...")
-            response = model.generate_content(prompt)
-            response_text = response.text.strip()
-            
-            # Parse JSON
-            if '```json' in response_text:
-                response_text = response_text.split('```json')[1].split('```')[0].strip()
-            elif '```' in response_text:
-                response_text = response_text.split('```')[1].split('```')[0].strip()
-            
-            result = json.loads(response_text)
-            print(f"  ✅ AI found {len(result.get('matched_pairs', []))} semantic matches")
-            
+            # Use the centralized Gemini manager
+            result = gemini_manager.semantic_skill_matching(cv_skills, job_skills, career_name)
             return result
             
         except Exception as e:

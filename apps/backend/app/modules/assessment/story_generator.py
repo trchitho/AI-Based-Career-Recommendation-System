@@ -1,66 +1,33 @@
 """
 Story Generator Service using Gemini AI
 Generates interactive story scenarios for assessment questions
+Updated to use Multi-Stream Manager for Assessment
 """
 import os
 import logging
 import json
 from typing import List, Dict, Any
 import google.generativeai as genai
+from app.core.gemini_manager import multi_stream_manager, GeminiStream
 
 logger = logging.getLogger(__name__)
 
 class StoryGeneratorService:
     def __init__(self):
-        self.api_key = os.getenv("GEMINI_API_KEY")
-        self.model_name = os.getenv("GEMINI_MODEL", "gemini-pro")
-        self.model = None
+        # Use the dedicated assessment stream from multi-stream manager
+        self.stream_manager = multi_stream_manager.get_assessment_stream()
         
-        # Try to initialize model, but don't fail if it doesn't work
-        if self.api_key:
-            try:
-                genai.configure(api_key=self.api_key)
-                self._initialize_model()
-                logger.info("Gemini AI initialized successfully")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Gemini AI: {e}")
-                logger.info("Will use fallback scenarios instead")
+        if not self.stream_manager.is_available():
+            logger.warning("⚠️ Assessment Gemini stream not available - using fallback scenarios")
+            self.model = None
         else:
-            logger.warning("GEMINI_API_KEY not found - using fallback scenarios")
+            self.model = self.stream_manager.model
+            logger.info(f"✅ Assessment Gemini stream initialized: {self.stream_manager.model_name}")
+        
+        # Keep these for compatibility
+        self.api_key = self.stream_manager.api_key
+        self.model_name = self.stream_manager.model_name
     
-    def _initialize_model(self):
-        """Initialize Gemini model with fallback - updated model names for 2025"""
-        models_to_try = [
-            self.model_name,                # Use model from .env first
-            "models/gemini-2.5-flash",      # Fast and efficient (2025)
-            "models/gemini-2.0-flash",      # Stable alternative
-            "models/gemini-flash-latest",   # Always latest
-            "models/gemma-3-4b-it",         # Smaller model fallback
-        ]
-        
-        for model_name in models_to_try:
-            try:
-                logger.info(f"Trying to initialize model: {model_name}")
-                model = genai.GenerativeModel(model_name)
-                
-                # Test the model with a simple request
-                test_response = model.generate_content(
-                    "Test",
-                    generation_config=genai.types.GenerationConfig(
-                        max_output_tokens=10,
-                        temperature=0.1,
-                    )
-                )
-                
-                logger.info(f"Successfully initialized Gemini model: {model_name}")
-                self.model = model
-                self.model_name = model_name
-                return
-            except Exception as e:
-                logger.warning(f"Failed to initialize model {model_name}: {e}")
-                continue
-        
-        raise ValueError("No working Gemini model found")
     
     def generate_group_story(self, questions: List[Dict[str, Any]], group_index: int) -> Dict[str, Any]:
         """
@@ -74,11 +41,21 @@ class StoryGeneratorService:
             Dict with groupScenario and questionScenarios
         """
         try:
+            if not self.stream_manager.is_available():
+                logger.warning("Assessment stream not available, using fallback")
+                return self._get_fallback_group_story(questions, group_index)
+            
             prompt = self._build_group_prompt(questions, group_index)
-            response = self.model.generate_content(prompt)
+            
+            # Use the stream manager to generate content
+            response_text = self.stream_manager.generate_content_with_retry(prompt)
+            
+            if not response_text:
+                logger.warning("Stream manager returned None, using fallback")
+                return self._get_fallback_group_story(questions, group_index)
             
             # Parse JSON response
-            response_text = response.text.strip()
+            response_text = response_text.strip()
             
             # Remove markdown code blocks if present
             if response_text.startswith('```json'):

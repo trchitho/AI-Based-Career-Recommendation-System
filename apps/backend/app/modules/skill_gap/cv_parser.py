@@ -1,11 +1,13 @@
 """
 CV Parser - Giai đoạn 1
 Trích xuất kỹ năng từ CV (PDF/Word) sử dụng NLP
+Updated to use 3-stream system
 """
 import re
 from typing import List, Dict, Set
 import PyPDF2
 from io import BytesIO
+from app.core.gemini_manager import multi_stream_manager
 
 
 class CVParser:
@@ -252,90 +254,10 @@ class CVParser:
             List[Dict]: Danh sách kỹ năng được AI phát hiện
         """
         try:
-            import google.generativeai as genai
-            import os
+            from .gemini_utils import gemini_manager
             
-            # Get API key from environment
-            api_key = os.getenv('GEMINI_API_KEY')
-            if not api_key:
-                print("⚠️ GEMINI_API_KEY not found in environment")
-                return []
-            
-            # Configure Gemini
-            genai.configure(api_key=api_key)
-            
-            # Get model name from env - use exactly as specified
-            model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
-            # Remove 'models/' prefix if present
-            if model_name.startswith('models/'):
-                model_name = model_name.replace('models/', '')
-            
-            print(f"  Using Gemini model: {model_name}")
-            
-            model = genai.GenerativeModel(model_name)
-            
-            # Enhanced prompt with NER focus
-            career_context = f"\nTarget Career: {target_career}" if target_career else ""
-            
-            prompt = f"""
-You are a Named Entity Recognition (NER) system specialized in extracting skills from CVs/Resumes.
-
-Task: Extract ALL skills, technologies, tools, and competencies mentioned in this CV.{career_context}
-
-CV Text:
-{text[:3000]}
-
-Instructions:
-1. Extract TECHNICAL SKILLS: Programming languages, frameworks, tools, technologies
-2. Extract SOFT SKILLS: Communication, leadership, teamwork, problem-solving
-3. Extract DOMAIN KNOWLEDGE: Industry-specific knowledge and methodologies
-4. Use the EXACT terminology from the CV (e.g., "Python", not "python programming")
-5. Include skill variations (e.g., "JavaScript", "JS", "Node.js" are separate)
-
-Return ONLY a JSON array in this format:
-[
-  {{"name": "Python", "category": "Programming", "context": "3 years experience"}},
-  {{"name": "React", "category": "Web Development", "context": "Frontend development"}},
-  {{"name": "Leadership", "category": "Soft Skills", "context": "Team lead"}},
-  ...
-]
-
-Categories:
-- Programming: Python, Java, C++, JavaScript, etc.
-- Web Development: React, Angular, HTML, CSS, Node.js, etc.
-- Database: SQL, MongoDB, PostgreSQL, MySQL, etc.
-- Cloud/DevOps: AWS, Docker, Kubernetes, CI/CD, etc.
-- Data Science: Machine Learning, TensorFlow, Pandas, NumPy, etc.
-- Design: Figma, Photoshop, UI/UX, etc.
-- Soft Skills: Leadership, Communication, Teamwork, Problem Solving, etc.
-- Technical: Any other technical skills
-- Other: Anything else
-
-Return ONLY the JSON array, no explanations.
-"""
-            
-            # Call AI
-            response = model.generate_content(prompt)
-            response_text = response.text.strip()
-            
-            # Parse JSON response
-            import json
-            # Remove markdown code blocks if present
-            if '```json' in response_text:
-                response_text = response_text.split('```json')[1].split('```')[0].strip()
-            elif '```' in response_text:
-                response_text = response_text.split('```')[1].split('```')[0].strip()
-            
-            skills = json.loads(response_text)
-            
-            # Add source tag and normalize
-            for skill in skills:
-                skill['source'] = 'ai'
-                # Remove context if too long
-                if 'context' in skill and len(skill.get('context', '')) > 100:
-                    skill['context'] = skill['context'][:100] + '...'
-            
-            print(f"  ✅ NER Engine extracted {len(skills)} skills")
+            # Use the centralized Gemini manager
+            skills = gemini_manager.extract_skills_from_cv(text, target_career)
             return skills
             
         except Exception as e:
@@ -487,19 +409,11 @@ Return ONLY the JSON array, no explanations.
             str: Tên người dùng
         """
         try:
-            import google.generativeai as genai
-            import os
+            # Use CV analysis stream
+            cv_stream = multi_stream_manager.get_cv_stream()
             
-            api_key = os.getenv('GEMINI_API_KEY')
-            if not api_key:
+            if not cv_stream.is_available():
                 return ''
-            
-            genai.configure(api_key=api_key)
-            model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
-            if model_name.startswith('models/'):
-                model_name = model_name.replace('models/', '')
-            
-            model = genai.GenerativeModel(model_name)
             
             # Use full text for better accuracy (up to 10000 chars)
             cv_text = text[:10000]
@@ -545,8 +459,13 @@ Examples of INVALID (do NOT return):
 Return ONLY the name, nothing else.
 """
             
-            response = model.generate_content(prompt)
-            name = response.text.strip()
+            # Use CV stream for content generation
+            response_text = cv_stream.generate_content_with_retry(prompt)
+            
+            if not response_text:
+                return ''
+            
+            name = response_text.strip()
             
             # Validate the extracted name
             if name and name.lower() != 'unknown':
@@ -710,19 +629,11 @@ Return ONLY the name, nothing else.
                 str: Tên người dùng
             """
             try:
-                import google.generativeai as genai
-                import os
-
-                api_key = os.getenv('GEMINI_API_KEY')
-                if not api_key:
+                # Use CV analysis stream
+                cv_stream = multi_stream_manager.get_cv_stream()
+                
+                if not cv_stream.is_available():
                     return ''
-
-                genai.configure(api_key=api_key)
-                model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
-                if model_name.startswith('models/'):
-                    model_name = model_name.replace('models/', '')
-
-                model = genai.GenerativeModel(model_name)
 
                 prompt = f"""
     Extract the person's full name from this CV text. Return ONLY the name, nothing else.
@@ -734,8 +645,13 @@ Return ONLY the name, nothing else.
     If no name found, return "Unknown"
     """
 
-                response = model.generate_content(prompt)
-                name = response.text.strip()
+                # Use CV stream for content generation
+                response_text = cv_stream.generate_content_with_retry(prompt)
+                
+                if not response_text:
+                    return ''
+                
+                name = response_text.strip()
 
                 # Clean up response
                 if name and name.lower() != 'unknown' and len(name) < 100:

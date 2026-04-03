@@ -23,6 +23,65 @@ def get_neo4j_driver():
     return get_driver()
 
 
+@router.post("/test-analyze", response_model=dict)
+async def test_analyze_cv_skill_gap(
+    career_id: str = Form(..., description="ID nghề nghiệp mục tiêu"),
+    cv_file: UploadFile = File(..., description="File CV (PDF, JPG, PNG)"),
+    db: Session = Depends(get_db),
+    neo4j_driver = Depends(get_neo4j_driver)
+):
+    """
+    TEST ENDPOINT - Upload CV và phân tích skill gap (KHÔNG CẦN AUTHENTICATION)
+    
+    - **career_id**: ID của nghề nghiệp mục tiêu
+    - **cv_file**: File CV (PDF, JPG, PNG)
+    
+    Returns:
+    - Kết quả phân tích chi tiết bao gồm:
+        - Kỹ năng đã có (matched)
+        - Lỗ hổng kỹ năng (gaps) phân loại theo mức độ quan trọng
+        - Điểm phù hợp (match percentage)
+    """
+    # Validate file type
+    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.txt']
+    file_ext = '.' + cv_file.filename.split('.')[-1].lower() if '.' in cv_file.filename else ''
+    
+    if file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Only PDF, image files (JPG, PNG), and text files are supported. Got: {file_ext}"
+        )
+    
+    # Create service with test user ID
+    service = SkillGapService(db, neo4j_driver)
+    
+    try:
+        # Use test user ID = 1 (or create a test user)
+        test_user_id = 1
+        
+        # Analyze CV
+        result = await service.analyze_cv(
+            user_id=test_user_id,
+            cv_file=cv_file,
+            career_id=career_id
+        )
+        
+        return {
+            'success': True,
+            'message': 'CV analyzed successfully (TEST MODE)',
+            'test_user_id': test_user_id,
+            'data': result
+        }
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error analyzing CV: {str(e)}\n\nDetails:\n{error_details}"
+        )
+
+
 def _current_user_id(req: Request) -> int:
     """
     Lấy user_id từ request state hoặc JWT token

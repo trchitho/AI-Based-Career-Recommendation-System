@@ -3,69 +3,112 @@ from typing import List, Dict, Optional
 import os
 from datetime import datetime
 import logging
+from app.core.gemini_manager import multi_stream_manager, GeminiStream
 
 logger = logging.getLogger(__name__)
 
 class GeminiChatbotService:
     def __init__(self):
-        self.api_key = os.getenv("GEMINI_API_KEY")
-        self.model_name = os.getenv("GEMINI_MODEL", "gemini-pro")
-        self.max_tokens = int(os.getenv("GEMINI_MAX_TOKENS", "1000"))
+        # Use the dedicated chatbot stream from multi-stream manager
+        self.stream_manager = multi_stream_manager.get_chatbot_stream()
+        
+        if not self.stream_manager.is_available():
+            logger.warning("⚠️ Chatbot Gemini stream not available")
+            self.model = None
+        else:
+            self.model = self.stream_manager.model
+            logger.info(f"✅ Gemini chatbot initialized with model: {self.stream_manager.model_name}")
+        
+        # Keep these for compatibility
+        self.api_key = self.stream_manager.api_key
+        self.model_name = self.stream_manager.model_name
+        self.max_tokens = int(os.getenv("GEMINI_MAX_TOKENS", "1000")) if os.getenv("GEMINI_MAX_TOKENS", "1000") != "-1" else -1
         self.temperature = float(os.getenv("GEMINI_TEMPERATURE", "0.7"))
-        
-        if not self.api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
-        
-        genai.configure(api_key=self.api_key)
-        
-        # Try to initialize model with fallback
-        self.model = self._initialize_model()
     
     def _initialize_model(self):
-        """Initialize model with fallback options"""
+        """Initialize model with smart error handling"""
+        # First, try to create the model without testing (faster)
+        try:
+            model = genai.GenerativeModel(self.model_name)
+            logger.info(f"Model created: {self.model_name}")
+            
+            # Quick test to check if API key is valid
+            test_response = model.generate_content(
+                "Test",
+                generation_config=genai.types.GenerationConfig(
+                    max_output_tokens=5,
+                    temperature=0.1,
+                )
+            )
+            
+            logger.info(f"Successfully initialized model: {self.model_name}")
+            return model
+            
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"Failed to initialize model {self.model_name}: {error_msg}")
+            
+            # Check if it's an API key issue (don't try other models)
+            if any(keyword in error_msg.lower() for keyword in ['api key', 'expired', 'invalid', 'authentication']):
+                logger.error("API key issue detected - not trying fallback models")
+                raise ValueError(f"API key expired or invalid: {error_msg}")
+            
+            # Check if it's a quota issue (don't try other models)
+            if any(keyword in error_msg.lower() for keyword in ['quota', '429', 'rate limit']):
+                logger.error("Quota exceeded - not trying fallback models")
+                raise ValueError(f"API quota exceeded: {error_msg}")
+            
+            # Only try fallback models for model-specific errors (404, not found, etc.)
+            if any(keyword in error_msg.lower() for keyword in ['not found', '404', 'not supported']):
+                logger.info("Model not found - trying fallback models")
+                return self._try_fallback_models(error_msg)
+            
+            # For other errors, don't try fallbacks
+            raise ValueError(f"Gemini API error: {error_msg}")
+    
+    def _try_fallback_models(self, original_error: str):
+        """Try fallback models only for model-specific errors"""
         fallback_models = [
-            self.model_name,                    # Use model from .env first
             "models/gemini-2.5-flash",          # Fast and efficient (2025)
-            "models/gemini-2.0-flash",          # Stable alternative
             "models/gemini-flash-latest",       # Always latest
-            "models/gemma-3-4b-it",             # Smaller model fallback
-            "models/gemma-3-1b-it",
-            "models/gemini-2.0-flash-lite",
-            "models/gemini-flash-lite-latest",
-            "models/gemini-2.5-flash-lite",
+            "models/gemini-2.0-flash",          # Stable alternative
         ]
+        
+        logger.info(f"Original model {self.model_name} failed with: {original_error}")
+        logger.info("Trying fallback models...")
         
         for model_name in fallback_models:
             try:
-                logger.info(f"Trying to initialize model: {model_name}")
+                logger.info(f"Trying fallback model: {model_name}")
                 model = genai.GenerativeModel(model_name)
                 
-                # Test the model with a simple request
+                # Quick test
                 test_response = model.generate_content(
                     "Test",
                     generation_config=genai.types.GenerationConfig(
-                        max_output_tokens=10,
+                        max_output_tokens=5,
                         temperature=0.1,
                     )
                 )
                 
-                logger.info(f"Successfully initialized model: {model_name}")
+                logger.info(f"Successfully initialized fallback model: {model_name}")
                 self.model_name = model_name  # Update the working model name
                 return model
                 
             except Exception as e:
-                logger.warning(f"Failed to initialize model {model_name}: {e}")
+                logger.warning(f"Fallback model {model_name} also failed: {e}")
                 continue
         
-        # If all models fail, raise error - API is required
-        raise ValueError("Gemini API is required but no working model found. Please check API key and model names.")
+        # If all fallback models fail, raise the original error
+        raise ValueError(f"No working Gemini model found. Original error: {original_error}")
         
     def generate_response(self, message: str, context: Optional[str] = None) -> str:
         """Generate response from Gemini API or fallback"""
         
-        # API is required - no fallback allowed
-        if self.model is None:
-            raise ValueError("Gemini API model is required but not available")
+        # Check if stream manager is available
+        if not self.stream_manager.is_available():
+            logger.warning("Chatbot Gemini stream not available, using fallback response")
+            return self._get_fallback_response(message)
         
         try:
             # Create prompt with career counseling context - ALWAYS respond in English
@@ -87,24 +130,18 @@ class GeminiChatbotService:
             if context:
                 full_prompt += f"\n\nAdditional context: {context}"
             
-            # Sử dụng max_tokens nếu > 0, nếu không thì không giới hạn
-            if self.max_tokens > 0:
-                response = self.model.generate_content(
-                    full_prompt,
-                    generation_config=genai.types.GenerationConfig(
-                        max_output_tokens=self.max_tokens,
-                        temperature=self.temperature,
-                    )
-                )
-            else:
-                response = self.model.generate_content(
-                    full_prompt,
-                    generation_config=genai.types.GenerationConfig(
-                        temperature=self.temperature,
-                    )
-                )
+            # Use the stream manager to generate content
+            response_text = self.stream_manager.generate_content_with_retry(
+                full_prompt,
+                temperature=self.temperature,
+                max_output_tokens=self.max_tokens if self.max_tokens > 0 else None
+            )
             
-            return response.text
+            if response_text:
+                return response_text
+            else:
+                logger.warning("Stream manager returned None, using fallback")
+                return self._get_fallback_response(message)
             
         except Exception as e:
             error_msg = str(e)
