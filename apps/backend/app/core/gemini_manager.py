@@ -30,16 +30,68 @@ class GeminiStreamManager:
         self.enabled = os.getenv('GEMINI_ENABLED', 'true').lower() == 'true'
         self.fast_fail = os.getenv('AI_FAST_FAIL', 'false').lower() == 'true'
         
-        # Initialize model
+        # Fallback models list (in priority order, deduped)
+        seen = set()
+        candidates = [
+            self.model_name,        # Primary from env
+            "gemini-flash-latest",  # Always-latest alias (works for all keys)
+            "gemini-2.5-flash",     # Newer stable
+            "gemini-2.5-flash-lite",
+        ]
+        self.fallback_models = []
+        for m in candidates:
+            if m and m not in seen:
+                seen.add(m)
+                self.fallback_models.append(m)
+        
+        # Initialize model with fallback support
         self.model = None
+        self.active_model_name = None
         if self.enabled and self.api_key:
+            self._initialize_with_fallback()
+    
+    def _initialize_with_fallback(self):
+        """Initialize model with automatic fallback to other models"""
+        for model_name in self.fallback_models:
             try:
+                print(f"🔧 Trying to initialize {self.stream_type.value} with model: {model_name}")
                 genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel(self.model_name.replace('models/', ''))
-                print(f"✅ {stream_type.value.title()} Gemini stream initialized: {self.model_name}")
+                
+                # Clean model name
+                clean_model_name = model_name.replace('models/', '').replace('model/', '')
+                model = genai.GenerativeModel(clean_model_name)
+                
+                # Test the model with a simple request
+                test_response = model.generate_content(
+                    "Test",
+                    generation_config=genai.types.GenerationConfig(
+                        max_output_tokens=5,
+                        temperature=0.1,
+                    )
+                )
+                
+                # If successful, use this model
+                self.model = model
+                self.active_model_name = clean_model_name
+                print(f"✅ {self.stream_type.value.title()} stream initialized with: {clean_model_name}")
+                return
+                
             except Exception as e:
-                print(f"❌ Failed to initialize {stream_type.value} stream: {e}")
-                self.model = None
+                error_msg = str(e).lower()
+                print(f"⚠️ Model {model_name} failed: {e}")
+                
+                # Check if it's a quota/auth issue (don't try other models)
+                if any(keyword in error_msg for keyword in ['quota', '429', 'rate limit', 'api key', 'expired', 'invalid', 'authentication']):
+                    print(f"❌ API issue detected, stopping fallback attempts")
+                    break
+                
+                # Continue to next model for other errors
+                continue
+        
+        # If all models failed
+        print(f"❌ Failed to initialize {self.stream_type.value} stream with any model")
+        self.model = None
+        self.active_model_name = None
     
     def _get_api_key(self) -> str:
         """Get API key for this stream"""
@@ -67,7 +119,7 @@ class GeminiStreamManager:
     
     def generate_content_with_retry(self, prompt: str, **kwargs) -> Optional[str]:
         """
-        Generate content with retry logic and fast fail
+        Generate content with retry logic, fast fail, and model fallback
         
         Args:
             prompt: Text prompt
@@ -111,10 +163,18 @@ class GeminiStreamManager:
             except ResourceExhausted as e:
                 print(f"  ❌ {self.stream_type.value.title()} quota exceeded")
                 
-                # FAST FAIL mode: No retry
+                # FAST FAIL mode: Try fallback model if available
                 if self.fast_fail:
-                    print(f"  ⚡ FAST FAIL mode - immediate fallback")
-                    return None
+                    print(f"  ⚡ FAST FAIL mode - trying fallback model...")
+                    
+                    # Try to switch to next available model (different API key might have quota)
+                    if self._try_fallback_model():
+                        print(f"  ✅ Switched to fallback model: {self.active_model_name}")
+                        # Retry with new model
+                        continue
+                    else:
+                        print(f"  ❌ No fallback models available - immediate fallback")
+                        return None
                 
                 # Normal mode: retry once
                 if attempt < self.max_retries:
@@ -125,21 +185,68 @@ class GeminiStreamManager:
                     print(f"  ❌ Max retries exceeded")
                     return None
                     
-            except DeadlineExceeded as e:
-                print(f"  ⚠️ {self.stream_type.value.title()} request timeout (attempt {attempt + 1}/{self.max_retries + 1})")
-                if attempt < self.max_retries:
-                    delay = self.retry_delay
-                    print(f"  ⏰ Waiting {delay} seconds before retry...")
-                    time.sleep(delay)
-                else:
-                    print(f"  ❌ Max retries exceeded")
-                    return None
-                    
             except Exception as e:
-                print(f"  ❌ {self.stream_type.value.title()} unexpected error: {e}")
+                error_msg = str(e).lower()
+                print(f"  ⚠️ {self.stream_type.value.title()} error: {e}")
+                
+                # Check if model is deprecated/unavailable
+                if any(keyword in error_msg for keyword in ['not found', '404', 'not supported', 'deprecated', 'unavailable']):
+                    print(f"  🔄 Model {self.active_model_name} seems unavailable, trying fallback...")
+                    
+                    # Try to reinitialize with fallback models
+                    if self._try_fallback_model():
+                        print(f"  ✅ Switched to fallback model: {self.active_model_name}")
+                        # Retry with new model
+                        continue
+                    else:
+                        print(f"  ❌ All fallback models failed")
+                        return None
+                
+                # For other errors, don't retry
                 return None
         
         return None
+    
+    def _try_fallback_model(self) -> bool:
+        """Try to switch to a fallback model"""
+        current_index = -1
+        
+        # Find current model index
+        for i, model_name in enumerate(self.fallback_models):
+            clean_name = model_name.replace('models/', '').replace('model/', '')
+            if clean_name == self.active_model_name:
+                current_index = i
+                break
+        
+        # Try remaining models
+        for model_name in self.fallback_models[current_index + 1:]:
+            try:
+                print(f"  🔄 Trying fallback model: {model_name}")
+                
+                # Clean model name
+                clean_model_name = model_name.replace('models/', '').replace('model/', '')
+                model = genai.GenerativeModel(clean_model_name)
+                
+                # Test the model
+                test_response = model.generate_content(
+                    "Test",
+                    generation_config=genai.types.GenerationConfig(
+                        max_output_tokens=5,
+                        temperature=0.1,
+                    )
+                )
+                
+                # If successful, switch to this model
+                self.model = model
+                self.active_model_name = clean_model_name
+                print(f"  ✅ Successfully switched to: {clean_model_name}")
+                return True
+                
+            except Exception as e:
+                print(f"  ⚠️ Fallback model {model_name} also failed: {e}")
+                continue
+        
+        return False
 
 
 class MultiStreamGeminiManager:
@@ -178,12 +285,24 @@ class MultiStreamGeminiManager:
         """Get CV analysis stream"""
         return self.cv_stream
     
-    def check_all_streams_status(self) -> Dict[str, bool]:
-        """Check status of all streams"""
+    def check_all_streams_status(self) -> Dict[str, Dict[str, any]]:
+        """Check status of all streams with detailed info"""
         return {
-            'chatbot': self.chatbot_stream.is_available(),
-            'assessment': self.assessment_stream.is_available(),
-            'cv_analysis': self.cv_stream.is_available()
+            'chatbot': {
+                'available': self.chatbot_stream.is_available(),
+                'model': self.chatbot_stream.active_model_name,
+                'api_key_prefix': self.chatbot_stream.api_key[:20] + '...' if self.chatbot_stream.api_key else None
+            },
+            'assessment': {
+                'available': self.assessment_stream.is_available(),
+                'model': self.assessment_stream.active_model_name,
+                'api_key_prefix': self.assessment_stream.api_key[:20] + '...' if self.assessment_stream.api_key else None
+            },
+            'cv_analysis': {
+                'available': self.cv_stream.is_available(),
+                'model': self.cv_stream.active_model_name,
+                'api_key_prefix': self.cv_stream.api_key[:20] + '...' if self.cv_stream.api_key else None
+            }
         }
 
 

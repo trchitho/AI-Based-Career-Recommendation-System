@@ -135,6 +135,7 @@ export interface QuestionFormData {
     min: number;
     max: number;
   };
+  isActive?: boolean;
 }
 
 // User Feedback Types

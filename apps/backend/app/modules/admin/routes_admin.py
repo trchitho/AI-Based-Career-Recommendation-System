@@ -55,6 +55,51 @@ def _enum_to_str(value):
     return value.value if hasattr(value, "value") else str(value)
 
 
+def _write_audit_log(
+    session: Session,
+    action: str,
+    entity: str,
+    entity_id: str | int | None = None,
+    actor_id: int | None = None,
+    details: dict | str | None = None,
+    ip_address: str | None = None,
+):
+    """Write an audit log entry. Creates the table if it does not exist."""
+    try:
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS core.audit_logs (
+                id BIGSERIAL PRIMARY KEY,
+                actor_id BIGINT,
+                action VARCHAR(100) NOT NULL,
+                entity VARCHAR(100),
+                entity_id BIGINT,
+                data_json JSONB,
+                ip_address VARCHAR(64),
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            )
+        """))
+        details_json = None
+        if details is not None:
+            if isinstance(details, dict):
+                details_json = json.dumps(details)
+            else:
+                details_json = json.dumps({"info": str(details)})
+        session.execute(text("""
+            INSERT INTO core.audit_logs (actor_id, action, entity, entity_id, data_json, ip_address)
+            VALUES (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :ip_address)
+        """), {
+            "actor_id": actor_id,
+            "action": action,
+            "entity": entity,
+            "entity_id": int(entity_id) if entity_id is not None else None,
+            "data_json": details_json,
+            "ip_address": ip_address,
+        })
+        # Do NOT commit here; let the caller's commit include the audit log
+    except Exception as e:
+        logger.warning(f"Audit log write failed (non-fatal): {e}")
+
+
 def _iso_or_none(dt: Any) -> str | None:
     try:
         return dt.isoformat() if dt else None
@@ -306,86 +351,105 @@ def ai_metrics(request: Request):
         except Exception as e:
             logger.warning(f"Error calculating feedback: {e}")
         
-        # 7. RIASEC distribution from actual assessment scores
+        # 7. RIASEC distribution — use processed_riasec_scores (normalized 0-1 per dimension)
         try:
             riasec_rows = session.execute(
-                select(Assessment.scores).where(
-                    Assessment.a_type.ilike('%riasec%'),
-                    Assessment.scores.isnot(None)
-                ).limit(500)
+                select(Assessment.processed_riasec_scores).where(
+                    Assessment.a_type == "RIASEC",
+                    Assessment.processed_riasec_scores.isnot(None),
+                ).limit(1000)
             ).scalars().all()
-            
+
+            # Fallback: raw scores field if processed_riasec_scores is empty
+            if not riasec_rows or not any(riasec_rows):
+                riasec_rows = session.execute(
+                    select(Assessment.scores).where(
+                        Assessment.a_type == "RIASEC",
+                        Assessment.scores.isnot(None),
+                    ).limit(1000)
+                ).scalars().all()
+
             if riasec_rows:
-                r_sum = i_sum = a_sum = s_sum = e_sum = c_sum = 0.0
+                sums: dict[str, float] = {"realistic": 0.0, "investigative": 0.0, "artistic": 0.0,
+                                           "social": 0.0, "enterprising": 0.0, "conventional": 0.0}
+                alias = {"R": "realistic", "I": "investigative", "A": "artistic",
+                         "S": "social", "E": "enterprising", "C": "conventional"}
                 count = 0
-                for scores in riasec_rows:
-                    if isinstance(scores, dict):
-                        r_sum += float(scores.get('R', scores.get('r', scores.get('realistic', 0))) or 0)
-                        i_sum += float(scores.get('I', scores.get('i', scores.get('investigative', 0))) or 0)
-                        a_sum += float(scores.get('A', scores.get('a', scores.get('artistic', 0))) or 0)
-                        s_sum += float(scores.get('S', scores.get('s', scores.get('social', 0))) or 0)
-                        e_sum += float(scores.get('E', scores.get('e', scores.get('enterprising', 0))) or 0)
-                        c_sum += float(scores.get('C', scores.get('c', scores.get('conventional', 0))) or 0)
-                        count += 1
-                
+                for sc in riasec_rows:
+                    if not isinstance(sc, dict):
+                        continue
+                    for raw_key, long_key in alias.items():
+                        val = sc.get(long_key, sc.get(raw_key, sc.get(raw_key.lower(), 0))) or 0
+                        sums[long_key] += float(val)
+                    count += 1
+
                 if count > 0:
-                    total = r_sum + i_sum + a_sum + s_sum + e_sum + c_sum
-                    if total > 0:
-                        riasec_dist = {
-                            "realistic": f"{round(r_sum / total * 100)}%",
-                            "investigative": f"{round(i_sum / total * 100)}%",
-                            "artistic": f"{round(a_sum / total * 100)}%",
-                            "social": f"{round(s_sum / total * 100)}%",
-                            "enterprising": f"{round(e_sum / total * 100)}%",
-                            "conventional": f"{round(c_sum / total * 100)}%",
-                        }
+                    grand = sum(sums.values())
+                    if grand > 0:
+                        riasec_dist = {k: f"{round(v / grand * 100)}%" for k, v in sums.items()}
         except Exception as e:
-            logger.warning(f"RIASEC query error: {e}")
-        
-        # 8. BigFive distribution from actual assessment scores
+            logger.warning(f"RIASEC distribution error: {e}")
+
+        # 8. BigFive distribution — use processed_big_five_scores (normalized 0-1)
         try:
-            bigfive_rows = session.execute(
-                select(Assessment.scores).where(
-                    or_(
-                        Assessment.a_type.ilike('%big%five%'),
-                        Assessment.a_type.ilike('%bigfive%'),
-                        Assessment.a_type.ilike('%personality%')
-                    ),
-                    Assessment.scores.isnot(None)
-                ).limit(500)
+            bf_rows = session.execute(
+                select(Assessment.processed_big_five_scores).where(
+                    Assessment.a_type == "BigFive",
+                    Assessment.processed_big_five_scores.isnot(None),
+                ).limit(1000)
             ).scalars().all()
-            
-            if bigfive_rows:
-                o_sum = c_sum = e_sum = a_sum = n_sum = 0.0
+
+            if not bf_rows or not any(bf_rows):
+                bf_rows = session.execute(
+                    select(Assessment.scores).where(
+                        Assessment.a_type == "BigFive",
+                        Assessment.scores.isnot(None),
+                    ).limit(1000)
+                ).scalars().all()
+
+            if bf_rows:
+                bf_sums: dict[str, float] = {"openness": 0.0, "conscientiousness": 0.0,
+                                               "extraversion": 0.0, "agreeableness": 0.0, "neuroticism": 0.0}
+                bf_alias = {"O": "openness", "C": "conscientiousness", "E": "extraversion",
+                            "A": "agreeableness", "N": "neuroticism"}
                 count = 0
-                for scores in bigfive_rows:
-                    if isinstance(scores, dict):
-                        o_sum += float(scores.get('O', scores.get('o', scores.get('openness', 0))) or 0)
-                        c_sum += float(scores.get('C', scores.get('c', scores.get('conscientiousness', 0))) or 0)
-                        e_sum += float(scores.get('E', scores.get('e', scores.get('extraversion', 0))) or 0)
-                        a_sum += float(scores.get('A', scores.get('a', scores.get('agreeableness', 0))) or 0)
-                        n_sum += float(scores.get('N', scores.get('n', scores.get('neuroticism', 0))) or 0)
-                        count += 1
-                
+                for sc in bf_rows:
+                    if not isinstance(sc, dict):
+                        continue
+                    for raw_key, long_key in bf_alias.items():
+                        val = sc.get(long_key, sc.get(raw_key, sc.get(raw_key.lower(), 0))) or 0
+                        bf_sums[long_key] += float(val)
+                    count += 1
+
                 if count > 0:
-                    total = o_sum + c_sum + e_sum + a_sum + n_sum
-                    if total > 0:
-                        bigfive_dist = {
-                            "openness": f"{round(o_sum / total * 100)}%",
-                            "conscientiousness": f"{round(c_sum / total * 100)}%",
-                            "extraversion": f"{round(e_sum / total * 100)}%",
-                            "agreeableness": f"{round(a_sum / total * 100)}%",
-                            "neuroticism": f"{round(n_sum / total * 100)}%",
-                        }
+                    grand = sum(bf_sums.values())
+                    if grand > 0:
+                        bigfive_dist = {k: f"{round(v / grand * 100)}%" for k, v in bf_sums.items()}
         except Exception as e:
-            logger.warning(f"BigFive query error: {e}")
-        
+            logger.warning(f"BigFive distribution error: {e}")
+
         # Calculate error rate percentage
         total_operations = error_count + success_count
         error_rate = round((error_count / max(total_operations, 1)) * 100, 1) if total_operations > 0 else 0.0
-        
-        # Estimate processing time based on assessment count (placeholder - could be enhanced with actual timing data)
-        avg_processing_time = 2.5 if total_assessments > 0 else 0.0
+
+        # 9. Real avg_processing_time: average gap (seconds) between session created_at
+        #    and the RIASEC assessment created_at (proxy for completion time)
+        try:
+            from ..assessments.models import AssessmentSession
+            time_result = session.execute(text("""
+                SELECT AVG(EXTRACT(EPOCH FROM (a.created_at - s.created_at)))
+                FROM core.assessments a
+                JOIN core.assessment_sessions s ON s.id = a.session_id
+                WHERE a.a_type = 'RIASEC'
+                  AND a.created_at IS NOT NULL
+                  AND s.created_at IS NOT NULL
+                  AND a.created_at > s.created_at
+                  AND EXTRACT(EPOCH FROM (a.created_at - s.created_at)) < 7200
+            """)).scalar()
+            avg_processing_time = round(float(time_result), 1) if time_result else 0.0
+        except Exception as e:
+            logger.warning(f"Processing time calculation error: {e}")
+            avg_processing_time = 0.0
         
         return {
             "totalRecommendations": int(total_recs),
@@ -887,6 +951,32 @@ def list_careers(
     return {"items": items, "total": int(total), "limit": limit, "offset": offset}
 
 
+@router.get("/careers/export")
+def export_careers_csv(request: Request):
+    _ = require_admin(request)
+    session = _db(request)
+    rows = session.execute(select(Career).order_by(Career.id.asc())).scalars().all()
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "title_vi", "title_en", "description", "industry_category", "riasec_code", "created_at"])
+    for c in rows:
+        writer.writerow([
+            c.id,
+            getattr(c, "title_vi", "") or "",
+            getattr(c, "title_en", "") or getattr(c, "title", "") or "",
+            (getattr(c, "description", "") or "")[:200],
+            getattr(c, "industry_category", "") or "",
+            getattr(c, "riasec_code", "") or "",
+            _iso_or_none(getattr(c, "created_at", None)),
+        ])
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=careers_export.csv"},
+    )
+
+
 @router.get("/careers/{career_id}")
 def get_career(request: Request, career_id: int):
     _ = require_admin(request)
@@ -899,7 +989,7 @@ def get_career(request: Request, career_id: int):
 
 @router.post("/careers")
 def create_career(request: Request, payload: dict):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     title = (payload.get("title") or "").strip()
     description = str(payload.get("description") or "")
@@ -909,6 +999,9 @@ def create_career(request: Request, payload: dict):
     slug = "-".join(title.lower().split())[:100]
     c = Career(title_en=title, slug=slug, short_desc_en=description)
     session.add(c)
+    session.flush()
+    _write_audit_log(session, "create_career", "career", c.id, actor_id=admin_id,
+                     details={"title": title})
     session.commit()
     session.refresh(c)
     return {"career": _career_to_client(c, session)}
@@ -916,7 +1009,7 @@ def create_career(request: Request, payload: dict):
 
 @router.put("/careers/{career_id}")
 def update_career(request: Request, career_id: int, payload: dict):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     c = session.get(Career, career_id)
     if not c:
@@ -926,6 +1019,8 @@ def update_career(request: Request, career_id: int, payload: dict):
     if "description" in payload:
         desc = str(payload.get("description") or "")
         c.short_desc_en = desc
+    _write_audit_log(session, "update_career", "career", career_id, actor_id=admin_id,
+                     details={"title": c.title_en})
     session.commit()
     session.refresh(c)
     return {"career": _career_to_client(c, session)}
@@ -933,11 +1028,14 @@ def update_career(request: Request, career_id: int, payload: dict):
 
 @router.delete("/careers/{career_id}")
 def delete_career(request: Request, career_id: int):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     c = session.get(Career, career_id)
     if not c:
         raise HTTPException(status_code=404, detail="Career not found")
+    title = c.title_en or c.title_vi or c.slug
+    _write_audit_log(session, "delete_career", "career", career_id, actor_id=admin_id,
+                     details={"title": title})
     session.delete(c)
     session.commit()
     return {"status": "ok"}
@@ -1169,7 +1267,7 @@ def get_question(request: Request, question_id: int):
 
 @router.post("/questions")
 def create_question(request: Request, payload: dict):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     text = payload.get("text") or ""
     test_type = payload.get("testType") or "RIASEC"
@@ -1199,6 +1297,9 @@ def create_question(request: Request, payload: dict):
         reverse_score=False,
     )
     session.add(q)
+    session.flush()
+    _write_audit_log(session, "create_question", "question", q.id, actor_id=admin_id,
+                     details={"test_type": test_type, "dimension": dimension})
     session.commit()
     session.refresh(q)
     form_type = str(form.form_type) if form.form_type is not None else "RIASEC"
@@ -1207,7 +1308,7 @@ def create_question(request: Request, payload: dict):
 
 @router.put("/questions/{question_id}")
 def update_question(request: Request, question_id: int, payload: dict):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     q = session.get(AssessmentQuestion, question_id)
     if not q:
@@ -1218,6 +1319,8 @@ def update_question(request: Request, question_id: int, payload: dict):
         q.question_key = payload.get("dimension") or q.question_key
     if "options" in payload:
         q.options_json = payload.get("options") or None  # type: ignore[assignment]
+    _write_audit_log(session, "update_question", "question", question_id, actor_id=admin_id,
+                     details={"prompt_preview": (q.prompt or "")[:80]})
     session.commit()
     f = session.get(AssessmentForm, q.form_id) if q.form_id is not None else None
     form_type = str(f.form_type) if f and f.form_type is not None else "RIASEC"
@@ -1226,11 +1329,13 @@ def update_question(request: Request, question_id: int, payload: dict):
 
 @router.delete("/questions/{question_id}")
 def delete_question(request: Request, question_id: int):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     q = session.get(AssessmentQuestion, question_id)
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
+    _write_audit_log(session, "delete_question", "question", question_id, actor_id=admin_id,
+                     details={"prompt_preview": (q.prompt or "")[:80]})
     session.delete(q)
     session.commit()
     return {"status": "ok"}
@@ -1274,7 +1379,7 @@ def list_users(
 
 @router.post("/users")
 def create_user(request: Request, payload: dict):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     from ...core.security import hash_password
     from ..users.models import User  # local import to avoid cycles
@@ -1311,6 +1416,9 @@ def create_user(request: Request, payload: dict):
         email_verified_at=datetime.now(timezone.utc),
     )
     session.add(u)
+    session.flush()
+    _write_audit_log(session, "create_user", "user", u.id, actor_id=admin_id,
+                     details={"email": email, "role": role})
     session.commit()
     session.refresh(u)
     return {
@@ -1324,7 +1432,7 @@ def create_user(request: Request, payload: dict):
 
 @router.patch("/users/{user_id}")
 def update_user(request: Request, user_id: int, payload: dict):
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     from ...core.security import hash_password
     from ..users.models import User
@@ -1332,17 +1440,24 @@ def update_user(request: Request, user_id: int, payload: dict):
     u = session.get(User, user_id)
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
+    changes: dict = {}
     if "full_name" in payload:
         u.full_name = payload.get("full_name") or u.full_name  # type: ignore[assignment]
+        changes["full_name"] = u.full_name
     if "role" in payload:
         role = (payload.get("role") or "").strip().lower()
         if role not in {"admin", "user"}:
             raise HTTPException(status_code=400, detail="Invalid role")
+        changes["role"] = role
         u.role = role  # type: ignore[assignment]
     if "is_locked" in payload:
         u.is_locked = bool(payload.get("is_locked"))  # type: ignore[assignment]
+        changes["is_locked"] = u.is_locked
     if "password" in payload and payload.get("password"):
         u.password_hash = hash_password(payload.get("password"))  # type: ignore[assignment]
+        changes["password_changed"] = True
+    _write_audit_log(session, "update_user", "user", user_id, actor_id=admin_id,
+                     details={"changes": changes, "email": u.email})
     session.commit()
     session.refresh(u)
     return {
@@ -1352,6 +1467,47 @@ def update_user(request: Request, user_id: int, payload: dict):
         "role": u.role,
         "is_locked": u.is_locked,
     }
+
+
+@router.delete("/users/{user_id}")
+def delete_user(request: Request, user_id: int):
+    admin_id = require_admin(request)
+    session = _db(request)
+    from ..users.models import User
+
+    u = session.get(User, user_id)
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found")
+    email = u.email
+    _write_audit_log(session, "delete_user", "user", user_id, actor_id=admin_id,
+                     details={"email": email})
+    session.delete(u)
+    session.commit()
+    return {"success": True, "message": f"User {user_id} deleted"}
+
+
+@router.get("/users/export")
+def export_users_csv(request: Request):
+    _ = require_admin(request)
+    session = _db(request)
+    from ..users.models import User
+
+    rows = session.execute(select(User).order_by(User.created_at.desc())).scalars().all()
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "email", "full_name", "role", "is_locked", "is_email_verified", "created_at"])
+    for u in rows:
+        writer.writerow([
+            u.id, u.email, u.full_name or "", u.role,
+            u.is_locked, getattr(u, "is_email_verified", False),
+            _iso_or_none(getattr(u, "created_at", None)),
+        ])
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=users_export.csv"},
+    )
 
 
 # ----- Blog Management (CRUD) -----
@@ -1758,6 +1914,165 @@ def get_anomaly_stats(request: Request):
     except Exception as e:
         logger.error(f"Error fetching anomaly stats: {e}")
         return {"total": 0, "unresolved": 0, "critical": 0, "high": 0, "medium": 0, "low": 0}
+
+
+@router.post("/anomalies/detect")
+def detect_anomalies(request: Request):
+    """Scan real data patterns and auto-generate anomaly records in core.anomalies.
+
+    Detects:
+    - Admin accounts created within last 7 days (audit_logs)
+    - Bulk user deletions (3+ users deleted in 1 hour)
+    - Zero assessments started in last 48 hours (system health)
+    - No career recommendations generated in last 7 days
+    """
+    admin_id = require_admin(request)
+    session = _db(request)
+
+    # Ensure anomalies table exists
+    session.execute(text("""
+        CREATE TABLE IF NOT EXISTS core.anomalies (
+            id BIGSERIAL PRIMARY KEY,
+            type VARCHAR(50) NOT NULL,
+            severity VARCHAR(20) NOT NULL DEFAULT 'medium',
+            title TEXT NOT NULL,
+            description TEXT,
+            user_id BIGINT,
+            metadata JSONB,
+            resolved BOOLEAN NOT NULL DEFAULT false,
+            resolved_at TIMESTAMP WITH TIME ZONE,
+            resolved_by BIGINT,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        )
+    """))
+    session.commit()
+
+    inserted = 0
+    try:
+        # ---- 1. Admin accounts created in last 7 days ----
+        audit_exists = session.execute(text("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_schema = 'core' AND table_name = 'audit_logs'
+            )
+        """)).scalar()
+
+        if audit_exists:
+            admin_creates = session.execute(text("""
+                SELECT COUNT(*) FROM core.audit_logs
+                WHERE action = 'create_user'
+                  AND data_json->>'role' = 'admin'
+                  AND created_at >= NOW() - INTERVAL '7 days'
+            """)).scalar() or 0
+
+            if admin_creates > 0:
+                # Avoid duplicate: check if same anomaly (unresolved) was inserted in last 24h
+                dup = session.execute(text("""
+                    SELECT COUNT(*) FROM core.anomalies
+                    WHERE type = 'new_admin_account'
+                      AND resolved = false
+                      AND created_at >= NOW() - INTERVAL '24 hours'
+                """)).scalar() or 0
+                if dup == 0:
+                    session.execute(text("""
+                        INSERT INTO core.anomalies (type, severity, title, description, metadata)
+                        VALUES ('new_admin_account', 'high',
+                                'New admin account(s) created',
+                                :desc,
+                                :meta::jsonb)
+                    """), {
+                        "desc": f"{admin_creates} admin account(s) were created in the last 7 days.",
+                        "meta": json.dumps({"count": admin_creates, "window": "7d"}),
+                    })
+                    inserted += 1
+
+            # ---- 2. Bulk user deletions (3+ in 1 hour) ----
+            bulk_deletes = session.execute(text("""
+                SELECT COUNT(*) FROM core.audit_logs
+                WHERE action = 'delete_user'
+                  AND created_at >= NOW() - INTERVAL '1 hour'
+            """)).scalar() or 0
+
+            if bulk_deletes >= 3:
+                dup = session.execute(text("""
+                    SELECT COUNT(*) FROM core.anomalies
+                    WHERE type = 'bulk_user_deletion'
+                      AND resolved = false
+                      AND created_at >= NOW() - INTERVAL '2 hours'
+                """)).scalar() or 0
+                if dup == 0:
+                    session.execute(text("""
+                        INSERT INTO core.anomalies (type, severity, title, description, metadata)
+                        VALUES ('bulk_user_deletion', 'critical',
+                                'Bulk user deletions detected',
+                                :desc,
+                                :meta::jsonb)
+                    """), {
+                        "desc": f"{bulk_deletes} users were deleted within the last hour.",
+                        "meta": json.dumps({"count": bulk_deletes, "window": "1h"}),
+                    })
+                    inserted += 1
+
+        # ---- 3. No assessments in last 48 hours ----
+        recent_assessments = session.execute(text("""
+            SELECT COUNT(*) FROM core.assessments
+            WHERE created_at >= NOW() - INTERVAL '48 hours'
+        """)).scalar() or 0
+
+        total_assessments = session.execute(text("SELECT COUNT(*) FROM core.assessments")).scalar() or 0
+
+        if total_assessments > 10 and recent_assessments == 0:
+            dup = session.execute(text("""
+                SELECT COUNT(*) FROM core.anomalies
+                WHERE type = 'no_recent_assessments'
+                  AND resolved = false
+                  AND created_at >= NOW() - INTERVAL '48 hours'
+            """)).scalar() or 0
+            if dup == 0:
+                session.execute(text("""
+                    INSERT INTO core.anomalies (type, severity, title, description, metadata)
+                    VALUES ('no_recent_assessments', 'medium',
+                            'No assessments completed in 48 hours',
+                            'The system has not recorded any completed assessments in the past 48 hours, which may indicate a technical issue.',
+                            :meta::jsonb)
+                """), {"meta": json.dumps({"total_historical": total_assessments, "window": "48h"})})
+                inserted += 1
+
+        # ---- 4. No recommendations generated in last 7 days ----
+        try:
+            recent_recs = session.execute(text("""
+                SELECT COUNT(*) FROM core.career_recommendations
+                WHERE created_at >= NOW() - INTERVAL '7 days'
+            """)).scalar() or 0
+
+            total_recs = session.execute(text("SELECT COUNT(*) FROM core.career_recommendations")).scalar() or 0
+
+            if total_recs > 5 and recent_recs == 0:
+                dup = session.execute(text("""
+                    SELECT COUNT(*) FROM core.anomalies
+                    WHERE type = 'no_recent_recommendations'
+                      AND resolved = false
+                      AND created_at >= NOW() - INTERVAL '7 days'
+                """)).scalar() or 0
+                if dup == 0:
+                    session.execute(text("""
+                        INSERT INTO core.anomalies (type, severity, title, description, metadata)
+                        VALUES ('no_recent_recommendations', 'medium',
+                                'No career recommendations generated in 7 days',
+                                'The AI recommendation engine has not produced any new career recommendations in the past 7 days.',
+                                :meta::jsonb)
+                    """), {"meta": json.dumps({"total_historical": total_recs, "window": "7d"})})
+                    inserted += 1
+        except Exception:
+            pass
+
+        session.commit()
+        return {"status": "ok", "anomalies_created": inserted}
+
+    except Exception as e:
+        logger.error(f"Error during anomaly detection: {e}", exc_info=True)
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Anomaly detection failed: {str(e)}")
 
 
 @router.post("/anomalies/{anomaly_id}/resolve")
@@ -2268,3 +2583,60 @@ def broadcast_notification(request: Request, payload: dict):
         logger.error(f"Error broadcasting notification: {e}")
         raise HTTPException(status_code=500, detail="Failed to broadcast notification")
         raise HTTPException(status_code=500, detail="Failed to create notification")
+
+# ============================================================================
+# GEMINI MONITORING ENDPOINTS
+# ============================================================================
+
+@router.get("/gemini-status")
+async def get_gemini_status():
+    """
+    Get detailed status of all Gemini streams including active models
+    """
+    try:
+        from app.core.gemini_manager import multi_stream_manager
+        
+        status = multi_stream_manager.check_all_streams_status()
+        
+        return {
+            "success": True,
+            "streams": status,
+            "summary": {
+                "total_streams": len(status),
+                "active_streams": sum(1 for s in status.values() if s['available']),
+                "models_in_use": [s['model'] for s in status.values() if s['model']]
+            }
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "streams": {}
+        }
+
+@router.post("/gemini-reinit")
+async def reinitialize_gemini_streams():
+    """
+    Force reinitialize all Gemini streams (useful when models are updated)
+    """
+    try:
+        from app.core.gemini_manager import multi_stream_manager
+        
+        # Reinitialize all streams
+        multi_stream_manager.chatbot_stream._initialize_with_fallback()
+        multi_stream_manager.assessment_stream._initialize_with_fallback()
+        multi_stream_manager.cv_stream._initialize_with_fallback()
+        
+        # Get new status
+        status = multi_stream_manager.check_all_streams_status()
+        
+        return {
+            "success": True,
+            "message": "All streams reinitialized with fallback models",
+            "streams": status
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }

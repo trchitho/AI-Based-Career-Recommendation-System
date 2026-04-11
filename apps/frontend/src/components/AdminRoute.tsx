@@ -8,6 +8,12 @@ interface AdminRouteProps {
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const { loading, user } = useAuth();
 
+  // If no token in storage at all, redirect immediately without waiting
+  const hasToken = !!localStorage.getItem('accessToken');
+  if (!hasToken) {
+    return <Navigate to="/login" replace />;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -16,10 +22,10 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     );
   }
 
-  // Only allow role 'admin' (or 'manager' if you want managers to access)
-  const isAdmin = user && (user as any).role && ((user as any).role === 'admin');
+  // Only allow role 'admin'
+  const isAdmin = user && (user as any).role === 'admin';
   if (!isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;

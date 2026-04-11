@@ -1,5 +1,6 @@
 import React, { useRef, forwardRef, useState, useEffect } from 'react';
 import HTMLFlipBook from 'react-pageflip';
+import { useTranslation } from 'react-i18next';
 import './StoryBasedAssessment.css';
 import { Question, QuestionResponse } from '../../types/assessment';
 import { assessmentService } from '../../services/assessmentService';
@@ -28,16 +29,28 @@ interface StoryScenario {
   situation: string;
 }
 
-// Response options - no emoji
-const responseOptions = [
-  { value: 1, label: 'Not Me', color: '#e74c3c' },
-  { value: 2, label: 'Rarely', color: '#e67e22' },
-  { value: 3, label: 'Sometimes', color: '#f39c12' },
-  { value: 4, label: 'Often', color: '#27ae60' },
-  { value: 5, label: 'Totally Me!', color: '#2ecc71' },
+interface GroupScenario {
+  emoji: string;
+  title: string;
+  introduction: string;
+}
+
+interface StoryGroup {
+  groupScenario: GroupScenario;
+  questionScenarios: StoryScenario[];
+}
+
+// Response option colors (labels are resolved via i18n at render time)
+const responseOptionColors = [
+  { value: 1, color: '#e74c3c' },
+  { value: 2, color: '#e67e22' },
+  { value: 3, color: '#f39c12' },
+  { value: 4, color: '#27ae60' },
+  { value: 5, color: '#2ecc71' },
 ];
 
 const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
+  const { t } = useTranslation();
   const bookRef = useRef<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -45,8 +58,9 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
   const [scenarios, setScenarios] = useState<StoryScenario[]>([]);
+  const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMessage, setLoadingMessage] = useState('Loading questions...');
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [storyProgress, setStoryProgress] = useState(0);
   const [essayText, setEssayText] = useState('');
@@ -54,12 +68,28 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
   const [isEditingEssay, setIsEditingEssay] = useState(false);
   const [showEssayOverlay, setShowEssayOverlay] = useState(false);
 
+  // Voice recording state
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const [voiceStatus, setVoiceStatus] = useState<'idle' | 'recording' | 'done' | 'error'>('idle');
+  const [voiceDuration, setVoiceDuration] = useState(0);
+  const voiceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Build translated response options
+  const responseOptions = [
+    { value: 1, label: t('assessment.response.notMe'), color: '#e74c3c' },
+    { value: 2, label: t('assessment.response.rarely'), color: '#e67e22' },
+    { value: 3, label: t('assessment.response.sometimes'), color: '#f39c12' },
+    { value: 4, label: t('assessment.response.often'), color: '#27ae60' },
+    { value: 5, label: t('assessment.response.totallyMe'), color: '#2ecc71' },
+  ];
+
   // Load questions and generate stories from API
   useEffect(() => {
     const loadQuestionsAndStories = async () => {
       try {
         setLoading(true);
-        setLoadingMessage('Loading questions...');
+        setLoadingMessage(t('assessment.loadingQuestions'));
         
         const riasecData = await assessmentService.getQuestions('RIASEC');
         const bigFiveData = await assessmentService.getQuestions('BIGFIVE');
@@ -116,10 +146,13 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         setQuestions(selected);
         
         // Generate story scenarios using backend API
-        setLoadingMessage('Creating your personalized story scenarios with AI...');
+        setLoadingMessage(t('assessment.generating'));
         
-        const generatedScenarios = await generateStoriesFromBackend(selected);
-        
+        const { groups, flat: generatedScenarios } = await generateStoriesFromBackend(selected);
+
+        // Set both together so render sees consistent state
+        setStoryGroups(groups);
+
         // Add essay as scenario 45
         const essayScenario: StoryScenario = {
           emoji: '✍️',
@@ -127,10 +160,10 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           context: 'Đây là cơ hội để bạn chia sẻ sâu hơn về bản thân, ước mơ và định hướng nghề nghiệp của mình.',
           situation: 'Hãy viết một đoạn văn ngắn (100-300 từ) về bản thân bạn, sở thích, điểm mạnh và nghề nghiệp mà bạn quan tâm.'
         };
-        
+
         const allScenarios = [...generatedScenarios, essayScenario];
         setScenarios(allScenarios);
-        
+
         // Fetch essay prompt
         try {
           const prompt = await assessmentService.getEssayPrompt('vi');
@@ -138,15 +171,14 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         } catch (err) {
           console.warn('Failed to load essay prompt, using default');
         }
-        
-        console.log(`📖 Total scenarios generated: ${allScenarios.length} (44 questions + 1 essay)`);
-        console.log(`📖 Expected scenarios: ${selected.length}`);
-        
+
+        console.log(`📖 Story groups: ${groups.length}, scenarios: ${allScenarios.length}`);
+
         if (generatedScenarios.length < selected.length) {
           console.warn(`⚠️ Missing ${selected.length - generatedScenarios.length} scenarios!`);
         }
         
-        setLoadingMessage('Ready to begin your journey!');
+        setLoadingMessage(t('assessment.startAssessment'));
         setError(null);
       } catch (err) {
         console.error('Error loading questions:', err);
@@ -185,238 +217,78 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
     }
   }, [isEditingEssay]);
   
-  // Generate stories by calling backend API
-  const generateStoriesFromBackend = async (questions: Question[]): Promise<StoryScenario[]> => {
-    const scenarios: StoryScenario[] = [];
-    const groupSize = 5;
-    const totalGroups = Math.ceil(questions.length / groupSize);
-    
-    for (let i = 0; i < questions.length; i += groupSize) {
-      const group = questions.slice(i, i + groupSize);
-      const groupIndex = Math.floor(i / groupSize);
-      
-      // Update progress
-      const progress = Math.round(((groupIndex + 1) / totalGroups) * 100);
-      setStoryProgress(progress);
-      setLoadingMessage(`Creating your personalized story scenarios... ${progress}%`);
-      
-      try {
-        console.log(`Generating story for group ${groupIndex + 1}...`);
-        
-        const response = await fetch('/api/assessments/generate-story', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            questions: group.map(q => ({
-              id: q.id,
-              question_text: q.question_text,
-              dimension: q.dimension,
-              test_type: q.test_type
-            })),
-            group_index: groupIndex
-          })
-        });
-        
-        const result = await response.json();
-        
-        // Use data from backend (either AI-generated or fallback)
-        if (result.data && result.data.questionScenarios) {
-          const receivedScenarios = result.data.questionScenarios;
-          
-          // Validate: backend should return same number of scenarios as questions in group
-          console.log(`📊 Group ${groupIndex + 1}: Expected ${group.length} scenarios, received ${receivedScenarios.length}`);
-          
-          if (receivedScenarios.length !== group.length) {
-            console.warn(`⚠️ Group ${groupIndex + 1}: Mismatch! Expected ${group.length} scenarios, got ${receivedScenarios.length}`);
-            console.log(`📝 Questions in group:`, group.map(q => ({ id: q.id, text: q.question_text.substring(0, 50) })));
-            console.log(`📝 Received scenarios:`, receivedScenarios.map((s: any) => s.title));
-            
-            // Fill missing scenarios with enhanced fallback based on dimension
-            while (receivedScenarios.length < group.length) {
-              const missingIndex = receivedScenarios.length;
-              const q = group[missingIndex];
-              if (q) {
-                console.log(`🔧 Creating fallback for question ${missingIndex + 1}:`, q.question_text.substring(0, 50));
-                
-                // Enhanced fallback with dimension-specific context
-                const dimensionInfo: Record<string, { emoji: string; title: string; context: string }> = {
-                  'R': { 
-                    emoji: '🔧', 
-                    title: 'Thử Thách Thực Tế', 
-                    context: 'Bạn đang đối mặt với một tình huống yêu cầu kỹ năng thực hành và làm việc với công cụ, máy móc.' 
-                  },
-                  'I': { 
-                    emoji: '🔬', 
-                    title: 'Thử Thách Nghiên Cứu', 
-                    context: 'Bạn cần phân tích, nghiên cứu và giải quyết vấn đề phức tạp một cách có hệ thống.' 
-                  },
-                  'A': { 
-                    emoji: '🎨', 
-                    title: 'Thử Thách Sáng Tạo', 
-                    context: 'Đây là cơ hội để thể hiện khả năng sáng tạo, nghệ thuật và tư duy độc đáo của bạn.' 
-                  },
-                  'S': { 
-                    emoji: '🤝', 
-                    title: 'Thử Thách Xã Hội', 
-                    context: 'Tình huống này liên quan đến việc giúp đỡ, dạy dỗ và tương tác với người khác.' 
-                  },
-                  'E': { 
-                    emoji: '💼', 
-                    title: 'Thử Thách Lãnh Đạo', 
-                    context: 'Bạn cần đưa ra quyết định, thuyết phục người khác và dẫn dắt nhóm đạt mục tiêu.' 
-                  },
-                  'C': { 
-                    emoji: '📋', 
-                    title: 'Thử Thách Tổ Chức', 
-                    context: 'Tình huống yêu cầu sự cẩn thận, chính xác và làm việc có hệ thống theo quy trình.' 
-                  },
-                  'O': { 
-                    emoji: '💡', 
-                    title: 'Thử Thách Cởi Mở', 
-                    context: 'Đây là cơ hội để khám phá điều mới mẻ, sáng tạo và thử nghiệm ý tưởng độc đáo.' 
-                  },
-                  'N': { 
-                    emoji: '😌', 
-                    title: 'Thử Thách Cảm Xúc', 
-                    context: 'Bạn cần quản lý cảm xúc và giữ bình tĩnh trong tình huống áp lực này.' 
-                  }
-                };
-                
-                const dim = q.dimension || 'R';
-                const info = dimensionInfo[dim] || { 
-                  emoji: '💭', 
-                  title: 'Tình Huống Thực Tế', 
-                  context: 'Hãy tưởng tượng bạn đang trong tình huống này và đánh giá mức độ phù hợp với bản thân.' 
-                };
-                
-                // Create a more detailed Vietnamese scenario based on the question
-                let vietnameseSituation = q.question_text;
-                
-                // Try to translate common English phrases to Vietnamese
-                const translations: Record<string, string> = {
-                  'Teach a high-school class': 'Dạy học cho một lớp học trung học phổ thông',
-                  'Operate a machine': 'Vận hành máy móc thiết bị',
-                  'Repair household appliances': 'Sửa chữa các thiết bị gia dụng',
-                  'Conduct a scientific experiment': 'Tiến hành thí nghiệm khoa học',
-                  'Write a novel': 'Viết một cuốn tiểu thuyết',
-                  'Design a website': 'Thiết kế một trang web',
-                  'Help people with personal problems': 'Giúp đỡ mọi người giải quyết vấn đề cá nhân',
-                  'Manage a business': 'Quản lý một doanh nghiệp',
-                  'Organize files and records': 'Tổ chức hồ sơ và tài liệu'
-                };
-                
-                // Check if question text matches any translation
-                for (const [eng, vie] of Object.entries(translations)) {
-                  if (q.question_text.toLowerCase().includes(eng.toLowerCase())) {
-                    vietnameseSituation = vie;
-                    break;
-                  }
-                }
-                
-                receivedScenarios.push({
-                  emoji: info.emoji,
-                  title: `${info.title} ${i + missingIndex + 1}`,
-                  context: info.context,
-                  situation: vietnameseSituation,
-                });
-              }
-            }
-            
-            console.log(`✅ Group ${groupIndex + 1}: Filled to ${receivedScenarios.length} scenarios`);
-          }
-          
-          scenarios.push(...receivedScenarios);
-          if (result.success) {
-            console.log(`✓ Group ${groupIndex + 1} story generated with AI (${receivedScenarios.length} scenarios)`);
-          } else {
-            console.log(`✓ Group ${groupIndex + 1} using backend fallback (${result.error || 'AI unavailable'})`);
-          }
-        } else {
-          throw new Error('No data returned from backend');
-        }
-        
-      } catch (error) {
-        console.error(`Error generating group ${groupIndex}:`, error);
-        // Client-side fallback scenarios with better context based on dimension
-        const fallbackScenarios = group.map((q, idx) => {
-          const dimension = q.dimension?.toLowerCase() || '';
-          
-          // Create contextual scenarios based on dimension
-          let emoji = '💭';
-          let title = `Tình Huống ${i + idx + 1}`;
-          let context = '';
-          
-          // RIASEC dimensions
-          if (dimension.includes('realistic') || dimension === 'r') {
-            emoji = '🔧';
-            title = 'Thử Thách Thực Tế';
-            context = 'Bạn đang làm việc với các công cụ và thiết bị. Hãy nghĩ về cách bạn tiếp cận công việc này.';
-          } else if (dimension.includes('investigative') || dimension === 'i') {
-            emoji = '🔬';
-            title = 'Khám Phá & Phân Tích';
-            context = 'Bạn đang nghiên cứu một vấn đề phức tạp. Hãy suy nghĩ về cách bạn giải quyết nó.';
-          } else if (dimension.includes('artistic') || dimension === 'a') {
-            emoji = '🎨';
-            title = 'Sáng Tạo & Nghệ Thuật';
-            context = 'Bạn đang trong một dự án sáng tạo. Hãy tưởng tượng cách bạn thể hiện ý tưởng.';
-          } else if (dimension.includes('social') || dimension === 's') {
-            emoji = '🤝';
-            title = 'Tương Tác Xã Hội';
-            context = 'Bạn đang làm việc với mọi người. Hãy nghĩ về cách bạn giao tiếp và hỗ trợ họ.';
-          } else if (dimension.includes('enterprising') || dimension === 'e') {
-            emoji = '💼';
-            title = 'Lãnh Đạo & Kinh Doanh';
-            context = 'Bạn đang đưa ra quyết định quan trọng. Hãy suy nghĩ về cách bạn dẫn dắt nhóm.';
-          } else if (dimension.includes('conventional') || dimension === 'c') {
-            emoji = '📊';
-            title = 'Tổ Chức & Quản Lý';
-            context = 'Bạn đang làm việc với dữ liệu và hệ thống. Hãy nghĩ về cách bạn sắp xếp công việc.';
-          }
-          // Big Five dimensions
-          else if (dimension.includes('openness') || dimension === 'o') {
-            emoji = '🌟';
-            title = 'Khám Phá Điều Mới';
-            context = 'Bạn gặp một cơ hội mới lạ. Hãy suy nghĩ về cách bạn phản ứng với điều này.';
-          } else if (dimension.includes('conscientiousness')) {
-            emoji = '✅';
-            title = 'Trách Nhiệm & Kỷ Luật';
-            context = 'Bạn có nhiều công việc cần hoàn thành. Hãy nghĩ về cách bạn tổ chức thời gian.';
-          } else if (dimension.includes('extraversion')) {
-            emoji = '🎉';
-            title = 'Năng Lượng & Giao Tiếp';
-            context = 'Bạn đang trong một sự kiện với nhiều người. Hãy tưởng tượng cách bạn tương tác.';
-          } else if (dimension.includes('agreeableness')) {
-            emoji = '💚';
-            title = 'Hợp Tác & Thấu Hiểu';
-            context = 'Bạn đang làm việc nhóm. Hãy suy nghĩ về cách bạn hỗ trợ đồng đội.';
-          } else if (dimension.includes('neuroticism') || dimension === 'n') {
-            emoji = '🧘';
-            title = 'Quản Lý Cảm Xúc';
-            context = 'Bạn đối mặt với áp lực. Hãy nghĩ về cách bạn xử lý tình huống này.';
-          } else {
-            context = 'Hãy suy nghĩ về tình huống này và chọn câu trả lời phù hợp nhất với bạn.';
-          }
-          
-          return {
-            emoji,
-            title,
-            context,
-            situation: q.question_text,
-          };
-        });
-        scenarios.push(...fallbackScenarios);
-        console.log(`✓ Using enhanced client fallback scenarios for group ${groupIndex + 1}`);
-      }
-      
-      // Small delay between groups
-      if (i + groupSize < questions.length) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
+  // Local fallback by dimension
+  const _localFallback = (qs: Question[]): { groups: StoryGroup[]; flat: StoryScenario[] } => {
+    const dimMap: Record<string, [string, string, string]> = {
+      R: ['🔧', 'Thực Hành', 'Bạn đang làm việc với công cụ và máy móc trong xưởng.'],
+      I: ['🔬', 'Nghiên Cứu', 'Bạn đang phân tích dữ liệu trong phòng thí nghiệm.'],
+      A: ['🎨', 'Sáng Tạo', 'Bạn đang tham gia dự án nghệ thuật và thiết kế.'],
+      S: ['🤝', 'Giao Tiếp', 'Bạn đang hỗ trợ và làm việc cùng mọi người.'],
+      E: ['💼', 'Lãnh Đạo', 'Bạn đang thuyết phục và dẫn dắt một nhóm.'],
+      C: ['📋', 'Tổ Chức', 'Bạn cần xử lý công việc theo quy trình chặt chẽ.'],
+      O: ['💡', 'Tư Duy Mở', 'Bạn đang đối mặt với ý tưởng và thay đổi mới.'],
+      N: ['😌', 'Cảm Xúc', 'Bạn đang xử lý tình huống áp lực và cảm xúc.'],
+    };
+    const GROUP_SIZE = 5;
+    const groups: StoryGroup[] = [];
+    for (let i = 0; i < qs.length; i += GROUP_SIZE) {
+      const chunk = qs.slice(i, i + GROUP_SIZE);
+      const dim = (chunk[0]?.dimension || '').toUpperCase();
+      const [emoji, title, introduction] = dimMap[dim] ?? ['💭', `Nhóm ${groups.length + 1}`, 'Hãy đánh giá mức độ phù hợp:'];
+      groups.push({
+        groupScenario: { emoji, title, introduction },
+        questionScenarios: chunk.map(q => ({ emoji, title, context: introduction, situation: q.question_text })),
+      });
     }
-    
-    return scenarios;
+    const flat = groups.flatMap(g => g.questionScenarios);
+    return { groups, flat };
+  };
+
+  // Generate stories: 1 Gemini call for all groups, returns group narratives + flat scenarios
+  // Returns { groups, flat } so caller can set both states together before rendering
+  const generateStoriesFromBackend = async (
+    questions: Question[]
+  ): Promise<{ groups: StoryGroup[]; flat: StoryScenario[] }> => {
+    setStoryProgress(10);
+    setLoadingMessage(`${t('assessment.scenario.generating')} ...`);
+
+    try {
+      const response = await fetch('/api/assessments/generate-stories-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questions: questions.map(q => ({
+            id: q.id,
+            question_text: q.question_text,
+            dimension: q.dimension,
+            test_type: q.test_type,
+          })),
+          group_size: 5,
+        }),
+      });
+
+      setStoryProgress(80);
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const result = await response.json();
+
+      const groups: StoryGroup[] = result.groups ?? [];
+      const flat: StoryScenario[] = result.scenarios ?? [];
+
+      // Pad missing scenarios with fallback
+      while (flat.length < questions.length) {
+        const q = questions[flat.length];
+        flat.push({ emoji: '💭', title: `Tình Huống ${flat.length + 1}`, context: 'Hãy đánh giá mức độ phù hợp:', situation: q?.question_text ?? '' });
+      }
+
+      setStoryProgress(100);
+      console.log(`📖 Story groups: ${groups.length}, scenarios: ${flat.length} (success=${result.success})`);
+      return { groups, flat };
+
+    } catch (err) {
+      console.error('Batch story generation failed, using client fallback:', err);
+      return _localFallback(questions);
+    }
   };
   
   // 1 question per page for immersive story experience
@@ -504,10 +376,62 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         questionId: questionId,
         answer: answer,
       }));
-      // Pass essay text along with responses
       onComplete(responses, essayText);
+
+      // Submit voice recording to backend if available (fire-and-forget)
+      if (voiceStatus === 'done' && audioChunksRef.current.length > 0) {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const form = new FormData();
+        form.append('audio', blob, 'voice.webm');
+        fetch('/api/assessments/voice-story', { method: 'POST', body: form })
+          .catch(() => {/* non-critical */});
+      }
     }
   };
+
+  // ── Voice recording ──────────────────────────────────────────────
+  const startVoiceRecording = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      const mr = new MediaRecorder(stream);
+      mediaRecorderRef.current = mr;
+
+      mr.ondataavailable = (ev) => {
+        if (ev.data.size > 0) audioChunksRef.current.push(ev.data);
+      };
+
+      mr.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        if (voiceTimerRef.current) clearInterval(voiceTimerRef.current);
+        setVoiceStatus('done');
+      };
+
+      mr.start(250);
+      setVoiceStatus('recording');
+      setVoiceDuration(0);
+      voiceTimerRef.current = setInterval(() => {
+        setVoiceDuration(d => d + 1);
+      }, 1000);
+    } catch {
+      setVoiceStatus('error');
+    }
+  };
+
+  const stopVoiceRecording = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    mediaRecorderRef.current?.stop();
+    if (voiceTimerRef.current) clearInterval(voiceTimerRef.current);
+  };
+
+  const resetVoice = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    audioChunksRef.current = [];
+    setVoiceStatus('idle');
+    setVoiceDuration(0);
+  };
+  // ─────────────────────────────────────────────────────────────────
 
   const canGoNext = () => {
     if (currentPage < 3) return true; // Cover, intro, story intro
@@ -540,7 +464,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
     if (canGoNext()) {
       bookRef.current?.pageFlip().flipNext();
     } else {
-      alert('Please choose an option to continue your journey!');
+      alert(t('assessment.response.choosePrompt'));
     }
   };
 
@@ -721,60 +645,35 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               situation: question.question_text,
             };
             const isAnswered = answers[String(question.id)] !== undefined;
-            
-            // Get label for grouping
-            const currentLabel = question.dimension || question.id.toString().charAt(0);
-            const prevQuestion = index > 0 ? questions[index - 1] : null;
-            const prevLabel = prevQuestion ? (prevQuestion.dimension || prevQuestion.id.toString().charAt(0)) : null;
-            const isNewLabelGroup = currentLabel !== prevLabel;
-            
-            // Label descriptions with emojis
-            const labelInfo: { [key: string]: { name: string; emoji: string; color: string } } = {
-              'R': { name: 'Realistic', emoji: '🔧', color: '#3498db' },
-              'I': { name: 'Investigative', emoji: '🔬', color: '#9b59b6' },
-              'A': { name: 'Artistic', emoji: '🎨', color: '#e91e63' },
-              'S': { name: 'Social', emoji: '🤝', color: '#27ae60' },
-              'E': { name: 'Enterprising', emoji: '💼', color: '#e67e22' },
-              'C': { name: 'Conventional', emoji: '📋', color: '#95a5a6' },
-              'O': { name: 'Openness', emoji: '🌟', color: '#5c6bc0' },
-              'N': { name: 'Neuroticism', emoji: '😌', color: '#ef5350' },
-            };
-            
-            const labelData = labelInfo[currentLabel];
-            
+
+            // Group info: which group does this question belong to?
+            const GROUP_SIZE = 5;
+            const groupIndex = Math.floor(index / GROUP_SIZE);
+            const posInGroup = index % GROUP_SIZE; // 0-4
+            const isFirstInGroup = posInGroup === 0;
+            const group = storyGroups[groupIndex];
+            const groupScenario = group?.groupScenario;
+
             return (
               <Page key={question.id} className="scenario-page">
                 <div className="scenario-content">
                   <div className="scenario-header">
-                    <span className="scenario-number">Scenario {index + 1} of {questions.length}</span>
-                    {labelData && (
-                      <div className="label-badge" style={{ 
-                        backgroundColor: `${labelData.color}20`,
-                        borderColor: labelData.color,
-                        color: labelData.color
-                      }}>
-                        <span className="label-emoji">{labelData.emoji}</span>
-                        <span className="label-name">{labelData.name}</span>
+                    <span className="scenario-number">Câu {index + 1} / {questions.length}</span>
+                    {groupScenario && (
+                      <div className="label-badge" style={{ backgroundColor: 'rgba(102,126,234,0.15)', borderColor: '#667eea', color: '#667eea' }}>
+                        <span className="label-emoji">{groupScenario.emoji}</span>
+                        <span className="label-name">{groupScenario.title}</span>
                       </div>
                     )}
                   </div>
-                  
-                  {/* Show label group intro on first question of each group */}
-                  {isNewLabelGroup && labelData && (
-                    <div className="label-intro" style={{ borderLeftColor: labelData.color }}>
-                      <h3 style={{ color: labelData.color }}>
-                        {labelData.emoji} {labelData.name} Personality
+
+                  {/* Group story intro — shown only on the FIRST question of each group */}
+                  {isFirstInGroup && groupScenario && (
+                    <div className="label-intro" style={{ borderLeftColor: '#667eea' }}>
+                      <h3 style={{ color: '#667eea' }}>
+                        {groupScenario.emoji} {groupScenario.title}
                       </h3>
-                      <p className="label-description">
-                        {currentLabel === 'R' && 'Explore your practical, hands-on approach to work and problem-solving.'}
-                        {currentLabel === 'I' && 'Discover your analytical thinking and research-oriented mindset.'}
-                        {currentLabel === 'A' && 'Uncover your creative expression and artistic sensibilities.'}
-                        {currentLabel === 'S' && 'Understand your people-oriented and helping nature.'}
-                        {currentLabel === 'E' && 'Reveal your leadership and entrepreneurial spirit.'}
-                        {currentLabel === 'C' && 'Examine your organizational and detail-focused traits.'}
-                        {currentLabel === 'O' && 'Assess your openness to new experiences and ideas.'}
-                        {currentLabel === 'N' && 'Evaluate your emotional stability and stress management.'}
-                      </p>
+                      <p className="label-description">{groupScenario.introduction}</p>
                     </div>
                   )}
                   
@@ -860,35 +759,130 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                 </p>
               </div>
               
-              {/* Button to open overlay textarea */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowEssayOverlay(true);
-                  setTimeout(() => textareaRef.current?.focus(), 100);
-                }}
-                style={{
-                  padding: '1rem 2rem',
-                  background: 'white',
-                  color: '#8e44ad',
-                  border: '2px solid #8e44ad',
-                  borderRadius: '12px',
-                  fontSize: '1.1rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  margin: '0 auto'
-                }}
-              >
-                ✍️ Viết Câu Chuyện Của Bạn
-              </button>
-              
+              {/* Two options: write or record voice */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
+                {/* Write button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowEssayOverlay(true);
+                    setTimeout(() => textareaRef.current?.focus(), 100);
+                  }}
+                  style={{
+                    padding: '0.9rem 1.5rem',
+                    background: 'white',
+                    color: '#8e44ad',
+                    border: '2px solid #8e44ad',
+                    borderRadius: '12px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  ✍️ Viết Câu Chuyện Của Bạn
+                </button>
+
+                {/* Voice record button */}
+                {voiceStatus === 'idle' && (
+                  <button
+                    onClick={startVoiceRecording}
+                    style={{
+                      padding: '0.9rem 1.5rem',
+                      background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    🎙️ Thu Âm Giọng Nói (Voice AI)
+                  </button>
+                )}
+
+                {voiceStatus === 'recording' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.9rem 1.5rem',
+                      background: '#ffeaea',
+                      border: '2px solid #e74c3c',
+                      borderRadius: '12px',
+                      width: '100%',
+                      justifyContent: 'center',
+                    }}>
+                      <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#e74c3c', animation: 'pulse 1s infinite' }} />
+                      <span style={{ color: '#e74c3c', fontWeight: 600 }}>Đang thu âm... {voiceDuration}s</span>
+                    </div>
+                    <button
+                      onClick={stopVoiceRecording}
+                      style={{
+                        padding: '0.6rem 1.5rem',
+                        background: '#e74c3c',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ⏹ Dừng Thu Âm
+                    </button>
+                  </div>
+                )}
+
+                {voiceStatus === 'done' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{
+                      padding: '0.9rem 1.5rem',
+                      background: '#eafaf1',
+                      border: '2px solid #27ae60',
+                      borderRadius: '12px',
+                      color: '#27ae60',
+                      fontWeight: 600,
+                      width: '100%',
+                      textAlign: 'center',
+                    }}>
+                      ✅ Đã thu âm {voiceDuration}s — AI sẽ phân tích giọng nói của bạn
+                    </div>
+                    <button
+                      onClick={resetVoice}
+                      style={{
+                        padding: '0.4rem 1rem',
+                        background: 'transparent',
+                        color: '#888',
+                        border: '1px solid #ccc',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      🔄 Thu âm lại
+                    </button>
+                  </div>
+                )}
+
+                {voiceStatus === 'error' && (
+                  <div style={{ color: '#e74c3c', fontSize: '0.9rem', textAlign: 'center' }}>
+                    ⚠️ Không thể truy cập microphone. Kiểm tra quyền truy cập.
+                  </div>
+                )}
+              </div>
+
               {essayText.trim().length > 0 && (
-                <div className="continue-hint" style={{ marginTop: '1rem' }}>
-                  ✓ Đã lưu {essayText.split(/\s+/).filter(w => w.length > 0).length} từ
+                <div className="continue-hint" style={{ marginTop: '0.75rem' }}>
+                  ✓ Đã viết {essayText.split(/\s+/).filter(w => w.length > 0).length} từ
                 </div>
               )}
             </div>

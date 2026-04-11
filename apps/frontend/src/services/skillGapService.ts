@@ -1,7 +1,7 @@
 /**
  * Service for Skill Gap Analysis API
  */
-import { SkillGapAnalysis, HeatmapData, InterviewPrepData } from '../types/skillGap';
+import { SkillGapAnalysis, HeatmapData, InterviewPrepData, LearningPlan } from '../types/skillGap';
 
 const API_BASE_URL = '/api/skill-gap';
 
@@ -100,6 +100,18 @@ class SkillGapService {
       throw new Error('Failed to fetch interview prep data');
     }
 
+    return response.json();
+  }
+
+  /**
+   * Lấy lộ trình học tập AI-generated
+   */
+  async getLearningPlan(analysisId: number): Promise<{ success: boolean; plan: LearningPlan; career_id: string }> {
+    const token = localStorage.getItem('accessToken');
+    const response = await fetch(`${API_BASE_URL}/learning-plan/${analysisId}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error('Failed to fetch learning plan');
     return response.json();
   }
 }

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import MainLayout from '../components/layout/MainLayout';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { goalsService, CareerGoal, GoalMilestone } from '../services/goalsService';
 
 const CareerGoalsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { currentPlan } = useFeatureAccess();
   const location = useLocation();
   const [goals, setGoals] = useState<CareerGoal[]>([]);
@@ -132,16 +134,16 @@ const CareerGoalsPage: React.FC = () => {
                 </svg>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Career Goal Management
+                {t('goals.proRequired')}
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-                This feature is only available for Pro Plan users. Set up and track your career goals.
+                {t('goals.proRequiredDesc')}
               </p>
               <Link
                 to="/pricing"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all"
               >
-                Upgrade to Pro Plan
+                {t('goals.upgradeToPro')}
               </Link>
             </div>
           </div>
@@ -162,10 +164,10 @@ const CareerGoalsPage: React.FC = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'completed': return 'Completed';
-      case 'in_progress': return 'In Progress';
-      case 'paused': return 'Paused';
-      case 'cancelled': return 'Cancelled';
+      case 'completed': return t('goals.status.completed');
+      case 'in_progress': return t('goals.status.in_progress');
+      case 'paused': return t('goals.status.paused');
+      case 'cancelled': return t('goals.status.cancelled');
       default: return status;
     }
   };
@@ -178,10 +180,10 @@ const CareerGoalsPage: React.FC = () => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Career Goal Management
+                {t('goals.title')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Set up and track your career goals
+                {t('goals.subtitle')}
               </p>
             </div>
             <button
@@ -191,7 +193,7 @@ const CareerGoalsPage: React.FC = () => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Create New Goal
+              {t('goals.createNew')}
             </button>
           </div>
 
@@ -211,16 +213,16 @@ const CareerGoalsPage: React.FC = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                No goals yet
+                {t('goals.noGoalsTitle')}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Start by creating your first career goal
+                {t('goals.noGoalsDesc')}
               </p>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl"
               >
-                Create First Goal
+                {t('goals.createFirst')}
               </button>
             </div>
           ) : (
@@ -248,17 +250,17 @@ const CareerGoalsPage: React.FC = () => {
                         </div>
                         {goal.career_name && (
                           <p className="text-sm text-purple-600 dark:text-purple-400 mb-2">
-                            Career: {goal.career_name}
+                            {t('goals.career')}: {goal.career_name}
                           </p>
                         )}
                         <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                           <span className={goal.goal_type === 'long_term' ? 'text-orange-600' : 'text-blue-600'}>
-                            {goal.goal_type === 'long_term' ? 'Long-term' : 'Short-term'}
+                            {goal.goal_type === 'long_term' ? t('goals.longTerm') : t('goals.shortTerm')}
                           </span>
                           {goal.target_date && (
-                            <span>Target: {new Date(goal.target_date).toLocaleDateString('en-GB')}</span>
+                            <span>{t('goals.target')}: {new Date(goal.target_date).toLocaleDateString('en-GB')}</span>
                           )}
-                          <span>Priority: {goal.priority}/5</span>
+                          <span>{t('goals.priority')}: {goal.priority}/5</span>
                         </div>
                       </div>
                     </div>
@@ -267,9 +269,9 @@ const CareerGoalsPage: React.FC = () => {
                     {(goal.milestone_count || 0) > 0 && (
                       <div className="mt-4">
                         <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-gray-600 dark:text-gray-400">Progress</span>
+                          <span className="text-gray-600 dark:text-gray-400">{t('goals.progress')}</span>
                           <span className="font-medium text-gray-900 dark:text-white">
-                            {goal.completed_milestones}/{goal.milestone_count} milestones
+                            {goal.completed_milestones}/{goal.milestone_count} {t('goals.milestones')}
                           </span>
                         </div>
                         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">

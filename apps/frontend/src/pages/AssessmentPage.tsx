@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { EssayPrompt, QuestionResponse, AssessmentResult } from '../types/assessment';
 import EssayModalComponent from '../components/assessment/EssayModalComponent';
+import VoiceAssessmentComponent from '../components/assessment/VoiceAssessmentComponent';
 import EnhancedAssessmentFlow from '../components/assessment/EnhancedAssessmentFlow';
 import CareerTestComponent from '../components/assessment/CareerTestComponent';
 import { assessmentService } from '../services/assessmentService';
@@ -17,7 +18,7 @@ import { checkAssessmentLimit } from '../services/subscriptionService';
 import { getPaymentHistory, PaymentHistory } from '../services/paymentService';
 import { getAccessToken } from '../utils/auth';
 
-type AssessmentStep = 'intro' | 'enhanced' | 'test' | 'essay' | 'processing';
+type AssessmentStep = 'intro' | 'enhanced' | 'test' | 'essay' | 'voice' | 'processing';
 
 const AssessmentPage = () => {
   // ==========================================
@@ -274,15 +275,11 @@ const AssessmentPage = () => {
 
       await assessmentService.submitEssay(payload);
 
-      setStep('processing');
-
-      setTimeout(() => {
-        navigate(`/results/${assessmentId}`);
-      }, 2000);
+      // After essay, offer optional voice analysis
+      setStep('voice');
     } catch (err) {
       console.error('Error submitting essay:', err);
       setError('Failed to submit essay. Redirecting to results...');
-
       setTimeout(() => {
         navigate(`/results/${assessmentId}`);
       }, 2000);
@@ -291,14 +288,26 @@ const AssessmentPage = () => {
     }
   };
 
-
   /**
-   * Nếu user bỏ qua essay → vẫn cho xem kết quả RIASEC/BigFive
+   * Nếu user bỏ qua essay → chuyển sang voice (optional)
    */
   const handleEssaySkip = () => {
-    if (assessmentId) {
-      navigate(`/results/${assessmentId}`);
-    }
+    setStep('voice');
+  };
+
+  /**
+   * After voice analysis (complete or skip) → processing → results (if we have an ID)
+   * If voice was launched standalone (no assessmentId), go back to intro
+   */
+  const handleVoiceComplete = () => {
+    if (!assessmentId) { setStep('intro'); return; }
+    setStep('processing');
+    setTimeout(() => navigate(`/results/${assessmentId}`), 2000);
+  };
+
+  const handleVoiceSkip = () => {
+    if (!assessmentId) { setStep('intro'); return; }
+    navigate(`/results/${assessmentId}`);
   };
 
   // ==========================================
@@ -367,13 +376,13 @@ const AssessmentPage = () => {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
-                    ✨ AI-Powered Analysis
+                    ✨ {t('assessment.aiPowered')}
                   </span>
                   <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-gray-900 via-green-800 to-emerald-800 dark:from-white dark:via-green-400 dark:to-emerald-400 bg-clip-text text-transparent mb-6 leading-tight">
-                    Career Assessment
+                    {t('assessment.discoverCareer')}
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed mb-8 font-medium">
-                    Discover your ideal career path with AI-powered insights
+                    {t('assessment.discoverCareerSub')}
                   </p>
                 </div>
 
@@ -384,8 +393,8 @@ const AssessmentPage = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 dark:text-white text-lg">RIASEC Interest Profile</h4>
-                      <p className="text-gray-600 dark:text-gray-400">Discover your work personality type.</p>
+                      <h4 className="font-bold text-gray-900 dark:text-white text-lg">{t('assessment.riasecTitle')}</h4>
+                      <p className="text-gray-600 dark:text-gray-400">{t('assessment.riasecDesc')}</p>
                     </div>
                   </div>
                   <div className="group flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-900/10 dark:to-pink-900/10 border border-purple-100 dark:border-purple-800/30 hover:shadow-lg transition-all duration-300 hover:scale-105">
@@ -393,8 +402,8 @@ const AssessmentPage = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 dark:text-white text-lg">Big Five Personality Traits</h4>
-                      <p className="text-gray-600 dark:text-gray-400">Understand your core personality dimensions.</p>
+                      <h4 className="font-bold text-gray-900 dark:text-white text-lg">{t('assessment.bigFiveTitle')}</h4>
+                      <p className="text-gray-600 dark:text-gray-400">{t('assessment.bigFiveDesc')}</p>
                     </div>
                   </div>
                 </div>
@@ -410,20 +419,19 @@ const AssessmentPage = () => {
                       </div>
                       <div className="flex-1">
                         <h4 className="font-bold text-orange-900 dark:text-orange-100 text-lg mb-1">
-                          Monthly Limit Reached
+                          {t('assessment.limitReached')}
                         </h4>
                         <p className="text-orange-700 dark:text-orange-300 text-sm">
-                          You have used {usageInfo?.current_usage || 0}/{getAssessmentLimit()} assessments this month.
-                          {detectedPlan === 'Free' ? ' Upgrade to Basic for 20 assessments/month!' :
-                            detectedPlan === 'Basic' ? ' Upgrade to Premium for unlimited assessments!' :
-                              ' Upgrade to Premium for unlimited assessments!'}
+                          {t('assessment.limitUsed', { current: usageInfo?.current_usage || 0, limit: getAssessmentLimit() })}
+                          {detectedPlan === 'Free' ? ' ' + t('assessment.upgradeBasicHint') :
+                            ' ' + t('assessment.upgradePremiumHint')}
                         </p>
                       </div>
                       <button
                         onClick={() => navigate('/pricing')}
                         className="px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
                       >
-                        Upgrade Now
+                        {t('assessment.upgradeNow')}
                       </button>
                     </div>
                   </div>
@@ -462,8 +470,8 @@ const AssessmentPage = () => {
                     )}
 
                     <span className="relative z-10 flex flex-col items-center gap-1">
-                      <span>{limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? 'Limit Reached - Upgrade' : '🚀 Start Interactive Assessment'}</span>
-                      <span className="text-xs font-normal opacity-75">Story-based experience</span>
+                      <span>{limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? t('assessment.limitReachedUpgrade') : `🚀 ${t('assessment.startInteractive')}`}</span>
+                      <span className="text-xs font-normal opacity-75">{t('assessment.storyBased')}</span>
                     </span>
                     <svg className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M13 7l5 5m0 0l-5 5m5-5H6"} />
@@ -477,11 +485,26 @@ const AssessmentPage = () => {
                     className="group relative flex-1 inline-flex items-center justify-center px-8 py-4 text-gray-700 dark:text-gray-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-600 rounded-2xl font-semibold text-lg hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-300 hover:shadow-lg"
                   >
                     <span className="relative z-10 flex flex-col items-center gap-1">
-                      <span>📝 Traditional Test</span>
-                      <span className="text-xs font-normal opacity-75">Standard questionnaire</span>
+                      <span>📝 {t('assessment.modeTraditional')}</span>
+                      <span className="text-xs font-normal opacity-75">{t('assessment.standardQuestionnaire')}</span>
                     </span>
                   </button>
-                  
+
+                  {/* Voice AI Option */}
+                  <button
+                    onClick={() => {
+                      // Voice-only: skip to voice step directly (assessment ID will be null — handled gracefully)
+                      setStep('voice');
+                    }}
+                    disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
+                    className="group relative flex-1 inline-flex items-center justify-center px-8 py-4 text-violet-700 dark:text-violet-300 bg-violet-50/80 dark:bg-violet-900/20 backdrop-blur-sm border-2 border-violet-200 dark:border-violet-700 rounded-2xl font-semibold text-lg hover:border-violet-400 dark:hover:border-violet-500 transition-all duration-300 hover:shadow-lg"
+                  >
+                    <span className="relative z-10 flex flex-col items-center gap-1">
+                      <span>🎙️ {t('assessment.modeVoice')}</span>
+                      <span className="text-xs font-normal opacity-75">{t('assessment.voiceDesc')}</span>
+                    </span>
+                  </button>
+
                   <div className="flex items-center justify-center gap-3 text-base font-semibold text-gray-600 dark:text-gray-400 px-6 py-3 bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl backdrop-blur-sm">
                     <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span>~10 Mins</span>
@@ -580,19 +603,18 @@ const AssessmentPage = () => {
                       ? 'text-green-900 dark:text-green-100'
                       : 'text-blue-900 dark:text-blue-100'
                       }`}>
-                      {detectedPlan === 'Premium' || detectedPlan === 'Pro' ? 'Premium/Pro Active' :
-                        detectedPlan === 'Basic' ? 'Basic Plan Active' : 'Smart Usage'}
+                      {detectedPlan === 'Premium' || detectedPlan === 'Pro' ? t('assessment.planPremiumActive') :
+                        detectedPlan === 'Basic' ? t('assessment.planBasicActive') : t('assessment.smartUsage')}
                     </h3>
                     <p className={`text-sm ${getAssessmentLimit() === -1 // Unlimited
                       ? 'text-green-700 dark:text-green-300'
                       : 'text-blue-700 dark:text-blue-300'
                       }`}>
                       {getAssessmentLimit() === -1
-                        ? 'You have unlimited access to all Premium features. Enjoy the full experience!'
-                        : `You have ${getAssessmentLimit()} assessments per month. ${detectedPlan === 'Free' ? 'Upgrade to Basic for 20 assessments/month' :
-                          detectedPlan === 'Basic' ? 'You are on Basic plan. Upgrade to Premium for unlimited assessments' :
-                            'Upgrade to Premium for unlimited assessments'
-                        }.`
+                        ? t('assessment.unlimitedAccess')
+                        : t('assessment.limitedAccess', { limit: getAssessmentLimit() }) + ' ' + (detectedPlan === 'Free' ? t('assessment.upgradeBasicHint') :
+                          detectedPlan === 'Basic' ? t('assessment.upgradeBasicPlanHint') :
+                            t('assessment.upgradePremiumHint'))
                       }
                     </p>
                   </div>
@@ -602,9 +624,8 @@ const AssessmentPage = () => {
                     onClick={() => navigate('/pricing')}
                     className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
-                    {detectedPlan === 'Free' ? 'View Basic Plan' :
-                      detectedPlan === 'Basic' ? 'View Premium Plan' :
-                        'View Premium Plan'}
+                    {detectedPlan === 'Free' ? t('assessment.viewBasicPlan') :
+                      t('assessment.viewPremiumPlan')}
                   </button>
                 )}
                 {getAssessmentLimit() === -1 && (
@@ -612,7 +633,7 @@ const AssessmentPage = () => {
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    Unlimited Access
+                    {t('assessment.unlimitedAccessLabel')}
                   </div>
                 )}
               </div>
@@ -634,7 +655,7 @@ const AssessmentPage = () => {
               <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-4">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('assessment.title')}</h2>
                 <button onClick={handleCancel} className="text-sm font-semibold text-gray-500 hover:text-red-500 transition-colors">
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </div>
 
@@ -664,7 +685,16 @@ const AssessmentPage = () => {
             />
           )}
 
-          {/* --- STEP 4: PROCESSING (SINGLE CARD) --- */}
+          {/* --- STEP 4: VOICE ANALYSIS (OPTIONAL) --- */}
+          {step === 'voice' && (
+            <VoiceAssessmentComponent
+              assessmentId={assessmentId ?? ''}
+              onComplete={handleVoiceComplete}
+              onSkip={handleVoiceSkip}
+            />
+          )}
+
+          {/* --- STEP 5: PROCESSING (SINGLE CARD) --- */}
           {step === 'processing' && (
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-[32px] shadow-2xl p-16 w-full max-w-2xl text-center animate-fade-in-up border border-white/50 dark:border-gray-700">
               <div className="relative mb-8 flex justify-center">

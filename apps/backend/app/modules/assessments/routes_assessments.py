@@ -4,7 +4,7 @@ import base64
 import json
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -682,8 +682,95 @@ def api_save_processed_results(
 
 
 # -------------------------------------------------------------------
-# Story Generator Endpoint
+# Voice Analysis Endpoint
 # -------------------------------------------------------------------
+
+@router.post("/{assessment_id}/voice")
+async def api_submit_voice(
+    assessment_id: int,
+    audio: UploadFile = File(...),
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Nhận file audio, phân tích personality bằng Gemini multimodal,
+    lưu kết quả vào Assessment.essay_analysis và ai.user_trait_preds.
+
+    POST /api/assessments/{assessment_id}/voice
+    Form-data: audio (file)
+    """
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+    from .voice_analyzer import analyse_voice, save_voice_traits
+
+    try:
+        # ---- 1. Validate ----
+        content_type = (audio.content_type or "").lower()
+        allowed = content_type.startswith("audio/") or content_type == "application/octet-stream"
+        if not allowed:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="Only audio files are accepted",
+            )
+
+        MAX_SIZE = 20 * 1024 * 1024
+        audio_bytes = await audio.read(MAX_SIZE + 1)
+        if len(audio_bytes) > MAX_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="Audio file too large (max 20 MB)",
+            )
+
+        mime_type = content_type if content_type.startswith("audio/") else "audio/webm"
+        print(
+            f"[assessments] Voice upload: assessment_id={assessment_id} "
+            f"user_id={user_id} size={len(audio_bytes)} bytes mime={mime_type!r}"
+        )
+
+        # ---- 2. Analyse with Gemini (run sync Gemini call in thread pool) ----
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            analysis = await loop.run_in_executor(
+                pool, analyse_voice, audio_bytes, mime_type
+            )
+
+        print(
+            f"[assessments] Voice analysis done: confidence={analysis.get('confidence')}, "
+            f"has_transcript={bool(analysis.get('transcript'))}"
+        )
+
+        # ---- 3. Persist results ----
+        save_voice_traits(db, user_id=user_id, assessment_id=assessment_id, analysis=analysis)
+
+        return {
+            "ok": True,
+            "assessment_id": assessment_id,
+            "confidence": analysis.get("confidence", 0.0),
+            "voice_summary": analysis.get("voice_summary", ""),
+            "transcript_preview": (analysis.get("transcript") or "")[:120],
+            "big5": analysis.get("big5"),
+            "riasec": analysis.get("riasec"),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[assessments] voice endpoint error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process voice recording",
+        )
+
+
+# -------------------------------------------------------------------
+# Story Generator — singleton + endpoints
+# -------------------------------------------------------------------
+
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".."))
+from assessment.story_generator import StoryGeneratorService as _StoryService
+_story_service = _StoryService()   # created once at import time — no repeated Gemini init calls
+
 
 class QuestionForStory(BaseModel):
     id: str
@@ -691,79 +778,37 @@ class QuestionForStory(BaseModel):
     dimension: Optional[str] = None
     test_type: str
 
-class GenerateStoryRequest(BaseModel):
+class GenerateAllStoriesRequest(BaseModel):
     questions: List[QuestionForStory]
-    group_index: int
+    group_size: int = 5
 
-@router.post("/generate-story")
-def generate_story_scenarios(
-    request: GenerateStoryRequest
-):
+
+@router.post("/generate-stories-batch")
+def generate_all_story_scenarios(request: GenerateAllStoriesRequest):
     """
-    Generate story scenarios for a group of questions using Gemini AI
-    
-    POST /api/assessments/generate-story
-    Body: {
-        "questions": [
-            {"id": "1", "question_text": "...", "dimension": "realistic", "test_type": "RIASEC"},
-            ...
-        ],
-        "group_index": 0
-    }
+    Single Gemini call → group stories for ALL question groups.
+    Each group of ~5 questions shares one narrative context (like a book chapter).
+
+    POST /api/assessments/generate-stories-batch
+    Returns:
+      groups: list of {groupScenario, questionScenarios} — one entry per group
+      scenarios: flat list of all questionScenarios (one per question, for convenience)
     """
-    import logging
-    logger = logging.getLogger(__name__)
-    
+    questions_data = [q.dict() for q in request.questions]
     try:
-        # Fix import path - assessment not assessments
-        import sys
-        import os
-        
-        # Add parent directory to path
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        parent_dir = os.path.dirname(current_dir)
-        if parent_dir not in sys.path:
-            sys.path.insert(0, parent_dir)
-        
-        from assessment.story_generator import StoryGeneratorService
-        
-        logger.info(f"Generating story for group {request.group_index} with {len(request.questions)} questions")
-        
-        story_service = StoryGeneratorService()
-        
-        # Convert Pydantic models to dicts
-        questions_data = [q.dict() for q in request.questions]
-        
-        result = story_service.generate_group_story(questions_data, request.group_index)
-        
-        logger.info(f"Successfully generated story for group {request.group_index}")
-        
+        groups = _story_service.generate_group_stories(questions_data, request.group_size)
+        flat = [qs for g in groups for qs in g["questionScenarios"]]
         return {
             "success": True,
-            "data": result
+            "groups": groups,
+            "scenarios": flat,
+            "count": len(flat),
         }
-        
     except Exception as e:
-        logger.error(f"Error generating story: {e}", exc_info=True)
-        
-        # Return fallback on error
-        return {
-            "success": False,
-            "error": str(e),
-            "data": {
-                "groupScenario": {
-                    "emoji": "📖",
-                    "title": "Tình Huống",
-                    "introduction": "Hãy trải nghiệm các tình huống sau..."
-                },
-                "questionScenarios": [
-                    {
-                        "emoji": "💭",
-                        "title": f"Tình Huống {idx + 1}",
-                        "context": "Hãy suy nghĩ về tình huống này...",
-                        "situation": q.question_text
-                    }
-                    for idx, q in enumerate(request.questions)
-                ]
-            }
-        }
+        flat = [
+            {"emoji": "💭", "title": f"Tình Huống {i+1}",
+             "context": "Hãy đánh giá mức độ phù hợp:", "situation": q.question_text}
+            for i, q in enumerate(request.questions)
+        ]
+        return {"success": False, "groups": [], "scenarios": flat, "count": len(flat), "error": str(e)}
+

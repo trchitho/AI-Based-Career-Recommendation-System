@@ -30,6 +30,7 @@ export const PaymentPage: React.FC = () => {
     const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'warning'; message: string } | null>(null);
     const isLoggedIn = !!getAccessToken();
     const [userPlan, setUserPlan] = useState<string>('Free');
+    const [planLoading, setPlanLoading] = useState<boolean>(true);
 
     const plans: Plan[] = [
         {
@@ -105,6 +106,8 @@ export const PaymentPage: React.FC = () => {
         if (isLoggedIn) {
             loadHistory();
             detectUserPlan();
+        } else {
+            setPlanLoading(false);
         }
     }, [isLoggedIn]);
 
@@ -123,7 +126,7 @@ export const PaymentPage: React.FC = () => {
     const detectUserPlan = async () => {
         try {
             const token = getAccessToken();
-            if (!token) return;
+            if (!token) { setPlanLoading(false); return; }
 
             try {
                 const response = await fetch('http://localhost:8000/api/subscription/subscription', {
@@ -133,6 +136,7 @@ export const PaymentPage: React.FC = () => {
                     const data = await response.json();
                     if (data.plan_name && data.plan_name !== 'Free') {
                         setUserPlan(data.plan_name);
+                        setPlanLoading(false);
                         return;
                     }
                 }
@@ -150,6 +154,8 @@ export const PaymentPage: React.FC = () => {
             }
         } catch (error) {
             console.error('Failed to detect user plan:', error);
+        } finally {
+            setPlanLoading(false);
         }
     };
 
@@ -228,13 +234,13 @@ export const PaymentPage: React.FC = () => {
                             Unlock your career potential with our premium features
                         </p>
 
-                        {userPlan !== 'Free' && (
+                        {!planLoading && userPlan !== 'Free' && (
                             <div className="mt-8 max-w-2xl mx-auto">
                                 <SubscriptionExpiryCard />
                             </div>
                         )}
 
-                        {userPlan === 'Free' && (
+                        {!planLoading && userPlan === 'Free' && (
                             <div className="mt-8 max-w-md mx-auto">
                                 <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 border-2 border-dashed border-gray-300 dark:border-gray-600">
                                     <div className="text-center">
@@ -282,7 +288,21 @@ export const PaymentPage: React.FC = () => {
                     {/* Plans */}
                     {activeTab === 'plans' && (
                         <>
-                            {availablePlans.length === 0 ? (
+                            {planLoading ? (
+                                <div className="grid gap-8 max-w-6xl mx-auto grid-cols-1 md:grid-cols-3">
+                                    {[1, 2, 3].map((i) => (
+                                        <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 animate-pulse">
+                                            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 w-3/4"></div>
+                                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-8 w-full"></div>
+                                            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg mb-8 w-1/2"></div>
+                                            <div className="space-y-3 mb-8">
+                                                {[1,2,3,4].map((j) => <div key={j} className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>)}
+                                            </div>
+                                            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl w-full"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : availablePlans.length === 0 ? (
                                 <div className="text-center py-16">
                                     <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <svg className="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">

@@ -40,6 +40,7 @@ import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
 import ProgressComparisonPage from './pages/ProgressComparisonPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
 import SkillGapPage from './pages/SkillGapPage';
+import RecommendationsPage from './pages/RecommendationsPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -223,6 +224,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/recommendations"
+                element={
+                  <ProtectedRoute>
+                    <RecommendationsPage />
                   </ProtectedRoute>
                 }
               />

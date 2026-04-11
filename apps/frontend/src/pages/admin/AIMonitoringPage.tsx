@@ -2,7 +2,8 @@
  * AI MONITORING PAGE - English Only, 100% Dynamic Data
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../lib/api';
 import { adminService } from '../../services/adminService';
 
 /* ---------------------------------------------
@@ -33,6 +34,28 @@ interface UserFeedback {
   createdAt: string;
 }
 
+interface Anomaly {
+  id: number;
+  type: string;
+  severity: "low" | "medium" | "high" | "critical";
+  title: string;
+  description: string;
+  user_id: number | null;
+  user_email: string | null;
+  resolved: boolean;
+  resolved_at: string | null;
+  created_at: string;
+}
+
+interface AnomalyStats {
+  total: number;
+  unresolved: number;
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+}
+
 /* ---------------------------------------------
    SHARED STYLE CONSTANTS
 ---------------------------------------------- */
@@ -60,6 +83,18 @@ const AIMonitoringPage = () => {
   const [loading, setLoading] = useState(true);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
+  // PB28: Gemini live status
+  const [geminiStatus, setGeminiStatus] = useState<any>(null);
+  const [geminiLoading, setGeminiLoading] = useState(false);
+  const [reiniting, setReiniting] = useState(false);
+
+  // Anomaly detection
+  const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
+  const [anomalyStats, setAnomalyStats] = useState<AnomalyStats | null>(null);
+  const [anomalyLoading, setAnomalyLoading] = useState(false);
+  const [detecting, setDetecting] = useState(false);
+  const [detectMsg, setDetectMsg] = useState<string | null>(null);
+
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
@@ -69,6 +104,8 @@ const AIMonitoringPage = () => {
   useEffect(() => {
     loadMetrics();
     loadFeedback();
+    loadGeminiStatus();
+    loadAnomalies();
   }, []);
 
   const loadMetrics = async () => {
@@ -104,6 +141,74 @@ const AIMonitoringPage = () => {
     setFilters({ ...filters, [field]: value });
   };
 
+  // PB28: Gemini status functions
+  const loadGeminiStatus = async () => {
+    setGeminiLoading(true);
+    try {
+      const data = await adminService.getGeminiStatus();
+      setGeminiStatus(data);
+    } catch {
+      setGeminiStatus(null);
+    } finally {
+      setGeminiLoading(false);
+    }
+  };
+
+  const handleReinit = async () => {
+    setReiniting(true);
+    try {
+      await fetch('/api/admin/gemini-reinit', { method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` } });
+      await loadGeminiStatus();
+    } catch {
+      // non-critical
+    } finally {
+      setReiniting(false);
+    }
+  };
+
+  const loadAnomalies = async () => {
+    setAnomalyLoading(true);
+    try {
+      const [listRes, statsRes] = await Promise.all([
+        api.get("/api/admin/anomalies?limit=50"),
+        api.get("/api/admin/anomalies/stats"),
+      ]);
+      setAnomalies(listRes.data.items || []);
+      setAnomalyStats(statsRes.data);
+    } catch (e) {
+      console.error("Error loading anomalies:", e);
+    } finally {
+      setAnomalyLoading(false);
+    }
+  };
+
+  const runDetection = async () => {
+    setDetecting(true);
+    setDetectMsg(null);
+    try {
+      const res = await api.post("/api/admin/anomalies/detect");
+      const created = res.data.anomalies_created ?? 0;
+      setDetectMsg(created > 0 ? `${created} new anomaly(s) detected.` : "No new anomalies found.");
+      await loadAnomalies();
+    } catch (e: any) {
+      setDetectMsg(`Detection failed: ${e?.response?.data?.detail || e?.message || "Unknown error"}`);
+    } finally {
+      setDetecting(false);
+    }
+  };
+
+  const resolveAnomaly = async (id: number) => {
+    try {
+      await api.post(`/api/admin/anomalies/${id}/resolve`);
+      setAnomalies((prev) => prev.map((a) => a.id === id ? { ...a, resolved: true } : a));
+      if (anomalyStats) {
+        setAnomalyStats({ ...anomalyStats, unresolved: Math.max(0, anomalyStats.unresolved - 1) });
+      }
+    } catch (e) {
+      console.error("Failed to resolve anomaly:", e);
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-64 flex justify-center items-center text-gray-500 dark:text-gray-400">
@@ -123,9 +228,57 @@ const AIMonitoringPage = () => {
   return (
     <div className="space-y-10">
       {/* TITLE */}
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-        AI Performance Monitoring
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          AI Performance Monitoring
+        </h1>
+        <button onClick={loadMetrics} className="px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 transition-colors">
+          ↻ Refresh
+        </button>
+      </div>
+
+      {/* PB28: GEMINI LIVE STATUS */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full ${geminiStatus?.streams_initialized ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}/>
+          Gemini AI Status
+        </h2>
+        <div className={`${cardClass} relative`}>
+          {geminiLoading ? (
+            <div className="flex items-center gap-3 text-gray-400"><div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"/> Loading status...</div>
+          ) : geminiStatus ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Overall', value: geminiStatus.streams_initialized ? '✅ Online' : '❌ Offline', ok: geminiStatus.streams_initialized },
+                  { label: 'Assessment', value: geminiStatus.streams?.assessment?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.assessment?.initialized },
+                  { label: 'Chatbot', value: geminiStatus.streams?.chatbot?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.chatbot?.initialized },
+                  { label: 'CV Parser', value: geminiStatus.streams?.cv?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.cv?.initialized },
+                ].map(({ label, value, ok }) => (
+                  <div key={label} className={`p-3 rounded-xl border-2 ${ok ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20' : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'}`}>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">{label}</p>
+                    <p className={`text-sm font-bold ${ok ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>{value}</p>
+                  </div>
+                ))}
+              </div>
+              {geminiStatus.model && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">Model: <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{geminiStatus.model}</span></p>
+              )}
+              {geminiStatus.error && (
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-700 dark:text-red-300 font-mono">{geminiStatus.error}</div>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-500">Unable to fetch Gemini status.</p>
+          )}
+          <div className="absolute top-4 right-4 flex gap-2">
+            <button onClick={loadGeminiStatus} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Refresh</button>
+            <button onClick={handleReinit} disabled={reiniting} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50">
+              {reiniting ? "Reinitializing..." : "Reinitialize"}
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* PERFORMANCE METRICS */}
       <section>
@@ -390,6 +543,99 @@ const AIMonitoringPage = () => {
             message={`${(100 - metrics.errorRate).toFixed(1)}% success rate`}
           />
         </div>
+      </section>
+
+      {/* ANOMALY DETECTION */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-full ${anomalyStats && anomalyStats.critical > 0 ? 'bg-red-500 animate-pulse' : anomalyStats && anomalyStats.unresolved > 0 ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
+            Anomaly Detection
+            {anomalyStats && anomalyStats.unresolved > 0 && (
+              <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
+                {anomalyStats.unresolved} unresolved
+              </span>
+            )}
+          </h2>
+          <button
+            onClick={runDetection}
+            disabled={detecting}
+            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-xl disabled:opacity-50 transition-colors"
+          >
+            {detecting ? "Scanning..." : "Run Detection"}
+          </button>
+        </div>
+
+        {detectMsg && (
+          <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${detectMsg.includes("failed") ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"}`}>
+            {detectMsg}
+          </div>
+        )}
+
+        {/* Stats row */}
+        {anomalyStats && (
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
+            {(["total","unresolved","critical","high","medium","low"] as const).map((k) => {
+              const colorMap = { total: "text-gray-700 dark:text-gray-300", unresolved: "text-orange-600 dark:text-orange-400", critical: "text-red-600 dark:text-red-400", high: "text-red-500 dark:text-red-400", medium: "text-yellow-600 dark:text-yellow-400", low: "text-blue-600 dark:text-blue-400" };
+              return (
+                <div key={k} className={`${cardClass} text-center py-3`}>
+                  <p className="text-xs text-gray-500 capitalize">{k}</p>
+                  <p className={`text-2xl font-bold ${colorMap[k]}`}>{anomalyStats[k]}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {anomalyLoading ? (
+          <div className="text-center py-8 text-gray-500">Loading anomalies...</div>
+        ) : anomalies.length === 0 ? (
+          <div className={`${cardClass} text-center py-8`}>
+            <p className="text-green-600 dark:text-green-400 font-semibold">No anomalies detected</p>
+            <p className="text-sm text-gray-500 mt-1">Click "Run Detection" to scan for issues in real data.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {anomalies.map((a) => {
+              const severityColors: Record<string, string> = {
+                critical: "border-red-500 bg-red-50 dark:bg-red-900/10",
+                high: "border-red-400 bg-red-50 dark:bg-red-900/10",
+                medium: "border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10",
+                low: "border-blue-400 bg-blue-50 dark:bg-blue-900/10",
+              };
+              const badgeColors: Record<string, string> = {
+                critical: "bg-red-600 text-white",
+                high: "bg-red-500 text-white",
+                medium: "bg-yellow-500 text-white",
+                low: "bg-blue-500 text-white",
+              };
+              return (
+                <div key={a.id} className={`border-l-4 rounded-xl p-4 ${severityColors[a.severity] || "border-gray-300 bg-white dark:bg-gray-800"} ${a.resolved ? "opacity-50" : ""}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className={`px-2 py-0.5 text-xs font-bold rounded uppercase ${badgeColors[a.severity] || "bg-gray-400 text-white"}`}>{a.severity}</span>
+                        <span className="text-xs text-gray-500 font-mono">{a.type}</span>
+                        {a.resolved && <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">Resolved</span>}
+                      </div>
+                      <p className="font-semibold text-gray-900 dark:text-white">{a.title}</p>
+                      {a.description && <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{a.description}</p>}
+                      <p className="text-xs text-gray-400 mt-1">{a.created_at ? new Date(a.created_at).toLocaleString() : ""}</p>
+                    </div>
+                    {!a.resolved && (
+                      <button
+                        onClick={() => resolveAnomaly(a.id)}
+                        className="flex-shrink-0 px-3 py-1.5 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                      >
+                        Resolve
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
     </div>
   );

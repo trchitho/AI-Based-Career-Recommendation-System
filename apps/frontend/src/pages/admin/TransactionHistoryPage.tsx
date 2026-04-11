@@ -9,7 +9,7 @@ import {
 } from "../../types/admin";
 import { useTheme } from "../../contexts/ThemeContext";
 
-type LocalFilters = TransactionFilters & { userId?: number | string };
+type LocalFilters = Omit<TransactionFilters, 'userId'> & { userId?: number | string };
 
 const defaultFilters: LocalFilters = {
   status: "all",

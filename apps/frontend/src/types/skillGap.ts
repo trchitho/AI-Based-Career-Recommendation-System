@@ -63,6 +63,36 @@ export interface HeatmapData {
   };
 }
 
+export interface LearningResource {
+  name: string;
+  platform: string;
+  type: 'course' | 'video' | 'docs' | 'practice';
+  level: 'beginner' | 'intermediate' | 'advanced';
+  free: boolean;
+}
+
+export interface LearningPhase {
+  phase: number;
+  title: string;
+  weeks: string;
+  focus: string;
+  skills: string[];
+  resources: LearningResource[];
+}
+
+export interface LearningMilestone {
+  week: number;
+  title: string;
+  description: string;
+}
+
+export interface LearningPlan {
+  total_weeks: number;
+  summary: string;
+  phases: LearningPhase[];
+  milestones: LearningMilestone[];
+}
+
 export interface InterviewPrepData {
   analysis_id: number;
   career_id: string;

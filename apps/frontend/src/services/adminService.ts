@@ -186,6 +186,17 @@ export const adminService = {
     const res = await api.patch(`/api/admin/users/${userId}`, data);
     return res.data;
   },
+  async deleteUser(userId: string): Promise<void> {
+    await api.delete(`/api/admin/users/${userId}`);
+  },
+  async exportUsers(): Promise<Blob> {
+    const res = await api.get('/api/admin/users/export', { responseType: 'blob' });
+    return res.data;
+  },
+  async getGeminiStatus(): Promise<any> {
+    const res = await api.get('/api/admin/gemini-status');
+    return res.data;
+  },
 
   // App Settings
   async getSettings(): Promise<any> {

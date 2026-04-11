@@ -1,221 +1,214 @@
 """
-Story Generator Service using Gemini AI
-Generates interactive story scenarios for assessment questions
-Updated to use Multi-Stream Manager for Assessment
+Story Generator Service — single Gemini call for ALL groups at once.
+Each group of ~5 questions shares one narrative context (like a book chapter).
 """
-import os
-import logging
+import re
 import json
+import logging
 from typing import List, Dict, Any
-import google.generativeai as genai
-from app.core.gemini_manager import multi_stream_manager, GeminiStream
+
+from app.core.gemini_manager import multi_stream_manager
 
 logger = logging.getLogger(__name__)
 
+# Dimension → (emoji, title, intro) for local fallback
+_DIM_MAP: Dict[str, tuple] = {
+    "R": ("🔧", "Thực Hành",  "Bạn đang làm việc với công cụ và máy móc trong xưởng."),
+    "I": ("🔬", "Nghiên Cứu", "Bạn đang phân tích dữ liệu trong phòng thí nghiệm."),
+    "A": ("🎨", "Sáng Tạo",   "Bạn đang tham gia dự án nghệ thuật và thiết kế."),
+    "S": ("🤝", "Giao Tiếp",  "Bạn đang hỗ trợ và làm việc cùng mọi người."),
+    "E": ("💼", "Lãnh Đạo",   "Bạn đang thuyết phục và dẫn dắt một nhóm."),
+    "C": ("📋", "Tổ Chức",    "Bạn cần xử lý công việc theo quy trình chặt chẽ."),
+    "O": ("💡", "Tư Duy Mở",  "Bạn đang đối mặt với ý tưởng và thay đổi mới."),
+    "N": ("😌", "Cảm Xúc",    "Bạn đang xử lý tình huống áp lực và cảm xúc."),
+}
+
+# Map full dimension names → single letter key (DB may store full names)
+_DIM_ALIAS: Dict[str, str] = {
+    "REALISTIC": "R", "INVESTIGATIVE": "I", "ARTISTIC": "A",
+    "SOCIAL": "S", "ENTERPRISING": "E", "CONVENTIONAL": "C",
+    "OPENNESS": "O", "CONSCIENTIOUSNESS": "C", "EXTRAVERSION": "E",
+    "AGREEABLENESS": "A", "NEUROTICISM": "N",
+    "RIASEC_R": "R", "RIASEC_I": "I", "RIASEC_A": "A",
+    "RIASEC_S": "S", "RIASEC_E": "E", "RIASEC_C": "C",
+}
+
+
+def _normalize_dim(raw: str) -> str:
+    """Convert any dimension string to single-letter key."""
+    key = (raw or "").upper().strip()
+    if key in _DIM_MAP:
+        return key
+    return _DIM_ALIAS.get(key, key[:1] if key else "")
+
+
 class StoryGeneratorService:
     def __init__(self):
-        # Use the dedicated assessment stream from multi-stream manager
-        self.stream_manager = multi_stream_manager.get_assessment_stream()
-        
-        if not self.stream_manager.is_available():
-            logger.warning("⚠️ Assessment Gemini stream not available - using fallback scenarios")
-            self.model = None
+        self.stream = multi_stream_manager.get_assessment_stream()
+        if self.stream.is_available():
+            logger.info(f"✅ Story generator ready: {self.stream.active_model_name}")
         else:
-            self.model = self.stream_manager.model
-            logger.info(f"✅ Assessment Gemini stream initialized: {self.stream_manager.model_name}")
-        
-        # Keep these for compatibility
-        self.api_key = self.stream_manager.api_key
-        self.model_name = self.stream_manager.model_name
-    
-    
-    def generate_group_story(self, questions: List[Dict[str, Any]], group_index: int) -> Dict[str, Any]:
+            logger.warning("⚠️ Gemini unavailable — will use local fallback")
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
+    def generate_group_stories(
+        self, questions: List[Dict[str, Any]], group_size: int = 5
+    ) -> List[Dict[str, Any]]:
         """
-        Generate a connected story for a group of 5 questions
-        
-        Args:
-            questions: List of question dicts with id, question_text, dimension
-            group_index: Index of the question group
-            
-        Returns:
-            Dict with groupScenario and questionScenarios
+        Split questions into groups of `group_size`, generate 1 group story per group.
+        Uses 1 Gemini call for ALL groups — no rate limiting.
+
+        Returns list of groups:
+        [
+          {
+            "groupScenario": {"emoji": ..., "title": ..., "introduction": ...},
+            "questionScenarios": [{"emoji":..,"title":..,"context":..,"situation":..}, ...]
+          },
+          ...
+        ]
         """
+        # Split into groups
+        groups = [
+            questions[i: i + group_size]
+            for i in range(0, len(questions), group_size)
+        ]
+
+        if not self.stream.is_available():
+            return [self._local_group(g, idx) for idx, g in enumerate(groups)]
+
+        prompt = self._build_prompt(groups)
+        raw = self.stream.generate_content_with_retry(
+            prompt,
+            max_output_tokens=8192,
+            temperature=0.4,
+        )
+
+        if not raw:
+            print("❌ [StoryGen] Gemini returned None — using local fallback")
+            return [self._local_group(g, idx) for idx, g in enumerate(groups)]
+
+        print(f"✅ [StoryGen] Gemini response length: {len(raw)} chars")
+        print(f"   Preview: {raw[:300]}")
+
         try:
-            if not self.stream_manager.is_available():
-                logger.warning("Assessment stream not available, using fallback")
-                return self._get_fallback_group_story(questions, group_index)
-            
-            prompt = self._build_group_prompt(questions, group_index)
-            
-            # Use the stream manager to generate content
-            response_text = self.stream_manager.generate_content_with_retry(prompt)
-            
-            if not response_text:
-                logger.warning("Stream manager returned None, using fallback")
-                return self._get_fallback_group_story(questions, group_index)
-            
-            # Parse JSON response
-            response_text = response_text.strip()
-            
-            # Remove markdown code blocks if present
-            if response_text.startswith('```json'):
-                response_text = response_text.replace('```json\n', '').replace('```', '')
-            elif response_text.startswith('```'):
-                response_text = response_text.replace('```\n', '').replace('```', '')
-            
-            result = json.loads(response_text)
-            
-            # Validate that we have the correct number of scenarios
-            question_scenarios = result.get('questions', [])
-            if len(question_scenarios) < len(questions):
-                logger.warning(f"AI returned {len(question_scenarios)} scenarios but expected {len(questions)}. Filling with fallback.")
-                # Fill missing scenarios
-                for idx in range(len(question_scenarios), len(questions)):
+            cleaned = self._clean_json(raw)
+            data = json.loads(cleaned)
+            api_groups: List[Dict] = data.get("groups", [])
+
+            result = []
+            for idx, group_qs in enumerate(groups):
+                ag = api_groups[idx] if idx < len(api_groups) else {}
+                gs = ag.get("g") or ag.get("groupScenario") or {}
+                qs_raw = ag.get("q") or ag.get("questionScenarios") or []
+
+                # Build group scenario
+                dim = _normalize_dim(group_qs[0].get("dimension") or "")
+                fb_emoji, fb_title, fb_intro = _DIM_MAP.get(dim, ("📖", "Tình Huống", "Hãy trải nghiệm tình huống sau."))
+
+                group_scenario = {
+                    "emoji":        gs.get("e") or gs.get("emoji") or fb_emoji,
+                    "title":        gs.get("t") or gs.get("title") or fb_title,
+                    "introduction": gs.get("i") or gs.get("introduction") or fb_intro,
+                }
+
+                # Build per-question scenarios
+                question_scenarios = []
+                for qi, q in enumerate(group_qs):
+                    qs = qs_raw[qi] if qi < len(qs_raw) else {}
                     question_scenarios.append({
-                        'emoji': '💭',
-                        'title': f'Tình Huống {idx + 1}',
-                        'context': 'Hãy suy nghĩ về tình huống này...',
-                        'situation': questions[idx].get('question_text', '')
+                        "emoji":     qs.get("e") or qs.get("emoji") or group_scenario["emoji"],
+                        "title":     qs.get("t") or qs.get("title") or group_scenario["title"],
+                        "context":   qs.get("c") or qs.get("context") or group_scenario["introduction"],
+                        "situation": qs.get("s") or qs.get("situation") or q.get("question_text", ""),
                     })
-            
-            return {
-                'groupScenario': {
-                    'emoji': result.get('groupScenario', {}).get('emoji', '📖'),
-                    'title': result.get('groupScenario', {}).get('title', 'Tình Huống'),
-                    'introduction': result.get('groupScenario', {}).get('introduction', 'Hãy trải nghiệm các tình huống sau...')
-                },
-                'questionScenarios': [
-                    {
-                        'emoji': q.get('emoji', '💭'),
-                        'title': q.get('title', f'Câu hỏi {idx + 1}'),
-                        'context': q.get('context', 'Trong tình huống này...'),
-                        'situation': q.get('situation', questions[idx].get('question_text', ''))
-                    }
-                    for idx, q in enumerate(result.get('questions', []))
-                ]
-            }
-            
-        except Exception as e:
-            logger.error(f"Error generating group story: {e}")
-            return self._get_fallback_group_story(questions, group_index)
-    
-    def _build_group_prompt(self, questions: List[Dict[str, Any]], group_index: int) -> str:
-        """Build prompt for Gemini AI"""
-        questions_list = '\n'.join([
-            f"{idx + 1}. \"{q.get('question_text', '')}\" ({q.get('dimension', 'general')})"
-            for idx, q in enumerate(questions)
-        ])
-        
-        return f"""
-Bạn là một chuyên gia tạo câu chuyện tương tác cho bài đánh giá nghề nghiệp.
 
-NHIỆM VỤ: Tạo một câu chuyện liên kết cho nhóm {len(questions)} câu hỏi sau, biến chúng thành một tình huống thực tế, sinh động.
+                result.append({
+                    "groupScenario":     group_scenario,
+                    "questionScenarios": question_scenarios,
+                })
 
-NHÓM CÂU HỎI {group_index + 1}:
-{questions_list}
+            return result
 
-YÊU CẦU:
-1. Tạo một bối cảnh chung (scenario) cho cả nhóm {len(questions)} câu hỏi
-2. Mỗi câu hỏi là một phần của câu chuyện đó
-3. Câu chuyện phải mạch lạc, liên kết với nhau
-4. Sử dụng ngôn ngữ Việt Nam tự nhiên, thân thiện
-5. Tạo cảm giác như người dùng đang trải nghiệm một tình huống thực tế
-6. QUAN TRỌNG: Phải tạo CHÍNH XÁC {len(questions)} scenarios trong mảng "questions"
+        except Exception as ex:
+            print(f"❌ [StoryGen] JSON parse error: {ex}")
+            print(f"   Raw (first 500): {raw[:500]}")
+            return [self._local_group(g, idx) for idx, g in enumerate(groups)]
 
-TRẢ VỀ JSON FORMAT (chỉ JSON, không có text khác):
-{{
-  "groupScenario": {{
-    "emoji": "emoji phù hợp với nhóm (ví dụ: 🏢, 🎨, 🔬, 🤝)",
-    "title": "Tiêu đề cho nhóm tình huống (3-6 từ, tiếng Việt)",
-    "introduction": "Giới thiệu bối cảnh chung cho {len(questions)} câu hỏi (2-3 câu, tiếng Việt)"
-  }},
-  "questions": [
-    {{
-      "emoji": "emoji cho câu hỏi 1",
-      "title": "Tiêu đề ngắn (3-5 từ)",
-      "context": "Kịch bản/bối cảnh chi tiết của tình huống (2-3 câu, mô tả sinh động)",
-      "situation": "Câu hỏi ngắn gọn dựa trên câu hỏi gốc (1 câu)"
-    }}
-    // ... tổng cộng {len(questions)} items
-  ]
-}}
+    def generate_all_stories(
+        self, questions: List[Dict[str, Any]], group_size: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Flatten all group question scenarios into a single list (for batch endpoint).
+        Returns one scenario dict per question.
+        """
+        groups = self.generate_group_stories(questions, group_size)
+        flat = []
+        for g in groups:
+            flat.extend(g["questionScenarios"])
+        return flat
 
-VÍ DỤ:
-Nhóm câu hỏi về công việc văn phòng:
-{{
-  "groupScenario": {{
-    "emoji": "🏢",
-    "title": "Một Ngày Tại Công Ty",
-    "introduction": "Bạn là một nhân viên mới tại một công ty công nghệ. Hôm nay là ngày đầu tiên và bạn sẽ trải qua nhiều tình huống khác nhau."
-  }},
-  "questions": [
-    {{
-      "emoji": "💻",
-      "title": "Sắp Xếp Công Việc",
-      "context": "Sáng sớm, bạn nhận được một danh sách dài các nhiệm vụ cần hoàn thành trong tuần này. Có những công việc khẩn cấp, có những việc quan trọng nhưng không gấp, và cả những việc nhỏ lẻ. Bạn cần quyết định cách tổ chức công việc.",
-      "situation": "Bạn thích lập kế hoạch chi tiết và sắp xếp công việc theo thứ tự ưu tiên."
-    }}
-  ]
-}}
+    # ------------------------------------------------------------------
+    # Prompt — all groups in 1 call
+    # ------------------------------------------------------------------
 
-BẮT ĐẦU TẠO CHO NHÓM CÂU HỎI TRÊN (nhớ tạo đủ {len(questions)} scenarios):
-"""
-    
-    def _get_fallback_group_story(self, questions: List[Dict[str, Any]], group_index: int) -> Dict[str, Any]:
-        """Fallback scenarios when AI fails"""
-        dimensions = [q.get('dimension', '').lower() for q in questions if q.get('dimension')]
-        
-        group_themes = {
-            'realistic': {
-                'emoji': '🔧',
-                'title': 'Thử Thách Kỹ Thuật',
-                'introduction': 'Bạn đang làm việc trong một xưởng với nhiều công cụ và thiết bị. Hãy trải nghiệm các tình huống sau.'
-            },
-            'investigative': {
-                'emoji': '🔬',
-                'title': 'Phòng Nghiên Cứu',
-                'introduction': 'Bạn là một nhà nghiên cứu trong phòng thí nghiệm. Hôm nay bạn sẽ đối mặt với nhiều thử thách khoa học.'
-            },
-            'artistic': {
-                'emoji': '🎨',
-                'title': 'Studio Sáng Tạo',
-                'introduction': 'Bạn bước vào một studio nghệ thuật đầy cảm hứng. Hãy khám phá khả năng sáng tạo của bạn.'
-            },
-            'social': {
-                'emoji': '🤝',
-                'title': 'Trung Tâm Cộng Đồng',
-                'introduction': 'Bạn đang làm việc tại trung tâm cộng đồng. Nhiều người cần sự giúp đỡ và hỗ trợ từ bạn.'
-            },
-            'enterprising': {
-                'emoji': '💼',
-                'title': 'Văn Phòng Kinh Doanh',
-                'introduction': 'Bạn là một nhân viên trong công ty. Hôm nay có nhiều quyết định quan trọng cần được đưa ra.'
-            },
-            'conventional': {
-                'emoji': '📊',
-                'title': 'Phòng Phân Tích Dữ Liệu',
-                'introduction': 'Bạn làm việc với số liệu và biểu đồ. Hãy sử dụng kỹ năng tổ chức và phân tích của bạn.'
-            }
-        }
-        
-        # Find matching theme
-        group_scenario = group_themes['conventional']  # default
-        for dim in dimensions:
-            if dim in group_themes:
-                group_scenario = group_themes[dim]
-                break
-        
-        # Generate scenarios for each question
-        question_scenarios = []
-        for idx, q in enumerate(questions):
-            question_scenarios.append({
-                'emoji': '💭',
-                'title': f'Tình Huống {idx + 1}',
-                'context': 'Hãy suy nghĩ về tình huống này...',
-                'situation': q.get('question_text', '')
-            })
-        
+    def _build_prompt(self, groups: List[List[Dict[str, Any]]]) -> str:
+        n_groups = len(groups)
+        lines = []
+        for gi, group in enumerate(groups):
+            dim = _normalize_dim(group[0].get("dimension") or "")
+            lines.append(f"Nhóm {gi+1} [{dim}] ({len(group)} câu):")
+            for qi, q in enumerate(group):
+                lines.append(f"  {qi+1}. {q.get('question_text','')}")
+
+        groups_text = "\n".join(lines)
+        return (
+            f"Nhiệm vụ: tạo {n_groups} CÂU CHUYỆN tiếng Việt cho bài trắc nghiệm nghề nghiệp.\n"
+            f"\n"
+            f"Mỗi nhóm câu hỏi = 1 câu chuyện có bối cảnh chung. Các kịch bản trong nhóm\n"
+            f"phải liên kết với nhau trong cùng một câu chuyện đó (như các cảnh trong phim).\n"
+            f"\n"
+            f"Ví dụ nhóm [R]: câu chuyện 'Ngày làm việc tại xưởng cơ khí' →\n"
+            f"  kịch bản 1: máy bị hỏng giữa ca\n"
+            f"  kịch bản 2: đồng nghiệp nhờ bạn sửa thiết bị\n"
+            f"  kịch bản 3: trưởng xưởng giao nhiệm vụ lắp ráp...\n"
+            f"\n"
+            f"Trả về JSON (không có text nào ngoài JSON):\n"
+            f'{{"groups":[\n'
+            f'  {{"g":{{"e":"emoji","t":"tên câu chuyện ≤5 từ","i":"mô tả bối cảnh chung 1-2 câu"}},\n'
+            f'   "q":[{{"e":"emoji","t":"tên cảnh ≤4 từ","c":"ngữ cảnh trong câu chuyện 1 câu","s":"tình huống cụ thể 1 câu"}}]\n'
+            f'  }}\n'
+            f']}}\n'
+            f"Đúng {n_groups} phần tử, mỗi nhóm có đúng số kịch bản bằng số câu hỏi.\n"
+            f"\n"
+            f"Các nhóm câu hỏi:\n{groups_text}"
+        )
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _clean_json(raw: str) -> str:
+        s = raw.strip()
+        s = re.sub(r"^```(?:json)?", "", s).rstrip("`").strip()
+        m = re.search(r"\{.*\}", s, re.DOTALL)
+        return m.group() if m else s
+
+    def _local_group(self, group_qs: List[Dict[str, Any]], idx: int) -> Dict[str, Any]:
+        dim = _normalize_dim(group_qs[0].get("dimension") or "") if group_qs else ""
+        emoji, title, intro = _DIM_MAP.get(dim, ("📖", f"Nhóm {idx+1}", "Hãy trải nghiệm tình huống sau."))
         return {
-            'groupScenario': group_scenario,
-            'questionScenarios': question_scenarios
+            "groupScenario": {"emoji": emoji, "title": title, "introduction": intro},
+            "questionScenarios": [
+                {
+                    "emoji":     emoji,
+                    "title":     title,
+                    "context":   intro,
+                    "situation": q.get("question_text", ""),
+                }
+                for q in group_qs
+            ],
         }

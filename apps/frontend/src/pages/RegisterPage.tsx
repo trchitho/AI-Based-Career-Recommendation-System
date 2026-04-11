@@ -40,10 +40,10 @@ const RegisterPage = () => {
   const app = useAppSettings();
 
   const validatePassword = (pwd: string) => {
-    if (pwd.length < 8) return "Password must be at least 8 characters long";
-    if (!/[A-Z]/.test(pwd)) return "Password must contain at least one uppercase letter";
-    if (!/[a-z]/.test(pwd)) return "Password must contain at least one lowercase letter";
-    if (!/[0-9]/.test(pwd)) return "Password must contain at least one number";
+    if (pwd.length < 8) return t('auth.passwordMinLength');
+    if (!/[A-Z]/.test(pwd)) return t('auth.passwordNeedsUppercase');
+    if (!/[a-z]/.test(pwd)) return t('auth.passwordNeedsLowercase');
+    if (!/[0-9]/.test(pwd)) return t('auth.passwordNeedsNumber');
     return null;
   };
 
@@ -65,7 +65,7 @@ const RegisterPage = () => {
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
@@ -199,7 +199,7 @@ const RegisterPage = () => {
               {t("auth.createAccount")}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 font-medium text-[16px]">
-              Start your personalized career journey today
+              {t('auth.registerSubtitle2')}
             </p>
           </div>
 
@@ -285,7 +285,7 @@ const RegisterPage = () => {
                     disabled={verifying}
                     className="px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 whitespace-nowrap border border-gray-200 dark:border-gray-600"
                   >
-                    {verifying ? t("common.sending", { defaultValue: "Sending..." }) : t("auth.verifyEmail", { defaultValue: "Verify" })}
+                    {verifying ? t("common.sending") : t("auth.verifyEmail")}
                   </button>
                 </div>
               </div>
@@ -350,19 +350,19 @@ const RegisterPage = () => {
               {codeSent && (
                 <div className="space-y-1.5">
                   <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">
-                    Enter verification code
+                    {t('auth.verificationCode')}
                   </label>
                   <input
                     type="tel"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                    placeholder="Enter the code from your email"
+                    placeholder={t('auth.verificationCodePlaceholder')}
                     className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
                     maxLength={6}
                     pattern="[0-9]*"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Press Sign Up to confirm the code and finish activation.
+                    {t('auth.verifyCodeHint')}
                   </p>
                   {devToken && (
                     <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -386,7 +386,7 @@ const RegisterPage = () => {
                 {submitting ? (
                   <>
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span>{codeSent ? "Confirming..." : "Processing..."}</span>
+                    <span>{codeSent ? t('auth.confirming') : t('auth.processing')}</span>
                   </>
                 ) : (
                   <>
@@ -407,7 +407,7 @@ const RegisterPage = () => {
               {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-gray-700"></div></div>
-                <div className="relative flex justify-center text-sm"><span className="px-3 bg-white dark:bg-gray-800 text-gray-500 font-medium">Or continue with</span></div>
+                <div className="relative flex justify-center text-sm"><span className="px-3 bg-white dark:bg-gray-800 text-gray-500 font-medium">{t('auth.orContinueWith')}</span></div>
               </div>
 
               {/* Google Button */}
@@ -420,7 +420,7 @@ const RegisterPage = () => {
                 className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-white font-bold text-[15px]"
               >
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-                Continue with Google
+                {t('auth.continueWithGoogle')}
               </button>
 
             </form>
@@ -430,7 +430,7 @@ const RegisterPage = () => {
           <div className="mt-8 text-center text-xs text-gray-400 dark:text-gray-500 font-medium">
             <div className="flex items-center justify-center gap-1.5 mb-2">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-              Secure 256-bit Encryption
+              {t('auth.secureEncryption')}
             </div>
             © 2025 CareerBridge AI. All rights reserved.
           </div>

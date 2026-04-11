@@ -3,19 +3,21 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import CVUploadForm from '../components/skillgap/CVUploadForm';
 import SkillGapResult from '../components/skillgap/SkillGapResult';
-import SkillHeatmap from '../components/skillgap/SkillHeatmap';
+import SkillHeatmapGrid from '../components/skillgap/SkillHeatmapGrid';
+import LearningPlan from '../components/skillgap/LearningPlan';
 import WhyUseAIScanner from '../components/skillgap/WhyUseAIScanner';
 import { skillGapService } from '../services/skillGapService';
-import { SkillGapAnalysis, HeatmapData } from '../types/skillGap';
+import { SkillGapAnalysis, LearningPlan as LearningPlanType } from '../types/skillGap';
 import './SkillGapPage.css';
 
 const SkillGapPage: React.FC = () => {
   const navigate = useNavigate();
   const { analysisId } = useParams<{ analysisId?: string }>();
-  
+
   const [currentStep, setCurrentStep] = useState<'upload' | 'result'>('upload');
   const [analysis, setAnalysis] = useState<SkillGapAnalysis | null>(null);
-  const [heatmapData, setHeatmapData] = useState<HeatmapData | null>(null);
+  const [learningPlan, setLearningPlan] = useState<{ plan: LearningPlanType; career_id: string } | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,16 +31,17 @@ const SkillGapPage: React.FC = () => {
   const loadAnalysis = async (id: number) => {
     setLoading(true);
     setError(null);
-
     try {
-      const [analysisData, heatmap] = await Promise.all([
-        skillGapService.getAnalysisDetail(id),
-        skillGapService.getHeatmapData(id)
-      ]);
-
+      const analysisData = await skillGapService.getAnalysisDetail(id);
       setAnalysis(analysisData);
-      setHeatmapData(heatmap);
       setCurrentStep('result');
+
+      // Load learning plan in background
+      setPlanLoading(true);
+      skillGapService.getLearningPlan(id)
+        .then(res => setLearningPlan({ plan: res.plan, career_id: res.career_id }))
+        .catch(() => {/* non-critical */})
+        .finally(() => setPlanLoading(false));
     } catch (err: any) {
       setError(err.message || 'Failed to load analysis');
     } finally {
@@ -128,61 +131,27 @@ const SkillGapPage: React.FC = () => {
               </div>
             </div>
 
-            <SkillGapResult 
-              analysis={analysis} 
+            {/* PB12+PB13: CV analysis result */}
+            <SkillGapResult
+              analysis={analysis}
               onStartInterview={handleStartInterview}
             />
 
-            {heatmapData && (
-              <SkillHeatmap data={heatmapData} />
-            )}
+            {/* PB14: Skill Heatmap Grid */}
+            <div style={{ marginTop: '1.5rem' }}>
+              <SkillHeatmapGrid analysis={analysis} />
+            </div>
 
-            {/* Learning Recommendations */}
-            <div className="recommendations-section">
-              <h2>📚 Recommended Learning Path</h2>
-              <div className="learning-path">
-                {analysis.skill_gaps?.critical && analysis.skill_gaps.critical.length > 0 && (
-                  <div className="learning-phase">
-                    <h3>Phase 1: Critical Skills (Priority)</h3>
-                    <ul>
-                      {analysis.skill_gaps.critical.slice(0, 3).map((skill, index) => (
-                        <li key={index}>
-                          <strong>{skill.name}</strong> - {skill.category}
-                          <span className="time-estimate">Est. 2-4 weeks</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {analysis.skill_gaps?.important && analysis.skill_gaps.important.length > 0 && (
-                  <div className="learning-phase">
-                    <h3>Phase 2: Important Skills</h3>
-                    <ul>
-                      {analysis.skill_gaps.important.slice(0, 3).map((skill, index) => (
-                        <li key={index}>
-                          <strong>{skill.name}</strong> - {skill.category}
-                          <span className="time-estimate">Est. 1-2 weeks</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {analysis.skill_gaps?.nice_to_have && analysis.skill_gaps.nice_to_have.length > 0 && (
-                  <div className="learning-phase">
-                    <h3>Phase 3: Nice-to-Have Skills</h3>
-                    <ul>
-                      {analysis.skill_gaps.nice_to_have.slice(0, 3).map((skill, index) => (
-                        <li key={index}>
-                          <strong>{skill.name}</strong> - {skill.category}
-                          <span className="time-estimate">Est. 1 week</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+            {/* PB15: AI Learning Plan */}
+            <div style={{ marginTop: '1.5rem' }}>
+              {planLoading ? (
+                <div style={{ background: 'white', borderRadius: 16, padding: '2rem', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🤖</div>
+                  <p style={{ color: '#64748b' }}>AI đang tạo lộ trình học tập...</p>
+                </div>
+              ) : learningPlan ? (
+                <LearningPlan plan={learningPlan.plan} careerName={learningPlan.career_id} />
+              ) : null}
             </div>
           </>
         )}
