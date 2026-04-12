@@ -763,6 +763,61 @@ async def api_submit_voice(
 
 
 # -------------------------------------------------------------------
+# Voice Transcript Edit Endpoint — TC05.2
+# -------------------------------------------------------------------
+
+class TranscriptUpdatePayload(BaseModel):
+    transcript: str
+
+
+@router.patch("/{assessment_id}/voice-transcript")
+def update_voice_transcript(
+    assessment_id: int,
+    payload: TranscriptUpdatePayload,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Cập nhật transcript đã chỉnh sửa bởi user sau khi STT trả về.
+
+    PATCH /api/assessments/{assessment_id}/voice-transcript
+    Body: { "transcript": "edited transcript text" }
+
+    TC05.2: Hệ thống cập nhật bản lưu theo nội dung người dùng đã sửa.
+    """
+    assessment = db.get(Assessment, assessment_id)
+    if assessment is None:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    if assessment.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    existing = dict(assessment.essay_analysis or {})
+    if "voice_analysis" not in existing:
+        raise HTTPException(
+            status_code=400,
+            detail="No voice analysis found. Submit a voice recording first.",
+        )
+
+    existing["voice_analysis"] = dict(existing["voice_analysis"])
+    existing["voice_analysis"]["transcript"] = payload.transcript
+    existing["voice_analysis"]["transcript_edited"] = True
+    assessment.essay_analysis = existing
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to save transcript edit")
+
+    return {
+        "ok": True,
+        "assessment_id": assessment_id,
+        "transcript": payload.transcript,
+        "transcript_edited": True,
+    }
+
+
+# -------------------------------------------------------------------
 # Story Generator — singleton + endpoints
 # -------------------------------------------------------------------
 

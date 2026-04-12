@@ -44,6 +44,7 @@ const RegisterPage = () => {
     if (!/[A-Z]/.test(pwd)) return t('auth.passwordNeedsUppercase');
     if (!/[a-z]/.test(pwd)) return t('auth.passwordNeedsLowercase');
     if (!/[0-9]/.test(pwd)) return t('auth.passwordNeedsNumber');
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) return t('auth.passwordNeedsSpecial');
     return null;
   };
 

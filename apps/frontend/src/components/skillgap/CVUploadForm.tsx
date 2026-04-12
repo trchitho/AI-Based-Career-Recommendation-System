@@ -302,8 +302,15 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
         </div>
 
         {error && (
-          <div className="error-message">
-            ⚠️ {error}
+          <div className="error-message" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+            <span>⚠️ {error}</span>
+            <button
+              onClick={() => setError(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, color: 'inherit', flexShrink: 0, padding: '0 2px' }}
+              aria-label="Đóng thông báo lỗi"
+            >
+              ✕
+            </button>
           </div>
         )}
 

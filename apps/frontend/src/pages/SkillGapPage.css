@@ -1,25 +1,65 @@
 .skill-gap-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-color: #F8F9FA;
+  background-image: radial-gradient(#D1D5DB 1px, transparent 1px);
+  background-size: 24px 24px;
   padding: 2rem 1rem;
 }
 
+
 .page-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
+  padding: 2.5rem 2rem;
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 8px 32px rgba(22, 163, 74, 0.25);
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 280px;
+  height: 280px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.page-header::after {
+  content: '';
+  position: absolute;
+  bottom: -50%;
+  left: -5%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .page-header h1 {
   margin: 0 0 0.5rem 0;
-  color: #1f2937;
-  font-size: 2.5rem;
-  font-weight: 700;
+  color: #ffffff;
+  font-size: 2.25rem;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
 }
 
 .page-subtitle {
   margin: 0;
-  color: #6b7280;
-  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.05rem;
+  position: relative;
+  z-index: 1;
 }
 
 .loading-container,
@@ -41,7 +81,7 @@
   width: 60px;
   height: 60px;
   border: 6px solid #f3f4f6;
-  border-top-color: #667eea;
+  border-top-color: #16a34a;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -75,7 +115,7 @@
 
 .retry-button {
   padding: 0.75rem 2rem;
-  background: #667eea;
+  background: #16a34a;
   color: white;
   border: none;
   border-radius: 8px;
@@ -86,7 +126,7 @@
 }
 
 .retry-button:hover {
-  background: #5568d3;
+  background: #15803d;
   transform: translateY(-2px);
 }
 
@@ -104,8 +144,8 @@
 .back-button {
   padding: 0.5rem 1rem;
   background: transparent;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #16a34a;
+  border: 2px solid #16a34a;
   border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 600;
@@ -114,7 +154,7 @@
 }
 
 .back-button:hover {
-  background: #667eea;
+  background: #16a34a;
   color: white;
 }
 
@@ -155,7 +195,7 @@
   padding: 1.5rem;
   background: #f9fafb;
   border-radius: 12px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #16a34a;
 }
 
 .learning-phase h3 {

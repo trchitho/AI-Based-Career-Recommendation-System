@@ -118,6 +118,10 @@ def create_app() -> FastAPI:
         finally:
             db.close()
 
+    # JWT Auth middleware — sets request.state.user (TC02 session management)
+    from .core.auth_middleware import jwt_auth_middleware
+    app.middleware("http")(jwt_auth_middleware)
+
     # Health & root
     @app.get("/health", tags=["system"])
     def health():
@@ -328,6 +332,15 @@ def create_app() -> FastAPI:
         app.include_router(reports_router.router)
     except Exception as e:
         print("??  Skip reports router:", repr(e))
+
+    # NLP — PB32 essay analysis, PB33 career embeddings, PB34 pgvector search
+    try:
+        from .modules.nlp import routes_nlp as nlp_router
+
+        app.include_router(nlp_router.router, prefix="/api/nlp", tags=["nlp"])
+        print("✅ NLP router registered at /api/nlp")
+    except Exception as e:
+        print("??  Skip NLP router:", repr(e))
 
     return app
 

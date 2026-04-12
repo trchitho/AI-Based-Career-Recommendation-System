@@ -68,6 +68,30 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
   const [isEditingEssay, setIsEditingEssay] = useState(false);
   const [showEssayOverlay, setShowEssayOverlay] = useState(false);
 
+  // Responsive book dimensions
+  const [bookDimensions, setBookDimensions] = useState({ width: 750, height: 950, portrait: false });
+
+  useEffect(() => {
+    const updateBookDimensions = () => {
+      const vw = window.innerWidth;
+      if (vw < 640) {
+        // Mobile: single-page portrait mode
+        const w = Math.min(vw - 32, 400);
+        setBookDimensions({ width: w, height: Math.round(w * 1.4), portrait: true });
+      } else if (vw < 1024) {
+        // Tablet: smaller two-page spread
+        const w = Math.round((vw - 64) / 2);
+        setBookDimensions({ width: w, height: Math.round(w * 1.3), portrait: false });
+      } else {
+        // Desktop: default
+        setBookDimensions({ width: 750, height: 950, portrait: false });
+      }
+    };
+    updateBookDimensions();
+    window.addEventListener('resize', updateBookDimensions);
+    return () => window.removeEventListener('resize', updateBookDimensions);
+  }, []);
+
   // Voice recording state
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -486,7 +510,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               <div style={{
                 width: `${storyProgress}%`,
                 height: '100%',
-                background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(90deg, #16a34a 0%, #0d9488 100%)',
                 transition: 'width 0.3s ease',
                 borderRadius: '10px'
               }}></div>
@@ -554,18 +578,18 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         {/* @ts-ignore */}
         <HTMLFlipBook
           ref={bookRef}
-          width={750}
-          height={950}
+          width={bookDimensions.width}
+          height={bookDimensions.height}
           size="stretch"
-          minWidth={500}
+          minWidth={280}
           maxWidth={850}
-          minHeight={700}
+          minHeight={400}
           maxHeight={1100}
           maxShadowOpacity={0.5}
           showCover={false}
           mobileScrollSupport={true}
           className="story-book"
-          usePortrait={false}
+          usePortrait={bookDimensions.portrait}
           startPage={0}
           drawShadow={true}
           flippingTime={800}
@@ -660,7 +684,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                   <div className="scenario-header">
                     <span className="scenario-number">Câu {index + 1} / {questions.length}</span>
                     {groupScenario && (
-                      <div className="label-badge" style={{ backgroundColor: 'rgba(102,126,234,0.15)', borderColor: '#667eea', color: '#667eea' }}>
+                      <div className="label-badge" style={{ backgroundColor: 'rgba(22,163,74,0.15)', borderColor: '#16a34a', color: '#16a34a' }}>
                         <span className="label-emoji">{groupScenario.emoji}</span>
                         <span className="label-name">{groupScenario.title}</span>
                       </div>
@@ -669,8 +693,8 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
 
                   {/* Group story intro — shown only on the FIRST question of each group */}
                   {isFirstInGroup && groupScenario && (
-                    <div className="label-intro" style={{ borderLeftColor: '#667eea' }}>
-                      <h3 style={{ color: '#667eea' }}>
+                    <div className="label-intro" style={{ borderLeftColor: '#16a34a' }}>
+                      <h3 style={{ color: '#16a34a' }}>
                         {groupScenario.emoji} {groupScenario.title}
                       </h3>
                       <p className="label-description">{groupScenario.introduction}</p>
@@ -735,9 +759,9 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               <div className="scenario-header">
                 <span className="scenario-number">Scenario 45 of 45</span>
                 <div className="label-badge" style={{ 
-                  backgroundColor: '#8e44ad20',
-                  borderColor: '#8e44ad',
-                  color: '#8e44ad'
+                  backgroundColor: '#0d948820',
+                  borderColor: '#0d9488',
+                  color: '#0d9488'
                 }}>
                   <span className="label-emoji">✍️</span>
                   <span className="label-name">Personal Story</span>
@@ -745,7 +769,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               </div>
               
               <div className="essay-intro">
-                <h3 style={{ color: '#8e44ad' }}>
+                <h3 style={{ color: '#0d9488' }}>
                   ✍️ Chia Sẻ Câu Chuyện Của Bạn
                 </h3>
                 <p className="essay-description">
@@ -771,8 +795,8 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                   style={{
                     padding: '0.9rem 1.5rem',
                     background: 'white',
-                    color: '#8e44ad',
-                    border: '2px solid #8e44ad',
+                    color: '#0d9488',
+                    border: '2px solid #0d9488',
                     borderRadius: '12px',
                     fontSize: '1rem',
                     fontWeight: '600',
@@ -1041,7 +1065,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               style={{
                 padding: '0.5rem 1.5rem',
                 background: 'white',
-                color: '#667eea',
+                color: '#16a34a',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '1rem',

@@ -76,8 +76,8 @@
 }
 
 .skill-tag.more {
-  background: rgba(102, 126, 234, 0.3);
-  border-color: rgba(102, 126, 234, 0.5);
+  background: rgba(22, 163, 74, 0.3);
+  border-color: rgba(22, 163, 74, 0.5);
 }
 
 /* JD Criteria Section */
@@ -113,7 +113,7 @@
 .criteria-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  border-color: #667eea;
+  border-color: #16a34a;
 }
 
 .criteria-header {
@@ -131,7 +131,7 @@
 
 .criteria-score {
   font-weight: 700;
-  color: #667eea;
+  color: #16a34a;
   font-size: 1.1rem;
 }
 
@@ -375,23 +375,23 @@
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   color: white;
 }
 
 .action-btn.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
 }
 
 .action-btn.secondary {
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #16a34a;
+  border: 2px solid #16a34a;
 }
 
 .action-btn.secondary:hover {
-  background: #667eea;
+  background: #16a34a;
   color: white;
   transform: translateY(-2px);
 }
@@ -445,7 +445,7 @@
 .ai-recommendations-section {
   margin-top: 2rem;
   padding: 2rem;
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  background: linear-gradient(135deg, #14532d 0%, #166534 100%);
   border-radius: 16px;
   color: white;
 }
@@ -475,7 +475,7 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -588,7 +588,7 @@
 .learning-path-section {
   margin-top: 2rem;
   padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   border-radius: 16px;
   color: white;
 }
@@ -737,8 +737,87 @@
   .learning-path-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .learning-card.generic {
     grid-column: 1;
   }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .skill-gap-result {
+    padding: 0.75rem;
+  }
+
+  .score-circle {
+    width: 150px;
+    height: 150px;
+  }
+
+  .score-number {
+    font-size: 2.25rem;
+  }
+
+  .overview-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .action-buttons {
+    gap: 0.75rem;
+  }
+
+  .action-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .jd-criteria-section,
+  .skills-section,
+  .ai-recommendations-section,
+  .learning-path-section {
+    padding: 1.25rem;
+  }
+
+  .section-title-main {
+    font-size: 1.2rem;
+  }
+}
+
+/* ===== DARK MODE ===== */
+.dark .jd-criteria-section,
+.dark .overview-card,
+.dark .stat-card {
+  background: #1e293b;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dark .jd-criteria-section h2,
+.dark .overview-card h3,
+.dark .stat-card h4 {
+  color: #f1f5f9;
+}
+
+.dark .jd-criteria-section p,
+.dark .overview-card p,
+.dark .stat-card p {
+  color: #94a3b8;
+}
+
+.dark .skill-item {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.dark .criteria-item {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.dark .section-header {
+  color: #f1f5f9;
+}
+
+.dark .interview-cta {
+  background: linear-gradient(135deg, #14532d 0%, #134e4a 100%);
 }

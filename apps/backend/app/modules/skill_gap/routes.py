@@ -42,15 +42,62 @@ async def test_analyze_cv_skill_gap(
         - Lỗ hổng kỹ năng (gaps) phân loại theo mức độ quan trọng
         - Điểm phù hợp (match percentage)
     """
-    # Validate file type
-    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.txt']
-    file_ext = '.' + cv_file.filename.split('.')[-1].lower() if '.' in cv_file.filename else ''
+    # TC-CV-01: Validate file type
+    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.txt', '.docx']
     
-    if file_ext not in allowed_extensions:
+    # Sanitize filename to prevent path traversal
+    import re
+    safe_filename = re.sub(r'[^\w\s\-\.]', '_', cv_file.filename)
+    safe_filename = safe_filename.replace('..', '_')
+    
+    # Extract extension safely
+    file_ext = ''
+    if '.' in safe_filename:
+        file_ext = '.' + safe_filename.split('.')[-1].lower()
+    
+    if not file_ext or file_ext not in allowed_extensions:
         raise HTTPException(
             status_code=400,
-            detail=f"Only PDF, image files (JPG, PNG), and text files are supported. Got: {file_ext}"
+            detail=f"Unsupported file format. Allowed: {', '.join(allowed_extensions)}. Got: {file_ext or 'no extension'}"
         )
+    
+    # TC-CV-02: Validate file size
+    MAX_FILE_SIZE_MB = 5
+    MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+    MIN_FILE_SIZE_BYTES = 100  # Minimum 100 bytes
+    
+    # Read file content to check size
+    file_content = await cv_file.read()
+    file_size = len(file_content)
+    
+    # Reset file pointer for later processing
+    await cv_file.seek(0)
+    
+    if file_size == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="File is empty (0 bytes). Please upload a valid CV file."
+        )
+    
+    if file_size < MIN_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too small ({file_size} bytes). Minimum size: {MIN_FILE_SIZE_BYTES} bytes."
+        )
+    
+    if file_size > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large ({file_size / 1024 / 1024:.2f} MB). Maximum size: {MAX_FILE_SIZE_MB} MB."
+        )
+    
+    # TC-CV-03: Validate filename length
+    MAX_FILENAME_LENGTH = 255
+    if len(safe_filename) > MAX_FILENAME_LENGTH:
+        safe_filename = safe_filename[:MAX_FILENAME_LENGTH]
+    
+    # Update cv_file filename with sanitized version
+    cv_file.filename = safe_filename
     
     # Create service with test user ID
     service = SkillGapService(db, neo4j_driver)
@@ -157,15 +204,62 @@ async def analyze_cv_skill_gap(
         - Lỗ hổng kỹ năng (gaps) phân loại theo mức độ quan trọng
         - Điểm phù hợp (match percentage)
     """
-    # Validate file type
-    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png']
-    file_ext = '.' + cv_file.filename.split('.')[-1].lower() if '.' in cv_file.filename else ''
+    # TC-CV-01: Validate file type
+    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.docx']
     
-    if file_ext not in allowed_extensions:
+    # TC-CV-03: Sanitize filename to prevent path traversal
+    import re
+    safe_filename = re.sub(r'[^\w\s\-\.]', '_', cv_file.filename)
+    safe_filename = safe_filename.replace('..', '_')
+    
+    # Extract extension safely
+    file_ext = ''
+    if '.' in safe_filename:
+        file_ext = '.' + safe_filename.split('.')[-1].lower()
+    
+    if not file_ext or file_ext not in allowed_extensions:
         raise HTTPException(
             status_code=400,
-            detail=f"Only PDF and image files (JPG, PNG) are supported. Got: {file_ext}"
+            detail=f"Unsupported file format. Allowed: {', '.join(allowed_extensions)}. Got: {file_ext or 'no extension'}"
         )
+    
+    # TC-CV-02: Validate file size
+    MAX_FILE_SIZE_MB = 5
+    MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+    MIN_FILE_SIZE_BYTES = 100  # Minimum 100 bytes
+    
+    # Read file content to check size
+    file_content = await cv_file.read()
+    file_size = len(file_content)
+    
+    # Reset file pointer for later processing
+    await cv_file.seek(0)
+    
+    if file_size == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="File is empty (0 bytes). Please upload a valid CV file."
+        )
+    
+    if file_size < MIN_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too small ({file_size} bytes). Minimum size: {MIN_FILE_SIZE_BYTES} bytes."
+        )
+    
+    if file_size > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large ({file_size / 1024 / 1024:.2f} MB). Maximum size: {MAX_FILE_SIZE_MB} MB."
+        )
+    
+    # TC-CV-03: Validate filename length
+    MAX_FILENAME_LENGTH = 255
+    if len(safe_filename) > MAX_FILENAME_LENGTH:
+        safe_filename = safe_filename[:MAX_FILENAME_LENGTH]
+    
+    # Update cv_file filename with sanitized version
+    cv_file.filename = safe_filename
     
     # Create service
     service = SkillGapService(db, neo4j_driver)
@@ -188,6 +282,82 @@ async def analyze_cv_skill_gap(
             status_code=500,
             detail=f"Error analyzing CV: {str(e)}"
         )
+
+
+@router.post("/analyze-images", response_model=dict)
+async def analyze_cv_multi_image(
+    career_id: str = Form(..., description="ID nghề nghiệp mục tiêu"),
+    cv_images: List[UploadFile] = File(..., description="Các ảnh CV (JPG, PNG) theo thứ tự trang"),
+    user_id: int = Depends(_current_user_id),
+    db: Session = Depends(get_db),
+    neo4j_driver = Depends(get_neo4j_driver),
+):
+    """
+    TC-IMG-12 — Upload nhiều ảnh CV (các trang) cùng một lúc.
+
+    - Chấp nhận 1–5 ảnh JPG/PNG.
+    - Xử lý từng ảnh theo thứ tự trang (index 0, 1, ...).
+    - Ghép nối văn bản từ tất cả trang theo đúng thứ tự.
+    - TC-IMG-11: Nén ảnh lớn trước khi OCR để tránh timeout.
+    - TC-IMG-13: Nếu không ảnh nào chứa text → 422.
+    """
+    MAX_IMAGES = 5
+    ALLOWED_IMAGE_TYPES = {".jpg", ".jpeg", ".png"}
+    MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024   # 20 MB per image (will be compressed)
+
+    if not cv_images:
+        raise HTTPException(status_code=400, detail="Cần ít nhất 1 ảnh CV.")
+
+    if len(cv_images) > MAX_IMAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Tối đa {MAX_IMAGES} ảnh mỗi lần. Đã nhận: {len(cv_images)}.",
+        )
+
+    image_contents: list[bytes] = []
+    for i, img_file in enumerate(cv_images):
+        import re as _re
+        safe_name = _re.sub(r"[^\w\s\-\.]", "_", img_file.filename or "")
+        ext = ""
+        if "." in safe_name:
+            ext = "." + safe_name.split(".")[-1].lower()
+
+        if ext not in ALLOWED_IMAGE_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Ảnh {i + 1} ({img_file.filename}): định dạng không hỗ trợ. "
+                       f"Chỉ chấp nhận: {', '.join(ALLOWED_IMAGE_TYPES)}.",
+            )
+
+        content = await img_file.read()
+        if len(content) == 0:
+            raise HTTPException(status_code=400, detail=f"Ảnh {i + 1} trống (0 bytes).")
+        if len(content) > MAX_IMAGE_SIZE_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Ảnh {i + 1} quá lớn ({len(content) / 1024 / 1024:.1f} MB). "
+                       f"Tối đa {MAX_IMAGE_SIZE_BYTES // 1024 // 1024} MB mỗi ảnh.",
+            )
+        image_contents.append(content)
+
+    from .cv_parser_v2 import CVParserV2
+    parser = CVParserV2(db_session=db)
+
+    try:
+        merged_text = parser.extract_text_from_multiple_images(image_contents)
+    except ValueError as e:
+        # TC-IMG-13: no text found in any image
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi xử lý ảnh: {e}")
+
+    return {
+        "success": True,
+        "page_count": len(image_contents),
+        "total_chars": len(merged_text),
+        "merged_text_preview": merged_text[:500],
+        "message": f"Đã ghép nối văn bản từ {len(image_contents)} ảnh.",
+    }
 
 
 @router.get("/my-analyses", response_model=List[SkillGapAnalysisResponse])

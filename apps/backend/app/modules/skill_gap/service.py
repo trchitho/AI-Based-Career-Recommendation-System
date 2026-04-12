@@ -66,7 +66,12 @@ class SkillGapService:
         parse_start = time.time()
         
         # Use V2 parser - AI reads entire CV
-        cv_data = self.cv_parser_v2.parse_cv_complete(file_content, file_type, target_career=career_id)
+        try:
+            cv_data = self.cv_parser_v2.parse_cv_complete(file_content, file_type, target_career=career_id)
+        except ValueError as e:
+            # CV content validation failed (not a real CV / no personal info)
+            from fastapi import HTTPException
+            raise HTTPException(status_code=422, detail=str(e))
         
         # Extract results
         personal_info = cv_data.get('personal_info', {})

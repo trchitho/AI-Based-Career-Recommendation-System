@@ -8,11 +8,13 @@ import LearningPlan from '../components/skillgap/LearningPlan';
 import WhyUseAIScanner from '../components/skillgap/WhyUseAIScanner';
 import { skillGapService } from '../services/skillGapService';
 import { SkillGapAnalysis, LearningPlan as LearningPlanType } from '../types/skillGap';
+import { useTheme } from '../contexts/ThemeContext';
 import './SkillGapPage.css';
 
 const SkillGapPage: React.FC = () => {
   const navigate = useNavigate();
   const { analysisId } = useParams<{ analysisId?: string }>();
+  const { theme } = useTheme();
 
   const [currentStep, setCurrentStep] = useState<'upload' | 'result'>('upload');
   const [analysis, setAnalysis] = useState<SkillGapAnalysis | null>(null);
@@ -64,17 +66,19 @@ const SkillGapPage: React.FC = () => {
   const handleNewAnalysis = () => {
     setCurrentStep('upload');
     setAnalysis(null);
-    setHeatmapData(null);
+    setLearningPlan(null);
     navigate('/skill-gap');
   };
 
   if (loading) {
     return (
       <MainLayout>
-        <div className="skill-gap-page">
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Loading analysis...</p>
+        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
+          <div style={{ maxWidth: 860, margin: '0 auto' }}>
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>Loading analysis...</p>
+            </div>
           </div>
         </div>
       </MainLayout>
@@ -84,14 +88,16 @@ const SkillGapPage: React.FC = () => {
   if (error) {
     return (
       <MainLayout>
-        <div className="skill-gap-page">
-          <div className="error-container">
-            <span className="error-icon">⚠️</span>
-            <h2>Error Loading Analysis</h2>
-            <p>{error}</p>
-            <button onClick={handleNewAnalysis} className="retry-button">
-              Start New Analysis
-            </button>
+        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
+          <div style={{ maxWidth: 860, margin: '0 auto' }}>
+            <div className="error-container">
+              <span className="error-icon">⚠️</span>
+              <h2>Error Loading Analysis</h2>
+              <p>{error}</p>
+              <button onClick={handleNewAnalysis} className="retry-button">
+                Start New Analysis
+              </button>
+            </div>
           </div>
         </div>
       </MainLayout>
@@ -100,14 +106,17 @@ const SkillGapPage: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="skill-gap-page">
+      <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
+        <div style={{ maxWidth: 860, margin: '0 auto' }}>
         <div className="page-header">
           <h1>🎯 Skill Gap Analysis</h1>
           <p className="page-subtitle">
             Discover your skill gaps and get personalized learning recommendations
           </p>
         </div>
+        </div>
 
+        <div style={{ maxWidth: 860, margin: '0 auto' }}>
         {currentStep === 'upload' && (
           <>
             <CVUploadForm onAnalysisComplete={handleAnalysisComplete} />
@@ -155,6 +164,7 @@ const SkillGapPage: React.FC = () => {
             </div>
           </>
         )}
+        </div>
       </div>
     </MainLayout>
   );

@@ -8,7 +8,7 @@ interface VoiceAssessmentComponentProps {
   onSkip: () => void;
 }
 
-type RecordingState = 'idle' | 'recording' | 'ready' | 'submitting' | 'done' | 'error';
+type RecordingState = 'idle' | 'recording' | 'ready' | 'submitting' | 'done' | 'edit_transcript' | 'saving_transcript' | 'error';
 
 const MIN_DURATION_SEC = 10;
 const MAX_DURATION_SEC = 120;
@@ -26,6 +26,8 @@ const VoiceAssessmentComponent = ({
   const [duration, setDuration] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>(Array(WAVEFORM_BARS).fill(3));
   const [voiceSummary, setVoiceSummary] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<string>('');
+  const [editedTranscript, setEditedTranscript] = useState<string>('');
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -206,13 +208,44 @@ const VoiceAssessmentComponent = ({
 
       const data = await response.json();
       if (data?.voice_summary) setVoiceSummary(data.voice_summary);
-      setRecordingState('done');
-      setTimeout(() => onComplete(), 2000);
+      const t = data?.transcript_preview || '';
+      setTranscript(t);
+      setEditedTranscript(t);
+      // TC05.2: If transcript returned, enter edit mode so user can refine it
+      setRecordingState(t ? 'edit_transcript' : 'done');
+      if (!t) setTimeout(() => onComplete(), 2000);
     } catch {
       // Voice endpoint is optional — show error but let user skip
       setErrorMsg(t('assessment.voice.submitError'));
       setRecordingState('ready');
     }
+  };
+
+  const saveTranscriptEdit = async () => {
+    if (!assessmentId) {
+      setRecordingState('done');
+      setTimeout(() => onComplete(), 800);
+      return;
+    }
+    setRecordingState('saving_transcript');
+    try {
+      const token = getAccessToken();
+      const response = await fetch(`/api/assessments/${assessmentId}/voice-transcript`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ transcript: editedTranscript }),
+      });
+      if (!response.ok && response.status !== 404) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch {
+      // Non-critical — proceed even if save fails
+    }
+    setRecordingState('done');
+    setTimeout(() => onComplete(), 1200);
   };
 
   const formatTime = (sec: number) => {
@@ -366,14 +399,57 @@ const VoiceAssessmentComponent = ({
                   {t('assessment.voice.submit')}
                 </button>
               </>
-            ) : recordingState === 'submitting' ? (
+            ) : recordingState === 'submitting' || recordingState === 'saving_transcript' ? (
               <button disabled className="flex items-center gap-2 px-8 py-3 bg-violet-400 text-white font-bold rounded-2xl cursor-not-allowed opacity-75">
                 <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {t('assessment.voice.submitting')}
+                {recordingState === 'saving_transcript'
+                  ? t('assessment.voice.savingTranscript')
+                  : t('assessment.voice.submitting')}
               </button>
+            ) : recordingState === 'edit_transcript' ? (
+              /* TC05.2 — Transcript editing UI */
+              <div className="w-full flex flex-col gap-4">
+                <div className="w-full">
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                    {t('assessment.voice.transcriptLabel')}
+                    <span className="ml-2 text-xs font-normal text-gray-400 dark:text-gray-500">
+                      {t('assessment.voice.transcriptEditHint')}
+                    </span>
+                  </label>
+                  <textarea
+                    value={editedTranscript}
+                    onChange={(e) => setEditedTranscript(e.target.value)}
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 text-sm focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none resize-none transition-all"
+                    placeholder={t('assessment.voice.transcriptPlaceholder')}
+                  />
+                </div>
+                {voiceSummary && (
+                  <p className="text-sm text-center text-gray-500 dark:text-gray-400 italic px-2">
+                    🎙️ {voiceSummary}
+                  </p>
+                )}
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => { setRecordingState('done'); setTimeout(() => onComplete(), 800); }}
+                    className="px-5 py-2.5 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                  >
+                    {t('common.skip')}
+                  </button>
+                  <button
+                    onClick={saveTranscriptEdit}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-violet-500/20 hover:-translate-y-0.5 transition-all text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {t('assessment.voice.saveTranscript')}
+                  </button>
+                </div>
+              </div>
             ) : recordingState === 'done' ? (
               <div className="flex flex-col items-center gap-3 w-full">
                 <div className="flex items-center gap-2 px-8 py-3 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold rounded-2xl">

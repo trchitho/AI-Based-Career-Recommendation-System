@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SkillGapAnalysis } from '../../types/skillGap';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Props {
   analysis: SkillGapAnalysis;
@@ -21,6 +22,8 @@ const STATUS_CONFIG: Record<Status, { label: string; bg: string; border: string;
 };
 
 const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [activeFilter, setActiveFilter] = useState<Status | 'all'>('all');
   const [tooltip, setTooltip] = useState<{ skill: SkillCell; x: number; y: number } | null>(null);
 
@@ -51,11 +54,11 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
   };
 
   return (
-    <div style={{ background: 'white', borderRadius: 16, padding: '1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
-      <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.25rem', color: '#1e293b' }}>
+    <div style={{ background: isDark ? '#1e293b' : 'white', borderRadius: 16, padding: '1.5rem', boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.08)' }}>
+      <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.25rem', color: isDark ? '#f1f5f9' : '#1e293b' }}>
         🗺️ Bản đồ kỹ năng
       </h2>
-      <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+      <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
         Tổng quan {allSkills.length} kỹ năng — mức độ phù hợp {analysis.match_percentage?.toFixed(0)}%
       </p>
 
@@ -68,8 +71,8 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
             style={{
               padding: '0.35rem 0.85rem',
               borderRadius: 20,
-              border: `2px solid ${activeFilter === key ? '#6366f1' : '#e2e8f0'}`,
-              background: activeFilter === key ? '#6366f1' : 'white',
+              border: `2px solid ${activeFilter === key ? '#16a34a' : '#e2e8f0'}`,
+              background: activeFilter === key ? '#16a34a' : 'white',
               color: activeFilter === key ? 'white' : '#64748b',
               fontWeight: 600,
               fontSize: '0.82rem',

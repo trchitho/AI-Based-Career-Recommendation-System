@@ -457,34 +457,10 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
 
   if (currentStep === 'processing') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-center text-white max-w-2xl mx-auto p-8">
-          <div className="w-40 h-40 mx-auto mb-8 relative">
-            <div className="absolute inset-0 border-4 border-white/20 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-            <div className="absolute inset-0 border-4 border-purple-400 border-b-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-6xl">🧠</span>
-            </div>
-          </div>
-          <h2 className="text-4xl font-bold mb-6">AI đang phân tích kết quả...</h2>
-          <p className="text-xl text-white/80 mb-6">
-            Gemini AI đang tạo ra profile nghề nghiệp cá nhân hóa cho bạn
-          </p>
-          <div className="space-y-3">
-            <div className="flex items-center justify-center gap-3 text-white/60">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span>Phân tích tính cách RIASEC & Big Five</span>
-            </div>
-            <div className="flex items-center justify-center gap-3 text-white/60">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-              <span>Tạo gợi ý nghề nghiệp phù hợp</span>
-            </div>
-            <div className="flex items-center justify-center gap-3 text-white/60">
-              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-              <span>Sinh câu chuyện nghề nghiệp với AI</span>
-            </div>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4 text-gray-600">
+          <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+          <p className="text-base font-medium">Đang xử lý kết quả...</p>
         </div>
       </div>
     );

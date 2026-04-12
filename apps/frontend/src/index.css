@@ -2,9 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    box-sizing: border-box;
+    -webkit-text-size-adjust: 100%;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
 body {
     overflow-x: hidden;
+    min-width: 320px;
 }
+
+/* Ensure images and media don't overflow containers */
+img, video, iframe {
+    max-width: 100%;
+    height: auto;
+}
+
 
 /* Chatbot animations */
 @keyframes bounce-in {

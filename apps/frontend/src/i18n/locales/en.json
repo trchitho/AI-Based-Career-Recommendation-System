@@ -63,7 +63,11 @@
     "admin": "Admin",
     "recommendations": "Recommendations",
     "careers": "Careers",
-    "blogs": "Blogs"
+    "blogs": "Blog",
+    "skillGap": "Skill Gap",
+    "pricing": "Pricing",
+    "settingsProfile": "Settings & Profile",
+    "getStarted": "Get Started"
   },
   "auth": {
     "login": "Login",
@@ -119,7 +123,8 @@
     "passwordMinLength": "Password must be at least 8 characters long",
     "passwordNeedsUppercase": "Password must contain at least one uppercase letter",
     "passwordNeedsLowercase": "Password must contain at least one lowercase letter",
-    "passwordNeedsNumber": "Password must contain at least one number"
+    "passwordNeedsNumber": "Password must contain at least one number",
+    "passwordNeedsSpecial": "Password must contain at least one special character (!@#$%^&*...)"
   },
   "goals": {
     "title": "Career Goal Management",
@@ -146,49 +151,116 @@
     }
   },
   "home": {
+    "badge": "✨ New AI Engine v2.0 Released",
     "hero": {
-      "title": "Discover Your Perfect Career Path",
-      "subtitle": "AI-powered personality assessments and personalized career recommendations to guide your professional journey",
-      "cta": "Start Your Assessment",
-      "learnMore": "Learn More"
+      "title": "Build your future with",
+      "titleHighlight": "Intelligent Career Pathing",
+      "subtitle": "Discover your ideal career path with AI-powered personality assessments, personalized recommendations, and detailed roadmaps.",
+      "cta": "Start Assessment",
+      "exploreBtn": "Explore Careers"
+    },
+    "stats": {
+      "assessments": "Assessments Completed",
+      "careerPaths": "Career Paths Created",
+      "careerData": "Career Data Points",
+      "successRate": "Success Rate",
+      "careerDataPoints": "Career Data",
+      "assessmentTime": "Assessment Time"
     },
     "features": {
-      "title": "Why Choose Our Platform",
+      "sectionTitle": "Everything you need to",
+      "sectionHighlight": "excel in your career",
+      "sectionSubtitle": "Our platform combines advanced AI with proven career strategies to give you the competitive edge.",
       "assessment": {
-        "title": "Scientific Assessments",
-        "description": "RIASEC and Big Five personality tests backed by psychological research"
+        "title": "AI Career Assessment",
+        "desc": "Discover your ideal career path with our comprehensive RIASEC & Big Five personality assessments powered by advanced AI analysis."
       },
-      "ai": {
-        "title": "AI-Powered Analysis",
-        "description": "Advanced algorithms analyze your responses to provide accurate career matches"
+      "skillGap": {
+        "title": "Skill Gap Analysis",
+        "desc": "Identify missing skills for your dream career."
       },
       "roadmap": {
-        "title": "Learning Roadaps",
-        "description": "Personalized step-by-step guides to achieve your career goals"
-      },
-      "tracking": {
-        "title": "Progress Tracking",
-        "description": "Monitor your development and celebrate milestones along the way"
+        "title": "Career Roadmaps",
+        "desc": "Personalized learning paths to success."
       }
     },
     "howItWorks": {
-      "title": "How It Works",
+      "label": "Workflow",
+      "title": "How CareerBridge works",
+      "subtitle": "Our AI-powered platform guides you through a comprehensive career discovery journey",
       "step1": {
-        "title": "Take Assessment",
-        "description": "Complete our comprehensive personality and interest tests"
+        "title": "Complete Assessment",
+        "desc": "Take our comprehensive RIASEC & Big Five personality assessments to discover your work style, interests, and strengths."
       },
       "step2": {
-        "title": "Get Recommendations",
-        "description": "Receive AI-powered career suggestions tailored to you"
+        "title": "Get AI Analysis",
+        "desc": "Our advanced AI engine analyzes your profile against thousands of career paths and market trends to find your perfect match."
       },
       "step3": {
-        "title": "Follow Your Roadmap",
-        "description": "Access personalized learning paths to reach your goals"
+        "title": "Explore Career Paths",
+        "desc": "Browse personalized career recommendations with detailed roadmaps, required skills, and salary insights."
       },
       "step4": {
-        "title": "Track Progress",
-        "description": "Monitor your growth and achievements over time"
+        "title": "Build Your Roadmap",
+        "desc": "Get a customized learning path with courses, certifications, and milestones to achieve your career goals."
       }
+    },
+    "testimonials": {
+      "title": "Loved by professionals"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Everything you need to know about CareerBridge.",
+      "q1": "Is CareerBridge suitable for beginners?",
+      "a1": "Absolutely! Whether you're a fresh graduate or an experienced professional looking to pivot, our AI adapts to your level.",
+      "q2": "How does the AI analysis work?",
+      "a2": "We analyze your personality traits, interests, and skills against thousands of career paths and market trends to find your perfect match.",
+      "q3": "What assessments are included?",
+      "a3": "Our platform includes RIASEC (Holland Codes) and Big Five personality assessments, providing comprehensive career insights.",
+      "q4": "Is my data secure?",
+      "a4": "Security is our priority. Your personal data is encrypted and never shared with third parties without consent."
+    },
+    "cta": {
+      "title": "Ready to launch your career?",
+      "subtitle": "Join thousands of professionals who have found their dream jobs using CareerBridge AI.",
+      "btn": "Get Started for Free"
+    },
+    "contact": {
+      "title": "Contact Developer",
+      "subtitle": "Have questions or feedback? We'd love to hear from you!",
+      "emailLabel": "Email",
+      "responseTime": "Response Time",
+      "responseTimeValue": "Within 24 hours",
+      "support": "Support",
+      "supportValue": "Technical & Career Guidance",
+      "sendTitle": "Send us a message",
+      "sendDesc": "Click below to send us a message directly.",
+      "btn": "Contact Developer",
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "emailPlaceholder": "your@email.com",
+      "phonePlaceholder": "Phone (optional)",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Your message...",
+      "sendBtn": "Send Message",
+      "sending": "Sending...",
+      "successMsg": "Message sent successfully!",
+      "phoneLabel": "Phone"
+    },
+    "footer": {
+      "tagline": "CareerBridge AI helps you build professional resumes, analyze your skills, and find your perfect career path using advanced artificial intelligence.",
+      "product": "Product",
+      "features": "Features",
+      "pricing": "Pricing",
+      "assessment": "Assessment",
+      "resources": "Resources",
+      "blog": "Blog",
+      "careerGuide": "Career Guide",
+      "helpCenter": "Help Center",
+      "legal": "Legal",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "copyright": "© 2025 CareerBridge AI. All rights reserved."
     }
   },
   "dashboard": {
@@ -222,7 +294,9 @@
       "viewAll": "View Full Results",
       "noSuggestions": "Complete an assessment to see career suggestions",
       "match": "Match",
-      "analyzing": "Your assessment is being analyzed. Career recommendations will appear here soon!"
+      "analyzing": "Your assessment is being analyzed. Career recommendations will appear here soon!",
+      "processing": "Processing your assessment results",
+      "analysisInProgress": "Analysis in Progress"
     },
     "recentActivity": {
       "title": "Recent Activity",
@@ -340,7 +414,12 @@
       "duration": "{{seconds}}s recorded",
       "minDuration": "Please record at least {{min}} seconds.",
       "skip": "Skip Voice Analysis",
-      "noEndpointNote": "Voice analysis is an optional step. You can skip it and still get full results."
+      "noEndpointNote": "Voice analysis is an optional step. You can skip it and still get full results.",
+      "transcriptLabel": "Transcript",
+      "transcriptEditHint": "You can correct any mistakes from the auto-transcription.",
+      "transcriptPlaceholder": "Edit the transcribed text here...",
+      "saveTranscript": "Save & Continue",
+      "savingTranscript": "Saving..."
     },
     "scenario": {
       "generating": "Generating personalised scenarios...",

@@ -5,7 +5,7 @@
   align-items: center;
   min-height: 100vh;
   height: 100vh;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.3) 0%, rgba(13, 148, 136, 0.3) 100%);
   padding: 1rem 2rem;
   gap: 2rem;
   position: relative;
@@ -162,7 +162,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, #16a34a 0%, #0d9488 100%);
   transition: width 0.5s ease;
   border-radius: 10px;
 }
@@ -170,7 +170,7 @@
 .progress-text {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #667eea;
+  color: #16a34a;
   display: block;
   text-align: center;
 }
@@ -317,7 +317,7 @@
 
 /* Cover Page */
 .story-cover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   color: white;
 }
 
@@ -392,7 +392,7 @@
   background: white;
   border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #16a34a;
   transition: all 0.3s ease;
 }
 
@@ -409,13 +409,13 @@
 
 .welcome-note {
   font-size: 1.1rem;
-  color: #667eea;
+  color: #16a34a;
   font-weight: 600;
   font-style: italic;
   margin: 0;
   text-align: center;
   padding: 1.25rem;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(22, 163, 74, 0.1);
   border-radius: 15px;
 }
 
@@ -454,7 +454,7 @@
 .step-number {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -482,7 +482,7 @@
 .guide-title {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #667eea;
+  color: #16a34a;
   margin: 0 0 1.25rem 0;
   text-align: left;
 }
@@ -532,7 +532,7 @@
 
 .scenario-number {
   font-size: 1.15rem;
-  color: #667eea;
+  color: #16a34a;
   font-weight: 600;
 }
 
@@ -584,10 +584,10 @@
 
 /* Story Context - AI Generated Scenario (TOP) */
 .scenario-context {
-  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  background: linear-gradient(135deg, #16a34a15 0%, #0d948815 100%);
   padding: 1.5rem;
   border-radius: 12px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #16a34a;
   margin-bottom: 1rem;
   flex-shrink: 0;
 }
@@ -614,7 +614,7 @@
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 2px solid #667eea;
+  border: 2px solid #16a34a;
 }
 
 .situation-text {
@@ -788,7 +788,7 @@
   background: white;
   border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #16a34a;
 }
 
 .stat-text {
@@ -803,14 +803,14 @@
   justify-content: center;
   gap: 1rem;
   padding: 1.35rem 2.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   color: white;
   border: none;
   border-radius: 50px;
   font-size: 1.25rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 30px rgba(22, 163, 74, 0.4);
   transition: all 0.3s ease;
   font-family: 'Poppins', sans-serif;
   pointer-events: all;
@@ -818,7 +818,7 @@
 
 .submit-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 12px 40px rgba(22, 163, 74, 0.5);
 }
 
 .submit-btn:active {
@@ -827,7 +827,7 @@
 
 /* Back Cover */
 .back-cover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #16a34a 100%);
 }
 
 .back-cover-content {
@@ -866,24 +866,24 @@
   align-items: center;
   gap: 0.75rem;
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #16a34a;
+  border: 2px solid #16a34a;
   padding: 1.25rem 2rem;
   border-radius: 50px;
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 15px rgba(22, 163, 74, 0.2);
   transition: all 0.3s ease;
   font-family: 'Poppins', sans-serif;
   white-space: nowrap;
 }
 
 .nav-btn:hover:not(:disabled) {
-  background: #667eea;
+  background: #16a34a;
   color: white;
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.3);
 }
 
 .nav-btn:active:not(:disabled) {
@@ -896,7 +896,7 @@
 }
 
 .open-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   color: white;
   border: none;
   font-size: 1.15rem;
@@ -905,12 +905,12 @@
 
 .open-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 25px rgba(22, 163, 74, 0.4);
 }
 
 /* Submit Navigation Button */
 .submit-nav-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   color: white;
   border: none;
   font-size: 1.15rem;
@@ -920,15 +920,15 @@
 
 .submit-nav-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 8px 30px rgba(22, 163, 74, 0.5);
 }
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
   }
   50% {
-    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+    box-shadow: 0 6px 25px rgba(22, 163, 74, 0.6);
   }
 }
 
@@ -1007,7 +1007,7 @@
 
 /* Essay Page Styles */
 .essay-page {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   touch-action: auto !important;
   user-select: text !important;
   pointer-events: auto !important;
@@ -1051,7 +1051,7 @@
   padding: 1.25rem;
   border-radius: 12px;
   margin-bottom: 1.5rem;
-  border-left: 4px solid #8e44ad;
+  border-left: 4px solid #0d9488;
 }
 
 .prompt-text {
@@ -1098,7 +1098,7 @@
 
 .essay-textarea:focus {
   outline: none;
-  border-color: #8e44ad;
+  border-color: #0d9488;
   box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.1);
   background: white;
   z-index: 10000 !important;
@@ -1117,4 +1117,195 @@
   font-weight: 500;
   pointer-events: none;
   z-index: 1;
+}
+
+/* ===== RESPONSIVE: Tablet (max 1024px) ===== */
+@media (max-width: 1024px) {
+  .story-container {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .navigation {
+    width: 110px;
+  }
+
+  .nav-btn {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+  }
+}
+
+/* ===== RESPONSIVE: Mobile (max 768px) ===== */
+@media (max-width: 768px) {
+  .story-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    padding: 0.5rem;
+    gap: 0.75rem;
+  }
+
+  .story-progress {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .book-wrapper {
+    width: 100%;
+    height: auto;
+    min-height: 60vh;
+    flex: unset;
+    perspective: none;
+  }
+
+  .story-book {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 55vh;
+  }
+
+  .story-container.book-closed .story-book {
+    width: 100% !important;
+  }
+
+  .navigation {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+  }
+
+  .nav-btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    flex: 1;
+    max-width: 160px;
+    justify-content: center;
+  }
+
+  .open-btn,
+  .submit-nav-btn {
+    flex: 1;
+    max-width: 200px;
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+  }
+
+  /* Cover page */
+  .cover-content h1 {
+    font-size: 2rem;
+    padding: 0 1rem;
+  }
+
+  .cover-subtitle {
+    font-size: 1.25rem;
+    padding: 0 1rem;
+  }
+
+  /* Welcome page */
+  .welcome-content h2 {
+    font-size: 1.75rem;
+  }
+
+  .welcome-text {
+    font-size: 1rem;
+  }
+
+  .welcome-note {
+    font-size: 0.95rem;
+  }
+
+  /* Scenario page */
+  .context-text {
+    font-size: 0.95rem;
+  }
+
+  .situation-text {
+    font-size: 1rem;
+  }
+
+  .response-options {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .response-btn {
+    min-width: 70px;
+    max-width: 90px;
+    padding: 0.75rem 0.25rem;
+  }
+
+  .response-label {
+    font-size: 0.75rem;
+  }
+
+  /* Instruction steps */
+  .instruction-step {
+    gap: 1rem;
+  }
+
+  .step-number {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+  }
+
+  .instruction-step p {
+    font-size: 1rem;
+  }
+
+  /* Story intro */
+  .story-intro-content h2 {
+    font-size: 1.75rem;
+  }
+
+  /* Ending page */
+  .ending-content h2 {
+    font-size: 2rem;
+  }
+
+  .ending-text {
+    font-size: 1rem;
+  }
+
+  /* Submit button */
+  .submit-btn {
+    padding: 1rem 1.75rem;
+    font-size: 1rem;
+  }
+
+  /* Loading */
+  .loading p,
+  .error p {
+    font-size: 1.5rem;
+    padding: 1rem 1.5rem;
+  }
+
+  /* Essay page */
+  .essay-intro h3 {
+    font-size: 1.2rem;
+  }
+
+  .essay-textarea {
+    min-height: 150px;
+    font-size: 0.9rem;
+  }
+
+  /* Page content */
+  .page {
+    padding: 1.25rem 1rem;
+  }
+
+  .page-content {
+    padding: 1.25rem 1rem;
+  }
 }

@@ -1486,27 +1486,283 @@ def delete_user(request: Request, user_id: int):
     return {"success": True, "message": f"User {user_id} deleted"}
 
 
+# ===== TC15 — Ban / Unban user =====
+
+def _revoke_all_refresh_tokens(session: Session, user_id: int) -> int:
+    """
+    Revoke all active refresh tokens for a user.
+    Called when banning so the user cannot silently refresh a new access token.
+    Returns the number of tokens revoked.
+    """
+    result = session.execute(
+        text("""
+            UPDATE core.refresh_tokens
+            SET revoked = TRUE
+            WHERE user_id = :uid AND revoked = FALSE
+        """),
+        {"uid": user_id},
+    )
+    return result.rowcount
+
+
+@router.post("/users/{user_id}/ban")
+def ban_user(request: Request, user_id: int):
+    """
+    TC15 — Ban a user account.
+
+    - Sets is_locked = TRUE  → login returns 403 immediately.
+    - Auth middleware already checks is_locked per-request so in-flight JWTs
+      are rejected on the next API call without waiting for JWT expiry.
+    - Revokes ALL active refresh tokens so the user cannot obtain a fresh
+      access token after being banned.
+    - Writes an audit log entry with actor_id = admin performing the ban.
+    """
+    admin_id = require_admin(request)
+    session = _db(request)
+    from ..users.models import User
+
+    u = session.get(User, user_id)
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found")
+    if u.is_locked:
+        raise HTTPException(status_code=409, detail="User is already banned")
+
+    u.is_locked = True
+    revoked_count = _revoke_all_refresh_tokens(session, user_id)
+    _write_audit_log(
+        session, "ban_user", "user", user_id,
+        actor_id=admin_id,
+        details={"email": u.email, "refresh_tokens_revoked": revoked_count},
+    )
+    session.commit()
+    return {
+        "ok": True,
+        "user_id": user_id,
+        "email": u.email,
+        "is_locked": True,
+        "refresh_tokens_revoked": revoked_count,
+        "message": f"User {u.email} has been banned. {revoked_count} refresh token(s) revoked.",
+    }
+
+
+@router.post("/users/{user_id}/unban")
+def unban_user(request: Request, user_id: int):
+    """
+    TC15 — Unban a user account (restore access).
+
+    - Sets is_locked = FALSE.
+    - Does NOT restore refresh tokens (user must log in again).
+    - Writes audit log.
+    """
+    admin_id = require_admin(request)
+    session = _db(request)
+    from ..users.models import User
+
+    u = session.get(User, user_id)
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not u.is_locked:
+        raise HTTPException(status_code=409, detail="User is not banned")
+
+    u.is_locked = False
+    _write_audit_log(
+        session, "unban_user", "user", user_id,
+        actor_id=admin_id,
+        details={"email": u.email},
+    )
+    session.commit()
+    return {
+        "ok": True,
+        "user_id": user_id,
+        "email": u.email,
+        "is_locked": False,
+        "message": f"User {u.email} has been unbanned. They must log in again.",
+    }
+
+
+# ===== TC16 — AI / Gemini error logging =====
+
+def _log_gemini_error(
+    session: Session,
+    error_type: str,
+    status_code: int,
+    stream: str,
+    detail: str,
+    actor_id: int | None = None,
+) -> None:
+    """
+    Write a Gemini API error entry to core.audit_logs.
+    Called whenever a Gemini call times out or fails with a 5xx error.
+    action format: "gemini_error_{status_code}" e.g. "gemini_error_504"
+    """
+    _write_audit_log(
+        session,
+        action=f"gemini_error_{status_code}",
+        entity="gemini_api",
+        entity_id=None,
+        actor_id=actor_id,
+        details={
+            "error_type": error_type,
+            "status_code": status_code,
+            "stream": stream,
+            "detail": detail,
+        },
+    )
+
+
+@router.post("/ai-errors/log")
+def log_ai_error(request: Request, payload: dict):
+    """
+    TC16 — Log a Gemini API error from application code.
+
+    Body:
+    {
+      "error_type": "DeadlineExceeded",
+      "status_code": 504,
+      "stream": "assessment",
+      "detail": "Gemini API timeout after 30s"
+    }
+
+    Called by GeminiStreamManager when a call fails.
+    Stores in core.audit_logs with action='gemini_error_504' so that
+    /admin/ai-metrics can surface the error rate in the dashboard.
+    """
+    admin_id = require_admin(request)
+    session = _db(request)
+
+    error_type = str(payload.get("error_type", "Unknown"))
+    status_code = int(payload.get("status_code", 500))
+    stream = str(payload.get("stream", "unknown"))
+    detail = str(payload.get("detail", ""))
+
+    _log_gemini_error(
+        session,
+        error_type=error_type,
+        status_code=status_code,
+        stream=stream,
+        detail=detail,
+        actor_id=admin_id,
+    )
+    session.commit()
+    return {"ok": True, "logged": True, "action": f"gemini_error_{status_code}"}
+
+
+@router.get("/ai-errors")
+def get_ai_errors(
+    request: Request,
+    days: int = Query(7, ge=1, le=90),
+    limit: int = Query(50, ge=1, le=500),
+):
+    """
+    TC16 — Query recent Gemini API errors for Admin AI Monitor dashboard.
+
+    Merges two sources:
+    1. core.audit_logs (persistent, survives restarts) — written by POST /admin/ai-errors/log
+    2. In-memory gemini_error_tracker ring buffer (live, from current process)
+
+    Returns: total_errors, error_504_count, errors list sorted newest-first.
+    """
+    _ = require_admin(request)
+    session = _db(request)
+
+    from app.core.gemini_manager import gemini_error_tracker
+
+    errors = []
+
+    # --- Source 1: persistent audit_logs ---
+    try:
+        since = datetime.now(timezone.utc) - timedelta(days=days)
+        rows = session.execute(text("""
+            SELECT action, data_json, created_at
+            FROM core.audit_logs
+            WHERE action LIKE 'gemini_error_%'
+              AND created_at >= :since
+            ORDER BY created_at DESC
+            LIMIT :limit
+        """), {"since": since, "limit": limit}).fetchall()
+
+        for row in rows:
+            data = {}
+            if row[1]:
+                try:
+                    data = json.loads(row[1]) if isinstance(row[1], str) else row[1]
+                except Exception:
+                    pass
+            errors.append({
+                "source": "audit_log",
+                "action": row[0],
+                "status_code": data.get("status_code"),
+                "error_type": data.get("error_type"),
+                "stream": data.get("stream"),
+                "detail": data.get("detail"),
+                "created_at": row[2].isoformat() if row[2] else None,
+            })
+    except Exception as e:
+        logger.warning(f"audit_logs query failed in get_ai_errors: {e}")
+
+    # --- Source 2: in-memory tracker (live process) ---
+    for entry in gemini_error_tracker.recent(limit=limit):
+        errors.append({**entry, "source": "live_tracker"})
+
+    # Sort merged list newest-first
+    errors.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+    errors = errors[:limit]
+
+    total = len(errors)
+    count_504 = sum(1 for e in errors if e.get("status_code") == 504)
+
+    return {
+        "days": days,
+        "total_errors": total,
+        "error_504_count": count_504,
+        "errors": errors,
+    }
+
+
+# ===== TC17 — User CSV export with UTF-8 BOM (no garbled Vietnamese) =====
+
 @router.get("/users/export")
 def export_users_csv(request: Request):
+    """
+    TC17 — Export all users as CSV.
+
+    UTF-8 BOM (\ufeff) prepended so Windows Excel opens the file
+    without garbling Vietnamese characters (Tiếng Việt).
+    Content-Type includes charset=utf-8-sig as additional hint.
+    """
     _ = require_admin(request)
     session = _db(request)
     from ..users.models import User
 
     rows = session.execute(select(User).order_by(User.created_at.desc())).scalars().all()
-    output = StringIO()
-    writer = csv.writer(output)
+
+    # Use BytesIO + explicit UTF-8 encoding to support UTF-8 BOM
+    from io import BytesIO
+    raw = BytesIO()
+    # Write UTF-8 BOM — required for Excel to recognise Vietnamese correctly
+    raw.write(b"\xef\xbb\xbf")
+
+    text_wrapper = StringIO()
+    writer = csv.writer(text_wrapper)
     writer.writerow(["id", "email", "full_name", "role", "is_locked", "is_email_verified", "created_at"])
     for u in rows:
         writer.writerow([
-            u.id, u.email, u.full_name or "", u.role,
-            u.is_locked, getattr(u, "is_email_verified", False),
+            u.id,
+            u.email,
+            u.full_name or "",
+            u.role,
+            u.is_locked,
+            getattr(u, "is_email_verified", False),
             _iso_or_none(getattr(u, "created_at", None)),
         ])
-    output.seek(0)
+    raw.write(text_wrapper.getvalue().encode("utf-8"))
+    raw.seek(0)
+
+    filename = f"users_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
     return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=users_export.csv"},
+        raw,
+        media_type="text/csv; charset=utf-8-sig",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 

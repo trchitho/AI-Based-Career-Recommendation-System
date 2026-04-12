@@ -58,8 +58,8 @@
 
 .form-group select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
 
 .file-drop-zone {
@@ -73,8 +73,8 @@
 }
 
 .file-drop-zone.active {
-  border-color: #667eea;
-  background: #eef2ff;
+  border-color: #16a34a;
+  background: #f0fdf4;
 }
 
 .file-drop-zone.has-file {
@@ -101,7 +101,7 @@
 .browse-button {
   display: inline-block;
   padding: 0.5rem 1.5rem;
-  background: #667eea;
+  background: #16a34a;
   color: white;
   border-radius: 8px;
   cursor: pointer;
@@ -110,7 +110,7 @@
 }
 
 .browse-button:hover {
-  background: #5568d3;
+  background: #15803d;
   transform: translateY(-2px);
 }
 
@@ -158,7 +158,7 @@
 .submit-button {
   width: 100%;
   padding: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -174,7 +174,7 @@
 
 .submit-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
 }
 
 .submit-button:disabled {
@@ -200,21 +200,21 @@
 .info-box {
   margin-top: 2rem;
   padding: 1.5rem;
-  background: #f0f9ff;
+  background: #f0fdf4;
   border-radius: 12px;
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid #16a34a;
 }
 
 .info-box h4 {
   margin: 0 0 1rem 0;
-  color: #1e40af;
+  color: #166534;
   font-size: 1rem;
 }
 
 .info-box ul {
   margin: 0;
   padding-left: 1.5rem;
-  color: #1e3a8a;
+  color: #14532d;
 }
 
 .info-box li {
@@ -226,15 +226,15 @@
 .progress-container {
   margin: 1rem 0;
   padding: 1rem;
-  background: #f0f9ff;
+  background: #f0fdf4;
   border-radius: 8px;
-  border: 1px solid #bfdbfe;
+  border: 1px solid #bbf7d0;
 }
 
 .progress-bar {
   width: 100%;
   height: 8px;
-  background: #e0e7ff;
+  background: #dcfce7;
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -242,14 +242,14 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, #16a34a 0%, #0d9488 100%);
   transition: width 0.3s ease;
   border-radius: 4px;
 }
 
 .progress-message {
   margin: 0;
-  color: #1e40af;
+  color: #166534;
   font-size: 0.9rem;
   font-weight: 500;
   text-align: center;
@@ -260,8 +260,8 @@
   width: 100%;
   padding: 0.875rem;
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #16a34a;
+  border: 2px solid #16a34a;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
@@ -275,10 +275,10 @@
 }
 
 .preview-button:hover {
-  background: #667eea;
+  background: #16a34a;
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
 }
 
 /* Preview Modal */
@@ -365,6 +365,39 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .cv-upload-form {
+    padding: 1.25rem;
+    margin: 1rem auto;
+  }
+
+  .form-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .file-drop-zone {
+    padding: 1.5rem 1rem;
+  }
+
+  .upload-icon {
+    font-size: 2.5rem;
+  }
+
+  .file-info {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: flex-start;
+  }
+
+  .career-badge {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .career-icon {
+    font-size: 2rem;
+  }
+
   .preview-content {
     width: 95%;
     max-height: 85vh;
@@ -387,9 +420,9 @@
 /* Selected Career Display (from Assessment) */
 .selected-career-display {
   padding: 1rem;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border-radius: 12px;
-  border: 2px solid #3b82f6;
+  border: 2px solid #16a34a;
 }
 
 .career-badge {
@@ -420,7 +453,7 @@
 
 .career-match {
   font-size: 0.9rem;
-  color: #3b82f6;
+  color: #16a34a;
   font-weight: 500;
 }
 
@@ -451,4 +484,111 @@
 
 .mt-2 {
   margin-top: 0.5rem;
+}
+
+/* ===== DARK MODE ===== */
+.dark .cv-upload-form {
+  background: #1e293b;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.dark .form-header h2 {
+  color: #f1f5f9;
+}
+
+.dark .form-header p {
+  color: #94a3b8;
+}
+
+.dark .form-group label {
+  color: #cbd5e1;
+}
+
+.dark .form-group select {
+  background-color: #0f172a;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+
+.dark .form-group select option {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+.dark .file-drop-zone {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.dark .file-drop-zone.active {
+  background: #052e16;
+  border-color: #16a34a;
+}
+
+.dark .file-drop-zone.has-file {
+  background: #052e16;
+  border-color: #16a34a;
+}
+
+.dark .file-drop-zone p {
+  color: #94a3b8;
+}
+
+.dark .file-name {
+  color: #e2e8f0;
+}
+
+.dark .info-box {
+  background: #052e16;
+  border-left-color: #16a34a;
+}
+
+.dark .info-box h4 {
+  color: #4ade80;
+}
+
+.dark .info-box ul {
+  color: #86efac;
+}
+
+.dark .selected-career-display {
+  background: linear-gradient(135deg, #052e16 0%, #064e3b 100%);
+  border-color: #16a34a;
+}
+
+.dark .career-badge {
+  background: #1e293b;
+}
+
+.dark .career-title {
+  color: #f1f5f9;
+}
+
+.dark .progress-container {
+  background: #052e16;
+  border-color: #166534;
+}
+
+.dark .progress-bar {
+  background: #14532d;
+}
+
+.dark .progress-message {
+  color: #4ade80;
+}
+
+.dark .preview-content {
+  background: #1e293b;
+}
+
+.dark .preview-header {
+  border-color: #334155;
+}
+
+.dark .preview-header h3 {
+  color: #f1f5f9;
+}
+
+.dark .preview-body {
+  background: #0f172a;
 }

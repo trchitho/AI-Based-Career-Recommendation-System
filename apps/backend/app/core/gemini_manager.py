@@ -4,11 +4,57 @@ Centralized Gemini API Manager with 3 separate streams
 import os
 import time
 import json
-from typing import Optional, Dict, Any
+import logging
+from collections import deque
+from datetime import datetime, timezone
+from typing import Optional, Dict, Any, List
 from enum import Enum
 
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted, DeadlineExceeded
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# TC16 — In-memory Gemini error tracker (last 200 errors)
+# Used by /admin/ai-errors to surface timeout / error events without
+# requiring a DB write from inside the Gemini manager.
+# ---------------------------------------------------------------------------
+class _GeminiErrorTracker:
+    """Thread-safe ring buffer of recent Gemini API errors."""
+
+    def __init__(self, maxlen: int = 200):
+        self._buf: deque = deque(maxlen=maxlen)
+
+    def record(
+        self,
+        stream: str,
+        error_type: str,
+        status_code: int,
+        detail: str,
+    ) -> None:
+        self._buf.appendleft({
+            "stream": stream,
+            "error_type": error_type,
+            "status_code": status_code,
+            "detail": detail,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.error(
+            "[Gemini] %s error %s on stream=%s: %s",
+            error_type, status_code, stream, detail,
+        )
+
+    def recent(self, limit: int = 50) -> List[Dict[str, Any]]:
+        return list(self._buf)[:limit]
+
+    def count_by_status(self, status_code: int) -> int:
+        return sum(1 for e in self._buf if e["status_code"] == status_code)
+
+
+# Module-level singleton used by all GeminiStreamManager instances
+gemini_error_tracker = _GeminiErrorTracker()
 
 
 class GeminiStream(Enum):
@@ -160,13 +206,35 @@ class GeminiStreamManager:
                 
                 return response.text.strip()
                 
+            except DeadlineExceeded as e:
+                # TC16 — Gemini timeout → log as 504, record in tracker
+                detail = str(e)[:300]
+                print(f"  ⏱️ {self.stream_type.value.title()} timeout (DeadlineExceeded): {detail}")
+                gemini_error_tracker.record(
+                    stream=self.stream_type.value,
+                    error_type="DeadlineExceeded",
+                    status_code=504,
+                    detail=detail,
+                )
+                if attempt < self.max_retries:
+                    print(f"  ⏰ Retrying after {self.retry_delay}s...")
+                    time.sleep(self.retry_delay)
+                else:
+                    return None
+
             except ResourceExhausted as e:
                 print(f"  ❌ {self.stream_type.value.title()} quota exceeded")
-                
+                gemini_error_tracker.record(
+                    stream=self.stream_type.value,
+                    error_type="ResourceExhausted",
+                    status_code=429,
+                    detail=str(e)[:300],
+                )
+
                 # FAST FAIL mode: Try fallback model if available
                 if self.fast_fail:
                     print(f"  ⚡ FAST FAIL mode - trying fallback model...")
-                    
+
                     # Try to switch to next available model (different API key might have quota)
                     if self._try_fallback_model():
                         print(f"  ✅ Switched to fallback model: {self.active_model_name}")
@@ -175,7 +243,7 @@ class GeminiStreamManager:
                     else:
                         print(f"  ❌ No fallback models available - immediate fallback")
                         return None
-                
+
                 # Normal mode: retry once
                 if attempt < self.max_retries:
                     delay = self.retry_delay
@@ -184,10 +252,16 @@ class GeminiStreamManager:
                 else:
                     print(f"  ❌ Max retries exceeded")
                     return None
-                    
+
             except Exception as e:
                 error_msg = str(e).lower()
                 print(f"  ⚠️ {self.stream_type.value.title()} error: {e}")
+                gemini_error_tracker.record(
+                    stream=self.stream_type.value,
+                    error_type=type(e).__name__,
+                    status_code=500,
+                    detail=str(e)[:300],
+                )
                 
                 # Check if model is deprecated/unavailable
                 if any(keyword in error_msg for keyword in ['not found', '404', 'not supported', 'deprecated', 'unavailable']):
