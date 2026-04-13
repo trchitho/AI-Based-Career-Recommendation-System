@@ -230,6 +230,14 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("??  Skip ws notifications:", repr(e))
 
+    # WS comments (real-time comment updates)
+    try:
+        from .modules.realtime import ws_comments as ws_comments
+
+        app.include_router(ws_comments.router)
+    except Exception as e:
+        print("??  Skip ws comments:", repr(e))
+
     # Search API (Elastic or fallback)
     try:
         from .modules.search import routes_search as search_router

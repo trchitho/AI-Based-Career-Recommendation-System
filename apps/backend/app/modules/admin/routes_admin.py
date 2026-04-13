@@ -29,7 +29,7 @@ from app.core.db import get_db
 
 from ...core.jwt import require_admin
 from ..assessments.models import Assessment, AssessmentForm, AssessmentQuestion
-from ..content.models import BlogPost, Career, CareerKSA, CareerInterest, CareerOverview, Comment
+from ..content.models import BlogPost, Career, CareerKSA, CareerInterest, CareerOverview, BlogComment as Comment
 from ..system.models import AppSettings
 from ..users.models import User
 

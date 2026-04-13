@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import TIMESTAMP, BigInteger, Column, Numeric, Text, func
+from sqlalchemy import TIMESTAMP, BigInteger, Boolean, Column, Numeric, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 import enum
 
@@ -98,6 +98,8 @@ class BlogPost(Base):
     tags = Column(Text)  # JSON string for tags array
     featured_image = Column(Text)
     view_count = Column(BigInteger, default=0)
+    like_count = Column(BigInteger, default=0)
+    dislike_count = Column(BigInteger, default=0)
     is_featured = Column(Text)  # Boolean as text
     status = Column(Text, default="Draft")
     published_at = Column(TIMESTAMP(timezone=True))
@@ -126,6 +128,8 @@ class BlogPost(Base):
             "tags": tags,
             "featured_image": self.featured_image or "",
             "view_count": self.view_count or 0,
+            "like_count": self.like_count or 0,
+            "dislike_count": self.dislike_count or 0,
             "is_featured": self.is_featured == "true" if self.is_featured else False,
             "is_published": self.status == "Published" if self.status else False,
             "status": self.status or "Draft",
@@ -135,17 +139,19 @@ class BlogPost(Base):
         }
 
 
-# bảng core.comments
-class Comment(Base):
-    __tablename__ = "comments"
+# bảng core.blog_comments
+class BlogComment(Base):
+    __tablename__ = "blog_comments"
     __table_args__ = {"schema": "core"}
     id = Column(BigInteger, primary_key=True)
     post_id = Column(BigInteger, nullable=False)
     user_id = Column(BigInteger, nullable=False)
     parent_id = Column(BigInteger)
     content = Column(Text, nullable=False)
-    status = Column(Text)  # 'Visible' | ...
+    like_count = Column(BigInteger, default=0)
+    is_deleted = Column(Boolean, default=False)  # Use proper Boolean type
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     def to_dict(self) -> dict:
         return {
@@ -153,9 +159,69 @@ class Comment(Base):
             "post_id": self.post_id,
             "user_id": self.user_id,
             "parent_id": self.parent_id,
-            "content": self.content,
-            "status": self.status,
+            "content": self.content if self.is_deleted != "true" else "[deleted]",
+            "like_count": self.like_count or 0,
+            "is_deleted": self.is_deleted if isinstance(self.is_deleted, bool) else self.is_deleted == "true",
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+# bảng core.comment_likes
+class CommentLike(Base):
+    __tablename__ = "comment_likes"
+    __table_args__ = {"schema": "core"}
+    id = Column(BigInteger, primary_key=True)
+    comment_id = Column(BigInteger, nullable=False)
+    user_id = Column(BigInteger, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "comment_id": self.comment_id,
+            "user_id": self.user_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# bảng core.comment_rate_limits
+class CommentRateLimit(Base):
+    __tablename__ = "comment_rate_limits"
+    __table_args__ = {"schema": "core"}
+    id = Column(BigInteger, primary_key=True)
+    user_id = Column(BigInteger, nullable=False)
+    post_id = Column(BigInteger, nullable=False)
+    comment_count = Column(BigInteger, default=1)
+    window_start = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
+# Blog post reactions (likes/dislikes)
+class BlogPostReaction(Base):
+    __tablename__ = "blog_post_reactions"
+    __table_args__ = {"schema": "core"}
+    id = Column(BigInteger, primary_key=True)
+    post_id = Column(BigInteger, nullable=False)
+    user_id = Column(BigInteger, nullable=False)
+    reaction_type = Column(Text, nullable=False)  # 'like' or 'dislike'
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "post_id": self.post_id,
+            "user_id": self.user_id,
+            "reaction_type": self.reaction_type,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "post_id": self.post_id,
+            "comment_count": self.comment_count,
+            "window_start": self.window_start.isoformat() if self.window_start else None,
         }
 
 
