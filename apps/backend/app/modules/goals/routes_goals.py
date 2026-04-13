@@ -396,12 +396,12 @@ def _get_gemini_models():
     
     # Prioritize fast models - same as chatbot
     return [
-        "models/gemma-3-4b-it",  # Free model, no rate limit
+        "models/gemini-2.5-flash",       # Fast and efficient (2025)
+        "models/gemini-2.0-flash",       # Stable alternative
+        "models/gemini-flash-latest",    # Always latest
+        "models/gemma-3-4b-it",          # Free model, no rate limit
         "models/gemma-3-1b-it",
-        "gemini-2.0-flash",
         "models/gemini-2.0-flash-lite",
-        "gemini-1.5-flash-latest",
-        "gemini-pro",
     ]
 
 
@@ -414,13 +414,24 @@ def _generate_with_fallback(prompt: str, max_tokens: int = 1000):
         try:
             logger.info(f"Trying model: {model_name}")
             model = genai.GenerativeModel(model_name)
-            response = model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    max_output_tokens=max_tokens,
-                    temperature=0.5,
+            
+            # Không giới hạn token nếu max_tokens <= 0
+            if max_tokens > 0:
+                response = model.generate_content(
+                    prompt,
+                    generation_config=genai.types.GenerationConfig(
+                        max_output_tokens=max_tokens,
+                        temperature=0.5,
+                    )
                 )
-            )
+            else:
+                response = model.generate_content(
+                    prompt,
+                    generation_config=genai.types.GenerationConfig(
+                        temperature=0.5,
+                    )
+                )
+            
             logger.info(f"Success with model: {model_name}")
             return response.text.strip()
         except Exception as e:
@@ -595,7 +606,9 @@ ONLY JSON, no other text."""
 
     try:
         # Use fallback function that tries multiple models
-        response_text = _generate_with_fallback(prompt, max_tokens=1000)
+        # Sử dụng cấu hình từ environment, -1 nghĩa là không giới hạn
+        max_tokens = int(os.getenv("GEMINI_MAX_TOKENS", "1000"))
+        response_text = _generate_with_fallback(prompt, max_tokens=max_tokens)
         
         # Clean up response - extract JSON
         if "```json" in response_text:

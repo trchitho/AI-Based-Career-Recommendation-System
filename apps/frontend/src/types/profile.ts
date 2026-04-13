@@ -14,6 +14,7 @@ export interface AssessmentHistoryItem {
   session_id?: number;
   test_types: string[];
   completed_at: string;
+  test_mode?: string;
   riasec_scores?: {
     realistic: number;
     investigative: number;

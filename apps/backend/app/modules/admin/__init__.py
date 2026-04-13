@@ -1,1 +1,1 @@
-# Module admin: use-case riêng
+# Admin module

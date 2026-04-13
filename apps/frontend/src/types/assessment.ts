@@ -4,7 +4,7 @@ export interface Question {
   question_text: string;
   question_type: 'MULTIPLE_CHOICE' | 'SCALE';
   options?: string[];
-  dimension?: string;
+  dimension?: string; // Label/tag for grouping (R, I, A, S, E, C for RIASEC; O, C, E, A, N for Big Five)
   order_index: number;
 }
 
@@ -16,6 +16,7 @@ export interface QuestionResponse {
 export interface AssessmentSubmission {
   testTypes: string[];
   responses: QuestionResponse[];
+  test_mode?: string;
 }
 
 export interface EssaySubmission {
@@ -32,15 +33,31 @@ export interface EssayPrompt {
   lang?: string;
 }
 
-import type { TraitSnapshot } from './traits';
+export interface AssessmentResult {
+  id: string;
+  userId: string;
+  personalityProfile: {
+    riasec: Record<string, number>;
+    bigFive: Record<string, number>;
+  };
+  careerRecommendations: CareerRecommendation[];
+  completedAt: string;
+  assessmentType: string;
+}
 
-export interface AssessmentResults {
-  assessment_id: number;
-  user_id: number;
-  riasec_scores: Record<string, number>;    // {Realistic:3.2, ...}
-  big_five_scores: Record<string, number>;  // {Openness:0.7, ...}
-  top_interest?: string;  // L1 từ raw test scores - khớp với filter logic
-
-  traits: TraitSnapshot;
+export interface CareerRecommendation {
+  id: string;
+  title: string;
+  description: string;
+  matchPercentage: number;
+  reasons: string[];
+  salaryRange?: string;
+  growthRate?: string;
+  skills?: string[];
+  aiEnhanced?: {
+    dayInLife: string;
+    challenges: string[];
+    personalizedAdvice: string;
+  };
 }
 

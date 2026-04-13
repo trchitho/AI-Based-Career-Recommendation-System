@@ -29,7 +29,7 @@ const DashboardPage = () => {
         setDashboardData(data);
       } catch (err) {
         console.error('Error loading dashboard:', err);
-        setError('Failed to load dashboard data. Please try again.');
+        setError(t('dashboard.error'));
       } finally {
         setLoading(false);
       }
@@ -78,7 +78,7 @@ const DashboardPage = () => {
               <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight flex items-center gap-3">
                 {t('dashboard.title')}
                 <span className="text-sm font-medium px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
-                  Overview
+                  {t('dashboard.overview')}
                 </span>
               </h2>
               <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">
@@ -101,7 +101,7 @@ const DashboardPage = () => {
                 <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
                 <div className="absolute top-0 left-0 w-16 h-16 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
               </div>
-              <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium tracking-wide">Syncing data...</p>
+              <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium tracking-wide">{t('dashboard.loading')}</p>
             </div>
           )}
 
@@ -112,13 +112,13 @@ const DashboardPage = () => {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
               </div>
               <div>
-                <h3 className="font-bold text-gray-900 dark:text-white text-lg">Unable to load dashboard</h3>
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg">{t('dashboard.error')}</h3>
                 <p className="text-red-600 dark:text-red-300 text-sm mt-1">{error}</p>
                 <button
                   onClick={() => window.location.reload()}
                   className="mt-3 text-sm font-bold text-red-700 dark:text-red-400 hover:underline"
                 >
-                  Reload Page
+                  {t('common.tryAgain')}
                 </button>
               </div>
             </div>
@@ -166,7 +166,7 @@ const DashboardPage = () => {
                         </span>
                         {t('dashboard.careerSuggestions.title')}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6">Based on your recent assessment results</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6">{t('dashboard.careerSuggestions.subtitle')}</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -213,14 +213,14 @@ const DashboardPage = () => {
                         </span>
                         {t('dashboard.careerSuggestions.title')}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6">Processing your assessment results</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6">{t('dashboard.careerSuggestions.processing')}</p>
                     </div>
                   </div>
                   <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-[24px] p-10 text-center shadow-sm">
                     <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-yellow-600 dark:text-yellow-400">
                       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Analysis in Progress</h4>
+                    <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('dashboard.careerSuggestions.analysisInProgress')}</h4>
                     <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
                       {t('dashboard.careerSuggestions.analyzing')}
                     </p>
