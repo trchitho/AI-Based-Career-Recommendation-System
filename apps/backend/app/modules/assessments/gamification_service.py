@@ -75,9 +75,11 @@ class GamificationService:
         Award XP for answering a question
         Returns updated XP and level info
         """
-        # Get gamification session
+        # Get the caller's active gamification session only
         gam_session = db.query(AssessmentGamificationSession).filter(
-            AssessmentGamificationSession.id == gamification_session_id
+            AssessmentGamificationSession.id == gamification_session_id,
+            AssessmentGamificationSession.user_id == user_id,
+            AssessmentGamificationSession.completed_at.is_(None)
         ).first()
         
         if not gam_session:
