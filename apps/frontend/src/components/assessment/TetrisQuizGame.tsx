@@ -325,25 +325,21 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
       
       // Check if out of bounds
       if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLS) {
-        console.log(`Out of bounds: row ${newRow}, col ${newCol}`);
         return false;
       }
       
       // Check if cell is already filled
       const row = grid[newRow];
       if (!row) {
-        console.log(`Row ${newRow} is undefined`);
         return false;
       }
       
       const cell = row[newCol];
       if (cell !== null && cell !== undefined) {
-        console.log(`Cell at ${newRow},${newCol} is already filled`);
         return false;
       }
     }
     
-    console.log(`Can place ${shape} at ${rowIndex},${colIndex} with rotation ${rotation}`);
     return true;
   };
 
