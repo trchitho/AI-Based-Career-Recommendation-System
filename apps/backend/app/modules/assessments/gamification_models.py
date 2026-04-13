@@ -2,7 +2,7 @@
 Gamification models - separate from assessment data
 Stores XP, levels, achievements without affecting assessment results
 """
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Boolean
+from sqlalchemy import Column, Integer, BigInteger, String, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.sql import func
 
 # Import Base from the correct location
@@ -19,8 +19,8 @@ class UserGamificationProfile(Base):
     __tablename__ = "user_gamification_profiles"
     __table_args__ = {"schema": "core"}
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("core.users.id"), nullable=False, unique=True)
+    id = Column(BigInteger, primary_key=True, index=True)
+    user_id = Column(BigInteger, ForeignKey("core.users.id"), nullable=False, unique=True)
     
     # Gamification stats
     total_xp = Column(Integer, default=0, nullable=False)
@@ -39,9 +39,9 @@ class AssessmentGamificationSession(Base):
     __tablename__ = "assessment_gamification_sessions"
     __table_args__ = {"schema": "core"}
 
-    id = Column(Integer, primary_key=True, index=True)
-    assessment_session_id = Column(Integer, ForeignKey("core.assessment_sessions.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("core.users.id"), nullable=False)
+    id = Column(BigInteger, primary_key=True, index=True)
+    assessment_session_id = Column(BigInteger, ForeignKey("core.assessment_sessions.id"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("core.users.id"), nullable=False)
     
     # Quiz mode used
     quiz_mode = Column(String(50), nullable=False)  # 'standard', 'game', 'legacy'
@@ -65,8 +65,8 @@ class UserAchievement(Base):
     __tablename__ = "user_achievements"
     __table_args__ = {"schema": "core"}
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("core.users.id"), nullable=False)
+    id = Column(BigInteger, primary_key=True, index=True)
+    user_id = Column(BigInteger, ForeignKey("core.users.id"), nullable=False)
     
     achievement_type = Column(String(100), nullable=False)  # 'first_assessment', 'level_5', etc.
     achievement_name = Column(String(200), nullable=False)

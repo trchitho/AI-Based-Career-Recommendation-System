@@ -4,8 +4,8 @@
 
 -- Create user gamification profiles table
 CREATE TABLE IF NOT EXISTS core.user_gamification_profiles (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
     total_xp INTEGER NOT NULL DEFAULT 0,
     level INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -18,9 +18,9 @@ CREATE INDEX IF NOT EXISTS idx_user_gamification_profiles_user_id
 
 -- Create assessment gamification sessions table
 CREATE TABLE IF NOT EXISTS core.assessment_gamification_sessions (
-    id SERIAL PRIMARY KEY,
-    assessment_session_id INTEGER NOT NULL REFERENCES core.assessment_sessions(id) ON DELETE CASCADE,
-    user_id INTEGER NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    id BIGSERIAL PRIMARY KEY,
+    assessment_session_id BIGINT NOT NULL REFERENCES core.assessment_sessions(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
     quiz_mode VARCHAR(50) NOT NULL, -- 'standard', 'game', 'legacy'
     xp_earned INTEGER NOT NULL DEFAULT 0,
     questions_answered INTEGER NOT NULL DEFAULT 0,
@@ -36,8 +36,8 @@ CREATE INDEX IF NOT EXISTS idx_assessment_gamification_sessions_assessment_sessi
 
 -- Create user achievements table
 CREATE TABLE IF NOT EXISTS core.user_achievements (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES core.users(id) ON DELETE CASCADE,
     achievement_type VARCHAR(100) NOT NULL,
     achievement_name VARCHAR(200) NOT NULL,
     achievement_description VARCHAR(500),
