@@ -155,19 +155,18 @@ async def create_comment(request: Request, payload: CommentCreate):
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    # Check rate limiting
-    if not check_rate_limit(session, user_id, payload.post_id):
-        raise HTTPException(
-            status_code=429, 
-            detail="Rate limit exceeded. Maximum 10 comments per hour per post."
-        )
-
     # Verify parent comment exists if provided
     if payload.parent_id:
         parent = session.get(BlogComment, payload.parent_id)
         if not parent or parent.post_id != payload.post_id:
             raise HTTPException(status_code=404, detail="Parent comment not found")
 
+    # Check rate limiting only after request validation succeeds
+    if not check_rate_limit(session, user_id, payload.post_id):
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Maximum 10 comments per hour per post."
+        )
     # Create comment
     comment = BlogComment(
         post_id=payload.post_id,
