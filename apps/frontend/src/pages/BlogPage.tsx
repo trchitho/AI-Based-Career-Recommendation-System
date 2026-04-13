@@ -45,9 +45,26 @@ const BlogPage = () => {
     setLoading(true);
     setError(null);
     try {
-      // Load a large number to get all posts (adjust if you have more than 100 posts)
-      const resp: BlogListResponse = await blogService.list({ page: 1, pageSize: 100 });
-      setAllPosts(resp.items || []);
+      const pageSize = 100;
+      let page = 1;
+      let loadedPosts: BlogPost[] = [];
+      let hasMore = true;
+
+      while (hasMore) {
+        const resp: BlogListResponse = await blogService.list({ page, pageSize });
+        const items = resp.items || [];
+
+        loadedPosts = [...loadedPosts, ...items];
+
+        const total = typeof resp.total === 'number' ? resp.total : undefined;
+        hasMore = total !== undefined
+          ? loadedPosts.length < total
+          : items.length === pageSize;
+
+        page += 1;
+      }
+
+      setAllPosts(loadedPosts);
     } catch (e: any) {
       setError(e?.response?.data?.detail || e?.message || 'Failed to load posts');
     } finally {
