@@ -137,6 +137,18 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <QuizModeSelectorPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/recommendations"
+                element={
+                  <ProtectedRoute>
+                    <RecommendationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/skill-gap"
                 element={
                   <ProtectedRoute>
@@ -233,14 +245,6 @@ function App() {
                 }
               />
               <Route
-                path="/recommendations"
-                element={
-                  <ProtectedRoute>
-                    <RecommendationsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
                 path="/session-results/:sessionId"
                 element={
                   <ProtectedRoute>
@@ -277,22 +281,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <CareerGoalsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/skill-gap"
-                element={
-                  <ProtectedRoute>
-                    <SkillGapPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/skill-gap/:analysisId"
-                element={
-                  <ProtectedRoute>
-                    <SkillGapPage />
                   </ProtectedRoute>
                 }
               />
