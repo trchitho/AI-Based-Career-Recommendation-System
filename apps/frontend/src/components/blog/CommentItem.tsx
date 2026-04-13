@@ -29,7 +29,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showReplies, setShowReplies] = useState(true);
 
-    const isOwner = user?.id === comment.user_id;
+    const isOwner = Number(user?.id) === comment.user_id;
     const canReply = depth < 3; // Limit nesting to 3 levels
     const hasReplies = comment.replies && comment.replies.length > 0;
 
