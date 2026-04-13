@@ -192,7 +192,7 @@ class GamificationService:
             achievement_type=achievement_type,
             achievement_name=achievement_name,
             achievement_description=achievement_description,
-            metadata=metadata
+            achievement_metadata=metadata
         )
         db.add(achievement)
         db.flush()

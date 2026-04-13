@@ -75,4 +75,4 @@ class UserAchievement(Base):
     earned_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
     # Achievement metadata
-    metadata = Column(JSON, nullable=True)
+    achievement_metadata = Column(JSON, nullable=True)

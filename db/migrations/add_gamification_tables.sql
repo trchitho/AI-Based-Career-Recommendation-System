@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS core.user_achievements (
     achievement_name VARCHAR(200) NOT NULL,
     achievement_description VARCHAR(500),
     earned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    metadata JSONB
+    achievement_metadata JSONB
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_achievements_user_id 
