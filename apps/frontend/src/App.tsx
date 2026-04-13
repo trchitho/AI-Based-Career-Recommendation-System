@@ -40,6 +40,7 @@ import DebugAuthPage from './pages/DebugAuthPage';
 import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
 import ProgressComparisonPage from './pages/ProgressComparisonPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
+import SkillGapPage from './pages/SkillGapPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -255,6 +256,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <CareerGoalsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/skill-gap"
+                element={
+                  <ProtectedRoute>
+                    <SkillGapPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/skill-gap/:analysisId"
+                element={
+                  <ProtectedRoute>
+                    <SkillGapPage />
                   </ProtectedRoute>
                 }
               />
