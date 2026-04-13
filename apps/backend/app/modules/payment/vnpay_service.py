@@ -97,7 +97,14 @@ class VNPayService:
             
             logger.info(f"VNPay payment URL created for order {order_id}")
             logger.info(f"VNPay return_url: {self.return_url}")
-            logger.info(f"VNPay payment_url: {payment_url[:200]}...")  # Log first 200 chars
+            logger.info(
+                "VNPay payment request prepared: "
+                f"order_id={order_id}, "
+                f"txn_ref={order_id}, "
+                f"amount={vnp_amount}, "
+                f"bank_code={bank_code or 'N/A'}, "
+                f"locale={locale}"
+            )
             
             return {
                 "success": True,
