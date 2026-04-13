@@ -359,14 +359,19 @@ const BlogPage = () => {
                             src={post.featured_image}
                             alt={post.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                              // Fallback to gradient background if image fails to load
+                              e.currentTarget.style.display = 'none';
+                            }}
                           />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-white/20 text-6xl font-bold">
-                              {post.title.charAt(0)}
-                            </div>
+                        ) : null}
+
+                        {/* Fallback content - always show but behind image */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-white/20 text-6xl font-bold">
+                            {post.title.charAt(0)}
                           </div>
-                        )}
+                        </div>
 
                         {/* Category Badge */}
                         <div className="absolute top-4 left-4">
