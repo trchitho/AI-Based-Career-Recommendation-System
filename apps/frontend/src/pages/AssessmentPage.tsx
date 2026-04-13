@@ -38,7 +38,11 @@ const AssessmentPage = () => {
   const { incrementUsage } = useUsageTracking();
 
   // Get quiz mode from URL params
-  const quizMode = (searchParams.get('mode') as QuizMode) || 'legacy';
+  const modeParam = searchParams.get('mode');
+  const quizMode: QuizMode =
+    modeParam === 'standard' || modeParam === 'game' || modeParam === 'legacy'
+      ? modeParam
+      : 'legacy';
   
   const [step, setStep] = useState<AssessmentStep>('intro');
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
