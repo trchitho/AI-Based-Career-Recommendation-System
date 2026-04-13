@@ -2,15 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { EssayPrompt, QuestionResponse, Question } from '../types/assessment';
+import { EssayPrompt, QuestionResponse, Question, AssessmentResult } from '../types/assessment';
 import CareerTestComponent from '../components/assessment/CareerTestComponent';
 import TetrisQuizGame from '../components/assessment/TetrisQuizGame';
 import GameQuizMode from '../components/assessment/GameQuizMode';
-import { EssayPrompt, QuestionResponse, AssessmentResult } from '../types/assessment';
 import EssayModalComponent from '../components/assessment/EssayModalComponent';
 import VoiceAssessmentComponent from '../components/assessment/VoiceAssessmentComponent';
 import EnhancedAssessmentFlow from '../components/assessment/EnhancedAssessmentFlow';
-import CareerTestComponent from '../components/assessment/CareerTestComponent';
 import { assessmentService } from '../services/assessmentService';
 import MainLayout from '../components/layout/MainLayout';
 import UsageStatus from '../components/subscription/UsageStatus';
@@ -43,7 +41,7 @@ const AssessmentPage = () => {
     modeParam === 'standard' || modeParam === 'game' || modeParam === 'legacy'
       ? modeParam
       : 'legacy';
-  
+
   const [step, setStep] = useState<AssessmentStep>('intro');
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -199,7 +197,7 @@ const AssessmentPage = () => {
       // Story mode already includes essay, so skip essay step and go directly to results
       console.log('[AssessmentPage] Story mode completed, redirecting to results...');
       setStep('processing');
-      
+
       setTimeout(() => {
         navigate(`/results/${result.id}`);
       }, 1500);
@@ -223,7 +221,7 @@ const AssessmentPage = () => {
         await handleStartAssessment();
       }
     };
-    
+
     autoStart();
   }, [quizMode]); // Only run when quizMode changes
 
@@ -498,7 +496,7 @@ const AssessmentPage = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"} />
                     </svg>
                   </button>
-                  
+
                   {/* Legacy Quiz Button - Start immediately */}
                   <button
                     onClick={handleStartAssessment}
@@ -539,7 +537,7 @@ const AssessmentPage = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M13 7l5 5m0 0l-5 5m5-5H6"} />
                     </svg>
                   </button>
-                  
+
                   {/* Traditional Assessment Option */}
                   <button
                     onClick={() => setStep('test')}
@@ -716,9 +714,9 @@ const AssessmentPage = () => {
             <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 w-full max-w-[95vw] p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
               <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-6 px-4">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {quizMode === 'game' ? '🎮 Game Mode Assessment' : 
-                   quizMode === 'standard' ? '📋 Standard Assessment' : 
-                   t('assessment.title')}
+                  {quizMode === 'game' ? '🎮 Game Mode Assessment' :
+                    quizMode === 'standard' ? '📋 Standard Assessment' :
+                      t('assessment.title')}
                 </h2>
                 <button onClick={handleCancel} className="text-sm font-semibold text-gray-500 hover:text-red-500 transition-colors">
                   {t('common.cancel')}
