@@ -13,6 +13,7 @@ import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import AssessmentPage from './pages/AssessmentPage';
+import QuizModeSelectorPage from './pages/QuizModeSelectorPage';
 import ResultsPage from './pages/ResultsPage';
 import SessionResultsPage from './pages/SessionResultsPage';
 import AssessmentHistoryPage from './pages/AssessmentHistoryPage';
@@ -132,6 +133,10 @@ function App() {
                 }
               />
               <Route
+                path="/quiz-mode-selector"
+                element={
+                  <ProtectedRoute>
+                    <QuizModeSelectorPage />
                 path="/skill-gap"
                 element={
                   <ProtectedRoute>
@@ -272,6 +277,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <CareerGoalsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/skill-gap"
+                element={
+                  <ProtectedRoute>
+                    <SkillGapPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/skill-gap/:analysisId"
+                element={
+                  <ProtectedRoute>
+                    <SkillGapPage />
                   </ProtectedRoute>
                 }
               />

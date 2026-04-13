@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
+import { EssayPrompt, QuestionResponse, Question } from '../types/assessment';
+import CareerTestComponent from '../components/assessment/CareerTestComponent';
+import TetrisQuizGame from '../components/assessment/TetrisQuizGame';
+import GameQuizMode from '../components/assessment/GameQuizMode';
 import { EssayPrompt, QuestionResponse, AssessmentResult } from '../types/assessment';
 import EssayModalComponent from '../components/assessment/EssayModalComponent';
 import VoiceAssessmentComponent from '../components/assessment/VoiceAssessmentComponent';
@@ -18,6 +22,8 @@ import { checkAssessmentLimit } from '../services/subscriptionService';
 import { getPaymentHistory, PaymentHistory } from '../services/paymentService';
 import { getAccessToken } from '../utils/auth';
 
+
+type QuizMode = 'standard' | 'game' | 'legacy';
 type AssessmentStep = 'intro' | 'enhanced' | 'test' | 'essay' | 'voice' | 'processing';
 
 const AssessmentPage = () => {
@@ -26,12 +32,21 @@ const AssessmentPage = () => {
   // ==========================================
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const { subscriptionData } = useSubscription();
   useFeatureAccess(); // Used for side effects
   const { incrementUsage } = useUsageTracking();
 
+  // Get quiz mode from URL params
+  const modeParam = searchParams.get('mode');
+  const quizMode: QuizMode =
+    modeParam === 'standard' || modeParam === 'game' || modeParam === 'legacy'
+      ? modeParam
+      : 'legacy';
+  
   const [step, setStep] = useState<AssessmentStep>('intro');
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -147,6 +162,23 @@ const AssessmentPage = () => {
       }
     }
 
+    // Load questions if using new quiz modes
+    if (quizMode === 'standard' || quizMode === 'game') {
+      try {
+        setLoading(true);
+        const riasecQuestions = await assessmentService.getQuestions('RIASEC');
+        const bigFiveQuestions = await assessmentService.getQuestions('BIGFIVE');
+        setQuestions([...riasecQuestions, ...bigFiveQuestions]);
+      } catch (err) {
+        console.error('Failed to load questions:', err);
+        setError('Failed to load questions. Please try again.');
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    setStep('test');
     setStep('enhanced'); // Changed from 'test' to 'enhanced'
   };
 
@@ -182,6 +214,18 @@ const AssessmentPage = () => {
   const handleEnhancedAssessmentCancel = () => {
     setStep('intro');
   };
+
+  // Auto-start assessment if mode is specified in URL
+  useEffect(() => {
+    const autoStart = async () => {
+      if ((quizMode === 'standard' || quizMode === 'game') && step === 'intro') {
+        // Automatically start assessment for game modes
+        await handleStartAssessment();
+      }
+    };
+    
+    autoStart();
+  }, [quizMode]); // Only run when quizMode changes
 
   const handleCancel = () => {
     navigate('/dashboard');
@@ -438,12 +482,30 @@ const AssessmentPage = () => {
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
+                  {/* Game Mode Button - Navigate to game selector */}
+                  <button
+                    onClick={() => navigate('/quiz-mode-selector')}
+                    disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
+                    className={`group relative flex-1 inline-flex items-center justify-center px-10 py-5 text-white rounded-2xl font-bold text-xl shadow-xl transition-all duration-300 ${limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'
+                      ? 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 cursor-pointer'
+                      : 'bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700'
+                      }`}
+                  >
+                    <span className="relative z-10 flex items-center gap-3">
+                      {limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? 'Limit Reached - Upgrade' : 'Game Mode'}
+                    </span>
+                    <svg className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"} />
+                    </svg>
+                  </button>
+                  
+                  {/* Legacy Quiz Button - Start immediately */}
                   <button
                     onClick={handleStartAssessment}
                     disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
-                    className={`group relative flex-1 inline-flex items-center justify-center px-10 py-5 text-white rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'
-                      ? 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 shadow-red-600/30 hover:shadow-red-600/50 cursor-pointer'
-                      : 'bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-2'
+                    className={`group relative flex-1 inline-flex items-center justify-center px-10 py-5 text-white rounded-2xl font-bold text-xl shadow-xl transition-all duration-300 ${limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'
+                      ? 'bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 cursor-not-allowed opacity-50'
+                      : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700'
                       }`}
                   >
                     {/* Button shine effect */}
@@ -473,7 +535,7 @@ const AssessmentPage = () => {
                       <span>{limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? t('assessment.limitReachedUpgrade') : `🚀 ${t('assessment.startInteractive')}`}</span>
                       <span className="text-xs font-normal opacity-75">{t('assessment.storyBased')}</span>
                     </span>
-                    <svg className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free' ? "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" : "M13 7l5 5m0 0l-5 5m5-5H6"} />
                     </svg>
                   </button>
@@ -651,9 +713,13 @@ const AssessmentPage = () => {
 
           {/* --- STEP 2: TEST INTERFACE (SINGLE CARD) --- */}
           {step === 'test' && (
-            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 w-full max-w-5xl p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
-              <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('assessment.title')}</h2>
+            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 w-full max-w-[95vw] p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
+              <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-6 px-4">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {quizMode === 'game' ? '🎮 Game Mode Assessment' : 
+                   quizMode === 'standard' ? '📋 Standard Assessment' : 
+                   t('assessment.title')}
+                </h2>
                 <button onClick={handleCancel} className="text-sm font-semibold text-gray-500 hover:text-red-500 transition-colors">
                   {t('common.cancel')}
                 </button>
@@ -666,10 +732,24 @@ const AssessmentPage = () => {
               )}
 
               <div className="flex-1">
-                <CareerTestComponent
-                  onComplete={handleTestComplete}
-                  onCancel={handleCancel}
-                />
+                {quizMode === 'standard' ? (
+                  <TetrisQuizGame
+                    questions={questions}
+                    onComplete={handleTestComplete}
+                    onCancel={handleCancel}
+                  />
+                ) : quizMode === 'game' ? (
+                  <GameQuizMode
+                    questions={questions}
+                    onComplete={handleTestComplete}
+                    onCancel={handleCancel}
+                  />
+                ) : (
+                  <CareerTestComponent
+                    onComplete={handleTestComplete}
+                    onCancel={handleCancel}
+                  />
+                )}
               </div>
             </div>
           )}
