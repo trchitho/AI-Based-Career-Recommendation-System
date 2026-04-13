@@ -143,16 +143,23 @@ def complete_session(
     try:
         result = GamificationService.complete_gamification_session(
             db=db,
-            gamification_session_id=body.gamification_session_id
+            gamification_session_id=body.gamification_session_id,
+            user_id=user_id,
         )
         db.commit()
-        
+
         return result
     except ValueError as e:
         db.rollback()
+        error_message = str(e)
+        if "already completed" in error_message.lower():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=error_message
+            )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
+            detail=error_message
         )
     except Exception as e:
         db.rollback()
