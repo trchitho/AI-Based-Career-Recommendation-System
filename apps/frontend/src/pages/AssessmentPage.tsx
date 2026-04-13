@@ -174,10 +174,13 @@ const AssessmentPage = () => {
       } finally {
         setLoading(false);
       }
-    }
 
-    setStep('test');
-    setStep('enhanced'); // Changed from 'test' to 'enhanced'
+      // For game modes, go directly to test step
+      setStep('test');
+    } else {
+      // For other modes (legacy, interactive), use enhanced assessment
+      setStep('enhanced');
+    }
   };
 
   const handleEnhancedAssessmentComplete = async (result: AssessmentResult) => {
