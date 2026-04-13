@@ -15,7 +15,12 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'apps', 'backend')
 
 def get_db_connection():
     """Kết nối database từ DATABASE_URL"""
-    database_url = os.getenv('DATABASE_URL', 'postgresql://postgres:123456@localhost:5433/career_ai')
+    database_url = os.getenv('DATABASE_URL')
+    if not database_url:
+        raise RuntimeError(
+            "Thiếu biến môi trường DATABASE_URL. "
+            "Hãy thiết lập DATABASE_URL trước khi chạy script."
+        )
     return psycopg2.connect(database_url)
 
 def run_migration():
