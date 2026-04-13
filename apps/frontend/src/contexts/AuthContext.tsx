@@ -5,8 +5,8 @@ import { clearSubscriptionCache } from '../hooks/useSubscription';
 interface User {
   id: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
+  full_name?: string;
+  avatar_url?: string;
   role?: string; // 'admin' | 'user' | 'manager'
   is_email_verified?: boolean;
 }
@@ -166,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       api.post('/api/auth/logout', {
         refresh_token: refreshToken,
         access_token: accessToken || '',
-      }).catch(() => {/* ignore network errors on logout */});
+      }).catch(() => {/* ignore network errors on logout */ });
     }
 
     localStorage.removeItem('accessToken');
