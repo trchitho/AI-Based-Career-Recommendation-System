@@ -25,6 +25,15 @@ class SkillGapService {
 
     if (!response.ok) {
       const error = await response.json();
+      
+      // If detail is an object (payment required), throw it as-is
+      if (typeof error.detail === 'object' && error.detail !== null) {
+        const err: any = new Error('Payment required');
+        err.response = { status: response.status, data: error };
+        throw err;
+      }
+      
+      // Otherwise throw as string
       throw new Error(error.detail || 'Failed to analyze CV');
     }
 

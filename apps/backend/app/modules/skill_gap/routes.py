@@ -193,10 +193,13 @@ async def analyze_cv_skill_gap(
     neo4j_driver = Depends(get_neo4j_driver)
 ):
     """
-    Upload CV và phân tích skill gap
+    Upload CV và phân tích skill gap (YÊU CẦU THANH TOÁN)
     
     - **career_id**: ID của nghề nghiệp mục tiêu
     - **cv_file**: File CV (PDF, JPG, PNG)
+    
+    **LƯU Ý:** Chức năng này yêu cầu gói trả phí (Basic/Premium/Pro).
+    Vui lòng nâng cấp tài khoản tại /pricing để sử dụng.
     
     Returns:
     - Kết quả phân tích chi tiết bao gồm:
@@ -204,6 +207,44 @@ async def analyze_cv_skill_gap(
         - Lỗ hổng kỹ năng (gaps) phân loại theo mức độ quan trọng
         - Điểm phù hợp (match percentage)
     """
+    
+    # ============================================================
+    # KIỂM TRA SUBSCRIPTION - YÊU CẦU GÓI TRẢ PHÍ
+    # ============================================================
+    from app.core.subscription import SubscriptionService
+    
+    try:
+        subscription = SubscriptionService.get_user_subscription(user_id, db)
+        plan_name = subscription.get("plan_name", "Free")
+        
+        # Chỉ cho phép Basic, Premium, Pro - KHÔNG cho phép Free
+        if plan_name == "Free":
+            raise HTTPException(
+                status_code=402,  # Payment Required
+                detail={
+                    "error": "payment_required",
+                    "message": "Chức năng Phân tích Skill Gap yêu cầu gói trả phí",
+                    "message_en": "Skill Gap Analysis requires a paid subscription",
+                    "current_plan": "Free",
+                    "required_plans": ["Basic", "Premium", "Pro"],
+                    "upgrade_url": "/pricing",
+                    "features": {
+                        "Basic": "Phân tích CV cơ bản, 20 lần/tháng",
+                        "Premium": "Phân tích không giới hạn + Lộ trình học tập AI",
+                        "Pro": "Tất cả tính năng Premium + Xuất PDF + AI Assistant"
+                    }
+                }
+            )
+        
+        # Log usage cho paid plans
+        print(f"✅ User {user_id} ({plan_name}) accessing Skill Gap Analysis")
+        
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        print(f"⚠️ Subscription check error: {e}")
+        # Nếu có lỗi kiểm tra subscription, vẫn cho phép (fallback)
+        pass
     # TC-CV-01: Validate file type
     allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.docx']
     

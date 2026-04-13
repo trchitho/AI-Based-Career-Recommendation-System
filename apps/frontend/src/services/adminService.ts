@@ -308,4 +308,10 @@ export const adminService = {
     });
     return res.data;
   },
+
+  // CV Documents
+  async getCVDocuments(params?: { page?: number; page_size?: number; search?: string }) {
+    const response = await api.get('/api/admin/cv-documents', { params });
+    return response.data;
+  },
 };

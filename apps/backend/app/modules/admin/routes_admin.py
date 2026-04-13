@@ -8,7 +8,7 @@ from io import StringIO
 from pathlib import Path
 from typing import Any, Mapping
 
-from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import (
     TIMESTAMP,
@@ -25,6 +25,7 @@ from sqlalchemy import (
     MetaData,
 )
 from sqlalchemy.orm import Session, registry
+from app.core.db import get_db
 
 from ...core.jwt import require_admin
 from ..assessments.models import Assessment, AssessmentForm, AssessmentQuestion
@@ -2896,3 +2897,80 @@ async def reinitialize_gemini_streams():
             "success": False,
             "error": str(e)
         }
+
+
+@router.get("/cv-documents")
+async def get_cv_documents(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    search: str = Query("", description="Search by name/email/filename"),
+    db: Session = Depends(get_db),
+):
+    """Admin: List all uploaded CV documents with R2 URLs"""
+    from app.modules.skill_gap.models import SkillGapAnalysis
+    from sqlalchemy import or_, desc
+
+    try:
+        query = db.query(
+            SkillGapAnalysis.id,
+            SkillGapAnalysis.user_id,
+            SkillGapAnalysis.career_id,
+            SkillGapAnalysis.cv_filename,
+            SkillGapAnalysis.cv_file_url,
+            SkillGapAnalysis.cv_name,
+            SkillGapAnalysis.cv_email,
+            SkillGapAnalysis.cv_phone,
+            SkillGapAnalysis.match_percentage,
+            SkillGapAnalysis.matched_skills_count,
+            SkillGapAnalysis.missing_skills_count,
+            SkillGapAnalysis.total_required_skills,
+            SkillGapAnalysis.created_at,
+        )
+
+        if search:
+            query = query.filter(
+                or_(
+                    SkillGapAnalysis.cv_name.ilike(f"%{search}%"),
+                    SkillGapAnalysis.cv_email.ilike(f"%{search}%"),
+                    SkillGapAnalysis.cv_filename.ilike(f"%{search}%"),
+                )
+            )
+
+        total = query.count()
+        records = (
+            query.order_by(desc(SkillGapAnalysis.created_at))
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+            .all()
+        )
+
+        items = [
+            {
+                "id": r.id,
+                "user_id": r.user_id,
+                "career_id": r.career_id,
+                "cv_filename": r.cv_filename,
+                "cv_file_url": r.cv_file_url,
+                "cv_name": r.cv_name,
+                "cv_email": r.cv_email,
+                "cv_phone": r.cv_phone,
+                "match_percentage": round(r.match_percentage or 0, 1),
+                "matched_skills_count": r.matched_skills_count or 0,
+                "missing_skills_count": r.missing_skills_count or 0,
+                "total_required_skills": r.total_required_skills or 0,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in records
+        ]
+
+        return {
+            "success": True,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total + page_size - 1) // page_size if total else 1,
+            "items": items,
+        }
+
+    except Exception as e:
+        return {"success": False, "error": str(e), "items": [], "total": 0}

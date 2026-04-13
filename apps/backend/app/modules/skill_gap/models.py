@@ -17,6 +17,7 @@ class SkillGapAnalysis(Base):
     
     # CV information
     cv_filename = Column(String(255))
+    cv_file_url = Column(String(1024))  # Cloudflare R2 public URL
     cv_text_preview = Column(Text)
     cv_name = Column(String(255))  # Họ tên
     cv_email = Column(String(255))  # Email

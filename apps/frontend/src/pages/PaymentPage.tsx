@@ -129,7 +129,7 @@ export const PaymentPage: React.FC = () => {
             if (!token) { setPlanLoading(false); return; }
 
             try {
-                const response = await fetch('http://localhost:8000/api/subscription/subscription', {
+                const response = await fetch('/api/subscription/subscription', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (response.ok) {

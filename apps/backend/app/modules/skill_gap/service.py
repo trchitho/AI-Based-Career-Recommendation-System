@@ -10,6 +10,7 @@ from .cv_parser_v2 import CVParserV2
 from .graph_analyzer import SkillGraphAnalyzer
 from .models import SkillGapAnalysis
 from app.modules.graph.neo4j_client import get_driver
+from app.core.r2_storage import r2_storage
 
 
 class SkillGapService:
@@ -100,22 +101,35 @@ class SkillGapService:
         analysis_result = self.graph_analyzer.analyze_skill_gap(cv_skills, career_id)
         print(f"  Analysis complete in {time.time() - analyze_start:.2f}s")
         
+        # Upload CV to Cloudflare R2
+        print(f"[4/5] Uploading CV to Cloudflare R2...")
+        cv_file_url = r2_storage.upload_cv(
+            file_content=file_content,
+            original_filename=cv_file.filename,
+            user_id=user_id,
+        )
+        if cv_file_url:
+            print(f"  Uploaded: {cv_file_url}")
+        else:
+            print(f"  R2 upload skipped (not configured or failed)")
+
         # Save to database
-        print(f"[4/4] Saving to database...")
+        print(f"[5/5] Saving to database...")
         db_start = time.time()
-        
+
         # Extract personal info
         personal_info = cv_data.get('personal_info', {})
-        
+
         # Get text preview safely
         text_preview = cv_data.get('text', '')
         if not text_preview and file_type == 'image':
             text_preview = 'Image CV - OCR not available'
-        
+
         skill_gap_record = SkillGapAnalysis(
             user_id=user_id,
             career_id=career_id,
             cv_filename=cv_file.filename,
+            cv_file_url=cv_file_url,
             cv_text_preview=text_preview[:500] if text_preview else '',
             cv_name=personal_info.get('name') or None,
             cv_email=personal_info.get('email') or None,

@@ -21,6 +21,7 @@ import CareerTrendsPage from "./CareerTrendsPage";
 import AnomalyDetectionPage from "./AnomalyDetectionPage";
 import DataSyncPage from "./DataSyncPage";
 import AdminNotificationsPage from "./AdminNotificationsPage";
+import CVDocumentsPage from "./CVDocumentsPage";
 
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
@@ -148,6 +149,7 @@ const AdminDashboardPage = () => {
             <NavItem to="/admin/anomalies" label="Alerts" active={isActive("/admin/anomalies")} />
             <NavItem to="/admin/data-sync" label="Sync" active={isActive("/admin/data-sync")} />
             <NavItem to="/admin/notifications" label="Notifications" active={isActive("/admin/notifications")} />
+            <NavItem to="/admin/cv-documents" label="CV Docs" active={isActive("/admin/cv-documents")} />
           </div>
         </div>
       </nav>
@@ -180,6 +182,7 @@ const AdminDashboardPage = () => {
           <Route path="anomalies" element={<AnomalyDetectionPage />} />
           <Route path="data-sync" element={<DataSyncPage />} />
           <Route path="notifications" element={<AdminNotificationsPage />} />
+          <Route path="cv-documents" element={<CVDocumentsPage />} />
         </Routes>
       </div>
     </div>

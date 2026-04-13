@@ -184,7 +184,36 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
       }
     } catch (err: any) {
       console.error('CV analysis error:', err);
-      setError(err.message || 'Failed to analyze CV. Please check console for details.');
+      
+      // Check for payment required error (402)
+      if (err.response?.status === 402) {
+        const errorData = err.response?.data?.detail;
+        
+        if (errorData && typeof errorData === 'object') {
+          // Structured error response
+          const message = errorData.message || 'Chức năng này yêu cầu gói trả phí';
+          const currentPlan = errorData.current_plan || 'Free';
+          const requiredPlans = errorData.required_plans?.join(', ') || 'Basic/Premium/Pro';
+          
+          setError(
+            `🔒 ${message}\n\n` +
+            `Gói hiện tại: ${currentPlan}\n` +
+            `Vui lòng nâng cấp lên: ${requiredPlans}\n\n` +
+            `Nhấn vào nút "Nâng cấp tài khoản" bên dưới để xem các gói.`
+          );
+        } else {
+          // Simple error message
+          setError(
+            '🔒 Chức năng Phân tích Skill Gap yêu cầu gói trả phí.\n\n' +
+            'Vui lòng nâng cấp tài khoản để sử dụng tính năng này.'
+          );
+        }
+      } else {
+        // Other errors - make sure to convert to string
+        const errorMessage = err.message || err.toString() || 'Failed to analyze CV';
+        setError(errorMessage);
+      }
+      
       setProgress(0);
       setProgressMessage('');
     } finally {
@@ -302,15 +331,40 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
         </div>
 
         {error && (
-          <div className="error-message" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-            <span>⚠️ {error}</span>
-            <button
-              onClick={() => setError(null)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, color: 'inherit', flexShrink: 0, padding: '0 2px' }}
-              aria-label="Đóng thông báo lỗi"
-            >
-              ✕
-            </button>
+          <div className="error-message" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+              <span style={{ whiteSpace: 'pre-line' }}>⚠️ {error}</span>
+              <button
+                onClick={() => setError(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, color: 'inherit', flexShrink: 0, padding: '0 2px' }}
+                aria-label="Đóng thông báo lỗi"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Show upgrade button if payment required */}
+            {error.includes('🔒') && (
+              <button
+                type="button"
+                onClick={() => window.location.href = '/pricing'}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'background-color 0.2s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
+              >
+                💳 Nâng cấp tài khoản
+              </button>
+            )}
           </div>
         )}
 
