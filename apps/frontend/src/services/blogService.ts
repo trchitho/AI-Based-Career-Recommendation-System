@@ -9,6 +9,9 @@ export interface BlogPost {
   category?: string;
   tags?: string[];
   featured_image?: string;
+  view_count?: number;
+  like_count?: number;
+  dislike_count?: number;
   is_published?: boolean;
   status?: string;
   published_at?: string;
@@ -49,7 +52,7 @@ export const blogService = {
   async get(slug: string): Promise<BlogPost> {
     const res = await api.get(`/api/blog/${slug}`);
     return res.data as BlogPost;
-    },
+  },
 
   async create(data: { title: string; content_md: string }): Promise<BlogPost> {
     const res = await api.post('/api/blog', data);
@@ -76,7 +79,7 @@ export const blogService = {
     const pageSize = params?.pageSize ?? 50;
     const offset = (page - 1) * pageSize;
     const res = await api.get(`/api/admin/blog?limit=${pageSize}&offset=${offset}`);
-    
+
     // Transform the response to match BlogListResponse format
     const posts = res.data as BlogPost[];
     return {
