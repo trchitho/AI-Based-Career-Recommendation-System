@@ -392,16 +392,18 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
       setTimeout(() => {
         setClearingCells(new Set());
         
-        const updatedGrid: (GridCell | null)[][] = grid.map(row => [...row]);
-        for (let r = rowIndex; r < Math.min(rowIndex + size, GRID_ROWS); r++) {
-          for (let c = colIndex; c < Math.min(colIndex + size, GRID_COLS); c++) {
-            const targetRow = updatedGrid[r];
-            if (targetRow) {
-              targetRow[c] = null;
+        setGrid(prev => {
+          const updatedGrid: (GridCell | null)[][] = prev.map(row => [...row]);
+          for (let r = rowIndex; r < Math.min(rowIndex + size, GRID_ROWS); r++) {
+            for (let c = colIndex; c < Math.min(colIndex + size, GRID_COLS); c++) {
+              const targetRow = updatedGrid[r];
+              if (targetRow) {
+                targetRow[c] = null;
+              }
             }
           }
-        }
-        setGrid(updatedGrid);
+          return updatedGrid;
+        });
       }, 500); // Match the explosion animation duration
 
       if (type === 'bomb') {
