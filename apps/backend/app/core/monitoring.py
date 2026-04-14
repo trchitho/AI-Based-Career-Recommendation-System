@@ -10,17 +10,15 @@ from typing import Any, Dict
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
+# Module logger; leave root logging configuration to the application entrypoint.
 logger = logging.getLogger(__name__)
 
 # Import enhanced monitoring components
 try:
     from .cache import cache_manager
-    from .database_monitor import check_database_performance, db_monitor
+    from .database_monitor import check_database_performance
 except ImportError:
     cache_manager = None
-    db_monitor = None
     check_database_performance = None
 
 
