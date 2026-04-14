@@ -2,13 +2,11 @@
 TC-IMG-08 to TC-IMG-10: OCR Integration Tests
 Tests for OCR typo correction, pgvector integration, and preview functionality
 """
-import pytest
-import sys
 import os
-import time
+import sys
 from typing import Dict, List
-from unittest.mock import Mock, patch, MagicMock
-import json
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -291,7 +289,7 @@ class TestOCRTypoCorrection:
         assert python_correction is not None
         assert python_correction['original'].lower() == 'pyth0n'
         
-        print(f"  ✅ Corrected 'Pyth0n' → 'Python'")
+        print("  ✅ Corrected 'Pyth0n' → 'Python'")
         print(f"     Total corrections: {result['correction_count']}")
     
     def test_normalize_to_neo4j_node(self):
@@ -355,7 +353,7 @@ class TestOCRTypoCorrection:
         assert 'python' in result['corrected_text']
         assert 'javascript' in result['corrected_text']
         
-        print(f"  ✅ Preserved correct spellings")
+        print("  ✅ Preserved correct spellings")
     
     def test_confidence_scores(self):
         """TC-IMG-08.6: Provide confidence scores for corrections"""
@@ -369,7 +367,7 @@ class TestOCRTypoCorrection:
             assert 0 <= correction['confidence'] <= 1
             assert correction['confidence'] > 0.8  # High confidence
         
-        print(f"  ✅ Confidence scores provided")
+        print("  ✅ Confidence scores provided")
     
     def test_integration_with_skill_extraction(self):
         """TC-IMG-08.7: Integrate with skill extraction pipeline"""
@@ -480,7 +478,7 @@ class TestPgvectorIntegration:
         corrected = nlp_corrector.correct_ocr_typos(ocr_text_with_typos)
         
         # Create embedding from corrected text
-        embedding = self.vector_db.create_embedding(corrected['corrected_text'])
+        # embedding = self.vector_db.create_embedding(corrected['corrected_text'])  # Unused variable removed
         
         # Search jobs
         skills = ['Python', 'JavaScript', 'React', 'Docker']
@@ -490,7 +488,7 @@ class TestPgvectorIntegration:
         assert len(results) > 0
         assert results[0]['similarity_score'] > 0.3  # Reasonable similarity
         
-        print(f"  ✅ Vector quality maintained after OCR correction")
+        print("  ✅ Vector quality maintained after OCR correction")
         print(f"     Best match: {results[0]['title']} ({results[0]['similarity_score']:.2f})")
     
     def test_ranking_by_similarity(self):
@@ -504,7 +502,7 @@ class TestPgvectorIntegration:
         for i in range(len(results) - 1):
             assert results[i]['similarity_score'] >= results[i+1]['similarity_score']
         
-        print(f"  ✅ Jobs ranked by similarity")
+        print("  ✅ Jobs ranked by similarity")
     
     def test_empty_skills_handling(self):
         """TC-IMG-09.6: Handle case with no skills extracted"""
@@ -582,7 +580,7 @@ class TestPreviewFunctionality:
         assert 'extracted_regions' in preview
         assert 'actions' in preview
         
-        print(f"  ✅ Draft preview generated")
+        print("  ✅ Draft preview generated")
     
     def test_preview_personal_info_region(self):
         """TC-IMG-10.2: Preview personal info region"""
@@ -605,7 +603,7 @@ class TestPreviewFunctionality:
         assert personal_info['phone'] == '0912345678'
         assert personal_info['editable'] is True
         
-        print(f"  ✅ Personal info region displayed")
+        print("  ✅ Personal info region displayed")
     
     def test_preview_skills_region(self):
         """TC-IMG-10.3: Preview skills region"""
@@ -705,7 +703,7 @@ class TestPreviewFunctionality:
         # Low confidence should be highlighted
         assert ui_hints['highlight_low_confidence'] is True
         
-        print(f"  ✅ UI hints provided for better UX")
+        print("  ✅ UI hints provided for better UX")
 
 
 def run_tests():

@@ -1,7 +1,7 @@
 # apps/backend/app/modules/auth/deps.py
 from typing import Optional
 
-from fastapi import Request, HTTPException, status
+from fastapi import HTTPException, Request, status
 
 from .models import User  # SQLAlchemy model của module auth
 

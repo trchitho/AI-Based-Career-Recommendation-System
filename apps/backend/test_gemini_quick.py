@@ -2,6 +2,7 @@
 Quick test of gemini-2.5-flash model
 """
 import os
+
 import google.generativeai as genai
 
 api_key = os.getenv('GEMINI_API_KEY', 'AIzaSyDhtMJYX_4rTt_P4ifXUK0dQ0EbNHaFOnM')

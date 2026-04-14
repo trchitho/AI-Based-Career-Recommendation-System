@@ -14,14 +14,13 @@ from __future__ import annotations
 import base64
 import json
 import re
-from typing import Any, Optional
+from typing import Any
 
+from app.core.gemini_manager import multi_stream_manager
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.core.gemini_manager import multi_stream_manager
 from .models import Assessment
-
 
 # ---------------------------------------------------------------------------
 # Gemini prompt

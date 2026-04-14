@@ -1,4 +1,4 @@
-﻿import torch
+import torch
 
 
 def mean_pooling(last_hidden_state: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:

@@ -11,13 +11,11 @@ The expected value E[θ] = alpha / (alpha + beta) is used as a re-ranking boost.
 """
 from __future__ import annotations
 
-import random
 from typing import Any, Dict, List, Optional
 
+from app.core.logging import logger
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
-from app.core.logging import logger
 
 # Weight for Thompson Sampling boost relative to NeuMF match_score
 TS_BOOST_WEIGHT = 0.15

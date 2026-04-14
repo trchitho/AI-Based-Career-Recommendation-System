@@ -2,21 +2,18 @@
 TC-CV-11 to TC-CV-13: Performance, Complex Layout, and Data Quality Tests
 Tests for latency, complex PDF layouts, and noisy data handling
 """
-import pytest
-import sys
 import os
+import sys
 import time
-from io import BytesIO
 from typing import Dict
-from unittest.mock import Mock, patch
-import PyPDF2
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.modules.skill_gap.cv_parser import CVParser
 from app.modules.skill_gap.cv_parser_v2 import CVParserV2
-from app.modules.skill_gap.service import SkillGapService
 
 
 class TestPerformanceLatency:
@@ -43,8 +40,8 @@ class TestPerformanceLatency:
         start_time = time.time()
         
         # Simulate PDF extraction (using text directly for speed)
-        result = self.parser.extract_personal_info(simple_cv)
-        skills = self.parser.extract_skills(simple_cv)
+        _ = self.parser.extract_personal_info(simple_cv)  # Unused result
+        _ = self.parser.extract_skills(simple_cv)  # Unused skills
         
         end_time = time.time()
         latency = end_time - start_time
@@ -118,9 +115,9 @@ class TestPerformanceLatency:
         start_time = time.time()
         
         # Extract all information
-        personal_info = self.parser.extract_personal_info(cv_text)
+        _ = self.parser.extract_personal_info(cv_text)  # Unused personal_info
         skills = self.parser.extract_skills(cv_text)
-        normalized = self.parser.normalize_skills(skills)
+        _ = self.parser.normalize_skills(skills)  # Unused normalized
         
         end_time = time.time()
         total_latency = end_time - start_time
@@ -170,8 +167,8 @@ class TestPerformanceLatency:
         
         start_time = time.time()
         
-        personal_info = self.parser.extract_personal_info(large_cv)
-        skills = self.parser.extract_skills(large_cv)
+        _ = self.parser.extract_personal_info(large_cv)  # Unused personal_info
+        _ = self.parser.extract_skills(large_cv)  # Unused skills
         
         end_time = time.time()
         latency = end_time - start_time
@@ -195,8 +192,8 @@ class TestPerformanceLatency:
         start_time = time.time()
         
         # Extract with noise tolerance
-        personal_info = self.parser.extract_personal_info(ocr_text)
-        skills = self.parser.extract_skills(ocr_text)
+        _ = self.parser.extract_personal_info(ocr_text)  # Unused personal_info
+        _ = self.parser.extract_skills(ocr_text)  # Unused skills
         
         end_time = time.time()
         latency = end_time - start_time
@@ -207,7 +204,6 @@ class TestPerformanceLatency:
     
     def test_memory_efficient_processing(self):
         """TC-CV-11.8: Ensure memory-efficient processing"""
-        import sys
         
         # Create multiple CV texts
         cv_texts = []
@@ -237,7 +233,7 @@ class TestPerformanceLatency:
         
         # Simulate 50 rapid requests
         for _ in range(50):
-            skills = self.parser.extract_skills(cv_text)
+            _ = self.parser.extract_skills(cv_text)  # Unused skills
         
         end_time = time.time()
         total_time = end_time - start_time
@@ -542,7 +538,7 @@ class TestNoisyDataHandling:
         # Should not crash, but find minimal info
         assert isinstance(personal_info, dict)
         assert isinstance(skills, list)
-        print(f"  ✅ Random text handled gracefully")
+        print("  ✅ Random text handled gracefully")
     
     def test_empty_file_handling(self):
         """TC-CV-13.3: Handle empty or nearly empty files"""
@@ -563,7 +559,7 @@ class TestNoisyDataHandling:
         
         assert isinstance(personal_info2, dict)
         assert isinstance(skills2, list)
-        print(f"  ✅ Empty/minimal files handled gracefully")
+        print("  ✅ Empty/minimal files handled gracefully")
     
     def test_corrupted_text_handling(self):
         """TC-CV-13.4: Handle corrupted or garbled text"""
@@ -583,7 +579,7 @@ class TestNoisyDataHandling:
         # May or may not extract correctly, but should not crash
         assert isinstance(personal_info, dict)
         assert isinstance(skills, list)
-        print(f"  ✅ Corrupted text handled without crash")
+        print("  ✅ Corrupted text handled without crash")
     
     def test_cv_quality_validation(self):
         """TC-CV-13.5: Validate CV quality and completeness"""
@@ -636,7 +632,7 @@ class TestNoisyDataHandling:
             assert isinstance(personal_info, dict)
             assert isinstance(skills, list)
         
-        print(f"  ✅ Invalid formats handled gracefully")
+        print("  ✅ Invalid formats handled gracefully")
     
     def test_mixed_language_noise(self):
         """TC-CV-13.7: Handle mixed language with noise"""
@@ -723,8 +719,8 @@ class TestNoisyDataHandling:
         for file_type, content in file_types.items():
             # Try to extract (should handle gracefully)
             try:
-                personal_info = self.parser.extract_personal_info(content)
-                skills = self.parser.extract_skills(content)
+                _ = self.parser.extract_personal_info(content)  # Unused personal_info
+                _ = self.parser.extract_skills(content)  # Unused skills
                 print(f"  ✅ Handled {file_type} content gracefully")
             except Exception as e:
                 print(f"  ⚠️  {file_type} caused error: {str(e)[:50]}")
@@ -739,7 +735,7 @@ class TestNoisyDataHandling:
         Skills: Python, JavaScript
         """
         
-        personal_info = self.parser.extract_personal_info(malformed_cv)
+        _ = self.parser.extract_personal_info(malformed_cv)  # Unused personal_info
         skills = self.parser.extract_skills(malformed_cv)
         
         # Should extract skills even if contact info is malformed
@@ -761,7 +757,7 @@ class TestNoisyDataHandling:
         Python, JavaScript, Python, SQL, JavaScript
         """
         
-        personal_info = self.parser.extract_personal_info(duplicate_cv)
+        _ = self.parser.extract_personal_info(duplicate_cv)  # Unused personal_info
         skills = self.parser.extract_skills(duplicate_cv)
         normalized = self.parser.normalize_skills(skills)
         
@@ -811,7 +807,8 @@ class TestNoisyDataHandling:
         skill_names = [s['name'].lower() for s in skills]
         
         # Check for skills with special chars
-        has_special = any(
+        # Check if any skill contains special characters (but don't store result)
+        any(
             any(char in name for char in ['+', '#', '.'])
             for name in skill_names
         )

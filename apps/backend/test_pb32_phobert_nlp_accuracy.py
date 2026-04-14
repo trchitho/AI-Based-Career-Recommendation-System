@@ -16,28 +16,27 @@ Test Coverage:
 """
 
 import json
-import time
-import statistics
-import requests
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
-from pathlib import Path
-import sys
 import os
+import statistics
+import sys
+import time
+from dataclasses import dataclass
+from typing import Dict, List
+
+import requests
 
 # Add the app directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
 from app.modules.nlp.service_nlp import (
-    analyze_essay,
-    get_embedding,
-    _analyze_via_aicore,
-    _analyze_via_gemini,
     AI_CORE_URL,
-    RIASEC_KEYS,
     BIG5_KEYS,
-    ESSAY_ANALYSIS_SLA_MS
+    ESSAY_ANALYSIS_SLA_MS,
+    RIASEC_KEYS,
+    _analyze_via_gemini,
+    analyze_essay,
 )
+
 
 @dataclass
 class TestCase:
@@ -372,7 +371,7 @@ class PhoBERTAccuracyTester:
         try:
             response = requests.get(f"{AI_CORE_URL}/health", timeout=5)
             return response.status_code == 200
-        except:
+        except Exception:
             return False
     
     def test_gemini_availability(self) -> bool:
@@ -381,7 +380,7 @@ class PhoBERTAccuracyTester:
             # Try a simple analysis with Gemini
             result = _analyze_via_gemini("Test text for Gemini availability")
             return result.get('source') == 'gemini'
-        except:
+        except Exception:
             return False
     
     def run_all_tests(self) -> Dict:
@@ -534,7 +533,7 @@ def main():
     # Print final summary
     if "error" not in results:
         summary = results.get("summary", {})
-        print(f"\n🎯 FINAL SUMMARY:")
+        print("\n🎯 FINAL SUMMARY:")
         print(f"   Overall Accuracy: {summary.get('overall_accuracy', 0):.2%}")
         print(f"   Performance Grade: {summary.get('performance_grade', 'Unknown')}")
         print(f"   Tests Passed: {summary.get('successful_tests', 0)}/{summary.get('total_tests', 0)}")

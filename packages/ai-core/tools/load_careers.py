@@ -50,9 +50,7 @@ def normalize_header(fieldnames):
 
 
 def normrow(row):
-    return {
-        (k or "").strip().lower(): (v.strip() if isinstance(v, str) else v) for k, v in row.items()
-    }
+    return {(k or "").strip().lower(): (v.strip() if isinstance(v, str) else v) for k, v in row.items()}
 
 
 def get_col(header_norm, *candidates):
@@ -288,9 +286,9 @@ ON CONFLICT (onet_code) DO UPDATE SET
 
 # ---------- MAIN ----------
 def main():
-    titles = read_onet_titles()         # full O*NET, để lấy title_en + desc_en
-    ints = read_onet_interests()        # full RIASEC, sẽ filter sau
-    df_vi = load_jobs_vi_tagged()       # catalog đã clean (~924 dòng)
+    titles = read_onet_titles()  # full O*NET, để lấy title_en + desc_en
+    ints = read_onet_interests()  # full RIASEC, sẽ filter sau
+    df_vi = load_jobs_vi_tagged()  # catalog đã clean (~924 dòng)
 
     # Tập mã nghề hợp lệ = chỉ những gì xuất hiện trong catalog đã clean
     valid_codes: set[str] = set()
@@ -354,11 +352,7 @@ def main():
 
         conn.commit()
 
-    print(
-        "[OK] Loaded careers FROM CLEAN CATALOG "
-        f"(rows={len(valid_codes)}, all from {VN_CATALOG.name})"
-    )
-
+    print(f"[OK] Loaded careers FROM CLEAN CATALOG (rows={len(valid_codes)}, all from {VN_CATALOG.name})")
 
 
 if __name__ == "__main__":

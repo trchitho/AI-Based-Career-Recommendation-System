@@ -6,7 +6,7 @@ import hashlib
 import hmac
 import urllib.parse
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
 from loguru import logger
 
@@ -57,7 +57,7 @@ class VNPayService:
             
             # Tạo thời gian
             create_date = datetime.now().strftime('%Y%m%d%H%M%S')
-            expire_date = datetime.now().strftime('%Y%m%d%H%M%S')
+            # expire_date = datetime.now().strftime('%Y%m%d%H%M%S')  # Unused variable removed
             
             # Params theo thứ tự alphabet
             vnp_params = {

@@ -6,14 +6,14 @@ Unit tests cho CVValidator class (không cần FastAPI TestClient)
 
 import os
 import sys
-import tempfile
+
 import pytest
-from pathlib import Path
 
 # Add app to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
-from app.modules.skill_gap.cv_validator import CVValidator, CVValidationError
+from app.modules.skill_gap.cv_validator import CVValidationError, CVValidator
+
 
 class TestCVValidator:
     """Unit tests for CVValidator"""

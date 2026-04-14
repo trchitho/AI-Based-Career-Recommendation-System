@@ -9,13 +9,13 @@ from __future__ import annotations
 import logging
 from typing import List, Optional
 
+from app.modules.auth.deps import get_current_user, get_current_user_optional
+from app.modules.users.models import User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.modules.auth.deps import get_current_user, get_current_user_optional
-from app.modules.users.models import User
 from . import service_nlp as svc
 
 logger = logging.getLogger(__name__)

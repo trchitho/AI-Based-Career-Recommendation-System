@@ -8,7 +8,7 @@ const BlogEditPage = () => {
   const [loading, setLoading] = useState(false);
   const [loadingPost, setLoadingPost] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     content_md: '',
@@ -23,14 +23,14 @@ const BlogEditPage = () => {
   useEffect(() => {
     const loadPost = async () => {
       if (!id) return;
-      
+
       setLoadingPost(true);
       try {
         // For now, we'll need to get the post by ID through admin API
         // Since we don't have a direct get by ID admin endpoint, we'll get all posts and find the one
         const resp = await blogService.adminList({ pageSize: 100 });
         const post = resp.items.find(p => p.id === id);
-        
+
         if (post) {
           setFormData({
             title: post.title || '',
@@ -65,7 +65,7 @@ const BlogEditPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
-    
+
     setLoading(true);
     setError(null);
 
@@ -74,7 +74,7 @@ const BlogEditPage = () => {
         ...formData,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
       };
-      
+
       await blogService.adminUpdate(id, updateData);
       navigate('/admin/blog/manage');
     } catch (err: any) {
@@ -96,9 +96,9 @@ const BlogEditPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        
+
         {/* Header */}
         <div className="mb-8">
           <button
@@ -110,7 +110,7 @@ const BlogEditPage = () => {
             </svg>
             Quay lại danh sách
           </button>
-          
+
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Chỉnh sửa Blog
           </h1>
@@ -126,7 +126,7 @@ const BlogEditPage = () => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
-            
+
             {/* Title */}
             <div className="mb-6">
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -193,7 +193,7 @@ const BlogEditPage = () => {
                   placeholder="Ví dụ: Công nghệ"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Tags (phân cách bằng dấu phẩy)

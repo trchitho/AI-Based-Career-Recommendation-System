@@ -33,7 +33,7 @@ const EssayInputPage = () => {
   // ==========================================
   return (
     <MainLayout>
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
 
         {/* CSS Injection */}
         <style>{`
@@ -72,7 +72,7 @@ const EssayInputPage = () => {
             </div>
 
             {/* --- CARD FORM --- */}
-            <div className="bg-white dark:bg-gray-800 rounded-[32px] p-8 md:p-10 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-card-hero p-8 md:p-10 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 relative overflow-hidden">
 
               {/* Decorative Top Line */}
               <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 to-teal-500"></div>

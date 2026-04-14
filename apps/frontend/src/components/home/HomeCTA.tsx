@@ -18,7 +18,7 @@ const HomeCTA: React.FC<Props> = ({ isAuthenticated }) => {
 
             <Link
                 to={isAuthenticated ? "/dashboard" : "/assessment"}
-                className="inline-block px-10 py-5 bg-[#4A7C59] dark:bg-green-600 text-white rounded-xl font-bold text-xl hover:bg-[#3d6449] dark:hover:bg-green-700 transition-all duration-200 shadow-xl"
+                className="inline-block px-10 py-5 bg-primary-cta dark:bg-green-600 text-white rounded-xl font-bold text-xl hover:bg-primary-dark dark:hover:bg-green-700 transition-all duration-200 shadow-xl"
             >
                 {isAuthenticated ? "Tiếp tục hành trình" : "Bắt đầu miễn phí"}
             </Link>

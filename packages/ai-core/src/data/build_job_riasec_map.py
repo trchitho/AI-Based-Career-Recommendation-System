@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Build job_riasec_map.json from O*NET Interests.txt
 - Reads tab-delimited O*NET Interests file (OI scale -> R,I,A,S,E,C scores)
@@ -53,9 +53,7 @@ def read_titles(titles_path: Path | None) -> dict[str, str]:
         title_col = headers.get("title")
 
         if not code_col or not title_col:
-            raise ValueError(
-                f"Cannot find headers 'O*NET-SOC Code' and 'Title' in titles file.\nFound headers: {rdr.fieldnames}"
-            )
+            raise ValueError(f"Cannot find headers 'O*NET-SOC Code' and 'Title' in titles file.\nFound headers: {rdr.fieldnames}")
 
         for row in rdr:
             code = (row.get(code_col) or "").strip()
@@ -130,9 +128,7 @@ def read_interests(interests_path: Path, normalize: bool = True) -> dict[str, di
     return soc2vec
 
 
-def attach_titles(
-    soc2vec: dict[str, dict[str, float]], code2title: dict[str, str]
-) -> dict[str, dict[str, float]]:
+def attach_titles(soc2vec: dict[str, dict[str, float]], code2title: dict[str, str]) -> dict[str, dict[str, float]]:
     """
     If titles are available, re-key dict by title.
     If multiple SOC codes share the same title, last write wins (rare in practice).
@@ -149,21 +145,15 @@ def attach_titles(
 
 def main():
     ap = argparse.ArgumentParser(description="Build job_riasec_map.json from O*NET Interests.")
-    ap.add_argument(
-        "--interests", required=True, type=Path, help="Path to Interests.txt (tab-delimited)"
-    )
-    ap.add_argument(
-        "--titles", required=False, type=Path, help="Path to Occupation Titles file (tab-delimited)"
-    )
+    ap.add_argument("--interests", required=True, type=Path, help="Path to Interests.txt (tab-delimited)")
+    ap.add_argument("--titles", required=False, type=Path, help="Path to Occupation Titles file (tab-delimited)")
     ap.add_argument(
         "--output",
         default=Path("data/processed/job_riasec_map.json"),
         type=Path,
         help="Output JSON",
     )
-    ap.add_argument(
-        "--no-normalize", dest="normalize", action="store_false", help="Keep raw 1..7 scores"
-    )
+    ap.add_argument("--no-normalize", dest="normalize", action="store_false", help="Keep raw 1..7 scores")
     ap.set_defaults(normalize=True)
     args = ap.parse_args()
 
@@ -173,9 +163,7 @@ def main():
     result = attach_titles(soc2vec, code2title)
 
     # Sort keys for reproducibility; round numbers for compactness
-    final = {
-        k: {kk: round(float(vv), 4) for kk, vv in result[k].items()} for k in sorted(result.keys())
-    }
+    final = {k: {kk: round(float(vv), 4) for kk, vv in result[k].items()} for k in sorted(result.keys())}
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(final, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -7,14 +7,15 @@ from __future__ import annotations
 
 from io import BytesIO
 from unittest.mock import MagicMock, patch
+
 import pytest
 
 
 def _make_fake_pdf_bytes(text_content: str, page_count: int = 1) -> bytes:
     """Create fake PDF bytes for testing."""
     try:
-        from reportlab.pdfgen import canvas
         from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
         
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=letter)

@@ -8,10 +8,10 @@ Covers:
 from __future__ import annotations
 
 from io import BytesIO
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi import HTTPException
-
 
 # ──────────────────────────────────────────────────────────────
 # Helpers
@@ -52,7 +52,6 @@ def _make_upload_file(filename: str, content: bytes):
 async def test_invalid_upload_preserves_existing_data():
     """TC-NON-07.1: Upload ảnh rác không ghi đè CV cũ trong database."""
     from app.modules.skill_gap.routes import analyze_cv_image
-    from app.modules.skill_gap.cv_parser_v2 import CVParserV2
     
     # Mock existing CV data in database
     existing_cv_data = {
@@ -101,8 +100,8 @@ async def test_invalid_upload_preserves_existing_data():
 @pytest.mark.anyio
 async def test_gibberish_upload_does_not_overwrite():
     """TC-NON-07.2: Upload văn bản rác không xóa dữ liệu cũ."""
-    from app.modules.skill_gap.routes import analyze_cv_image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from app.modules.skill_gap.routes import analyze_cv_image
     
     # Existing good CV
     existing_skills = ['Python', 'Django', 'PostgreSQL', 'Docker']
@@ -262,8 +261,8 @@ async def test_error_response_format_for_frontend():
 @pytest.mark.anyio
 async def test_different_error_types_have_specific_messages():
     """TC-NON-08.3: Các loại lỗi khác nhau có message riêng biệt."""
-    from app.modules.skill_gap.routes import analyze_cv_image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from app.modules.skill_gap.routes import analyze_cv_image
     
     test_cases = [
         {
@@ -312,7 +311,7 @@ async def test_error_includes_file_type_guidance():
     from app.modules.skill_gap.routes import analyze_cv_image
     
     # Try uploading wrong file type
-    invalid_img = _make_test_image()
+    # invalid_img = _make_test_image()  # Unused variable removed
     upload_file = _make_upload_file("document.txt", b"plain text content")
     upload_file.content_type = "text/plain"
     
@@ -326,7 +325,7 @@ async def test_error_includes_file_type_guidance():
         )
     except HTTPException as e:
         # Should mention accepted file types
-        error_msg = str(e.detail).lower()
+        # error_msg = str(e.detail).lower()  # Unused variable removed
         # Error should guide about file types (checked in route validation)
         assert e.status_code in [400, 422]
 
@@ -334,8 +333,8 @@ async def test_error_includes_file_type_guidance():
 @pytest.mark.anyio
 async def test_success_response_format():
     """TC-NON-08.5: Success response có format chuẩn cho frontend."""
-    from app.modules.skill_gap.routes import analyze_cv_image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from app.modules.skill_gap.routes import analyze_cv_image
     
     valid_cv_text = """
 John Doe
@@ -382,8 +381,9 @@ Skills: Python, Django, PostgreSQL
 @pytest.mark.anyio
 async def test_error_response_is_json_serializable():
     """TC-NON-08.6: Error response có thể serialize thành JSON."""
-    from app.modules.skill_gap.routes import analyze_cv_image
     import json
+
+    from app.modules.skill_gap.routes import analyze_cv_image
     
     invalid_img = _make_test_image(color=(0, 0, 0))
     upload_file = _make_upload_file("black.jpg", invalid_img)
@@ -407,8 +407,9 @@ async def test_error_response_is_json_serializable():
 @pytest.mark.anyio
 async def test_concurrent_invalid_uploads_handled_safely():
     """TC-NON-07.5: Xử lý an toàn khi nhiều user upload file sai cùng lúc."""
-    from app.modules.skill_gap.routes import analyze_cv_image
     import asyncio
+
+    from app.modules.skill_gap.routes import analyze_cv_image
     
     # Simulate 5 concurrent invalid uploads
     async def upload_invalid():

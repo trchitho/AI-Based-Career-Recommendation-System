@@ -16,11 +16,8 @@ Covers:
 from __future__ import annotations
 
 import csv
-import io
-from io import BytesIO, StringIO
+from io import StringIO
 from unittest.mock import MagicMock, patch
-import pytest
-
 
 # ──────────────────────────────────────────────────────────────
 # Helpers
@@ -212,8 +209,9 @@ def test_export_readable_by_csv_reader():
 
 def test_iso_or_none_returns_isoformat():
     """_iso_or_none(datetime) trả về ISO string."""
-    from app.modules.admin.routes_admin import _iso_or_none
     from datetime import datetime, timezone
+
+    from app.modules.admin.routes_admin import _iso_or_none
 
     dt = datetime(2024, 6, 15, 10, 30, 0, tzinfo=timezone.utc)
     result = _iso_or_none(dt)

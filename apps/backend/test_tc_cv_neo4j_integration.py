@@ -2,18 +2,18 @@
 TC-CV-08 to TC-CV-10: Neo4j Integration, Heatmap, and Mixed Language Tests
 Tests for Neo4j mapping, Skill Gap visualization, and bilingual CV processing
 """
-import pytest
-import sys
 import os
-from typing import Dict, List
-from unittest.mock import Mock, patch, MagicMock
+import sys
+from unittest.mock import Mock, patch
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from app.modules.skill_gap.cv_parser import CVParser
 from app.modules.skill_gap.graph_analyzer import SkillGraphAnalyzer
 from app.modules.skill_gap.service import SkillGapService
-from app.modules.skill_gap.cv_parser import CVParser
 
 
 class TestNeo4jMapping:

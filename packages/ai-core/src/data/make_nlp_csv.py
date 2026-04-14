@@ -1,4 +1,4 @@
-﻿import json
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -102,10 +102,7 @@ def write_split(task: str, split: str, src_jsonl: Path):
     df = to_df(objs, task, TASKS[task])
     out = OUT / f"{split}_{task}.csv"
     df.to_csv(out, index=False, encoding="utf-8-sig")
-    print(
-        f"Wrote {out} shape={df.shape}  NaN-perc="
-        + ",".join(f"{c}:{df[c].isna().mean():.2f}" for c in TASKS[task]["dims"])
-    )
+    print(f"Wrote {out} shape={df.shape}  NaN-perc=" + ",".join(f"{c}:{df[c].isna().mean():.2f}" for c in TASKS[task]["dims"]))
 
 
 train_jsonl = pick_file(BASE / "train_with_labels.jsonl", BASE / "train.jsonl")

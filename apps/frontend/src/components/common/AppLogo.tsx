@@ -19,7 +19,7 @@ const AppLogo = ({ linkTo = '/home', className = '' }: AppLogoProps) => {
         <img src={app.logo_url} alt="Logo" className="h-8 w-auto object-contain mr-2" />
       ) : null}
 
-      <span className="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
+      <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
         career<span className="text-green-600 dark:text-green-500">bridge</span><span className="text-green-600 dark:text-green-500 text-3xl leading-none">.</span>
       </span>
     </div>

@@ -15,14 +15,13 @@ Covers:
 """
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
+
 import pytest
-
 from app.modules.recommendation.thompson_sampling import (
-    ThompsonSamplingService,
     TS_BOOST_WEIGHT,
+    ThompsonSamplingService,
 )
-
 
 # ──────────────────────────────────────────────────────────────
 # Fixtures

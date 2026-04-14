@@ -1,8 +1,7 @@
 # apps/backend/app/core/config.py
 
-from pathlib import Path
 
-from pydantic import Field, AnyHttpUrl
+from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,7 +10,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="ignore",   # nếu .env có key lạ thì bỏ qua, không quăng lỗi
+        extra="ignore",  # nếu .env có key lạ thì bỏ qua, không quăng lỗi
     )
 
     # ======================================================

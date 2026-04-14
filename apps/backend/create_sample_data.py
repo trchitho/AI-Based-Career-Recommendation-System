@@ -1,12 +1,13 @@
 """
 Create sample data in Neo4j for testing
 """
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
 from app.modules.graph.neo4j_client import get_driver
+
 
 def create_sample_data():
     print("📊 Creating sample data in Neo4j...")

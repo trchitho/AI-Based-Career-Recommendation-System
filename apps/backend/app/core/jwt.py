@@ -85,19 +85,14 @@ def get_current_user(request: Request) -> Dict[str, Any]:
     """
     token = _get_bearer_token(request)
     data = decode_token(token)
-    
+
     sub = data.get("sub")
     if sub is None:
         raise HTTPException(status_code=401, detail="Token missing sub")
-    
+
     try:
         user_id = int(sub)
     except ValueError:
         raise HTTPException(status_code=401, detail="Invalid subject in token")
-    
-    return {
-        "user_id": user_id,
-        "role": data.get("role", "user"),
-        "email": data.get("email"),
-        **data
-    }
+
+    return {"user_id": user_id, "role": data.get("role", "user"), "email": data.get("email"), **data}

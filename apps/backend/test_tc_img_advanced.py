@@ -2,15 +2,11 @@
 TC-IMG-05 to TC-IMG-07: Advanced OCR Features
 Tests for background color separation, skill bar detection, and multi-column reading order
 """
-import pytest
-import sys
 import os
-import time
-from typing import Dict, List, Tuple
-from unittest.mock import Mock, patch, MagicMock
-from PIL import Image, ImageDraw, ImageFont
-import io
-import numpy as np
+import sys
+from typing import Dict
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -459,7 +455,7 @@ class TestSkillBarDetection:
         )
         assert has_icon_warning
         
-        print(f"  ✅ CV requirement detected")
+        print("  ✅ CV requirement detected")
         print(f"     Warnings: {len(bar_result['warnings'])}")
         for warning in bar_result['warnings']:
             print(f"     - {warning}")
@@ -482,7 +478,7 @@ class TestSkillBarDetection:
             assert "icon" in message.lower() or "logo" in message.lower()
             assert "khuyến nghị" in message.lower() or "vui lòng" in message.lower()
             
-            print(f"  ✅ User notification generated:")
+            print("  ✅ User notification generated:")
             print(f"     {message}")
     
     def test_skill_bar_percentage_extraction(self):
@@ -622,7 +618,7 @@ class TestMultiColumnReadingOrder:
         
         # Text should be organized by column
         # Check that sections are not interleaved
-        lines = text.strip().split('\n')
+        # lines = text.strip().split('\n')  # Unused variable removed
         
         # Should have clear section separation
         assert 'SUMMARY' in text
@@ -637,8 +633,8 @@ class TestMultiColumnReadingOrder:
         # Should be in logical order (not jumping between columns)
         assert summary_idx < skills_idx < experience_idx
         
-        print(f"  ✅ Cross-column reading prevented")
-        print(f"     Reading order maintained: SUMMARY → SKILLS → EXPERIENCE")
+        print("  ✅ Cross-column reading prevented")
+        print("     Reading order maintained: SUMMARY → SKILLS → EXPERIENCE")
     
     def test_top_to_bottom_per_column(self):
         """TC-IMG-07.5: Read top-to-bottom within each column"""
@@ -661,7 +657,7 @@ class TestMultiColumnReadingOrder:
         
         assert personal_idx < skills_idx
         
-        print(f"  ✅ Top-to-bottom reading: verified")
+        print("  ✅ Top-to-bottom reading: verified")
     
     def test_column_width_detection(self):
         """TC-IMG-07.6: Detect different column widths"""

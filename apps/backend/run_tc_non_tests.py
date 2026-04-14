@@ -6,6 +6,7 @@ Executes all non-CV image detection test cases
 import subprocess
 import sys
 
+
 def main():
     print("="*80)
     print("🧪 RUNNING TC-NON-01 to TC-NON-03 TESTS")

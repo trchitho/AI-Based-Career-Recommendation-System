@@ -27,9 +27,9 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
   return (
     <div
       onClick={handleViewCareer}
-      className="group bg-white dark:bg-gray-800 rounded-[24px] border border-gray-100 dark:border-gray-700 p-6 md:p-8 
+      className="group bg-white dark:bg-gray-800 rounded-card-feature border border-gray-100 dark:border-gray-700 p-6 md:p-8 
                  shadow-sm hover:shadow-xl hover:shadow-green-900/10 dark:shadow-none 
-                 transition-all duration-300 cursor-pointer flex flex-col justify-between h-full min-h-[320px]"
+                 transition-all duration-slow cursor-pointer flex flex-col justify-between h-full min-h-[320px]"
     >
       <div>
         {/* Header: Title & Score */}

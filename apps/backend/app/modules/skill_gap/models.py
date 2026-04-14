@@ -1,9 +1,9 @@
 """
 Database models for Skill Gap Analysis
 """
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, JSON
-from sqlalchemy.sql import func
 from app.core.db import Base
+from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy.sql import func
 
 
 class SkillGapAnalysis(Base):

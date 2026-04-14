@@ -7,10 +7,21 @@ import './styles/footer.css'
 import './i18n/config'
 import { AppSettingsProvider } from './contexts/AppSettingsContext'
 
+// Only use StrictMode in development for debugging, remove in production to prevent duplicate API calls
+const isDevelopment = import.meta.env.DEV;
+
+const AppWrapper = () => (
+  <AppSettingsProvider>
+    <App />
+  </AppSettingsProvider>
+);
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AppSettingsProvider>
-      <App />
-    </AppSettingsProvider>
-  </React.StrictMode>,
+  isDevelopment ? (
+    <React.StrictMode>
+      <AppWrapper />
+    </React.StrictMode>
+  ) : (
+    <AppWrapper />
+  )
 )

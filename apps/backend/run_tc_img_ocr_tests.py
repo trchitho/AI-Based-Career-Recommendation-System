@@ -2,10 +2,11 @@
 Test Runner for TC-IMG-01 to TC-IMG-04
 Runs OCR testing for image-based CVs
 """
-import sys
 import os
+import sys
 import time
 from datetime import datetime
+
 
 def print_header():
     """Print test header"""
@@ -59,9 +60,9 @@ def run_tests():
     print(f"  Exit Code: {exit_code}")
     
     if exit_code == 0:
-        print(f"  Status: ✅ ALL TESTS PASSED")
+        print("  Status: ✅ ALL TESTS PASSED")
     else:
-        print(f"  Status: ❌ SOME TESTS FAILED")
+        print("  Status: ❌ SOME TESTS FAILED")
     
     print("=" * 100)
     

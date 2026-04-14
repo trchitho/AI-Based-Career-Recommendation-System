@@ -1,10 +1,10 @@
 """
 Admin routes for monitoring system status
 """
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.core.gemini_manager import multi_stream_manager
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -79,8 +79,7 @@ async def get_cv_documents(
     Lấy danh sách CV mà user đã tải lên (dành cho admin)
     """
     from app.modules.skill_gap.models import SkillGapAnalysis
-    from app.modules.users.models import User
-    from sqlalchemy import or_, desc
+    from sqlalchemy import desc, or_
 
     try:
         query = (

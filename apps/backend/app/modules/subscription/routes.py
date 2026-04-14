@@ -1,12 +1,12 @@
 """
 Subscription API Routes
 """
-from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
 from typing import Any
 
 from app.core.db import get_db
 from app.core.subscription import SubscriptionService
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["Subscription"])
 
@@ -29,7 +29,7 @@ def _current_user_id(req: Request) -> int:
         if hdr:
             try:
                 uid = int(hdr)
-            except:
+            except Exception:
                 pass
     
     # 4) Decode JWT token (fallback)
@@ -54,9 +54,9 @@ def _current_user_id(req: Request) -> int:
                     if uid:
                         try:
                             uid = int(uid)
-                        except:
+                        except Exception:
                             pass
-            except:
+            except Exception:
                 pass
     
     if uid is None:

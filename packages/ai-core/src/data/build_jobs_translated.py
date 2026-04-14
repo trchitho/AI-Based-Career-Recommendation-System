@@ -1,4 +1,4 @@
-﻿# src/data/build_jobs_translated.py
+# src/data/build_jobs_translated.py
 import argparse
 import csv
 import json
@@ -147,13 +147,9 @@ def load_input_records(in_path: Path) -> list[dict[str, Any]]:
                     {
                         "job_id_en": (obj.get("job_id_en") or obj.get("job_id") or "").strip(),
                         "title_en": (obj.get("title_en") or obj.get("title") or "").strip(),
-                        "description_en": (
-                            obj.get("description_en") or obj.get("description") or ""
-                        ).strip(),
+                        "description_en": (obj.get("description_en") or obj.get("description") or "").strip(),
                         "skills_en": obj.get("skills_en") or obj.get("skills") or [],
-                        "riasec_vec_src": (
-                            obj.get("riasec_vector") or obj.get("riasec_centroid_json") or ""
-                        ).strip(),
+                        "riasec_vec_src": (obj.get("riasec_vector") or obj.get("riasec_centroid_json") or "").strip(),
                         "source": obj.get("source") or "jsonl",
                     }
                 )
@@ -167,9 +163,7 @@ def load_input_records(in_path: Path) -> list[dict[str, Any]]:
     n_sk = sum(1 for r in recs if r.get("skills_en"))
     print(f"[INFO] Loaded {n_total} records. With title={n_title}, desc={n_desc}, skills={n_sk}")
     if n_total and n_title == 0 and n_desc == 0:
-        print(
-            "[WARN] Input CSV headers might have unexpected names. Headers were normalized. Double-check your columns."
-        )
+        print("[WARN] Input CSV headers might have unexpected names. Headers were normalized. Double-check your columns.")
     return recs
 
 
@@ -187,9 +181,7 @@ class NLLBTranslator(Translator):
 
         self.src_code = "eng_Latn"
         self.tgt_code = "vie_Latn"
-        self.tok = AutoTokenizer.from_pretrained(
-            model_name, src_lang=self.src_code, tgt_lang=self.tgt_code
-        )
+        self.tok = AutoTokenizer.from_pretrained(model_name, src_lang=self.src_code, tgt_lang=self.tgt_code)
         self.mdl = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(DEVICE).eval()
         self.forced_bos = self._find_lang_bos_id(self.tok, self.tgt_code)
 
@@ -221,12 +213,8 @@ class NLLBTranslator(Translator):
         texts = [(t or "")[:4000] for t in texts]
         if hasattr(self.tok, "src_lang"):
             self.tok.src_lang = self.src_code
-        enc = self.tok(
-            texts, return_tensors="pt", padding=True, truncation=True, max_length=max_len
-        ).to(DEVICE)
-        gen_kwargs = dict(
-            max_length=max_len, num_beams=num_beams, early_stopping=True, no_repeat_ngram_size=3
-        )
+        enc = self.tok(texts, return_tensors="pt", padding=True, truncation=True, max_length=max_len).to(DEVICE)
+        gen_kwargs = dict(max_length=max_len, num_beams=num_beams, early_stopping=True, no_repeat_ngram_size=3)
         if self.forced_bos is not None:
             gen_kwargs["forced_bos_token_id"] = self.forced_bos
         with torch.no_grad():
@@ -253,9 +241,7 @@ class OpusTranslator(Translator):
         clipped = [(t or "")[:4000] for t in texts]
         if use_prefix:
             clipped = [f">>vie<< {t}" for t in clipped]
-        enc = self.tok(
-            clipped, return_tensors="pt", padding=True, truncation=True, max_length=max_len
-        )
+        enc = self.tok(clipped, return_tensors="pt", padding=True, truncation=True, max_length=max_len)
         enc = {k: v.to(DEVICE) for k, v in enc.items()}
         with torch.no_grad():
             out_ids = self.mdl.generate(
@@ -293,9 +279,7 @@ def ensure_fallback(current_fallback, primary_engine):
 _SENT_SPLIT = re.compile(r"(?<=[\.\?\!;:])\s+(?=[A-Z])")
 
 
-def translate_sentences_safe(
-    trans: Translator, texts: list[str], max_len: int, beams: int
-) -> list[str]:
+def translate_sentences_safe(trans: Translator, texts: list[str], max_len: int, beams: int) -> list[str]:
     out = []
     for s in texts:
         s = (s or "").strip()
@@ -312,7 +296,6 @@ def translate_sentences_safe(
 # Main
 # =========================
 def main():
-
     ap = argparse.ArgumentParser(description="Build Vietnamese job catalog from English source.")
     ap.add_argument("--in", dest="in_path", type=Path, default=DEF_IN)
 
@@ -336,9 +319,7 @@ def main():
 
     ap.add_argument("--glossary", dest="glossary_path", type=Path, default=DEF_GLOSSARY)
     ap.add_argument("--cache", dest="cache_path", type=Path, default=DEF_CACHE)
-    ap.add_argument(
-        "--no-cache", action="store_true", help="Ignore and do not write mt_cache.jsonl"
-    )
+    ap.add_argument("--no-cache", action="store_true", help="Ignore and do not write mt_cache.jsonl")
     ap.add_argument("--riasec-map", dest="riasec_map_path", type=Path, default=DEF_RIASEC_MAP)
     ap.add_argument("--skills-trans", dest="skills_trans_path", type=Path, default=DEF_SKILL_TRANS)
     ap.add_argument("--engine", choices=[ENGINE_NLLB, ENGINE_OPUS], default=ENGINE_NLLB)
@@ -381,9 +362,7 @@ def main():
             if not vi or len(vi) < 2:
                 # lazy fallback
                 fallback = ensure_fallback(fallback, primary)
-                vi = fallback.translate_batch(
-                    [en], max_len=args.maxlen_title, num_beams=args.beams
-                )[0]
+                vi = fallback.translate_batch([en], max_len=args.maxlen_title, num_beams=args.beams)[0]
             vi = sanitize_vi(vi)
             cache[en] = vi
             fixed.append(vi)
@@ -402,20 +381,14 @@ def main():
         if d and (d not in cache) and not (d in seen or seen.add(d)):
             desc_to_mt.append(d)
 
-    for i in tqdm(
-        range(0, len(desc_to_mt), args.desc_batch_size), desc="Translating description_en"
-    ):
+    for i in tqdm(range(0, len(desc_to_mt), args.desc_batch_size), desc="Translating description_en"):
         chunk = desc_to_mt[i : i + args.desc_batch_size]
-        vi_chunk = translate_sentences_safe(
-            primary, chunk, max_len=args.maxlen_desc, beams=args.beams
-        )
+        vi_chunk = translate_sentences_safe(primary, chunk, max_len=args.maxlen_desc, beams=args.beams)
         fixed: list[str] = []
         for en, vi in zip(chunk, vi_chunk, strict=False):
             if not vi or len(vi) < 3:
                 fallback = ensure_fallback(fallback, primary)
-                vi = translate_sentences_safe(
-                    fallback, [en], max_len=args.maxlen_desc, beams=args.beams
-                )[0]
+                vi = translate_sentences_safe(fallback, [en], max_len=args.maxlen_desc, beams=args.beams)[0]
             vi = sanitize_vi(vi)
             cache[en] = vi
             fixed.append(vi)

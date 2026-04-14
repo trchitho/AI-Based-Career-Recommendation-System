@@ -2,11 +2,12 @@
 """
 Restart backend server script
 """
+import os
 import subprocess
 import time
-import os
-import signal
+
 import requests
+
 
 def restart_server():
     """Restart the backend server"""

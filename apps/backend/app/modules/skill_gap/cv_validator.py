@@ -5,8 +5,9 @@ Implements TC-CV-01, TC-CV-02, TC-CV-03 test cases
 """
 
 import re
-from typing import Tuple, Optional
-from fastapi import UploadFile, HTTPException
+from typing import Tuple
+
+from fastapi import UploadFile
 
 # Optional: python-magic for MIME detection
 try:
@@ -167,7 +168,7 @@ class CVValidator:
             if HAS_MAGIC:
                 try:
                     mime = magic.from_buffer(content, mime=True)
-                except:
+                except Exception:
                     mime = CVValidator._detect_mime_basic(content)
             else:
                 mime = CVValidator._detect_mime_basic(content)

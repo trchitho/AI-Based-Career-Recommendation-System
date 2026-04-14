@@ -2,6 +2,7 @@
 Test script to check available Gemini models
 """
 import os
+
 import google.generativeai as genai
 
 # Load API key
@@ -46,7 +47,7 @@ for model_name in test_models:
     except Exception as e:
         error_msg = str(e)
         if '404' in error_msg:
-            print(f"❌ 404 Not Found")
+            print("❌ 404 Not Found")
         else:
             print(f"❌ Error: {error_msg[:80]}")
 

@@ -5,14 +5,15 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Dict, Any
 
 import numpy as np
 import psycopg
 import torch
+
 try:
     from googletrans import Translator
 except Exception:
+
     class _DetectInfo:
         def __init__(self, lang: str):
             self.lang = lang
@@ -32,19 +33,18 @@ except Exception:
         def translate(self, text: str, src: str = "auto", dest: str = "vi"):
             # Fallback: no real translation, return original text
             return self._Translated(text)
-from transformers import AutoTokenizer, AutoModel
+
+
+from transformers import AutoModel, AutoTokenizer
 
 from api.config import get_pg_dsn  # đã có trong ai-core/api/config.py
-
 
 # ---------- Config & globals ----------
 
 _PHOBERT_DIR = Path(os.getenv("PHOBERT_DIR", "models/riasec_phobert"))
 
 try:
-    _TOKENIZER_NAME = (_PHOBERT_DIR / "tokenizer_name.txt").read_text(
-        encoding="utf-8"
-    ).strip()
+    _TOKENIZER_NAME = (_PHOBERT_DIR / "tokenizer_name.txt").read_text(encoding="utf-8").strip()
     if not _TOKENIZER_NAME:
         _TOKENIZER_NAME = "vinai/phobert-base"
 except Exception:
@@ -61,7 +61,7 @@ _TRANS = Translator()
 @dataclass
 class EssayInferResult:
     user_id: int
-    essay_id: Optional[int]
+    essay_id: int | None
     lang_in: str
     lang_used: str
     translated: bool
@@ -71,6 +71,7 @@ class EssayInferResult:
 
 
 # ---------- Helpers ----------
+
 
 def _clean(text: str) -> str:
     text = (text or "").strip()
@@ -104,7 +105,7 @@ def detect_lang(text: str) -> str:
     return "vi"
 
 
-def maybe_translate_to_vi(text: str, hint_lang: Optional[str]) -> tuple[str, str, bool]:
+def maybe_translate_to_vi(text: str, hint_lang: str | None) -> tuple[str, str, bool]:
     """
     Trả về: (text_vi, lang_used, translated?)
     """
@@ -181,11 +182,12 @@ def upsert_user_embedding(
 
 # ---------- Public API ----------
 
+
 def infer_and_upsert(
     user_id: int,
     essay_text: str,
-    essay_id: Optional[int] = None,
-    lang_hint: Optional[str] = None,
+    essay_id: int | None = None,
+    lang_hint: str | None = None,
 ) -> EssayInferResult:
     """
     Pipeline ngắn hạn:

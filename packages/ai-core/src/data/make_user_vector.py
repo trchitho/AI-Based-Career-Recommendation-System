@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 from pathlib import Path
 
@@ -14,9 +14,7 @@ def main():
         default="data/embeddings/train_embeddings.npy",
         help="File embeddings (npy)",
     )
-    parser.add_argument(
-        "--index", type=str, default="data/embeddings/train_index.json", help="File index json"
-    )
+    parser.add_argument("--index", type=str, default="data/embeddings/train_index.json", help="File index json")
     parser.add_argument(
         "--out",
         type=str,

@@ -3,6 +3,7 @@ Update old assessments to have test_mode = 'traditional'
 Run this once to add test_mode to existing assessments
 """
 import os
+
 from sqlalchemy import create_engine, text
 
 # Get database URL from environment
@@ -42,7 +43,7 @@ def update_old_assessments():
         )
         
         stats = verify_result.fetchone()
-        print(f"\n📊 Assessment Statistics:")
+        print("\n📊 Assessment Statistics:")
         print(f"   Total: {stats[0]}")
         print(f"   Traditional: {stats[1]}")
         print(f"   Story: {stats[2]}")

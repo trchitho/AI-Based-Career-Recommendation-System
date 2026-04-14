@@ -1,12 +1,16 @@
 ﻿# src/api/main.py
 
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from .config import DB_URL, RETR_TABLE, MODEL_DIR, IVF_PROBES
+
+from fastapi import FastAPI
+
+from api.routes_rank import router as rank_router
+
+from .config import DB_URL, IVF_PROBES, MODEL_DIR, RETR_TABLE
+from .routes_recs import router as recs_router
 from .routes_retrieval import router as retrieval_router
 from .routes_traits import router as traits_router
-from api.routes_rank import router as rank_router
-from .routes_recs import router as recs_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,7 +25,7 @@ async def lifespan(app: FastAPI):
         print("[STARTUP] ✓ Retrieval model loaded")
         
         # Pre-load PhoBERT models for traits prediction
-        from ai_core.nlp.essay_infer import _get_riasec_model, _get_big5_model
+        from ai_core.nlp.essay_infer import _get_big5_model, _get_riasec_model
         print("[STARTUP] Loading PhoBERT RIASEC model...")
         _get_riasec_model()
         print("[STARTUP] ✓ PhoBERT RIASEC model loaded")

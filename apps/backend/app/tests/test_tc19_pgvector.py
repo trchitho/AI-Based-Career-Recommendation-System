@@ -16,9 +16,9 @@ Covers:
 """
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch, call
-import pytest
+from unittest.mock import MagicMock, patch
 
+import pytest
 
 # ──────────────────────────────────────────────────────────────
 # TC19 — SLA Constants
@@ -196,8 +196,8 @@ def test_semantic_search_sets_ef_search():
         svc.semantic_search(db, query_text="test", top_k=5, ef_search=200)
 
     # Kiểm tra SET hnsw.ef_search=200 được gọi
-    calls_sql = [str(c) for c in db.execute.call_args_list]
-    set_calls = [c for c in calls_sql if "ef_search" in c.lower() or "200" in c]
+    # calls_sql = [str(c) for c in db.execute.call_args_list]  # Unused variable removed
+    # set_calls = [c for c in calls_sql if "ef_search" in c.lower() or "200" in c]  # Unused variable removed
     # Ít nhất phải có 1 lần SET hoặc execute với ef_search
     assert db.execute.called
 
@@ -293,7 +293,7 @@ def test_hybrid_semantic_weight_0_equals_pure_riasec():
 
 def test_search_result_schema():
     """TC19.1: SearchResult phải có query, total, items, search_type."""
-    from app.modules.nlp.routes_nlp import semantic_search, SemanticSearchRequest
+    from app.modules.nlp.routes_nlp import SemanticSearchRequest, semantic_search
 
     fake_items = [
         {"career_id": "c1", "onet_code": "11-1001.00", "title": "T",
@@ -316,7 +316,7 @@ def test_search_result_schema():
 
 def test_search_result_hybrid_when_riasec_provided():
     """TC19.8: riasec=[...] → search_type='hybrid'."""
-    from app.modules.nlp.routes_nlp import semantic_search, SemanticSearchRequest
+    from app.modules.nlp.routes_nlp import SemanticSearchRequest, semantic_search
 
     fake_items = [
         {"career_id": "c1", "onet_code": "11-1001.00", "title": "T",

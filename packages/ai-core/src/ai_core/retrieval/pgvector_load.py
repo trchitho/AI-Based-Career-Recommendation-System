@@ -1,4 +1,4 @@
-﻿# src/ai_core/retrieval/pgvector_load.py
+# src/ai_core/retrieval/pgvector_load.py
 from __future__ import annotations
 
 import argparse
@@ -7,13 +7,13 @@ import os
 import re
 import unicodedata
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
 import psycopg
-from psycopg import sql
 from dotenv import load_dotenv
+from psycopg import sql
 
 # ---------- DB CONFIG ----------
 load_dotenv()
@@ -34,8 +34,8 @@ def _strip_accents(text: str) -> str:
     return "".join(ch for ch in text if not unicodedata.combining(ch))
 
 
-def build_tag_tokens(tags_vi: str) -> List[str]:
-    tokens: List[str] = []
+def build_tag_tokens(tags_vi: str) -> list[str]:
+    tokens: list[str] = []
     seen = set()
 
     if not tags_vi:
@@ -133,9 +133,7 @@ def insert_rows(conn, schema: str, table: str, rows, truncate: bool):
 
 # ---------- MAIN ----------
 def main():
-    ap = argparse.ArgumentParser(
-        description="Load jobs_vi_tagged + ViSBERT embeddings vào ai.retrieval_jobs_visbert."
-    )
+    ap = argparse.ArgumentParser(description="Load jobs_vi_tagged + ViSBERT embeddings vào ai.retrieval_jobs_visbert.")
     ap.add_argument(
         "--jobs_csv",
         type=Path,

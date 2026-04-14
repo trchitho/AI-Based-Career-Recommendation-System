@@ -2,14 +2,14 @@
 TC-IMG-11 to TC-IMG-13: OCR Edge Cases Tests
 Tests for large files, multiple images, and images without text
 """
-import pytest
-import sys
+import io
 import os
+import sys
 import time
 from typing import Dict, List
-from unittest.mock import Mock, patch, MagicMock
+
+import pytest
 from PIL import Image
-import io
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -346,7 +346,7 @@ class TestLargeFileHandling:
             print(f"     Quality: {result['quality']}")
         
         assert result['compressed_size_mb'] <= 2.0
-        print(f"  ✅ Compression with quality warning")
+        print("  ✅ Compression with quality warning")
     
     def test_progressive_compression(self):
         """TC-IMG-11.7: Progressive compression for very large files"""
@@ -430,7 +430,7 @@ class TestMultipleImagesHandling:
         
         assert page1_idx < page2_idx < page3_idx
         
-        print(f"  ✅ Page order preserved: 1 → 2 → 3")
+        print("  ✅ Page order preserved: 1 → 2 → 3")
     
     def test_extract_from_all_pages(self):
         """TC-IMG-12.4: Extract information from all pages"""
@@ -456,7 +456,7 @@ class TestMultipleImagesHandling:
         result = self.merger.merge_multiple_images(images)
         assert result['total_pages'] == 1
         
-        print(f"  ✅ Single page handled with warning")
+        print("  ✅ Single page handled with warning")
     
     def test_handle_many_pages(self):
         """TC-IMG-12.6: Handle many pages (> 10)"""
@@ -512,7 +512,7 @@ class TestNoTextDetection:
         assert result['has_text'] is True  # Size is within document range
         # In real implementation, would check actual text content
         
-        print(f"  ✅ Landscape photo processed")
+        print("  ✅ Landscape photo processed")
         print(f"     Text coverage: {result['text_coverage']*100:.1f}%")
     
     def test_detect_portrait_photo(self):
@@ -531,7 +531,7 @@ class TestNoTextDetection:
             error_message = "Không tìm thấy nội dung văn bản trong ảnh"
             print(f"  ⚠️  {error_message}")
         
-        print(f"  ✅ Portrait photo processed")
+        print("  ✅ Portrait photo processed")
     
     def test_error_message_for_no_text(self):
         """TC-IMG-13.3: Return error message for images without text"""
@@ -548,7 +548,7 @@ class TestNoTextDetection:
             error_message = "Không tìm thấy nội dung văn bản trong ảnh"
             error_detail = "Vui lòng tải lên ảnh CV hoặc tài liệu có chứa text"
             
-            print(f"  ✅ Error message generated:")
+            print("  ✅ Error message generated:")
             print(f"     {error_message}")
             print(f"     {error_detail}")
     
@@ -631,7 +631,7 @@ class TestNoTextDetection:
             error_message = "Ảnh trống, không có nội dung"
             print(f"  ⚠️  {error_message}")
         
-        print(f"  ✅ Blank image handled")
+        print("  ✅ Blank image handled")
 
 
 def run_tests():

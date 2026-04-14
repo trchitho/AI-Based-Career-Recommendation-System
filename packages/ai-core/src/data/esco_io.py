@@ -1,4 +1,4 @@
-﻿# src/data/esco_io.py
+# src/data/esco_io.py
 from __future__ import annotations
 
 import os
@@ -190,9 +190,7 @@ def load_esco_csv() -> tuple[pd.DataFrame, pd.DataFrame, dict, dict, str, str, s
     """
     occ = _strip_df_columns(read_esco_csv_robust(os.path.join(ESCO_DIR, "occupations_en.csv")))
     skills = _strip_df_columns(read_esco_csv_robust(os.path.join(ESCO_DIR, "skills_en.csv")))
-    rel = _strip_df_columns(
-        read_esco_csv_robust(os.path.join(ESCO_DIR, "occupationSkillRelations_en.csv"))
-    )
+    rel = _strip_df_columns(read_esco_csv_robust(os.path.join(ESCO_DIR, "occupationSkillRelations_en.csv")))
 
     # Xác định tên cột chính (chuẩn hoá hoa/thường/khoảng trống)
     occ_uri_col = "conceptUri" if "conceptUri" in occ.columns else occ.columns[0]
@@ -210,11 +208,7 @@ def load_esco_csv() -> tuple[pd.DataFrame, pd.DataFrame, dict, dict, str, str, s
 
     def collect_skills(df: pd.DataFrame, kind: str) -> dict:
         x = df[df[rel_type].str.lower() == kind]
-        return (
-            x.groupby(rel_occ)[rel_skill]
-            .apply(lambda s: sorted({skill_name.get(u, u) for u in s}))
-            .to_dict()
-        )
+        return x.groupby(rel_occ)[rel_skill].apply(lambda s: sorted({skill_name.get(u, u) for u in s})).to_dict()
 
     essential_map = collect_skills(rel, "essential")
     optional_map = collect_skills(rel, "optional")
@@ -234,11 +228,7 @@ def load_esco_csv() -> tuple[pd.DataFrame, pd.DataFrame, dict, dict, str, str, s
         import unicodedata
 
         s = (s or "").strip().lower()
-        s = "".join(
-            c
-            for c in unicodedata.normalize("NFKD", s)
-            if not unicodedata.category(c).startswith("M")
-        )
+        s = "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.category(c).startswith("M"))
         return " ".join(s.split())
 
     occ_small["title_norm"] = occ_small[occ_title_col].map(_normalize_title)

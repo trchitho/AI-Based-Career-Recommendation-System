@@ -2,15 +2,11 @@
 TC-IMG-01 to TC-IMG-04: OCR Testing for Image-based CVs
 Tests for OCR accuracy, image quality detection, and handwriting handling
 """
-import pytest
-import sys
 import os
-import time
-from typing import Dict, List, Tuple
-from unittest.mock import Mock, patch, MagicMock
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
-import io
-import numpy as np
+import sys
+from typing import Dict
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -228,7 +224,7 @@ class TestOCRStandardPrint:
         assert '@' in text  # Email
         assert '|' in text or '-' in text  # Separators
         
-        print(f"  ✅ Special characters handled correctly")
+        print("  ✅ Special characters handled correctly")
     
     def test_vietnamese_diacritics_ocr(self):
         """TC-IMG-01.6: OCR Vietnamese diacritics correctly"""
@@ -453,7 +449,7 @@ class TestOCRPoorQuality:
         # Should improve text extraction
         assert len(ocr_result['text']) > 0
         
-        print(f"  ✅ Noise reduced: text extracted successfully")
+        print("  ✅ Noise reduced: text extracted successfully")
     
     def test_contrast_adjustment(self):
         """TC-IMG-03.6: Adjust contrast for better OCR"""
@@ -543,7 +539,7 @@ class TestOCRHandwriting:
         
         assert has_handwriting_warning
         
-        print(f"  ✅ Handwriting detected and warned")
+        print("  ✅ Handwriting detected and warned")
     
     def test_skip_handwritten_notes(self):
         """TC-IMG-04.3: Skip handwritten notes, extract printed text"""
@@ -560,7 +556,7 @@ class TestOCRHandwriting:
         # Handwritten notes should be marked or skipped
         # (in real implementation, would filter out low-confidence text)
         
-        print(f"  ✅ Printed text extracted, handwritten notes handled")
+        print("  ✅ Printed text extracted, handwritten notes handled")
     
     def test_handwriting_confidence_threshold(self):
         """TC-IMG-04.4: Use confidence threshold to filter handwriting"""
@@ -622,11 +618,11 @@ class TestOCRHandwriting:
         )
         
         # Should have clear warning
-        warning_messages = [
-            "Phát hiện chữ viết tay trong CV",
-            "Chữ viết tay có thể không được nhận diện chính xác",
-            "Khuyến nghị: Sử dụng CV đánh máy hoặc file PDF"
-        ]
+        # warning_messages = [  # Unused variable removed
+        #     "Phát hiện chữ viết tay trong CV",
+        #     "Chữ viết tay có thể không được nhận diện chính xác",
+        #     "Khuyến nghị: Sử dụng CV đánh máy hoặc file PDF"
+        # ]
         
         # At least one warning should be present
         has_warning = len(ocr_result['warnings']) > 0

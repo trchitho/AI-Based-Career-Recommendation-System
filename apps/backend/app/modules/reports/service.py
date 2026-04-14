@@ -6,16 +6,13 @@ Computes Big5 facets and RIASEC patterns, stores snapshots in DB.
 import hashlib
 import json
 import math
-from typing import Optional, Dict, Any, List, Tuple
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
-from .models import ReportTemplate, AssessmentReport, ReportEvent
-from ..assessments.models import Assessment
-from ..users.models import User
-
+from .models import AssessmentReport, ReportEvent, ReportTemplate
 
 # ============ Heuristic Mapping Formulas ============
 # Based on Truity's Career Personality Profiler
@@ -27,132 +24,132 @@ FACET_FORMULAS = {
         "labels": {
             "innovator": {
                 "weights": {"O": 1, "C": -0.2},
-                "description": "You approach problems with creativity and flexibility, seeking novel solutions and embracing unconventional methods."
+                "description": "You approach problems with creativity and flexibility, seeking novel solutions and embracing unconventional methods.",
             },
             "humanitarian": {
                 "weights": {"A": 1, "O": 0.2},
-                "description": "You prioritize collaborative problem-solving, considering the human impact and seeking solutions that benefit all stakeholders."
+                "description": "You prioritize collaborative problem-solving, considering the human impact and seeking solutions that benefit all stakeholders.",
             },
             "caretaker": {
                 "weights": {"C": 1, "O": -0.2},
-                "description": "You prefer systematic, rule-based approaches to problems, valuing proven methods and organizational standards."
+                "description": "You prefer systematic, rule-based approaches to problems, valuing proven methods and organizational standards.",
             },
             "pragmatist": {
                 "weights": {"C": 0.3, "O": -1},
-                "description": "You focus on practical, efficient solutions that maintain stability and deliver reliable, predictable outcomes."
+                "description": "You focus on practical, efficient solutions that maintain stability and deliver reliable, predictable outcomes.",
             },
-        }
+        },
     },
     "motivation": {
         "title": "How you get motivated",
         "labels": {
             "ambitious": {
                 "weights": {"E": 1, "C": 1},
-                "description": "You are driven by achievement and recognition, setting high goals and working persistently to accomplish them."
+                "description": "You are driven by achievement and recognition, setting high goals and working persistently to accomplish them.",
             },
             "dutiful": {
                 "weights": {"C": 1, "N": -0.2},
-                "description": "You find motivation in responsibility and commitment, deriving satisfaction from fulfilling obligations reliably."
+                "description": "You find motivation in responsibility and commitment, deriving satisfaction from fulfilling obligations reliably.",
             },
             "excitable": {
                 "weights": {"E": 1, "N": 1},
-                "description": "You are energized by enthusiasm and emotional engagement, thriving in dynamic environments with varied challenges."
+                "description": "You are energized by enthusiasm and emotional engagement, thriving in dynamic environments with varied challenges.",
             },
             "casual": {
                 "weights": {"C": -1, "E": -0.2},
-                "description": "You prefer a relaxed approach to work, valuing flexibility and work-life balance over rigid goal structures."
+                "description": "You prefer a relaxed approach to work, valuing flexibility and work-life balance over rigid goal structures.",
             },
-        }
+        },
     },
     "interaction": {
         "title": "How you interact with others",
         "labels": {
             "gregarious": {
                 "weights": {"E": 1},
-                "description": "You naturally seek social connection, enjoying collaborative work and drawing energy from interpersonal interactions."
+                "description": "You naturally seek social connection, enjoying collaborative work and drawing energy from interpersonal interactions.",
             },
             "dominant": {
                 "weights": {"E": 1, "A": -1},
-                "description": "You take charge in group settings, expressing opinions confidently and preferring leadership roles in interactions."
+                "description": "You take charge in group settings, expressing opinions confidently and preferring leadership roles in interactions.",
             },
             "supportive": {
                 "weights": {"A": 1, "E": 0.2},
-                "description": "You prioritize harmony and cooperation, actively supporting others and building positive relationships."
+                "description": "You prioritize harmony and cooperation, actively supporting others and building positive relationships.",
             },
             "independent": {
                 "weights": {"E": -1, "A": -0.2},
-                "description": "You prefer autonomous work, valuing self-reliance and maintaining professional boundaries in interactions."
+                "description": "You prefer autonomous work, valuing self-reliance and maintaining professional boundaries in interactions.",
             },
-        }
+        },
     },
     "communication": {
         "title": "How you communicate",
         "labels": {
             "inspiring": {
                 "weights": {"O": 1, "E": 1},
-                "description": "You communicate with enthusiasm and creativity, using storytelling and vision to engage and motivate others."
+                "description": "You communicate with enthusiasm and creativity, using storytelling and vision to engage and motivate others.",
             },
             "informative": {
                 "weights": {"E": 1, "C": 1},
-                "description": "You deliver information clearly and systematically, ensuring your message is well-organized and actionable."
+                "description": "You deliver information clearly and systematically, ensuring your message is well-organized and actionable.",
             },
             "insightful": {
                 "weights": {"O": 1, "E": -0.2},
-                "description": "You communicate thoughtfully and reflectively, offering deep analysis and nuanced perspectives on topics."
+                "description": "You communicate thoughtfully and reflectively, offering deep analysis and nuanced perspectives on topics.",
             },
             "concise": {
                 "weights": {"C": 1, "E": -1},
-                "description": "You prefer direct, efficient communication, focusing on essential information without unnecessary elaboration."
+                "description": "You prefer direct, efficient communication, focusing on essential information without unnecessary elaboration.",
             },
-        }
+        },
     },
     "teamwork": {
         "title": "How you contribute to a team",
         "labels": {
             "cooperator": {
                 "weights": {"A": 1},
-                "description": "You prioritize team cohesion and consensus, working to maintain positive group dynamics and shared goals."
+                "description": "You prioritize team cohesion and consensus, working to maintain positive group dynamics and shared goals.",
             },
             "taskmaster": {
                 "weights": {"C": 1, "A": -0.2},
-                "description": "You focus on deliverables and accountability, ensuring the team meets objectives and maintains high standards."
+                "description": "You focus on deliverables and accountability, ensuring the team meets objectives and maintains high standards.",
             },
             "empath": {
                 "weights": {"A": 1, "O": 0.2},
-                "description": "You attune to team members' needs and emotions, fostering an inclusive environment where everyone feels valued."
+                "description": "You attune to team members' needs and emotions, fostering an inclusive environment where everyone feels valued.",
             },
             "improviser": {
                 "weights": {"O": 1, "C": -1},
-                "description": "You bring adaptability and creative thinking to teams, helping navigate unexpected challenges with flexibility."
+                "description": "You bring adaptability and creative thinking to teams, helping navigate unexpected challenges with flexibility.",
             },
-        }
+        },
     },
     "taskManagement": {
         "title": "How you manage tasks and projects",
         "labels": {
             "director": {
                 "weights": {"C": 1, "E": 0.2},
-                "description": "You take a structured leadership approach, organizing resources and guiding projects toward defined objectives."
+                "description": "You take a structured leadership approach, organizing resources and guiding projects toward defined objectives.",
             },
             "inspector": {
                 "weights": {"C": 1, "O": -1},
-                "description": "You excel at detailed oversight, ensuring quality through thorough review and adherence to established processes."
+                "description": "You excel at detailed oversight, ensuring quality through thorough review and adherence to established processes.",
             },
             "visionary": {
                 "weights": {"O": 1, "C": -0.2},
-                "description": "You focus on strategic direction and innovation, identifying opportunities and setting ambitious project visions."
+                "description": "You focus on strategic direction and innovation, identifying opportunities and setting ambitious project visions.",
             },
             "responder": {
                 "weights": {"C": -1, "E": 0.2},
-                "description": "You adapt quickly to changing circumstances, handling emerging priorities with flexibility and responsiveness."
+                "description": "You adapt quickly to changing circumstances, handling emerging priorities with flexibility and responsiveness.",
             },
-        }
+        },
     },
 }
 
 TRAIT_MAP = {
     "O": "openness",
-    "C": "conscientiousness", 
+    "C": "conscientiousness",
     "E": "extraversion",
     "A": "agreeableness",
     "N": "neuroticism",
@@ -178,21 +175,21 @@ def _softmax_normalize(raw_scores: Dict[str, float]) -> Dict[str, int]:
     """Apply softmax to convert raw scores to percentages summing to 100."""
     if not raw_scores:
         return {}
-    
+
     max_score = max(raw_scores.values())
     exp_scores = {k: math.exp(v - max_score) for k, v in raw_scores.items()}
     sum_exp = sum(exp_scores.values())
-    
+
     result = {}
     for k, exp_val in exp_scores.items():
         result[k] = round((exp_val / sum_exp) * 100)
-    
+
     # Adjust to ensure sum is exactly 100
     total = sum(result.values())
     if total != 100 and result:
         max_key = max(result, key=result.get)
-        result[max_key] += (100 - total)
-    
+        result[max_key] += 100 - total
+
     return result
 
 
@@ -200,37 +197,41 @@ def compute_facets(big5_scores: Dict[str, float]) -> List[Dict[str, Any]]:
     """Compute 6 facets with 4-quadrant percentages from Big Five scores."""
     normalized = _normalize_scores(big5_scores)
     facets = []
-    
+
     for facet_name, facet_config in FACET_FORMULAS.items():
         raw_scores = {}
         for label_name, label_config in facet_config["labels"].items():
             raw_scores[label_name] = _compute_label_raw_score(normalized, label_config["weights"])
-        
+
         percentages = _softmax_normalize(raw_scores)
-        
+
         # Find dominant
         dominant = max(percentages, key=percentages.get)
         dominant_percent = percentages[dominant]
-        
+
         labels = []
         for label_name, label_config in facet_config["labels"].items():
-            labels.append({
-                "name": label_name,
-                "percent": percentages.get(label_name, 0),
-                "description": label_config["description"],
-            })
-        
+            labels.append(
+                {
+                    "name": label_name,
+                    "percent": percentages.get(label_name, 0),
+                    "description": label_config["description"],
+                }
+            )
+
         # Sort by percent descending
         labels.sort(key=lambda x: x["percent"], reverse=True)
-        
-        facets.append({
-            "name": facet_name,
-            "title": facet_config["title"],
-            "dominant": dominant,
-            "dominant_percent": dominant_percent,
-            "labels": labels,
-        })
-    
+
+        facets.append(
+            {
+                "name": facet_name,
+                "title": facet_config["title"],
+                "dominant": dominant,
+                "dominant_percent": dominant_percent,
+                "labels": labels,
+            }
+        )
+
     return facets
 
 
@@ -248,22 +249,24 @@ def compute_scores_json(big5_scores: Dict[str, float]) -> List[Dict[str, Any]]:
     """Compute scores with percentile labels."""
     result = []
     for trait, score in big5_scores.items():
-        result.append({
-            "trait": trait,
-            "score": score,
-            "percentile_label": get_percentile_label(score),
-        })
+        result.append(
+            {
+                "trait": trait,
+                "score": score,
+                "percentile_label": get_percentile_label(score),
+            }
+        )
     return result
 
 
 def generate_narrative(big5_scores: Dict[str, float]) -> Dict[str, Any]:
     """Generate personality type narrative based on Big Five scores.
-    
+
     Uses the comprehensive personality_types module with 50+ scientifically-based types.
     Each type is determined by the combination of High/Medium/Low levels across all 5 traits.
     """
-    from .personality_types import get_personality_type, get_narrative_from_type
-    
+    from .personality_types import get_narrative_from_type, get_personality_type
+
     personality_type = get_personality_type(big5_scores)
     return get_narrative_from_type(personality_type)
 
@@ -271,15 +274,15 @@ def generate_narrative(big5_scores: Dict[str, float]) -> Dict[str, Any]:
 def generate_strengths(big5_scores: Dict[str, float]) -> List[str]:
     """Generate strengths based on Big Five scores using the personality_types module."""
     from .personality_types import get_personality_type, get_strengths_from_type
-    
+
     personality_type = get_personality_type(big5_scores)
     return get_strengths_from_type(personality_type)
 
 
 def generate_challenges(big5_scores: Dict[str, float]) -> List[str]:
     """Generate potential challenges based on Big Five scores using the personality_types module."""
-    from .personality_types import get_personality_type, get_challenges_from_type
-    
+    from .personality_types import get_challenges_from_type, get_personality_type
+
     personality_type = get_personality_type(big5_scores)
     return get_challenges_from_type(personality_type)
 
@@ -315,7 +318,7 @@ def generate_cover(user_name: Optional[str], completed_at: datetime, report_type
             "Use these insights to explore career paths that match your natural interests and to "
             "understand how your preferences compare across different occupational domains.",
         ]
-    
+
     return {
         "title": title,
         "subtitle": subtitle,
@@ -327,7 +330,7 @@ def generate_cover(user_name: Optional[str], completed_at: datetime, report_type
 
 def compute_source_hash(scores: Dict[str, float]) -> str:
     """Compute hash of input scores to detect stale reports.
-    
+
     Includes a version string to force regeneration when formulas change.
     """
     # Version bump this when formulas or logic changes to force regeneration
@@ -338,20 +341,18 @@ def compute_source_hash(scores: Dict[str, float]) -> str:
 
 class ReportService:
     """Service for generating and retrieving reports."""
-    
+
     def __init__(self, db: Session):
         self.db = db
-    
+
     def get_or_create_template(self, template_key: str, locale: str = "en") -> Optional[ReportTemplate]:
         """Get active template or create default if not exists."""
-        template = self.db.query(ReportTemplate).filter(
-            and_(
-                ReportTemplate.template_key == template_key,
-                ReportTemplate.locale == locale,
-                ReportTemplate.is_active == True
-            )
-        ).first()
-        
+        template = (
+            self.db.query(ReportTemplate)
+            .filter(and_(ReportTemplate.template_key == template_key, ReportTemplate.locale == locale, ReportTemplate.is_active))
+            .first()
+        )
+
         if not template:
             # Create default template
             template = ReportTemplate(
@@ -365,19 +366,23 @@ class ReportService:
             self.db.add(template)
             self.db.commit()
             self.db.refresh(template)
-        
+
         return template
-    
+
     def get_report(self, assessment_id: int, report_type: str, locale: str = "en") -> Optional[AssessmentReport]:
         """Get existing report for assessment."""
-        return self.db.query(AssessmentReport).filter(
-            and_(
-                AssessmentReport.assessment_id == assessment_id,
-                AssessmentReport.report_type == report_type,
-                AssessmentReport.locale == locale,
+        return (
+            self.db.query(AssessmentReport)
+            .filter(
+                and_(
+                    AssessmentReport.assessment_id == assessment_id,
+                    AssessmentReport.report_type == report_type,
+                    AssessmentReport.locale == locale,
+                )
             )
-        ).first()
-    
+            .first()
+        )
+
     def get_or_create_report(
         self,
         user_id: int,
@@ -392,19 +397,19 @@ class ReportService:
         """Get existing report or create new one."""
         # Check for existing report
         existing = self.get_report(assessment_id, report_type, locale)
-        
+
         # Check if scores changed (stale check)
         source_hash = compute_source_hash(scores)
         if existing and existing.source_hash == source_hash:
             return existing
-        
+
         # Get or create template
         template_key = "big5_v1" if report_type == "big5" else "riasec_v1"
         template = self.get_or_create_template(template_key, locale)
-        
+
         if not template:
             raise ValueError(f"No template found for {template_key}")
-        
+
         # Compute report data
         if report_type == "big5":
             facets = compute_facets(scores)
@@ -419,9 +424,9 @@ class ReportService:
             narrative = {"type_name": "RIASEC Profile", "type_description": "Your career interest profile", "paragraphs": []}
             strengths = []
             challenges = []
-        
+
         cover = generate_cover(user_name, completed_at or datetime.utcnow(), report_type)
-        
+
         if existing:
             # Generate pages_json for update
             pages_json = []
@@ -440,7 +445,7 @@ class ReportService:
                     {"page_no": 1, "page_key": "riasec-cover", "title": "Cover"},
                     {"page_no": 2, "page_key": "riasec-content", "title": "Interest Pattern & Scores"},
                 ]
-            
+
             # Update existing report
             existing.source_hash = source_hash
             existing.computed_at = datetime.utcnow()
@@ -474,7 +479,7 @@ class ReportService:
                     {"page_no": 1, "page_key": "riasec-cover", "title": "Cover"},
                     {"page_no": 2, "page_key": "riasec-content", "title": "Interest Pattern & Scores"},
                 ]
-            
+
             # Create new report
             report = AssessmentReport(
                 user_id=user_id,
@@ -498,7 +503,7 @@ class ReportService:
             self.db.commit()
             self.db.refresh(report)
             return report
-    
+
     def log_event(
         self,
         user_id: int,
@@ -513,9 +518,9 @@ class ReportService:
         meta: Optional[Dict[str, Any]] = None,
     ) -> Optional[ReportEvent]:
         """Log a report viewing event.
-        
+
         Idempotent: if event_uuid already exists, skip insert and return None.
-        
+
         Args:
             user_id: User ID
             assessment_id: Assessment ID
@@ -527,18 +532,16 @@ class ReportService:
             page_no: Page number for page_view events
             page_key: Page key (e.g., 'cover', 'summary', 'facets-1')
             meta: Additional metadata (never null)
-            
+
         Returns:
             ReportEvent if created, None if duplicate event_uuid
         """
         # Check for duplicate event_uuid
         if event_uuid:
-            existing = self.db.query(ReportEvent).filter(
-                ReportEvent.event_uuid == event_uuid
-            ).first()
+            existing = self.db.query(ReportEvent).filter(ReportEvent.event_uuid == event_uuid).first()
             if existing:
                 return None  # Skip duplicate
-        
+
         event = ReportEvent(
             event_uuid=event_uuid,
             user_id=user_id,

@@ -2,9 +2,10 @@
 Graph Analyzer - Giai đoạn 2
 Truy vấn database để lấy yêu cầu kỹ năng và so sánh với CV
 """
-from typing import List, Dict, Set
-from sqlalchemy.orm import Session
+from typing import Dict, List
+
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 
 class SkillGraphAnalyzer:
@@ -70,7 +71,7 @@ class SkillGraphAnalyzer:
             return []
         
         try:
-            from app.modules.content.models import CareerKSA, Career
+            from app.modules.content.models import Career, CareerKSA
             
             # Map common career names to database slugs
             career_mapping = {
@@ -473,7 +474,7 @@ class SkillGraphAnalyzer:
         matched_cv_skills = {detail['name'].lower() for detail in matched_details}
         extra_skills = cv_skill_names - matched_cv_skills
         
-        print(f"  ✅ [Gap Analysis] Complete:")
+        print("  ✅ [Gap Analysis] Complete:")
         print(f"     - Match percentage: {match_percentage:.1f}%")
         print(f"     - Critical gaps: {len(critical_gaps)}")
         print(f"     - Important gaps: {len(important_gaps)}")
@@ -528,7 +529,7 @@ class SkillGraphAnalyzer:
         print(f"\n🎯 [Gap Analysis Pipeline] Analyzing for career: {career_id}")
         
         # Step 1: Get job requirements
-        print(f"  [1/3] Querying job requirements...")
+        print("  [1/3] Querying job requirements...")
         job_skills = self.get_job_required_skills(career_id)
         
         if not job_skills:
@@ -539,7 +540,7 @@ class SkillGraphAnalyzer:
             }
         
         # Step 2: Try AI semantic matching first
-        print(f"  [2/4] Attempting AI semantic skill matching...")
+        print("  [2/4] Attempting AI semantic skill matching...")
         
         # Get career name for AI context
         career_name = career_id.replace('-', ' ').title()
@@ -559,23 +560,23 @@ class SkillGraphAnalyzer:
         ai_result = self.ai_semantic_skill_matching(cv_skills, job_skills, career_name)
         
         # Step 3: Perform gap analysis (use AI results if available)
-        print(f"  [3/4] Performing gap analysis...")
+        print("  [3/4] Performing gap analysis...")
         if ai_result:
             # Use AI semantic matching results
             analysis = self._build_analysis_from_ai(ai_result, cv_skills, job_skills)
         else:
             # Fallback to traditional matching
-            print(f"  ⚠️ AI matching unavailable, using traditional matching")
+            print("  ⚠️ AI matching unavailable, using traditional matching")
             analysis = self.calculate_skill_match(cv_skills, job_skills)
         
         analysis['career_id'] = career_id
         
         # Step 4: Generate insights
-        print(f"  [4/4] Generating insights...")
+        print("  [4/4] Generating insights...")
         insights = self._generate_insights(analysis)
         analysis['insights'] = insights
         
-        print(f"✅ [Gap Analysis Pipeline] Complete!\n")
+        print("✅ [Gap Analysis Pipeline] Complete!\n")
         
         return analysis
     
@@ -591,7 +592,7 @@ class SkillGraphAnalyzer:
         Returns:
             Dict: Analysis in standard format
         """
-        print(f"  🤖 Building analysis from AI semantic matching...")
+        print("  🤖 Building analysis from AI semantic matching...")
         
         # Get matched pairs from AI
         matched_pairs = ai_result.get('matched_pairs', [])
@@ -666,7 +667,7 @@ class SkillGraphAnalyzer:
                     'source': cv_skill.get('source', 'unknown')
                 })
         
-        print(f"  ✅ AI Analysis built:")
+        print("  ✅ AI Analysis built:")
         print(f"     - Match percentage: {match_percentage:.1f}%")
         print(f"     - Matched skills: {len(matched_skills)}")
         print(f"     - Critical gaps: {len(critical_gaps)}")

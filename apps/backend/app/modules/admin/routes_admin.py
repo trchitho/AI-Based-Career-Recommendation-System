@@ -3,33 +3,29 @@ import importlib.util as _importlib_util
 import json
 import logging
 import secrets
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from io import StringIO
 from pathlib import Path
 from typing import Any, Mapping
 
+from app.core.db import get_db
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import (
-    TIMESTAMP,
-    BigInteger,
-    Column,
-    Integer,
-    Text,
+    MetaData,
+    Table,
     case,
     func,
     or_,
     select,
     text,
-    Table,
-    MetaData,
 )
-from sqlalchemy.orm import Session, registry
-from app.core.db import get_db
+from sqlalchemy.orm import Session
 
 from ...core.jwt import require_admin
-from ..assessments.models import Assessment, AssessmentForm, AssessmentQuestion
-from ..content.models import BlogPost, Career, CareerKSA, CareerInterest, CareerOverview, BlogComment as Comment
+from ..assessments.models import AssessmentForm, AssessmentQuestion
+from ..content.models import BlogComment as Comment
+from ..content.models import BlogPost, Career, CareerInterest, CareerKSA, CareerOverview
 from ..system.models import AppSettings
 from ..users.models import User
 
@@ -436,7 +432,6 @@ def ai_metrics(request: Request):
         # 9. Real avg_processing_time: average gap (seconds) between session created_at
         #    and the RIASEC assessment created_at (proxy for completion time)
         try:
-            from ..assessments.models import AssessmentSession
             time_result = session.execute(text("""
                 SELECT AVG(EXTRACT(EPOCH FROM (a.created_at - s.created_at)))
                 FROM core.assessments a
@@ -781,13 +776,13 @@ def user_feedback(
         try:
             start_dt = datetime.fromisoformat(startDate.replace('Z', '+00:00'))
             stmt = stmt.where(UserFeedback.created_at >= start_dt)
-        except:
+        except Exception:
             pass
     if endDate:
         try:
             end_dt = datetime.fromisoformat(endDate.replace('Z', '+00:00'))
             stmt = stmt.where(UserFeedback.created_at <= end_dt)
-        except:
+        except Exception:
             pass
     
     rows = session.execute(stmt.order_by(UserFeedback.created_at.desc()).limit(200)).all()
@@ -2421,14 +2416,14 @@ def get_sync_stats(request: Request):
             onet_count = session.execute(text(
                 "SELECT COUNT(*) FROM core.careers WHERE source = 'onet'"
             )).scalar() or 0
-        except:
+        except Exception:
             pass
         
         try:
             esco_count = session.execute(text(
                 "SELECT COUNT(*) FROM core.careers WHERE source = 'esco'"
             )).scalar() or 0
-        except:
+        except Exception:
             pass
         
         try:
@@ -2438,7 +2433,7 @@ def get_sync_stats(request: Request):
                 ORDER BY completed_at DESC LIMIT 1
             """)).scalar()
             last_sync = _iso_or_none(last_sync_result)
-        except:
+        except Exception:
             pass
         
         return {
@@ -2908,7 +2903,7 @@ async def get_cv_documents(
 ):
     """Admin: List all uploaded CV documents with R2 URLs"""
     from app.modules.skill_gap.models import SkillGapAnalysis
-    from sqlalchemy import or_, desc
+    from sqlalchemy import desc, or_
 
     try:
         query = db.query(

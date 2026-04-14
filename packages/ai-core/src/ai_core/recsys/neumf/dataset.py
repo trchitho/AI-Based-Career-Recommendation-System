@@ -1,7 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Tuple, List, Any
+from typing import Any
 
 import numpy as np
 import torch
@@ -33,11 +33,13 @@ def _flatten_user_feat(meta: Any) -> np.ndarray:
         text = meta.get("text") or []
         riasec = meta.get("riasec") or []
         big5 = meta.get("big5") or []
+
         # đảm bảo là list float
         def _to_float_list(x):
             if isinstance(x, (list, tuple, np.ndarray)):
                 return [float(v) for v in x]
             return []
+
         vec = _to_float_list(text) + _to_float_list(riasec) + _to_float_list(big5)
         return np.array(vec, dtype="float32")
 
@@ -61,10 +63,12 @@ def _flatten_item_feat(meta: Any) -> np.ndarray:
     if isinstance(meta, dict):
         text = meta.get("text") or []
         riasec = meta.get("riasec") or []
+
         def _to_float_list(x):
             if isinstance(x, (list, tuple, np.ndarray)):
                 return [float(v) for v in x]
             return []
+
         vec = _to_float_list(text) + _to_float_list(riasec)
         return np.array(vec, dtype="float32")
 
@@ -80,9 +84,9 @@ class PairDataset(Dataset):
 
     def __init__(
         self,
-        pairs: List[Tuple[str, str, float]],
-        user_feats: Dict[str, Any],
-        item_feats: Dict[str, Any],
+        pairs: list[tuple[str, str, float]],
+        user_feats: dict[str, Any],
+        item_feats: dict[str, Any],
     ):
         self.pairs = [Interaction(*p) for p in pairs]
         self.user_feats = user_feats

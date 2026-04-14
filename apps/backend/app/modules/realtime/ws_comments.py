@@ -1,7 +1,9 @@
-from typing import Dict, Set
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from ...core.jwt import decode_token
 import json
+from typing import Dict, Set
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+from ...core.jwt import decode_token
 
 router = APIRouter()
 

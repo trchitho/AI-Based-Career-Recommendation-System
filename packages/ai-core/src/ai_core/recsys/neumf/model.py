@@ -1,4 +1,4 @@
-﻿# src/ai_core/recsys/neumf/model.py
+# src/ai_core/recsys/neumf/model.py
 from __future__ import annotations
 
 import torch

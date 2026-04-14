@@ -23,11 +23,14 @@
     "page-flip": "^2.0.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.6.0",
     "react-i18next": "^16.1.0",
     "react-pageflip": "^2.0.3",
     "react-router-dom": "^6.30.3",
     "recharts": "^2.15.4",
-    "socket.io-client": "^4.6.0"
+    "socket.io-client": "^4.6.0",
+    "jspdf": "^2.5.1",
+    "html2canvas": "^1.4.1"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",
@@ -44,7 +47,7 @@
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.3.3",
-    "vite": "^5.0.8",
-    "vitest": "^1.0.4"
+    "vite": "^5.4.10",
+    "vitest": "^2.1.8"
   }
 }

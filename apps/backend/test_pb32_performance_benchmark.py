@@ -13,28 +13,22 @@ Benchmark Coverage:
 6. Error Rate Analysis
 """
 
-import asyncio
 import concurrent.futures
 import json
-import time
-import statistics
-import psutil
-import threading
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
-import sys
 import os
+import statistics
+import sys
+import time
+from dataclasses import dataclass
+from typing import Dict, List, Optional
+
+import psutil
 
 # Add the app directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
-from app.modules.nlp.service_nlp import (
-    analyze_essay,
-    _analyze_via_aicore,
-    _analyze_via_gemini,
-    get_embedding,
-    AI_CORE_URL
-)
+from app.modules.nlp.service_nlp import AI_CORE_URL, _analyze_via_aicore, _analyze_via_gemini
+
 
 @dataclass
 class BenchmarkResult:
@@ -330,7 +324,7 @@ class PerformanceBenchmark:
         print("📊 BENCHMARK ANALYSIS")
         print("=" * 60)
         
-        print(f"📈 Overall Statistics:")
+        print("📈 Overall Statistics:")
         print(f"   Total tests: {analysis.get('total_tests', 0)}")
         print(f"   Successful: {analysis.get('successful_tests', 0)}")
         print(f"   Failed: {analysis.get('failed_tests', 0)}")
@@ -339,7 +333,7 @@ class PerformanceBenchmark:
         # PhoBERT results
         if "phobert" in analysis:
             pb = analysis["phobert"]
-            print(f"\n🤖 PhoBERT (AI-core) Results:")
+            print("\n🤖 PhoBERT (AI-core) Results:")
             print(f"   Success rate: {pb['success_rate']:.2%} ({pb['successful_tests']}/{pb['total_tests']})")
             print(f"   Avg response time: {pb['avg_response_time_ms']:.1f}ms")
             print(f"   Response time range: {pb['min_response_time_ms']:.1f}ms - {pb['max_response_time_ms']:.1f}ms")
@@ -350,7 +344,7 @@ class PerformanceBenchmark:
         # Gemini results
         if "gemini" in analysis:
             gm = analysis["gemini"]
-            print(f"\n🔮 Gemini API Results:")
+            print("\n🔮 Gemini API Results:")
             print(f"   Success rate: {gm['success_rate']:.2%} ({gm['successful_tests']}/{gm['total_tests']})")
             print(f"   Avg response time: {gm['avg_response_time_ms']:.1f}ms")
             print(f"   Response time range: {gm['min_response_time_ms']:.1f}ms - {gm['max_response_time_ms']:.1f}ms")
@@ -361,14 +355,14 @@ class PerformanceBenchmark:
         # Comparison
         if "comparison" in analysis:
             comp = analysis["comparison"]
-            print(f"\n⚡ Performance Comparison:")
+            print("\n⚡ Performance Comparison:")
             print(f"   Speed winner: {comp['speed_winner'].upper()}")
             print(f"   Speed difference: {comp['speed_difference_ms']:.1f}ms")
             print(f"   Performance improvement: {comp['speed_improvement_pct']:.1f}%")
         
         # Errors
         if "errors" in analysis:
-            print(f"\n❌ Error Analysis:")
+            print("\n❌ Error Analysis:")
             for error, count in analysis["errors"].items():
                 print(f"   {error}: {count} occurrences")
     
@@ -418,7 +412,7 @@ def main():
     report_file = benchmark.save_benchmark_report(results)
     
     # Print final summary
-    print(f"\n🎯 BENCHMARK COMPLETED")
+    print("\n🎯 BENCHMARK COMPLETED")
     print(f"   Report saved to: {report_file}")
     print(f"   AI-core URL: {AI_CORE_URL}")
     

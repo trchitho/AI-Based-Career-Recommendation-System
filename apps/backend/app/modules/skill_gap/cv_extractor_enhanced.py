@@ -3,8 +3,9 @@ Enhanced CV Extractor - Improved extraction for TC-CV-04 to TC-CV-07
 Provides better personal info, skills, and experience extraction
 """
 import re
-from typing import Dict, List, Tuple, Optional
 from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
 from dateutil import parser as date_parser
 
 
@@ -389,7 +390,7 @@ class EnhancedCVExtractor:
             dt = date_parser.parse(date_str, fuzzy=True)
             return dt.strftime('%Y-%m')
             
-        except:
+        except Exception:
             return None
     
     @staticmethod
@@ -404,5 +405,5 @@ class EnhancedCVExtractor:
             
             months = (end.year - start.year) * 12 + (end.month - start.month)
             return max(0, months)
-        except:
+        except Exception:
             return 0

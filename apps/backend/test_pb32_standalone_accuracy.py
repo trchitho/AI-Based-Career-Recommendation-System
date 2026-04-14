@@ -13,25 +13,24 @@ Test Coverage:
 """
 
 import json
-import time
-import statistics
-import requests
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
-import sys
 import os
+import statistics
+import sys
+import time
+from dataclasses import dataclass
+from typing import Dict, List, Tuple
 
 # Add the app directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
 try:
     from app.modules.nlp.service_nlp import (
-        analyze_essay,
-        get_embedding,
+        AI_CORE_URL,
+        ESSAY_ANALYSIS_SLA_MS,
         _analyze_via_aicore,
         _analyze_via_gemini,
-        AI_CORE_URL,
-        ESSAY_ANALYSIS_SLA_MS
+        analyze_essay,
+        get_embedding,
     )
     
     RIASEC_KEYS = ["realistic", "investigative", "artistic", "social", "enterprising", "conventional"]
@@ -259,13 +258,13 @@ class StandaloneAccuracyTester:
         try:
             result = _analyze_via_aicore("Test text", "vi")
             ai_core_available = result is not None
-        except:
+        except Exception:
             ai_core_available = False
         
         try:
             result = _analyze_via_gemini("Test text")
             gemini_available = result.get('source') == 'gemini'
-        except:
+        except Exception:
             gemini_available = False
         
         return ai_core_available, gemini_available
@@ -419,7 +418,7 @@ def main():
     # Print final summary
     if "error" not in results:
         summary = results.get("summary", {})
-        print(f"\n🎯 FINAL SUMMARY:")
+        print("\n🎯 FINAL SUMMARY:")
         print(f"   Overall Accuracy: {summary.get('overall_accuracy', 0):.2%}")
         print(f"   Performance Grade: {summary.get('performance_grade', 'Unknown')}")
         print(f"   Tests Passed: {summary.get('successful_tests', 0)}/{summary.get('total_tests', 0)}")

@@ -1,10 +1,10 @@
+import secrets
 from typing import Dict
 
 from sqlalchemy.orm import Session
 
 from ...core.email_utils import build_verify_url, send_email
-from .token_utils import issue_token, issue_token_with_value, mark_all_tokens_used
-import secrets
+from .token_utils import issue_token_with_value, mark_all_tokens_used
 
 DEFAULT_VERIFY_MINUTES = 60
 

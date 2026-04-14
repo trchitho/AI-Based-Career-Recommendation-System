@@ -18,10 +18,9 @@ Covers:
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
+
 import pytest
-
 from app.modules.recommendation.service import RecService
-
 
 # ──────────────────────────────────────────────────────────────
 # Helpers
@@ -46,7 +45,7 @@ def _make_job(onet: str, tags: list, score: float):
 
 def test_primary_tag_first_char():
     """TC10.6: Primary dimension là ký tự đầu tiên của tag."""
-    svc = RecService()
+    # svc = RecService()  # Unused variable removed
     dims = ["R", "I", "A", "S", "E", "C"]
 
     def get_primary_dim(tag):

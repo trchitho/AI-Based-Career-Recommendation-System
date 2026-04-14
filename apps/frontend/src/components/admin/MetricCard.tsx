@@ -14,8 +14,8 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, icon, t
     <div
       className="
         rounded-xl shadow p-6 
-        bg-gray-50 dark:bg-[#0F172A] 
-        border border-gray-200 dark:border-[#1E293B]
+        bg-gray-50 dark:bg-admin-dark-bg 
+        border border-gray-200 dark:border-admin-dark-card
       "
     >
       <div className="flex items-center justify-between">
@@ -43,8 +43,8 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, icon, t
             <div className="mt-2 flex items-center">
               <span
                 className={`text-sm font-medium ${trend.isPositive
-                    ? "text-green-600"
-                    : "text-red-500"
+                  ? "text-green-600"
+                  : "text-red-500"
                   }`}
               >
                 {trend.isPositive ? "↑" : "↓"} {Math.abs(trend.value)}%

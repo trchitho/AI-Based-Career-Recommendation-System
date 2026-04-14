@@ -1,17 +1,19 @@
 # apps/backend/app/services/onet_client_v2.py
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional
-import httpx
 import importlib
 import importlib.util
 import time
+from typing import Any, Dict, Iterable, List, Optional
+
+import httpx
 
 # Prefer loguru if installed; otherwise fallback to stdlib logging
 if importlib.util.find_spec("loguru") is not None:
     logger = importlib.import_module("loguru").logger  # type: ignore[attr-defined]
 else:
     import logging
+
     logger = logging.getLogger(__name__)
     if not logger.handlers:
         logging.basicConfig(level=logging.INFO)
@@ -21,6 +23,7 @@ from app.core.config import settings
 
 class OnetV2Error(RuntimeError):
     pass
+
 
 class OnetV2Client:
     def __init__(self, api_key: str | None = None, base_url: str | None = None, timeout: int | None = None):
@@ -49,12 +52,8 @@ class OnetV2Client:
                     resp.raise_for_status()
                 return resp.json()
             except (httpx.HTTPError, ValueError) as exc:
-                logger.warning(
-                    f"O*NET v2 RequestError (attempt {attempt+1}/3) "
-                    f"for {url}: {exc}"
-                )
+                logger.warning(f"O*NET v2 RequestError (attempt {attempt + 1}/3) for {url}: {exc}")
         raise RuntimeError(f"O*NET v2: failed GET {url} after retries")
-
 
     # ---- Generic helpers -------------------------------------------------
 
@@ -72,9 +71,7 @@ class OnetV2Client:
                 resp.raise_for_status()
                 return resp.json()
             except httpx.ReadTimeout as e:
-                logger.warning(
-                    f"O*NET v2 ReadTimeout (attempt {attempt}/{max_attempts}) for {url}"
-                )
+                logger.warning(f"O*NET v2 ReadTimeout (attempt {attempt}/{max_attempts}) for {url}")
                 if attempt == max_attempts:
                     raise OnetV2Error(f"ReadTimeout when calling {url}") from e
                 time.sleep(backoff_base * attempt)
@@ -84,13 +81,10 @@ class OnetV2Client:
                 raise OnetV2Error(f"Request failed: {e}") from e
             except httpx.RequestError as e:
                 # Lỗi mạng khác (ConnectionError, etc.) → cho retry
-                logger.warning(
-                    f"O*NET v2 RequestError (attempt {attempt}/{max_attempts}) for {url}: {e}"
-                )
+                logger.warning(f"O*NET v2 RequestError (attempt {attempt}/{max_attempts}) for {url}: {e}")
                 if attempt == max_attempts:
                     raise OnetV2Error(f"Request error when calling {url}") from e
                 time.sleep(backoff_base * attempt)
-
 
     # ---- Database Services -----------------------------------------------
 
@@ -111,7 +105,7 @@ class OnetV2Client:
             "end": end,
         }
         for i, f in enumerate(filters or []):
-            params[f"filter{i+1}"] = f
+            params[f"filter{i + 1}"] = f
 
         # v2 host, path giữ pattern /database/rows/... như docs
         data = self._get(f"database/rows/{table_id}", params=params)

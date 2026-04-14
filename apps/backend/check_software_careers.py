@@ -45,7 +45,7 @@ for slug, title_en, onet_code, short_desc_en in careers:
     if short_desc_en:
         print(f"   Mô tả: {short_desc_en[:100]}...")
     else:
-        print(f"   Mô tả: (không có)")
+        print("   Mô tả: (không có)")
     
     # Count skills for this career
     cursor.execute("""

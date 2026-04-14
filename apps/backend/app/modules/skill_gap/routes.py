@@ -1,19 +1,15 @@
 """
 API Routes for Skill Gap Analysis
 """
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Form, Request
-from sqlalchemy.orm import Session
-from typing import List, Any
+from typing import Any, List
 
 from app.core.db import get_db
-from app.modules.users.models import User
 from app.modules.graph.neo4j_client import get_driver
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from sqlalchemy.orm import Session
 
+from .schemas import HeatmapData, SkillGapAnalysisResponse
 from .service import SkillGapService
-from .schemas import (
-    SkillGapAnalysisResponse,
-    HeatmapData
-)
 
 router = APIRouter(tags=["Skill Gap Analysis"])
 
@@ -148,7 +144,7 @@ def _current_user_id(req: Request) -> int:
         if hdr:
             try:
                 uid = int(hdr)
-            except:
+            except Exception:
                 pass
     
     # 4) Decode JWT token (fallback)
@@ -173,9 +169,9 @@ def _current_user_id(req: Request) -> int:
                     if uid:
                         try:
                             uid = int(uid)
-                        except:
+                        except Exception:
                             pass
-            except:
+            except Exception:
                 pass
     
     if uid is None:
@@ -610,7 +606,8 @@ Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
         raw = stream.generate_content_with_retry(prompt, max_output_tokens=3000, temperature=0.4)
 
         if raw:
-            import re, json as _json
+            import json as _json
+            import re
             cleaned = raw.strip()
             cleaned = re.sub(r'^```(?:json)?', '', cleaned).rstrip('`').strip()
             m = re.search(r'\{.*\}', cleaned, re.DOTALL)

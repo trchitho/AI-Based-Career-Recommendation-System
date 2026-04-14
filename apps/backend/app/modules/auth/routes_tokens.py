@@ -4,9 +4,9 @@ from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session as ORMSession
 
-from ..users.models import User
 from ...core.email_utils import send_email
 from ...core.email_verifier import is_deliverable_email
+from ..users.models import User
 from .token_utils import AuthToken, get_valid_token, issue_token
 from .verification import DEFAULT_VERIFY_MINUTES, send_verification_email
 
@@ -56,7 +56,10 @@ def request_verify(request: Request, payload: dict):
     if not info.get("sent") and not info.get("dev_mode"):
         raise HTTPException(
             status_code=500,
-            detail=f"Unable to send verification email at this time. Please try again later or contact support. ({info.get('error')})",
+            detail=(
+                f"Unable to send verification email at this time. "
+                f"Please try again later or contact support. ({info.get('error')})"
+            ),
         )
     return {
         "status": "ok",

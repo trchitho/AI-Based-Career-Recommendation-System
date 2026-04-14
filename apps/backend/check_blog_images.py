@@ -1,8 +1,9 @@
 """
 Check blog post images in database
 """
-import psycopg2
 import os
+
+import psycopg2
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -72,7 +73,7 @@ def check_blog_images():
         stats = cursor.fetchone()
         total, with_images, with_valid = stats
         
-        print(f"\n📈 Statistics:")
+        print("\n📈 Statistics:")
         print(f"Total posts: {total}")
         print(f"Posts with featured_image field: {with_images}")
         print(f"Posts with valid image URLs: {with_valid}")

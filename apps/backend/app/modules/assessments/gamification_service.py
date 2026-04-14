@@ -2,16 +2,12 @@
 Gamification service - handles XP, levels, achievements
 Completely separate from assessment scoring logic
 """
-from typing import Optional, Dict, Any
-from sqlalchemy.orm import Session
-from sqlalchemy import select
 from datetime import datetime
+from typing import Any, Dict, Optional
 
-from .gamification_models import (
-    UserGamificationProfile,
-    AssessmentGamificationSession,
-    UserAchievement
-)
+from sqlalchemy.orm import Session
+
+from .gamification_models import AssessmentGamificationSession, UserAchievement, UserGamificationProfile
 
 
 class GamificationService:

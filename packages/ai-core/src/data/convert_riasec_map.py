@@ -1,4 +1,4 @@
-﻿# src/data/convert_riasec_map.py
+# src/data/convert_riasec_map.py
 import argparse
 import csv
 import difflib
@@ -93,9 +93,7 @@ def convert(
 
 
 def main():
-    ap = argparse.ArgumentParser(
-        description="Convert RIASEC map keyed by title → map keyed by job_id."
-    )
+    ap = argparse.ArgumentParser(description="Convert RIASEC map keyed by title → map keyed by job_id.")
     ap.add_argument(
         "--jobs_csv",
         type=Path,
@@ -127,9 +125,7 @@ def main():
     )
     args = ap.parse_args()
 
-    count, misses = convert(
-        args.jobs_csv, args.map_in, args.map_out, fuzzy=args.fuzzy, fuzzy_cutoff=args.fuzzy_cutoff
-    )
+    count, misses = convert(args.jobs_csv, args.map_in, args.map_out, fuzzy=args.fuzzy, fuzzy_cutoff=args.fuzzy_cutoff)
     print(f"[OK] Wrote {args.map_out} with {count} entries")
 
     if misses:

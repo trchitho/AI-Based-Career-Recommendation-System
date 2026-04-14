@@ -1,4 +1,4 @@
-﻿# src/data/merge_tag_vocab.py
+# src/data/merge_tag_vocab.py
 import json
 import re
 from pathlib import Path

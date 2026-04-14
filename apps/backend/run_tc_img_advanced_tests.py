@@ -2,8 +2,8 @@
 Runner script for TC-IMG-05 to TC-IMG-07 tests
 Execute advanced OCR feature tests
 """
-import sys
 import os
+import sys
 
 # Add current directory to path
 sys.path.insert(0, os.path.dirname(__file__))

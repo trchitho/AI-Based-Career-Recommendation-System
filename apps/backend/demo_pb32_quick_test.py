@@ -10,23 +10,23 @@ Demo này sẽ:
 4. Đo thời gian phản hồi
 """
 
-import sys
-import os
-import time
 import json
+import os
+import sys
+import time
 
 # Add the app directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
 try:
     from app.modules.nlp.service_nlp import (
-        analyze_essay,
+        AI_CORE_URL,
+        BIG5_KEYS,
+        RIASEC_KEYS,
         _analyze_via_aicore,
         _analyze_via_gemini,
+        analyze_essay,
         get_embedding,
-        AI_CORE_URL,
-        RIASEC_KEYS,
-        BIG5_KEYS
     )
 except ImportError as e:
     print(f"❌ Import error: {e}")
@@ -41,14 +41,14 @@ def test_service_availability():
     try:
         result = _analyze_via_aicore("Test text", "vi")
         ai_core_available = result is not None
-    except:
+    except Exception:
         ai_core_available = False
     
     # Test Gemini
     try:
         result = _analyze_via_gemini("Test text")
         gemini_available = result.get('source') == 'gemini'
-    except:
+    except Exception:
         gemini_available = False
     
     print(f"  AI-core ({AI_CORE_URL}): {'✅ Available' if ai_core_available else '❌ Unavailable'}")
@@ -78,7 +78,7 @@ def run_quick_demo():
     print(f"'{demo_text[:100]}...'")
     
     # Analyze the text
-    print(f"\n🤖 Analyzing with PhoBERT NLP...")
+    print("\n🤖 Analyzing with PhoBERT NLP...")
     
     start_time = time.perf_counter()
     result = analyze_essay(demo_text, "vi")
@@ -94,7 +94,7 @@ def run_quick_demo():
     # Display RIASEC results
     riasec_scores = result.get('riasec', [])
     if riasec_scores and len(riasec_scores) == 6:
-        print(f"\n📊 RIASEC Scores (0-1 scale):")
+        print("\n📊 RIASEC Scores (0-1 scale):")
         for i, (key, score) in enumerate(zip(RIASEC_KEYS, riasec_scores)):
             percentage = score * 100
             bar = "█" * int(percentage / 5) + "░" * (20 - int(percentage / 5))
@@ -108,7 +108,7 @@ def run_quick_demo():
     # Display Big Five results
     big5_scores = result.get('big5', [])
     if big5_scores and len(big5_scores) == 5:
-        print(f"\n📊 Big Five Scores (0-1 scale):")
+        print("\n📊 Big Five Scores (0-1 scale):")
         for i, (key, score) in enumerate(zip(BIG5_KEYS, big5_scores)):
             percentage = score * 100
             bar = "█" * int(percentage / 5) + "░" * (20 - int(percentage / 5))
@@ -129,12 +129,12 @@ def run_quick_demo():
     # Display traits (if available)
     traits_vi = result.get('traits_vi', [])
     if traits_vi:
-        print(f"\n🎯 Personality traits (Vietnamese):")
+        print("\n🎯 Personality traits (Vietnamese):")
         for trait in traits_vi[:3]:  # Show first 3 traits
             print(f"   • {trait}")
     
     # Performance assessment
-    print(f"\n📈 Performance Assessment:")
+    print("\n📈 Performance Assessment:")
     
     if response_time < 1000:
         print(f"   ✅ Excellent response time ({response_time:.1f}ms < 1000ms)")
@@ -144,17 +144,17 @@ def run_quick_demo():
         print(f"   🔴 Slow response time ({response_time:.1f}ms > 2000ms)")
     
     if riasec_scores and all(0 <= score <= 1 for score in riasec_scores):
-        print(f"   ✅ RIASEC scores properly normalized (0-1 range)")
+        print("   ✅ RIASEC scores properly normalized (0-1 range)")
     else:
-        print(f"   ❌ RIASEC scores not properly normalized")
+        print("   ❌ RIASEC scores not properly normalized")
     
     if big5_scores and all(0 <= score <= 1 for score in big5_scores):
-        print(f"   ✅ Big Five scores properly normalized (0-1 range)")
+        print("   ✅ Big Five scores properly normalized (0-1 range)")
     else:
-        print(f"   ❌ Big Five scores not properly normalized")
+        print("   ❌ Big Five scores not properly normalized")
     
     if embedding and len(embedding) == 768:
-        print(f"   ✅ Embedding has correct dimension (768D)")
+        print("   ✅ Embedding has correct dimension (768D)")
     else:
         print(f"   ❌ Embedding dimension incorrect ({len(embedding)}D, expected 768D)")
     
@@ -175,8 +175,8 @@ def run_quick_demo():
     with open("pb32_demo_result.json", "w", encoding="utf-8") as f:
         json.dump(demo_result, f, indent=2, ensure_ascii=False)
     
-    print(f"\n📄 Demo result saved to: pb32_demo_result.json")
-    print(f"\n🎉 Demo completed successfully!")
+    print("\n📄 Demo result saved to: pb32_demo_result.json")
+    print("\n🎉 Demo completed successfully!")
     
     return True
 

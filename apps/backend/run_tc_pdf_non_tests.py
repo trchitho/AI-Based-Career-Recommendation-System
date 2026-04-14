@@ -6,6 +6,7 @@ Executes all non-CV PDF detection test cases
 import subprocess
 import sys
 
+
 def main():
     print("="*80)
     print("🧪 RUNNING TC-PDF-NON-01 to TC-PDF-NON-04 TESTS")

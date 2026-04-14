@@ -1,8 +1,8 @@
 import datetime as dt
 
+from app.core.security import hash_password, verify_password
 from flask_jwt_extended import create_access_token
 
-from app.core.security import hash_password, verify_password
 from .models import User
 from .repository import UserRepository
 

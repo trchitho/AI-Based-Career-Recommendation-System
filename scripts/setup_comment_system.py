@@ -7,8 +7,8 @@ Script để setup hệ thống comment cho blog
 
 import os
 import sys
+
 import psycopg2
-from datetime import datetime, timedelta
 
 # Thêm path để import modules
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'apps', 'backend'))
@@ -216,7 +216,7 @@ def verify_setup():
         cursor.execute("SELECT COUNT(*) FROM core.blog_comments WHERE parent_id IS NOT NULL;")
         reply_count = cursor.fetchone()[0]
         
-        print(f"📊 Thống kê:")
+        print("📊 Thống kê:")
         print(f"   - Tổng comments: {comment_count}")
         print(f"   - Tổng likes: {like_count}")
         print(f"   - Tổng replies: {reply_count}")

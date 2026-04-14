@@ -23,11 +23,10 @@ Covers:
 """
 from __future__ import annotations
 
-import io
 from io import BytesIO
 from unittest.mock import MagicMock, patch
-import pytest
 
+import pytest
 
 # ──────────────────────────────────────────────────────────────
 # Helpers
@@ -87,8 +86,8 @@ def test_compress_reduces_large_image_below_limit():
 @pytest.mark.skipif(not PIL_AVAILABLE, reason="Pillow not installed")
 def test_compress_resizes_4k_image():
     """TC-IMG-11.2: Ảnh 4K (>2048px) → được resize về <= max_dim."""
-    from PIL import Image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from PIL import Image
 
     large_img = _make_large_image(4096, 2160)
     result = CVParserV2.compress_image_if_needed(large_img, max_dim=2048)
@@ -114,8 +113,8 @@ def test_compress_small_image_unchanged_size():
 @pytest.mark.skipif(not PIL_AVAILABLE, reason="Pillow not installed")
 def test_compress_rgba_converts_to_rgb():
     """TC-IMG-11.4: Ảnh RGBA → compress trả về JPEG hợp lệ (RGB)."""
-    from PIL import Image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from PIL import Image
 
     img = Image.new("RGBA", (200, 200), color=(100, 150, 200, 128))
     buf = BytesIO()
@@ -329,8 +328,8 @@ def _make_upload_file(filename: str, content: bytes):
 @pytest.mark.anyio
 async def test_analyze_images_route_success():
     """TC-IMG-12.6: POST /analyze-images 3 ảnh hợp lệ → success với merged text."""
-    from app.modules.skill_gap.routes import analyze_cv_multi_image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from app.modules.skill_gap.routes import analyze_cv_multi_image
 
     img_bytes = _make_small_jpeg()
     images = [_make_upload_file(f"page{i}.jpg", img_bytes) for i in range(3)]
@@ -375,8 +374,8 @@ async def test_analyze_images_route_too_many_images():
 @pytest.mark.anyio
 async def test_analyze_images_route_no_text_returns_422():
     """TC-IMG-13.3: Ảnh không có text → HTTPException 422."""
-    from app.modules.skill_gap.routes import analyze_cv_multi_image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from app.modules.skill_gap.routes import analyze_cv_multi_image
     from fastapi import HTTPException
 
     img_bytes = _make_small_jpeg()

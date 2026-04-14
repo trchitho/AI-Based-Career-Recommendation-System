@@ -3,16 +3,17 @@ Career Goals API Routes - Pro Feature
 Allows users to set and track career goals with AI-powered milestone generation
 """
 
-from fastapi import APIRouter, Request, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from pydantic import BaseModel
-from typing import Optional, List
-from datetime import date, datetime, timedelta
 import json
 import logging
 import os
+from datetime import date, datetime, timedelta
+from typing import Optional
+
 import google.generativeai as genai
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from ...core.jwt import require_user
 from ...core.subscription import SubscriptionService
@@ -511,7 +512,7 @@ def _parse_duration_to_weeks(duration_str: str) -> int:
         try:
             num = int(''.join(filter(str.isdigit, duration_str)))
             return max(1, num)
-        except:
+        except Exception:
             return 2
     
     # Parse months
@@ -519,7 +520,7 @@ def _parse_duration_to_weeks(duration_str: str) -> int:
         try:
             num = int(''.join(filter(str.isdigit, duration_str)))
             return max(1, num * 4)
-        except:
+        except Exception:
             return 4
     
     # Parse days
@@ -527,7 +528,7 @@ def _parse_duration_to_weeks(duration_str: str) -> int:
         try:
             num = int(''.join(filter(str.isdigit, duration_str)))
             return max(1, num // 7) or 1
-        except:
+        except Exception:
             return 1
     
     return 2
@@ -591,7 +592,7 @@ def generate_ai_milestones(request: Request, goal_id: int, payload: GenerateMile
     # Build prompt for AI - keep it short for faster response
     roadmap_info = ""
     if roadmap_data and roadmap_data.get("milestones"):
-        roadmap_info = f"Available roadmap: "
+        roadmap_info = "Available roadmap: "
         skills = [m['skill_name'] for m in roadmap_data["milestones"][:5]]  # Limit to 5
         roadmap_info += ", ".join(skills)
     

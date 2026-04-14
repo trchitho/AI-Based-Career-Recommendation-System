@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import api from "../lib/api";
 
 export interface AppSettings {
@@ -28,6 +28,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
+  const initRef = useRef(false); // Prevent duplicate initialization
 
   // 👇 NEW — auto detect theme from <html>
   const detectTheme = () => {
@@ -36,6 +37,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
+    if (initRef.current) return; // Prevent duplicate calls
+    initRef.current = true;
+
     // 1) Load settings from API
     const fetchSettings = async () => {
       try {
@@ -72,7 +76,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, []); // Remove dependencies to prevent re-runs
 
   return (
     <AppSettingsContext.Provider value={settings}>

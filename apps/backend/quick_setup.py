@@ -2,6 +2,7 @@
 Quick setup - No emoji for Windows compatibility
 """
 import os
+
 from sqlalchemy import create_engine, text
 
 DATABASE_URL = "postgresql://postgres:123456@localhost:5433/career_ai"

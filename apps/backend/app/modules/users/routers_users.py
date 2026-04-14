@@ -1,7 +1,6 @@
 import json
 import logging
 from datetime import date
-import json
 
 from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import select, text
@@ -13,6 +12,7 @@ from ..assessments.models import Assessment
 from .models import User
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # Session factory for audit logs
 _AuditSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
@@ -44,12 +44,14 @@ def _log_audit(
                     entity_id_val = None
 
             new_session.execute(
-                text("""
+                text(
+                    """
                 INSERT INTO core.audit_logs 
                 (actor_id, action, entity, entity_id, data_json, user_id, resource_type, resource_id, details, ip_address, created_at)
                 VALUES 
                 (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :user_id, :resource_type, :resource_id, CAST(:details AS jsonb), :ip_address, NOW())
-            """),
+            """
+                ),
                 {
                     "actor_id": user_id,
                     "action": action,

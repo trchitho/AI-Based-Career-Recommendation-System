@@ -393,9 +393,10 @@ def logout(request: Request, payload: dict):
         # Blacklist the access token (TC02: old token → 401)
         if access_token_str:
             try:
-                from ...core.jwt import decode_token
-                from ...core.auth_middleware import revoke_access_token, ensure_blacklist_table
                 from datetime import datetime, timezone
+
+                from ...core.auth_middleware import ensure_blacklist_table, revoke_access_token
+                from ...core.jwt import decode_token
                 ensure_blacklist_table(session)
                 at_payload = decode_token(access_token_str)
                 jti = at_payload.get("jti")

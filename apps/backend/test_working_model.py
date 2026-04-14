@@ -2,8 +2,9 @@
 Test with working Gemini models
 """
 import os
-from dotenv import load_dotenv
+
 import google.generativeai as genai
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -35,7 +36,7 @@ for model_name in models_to_test:
         )
         
         result = response.text.strip()
-        print(f"   ✅ SUCCESS!")
+        print("   ✅ SUCCESS!")
         print(f"   Response: {result}")
         
     except Exception as e:

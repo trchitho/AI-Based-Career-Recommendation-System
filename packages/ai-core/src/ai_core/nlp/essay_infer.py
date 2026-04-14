@@ -1,17 +1,18 @@
 # packages/ai-core/src/ai_core/nlp/essay_infer.py
 from __future__ import annotations
 
-from pathlib import Path
 from dataclasses import dataclass
-from typing import Optional, Literal
+from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import torch
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoModel, AutoTokenizer
 
 try:
     # dùng nếu anh cài deep_translator (ổn định hơn googletrans)
     import importlib
+
     GoogleTranslator = importlib.import_module("deep_translator").GoogleTranslator
 except Exception:
     GoogleTranslator = None  # fallback
@@ -33,23 +34,25 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 @dataclass
 class TraitResult:
     language_detected: str
-    language_used: str          # sau dịch (luôn "vi")
+    language_used: str  # sau dịch (luôn "vi")
     essay_original: str
-    essay_used: str             # text tiếng Việt sau khi dịch nếu cần
-    riasec: np.ndarray          # shape (6,)
-    big5: np.ndarray            # shape (5,)
-    embedding: np.ndarray       # shape (768,)
+    essay_used: str  # text tiếng Việt sau khi dịch nếu cần
+    riasec: np.ndarray  # shape (6,)
+    big5: np.ndarray  # shape (5,)
+    embedding: np.ndarray  # shape (768,)
 
 
 # ------------------------
 # 2) PhoBERT regression loader
 # ------------------------
 
+
 class PhoBERTRegressor(torch.nn.Module):
     """
     Head hồi quy đơn giản giống lúc train:
     backbone (PhoBERT) + Linear → num_labels.
     """
+
     def __init__(self, backbone_name: str, num_labels: int):
         super().__init__()
         self.backbone = AutoModel.from_pretrained(backbone_name)
@@ -93,8 +96,7 @@ def _load_phobert_model(model_dir: Path, num_labels: int):
         missing = getattr(load_res, "missing_keys", [])
         unexpected = getattr(load_res, "unexpected_keys", [])
         if missing or unexpected:
-            print(f"[PHOBERT] Loaded {ckpt_path} with "
-                  f"missing={len(missing)}, unexpected={len(unexpected)}")
+            print(f"[PHOBERT] Loaded {ckpt_path} with missing={len(missing)}, unexpected={len(unexpected)}")
             if missing:
                 print("  missing (first):", missing[:5])
             if unexpected:
@@ -110,6 +112,7 @@ def _load_phobert_model(model_dir: Path, num_labels: int):
 # ------------------------
 # 3) SBERT 768D cho user embedding
 # ------------------------
+
 
 def _load_sbert_embedder(model_dir: Path):
     tok_name = (model_dir / "tokenizer_name.txt").read_text(encoding="utf-8").strip()
@@ -127,6 +130,7 @@ def _mean_pool(last_hidden_state, attention_mask):
 # ------------------------
 # 4) Detect & dịch EN → VI
 # ------------------------
+
 
 def detect_language(text: str) -> str:
     """
@@ -198,6 +202,7 @@ def _get_sbert_user():
 # 6) Predict từ tiếng Việt
 # ------------------------
 
+
 @torch.no_grad()
 def predict_riasec_vi(text_vi: str) -> np.ndarray:
     tok, mdl = _get_riasec_model()
@@ -249,9 +254,10 @@ def encode_user_embedding(text_vi: str) -> np.ndarray:
 # 7) Public API: infer_user_traits
 # ------------------------
 
+
 def infer_user_traits(
     essay_text: str,
-    language: Optional[Literal["vi", "en", "auto"]] = "auto",
+    language: Literal["vi", "en", "auto"] | None = "auto",
 ) -> TraitResult:
     essay_text = (essay_text or "").strip()
     if not essay_text:

@@ -236,4 +236,8 @@ Thumbs.db
 # Env
 **/.env
 **/.env.*.local
+
+# Kiro development files
+.kiro/
+.shared/
 "@ | Out-File -Encoding utf8 .gitignore

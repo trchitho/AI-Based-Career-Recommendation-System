@@ -10,7 +10,8 @@ Mục tiêu:
 
 from __future__ import annotations
 
-from typing import Iterable, List, TypedDict, Any
+from collections.abc import Iterable
+from typing import Any, TypedDict
 
 # CHÚ Ý:
 # File này chỉ phụ thuộc vào Ranker, không import InferRuntime/ScoredItem
@@ -25,6 +26,7 @@ class ScoreDict(TypedDict):
     job_id:  O*NET code hoặc mã nghề trong catalog (ví dụ: "15-1244.00")
     rank_score: Điểm xếp hạng cuối cùng từ NeuMF/MLP (đã combine sim/cf/trait nếu có)
     """
+
     job_id: str
     rank_score: float
 
@@ -49,7 +51,7 @@ def get_ranker() -> Ranker:
     return _rk
 
 
-def infer_scores(user_id: int, candidate_ids: Iterable[str]) -> List[ScoreDict]:
+def infer_scores(user_id: int, candidate_ids: Iterable[str]) -> list[ScoreDict]:
     """
     API chính của B4 cho các layer khác (AI-core endpoint, backend BFF) gọi.
 
@@ -75,13 +77,10 @@ def infer_scores(user_id: int, candidate_ids: Iterable[str]) -> List[ScoreDict]:
     # [(job_id, score), ...]
     scored = rk.infer_scores(user_id, list(candidate_ids))
 
-    return [
-        ScoreDict(job_id=jid, rank_score=float(score))
-        for jid, score in scored
-    ]
+    return [ScoreDict(job_id=jid, rank_score=float(score)) for jid, score in scored]
 
 
-def infer_scores_from_candidates(user_id: int, candidates: Iterable[Any]) -> List[ScoreDict]:
+def infer_scores_from_candidates(user_id: int, candidates: Iterable[Any]) -> list[ScoreDict]:
     """
     Helper tiện dụng khi B3 trả về list object/dict thay vì list[str].
 
@@ -93,16 +92,16 @@ def infer_scores_from_candidates(user_id: int, candidates: Iterable[Any]) -> Lis
         candidates = search_candidates_for_user(user_id, top_n=200)
         scored = infer_scores_from_candidates(user_id, candidates)
     """
-    candidate_ids: List[str] = []
+    candidate_ids: list[str] = []
 
     for c in candidates:
         jid: str | None = None
 
         # object-style: c.job_id / c.career_id
         if hasattr(c, "job_id"):
-            jid = getattr(c, "job_id")
+            jid = c.job_id
         elif hasattr(c, "career_id"):
-            jid = getattr(c, "career_id")
+            jid = c.career_id
         # dict-style: c["job_id"] / c["career_id"]
         elif isinstance(c, dict):
             if "job_id" in c:
@@ -111,10 +110,7 @@ def infer_scores_from_candidates(user_id: int, candidates: Iterable[Any]) -> Lis
                 jid = str(c["career_id"])
 
         if jid is None:
-            raise ValueError(
-                "Candidate must have 'job_id' or 'career_id' "
-                f"(got: {type(c)!r})"
-            )
+            raise ValueError(f"Candidate must have 'job_id' or 'career_id' (got: {type(c)!r})")
 
         candidate_ids.append(str(jid))
 

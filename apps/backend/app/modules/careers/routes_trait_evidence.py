@@ -1,10 +1,9 @@
 # app/modules/careers/routes_trait_evidence.py
 from __future__ import annotations
 
+from app.core.jwt import require_user
 from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy.orm import Session
-
-from app.core.jwt import require_user
 
 from .schema import TraitEvidenceDTO
 from .service_trait_evidence import TraitEvidenceService
@@ -44,4 +43,3 @@ def get_trait_evidence(
         )
 
     return data
-
