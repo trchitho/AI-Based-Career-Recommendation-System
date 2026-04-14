@@ -36,16 +36,36 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
     // Initialize native WebSocket connection to FastAPI endpoint
     const WS_BASE = import.meta.env.DEV ? 'ws://localhost:8000' : window.location.origin.replace(/^http/, 'ws');
     const url = `${WS_BASE}/ws/notifications?token=${encodeURIComponent(token)}`;
-    const sock = new WebSocket(url);
-    sock.onopen = () => { setConnected(true); };
-    sock.onclose = () => { setConnected(false); };
-    sock.onerror = () => { setConnected(false); };
-    setWs(sock);
+    
+    try {
+      const sock = new WebSocket(url);
+      
+      sock.onopen = () => { 
+        setConnected(true);
+        console.log('WebSocket connected');
+      };
+      
+      sock.onclose = () => { 
+        setConnected(false);
+        // Silently handle close - this is expected if WS endpoint doesn't exist
+      };
+      
+      sock.onerror = (error) => { 
+        setConnected(false);
+        // Silently handle error - WS is optional feature
+        console.debug('WebSocket connection failed (optional feature)');
+      };
+      
+      setWs(sock);
 
-    // Cleanup on unmount
-    return () => {
-      sock.close();
-    };
+      // Cleanup on unmount
+      return () => {
+        sock.close();
+      };
+    } catch (error) {
+      // Silently fail if WebSocket not available
+      console.debug('WebSocket not available (optional feature)');
+    }
   }, [user]);
 
   return (

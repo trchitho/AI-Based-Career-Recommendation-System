@@ -1,233 +1,252 @@
 """
 Subscription API Routes
 """
-
-from fastapi import APIRouter, HTTPException, Request
-from sqlalchemy import text
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from typing import Any
 
-from ...core.jwt import require_user
-from ...core.subscription import SubscriptionService
+from app.core.db import get_db
+from app.core.subscription import SubscriptionService
 
-router = APIRouter()
+router = APIRouter(tags=["Subscription"])
 
 
-def _db(request: Request) -> Session:
-    return request.state.db
+def _current_user_id(req: Request) -> int:
+    """
+    Lấy user_id từ request state hoặc JWT token
+    """
+    # 1) req.state.user_id
+    uid: Any = getattr(req.state, "user_id", None)
+    
+    # 2) req.state.user
+    user_obj = getattr(req.state, "user", None)
+    if uid is None and user_obj is not None:
+        uid = getattr(user_obj, "id", None) or getattr(user_obj, "user_id", None)
+    
+    # 3) header X-User-Id
+    if uid is None:
+        hdr = req.headers.get("X-User-Id")
+        if hdr:
+            try:
+                uid = int(hdr)
+            except:
+                pass
+    
+    # 4) Decode JWT token (fallback)
+    if uid is None:
+        auth_header = req.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+            try:
+                import base64
+                import json
+                # Decode payload (không verify signature - chỉ để lấy user_id)
+                parts = token.split(".")
+                if len(parts) >= 2:
+                    payload_b64 = parts[1]
+                    # Thêm padding nếu cần
+                    padding = 4 - len(payload_b64) % 4
+                    if padding != 4:
+                        payload_b64 += "=" * padding
+                    payload_json = base64.urlsafe_b64decode(payload_b64)
+                    payload = json.loads(payload_json)
+                    uid = payload.get("sub") or payload.get("user_id")
+                    if uid:
+                        try:
+                            uid = int(uid)
+                        except:
+                            pass
+            except:
+                pass
+    
+    if uid is None:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    return int(uid)
+
+
+@router.get("/status")
+def get_subscription_status(
+    user_id: int = Depends(_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Lấy thông tin subscription hiện tại của user
+    
+    Returns:
+    - plan_name: Tên gói (Free, Basic, Premium, Pro)
+    - is_premium: True nếu là gói trả phí
+    - limits: Giới hạn của gói
+    - features: Các tính năng
+    - expires_at: Ngày hết hạn (nếu có)
+    """
+    try:
+        subscription = SubscriptionService.get_user_subscription(user_id, db)
+        
+        return {
+            "success": True,
+            "plan_name": subscription.get("plan_name", "Free"),
+            "is_premium": subscription.get("is_premium", False),
+            "limits": subscription.get("limits", {}),
+            "features": subscription.get("features", {}),
+            "expires_at": subscription.get("expires_at"),
+            "status": subscription.get("status", "active"),
+        }
+    except Exception as e:
+        print(f"Error getting subscription status: {e}")
+        # Return Free plan as safe default
+        return {
+            "success": True,
+            "plan_name": "Free",
+            "is_premium": False,
+            "limits": SubscriptionService.FREE_LIMITS,
+            "features": {},
+            "expires_at": None,
+            "status": "active",
+        }
 
 
 @router.get("/usage")
-def get_user_usage(request: Request):
-    """Lấy thông tin usage hiện tại của user"""
-    user_id = require_user(request)
-    session = _db(request)
-
-    # Lấy subscription info
-    subscription = SubscriptionService.get_user_subscription(user_id, session)
-
-    # Lấy usage cho các features
-    features = ["career_view", "assessment", "roadmap_level"]
-    usage_data = []
-
-    for feature in features:
-        usage = SubscriptionService.get_user_usage(user_id, feature, session)
-        access = SubscriptionService.check_feature_access(user_id, feature, session)
-
-        usage_data.append(
-            {
-                "feature": feature,
-                "current_usage": usage["usage_count"],
-                "limit": access["limit"],
-                "remaining": max(0, access["limit"] - usage["usage_count"]) if access["limit"] != -1 else -1,
-                "allowed": access["allowed"],
-            }
-        )
-
-    return {"subscription": subscription, "usage": usage_data}
-
-
-@router.get("/plans")
-def get_subscription_plans(request: Request):
-    """Lấy danh sách các gói subscription"""
-    session = _db(request)
-
-    query = text(
-        """
-    SELECT id, name, price_monthly, price_yearly, features, limits, is_active
-    FROM core.subscription_plans
-    WHERE is_active = true
-    ORDER BY price_monthly ASC
+def get_subscription_usage(
+    user_id: int = Depends(_current_user_id),
+    db: Session = Depends(get_db),
+):
     """
-    )
-
-    result = session.execute(query).fetchall()
-
-    plans = []
-    for row in result:
-        plans.append(
-            {
-                "id": row.id,
-                "name": row.name,
-                "price_monthly": float(row.price_monthly) if row.price_monthly else 0,
-                "price_yearly": float(row.price_yearly) if row.price_yearly else 0,
-                "features": row.features or {},
-                "limits": row.limits or {},
-                "is_active": row.is_active,
-            }
-        )
-
-    return {"plans": plans}
-
-
-@router.post("/check-access")
-def check_feature_access(request: Request, payload: dict):
-    """Kiểm tra quyền truy cập feature"""
-    user_id = require_user(request)
-    session = _db(request)
-
-    feature_type = payload.get("feature_type")
-    level = payload.get("level")
-
-    if not feature_type:
-        raise HTTPException(status_code=400, detail="feature_type is required")
-
-    access = SubscriptionService.check_feature_access(user_id, feature_type, session, level)
-
-    return access
+    Lấy thông tin subscription và usage của user
+    
+    Returns:
+    - subscription: Thông tin gói
+    - usage: Danh sách usage theo feature
+    """
+    try:
+        subscription = SubscriptionService.get_user_subscription(user_id, db)
+        
+        # Get usage for common features
+        usage_list = []
+        
+        # Assessment usage
+        assessment_usage = SubscriptionService.get_user_usage(user_id, "assessment", db)
+        assessment_limit = subscription.get("limits", {}).get("assessments_per_month", 5)
+        usage_list.append({
+            "feature": "assessment",
+            "current_usage": assessment_usage.get("usage_count", 0),
+            "limit": assessment_limit,
+            "remaining": max(0, assessment_limit - assessment_usage.get("usage_count", 0)) if assessment_limit != -1 else -1,
+            "allowed": assessment_limit == -1 or assessment_usage.get("usage_count", 0) < assessment_limit
+        })
+        
+        # Career view usage
+        career_usage = SubscriptionService.get_user_usage(user_id, "career_view", db)
+        career_limit = subscription.get("limits", {}).get("career_views", 1)
+        usage_list.append({
+            "feature": "career_view",
+            "current_usage": career_usage.get("usage_count", 0),
+            "limit": career_limit,
+            "remaining": max(0, career_limit - career_usage.get("usage_count", 0)) if career_limit != -1 else -1,
+            "allowed": career_limit == -1 or career_usage.get("usage_count", 0) < career_limit
+        })
+        
+        return {
+            "subscription": {
+                "subscription_id": subscription.get("subscription_id"),
+                "plan_name": subscription.get("plan_name", "Free"),
+                "limits": subscription.get("limits", {}),
+                "features": subscription.get("features", {}),
+                "status": subscription.get("status", "active"),
+                "expires_at": subscription.get("expires_at"),
+                "is_premium": subscription.get("is_premium", False),
+            },
+            "usage": usage_list
+        }
+    except Exception as e:
+        print(f"Error getting subscription usage: {e}")
+        # Return Free plan as safe default
+        return {
+            "subscription": {
+                "subscription_id": None,
+                "plan_name": "Free",
+                "limits": SubscriptionService.FREE_LIMITS,
+                "features": {},
+                "status": "active",
+                "expires_at": None,
+                "is_premium": False,
+            },
+            "usage": []
+        }
 
 
 @router.get("/subscription")
-def get_user_subscription(request: Request):
-    """Lấy thông tin subscription hiện tại của user"""
-    user_id = require_user(request)
-    session = _db(request)
-
-    subscription = SubscriptionService.get_user_subscription(user_id, session)
-
-    return subscription
-
-
-@router.get("/debug-subscription")
-def debug_user_subscription(request: Request):
-    """Debug: Xem tất cả subscription của user trong database"""
-    user_id = require_user(request)
-    session = _db(request)
-
-    # Get all subscriptions for this user
-    query = text(
-        """
-        SELECT 
-            us.id,
-            us.user_id,
-            us.plan_id,
-            sp.name as plan_name,
-            us.status,
-            us.payment_id,
-            us.expires_at,
-            us.created_at,
-            us.updated_at
-        FROM core.user_subscriptions us
-        JOIN core.subscription_plans sp ON us.plan_id = sp.id
-        WHERE us.user_id = :user_id
-        ORDER BY us.created_at DESC
+def get_current_subscription(
+    user_id: int = Depends(_current_user_id),
+    db: Session = Depends(get_db),
+):
     """
-    )
-
-    result = session.execute(query, {"user_id": user_id}).fetchall()
-
-    subscriptions = []
-    for row in result:
-        subscriptions.append(
-            {
-                "id": row.id,
-                "user_id": row.user_id,
-                "plan_id": row.plan_id,
-                "plan_name": row.plan_name,
-                "status": row.status,
-                "payment_id": row.payment_id,
-                "expires_at": str(row.expires_at) if row.expires_at else None,
-                "created_at": str(row.created_at) if row.created_at else None,
-                "updated_at": str(row.updated_at) if row.updated_at else None,
-            }
-        )
-
-    # Also get current subscription from service
-    current = SubscriptionService.get_user_subscription(user_id, session)
-
-    return {"user_id": user_id, "all_subscriptions": subscriptions, "current_subscription": current}
-
-
-@router.post("/debug/upgrade")
-def debug_upgrade_user(request: Request, payload: dict):
-    """Debug endpoint để manual upgrade user"""
-    user_id = require_user(request)
-    session = _db(request)
-
-    plan_name = payload.get("plan_name", "Premium")
-
+    Lấy thông tin subscription hiện tại (alias for /status)
+    Endpoint này để tương thích với PaymentPage
+    
+    Returns:
+    - Thông tin subscription đầy đủ
+    """
     try:
-        from ...core.subscription import SubscriptionService
-
-        # Create a fake payment ID for debug
-        fake_payment_id = 999999
-
-        success = SubscriptionService.upgrade_user_subscription(
-            user_id=user_id, plan_name=plan_name, payment_id=fake_payment_id, session=session
-        )
-
-        if success:
-            return {"success": True, "message": f"User upgraded to {plan_name}"}
-        else:
-            return {"success": False, "message": "Upgrade failed"}
-
+        subscription = SubscriptionService.get_user_subscription(user_id, db)
+        
+        return {
+            "subscription_id": subscription.get("subscription_id"),
+            "plan_name": subscription.get("plan_name", "Free"),
+            "limits": subscription.get("limits", {}),
+            "features": subscription.get("features", {}),
+            "status": subscription.get("status", "active"),
+            "expires_at": subscription.get("expires_at"),
+            "is_premium": subscription.get("is_premium", False),
+        }
     except Exception as e:
-        return {"success": False, "message": str(e)}
+        print(f"Error getting subscription: {e}")
+        # Return Free plan as safe default
+        return {
+            "subscription_id": None,
+            "plan_name": "Free",
+            "limits": SubscriptionService.FREE_LIMITS,
+            "features": {},
+            "status": "active",
+            "expires_at": None,
+            "is_premium": False,
+        }
 
 
-@router.post("/force-sync")
-def force_sync_subscription(request: Request):
-    """Force sync subscription từ payment thành công gần nhất"""
-    user_id = require_user(request)
-    session = _db(request)
-
-    # Tìm payment SUCCESS gần nhất
-    payment_query = text(
-        """
-        SELECT id, amount, description, status, created_at
-        FROM core.payments
-        WHERE user_id = :user_id
-        AND UPPER(status) = 'SUCCESS'
-        ORDER BY created_at DESC
-        LIMIT 1
+@router.get("/check-feature/{feature_type}")
+def check_feature_access(
+    feature_type: str,
+    user_id: int = Depends(_current_user_id),
+    db: Session = Depends(get_db),
+):
     """
-    )
-
-    payment = session.execute(payment_query, {"user_id": user_id}).fetchone()
-
-    if not payment:
-        return {"success": False, "message": "Không tìm thấy giao dịch thành công"}
-
-    # Xác định plan từ amount
-    # Pro: 299,000 VND, Premium: 199,000 VND, Basic: 99,000 VND
-    plan_name = "Basic"
-    if payment.amount >= 280000:
-        plan_name = "Pro"
-    elif payment.amount >= 180000:
-        plan_name = "Premium"
-    elif payment.amount >= 80000:
-        plan_name = "Basic"
-
-    # Upgrade
-    success = SubscriptionService.upgrade_user_subscription(
-        user_id=user_id, plan_name=plan_name, payment_id=payment.id, session=session
-    )
-
-    if success:
+    Kiểm tra xem user có quyền truy cập feature không
+    
+    Args:
+    - feature_type: Loại feature (career_view, assessment, roadmap_level, skill_gap_analysis)
+    
+    Returns:
+    - allowed: True nếu được phép
+    - reason: Lý do (nếu không được phép)
+    - current_usage: Usage hiện tại
+    - limit: Giới hạn
+    """
+    try:
+        access = SubscriptionService.check_feature_access(user_id, feature_type, db)
+        
         return {
             "success": True,
-            "message": f"Đã nâng cấp lên gói {plan_name}",
-            "plan": plan_name,
-            "payment_amount": payment.amount,
+            "allowed": access.get("allowed", False),
+            "reason": access.get("reason", ""),
+            "current_usage": access.get("current_usage", 0),
+            "limit": access.get("limit", 0),
         }
-    else:
-        return {"success": False, "message": f"Không thể nâng cấp. Plan '{plan_name}' có thể không tồn tại trong database."}
+    except Exception as e:
+        print(f"Error checking feature access: {e}")
+        return {
+            "success": False,
+            "allowed": False,
+            "reason": "Error checking access",
+            "current_usage": 0,
+            "limit": 0,
+        }

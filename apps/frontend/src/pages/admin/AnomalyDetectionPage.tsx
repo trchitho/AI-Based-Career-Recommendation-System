@@ -33,6 +33,8 @@ const AnomalyDetectionPage = () => {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [stats, setStats] = useState<AnomalyStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [detecting, setDetecting] = useState(false);
+  const [detectMsg, setDetectMsg] = useState<{ type: "success" | "info" | "error"; text: string } | null>(null);
   const [filter, setFilter] = useState<{
     type?: string;
     severity?: string;
@@ -73,6 +75,24 @@ const AnomalyDetectionPage = () => {
     }
   };
 
+  const runDetection = async () => {
+    setDetecting(true);
+    setDetectMsg(null);
+    try {
+      const res = await api.post("/api/admin/anomalies/detect");
+      const created = res.data.anomalies_created ?? 0;
+      setDetectMsg({
+        type: created > 0 ? "success" : "info",
+        text: created > 0 ? `${created} new anomaly(s) detected and logged.` : "Scan complete — no new anomalies found.",
+      });
+      await loadAnomalies();
+    } catch (err: any) {
+      setDetectMsg({ type: "error", text: `Detection failed: ${err?.response?.data?.detail || err?.message || "Unknown error"}` });
+    } finally {
+      setDetecting(false);
+    }
+  };
+
   const getSeverityBadge = (severity: string) => {
     const styles: Record<string, string> = {
       critical: "bg-red-600 text-white",
@@ -109,13 +129,28 @@ const AnomalyDetectionPage = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold dark:text-white">Anomaly Detection</h1>
-        <button
-          onClick={loadAnomalies}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={runDetection}
+            disabled={detecting}
+            className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50"
+          >
+            {detecting ? "Scanning..." : "Run Detection"}
+          </button>
+          <button
+            onClick={loadAnomalies}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
+
+      {detectMsg && (
+        <div className={`p-4 rounded-lg text-sm font-medium ${detectMsg.type === "success" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : detectMsg.type === "error" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"}`}>
+          {detectMsg.text}
+        </div>
+      )}
 
       {/* Stats Cards */}
       {stats && (

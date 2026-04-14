@@ -13,6 +13,19 @@ const UserManagementPage = () => {
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState("");
 
+  // PB25: Create user modal state
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({ email: "", password: "", full_name: "", role: "user" as "admin" | "user" });
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  // PB25: Delete confirm
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // PB25: Export
+  const [exporting, setExporting] = useState(false);
+
   const load = async () => {
     setLoading(true);
     setError(null);
@@ -41,6 +54,53 @@ const UserManagementPage = () => {
   const setRole = async (id: string, role: "admin" | "user" | "manager") => {
     await adminService.updateUser(id, { role });
     load();
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    setCreateError(null);
+    try {
+      await adminService.createUser(createForm);
+      setShowCreate(false);
+      setCreateForm({ email: "", password: "", full_name: "", role: "user" });
+      load();
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail;
+      setCreateError(typeof detail === 'object' ? detail?.message : (detail || err?.message || "Failed to create user"));
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    setDeleting(true);
+    try {
+      await adminService.deleteUser(id);
+      setDeleteConfirm(null);
+      load();
+    } catch {
+      alert("Failed to delete user");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const blob = await adminService.exportUsers();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `users_export_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Export failed");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const getRoleColor = (role: string) => {
@@ -79,22 +139,39 @@ const UserManagementPage = () => {
           </p>
         </div>
 
-        <div className="relative">
-          <input
-            value={q}
-            onChange={(e) => {
-              setPage(1);
-              setQ(e.target.value);
-            }}
-            placeholder={t("admin.user.search")}
-            className="pl-10 pr-4 py-2.5 w-64 border-2 rounded-xl bg-white dark:bg-gray-800 
-                       border-gray-200 dark:border-gray-700 text-sm
-                       focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none
-                       transition-colors"
-          />
-          <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <input
+              value={q}
+              onChange={(e) => { setPage(1); setQ(e.target.value); }}
+              placeholder={t("admin.user.search")}
+              className="pl-10 pr-4 py-2.5 w-56 border-2 rounded-xl bg-white dark:bg-gray-800
+                         border-gray-200 dark:border-gray-700 text-sm
+                         focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none transition-colors"
+            />
+            <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+
+          {/* PB25: Export CSV */}
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold rounded-xl border-2 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors disabled:opacity-50"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            {exporting ? "Exporting..." : "Export CSV"}
+          </button>
+
+          {/* PB25: Create user */}
+          <button
+            onClick={() => { setShowCreate(true); setCreateError(null); }}
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+            New User
+          </button>
         </div>
       </div>
 
@@ -217,6 +294,15 @@ const UserManagementPage = () => {
                       </>
                     )}
                   </button>
+
+                  {/* PB25: Delete user */}
+                  <button
+                    onClick={() => setDeleteConfirm(u.id)}
+                    className="w-full mt-1 px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border-2 border-red-100 dark:border-red-900/30 hover:border-red-300 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>
@@ -267,6 +353,67 @@ const UserManagementPage = () => {
           >
             {t("admin.next")} →
           </button>
+        </div>
+      )}
+
+      {/* PB25: Create User Modal */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowCreate(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 border border-gray-200 dark:border-gray-700" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Create New User</h3>
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email *</label>
+                <input type="email" required value={createForm.email} onChange={e => setCreateForm(f => ({...f, email: e.target.value}))}
+                  className="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:border-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                <input type="text" value={createForm.full_name} onChange={e => setCreateForm(f => ({...f, full_name: e.target.value}))}
+                  className="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:border-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password *</label>
+                <input type="password" required value={createForm.password} onChange={e => setCreateForm(f => ({...f, password: e.target.value}))}
+                  className="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:border-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
+                <select value={createForm.role} onChange={e => setCreateForm(f => ({...f, role: e.target.value as "admin" | "user"}))}
+                  className="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:border-blue-500 outline-none">
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              {createError && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2.5 rounded-lg">{createError}</p>}
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+                <button type="submit" disabled={creating} className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-600/20 transition-colors disabled:opacity-50">
+                  {creating ? "Creating..." : "Create User"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* PB25: Delete Confirm Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border border-gray-200 dark:border-gray-700 text-center" onClick={e => e.stopPropagation()}>
+            <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Delete User</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">This action cannot be undone. All user data will be permanently deleted.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+              <button onClick={() => handleDeleteUser(deleteConfirm)} disabled={deleting}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold shadow-lg shadow-red-600/20 transition-colors disabled:opacity-50">
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

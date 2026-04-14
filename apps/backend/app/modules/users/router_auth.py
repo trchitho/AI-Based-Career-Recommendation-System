@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import re
 import secrets
 from datetime import datetime, timezone
 
@@ -48,29 +49,24 @@ def log_audit(
                     entity_id_val = int(resource_id)
                 except (ValueError, TypeError):
                     entity_id_val = None
-
-            new_session.execute(
-                text(
-                    """
+            
+            new_session.execute(text("""
                 INSERT INTO core.audit_logs 
                 (actor_id, action, entity, entity_id, data_json, user_id, resource_type, resource_id, details, ip_address, created_at)
                 VALUES 
                 (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :user_id, :resource_type, :resource_id, CAST(:details AS jsonb), :ip_address, NOW())
-            """
-                ),
-                {
-                    "actor_id": user_id,
-                    "action": action,
-                    "entity": resource_type,
-                    "entity_id": entity_id_val,
-                    "data_json": details_json,
-                    "user_id": user_id,
-                    "resource_type": resource_type,
-                    "resource_id": resource_id,
-                    "details": details_json,
-                    "ip_address": ip_address,
-                },
-            )
+            """), {
+                "actor_id": user_id,
+                "action": action,
+                "entity": resource_type,
+                "entity_id": entity_id_val,
+                "data_json": details_json,
+                "user_id": user_id,
+                "resource_type": resource_type,
+                "resource_id": resource_id,
+                "details": details_json,
+                "ip_address": ip_address,
+            })
             new_session.commit()
             logger.info(f"Audit log saved: user={user_id}, action={action}")
         finally:
@@ -181,6 +177,14 @@ def register(request: Request, payload: RegisterPayload, background_tasks: Backg
 
     if not (8 <= len(password) <= 256):
         raise HTTPException(status_code=400, detail="Password length must be 8..256")
+    if not re.search(r"[A-Z]", password):
+        raise HTTPException(status_code=400, detail={"message": "Password must contain at least one uppercase letter", "error_code": "PASSWORD_NEEDS_UPPERCASE"})
+    if not re.search(r"[a-z]", password):
+        raise HTTPException(status_code=400, detail={"message": "Password must contain at least one lowercase letter", "error_code": "PASSWORD_NEEDS_LOWERCASE"})
+    if not re.search(r"[0-9]", password):
+        raise HTTPException(status_code=400, detail={"message": "Password must contain at least one number", "error_code": "PASSWORD_NEEDS_NUMBER"})
+    if not re.search(r"[!@#$%^&*()\-_=+\[\]{};:'\",.<>/?\\|`~]", password):
+        raise HTTPException(status_code=400, detail={"message": "Password must contain at least one special character", "error_code": "PASSWORD_NEEDS_SPECIAL"})
 
     u = User(
         email=email,
@@ -194,13 +198,13 @@ def register(request: Request, payload: RegisterPayload, background_tasks: Backg
     session.add(u)
     session.commit()
     session.refresh(u)
-
+    
     # Ghi audit log cho register
     client_ip = request.client.host if request.client else None
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
         client_ip = forwarded.split(",")[0].strip()
-
+    
     log_audit(
         session=session,
         user_id=u.id,
@@ -225,7 +229,7 @@ def login(request: Request, payload: LoginPayload):
     session = _db(request)
     email = payload.email.strip().lower()
     password = payload.password
-
+    
     # Get client IP
     client_ip = request.client.host if request.client else None
     forwarded = request.headers.get("x-forwarded-for")
@@ -271,7 +275,7 @@ def login(request: Request, payload: LoginPayload):
     )
     session.add(rt)
     session.commit()
-
+    
     # Ghi audit log cho login
     user_agent = request.headers.get("user-agent", "")
     browser = "Unknown"
@@ -283,7 +287,7 @@ def login(request: Request, payload: LoginPayload):
         browser = "Safari"
     elif "Edge" in user_agent:
         browser = "Edge"
-
+    
     log_audit(
         session=session,
         user_id=u.id,
@@ -367,7 +371,7 @@ def refresh_token(request: Request, payload: dict):
     # Lấy role thực của user thay vì hardcode "user"
     user = session.get(User, rt.user_id)
     user_role = user.role if user else "user"
-
+    
     new_access = create_access_token({"sub": str(rt.user_id), "role": user_role})
     return {"access_token": new_access}
 
@@ -376,12 +380,31 @@ def refresh_token(request: Request, payload: dict):
 def logout(request: Request, payload: dict):
     session: Session = _db(request)
     token_str = (payload.get("refresh_token") or payload.get("refreshToken") or "").strip()
+    access_token_str = (payload.get("access_token") or payload.get("accessToken") or "").strip()
+
     if not token_str:
         raise HTTPException(status_code=400, detail="refresh_token is required")
+
     rt = session.query(RefreshToken).filter(RefreshToken.token == token_str).first()
     if rt:
         rt.revoked = True
         session.commit()
+
+        # Blacklist the access token (TC02: old token → 401)
+        if access_token_str:
+            try:
+                from ...core.jwt import decode_token
+                from ...core.auth_middleware import revoke_access_token, ensure_blacklist_table
+                from datetime import datetime, timezone
+                ensure_blacklist_table(session)
+                at_payload = decode_token(access_token_str)
+                jti = at_payload.get("jti")
+                exp_ts = at_payload.get("exp")
+                exp_dt = datetime.fromtimestamp(exp_ts, tz=timezone.utc) if exp_ts else None
+                if jti:
+                    revoke_access_token(session, jti, rt.user_id, exp_dt)
+            except Exception as e:
+                logger.warning(f"[Auth] logout: could not blacklist access token: {e}")
 
         # Ghi audit log cho logout
         client_ip = request.client.host if request.client else None
@@ -395,7 +418,7 @@ def logout(request: Request, payload: dict):
             action="logout",
             resource_type="user",
             resource_id=str(rt.user_id),
-            details={"method": "refresh_token_revoke"},
+            details={"method": "refresh_token_revoke", "access_token_blacklisted": bool(access_token_str)},
             ip_address=client_ip,
         )
     return {"status": "ok"}

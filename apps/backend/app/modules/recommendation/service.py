@@ -358,7 +358,12 @@ class RecService:
         # 6) Chuẩn hoá display_match
         self._apply_display_match(items_filtered)
 
-        # 7) Generate request_id + đánh position
+        # 7) Apply Thompson Sampling boost (re-rank based on user feedback history)
+        from .thompson_sampling import ThompsonSamplingService
+        ts = ThompsonSamplingService()
+        items_filtered = ts.apply_boost(db=db, user_id=user_id, items=items_filtered)
+
+        # 8) Generate request_id + đánh position
         # NOTE: Impression logging đã chuyển sang FE để tránh double-count
         # FE sẽ gọi /api/analytics/career-event khi user mở tab Career Matches
         request_id = str(uuid.uuid4())
@@ -366,7 +371,7 @@ class RecService:
         for idx, it in enumerate(items_filtered, start=1):
             it["position"] = idx
 
-        # 8) Save top 5 recommendations to core.career_recommendations table
+        # 9) Save top 5 recommendations to core.career_recommendations table
         # Only save when fetching full recommendations (top_k >= 5), not for dashboard preview (top_k=3)
         if top_k >= 5:
             self._save_career_recommendations(db, user_id, assessment_id, items_filtered[:5])

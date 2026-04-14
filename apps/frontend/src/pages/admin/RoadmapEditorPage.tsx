@@ -31,7 +31,7 @@ const RoadmapEditorPage = () => {
       if (!careerId) return;
       try {
         setLoading(true);
-        const data = await adminService.getRoadmapByCareer(careerId);
+        const data = await adminService.getRoadmapByCareer(careerId) as any;
         setTitle(data.title || '');
         setMilestones((data.milestones || []).map((m: any) => ({
           order: m.order,

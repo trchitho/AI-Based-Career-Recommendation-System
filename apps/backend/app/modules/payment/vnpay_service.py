@@ -2,12 +2,11 @@
 VNPay Payment Service
 Tích hợp VNPay API cho thanh toán thẻ Visa/Mastercard/ATM
 """
-
 import hashlib
 import hmac
 import urllib.parse
 from datetime import datetime
-from typing import Any, Dict
+from typing import Dict, Any
 
 from loguru import logger
 
@@ -40,7 +39,7 @@ class VNPayService:
     ) -> Dict[str, Any]:
         """
         Tạo URL thanh toán VNPay
-
+        
         Args:
             amount: Số tiền (VND) - VNPay yêu cầu nhân 100
             order_id: Mã đơn hàng (unique)
@@ -48,17 +47,18 @@ class VNPayService:
             ip_addr: IP của khách hàng
             bank_code: Mã ngân hàng (để trống = chọn trên VNPay)
             locale: Ngôn ngữ (vn/en)
-
+            
         Returns:
             Dict chứa payment_url
         """
         try:
             # VNPay yêu cầu amount * 100
             vnp_amount = amount * 100
-
+            
             # Tạo thời gian
-            create_date = datetime.now().strftime("%Y%m%d%H%M%S")
-
+            create_date = datetime.now().strftime('%Y%m%d%H%M%S')
+            expire_date = datetime.now().strftime('%Y%m%d%H%M%S')
+            
             # Params theo thứ tự alphabet
             vnp_params = {
                 "vnp_Amount": str(vnp_amount),
@@ -74,31 +74,44 @@ class VNPayService:
                 "vnp_TxnRef": order_id,
                 "vnp_Version": "2.1.0",
             }
-
+            
             if bank_code:
                 vnp_params["vnp_BankCode"] = bank_code
-
+            
             # Sort params theo key
             sorted_params = sorted(vnp_params.items())
-
+            
             # Tạo query string
             query_string = urllib.parse.urlencode(sorted_params)
-
+            
             # Tạo secure hash
             hash_data = query_string
-            secure_hash = hmac.new(self.hash_secret.encode("utf-8"), hash_data.encode("utf-8"), hashlib.sha512).hexdigest()
-
+            secure_hash = hmac.new(
+                self.hash_secret.encode('utf-8'),
+                hash_data.encode('utf-8'),
+                hashlib.sha512
+            ).hexdigest()
+            
             # URL thanh toán
             payment_url = f"{self.payment_url}?{query_string}&vnp_SecureHash={secure_hash}"
-
+            
             logger.info(f"VNPay payment URL created for order {order_id}")
-
+            logger.info(f"VNPay return_url: {self.return_url}")
+            logger.info(
+                "VNPay payment request prepared: "
+                f"order_id={order_id}, "
+                f"txn_ref={order_id}, "
+                f"amount={vnp_amount}, "
+                f"bank_code={bank_code or 'N/A'}, "
+                f"locale={locale}"
+            )
+            
             return {
                 "success": True,
                 "payment_url": payment_url,
                 "order_id": order_id,
             }
-
+            
         except Exception as e:
             logger.error(f"VNPay create payment URL error: {e}")
             return {
@@ -109,33 +122,37 @@ class VNPayService:
     def verify_return(self, params: Dict[str, str]) -> Dict[str, Any]:
         """
         Xác thực response từ VNPay khi redirect về
-
+        
         Args:
             params: Query params từ VNPay redirect
-
+            
         Returns:
             Dict chứa kết quả xác thực
         """
         try:
             vnp_secure_hash = params.pop("vnp_SecureHash", "")
             params.pop("vnp_SecureHashType", None)
-
+            
             # Sort và tạo hash để verify
             sorted_params = sorted(params.items())
             hash_data = urllib.parse.urlencode(sorted_params)
-
-            computed_hash = hmac.new(self.hash_secret.encode("utf-8"), hash_data.encode("utf-8"), hashlib.sha512).hexdigest()
-
+            
+            computed_hash = hmac.new(
+                self.hash_secret.encode('utf-8'),
+                hash_data.encode('utf-8'),
+                hashlib.sha512
+            ).hexdigest()
+            
             if not hmac.compare_digest(vnp_secure_hash.lower(), computed_hash.lower()):
                 return {
                     "success": False,
                     "message": "Invalid signature",
                 }
-
+            
             # Kiểm tra response code
             response_code = params.get("vnp_ResponseCode", "")
             transaction_status = params.get("vnp_TransactionStatus", "")
-
+            
             if response_code == "00" and transaction_status == "00":
                 return {
                     "success": True,
@@ -154,7 +171,7 @@ class VNPayService:
                     "response_code": response_code,
                     "message": self._get_response_message(response_code),
                 }
-
+                
         except Exception as e:
             logger.error(f"VNPay verify return error: {e}")
             return {

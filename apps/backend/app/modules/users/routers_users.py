@@ -180,6 +180,10 @@ def get_history(request: Request, user_id: int):
         .scalars()
         .all()
     )
+    
+    print(f"[DEBUG] Found {len(rows)} assessments for user {user_id}")
+    if rows:
+        print(f"[DEBUG] First assessment test_mode: {rows[0].test_mode}")
 
     def _map_riasec(s: dict | None) -> dict | None:
         if not isinstance(s, dict):
@@ -251,8 +255,14 @@ def get_history(request: Request, user_id: int):
                 "test_types": test_types,
                 "riasec_scores": riasec_scores,
                 "big_five_scores": big5_scores,
+                "test_mode": a.test_mode,
             }
         )
+    
+    print(f"[DEBUG] Returning {len(history)} history items")
+    if history:
+        print(f"[DEBUG] First history item: {history[0]}")
+    
     return history
 
 

@@ -1,0 +1,259 @@
+.skill-gap-page {
+  min-height: 100vh;
+  background-color: #F8F9FA;
+  background-image: radial-gradient(#D1D5DB 1px, transparent 1px);
+  background-size: 24px 24px;
+  padding: 2rem 1rem;
+}
+
+
+.page-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding: 2.5rem 2rem;
+  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 8px 32px rgba(22, 163, 74, 0.25);
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 280px;
+  height: 280px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.page-header::after {
+  content: '';
+  position: absolute;
+  bottom: -50%;
+  left: -5%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.page-header h1 {
+  margin: 0 0 0.5rem 0;
+  color: #ffffff;
+  font-size: 2.25rem;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.05rem;
+  position: relative;
+  z-index: 1;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #f3f4f6;
+  border-top-color: #16a34a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.error-container h2 {
+  margin: 0 0 0.5rem 0;
+  color: #dc2626;
+}
+
+.error-container p {
+  margin: 0 0 1.5rem 0;
+  color: #6b7280;
+}
+
+.retry-button {
+  padding: 0.75rem 2rem;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+  background: #15803d;
+  transform: translateY(-2px);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.back-button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: #16a34a;
+  border: 2px solid #16a34a;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: #16a34a;
+  color: white;
+}
+
+.analysis-info {
+  display: flex;
+  gap: 1.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.analysis-date,
+.analysis-career {
+  display: flex;
+  align-items: center;
+}
+
+.recommendations-section {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.recommendations-section h2 {
+  margin: 0 0 1.5rem 0;
+  color: #1f2937;
+  font-size: 1.75rem;
+}
+
+.learning-path {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.learning-phase {
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border-left: 4px solid #16a34a;
+}
+
+.learning-phase h3 {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 1.25rem;
+}
+
+.learning-phase ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style: none;
+}
+
+.learning-phase li {
+  margin-bottom: 0.75rem;
+  color: #4b5563;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.learning-phase li strong {
+  color: #1f2937;
+}
+
+.time-estimate {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .skill-gap-page {
+    padding: 1rem 0.5rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .result-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .analysis-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .learning-phase li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

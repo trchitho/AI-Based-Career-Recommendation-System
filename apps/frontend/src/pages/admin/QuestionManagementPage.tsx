@@ -359,7 +359,7 @@ const QuestionForm = ({ question, onClose, onSuccess }: QuestionFormProps) => {
             </label>
             <select
               value={formData.testType}
-              onChange={(e) => setFormData({ ...formData, testType: e.target.value, dimension: '' })}
+              onChange={(e) => setFormData({ ...formData, testType: e.target.value as 'RIASEC' | 'BIG_FIVE', dimension: '' })}
               className={baseInput}
             >
               <option value="RIASEC">RIASEC</option>
@@ -391,7 +391,7 @@ const QuestionForm = ({ question, onClose, onSuccess }: QuestionFormProps) => {
             </label>
             <select
               value={formData.questionType}
-              onChange={(e) => setFormData({ ...formData, questionType: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, questionType: e.target.value as 'multiple_choice' | 'scale' })}
               className={baseInput}
             >
               <option value="scale">Scale (1-5)</option>

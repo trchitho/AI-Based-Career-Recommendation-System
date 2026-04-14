@@ -14,17 +14,18 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
-    "@tailwindcss/line-clamp": "^0.4.4",
     "@tanstack/react-query": "^5.12.2",
     "@vitalets/google-translate-api": "^9.2.1",
     "axios": "^1.6.2",
     "i18next": "^25.6.0",
     "i18next-browser-languagedetector": "^8.2.0",
     "lucide-react": "^0.546.0",
+    "page-flip": "^2.0.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.6.0",
     "react-i18next": "^16.1.0",
+    "react-pageflip": "^2.0.3",
     "react-router-dom": "^6.30.3",
     "recharts": "^2.15.4",
     "socket.io-client": "^4.6.0",
@@ -32,7 +33,6 @@
     "html2canvas": "^1.4.1"
   },
   "devDependencies": {
-    "@tailwindcss/line-clamp": "^0.4.4",
     "@types/node": "^22.7.5",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",

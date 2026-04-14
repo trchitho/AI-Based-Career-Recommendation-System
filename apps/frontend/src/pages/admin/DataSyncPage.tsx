@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from "react";
 import api from "../../lib/api";
+import { adminService } from "../../services/adminService";
 
 interface SyncJob {
   id: number;
@@ -34,6 +35,8 @@ const DataSyncPage = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  // PB30: export state
+  const [exporting, setExporting] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -52,6 +55,35 @@ const DataSyncPage = () => {
       console.error("Error loading sync data:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // PB30: Export helpers
+  const exportData = async (type: "careers" | "users") => {
+    setExporting(type);
+    try {
+      let blob: Blob;
+      let filename: string;
+      if (type === "users") {
+        blob = await adminService.exportUsers();
+        filename = `users_export_${new Date().toISOString().slice(0, 10)}.csv`;
+      } else {
+        // Export careers via admin endpoint
+        const res = await api.get("/api/admin/careers/export", { responseType: "blob" });
+        blob = res.data;
+        filename = `careers_export_${new Date().toISOString().slice(0, 10)}.csv`;
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      setMessage({ type: "success", text: `${type} exported successfully!` });
+    } catch (err: any) {
+      setMessage({ type: "error", text: `Export failed: ${err?.response?.data?.detail || err?.message || "Unknown error"}` });
+    } finally {
+      setExporting(null);
     }
   };
 
@@ -227,6 +259,30 @@ const DataSyncPage = () => {
               {syncing === "all-all" ? "Syncing..." : "Start Full Sync"}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* PB30: Export Data */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold mb-2 dark:text-white">Export Data</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Download system data as CSV for analysis or backup.</p>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => exportData("careers")}
+            disabled={exporting !== null}
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            {exporting === "careers" ? "Exporting..." : "Export Careers CSV"}
+          </button>
+          <button
+            onClick={() => exportData("users")}
+            disabled={exporting !== null}
+            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            {exporting === "users" ? "Exporting..." : "Export Users CSV"}
+          </button>
         </div>
       </div>
 

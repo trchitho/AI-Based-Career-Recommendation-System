@@ -26,7 +26,8 @@
     "add": "Thêm",
     "saving": "Đang lưu...",
     "update": "Cập nhật",
-    "create": "Tạo mới"
+    "create": "Tạo mới",
+    "sending": "Đang gửi..."
   },
   "settings": {
     "pageTitle": "Cài đặt hệ thống",
@@ -62,7 +63,11 @@
     "admin": "Quản trị",
     "recommendations": "Gợi ý nghề nghiệp",
     "careers": "Nghề nghiệp",
-    "blogs": "Bài viết"
+    "blogs": "Bài viết",
+    "skillGap": "Khoảng cách kỹ năng",
+    "pricing": "Bảng giá",
+    "settingsProfile": "Cài đặt & Hồ sơ",
+    "getStarted": "Bắt đầu ngay"
   },
   "auth": {
     "login": "Đăng nhập",
@@ -80,52 +85,182 @@
     "welcomeBack": "Chào mừng trở lại",
     "createAccount": "Tạo tài khoản của bạn",
     "loginSubtitle": "Đăng nhập để tiếp tục hành trình nghề nghiệp",
-    "registerSubtitle": "Bắt đầu khám phá nghề nghiệp cá nhân hóa"
+    "loginCredentials": "Nhập thông tin đăng nhập để truy cập tài khoản của bạn.",
+    "registerSubtitle": "Bắt đầu khám phá nghề nghiệp cá nhân hóa",
+    "registerSubtitle2": "Bắt đầu hành trình nghề nghiệp cá nhân hóa ngay hôm nay",
+    "invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ",
+    "emailNotExist": "Email không tồn tại, vui lòng đổi email khác!",
+    "verifyEmail": "Xác minh",
+    "verificationCode": "Nhập mã xác minh",
+    "verificationCodePlaceholder": "Nhập mã 6 chữ số từ email của bạn",
+    "verifyCodeHint": "Nhấn Đăng ký để xác nhận mã và hoàn tất kích hoạt.",
+    "orContinueWith": "Hoặc tiếp tục với",
+    "continueWithGoogle": "Tiếp tục với Google",
+    "signingIn": "Đang đăng nhập...",
+    "processing": "Đang xử lý...",
+    "confirming": "Đang xác nhận...",
+    "secureEncryption": "Mã hóa 256-bit an toàn",
+    "forgotPasswordTitle": "Quên mật khẩu?",
+    "forgotPasswordSubtitle": "Nhập email của bạn, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.",
+    "emailAddress": "Địa chỉ Email",
+    "sendInstructions": "Gửi hướng dẫn",
+    "checkYourEmail": "Kiểm tra email của bạn",
+    "resetEmailSent": "Nếu email này tồn tại, chúng tôi đã gửi hướng dẫn.",
+    "backToLogin": "Quay lại đăng nhập",
+    "securePasswordRecovery": "Khôi phục mật khẩu an toàn",
+    "resetPasswordTitle": "Đặt lại mật khẩu",
+    "resetPasswordSubtitle": "Tạo mật khẩu mới an toàn cho tài khoản của bạn.",
+    "resetToken": "Mã đặt lại mật khẩu",
+    "pasteTokenHere": "Dán mã đặt lại của bạn tại đây",
+    "newPassword": "Mật khẩu mới",
+    "confirmNewPassword": "Xác nhận mật khẩu mới",
+    "minChars": "Tối thiểu 8 ký tự, có chữ hoa, chữ thường và số",
+    "resetPasswordBtn": "Đặt lại mật khẩu",
+    "updating": "Đang cập nhật...",
+    "resetSuccess": "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập ngay.",
+    "securePasswordReset": "Đặt lại mật khẩu an toàn",
+    "passwordMismatch": "Mật khẩu không khớp",
+    "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
+    "passwordNeedsUppercase": "Mật khẩu phải có ít nhất một chữ hoa",
+    "passwordNeedsLowercase": "Mật khẩu phải có ít nhất một chữ thường",
+    "passwordNeedsNumber": "Mật khẩu phải có ít nhất một chữ số",
+    "passwordNeedsSpecial": "Mật khẩu phải có ít nhất một ký tự đặc biệt (!@#$%^&*...)"
+  },
+  "goals": {
+    "title": "Quản lý mục tiêu nghề nghiệp",
+    "subtitle": "Thiết lập và theo dõi mục tiêu nghề nghiệp",
+    "createNew": "Tạo mục tiêu mới",
+    "noGoalsTitle": "Chưa có mục tiêu",
+    "noGoalsDesc": "Hãy tạo mục tiêu nghề nghiệp đầu tiên của bạn",
+    "createFirst": "Tạo mục tiêu đầu tiên",
+    "proRequired": "Quản lý mục tiêu nghề nghiệp",
+    "proRequiredDesc": "Tính năng này chỉ dành cho người dùng gói Pro. Thiết lập và theo dõi mục tiêu nghề nghiệp.",
+    "upgradeToPro": "Nâng cấp lên gói Pro",
+    "progress": "Tiến độ",
+    "milestones": "mốc",
+    "career": "Nghề nghiệp",
+    "longTerm": "Dài hạn",
+    "shortTerm": "Ngắn hạn",
+    "target": "Mục tiêu",
+    "priority": "Ưu tiên",
+    "status": {
+      "completed": "Đã hoàn thành",
+      "in_progress": "Đang thực hiện",
+      "paused": "Tạm dừng",
+      "cancelled": "Đã hủy"
+    }
   },
   "home": {
+    "badge": "✨ AI Engine v2.0 mới ra mắt",
     "hero": {
-      "title": "Khám Phá Con Đường Nghề Nghiệp Hoàn Hảo",
-      "subtitle": "Đánh giá tính cách dựa trên AI và gợi ý nghề nghiệp phù hợp dành riêng cho bạn",
+      "title": "Xây dựng tương lai với",
+      "titleHighlight": "Định hướng nghề nghiệp thông minh",
+      "subtitle": "Khám phá con đường sự nghiệp lý tưởng với đánh giá tính cách bằng AI, gợi ý cá nhân hóa và lộ trình chi tiết.",
       "cta": "Bắt đầu đánh giá",
-      "learnMore": "Tìm hiểu thêm"
+      "exploreBtn": "Khám phá nghề nghiệp"
+    },
+    "stats": {
+      "assessments": "Bài đánh giá đã hoàn thành",
+      "careerPaths": "Lộ trình nghề nghiệp đã tạo",
+      "careerData": "Điểm dữ liệu nghề nghiệp",
+      "successRate": "Tỷ lệ thành công",
+      "careerDataPoints": "Dữ liệu nghề nghiệp",
+      "assessmentTime": "Thời gian đánh giá"
     },
     "features": {
-      "title": "Tại Sao Chọn Nền Tảng Của Chúng Tôi",
+      "sectionTitle": "Tất cả những gì bạn cần để",
+      "sectionHighlight": "tỏa sáng trong sự nghiệp",
+      "sectionSubtitle": "Nền tảng kết hợp AI tiên tiến với chiến lược nghề nghiệp đã được kiểm chứng để mang lại lợi thế cạnh tranh.",
       "assessment": {
-        "title": "Đánh Giá Khoa Học",
-        "description": "Bài test RIASEC và Big Five được chứng minh bởi nghiên cứu tâm lý"
+        "title": "Đánh giá nghề nghiệp bằng AI",
+        "desc": "Khám phá con đường nghề nghiệp lý tưởng với bài đánh giá toàn diện RIASEC & Big Five được hỗ trợ bởi phân tích AI tiên tiến."
       },
-      "ai": {
-        "title": "Phân Tích Bằng AI",
-        "description": "Thuật toán tiên tiến giúp đưa ra gợi ý nghề nghiệp chính xác"
+      "skillGap": {
+        "title": "Phân tích khoảng cách kỹ năng",
+        "desc": "Xác định các kỹ năng còn thiếu cho nghề nghiệp mơ ước của bạn."
       },
       "roadmap": {
-        "title": "Lộ Trình Học Tập",
-        "description": "Hướng dẫn từng bước giúp bạn đạt mục tiêu nghề nghiệp"
-      },
-      "tracking": {
-        "title": "Theo Dõi Tiến Độ",
-        "description": "Theo dõi sự phát triển và thành tựu của bạn"
+        "title": "Lộ trình nghề nghiệp",
+        "desc": "Lộ trình học tập cá nhân hóa dẫn đến thành công."
       }
     },
     "howItWorks": {
-      "title": "Cách Hoạt Động",
+      "label": "Quy trình",
+      "title": "CareerBridge hoạt động như thế nào",
+      "subtitle": "Nền tảng AI của chúng tôi dẫn dắt bạn qua hành trình khám phá nghề nghiệp toàn diện",
       "step1": {
-        "title": "Làm Bài Đánh Giá",
-        "description": "Hoàn thành bài test tính cách và sở thích"
+        "title": "Hoàn thành bài đánh giá",
+        "desc": "Làm bài đánh giá RIASEC & Big Five toàn diện để khám phá phong cách làm việc, sở thích và điểm mạnh của bạn."
       },
       "step2": {
-        "title": "Nhận Gợi Ý",
-        "description": "AI phân tích và đưa ra các nghề nghiệp phù hợp với bạn"
+        "title": "Nhận phân tích từ AI",
+        "desc": "AI tiên tiến phân tích hồ sơ của bạn dựa trên hàng nghìn con đường sự nghiệp và xu hướng thị trường để tìm ra lựa chọn phù hợp nhất."
       },
       "step3": {
-        "title": "Theo Lộ Trình Học",
-        "description": "Tiếp cận lộ trình học tập cá nhân hóa"
+        "title": "Khám phá các con đường nghề nghiệp",
+        "desc": "Xem các gợi ý nghề nghiệp cá nhân hóa với lộ trình chi tiết, kỹ năng cần thiết và thông tin lương."
       },
       "step4": {
-        "title": "Theo Dõi Tiến Trình",
-        "description": "Theo dõi sự phát triển của bạn theo thời gian"
+        "title": "Xây dựng lộ trình của bạn",
+        "desc": "Nhận lộ trình học tập tùy chỉnh với các khóa học, chứng chỉ và mốc quan trọng để đạt được mục tiêu nghề nghiệp."
       }
+    },
+    "testimonials": {
+      "title": "Được yêu thích bởi các chuyên gia"
+    },
+    "faq": {
+      "title": "Câu hỏi thường gặp",
+      "subtitle": "Mọi thứ bạn cần biết về CareerBridge.",
+      "q1": "CareerBridge có phù hợp với người mới bắt đầu không?",
+      "a1": "Hoàn toàn có! Dù bạn là sinh viên mới tốt nghiệp hay chuyên gia muốn chuyển hướng, AI của chúng tôi sẽ thích nghi với trình độ của bạn.",
+      "q2": "AI phân tích hoạt động như thế nào?",
+      "a2": "Chúng tôi phân tích đặc điểm tính cách, sở thích và kỹ năng của bạn dựa trên hàng nghìn con đường sự nghiệp và xu hướng thị trường.",
+      "q3": "Những bài đánh giá nào được bao gồm?",
+      "a3": "Nền tảng bao gồm đánh giá RIASEC (Holland Codes) và Big Five, cung cấp cái nhìn toàn diện về nghề nghiệp.",
+      "q4": "Dữ liệu của tôi có an toàn không?",
+      "a4": "Bảo mật là ưu tiên hàng đầu. Dữ liệu cá nhân của bạn được mã hóa và không bao giờ chia sẻ với bên thứ ba mà không có sự đồng ý."
+    },
+    "cta": {
+      "title": "Sẵn sàng khởi động sự nghiệp?",
+      "subtitle": "Tham gia cùng hàng nghìn chuyên gia đã tìm được công việc mơ ước qua CareerBridge AI.",
+      "btn": "Bắt đầu miễn phí"
+    },
+    "contact": {
+      "title": "Liên hệ nhà phát triển",
+      "subtitle": "Có câu hỏi hoặc phản hồi? Chúng tôi rất vui được lắng nghe!",
+      "emailLabel": "Email",
+      "responseTime": "Thời gian phản hồi",
+      "responseTimeValue": "Trong vòng 24 giờ",
+      "support": "Hỗ trợ",
+      "supportValue": "Kỹ thuật & Hướng dẫn nghề nghiệp",
+      "sendTitle": "Gửi tin nhắn cho chúng tôi",
+      "sendDesc": "Nhấn bên dưới để gửi tin nhắn trực tiếp.",
+      "btn": "Liên hệ nhà phát triển",
+      "nameLabel": "Tên",
+      "namePlaceholder": "Tên của bạn",
+      "emailPlaceholder": "email@cua.ban.com",
+      "phonePlaceholder": "Số điện thoại (tùy chọn)",
+      "messageLabel": "Tin nhắn",
+      "messagePlaceholder": "Nội dung tin nhắn...",
+      "sendBtn": "Gửi tin nhắn",
+      "sending": "Đang gửi...",
+      "successMsg": "Gửi tin nhắn thành công!",
+      "phoneLabel": "Điện thoại"
+    },
+    "footer": {
+      "tagline": "CareerBridge AI giúp bạn xây dựng CV chuyên nghiệp, phân tích kỹ năng và tìm con đường sự nghiệp hoàn hảo bằng trí tuệ nhân tạo tiên tiến.",
+      "product": "Sản phẩm",
+      "features": "Tính năng",
+      "pricing": "Bảng giá",
+      "assessment": "Đánh giá",
+      "resources": "Tài nguyên",
+      "blog": "Bài viết",
+      "careerGuide": "Hướng dẫn nghề nghiệp",
+      "helpCenter": "Trung tâm trợ giúp",
+      "legal": "Pháp lý",
+      "privacy": "Chính sách bảo mật",
+      "terms": "Điều khoản",
+      "copyright": "© 2025 CareerBridge AI. Bảo lưu mọi quyền."
     }
   },
   "dashboard": {
@@ -159,7 +294,9 @@
       "viewAll": "Xem tất cả",
       "noSuggestions": "Hãy làm bài đánh giá để nhận gợi ý nghề nghiệp",
       "match": "Phù hợp",
-      "analyzing": "Hệ thống đang phân tích. Gợi ý sẽ xuất hiện sớm!"
+      "analyzing": "Hệ thống đang phân tích. Gợi ý sẽ xuất hiện sớm!",
+      "processing": "Đang xử lý kết quả đánh giá của bạn",
+      "analysisInProgress": "Đang Phân Tích"
     },
     "recentActivity": {
       "title": "Hoạt Động Gần Đây",
@@ -218,7 +355,95 @@
     "analyzingResponses": "AI đang phân tích...",
     "completing": "Hoàn tất...",
     "submitting": "Đang gửi...",
-    "retake": "Làm lại bài đánh giá"
+    "retake": "Làm lại bài đánh giá",
+    "aiPowered": "Phân Tích Bằng AI",
+    "discoverCareer": "Bài Đánh Giá Nghề Nghiệp",
+    "discoverCareerSub": "Khám phá con đường nghề nghiệp lý tưởng với sức mạnh AI",
+    "riasecTitle": "Hồ Sơ RIASEC",
+    "riasecDesc": "Khám phá kiểu tính cách nghề nghiệp của bạn.",
+    "bigFiveTitle": "Đặc Điểm Big Five",
+    "bigFiveDesc": "Hiểu rõ các chiều tính cách cốt lõi.",
+    "essayTitle": "Phân Tích Bài Luận NLP",
+    "essayDesc": "Viết về bản thân để AI hiểu sâu hơn.",
+    "voiceTitle": "AI Phân Tích Giọng Nói",
+    "voiceDesc": "AI suy luận tính cách qua giọng nói của bạn.",
+    "scenarioTitle": "Đánh Giá Tình Huống",
+    "scenarioDesc": "Trả lời các tình huống thực tế để bộc lộ tính cách.",
+    "chooseMode": "Chọn Chế Độ Đánh Giá",
+    "modeInteractive": "Chế Độ Câu Chuyện Tương Tác",
+    "modeTraditional": "Bài Kiểm Tra Truyền Thống",
+    "modeVoice": "AI Giọng Nói",
+    "startBtn": "Bắt Đầu Đánh Giá",
+    "generating": "Đang tạo tình huống cá nhân hóa...",
+    "loadingQuestions": "Đang tải câu hỏi...",
+    "response": {
+      "notMe": "Không phải tôi",
+      "rarely": "Hiếm khi",
+      "sometimes": "Đôi khi",
+      "often": "Thường xuyên",
+      "totallyMe": "Hoàn toàn là tôi!",
+      "choosePrompt": "Vui lòng chọn một đáp án để tiếp tục hành trình!"
+    },
+    "essay": {
+      "optionalStep": "Bước Tùy Chọn",
+      "title": "Bài Luận Phản Ánh",
+      "defaultPrompt": "Hãy viết một bài luận ngắn về tính cách, sở thích và nghề nghiệp mơ ước của bạn.",
+      "placeholder": "Mô tả điểm mạnh, sở thích và loại công việc bạn yêu thích...",
+      "minCharsError": "Vui lòng viết ít nhất {{min}} ký tự.",
+      "maxCharsWarning": "Còn {{remaining}} ký tự",
+      "charCount": "{{count}} / {{min}} tối thiểu",
+      "skipStep": "Bỏ qua bước này",
+      "skip": "Bỏ qua",
+      "submitting": "Đang gửi...",
+      "submit": "Gửi Bài Luận"
+    },
+    "voice": {
+      "title": "Phân Tích Tính Cách Qua Giọng Nói",
+      "subtitle": "Hãy nói tự nhiên trong 30–60 giây. AI sẽ phân tích giọng nói để suy luận tính cách.",
+      "permissionDenied": "Quyền truy cập microphone bị từ chối. Vui lòng cho phép trong cài đặt trình duyệt.",
+      "notSupported": "Trình duyệt của bạn không hỗ trợ ghi âm.",
+      "startRecording": "Bắt Đầu Ghi Âm",
+      "stopRecording": "Dừng Ghi Âm",
+      "recordAgain": "Ghi Lại",
+      "recording": "Đang ghi âm...",
+      "readyToSubmit": "Sẵn sàng gửi",
+      "submit": "Phân Tích Giọng Nói",
+      "submitting": "Đang phân tích...",
+      "submitError": "Gửi ghi âm thất bại. Vui lòng thử lại.",
+      "tip": "Mẹo: Nói về sở thích, ưu tiên công việc hoặc thói quen hàng ngày để có kết quả tốt nhất.",
+      "duration": "Đã ghi {{seconds}}s",
+      "minDuration": "Vui lòng ghi ít nhất {{min}} giây.",
+      "skip": "Bỏ Qua Phân Tích Giọng Nói",
+      "noEndpointNote": "Phân tích giọng nói là bước tuỳ chọn. Bạn có thể bỏ qua và vẫn nhận được kết quả đầy đủ.",
+      "transcriptLabel": "Bản Ghi Âm",
+      "transcriptEditHint": "Bạn có thể sửa lỗi trong văn bản được chuyển đổi tự động.",
+      "transcriptPlaceholder": "Chỉnh sửa văn bản tại đây...",
+      "saveTranscript": "Lưu & Tiếp Tục",
+      "savingTranscript": "Đang lưu..."
+    },
+    "scenario": {
+      "generating": "Đang tạo tình huống cá nhân hóa...",
+      "fallbackNote": "Đang dùng tình huống có sẵn.",
+      "retryGenerate": "Thử Tạo Lại Tình Huống"
+    },
+    "limitReached": "Đã Đạt Giới Hạn Tháng",
+    "limitUsed": "Bạn đã dùng {{current}}/{{limit}} lần đánh giá trong tháng.",
+    "upgradeNow": "Nâng Cấp Ngay",
+    "upgradeBasicHint": "Nâng cấp lên Basic để có 20 lần đánh giá/tháng!",
+    "upgradePremiumHint": "Nâng cấp lên Premium để có lượt đánh giá không giới hạn!",
+    "upgradeBasicPlanHint": "Bạn đang dùng gói Basic. Nâng cấp lên Premium để không giới hạn.",
+    "limitReachedUpgrade": "Hết Giới Hạn — Nâng Cấp",
+    "startInteractive": "Bắt Đầu Đánh Giá Tương Tác",
+    "storyBased": "Trải nghiệm dạng câu chuyện",
+    "standardQuestionnaire": "Bảng câu hỏi tiêu chuẩn",
+    "planPremiumActive": "Premium/Pro Đang Hoạt Động",
+    "planBasicActive": "Gói Basic Đang Hoạt Động",
+    "smartUsage": "Sử Dụng Thông Minh",
+    "unlimitedAccess": "Bạn có quyền truy cập không giới hạn tất cả tính năng Premium. Tận hưởng trải nghiệm đầy đủ!",
+    "limitedAccess": "Bạn có {{limit}} lần đánh giá mỗi tháng.",
+    "viewBasicPlan": "Xem Gói Basic",
+    "viewPremiumPlan": "Xem Gói Premium",
+    "unlimitedAccessLabel": "Truy Cập Không Giới Hạn"
   },
   "results": {
     "title": "Kết Quả Đánh Giá",

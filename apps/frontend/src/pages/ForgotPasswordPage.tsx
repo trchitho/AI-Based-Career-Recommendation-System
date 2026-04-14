@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { authTokenService } from '../services/authTokenService';
+import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
@@ -8,6 +9,7 @@ const ForgotPasswordPage = () => {
   // ==========================================
   // 1. LOGIC BLOCK (GIỮ NGUYÊN)
   // ==========================================
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +18,7 @@ const ForgotPasswordPage = () => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError('Please enter your email to receive the reset link.');
+      setError(t('auth.invalidEmail'));
       return;
     }
     setLoading(true);
@@ -24,7 +26,7 @@ const ForgotPasswordPage = () => {
     setSent(null);
     try {
       await authTokenService.forgot(email);
-      setSent('If this email exists, we have sent instructions.');
+      setSent(t('auth.resetEmailSent'));
     } catch (err: any) {
       setError(err?.response?.data?.detail || err?.message || 'Failed');
     } finally {
@@ -78,10 +80,10 @@ const ForgotPasswordPage = () => {
           {/* Title */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-3 tracking-tight">
-              Forgot Password?
+              {t('auth.forgotPasswordTitle')}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 font-medium text-[16px]">
-              Enter your email and we'll send you instructions to reset your password.
+              {t('auth.forgotPasswordSubtitle')}
             </p>
           </div>
 
@@ -92,7 +94,7 @@ const ForgotPasswordPage = () => {
               {/* Email Input */}
               <div className="space-y-2">
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">
-                  Email Address
+                  {t('auth.emailAddress')}
                 </label>
                 <div className="relative">
                   <input
@@ -118,11 +120,11 @@ const ForgotPasswordPage = () => {
                 {loading ? (
                   <>
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span>Sending...</span>
+                    <span>{t('common.sending')}</span>
                   </>
                 ) : (
                   <>
-                    <span>Send Instructions</span>
+                    <span>{t('auth.sendInstructions')}</span>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                   </>
                 )}
@@ -134,7 +136,7 @@ const ForgotPasswordPage = () => {
                   <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                   </div>
-                  <p className="text-green-800 dark:text-green-300 font-bold text-lg mb-1">Check your email</p>
+                  <p className="text-green-800 dark:text-green-300 font-bold text-lg mb-1">{t('auth.checkYourEmail')}</p>
                   <p className="text-green-700 dark:text-green-400 mb-4">{sent}</p>
                 </div>
               )}
@@ -149,7 +151,7 @@ const ForgotPasswordPage = () => {
               <div className="text-center pt-2">
                 <Link to="/login" className="text-sm font-bold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors flex items-center justify-center gap-2 group">
                   <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                  Back to Login
+                  {t('auth.backToLogin')}
                 </Link>
               </div>
 
@@ -160,7 +162,7 @@ const ForgotPasswordPage = () => {
           <div className="mt-8 text-center text-xs text-gray-400 dark:text-gray-500 font-medium">
             <div className="flex items-center justify-center gap-1.5 mb-2">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-              Secure Password Recovery
+              {t('auth.securePasswordRecovery')}
             </div>
             © 2025 CareerBridge AI. All rights reserved.
           </div>

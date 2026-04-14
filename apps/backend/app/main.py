@@ -24,6 +24,9 @@ except Exception:
 from app.core.db import engine, test_connection
 from sqlalchemy.orm import sessionmaker
 
+# Initialize multi-stream Gemini manager
+from app.core.gemini_manager import multi_stream_manager
+
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
@@ -136,8 +139,9 @@ def create_app() -> FastAPI:
         finally:
             db.close()
 
-    # Authentication handled by dependency injection in routes
-    # No middleware needed - see auth_deps.py for get_current_user_from_token dependency
+    # JWT Auth middleware — sets request.state.user (TC02 session management)
+    from .core.auth_middleware import jwt_auth_middleware
+    app.middleware("http")(jwt_auth_middleware)
 
     # Health & root
     @app.get("/health", tags=["system"])
@@ -228,18 +232,29 @@ def create_app() -> FastAPI:
     # Assessments (nếu có thêm)
     try:
         from .modules.assessments import routes_assessments as assess_router
-
         app.include_router(assess_router.router, prefix="/api/assessments", tags=["assessments"])
+        print("✅ Assessments router registered")
     except Exception as e:
         print("ℹ️  Skip assessments router:", repr(e))
+    
+    # Gamification (optional - can be enabled after assessments work)
+    try:
+        from .modules.assessments import routes_gamification as gamification_router
+        app.include_router(gamification_router.router, prefix="/api/assessments", tags=["gamification"])
+        print("✅ Gamification router registered")
+    except Exception as e:
+        print("ℹ️  Skip gamification router:", repr(e))
 
     # Admin (dashboard, careers, questions, skills)
     try:
         from .modules.admin import routes_admin as admin_router
 
         app.include_router(admin_router.router, prefix="/api/admin", tags=["admin"])
+        print("Admin router registered OK")
     except Exception as e:
-        print("??  Skip admin router:", repr(e))
+        import traceback
+        print("!! Skip admin router:", repr(e))
+        traceback.print_exc()
 
     # Public system settings (no auth)
     try:
@@ -274,6 +289,14 @@ def create_app() -> FastAPI:
         app.include_router(ws_notifs.router)
     except Exception as e:
         print("??  Skip ws notifications:", repr(e))
+
+    # WS comments (real-time comment updates)
+    try:
+        from .modules.realtime import ws_comments as ws_comments
+
+        app.include_router(ws_comments.router)
+    except Exception as e:
+        print("??  Skip ws comments:", repr(e))
 
     # Search API (Elastic or fallback)
     try:
@@ -363,6 +386,16 @@ def create_app() -> FastAPI:
         app.include_router(chatbot_router.router, tags=["chatbot"])
     except Exception as e:
         print("??  Skip chatbot router:", repr(e))
+
+    # Skill Gap Analysis
+    try:
+        from .modules.skill_gap import routes as skill_gap_router
+
+        app.include_router(skill_gap_router.router, prefix="/api/skill-gap", tags=["skill-gap"])
+        print("✅ Skill Gap Analysis router registered")
+    except Exception as e:
+        print("??  Skip skill gap router:", repr(e))
+    
     # Career
     try:
         from .modules.careers import routes_trait_evidence as career_router
@@ -387,6 +420,112 @@ def create_app() -> FastAPI:
         print("✅ AI Mock Interview API")
     except Exception as e:
         print("❌ AI Mock Interview API:", str(e)[:50])
+
+    # NLP — PB32 essay analysis, PB33 career embeddings, PB34 pgvector search
+    try:
+        from .modules.nlp import routes_nlp as nlp_router
+
+        app.include_router(nlp_router.router, prefix="/api/nlp", tags=["nlp"])
+        print("✅ NLP router registered at /api/nlp")
+    except Exception as e:
+        print("??  Skip NLP router:", repr(e))
+
+    # CV Documents admin endpoint (direct registration - guaranteed)
+    from fastapi import Query as _Query
+    from sqlalchemy.orm import Session as _Session
+    from .core.db import get_db as _get_db
+    from fastapi import Depends as _Depends
+
+    @app.get("/api/admin/cv-documents", tags=["admin"])
+    async def admin_cv_documents(
+        page: int = _Query(1, ge=1),
+        page_size: int = _Query(20, ge=1, le=100),
+        search: str = _Query(""),
+        db: _Session = _Depends(_get_db),
+    ):
+        from .modules.skill_gap.models import SkillGapAnalysis
+        from sqlalchemy import or_, desc
+
+        try:
+            query = db.query(
+                SkillGapAnalysis.id,
+                SkillGapAnalysis.user_id,
+                SkillGapAnalysis.career_id,
+                SkillGapAnalysis.cv_filename,
+                SkillGapAnalysis.cv_file_url,
+                SkillGapAnalysis.cv_name,
+                SkillGapAnalysis.cv_email,
+                SkillGapAnalysis.cv_phone,
+                SkillGapAnalysis.match_percentage,
+                SkillGapAnalysis.matched_skills_count,
+                SkillGapAnalysis.missing_skills_count,
+                SkillGapAnalysis.total_required_skills,
+                SkillGapAnalysis.created_at,
+            )
+            if search:
+                query = query.filter(
+                    or_(
+                        SkillGapAnalysis.cv_name.ilike(f"%{search}%"),
+                        SkillGapAnalysis.cv_email.ilike(f"%{search}%"),
+                        SkillGapAnalysis.cv_filename.ilike(f"%{search}%"),
+                    )
+                )
+            total = query.count()
+            records = (
+                query.order_by(desc(SkillGapAnalysis.created_at))
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
+            items = [
+                {
+                    "id": r.id,
+                    "user_id": r.user_id,
+                    "career_id": r.career_id,
+                    "cv_filename": r.cv_filename,
+                    "cv_file_url": r.cv_file_url,
+                    "cv_name": r.cv_name,
+                    "cv_email": r.cv_email,
+                    "cv_phone": r.cv_phone,
+                    "match_percentage": round(r.match_percentage or 0, 1),
+                    "matched_skills_count": r.matched_skills_count or 0,
+                    "missing_skills_count": r.missing_skills_count or 0,
+                    "total_required_skills": r.total_required_skills or 0,
+                    "created_at": r.created_at.isoformat() if r.created_at else None,
+                }
+                for r in records
+            ]
+            return {
+                "success": True,
+                "total": total,
+                "page": page,
+                "page_size": page_size,
+                "total_pages": (total + page_size - 1) // page_size if total else 1,
+                "items": items,
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e), "items": [], "total": 0}
+
+    @app.get("/api/admin/r2-status", tags=["admin"])
+    def admin_r2_status():
+        """Check R2 storage configuration and test upload"""
+        from .core.r2_storage import r2_storage
+        import os
+        result = {
+            "is_configured": r2_storage.is_configured,
+            "account_id": os.getenv("CF_R2_ACCOUNT_ID", "")[:8] + "..." if os.getenv("CF_R2_ACCOUNT_ID") else "NOT SET",
+            "bucket": os.getenv("CF_R2_BUCKET_NAME", "NOT SET"),
+            "public_url": os.getenv("CF_R2_PUBLIC_URL", "NOT SET"),
+            "test_upload": None,
+            "error": None,
+        }
+        if r2_storage.is_configured:
+            try:
+                url = r2_storage.upload_cv(b"R2 test ping", "r2_test.txt", 0)
+                result["test_upload"] = url
+            except Exception as e:
+                result["error"] = str(e)
+        return result
 
     return app
 

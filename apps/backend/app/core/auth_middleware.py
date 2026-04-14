@@ -1,106 +1,146 @@
 """
-JWT Authentication Middleware
+JWT Auth Middleware — PB02 Session Management
+
+Runs on every request:
+1. Reads Bearer token from Authorization header
+2. Verifies JWT signature + expiry
+3. Checks revoked_access_tokens blacklist (supports TC02: old token → 401)
+4. Loads User from DB and sets request.state.user / request.state.user_id
+
+Non-authenticated requests pass through (request.state.user = None).
+Protected routes use Depends(get_current_user) which raises 401 if no user.
 """
+from __future__ import annotations
 
 import logging
-from typing import Optional
+from datetime import datetime, timezone
 
-import jwt
 from fastapi import Request
+from sqlalchemy import text
 from sqlalchemy.orm import Session
-from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
 
 
-class JWTAuthMiddleware(BaseHTTPMiddleware):
-    """Middleware to parse JWT token and set request.state.user"""
+def _extract_bearer(request: Request) -> str | None:
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        return auth.split(" ", 1)[1].strip()
+    return None
 
-    def __init__(self, app, secret_key: str, algorithm: str = "HS256"):
-        super().__init__(app)
-        self.secret_key = secret_key
-        self.algorithm = algorithm
 
-    async def dispatch(self, request: Request, call_next):
-        # Skip auth for certain paths
-        skip_paths = [
-            "/docs",
-            "/redoc",
-            "/openapi.json",
-            "/health",
-            "/health/detailed",
-            "/metrics",
-            "/api/auth/login",
-            "/api/auth/register",
-            "/api/auth/refresh",
-            "/api/auth/google",
-            "/api/auth/verify-email",
-            "/api/auth/reset-password",
-            "/static/",
-        ]
+def _is_blacklisted(db: Session, jti: str) -> bool:
+    """Check if access token JTI is in the revocation blacklist."""
+    try:
+        row = db.execute(
+            text("SELECT 1 FROM core.revoked_access_tokens WHERE jti = :jti LIMIT 1"),
+            {"jti": jti},
+        ).fetchone()
+        return row is not None
+    except Exception:
+        # Table doesn't exist yet — not blacklisted
+        return False
 
-        if any(request.url.path.startswith(path) for path in skip_paths):
-            return await call_next(request)
 
-        # Extract token from Authorization header
-        token = self._extract_token(request)
+def ensure_blacklist_table(db: Session) -> None:
+    """Create the revoked_access_tokens table if it doesn't exist."""
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS core.revoked_access_tokens (
+                jti         TEXT PRIMARY KEY,
+                user_id     BIGINT,
+                revoked_at  TIMESTAMPTZ DEFAULT NOW(),
+                expires_at  TIMESTAMPTZ
+            )
+        """))
+        db.execute(text("""
+            CREATE INDEX IF NOT EXISTS idx_revoked_access_tokens_expires
+            ON core.revoked_access_tokens (expires_at)
+        """))
+        db.commit()
+    except Exception as e:
+        logger.warning(f"[Auth] ensure_blacklist_table: {e}")
+        db.rollback()
 
-        if token:
-            try:
-                # Decode JWT token
-                payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
-                user_id = payload.get("sub")
 
-                if user_id:
-                    # Store user_id in request state for later use
-                    request.state.auth_user_id = int(user_id)
-                    logger.debug(f"Token validated for user: {user_id}")
+def revoke_access_token(db: Session, jti: str, user_id: int, expires_at: datetime | None) -> None:
+    """Add a JTI to the blacklist on logout."""
+    ensure_blacklist_table(db)
+    try:
+        db.execute(text("""
+            INSERT INTO core.revoked_access_tokens (jti, user_id, expires_at)
+            VALUES (:jti, :uid, :exp)
+            ON CONFLICT (jti) DO NOTHING
+        """), {"jti": jti, "uid": user_id, "exp": expires_at})
+        db.commit()
+    except Exception as e:
+        logger.warning(f"[Auth] revoke_access_token failed: {e}")
+        db.rollback()
 
-            except jwt.ExpiredSignatureError:
-                logger.debug("JWT token expired")
-            except jwt.InvalidTokenError as e:
-                logger.debug(f"Invalid JWT token: {e}")
-            except Exception as e:
-                logger.debug(f"JWT auth error: {e}")
 
-        # Continue to next middleware/handler
-        response = await call_next(request)
+def cleanup_expired_blacklist(db: Session) -> None:
+    """Remove expired entries from the blacklist (call periodically)."""
+    try:
+        db.execute(text("""
+            DELETE FROM core.revoked_access_tokens
+            WHERE expires_at IS NOT NULL AND expires_at < NOW()
+        """))
+        db.commit()
+    except Exception:
+        db.rollback()
 
-        # After DB middleware has run, try to load the user
-        if hasattr(request.state, "auth_user_id") and hasattr(request.state, "db"):
-            try:
-                user = self._get_user_by_id(request, request.state.auth_user_id)
-                if user:
-                    request.state.user = user
-                    request.state.user_id = user.id
-                    logger.debug(f"User loaded: {user.id}")
-            except Exception as e:
-                logger.debug(f"Error loading user: {e}")
 
-        return response
+async def jwt_auth_middleware(request: Request, call_next):
+    """
+    FastAPI middleware that authenticates requests via JWT Bearer token.
 
-    def _extract_token(self, request: Request) -> Optional[str]:
-        """Extract JWT token from Authorization header"""
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            return auth_header[7:]  # Remove "Bearer " prefix
-        return None
+    Sets on request.state:
+      - user_id (int | None)
+      - user    (User ORM object | None)
 
-    def _get_user_by_id(self, request: Request, user_id: int):
-        """Get user from database by ID"""
+    Never raises — unauthenticated requests pass through with user=None.
+    """
+    request.state.user = None
+    request.state.user_id = None
+
+    token = _extract_bearer(request)
+    if not token:
+        return await call_next(request)
+
+    # Decode JWT (lazy import to avoid circular dep)
+    try:
+        from app.core.jwt import decode_token
+        payload = decode_token(token)
+    except Exception:
+        # Expired or invalid token — let route decide (401 if protected)
+        return await call_next(request)
+
+    jti = payload.get("jti")
+    sub = payload.get("sub")
+    if not sub:
+        return await call_next(request)
+
+    # Check blacklist if jti present
+    db: Session | None = getattr(request.state, "db", None)
+    if db and jti and _is_blacklisted(db, jti):
+        # Token is revoked — clear it so protected routes return 401
+        return await call_next(request)
+
+    # Load user from DB
+    try:
+        user_id = int(sub)
+    except (ValueError, TypeError):
+        return await call_next(request)
+
+    if db:
         try:
-            # Get database session from request state (set by db middleware)
-            db: Session = getattr(request.state, "db", None)
-            if not db:
-                logger.debug("No database session available")
-                return None
-
-            # Import User model
-            from ..modules.auth.models import User
-
-            user = db.query(User).filter(User.id == user_id).first()
-            return user
-
+            from app.modules.users.models import User
+            from sqlalchemy import select
+            user = db.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
+            if user and not getattr(user, "is_locked", False):
+                request.state.user = user
+                request.state.user_id = user_id
         except Exception as e:
-            logger.debug(f"Error getting user from database: {e}")
-            return None
+            logger.debug(f"[Auth] Failed to load user {user_id}: {e}")
+
+    return await call_next(request)
