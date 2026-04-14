@@ -73,31 +73,48 @@ class RateLimiter:
             # Use Redis sorted set for sliding window
             pipe = redis_client.pipeline()
 
-            # Remove old entries
+            # Remove old entries outside the window
             pipe.zremrangebyscore(key, 0, window_start)
 
-            # Count current requests
+            # Count current requests in the window
             pipe.zcard(key)
-
-            # Add current request
-            pipe.zadd(key, {str(current_time): current_time})
-
-            # Set expiry
-            pipe.expire(key, window + 1)
 
             results = await pipe.execute()
             current_count = results[1]
 
-            # Check if limit exceeded
+            # Match in-memory fallback semantics: only record allowed requests
             allowed = current_count < limit
+            updated_count = current_count
+
+            if allowed:
+                # Use a unique member to avoid collisions for requests sharing the same timestamp
+                request_member = f"{current_time}:{time.time_ns()}"
+                add_pipe = redis_client.pipeline()
+                add_pipe.zadd(key, {request_member: current_time})
+                add_pipe.expire(key, window + 1)
+                await add_pipe.execute()
+                updated_count = current_count + 1
+
+            # Compute reset_time from the oldest entry for accuracy
+            if not allowed:
+                oldest = await redis_client.zrange(key, 0, 0, withscores=True)
+                if oldest:
+                    oldest_time = oldest[0][1]
+                    reset_time = oldest_time + window
+                else:
+                    reset_time = current_time + window
+                retry_after = max(0, reset_time - current_time)
+            else:
+                reset_time = current_time + window
+                retry_after = None
 
             return allowed, {
                 "allowed": allowed,
-                "current_count": current_count,
+                "current_count": updated_count,
                 "limit": limit,
                 "window": window,
-                "reset_time": current_time + window,
-                "retry_after": window if not allowed else None,
+                "reset_time": reset_time,
+                "retry_after": retry_after,
             }
 
         except Exception as e:
@@ -129,13 +146,21 @@ class RateLimiter:
         if allowed:
             request_times.append(current_time)
 
+        # Compute reset_time from the oldest entry in the window for accuracy
+        if not allowed and request_times:
+            reset_time = request_times[0] + window
+            retry_after = max(0, reset_time - current_time)
+        else:
+            reset_time = current_time + window
+            retry_after = None
+
         return allowed, {
             "allowed": allowed,
             "current_count": current_count,
             "limit": limit,
             "window": window,
-            "reset_time": current_time + window,
-            "retry_after": window if not allowed else None,
+            "reset_time": reset_time,
+            "retry_after": retry_after,
         }
 
     def _cleanup_memory_store(self, current_time: float):
