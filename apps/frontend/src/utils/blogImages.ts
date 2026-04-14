@@ -29,9 +29,6 @@ const DEFAULT_BLOG_IMAGE = '/images/blog/career-advice.jpg';
  * @returns The image URL to use for the blog post
  */
 export const getBlogImage = (category?: string, featuredImage?: string): string => {
-    // Debug logging
-    console.log('🖼️ getBlogImage called with category:', category);
-
     // If there's a custom featured image, use it
     if (featuredImage && featuredImage.trim()) {
         return featuredImage;
@@ -48,11 +45,8 @@ export const getBlogImage = (category?: string, featuredImage?: string): string 
     // Convert spaces to dashes for consistent mapping
     const dashCategory = normalizedCategory.replace(/\s+/g, '-');
 
-    console.log('🔍 Trying mappings:', { normalized: normalizedCategory, dash: dashCategory });
-
     // Direct mapping with dash format
     if (BLOG_IMAGE_MAPPING[dashCategory]) {
-        console.log('✅ Found dash mapping:', BLOG_IMAGE_MAPPING[dashCategory]);
         return BLOG_IMAGE_MAPPING[dashCategory];
     }
 
