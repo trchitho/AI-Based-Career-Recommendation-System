@@ -1,4 +1,4 @@
-﻿import re
+import re
 import unicodedata
 
 URL_RE = re.compile(r"https?://\S+|www\.\S+")

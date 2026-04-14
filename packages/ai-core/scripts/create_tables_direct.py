@@ -12,16 +12,17 @@ from pathlib import Path
 # Add ai_core to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from ai_core.db import engine
 from sqlalchemy import text
+
+from ai_core.db import engine
 
 
 def create_tables():
     """Create all required tables"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🔧 CREATING DATABASE TABLES")
-    print("="*60)
-    
+    print("=" * 60)
+
     tables_sql = [
         # Table 1: career_dwas
         """
@@ -38,7 +39,6 @@ def create_tables():
         """,
         "CREATE INDEX IF NOT EXISTS idx_career_dwas_onet ON core.career_dwas(onet_code)",
         "CREATE INDEX IF NOT EXISTS idx_career_dwas_dwa_id ON core.career_dwas(dwa_id)",
-        
         # Table 2: career_work_activities
         """
         CREATE TABLE IF NOT EXISTS core.career_work_activities (
@@ -58,7 +58,6 @@ def create_tables():
         """,
         "CREATE INDEX IF NOT EXISTS idx_career_work_activities_onet ON core.career_work_activities(onet_code)",
         "CREATE INDEX IF NOT EXISTS idx_career_work_activities_element ON core.career_work_activities(element_id)",
-        
         # Table 3: career_work_context
         """
         CREATE TABLE IF NOT EXISTS core.career_work_context (
@@ -79,7 +78,6 @@ def create_tables():
         """,
         "CREATE INDEX IF NOT EXISTS idx_career_work_context_onet ON core.career_work_context(onet_code)",
         "CREATE INDEX IF NOT EXISTS idx_career_work_context_element ON core.career_work_context(element_id)",
-        
         # Table 4: career_education_pct
         """
         CREATE TABLE IF NOT EXISTS core.career_education_pct (
@@ -100,7 +98,6 @@ def create_tables():
         """,
         "CREATE INDEX IF NOT EXISTS idx_career_education_pct_onet ON core.career_education_pct(onet_code)",
         "CREATE INDEX IF NOT EXISTS idx_career_education_pct_category ON core.career_education_pct(category)",
-        
         # Table 5: career_prep
         """
         CREATE TABLE IF NOT EXISTS core.career_prep (
@@ -115,7 +112,6 @@ def create_tables():
         """,
         "CREATE INDEX IF NOT EXISTS idx_career_prep_onet ON core.career_prep(onet_code)",
         "CREATE INDEX IF NOT EXISTS idx_career_prep_job_zone ON core.career_prep(job_zone)",
-        
         # Table 6: career_wages_us
         """
         CREATE TABLE IF NOT EXISTS core.career_wages_us (
@@ -138,7 +134,6 @@ def create_tables():
         )
         """,
         "CREATE INDEX IF NOT EXISTS idx_career_wages_us_onet ON core.career_wages_us(onet_code)",
-        
         # Table 7: career_mapping_esco
         """
         CREATE TABLE IF NOT EXISTS core.career_mapping_esco (
@@ -156,70 +151,74 @@ def create_tables():
         "CREATE INDEX IF NOT EXISTS idx_career_mapping_esco_esco ON core.career_mapping_esco(esco_code)",
         "CREATE INDEX IF NOT EXISTS idx_career_mapping_esco_isco ON core.career_mapping_esco(isco_code)",
     ]
-    
+
     table_names = [
-        'career_dwas',
-        'career_work_activities',
-        'career_work_context',
-        'career_education_pct',
-        'career_prep',
-        'career_wages_us',
-        'career_mapping_esco',
+        "career_dwas",
+        "career_work_activities",
+        "career_work_context",
+        "career_education_pct",
+        "career_prep",
+        "career_wages_us",
+        "career_mapping_esco",
     ]
-    
+
     created_tables = []
-    
-    for i, sql in enumerate(tables_sql):
+
+    for _i, sql in enumerate(tables_sql):
         try:
             with engine.connect() as conn:
                 conn.execute(text(sql))
                 conn.commit()
-            
-            if 'CREATE TABLE' in sql.upper():
-                table_name = [t for t in table_names if t in sql][0] if any(t in sql for t in table_names) else 'unknown'
+
+            if "CREATE TABLE" in sql.upper():
+                table_name = [t for t in table_names if t in sql][0] if any(t in sql for t in table_names) else "unknown"
                 print(f"  ✅ Created table: {table_name}")
                 created_tables.append(table_name)
-            elif 'CREATE INDEX' in sql.upper():
+            elif "CREATE INDEX" in sql.upper():
                 pass  # Silent for indexes
-                
+
         except Exception as e:
-            if 'already exists' in str(e).lower():
-                if 'CREATE TABLE' in sql.upper():
-                    table_name = [t for t in table_names if t in sql][0] if any(t in sql for t in table_names) else 'unknown'
+            if "already exists" in str(e).lower():
+                if "CREATE TABLE" in sql.upper():
+                    table_name = [t for t in table_names if t in sql][0] if any(t in sql for t in table_names) else "unknown"
                     print(f"  ⚠️  Table {table_name} already exists")
             else:
                 print(f"  ❌ Error: {str(e)[:100]}")
-    
-    print(f"\n✅ Database setup completed")
+
+    print("\n✅ Database setup completed")
     print(f"   Tables created/verified: {len(set(created_tables))}")
-    
+
     return True
 
 
 def verify_tables():
     """Verify tables exist"""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("🔍 VERIFYING TABLES")
-    print(f"{'='*60}")
-    
+    print(f"{'=' * 60}")
+
     try:
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text(
+                    """
                 SELECT table_name 
                 FROM information_schema.tables 
                 WHERE table_schema = 'core' 
                   AND table_name LIKE 'career_%'
                 ORDER BY table_name
-            """))
-            
+            """
+                )
+            )
+
             tables = [row[0] for row in result]
-            
+
             print(f"✅ Found {len(tables)} tables in core schema:")
             for table in tables:
                 count_result = conn.execute(text(f"SELECT COUNT(*) FROM core.{table}"))
                 count = count_result.scalar()
                 print(f"   - {table}: {count:,} rows")
-    
+
     except Exception as e:
         print(f"❌ Verification failed: {e}")
 
@@ -228,13 +227,13 @@ def main():
     """Main entry point"""
     print(f"\nDatabase: {engine.url.database}")
     print(f"Host: {engine.url.host}")
-    
+
     create_tables()
     verify_tables()
-    
-    print(f"\n{'='*60}")
+
+    print(f"\n{'=' * 60}")
     print("✅ Ready to run ETL pipeline!")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
 
 if __name__ == "__main__":

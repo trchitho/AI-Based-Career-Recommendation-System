@@ -1,4 +1,4 @@
-﻿import json
+import json
 from pathlib import Path
 from typing import Any
 
@@ -13,12 +13,8 @@ TASK2CFG = {
 
 
 class JsonlRegDataset(Dataset):
-    def __init__(
-        self, jsonl_path: Path, tokenizer: AutoTokenizer, task: str, max_length: int = 256
-    ):
-        self.rows = [
-            json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()
-        ]
+    def __init__(self, jsonl_path: Path, tokenizer: AutoTokenizer, task: str, max_length: int = 256):
+        self.rows = [json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()]
         self.tok = tokenizer
         self.task = task
         self.cfg = TASK2CFG[task]

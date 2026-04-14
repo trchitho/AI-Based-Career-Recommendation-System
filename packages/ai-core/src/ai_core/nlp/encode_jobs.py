@@ -1,4 +1,4 @@
-﻿# src/nlp/encode_jobs.py
+# src/nlp/encode_jobs.py
 from __future__ import annotations
 
 import argparse
@@ -55,9 +55,7 @@ def tokenize_tags(
     tags_vi: str,
     mode: str = "phrases",  # "phrases" | "words" | "both"
     collapse_phrase_components: bool = True,  # True: có 'học_chủ_động' thì bỏ 'học','chủ','động'
-    stopwords: (
-        list[str] | None
-    ) = None,  # danh sách từ muốn loại (đã lower, có dấu hoặc không dấu tuỳ emit_ascii_variant)
+    stopwords: list[str] | None = None,  # danh sách từ muốn loại (đã lower, có dấu hoặc không dấu tuỳ emit_ascii_variant)
     min_word_len: int = 2,
     keep_diacritics: bool = True,  # <<< GIỮ DẤU
     emit_ascii_variant: bool = False,  # <<< THÊM BIẾN THỂ KHÔNG DẤU (tuỳ chọn)
@@ -217,9 +215,7 @@ def resolve_model_name(model_arg: str) -> str:
     if p.is_dir():
         tnf = p / "tokenizer_name.txt"
         if not tnf.exists():
-            raise FileNotFoundError(
-                f"Model dir '{model_arg}' không có tokenizer_name.txt; hãy tạo file chứa 1 dòng HF model id."
-            )
+            raise FileNotFoundError(f"Model dir '{model_arg}' không có tokenizer_name.txt; hãy tạo file chứa 1 dòng HF model id.")
         name = tnf.read_text(encoding="utf-8").strip()
         if not name:
             raise ValueError(f"tokenizer_name.txt rỗng trong '{model_arg}'")
@@ -276,14 +272,10 @@ def encode_texts(
 
 # ---------- Main ----------
 def main():
-    ap = argparse.ArgumentParser(
-        "Encode Vietnamese job catalog with a semantic encoder (vi-SBERT/MiniLM)."
-    )
+    ap = argparse.ArgumentParser("Encode Vietnamese job catalog with a semantic encoder (vi-SBERT/MiniLM).")
     # I/O & model
     ap.add_argument("--catalog", required=True, help="Path CSV/JSON jobs catalog.")
-    ap.add_argument(
-        "--model", required=True, help="HF model id hoặc thư mục chứa tokenizer_name.txt"
-    )
+    ap.add_argument("--model", required=True, help="HF model id hoặc thư mục chứa tokenizer_name.txt")
     ap.add_argument("--model_name", default=None, help="Nếu set, ưu tiên dùng HF model id này.")
     ap.add_argument("--device", default="auto", help="auto|cuda|cpu|mps (mặc định: auto)")
 
@@ -294,9 +286,7 @@ def main():
     # batching/encoding
     ap.add_argument("--batch_size", type=int, default=32)
     ap.add_argument("--max_length", type=int, default=256)
-    ap.add_argument(
-        "--normalize_in_encoder", action="store_true", help="L2-normalize ngay trong encoder"
-    )
+    ap.add_argument("--normalize_in_encoder", action="store_true", help="L2-normalize ngay trong encoder")
 
     # outputs
     ap.add_argument("--emb_out", required=True)
@@ -307,12 +297,8 @@ def main():
     ap.add_argument("--collapse_phrase_components", action="store_true")
     ap.add_argument("--min_word_len", type=int, default=2)
     ap.add_argument("--tag_stopwords", default="", help="Đường dẫn .txt: mỗi dòng 1 stopword")
-    ap.add_argument(
-        "--tag_preview_n", type=int, default=20, help="Số token hiển thị ở sample preview"
-    )
-    ap.add_argument(
-        "--tag_keep_diacritics", action="store_true", help="Sinh tag_tokens có dấu (Unicode)"
-    )
+    ap.add_argument("--tag_preview_n", type=int, default=20, help="Số token hiển thị ở sample preview")
+    ap.add_argument("--tag_keep_diacritics", action="store_true", help="Sinh tag_tokens có dấu (Unicode)")
     ap.add_argument(
         "--tag_emit_ascii_variant",
         action="store_true",
@@ -334,9 +320,7 @@ def main():
     if args.tag_stopwords:
         sp = Path(args.tag_stopwords)
         if sp.exists():
-            stopwords = [
-                line.strip() for line in sp.read_text(encoding="utf-8").splitlines() if line.strip()
-            ]
+            stopwords = [line.strip() for line in sp.read_text(encoding="utf-8").splitlines() if line.strip()]
 
     # 4) Read catalog
     rows = read_catalog(args.catalog)

@@ -1,11 +1,11 @@
 # src/api/routes_rank.py
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List
 
-from ai_core.retrieval.service_pgvector import search_candidates_for_user
-from ai_core.recsys.neumf.infer import infer_scores   # dùng B4
+from ai_core.recsys.neumf.infer import infer_scores  # dùng B4
 from ai_core.recsys.neumf.mappings import load_mappings  # để map user_feat & item_feat
+from ai_core.retrieval.service_pgvector import search_candidates_for_user
 
 router = APIRouter(prefix="/rank", tags=["ranking"])
 
@@ -22,7 +22,7 @@ class RankedItem(BaseModel):
 
 class RankResponse(BaseModel):
     user_id: int
-    items: List[RankedItem]
+    items: list[RankedItem]
 
 
 @router.post("", response_model=RankResponse)

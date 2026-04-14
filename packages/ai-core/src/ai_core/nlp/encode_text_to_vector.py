@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -14,12 +14,8 @@ def mean_pool(last_hidden_state, attention_mask):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--text", type=str, required=True, help="Bài luận cần encode")
-    parser.add_argument(
-        "--model", type=str, default="models/riasec_phobert", help="Checkpoint đã fine-tune"
-    )
-    parser.add_argument(
-        "--out", type=str, default="data/embeddings/user_vector.npy", help="File output .npy"
-    )
+    parser.add_argument("--model", type=str, default="models/riasec_phobert", help="Checkpoint đã fine-tune")
+    parser.add_argument("--out", type=str, default="data/embeddings/user_vector.npy", help="File output .npy")
     parser.add_argument("--max_length", type=int, default=256)
     args = parser.parse_args()
 
@@ -31,9 +27,7 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
 
-    inputs = tok(args.text, return_tensors="pt", truncation=True, max_length=args.max_length).to(
-        device
-    )
+    inputs = tok(args.text, return_tensors="pt", truncation=True, max_length=args.max_length).to(device)
 
     with torch.no_grad():
         out = model(**inputs)

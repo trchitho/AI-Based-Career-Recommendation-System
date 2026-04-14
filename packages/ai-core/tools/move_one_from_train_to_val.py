@@ -3,9 +3,7 @@ from pathlib import Path
 base = Path("data/processed")
 
 # Ưu tiên *_with_labels.jsonl nếu có
-train = base / (
-    "train_with_labels.jsonl" if (base / "train_with_labels.jsonl").exists() else "train.jsonl"
-)
+train = base / ("train_with_labels.jsonl" if (base / "train_with_labels.jsonl").exists() else "train.jsonl")
 val = base / ("val_with_labels.jsonl" if (base / "val_with_labels.jsonl").exists() else "val.jsonl")
 
 val.touch(exist_ok=True)

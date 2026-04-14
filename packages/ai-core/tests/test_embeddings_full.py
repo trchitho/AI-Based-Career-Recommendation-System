@@ -19,7 +19,5 @@ def test_train_embeddings_shape():
 
 def test_val_test_exist():
     for split in ["val", "test"]:
-        E, J = _load_n(
-            f"data/embeddings/{split}_embeddings.npy", f"data/embeddings/{split}_index.json"
-        )
+        E, J = _load_n(f"data/embeddings/{split}_embeddings.npy", f"data/embeddings/{split}_index.json")
         assert E.shape[0] == len(J)

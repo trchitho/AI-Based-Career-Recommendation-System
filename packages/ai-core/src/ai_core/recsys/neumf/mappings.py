@@ -1,15 +1,16 @@
 # src/ai_core/recsys/neumf/mappings.py
 
 from __future__ import annotations
-import json
-from pathlib import Path
-from typing import Dict, Any, Tuple
-import re
 
+import json
+import re
+from pathlib import Path
+from typing import Any
 
 # ===============================
 # Helpers
 # ===============================
+
 
 def _normalize_job_id(raw: str) -> str:
     """
@@ -47,7 +48,7 @@ DATA_DIR = BASE_DIR / "data" / "processed"
 MODEL_DEFAULT = BASE_DIR / "models" / "recsys_neumf" / "best.pt"
 
 
-def load_user_feats(path: Path | str = None) -> Dict[str, Any]:
+def load_user_feats(path: Path | str = None) -> dict[str, Any]:
     """
     Load user_feats.json → dict[user_id(str)] = {text, riasec, big5, ...}
     """
@@ -65,7 +66,7 @@ def load_user_feats(path: Path | str = None) -> Dict[str, Any]:
     return out
 
 
-def load_item_feats(path: Path | str = None) -> Dict[str, Any]:
+def load_item_feats(path: Path | str = None) -> dict[str, Any]:
     """
     Load item_feats.json → dict[job_id(str)] = {text, riasec, title, ...}
     """
@@ -84,10 +85,8 @@ def load_item_feats(path: Path | str = None) -> Dict[str, Any]:
 
 
 def load_mappings(
-    user_path: Path | str = None,
-    item_path: Path | str = None,
-    model_path: Path | str = None
-) -> Tuple[Dict[str, Any], Dict[str, Any], Path]:
+    user_path: Path | str = None, item_path: Path | str = None, model_path: Path | str = None
+) -> tuple[dict[str, Any], dict[str, Any], Path]:
     """
     Trả về:
         user_feats, item_feats, model_path

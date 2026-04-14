@@ -82,9 +82,7 @@ def main():
         help="HF repo id hoặc local path",
     )
     ap.add_argument("--batch_size", type=int, default=64)
-    ap.add_argument(
-        "--text_mode", choices=["desc", "title+desc", "title+desc+skills"], default="title+desc"
-    )
+    ap.add_argument("--text_mode", choices=["desc", "title+desc", "title+desc+skills"], default="title+desc")
     args = ap.parse_args()
 
     DB_URL = resolve_db_url(args.db)
@@ -118,17 +116,7 @@ def main():
     elif args.text_mode == "title+desc":
         texts = (df["title"].fillna("") + " . " + df["description"].fillna("")).astype(str).tolist()
     else:
-        texts = (
-            (
-                df["title"].fillna("")
-                + " . "
-                + df["description"].fillna("")
-                + " . "
-                + df["skills"].fillna("")
-            )
-            .astype(str)
-            .tolist()
-        )
+        texts = (df["title"].fillna("") + " . " + df["description"].fillna("") + " . " + df["skills"].fillna("")).astype(str).tolist()
 
     # 4) Load model
     model = load_model(args.model)
@@ -175,9 +163,7 @@ def main():
                 inserted += 1
         conn.commit()
 
-    print(
-        f"[OK] career_embeddings upserted={inserted}, skipped(no career_id)={skipped}, model={args.model}"
-    )
+    print(f"[OK] career_embeddings upserted={inserted}, skipped(no career_id)={skipped}, model={args.model}")
 
 
 if __name__ == "__main__":

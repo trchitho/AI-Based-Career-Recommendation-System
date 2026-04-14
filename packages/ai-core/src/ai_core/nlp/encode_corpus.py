@@ -1,4 +1,4 @@
-﻿import json
+import json
 from pathlib import Path
 
 import numpy as np
@@ -73,9 +73,7 @@ def main():
         # Lưu index (user_id, language…) để tra ngược
         rows = [json.loads(line) for line in p.read_text(encoding="utf-8").splitlines()]
         index = [{"user_id": r["user_id"], "language": r["language"]} for r in rows]
-        (out_dir / f"{name}_index.json").write_text(
-            json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        (out_dir / f"{name}_index.json").write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"[OK] {name}: {embs.shape} -> {out_dir / (name + '_embeddings.npy')}")
 
 

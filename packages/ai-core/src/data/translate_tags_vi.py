@@ -1,4 +1,4 @@
-﻿# src/data/translate_tags_vi.py
+# src/data/translate_tags_vi.py
 import json
 import re
 import unicodedata

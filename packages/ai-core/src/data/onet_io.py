@@ -1,4 +1,4 @@
-﻿# src/data/onet_io.py
+# src/data/onet_io.py
 from __future__ import annotations
 
 import os
@@ -16,11 +16,11 @@ def read_onet_tsv(name: str) -> pd.DataFrame:
 
 def load_onet_core() -> pd.DataFrame:
     """
-        Occupation Data.txt — cột chính:
-      - job_id (O*NET-SOC Code)
-      - title
-      - Description
-      - title_norm (dành cho matching)
+      Occupation Data.txt — cột chính:
+    - job_id (O*NET-SOC Code)
+    - title
+    - Description
+    - title_norm (dành cho matching)
     """
     occ = read_onet_tsv("Occupation Data.txt")
     cols = {c.lower().strip(): c for c in occ.columns}
@@ -28,19 +28,11 @@ def load_onet_core() -> pd.DataFrame:
     title = cols.get("title", "Title")
     desc = cols.get("description", "Description")
 
-    core = occ[[code, title, desc]].rename(
-        columns={code: "job_id", title: "title", desc: "Description"}
-    )
+    core = occ[[code, title, desc]].rename(columns={code: "job_id", title: "title", desc: "Description"})
     core["job_id"] = core["job_id"].astype(str).str.strip()
     core = core.drop_duplicates(subset=["job_id"])
     # Normalize ở build_jobs_catalog qua matchers.normalize_title
-    core["title_norm"] = (
-        core["title"]
-        .str.lower()
-        .str.normalize("NFKD")
-        .str.encode("ascii", "ignore")
-        .str.decode("ascii")
-    )
+    core["title_norm"] = core["title"].str.lower().str.normalize("NFKD").str.encode("ascii", "ignore").str.decode("ascii")
     core["title_norm"] = core["title_norm"].str.replace(r"\s+", " ", regex=True).str.strip()
     return core
 
@@ -129,12 +121,7 @@ def load_onet_skills(topn=15, min_importance=50):
     df["rank"] = df.groupby(code)[val].rank(method="first", ascending=False)
     df = df[df["rank"] <= topn]
 
-    agg = (
-        df.groupby(code)[elname]
-        .apply(lambda s: sorted(set(s), key=str))
-        .reset_index()
-        .rename(columns={code: "job_id", elname: "skills_onet"})
-    )
+    agg = df.groupby(code)[elname].apply(lambda s: sorted(set(s), key=str)).reset_index().rename(columns={code: "job_id", elname: "skills_onet"})
 
     # Chuẩn hóa job_id
     agg["job_id"] = agg["job_id"].astype(str).str.strip()

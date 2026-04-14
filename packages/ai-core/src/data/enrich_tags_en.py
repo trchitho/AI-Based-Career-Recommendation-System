@@ -4,8 +4,9 @@ import argparse
 import csv
 import json
 import re
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, List, Iterable, Any
+from typing import Any
 
 
 # --------- utilities ---------
@@ -24,7 +25,7 @@ def norm_token(s: str) -> str:
     return re.sub(r"\s+", "-", s)
 
 
-def uniq_keep_order(xs: Iterable[str]) -> List[str]:
+def uniq_keep_order(xs: Iterable[str]) -> list[str]:
     seen, out = set(), []
     for x in xs:
         if not x:
@@ -35,13 +36,13 @@ def uniq_keep_order(xs: Iterable[str]) -> List[str]:
     return out
 
 
-def derive_tags_from_text(*texts: str, max_tags: int = 10) -> List[str]:
+def derive_tags_from_text(*texts: str, max_tags: int = 10) -> list[str]:
     # very light heuristic fallback
     blob = " | ".join([t for t in texts if t]).lower()
     # split by common separators
     parts = re.split(r"[|,;•\n]+", blob)
     # keep short-ish tokens/phrases (1–4 words)
-    cand: List[str] = []
+    cand: list[str] = []
     for p in parts:
         p = p.strip()
         if not p:
@@ -88,10 +89,10 @@ def main():
     if not inp.exists():
         raise FileNotFoundError(f"CSV not found: {inp}")
 
-    mapping: Dict[str, Any] = read_json(onet_tags_path) or {}
+    mapping: dict[str, Any] = read_json(onet_tags_path) or {}
 
     # read CSV
-    rows: List[dict] = []
+    rows: list[dict] = []
     with inp.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         fieldnames = list(reader.fieldnames or [])
@@ -105,7 +106,7 @@ def main():
             desc = (row.get("description") or "").strip()
             skills = (row.get("skills") or "").strip()
 
-            tags: List[str] = []
+            tags: list[str] = []
 
             mapped = mapping.get(jid)
             # mapping v5: {"domain_vi": "...", "skills_en": [...]}

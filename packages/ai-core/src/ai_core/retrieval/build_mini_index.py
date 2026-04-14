@@ -1,4 +1,4 @@
-﻿# src/retrieval/build_mini_index.py
+# src/retrieval/build_mini_index.py
 import argparse
 import json
 import re
@@ -44,11 +44,11 @@ def tokenize_allow_list(s: str):
 
 def expand_meta_token_variants(tok: str):
     """
-        Nhận 1 token từ meta (có thể có dấu và '_'), trả về set biến thể để so khớp:
-            - ascii_underscore: bỏ dấu + giữ '_'  (vd: 'dữ_liệu' -> 'du_lieu')
-            - ascii_spaces:     bỏ dấu + '_'->' ' (vd: 'du lieu')
-            - words:            tách theo '_'     (vd: {'du','lieu'})
-        Tất cả ở dạng ASCII lower để so khớp với allowed set.
+    Nhận 1 token từ meta (có thể có dấu và '_'), trả về set biến thể để so khớp:
+        - ascii_underscore: bỏ dấu + giữ '_'  (vd: 'dữ_liệu' -> 'du_lieu')
+        - ascii_spaces:     bỏ dấu + '_'->' ' (vd: 'du lieu')
+        - words:            tách theo '_'     (vd: {'du','lieu'})
+    Tất cả ở dạng ASCII lower để so khớp với allowed set.
     """
     if not tok:
         return set()
@@ -66,9 +66,7 @@ def expand_meta_token_variants(tok: str):
 
 def main():
     ap = argparse.ArgumentParser("Build mini FAISS index filtered by allowed tags/domains")
-    ap.add_argument(
-        "--jobs_meta", required=True, help="JSON meta (vd: data/embeddings/jobs_index_visbert.json)"
-    )
+    ap.add_argument("--jobs_meta", required=True, help="JSON meta (vd: data/embeddings/jobs_index_visbert.json)")
     ap.add_argument(
         "--embeddings",
         required=True,
@@ -82,9 +80,7 @@ def main():
     ap.add_argument("--index_out", required=True)
     ap.add_argument("--meta_out", required=True)
     ap.add_argument("--emb_out", required=True)
-    ap.add_argument(
-        "--min_match", type=int, default=1, help="Cần tối thiểu bao nhiêu token khớp (mặc định 1)"
-    )
+    ap.add_argument("--min_match", type=int, default=1, help="Cần tối thiểu bao nhiêu token khớp (mặc định 1)")
     ap.add_argument(
         "--soc_prefixes",
         type=str,
@@ -151,17 +147,13 @@ def main():
 
     faiss.write_index(index, args.index_out)
     metas_sub = [metas[i] for i in keep_idx]
-    Path(args.meta_out).write_text(
-        json.dumps(metas_sub, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    Path(args.meta_out).write_text(json.dumps(metas_sub, ensure_ascii=False, indent=2), encoding="utf-8")
     np.save(args.emb_out, X_sub)
 
     print(f"[OK] Mini index -> {args.index_out} (ntotal={index.ntotal})")
     print(f"[OK] Meta -> {args.meta_out} (records={len(metas_sub)})")
     print(f"[OK] Emb -> {args.emb_out} {X_sub.shape}")
-    print(
-        f"[INFO] Matched records: {len(metas_sub)} / {len(metas)} (allowed[:20]={sorted(list(allow))[:20]} ; soc_prefixes={soc_prefixes or 'N/A'})"
-    )
+    print(f"[INFO] Matched records: {len(metas_sub)} / {len(metas)} (allowed[:20]={sorted(list(allow))[:20]} ; soc_prefixes={soc_prefixes or 'N/A'})")
 
 
 if __name__ == "__main__":

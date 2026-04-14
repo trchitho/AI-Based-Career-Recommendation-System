@@ -9,113 +9,117 @@ Quá trình: Load mapping, analyze relationships, provide solutions
 Analyze O*NET-SOC to ESCO mapping relationships for RCM system
 """
 
-import pandas as pd
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
+
+import pandas as pd
+
 
 def analyze_onet_esco_mapping():
     """Analyze the O*NET-SOC to ESCO mapping relationships"""
-    print("="*80)
+    print("=" * 80)
     print("🗺️ O*NET-SOC TO ESCO MAPPING ANALYSIS")
-    print("="*80)
-    
+    print("=" * 80)
+
     # Load mapping file
     mapping_file = Path("data/raw/ESCO_to_ONET-SOC.csv")
-    
+
     if not mapping_file.exists():
         print(f"❌ Mapping file not found: {mapping_file}")
         return
-    
+
     print(f"📖 Loading mapping file: {mapping_file}")
     df = pd.read_csv(mapping_file)
     print(f"   Loaded {len(df)} mapping records")
-    
+
     # Analyze the structure
-    print(f"\n📋 MAPPING FILE STRUCTURE")
+    print("\n📋 MAPPING FILE STRUCTURE")
     print("-" * 50)
     print(f"Columns: {list(df.columns)}")
-    print(f"Sample data:")
+    print("Sample data:")
     print(df.head(3).to_string(index=False))
-    
+
     # Analyze O*NET-SOC to ESCO relationships
-    print(f"\n🔍 RELATIONSHIP ANALYSIS")
+    print("\n🔍 RELATIONSHIP ANALYSIS")
     print("-" * 50)
-    
+
     # Group by O*NET-SOC code to see how many ESCO codes each maps to
     onet_to_esco = defaultdict(list)
     esco_to_onet = defaultdict(list)
-    
+
     # Assuming columns are something like 'ONET_SOC_Code' and 'ESCO_Code'
     # Let's check actual column names first
     onet_col = None
     esco_col = None
-    
+
     for col in df.columns:
         col_lower = col.lower()
-        if 'onet' in col_lower or 'soc' in col_lower:
+        if "onet" in col_lower or "soc" in col_lower:
             onet_col = col
-        elif 'esco' in col_lower:
+        elif "esco" in col_lower:
             esco_col = col
-    
+
     if not onet_col or not esco_col:
-        print(f"❌ Could not identify O*NET and ESCO columns")
+        print("❌ Could not identify O*NET and ESCO columns")
         print(f"Available columns: {list(df.columns)}")
         return
-    
+
     print(f"O*NET column: {onet_col}")
     print(f"ESCO column: {esco_col}")
-    
+
     # Build mappings
     for _, row in df.iterrows():
         onet_code = str(row[onet_col]).strip()
         esco_code = str(row[esco_col]).strip()
-        
+
         if pd.notna(onet_code) and pd.notna(esco_code):
             onet_to_esco[onet_code].append(esco_code)
             esco_to_onet[esco_code].append(onet_code)
-    
+
     # Analyze relationships
-    print(f"\n📊 MAPPING STATISTICS")
+    print("\n📊 MAPPING STATISTICS")
     print("-" * 50)
-    
+
     total_onet_codes = len(onet_to_esco)
     total_esco_codes = len(esco_to_onet)
-    
+
     print(f"Unique O*NET-SOC codes: {total_onet_codes:,}")
     print(f"Unique ESCO codes: {total_esco_codes:,}")
     print(f"Total mapping records: {len(df):,}")
-    
+
     # Analyze O*NET to ESCO (1-to-many)
     onet_esco_counts = [len(esco_list) for esco_list in onet_to_esco.values()]
     avg_esco_per_onet = sum(onet_esco_counts) / len(onet_esco_counts)
     max_esco_per_onet = max(onet_esco_counts)
-    
-    print(f"\n🎯 O*NET-SOC → ESCO Relationships:")
+
+    print("\n🎯 O*NET-SOC → ESCO Relationships:")
     print(f"   Average ESCO codes per O*NET: {avg_esco_per_onet:.2f}")
     print(f"   Maximum ESCO codes per O*NET: {max_esco_per_onet}")
-    
+
     # Show examples of 1-to-many relationships
-    print(f"\n📋 EXAMPLES OF 1-TO-MANY RELATIONSHIPS:")
+    print("\n📋 EXAMPLES OF 1-TO-MANY RELATIONSHIPS:")
     print("-" * 50)
-    
+
     # Find O*NET codes with most ESCO mappings
     sorted_onet = sorted(onet_to_esco.items(), key=lambda x: len(x[1]), reverse=True)
-    
+
     for i, (onet_code, esco_list) in enumerate(sorted_onet[:5]):
-        print(f"{i+1}. O*NET {onet_code} → {len(esco_list)} ESCO codes:")
-        for j, esco_code in enumerate(esco_list[:3]):  # Show first 3
+        print(f"{i + 1}. O*NET {onet_code} → {len(esco_list)} ESCO codes:")
+        for _j, esco_code in enumerate(esco_list[:3]):  # Show first 3
             print(f"      - {esco_code}")
         if len(esco_list) > 3:
             print(f"      ... and {len(esco_list) - 3} more")
-    
+
     return onet_to_esco, esco_to_onet
+
 
 def provide_rcm_solution():
     """Provide solution for RCM system mapping issue"""
-    print(f"\n🎯 RCM SYSTEM MAPPING SOLUTION")
-    print("="*80)
-    
-    print("""
+    print("\n🎯 RCM SYSTEM MAPPING SOLUTION")
+    print("=" * 80)
+
+    print(
+        """
 🤔 VẤN ĐỀ: 
    Hệ thống RCM gợi ý 1 nghề với mã O*NET-SOC cố định
    Nhưng khi convert sang ESCO để lấy tên nghề, có nhiều mã ESCO tương ứng
@@ -194,19 +198,22 @@ def provide_rcm_solution():
    ✅ Robust fallback mechanism
    ✅ Easy to maintain and update
    ✅ Scalable for future enhancements
-""")
+"""
+    )
+
 
 def main():
     print("🗺️ O*NET-ESCO MAPPING ANALYSIS FOR RCM SYSTEM")
-    
-    # Analyze current mappings
-    mappings = analyze_onet_esco_mapping()
-    
+
+    # Analyze current mappings (for reference)
+    # mappings = analyze_onet_esco_mapping()
+
     # Provide RCM solution
     provide_rcm_solution()
-    
-    print(f"\n🎉 ANALYSIS COMPLETED")
-    print("="*80)
+
+    print("\n🎉 ANALYSIS COMPLETED")
+    print("=" * 80)
+
 
 if __name__ == "__main__":
     main()

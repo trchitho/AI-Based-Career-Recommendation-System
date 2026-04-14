@@ -1,4 +1,4 @@
-﻿"""
+"""
 Build VI->EN alias map for search/graph by inverting EN->VI (canonical O*NET titles),
 and optionally merging user-provided VI aliases.
 
@@ -60,9 +60,7 @@ def load_extra(p: Path | None) -> dict:
 
 
 def main():
-    ap = argparse.ArgumentParser(
-        description="Build VI->EN alias by inverting EN->VI + merge extras."
-    )
+    ap = argparse.ArgumentParser(description="Build VI->EN alias by inverting EN->VI + merge extras.")
     ap.add_argument("--en2vi", type=Path, default=DEF_EN2VI, help="EN->VI JSON (canonical)")
     ap.add_argument("--out", type=Path, default=DEF_VI2EN_OUT, help="Output VI->EN JSON")
     ap.add_argument(
@@ -71,12 +69,8 @@ def main():
         default=DEF_ONET_TITLES,
         help="O*NET Occupation Titles.txt (TSV)",
     )
-    ap.add_argument(
-        "--extra", type=Path, default=None, help="Optional extra VI->EN aliases to merge"
-    )
-    ap.add_argument(
-        "--strict", action="store_true", help="Keep only EN titles that exist in O*NET list"
-    )
+    ap.add_argument("--extra", type=Path, default=None, help="Optional extra VI->EN aliases to merge")
+    ap.add_argument("--strict", action="store_true", help="Keep only EN titles that exist in O*NET list")
     args = ap.parse_args()
 
     en2vi = load_en2vi(args.en2vi)

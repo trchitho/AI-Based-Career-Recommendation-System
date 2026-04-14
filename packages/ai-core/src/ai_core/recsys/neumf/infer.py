@@ -1,28 +1,27 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import csv
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Dict, List, Sequence, Tuple, Optional
 
 import torch as T
 
 from .dataset import PairDataset
 from .model import MLPScore
 
-
 # ================== Utils ==================
 
 
-def _load_json(path: Path) -> Dict:
+def _load_json(path: Path) -> dict:
     path = Path(path)
     if not path.exists() or path.stat().st_size == 0:
         raise FileNotFoundError(f"Missing/empty JSON: {path}")
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_titles_from_item_feats(item_feats_path: Path) -> Dict[str, str]:
+def load_titles_from_item_feats(item_feats_path: Path) -> dict[str, str]:
     """
     Ưu tiên lấy title từ item_feats.json:
       {
@@ -30,7 +29,7 @@ def load_titles_from_item_feats(item_feats_path: Path) -> Dict[str, str]:
         ...
       }
     """
-    titles: Dict[str, str] = {}
+    titles: dict[str, str] = {}
     if not item_feats_path.exists():
         return titles
 
@@ -47,11 +46,11 @@ def load_titles_from_item_feats(item_feats_path: Path) -> Dict[str, str]:
     return titles
 
 
-def load_titles_from_catalog(csv_path: Path) -> Dict[str, str]:
+def load_titles_from_catalog(csv_path: Path) -> dict[str, str]:
     """
     Fallback: đọc từ CSV catalog (cột: job_id hoặc onet_code, title).
     """
-    titles: Dict[str, str] = {}
+    titles: dict[str, str] = {}
     if not csv_path.exists():
         return titles
 
@@ -108,10 +107,10 @@ class Ranker:
 
     def __init__(
         self,
-        model_path: Optional[str | Path] = None,
-        user_feats_path: Optional[str | Path] = None,
-        item_feats_path: Optional[str | Path] = None,
-        device: Optional[str] = None,
+        model_path: str | Path | None = None,
+        user_feats_path: str | Path | None = None,
+        item_feats_path: str | Path | None = None,
+        device: str | None = None,
     ) -> None:
         self.model_path = Path(model_path or _default_model_path())
         self.user_feats_path = Path(user_feats_path or _default_user_feats_path())
@@ -120,22 +119,21 @@ class Ranker:
         # Device: ưu tiên CPU cho server đơn giản
         self.device = T.device(device or "cpu")
 
-        self._model: Optional[MLPScore] = None
-        self._user_feats: Optional[Dict[str, Dict]] = None
-        self._item_feats: Optional[Dict[str, Dict]] = None
+        self._model: MLPScore | None = None
+        self._user_feats: dict[str, dict] | None = None
+        self._item_feats: dict[str, dict] | None = None
 
     # ---- lazy load helpers ----
 
-    def _load_user_feats(self) -> Dict[str, Dict]:
+    def _load_user_feats(self) -> dict[str, dict]:
         if self._user_feats is None:
             self._user_feats = _load_json(self.user_feats_path)
         return self._user_feats
 
-    def _load_item_feats(self) -> Dict[str, Dict]:
+    def _load_item_feats(self) -> dict[str, dict]:
         if self._item_feats is None:
             self._item_feats = _load_json(self.item_feats_path)
         return self._item_feats
-
 
     def _load_model(self) -> MLPScore:
         """
@@ -158,9 +156,7 @@ class Ranker:
         state = T.load(str(self.model_path), map_location=self.device)
 
         # Hỗ trợ cả dạng {"state_dict": ...}
-        if isinstance(state, dict) and "state_dict" in state and isinstance(
-            state["state_dict"], dict
-        ):
+        if isinstance(state, dict) and "state_dict" in state and isinstance(state["state_dict"], dict):
             state = state["state_dict"]
 
         model.load_state_dict(state)
@@ -169,14 +165,13 @@ class Ranker:
         self._model = model
         return model
 
-
     # ---- public API ----
 
     def infer_scores(
         self,
         user_id: int | str,
         candidate_ids: Sequence[str],
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         """
         Chấm điểm danh sách candidate job_ids cho 1 user.
 
@@ -197,12 +192,10 @@ class Ranker:
 
         uid = str(user_id)
         if uid not in user_feats:
-            raise ValueError(
-                f"user_id={uid} không có trong user_feats (len={len(user_feats)})"
-            )
+            raise ValueError(f"user_id={uid} không có trong user_feats (len={len(user_feats)})")
 
         # Lọc candidate tồn tại trong item_feats
-        cand: List[str] = [j for j in candidate_ids if j in item_feats]
+        cand: list[str] = [j for j in candidate_ids if j in item_feats]
         if not cand:
             return []
 
@@ -218,7 +211,6 @@ class Ranker:
         # in_dim = x0.shape[-1]  # không dùng nữa
 
         model = self._load_model()
-
 
         # Batch infer
         X = T.stack([ds[i][0] for i in range(len(ds))]).to(self.device)
@@ -240,10 +232,10 @@ class Ranker:
 def infer_scores(
     user_id: int | str,
     candidates: Sequence[str],
-    user_feats: Optional[Dict[str, Dict]] = None,
-    item_feats: Optional[Dict[str, Dict]] = None,
+    user_feats: dict[str, dict] | None = None,
+    item_feats: dict[str, dict] | None = None,
     model_path: str | Path | None = None,
-) -> List[Tuple[str, float]]:
+) -> list[tuple[str, float]]:
     """
     Wrapper functional (giữ backward-compat), chủ yếu dùng cho scripts/CLI.
 
@@ -265,9 +257,7 @@ def infer_scores(
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(
-        description="Infer Top-K careers for a user with NeuMF/MLP."
-    )
+    ap = argparse.ArgumentParser(description="Infer Top-K careers for a user with NeuMF/MLP.")
     ap.add_argument(
         "--model",
         default=str(_default_model_path()),
@@ -297,10 +287,7 @@ def main() -> None:
     ap.add_argument(
         "--candidates",
         nargs="*",
-        help=(
-            "(Optional) danh sách job_id (O*NET code) để chấm. "
-            "Nếu bỏ trống → dùng toàn bộ item_feats."
-        ),
+        help=("(Optional) danh sách job_id (O*NET code) để chấm. Nếu bỏ trống → dùng toàn bộ item_feats."),
     )
     ap.add_argument(
         "--catalog_csv",
@@ -354,9 +341,7 @@ def main() -> None:
     ranked = ranked[: args.topk]
 
     # Map title
-    title_map = load_titles_from_item_feats(item_feats_path) or load_titles_from_catalog(
-        catalog_path
-    )
+    title_map = load_titles_from_item_feats(item_feats_path) or load_titles_from_catalog(catalog_path)
 
     if args.verbose:
         print(

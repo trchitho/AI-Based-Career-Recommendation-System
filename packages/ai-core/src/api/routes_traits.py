@@ -1,8 +1,9 @@
 # src/api/routes_traits.py
+import json
+
 from fastapi import APIRouter, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-import json
 
 from ai_core.nlp.essay_infer import infer_user_traits
 

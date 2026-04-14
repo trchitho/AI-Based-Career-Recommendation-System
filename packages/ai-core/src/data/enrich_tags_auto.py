@@ -1,4 +1,4 @@
-﻿# src/data/enrich_tags_auto.py (v6)
+# src/data/enrich_tags_auto.py (v6)
 import csv
 import json
 import re
@@ -128,34 +128,23 @@ def main():
                                 skills_vi_from_onet.append(vi)
 
             # ---- build skills_vi ----
-            existing_skills = [
-                s.strip()
-                for s in (out_row.get("skills_vi") or "").split("|")
-                if s.strip()
-            ]
+            existing_skills = [s.strip() for s in (out_row.get("skills_vi") or "").split("|") if s.strip()]
             all_skills = existing_skills + skills_vi_from_onet
             seen_sk = set()
-            clean_skills = [
-                s for s in all_skills if s and not (s in seen_sk or seen_sk.add(s))
-            ][:MAX_SKILL_TAGS]
+            clean_skills = [s for s in all_skills if s and not (s in seen_sk or seen_sk.add(s))][:MAX_SKILL_TAGS]
             out_row["skills_vi"] = "|".join(clean_skills)
 
             # ---- build tags_vi (domain + skill tags) ----
             seen = set()
             clean_domain = [t for t in tags_domain if t and not (t in seen or seen.add(t))]
             seen = set()
-            clean_skill = [t for t in tags_skill if t and not (t in seen or seen.add(t))][
-                :MAX_SKILL_TAGS
-            ]
+            clean_skill = [t for t in tags_skill if t and not (t in seen or seen.add(t))][:MAX_SKILL_TAGS]
             out_row["tags_vi"] = "|".join(clean_domain + clean_skill)
 
             writer.writerow(out_row)
 
     print(f"[OK] wrote {out_path}")
-    print(
-        f"[INFO] matched_by_onet={matched_soc} | unmatched={unmatched_soc} | "
-        f"fallback_text={'ON' if args.fallback_text else 'OFF'}"
-    )
+    print(f"[INFO] matched_by_onet={matched_soc} | unmatched={unmatched_soc} | fallback_text={'ON' if args.fallback_text else 'OFF'}")
 
 
 if __name__ == "__main__":

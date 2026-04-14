@@ -1,4 +1,4 @@
-﻿# src/data/build_onet_tags.py (v5.0 - refactor)
+# src/data/build_onet_tags.py (v5.0 - refactor)
 from __future__ import annotations
 
 import argparse
@@ -8,13 +8,13 @@ import re
 import statistics
 import sys
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
 
 # ---------------------------------------------------------
 # Cấu hình domain tiếng Việt theo nhóm O*NET SOC major
 # ---------------------------------------------------------
-SOC_MAJOR_TO_DOMAIN_VI: Dict[str, str] = {
+SOC_MAJOR_TO_DOMAIN_VI: dict[str, str] = {
     "11": "Quản lý",
     "13": "Kinh doanh/Tài chính",
     "15": "CNTT/Dữ liệu",
@@ -114,16 +114,14 @@ def whitespace_table_reader(path: Path):
 # ---------------------------------------------------------
 
 
-def load_onet_skills(skills_path: Path) -> List[dict]:
+def load_onet_skills(skills_path: Path) -> list[dict]:
     """
     Đọc Skills.txt (O*NET) thành list[dict], đã chuẩn hóa header (norm_key).
     Tự động detect delimiter; fallback sang bảng whitespace nếu cần.
     """
     reader, delim, fields = try_csv_reader(skills_path)
     if reader is not None:
-        print(
-            f"[INFO] Opened {skills_path} via csv | delimiter='{delim}' | cols={len(fields)}"
-        )
+        print(f"[INFO] Opened {skills_path} via csv | delimiter='{delim}' | cols={len(fields)}")
         rows_raw = list(reader)
         rows = [{norm_key(k): v for k, v in r.items()} for r in rows_raw]
         print(f"[INFO] Loaded rows: {len(rows)}")
@@ -142,7 +140,7 @@ def load_onet_skills(skills_path: Path) -> List[dict]:
 # ---------------------------------------------------------
 
 
-def scan_scales(rows: List[dict]):
+def scan_scales(rows: list[dict]):
     """
     In thống kê các scale (IM, LV, ...): min, max, mean.
     Giúp chọn threshold / scale phù hợp.
@@ -160,27 +158,24 @@ def scan_scales(rows: List[dict]):
 
     for sc, arr in by_scale.items():
         mn, mx, mu = min(arr), max(arr), statistics.mean(arr)
-        print(
-            f"[INFO] Scale {sc or '(none)'}: count={len(arr)} "
-            f"min={mn:.3f} max={mx:.3f} mean={mu:.3f}"
-        )
+        print(f"[INFO] Scale {sc or '(none)'}: count={len(arr)} min={mn:.3f} max={mx:.3f} mean={mu:.3f}")
     return by_scale
 
 
 def top_skills_per_soc(
-    rows: List[dict],
+    rows: list[dict],
     imp_threshold: float = 3.0,
     topn: int = 20,
-    accept_scales: Tuple[str, ...] = ("IM", "LV"),
+    accept_scales: tuple[str, ...] = ("IM", "LV"),
     require_scale: bool = True,
-) -> Dict[str, List[str]]:
+) -> dict[str, list[str]]:
     """
     Rút ra top kỹ năng mỗi SOC:
       - Lọc theo scale (IM, LV, ...) nếu require_scale = True
       - Lọc theo ngưỡng độ quan trọng imp_threshold
       - Lấy tối đa topn kỹ năng / SOC theo giá trị (giảm dần)
     """
-    per_soc: Dict[str, List[Tuple[str, float]]] = defaultdict(list)
+    per_soc: dict[str, list[tuple[str, float]]] = defaultdict(list)
     used = 0
     dropped = 0
 
@@ -210,7 +205,7 @@ def top_skills_per_soc(
 
     print(f"[INFO] Collected skill rows used: {used} | dropped(missing/invalid): {dropped}")
 
-    out: Dict[str, List[str]] = {}
+    out: dict[str, list[str]] = {}
     for soc, items in per_soc.items():
         items.sort(key=lambda x: -x[1])  # sort desc theo importance
         out[soc] = [n.strip().lower() for n, _ in items[:topn] if n.strip()]
@@ -288,14 +283,11 @@ def main() -> None:
     )
 
     if not soc2skills:
-        print(
-            "[WARN] Không rút được kỹ năng nào. "
-            "Thử --imp_threshold 2.5 hoặc --no_scale_guard."
-        )
+        print("[WARN] Không rút được kỹ năng nào. Thử --imp_threshold 2.5 hoặc --no_scale_guard.")
         sys.exit(1)
 
     # Build onet_tags: {SOC: {domain_vi, skills_en}}
-    onet_tags: Dict[str, dict] = {}
+    onet_tags: dict[str, dict] = {}
     for soc, skills in soc2skills.items():
         soc_std = clean_soc(soc)
         major = soc_std.split("-")[0]
@@ -312,10 +304,7 @@ def main() -> None:
     print(f"[OK] wrote {outp} (SOC={len(onet_tags)})")
     # In sample 5 dòng đầu
     for k, v in list(onet_tags.items())[:5]:
-        print(
-            f"[SAMPLE] {k} -> domain={v['domain_vi']} "
-            f"| skills_en={v['skills_en'][:5]}"
-        )
+        print(f"[SAMPLE] {k} -> domain={v['domain_vi']} | skills_en={v['skills_en'][:5]}")
 
 
 if __name__ == "__main__":

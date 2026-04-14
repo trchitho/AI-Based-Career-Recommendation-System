@@ -1,4 +1,4 @@
-﻿# src/data/build_en2vi_alias.py
+# src/data/build_en2vi_alias.py
 """
 Seed EN->VI glossary for O*NET Titles + Skills.
 
@@ -217,9 +217,7 @@ class NLLBTranslator(Translator):
 
         self.src_code = "eng_Latn"
         self.tgt_code = "vie_Latn"
-        self.tok = AutoTokenizer.from_pretrained(
-            model_name, src_lang=self.src_code, tgt_lang=self.tgt_code
-        )
+        self.tok = AutoTokenizer.from_pretrained(model_name, src_lang=self.src_code, tgt_lang=self.tgt_code)
         self.mdl = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.mdl = self.mdl.to(self.device).eval()
@@ -231,9 +229,7 @@ class NLLBTranslator(Translator):
         texts = [(t or "")[:400] for t in batch]
         if hasattr(self.tok, "src_lang"):
             self.tok.src_lang = self.src_code
-        enc = self.tok(
-            texts, return_tensors="pt", padding=True, truncation=True, max_length=128
-        ).to(self.device)
+        enc = self.tok(texts, return_tensors="pt", padding=True, truncation=True, max_length=128).to(self.device)
         gen_kwargs = dict(max_length=128, num_beams=4, early_stopping=True, no_repeat_ngram_size=3)
         if self.forced_bos is not None:
             gen_kwargs["forced_bos_token_id"] = self.forced_bos
@@ -302,18 +298,14 @@ def main():
         default=DEF_IN_TITLES,
         help="O*NET Occupation Data.txt (TSV)",
     )
-    ap.add_argument(
-        "--skills-onet", type=Path, default=DEF_IN_SKILLS, help="O*NET Skills.txt (TSV) [optional]"
-    )
+    ap.add_argument("--skills-onet", type=Path, default=DEF_IN_SKILLS, help="O*NET Skills.txt (TSV) [optional]")
     ap.add_argument(
         "--skills-catalog",
         type=Path,
         default=DEF_IN_CATALOG,
         help="jobs.csv with skills_en [optional]",
     )
-    ap.add_argument(
-        "--out", dest="out_en2vi", type=Path, default=DEF_OUT_EN2VI, help="Output JSON for EN->VI"
-    )
+    ap.add_argument("--out", dest="out_en2vi", type=Path, default=DEF_OUT_EN2VI, help="Output JSON for EN->VI")
     ap.add_argument(
         "--engine",
         choices=[ENGINE_NLLB, ENGINE_OPUS],
@@ -321,9 +313,7 @@ def main():
         help="MT engine for TITLES",
     )
     ap.add_argument("--batch-size", type=int, default=64)
-    ap.add_argument(
-        "--mt-skills", action="store_true", help="Also machine-translate skills not in CORE_SKILLS"
-    )
+    ap.add_argument("--mt-skills", action="store_true", help="Also machine-translate skills not in CORE_SKILLS")
     args = ap.parse_args()
 
     # gather titles
@@ -339,9 +329,7 @@ def main():
         if s and s not in seen:
             seen.add(s)
             skills_all.append(s)
-    print(
-        f"[INFO] Skills collected: onet={len(onet_skills)}, catalog={len(cat_skills)}, unique={len(skills_all)}"
-    )
+    print(f"[INFO] Skills collected: onet={len(onet_skills)}, catalog={len(cat_skills)}, unique={len(skills_all)}")
 
     # existing map
     en2vi_existing = load_existing(args.out_en2vi)
@@ -394,9 +382,7 @@ def main():
     # write
     args.out_en2vi.parent.mkdir(parents=True, exist_ok=True)
     args.out_en2vi.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(
-        f"[OK] EN->VI glossary written: {args.out_en2vi} (total={len(merged)}, added_now={len(out_pairs)})"
-    )
+    print(f"[OK] EN->VI glossary written: {args.out_en2vi} (total={len(merged)}, added_now={len(out_pairs)})")
 
     # report missing skills (để bạn bổ sung tay dần)
     if missing_skills:

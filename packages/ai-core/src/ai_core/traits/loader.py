@@ -1,11 +1,10 @@
 # packages/ai-core/src/ai_core/traits/loader.py
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Dict
-
-import json
 import ast
+import json
+from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 from sqlalchemy import text
@@ -16,7 +15,7 @@ from ai_core.db import get_session
 @dataclass
 class AssessmentSnapshot:
     user_id: int
-    traits: Dict[str, Any]
+    traits: dict[str, Any]
     embedding_vector: np.ndarray
 
 
