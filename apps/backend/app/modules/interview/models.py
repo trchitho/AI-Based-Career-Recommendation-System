@@ -118,7 +118,7 @@ class InterviewFeedback(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(Integer, ForeignKey("interview.interview_sessions.id"), nullable=False)
-    user_id = Column(Integer, nullable=False)  # References core.users.id
+    user_id = Column(Integer, ForeignKey("core.users.id"), nullable=False)
 
     # Feedback ratings (1-5 scale)
     question_quality = Column(Integer, nullable=True)
