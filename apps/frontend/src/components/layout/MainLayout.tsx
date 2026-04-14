@@ -53,7 +53,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const displayInitial = displayName.charAt(0).toUpperCase();
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-base">
 
       {/* CSS Injection */}
       <style>{`

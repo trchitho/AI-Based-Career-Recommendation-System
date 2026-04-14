@@ -26,7 +26,7 @@ const BlogDetailPage = () => {
         setLoading(true);
         const data = await blogService.get(slug);
         setPost(data);
-        
+
         // Load related posts
         const related = await blogService.getRelated(slug, 2);
         setRelatedPosts(related);
@@ -48,7 +48,7 @@ const BlogDetailPage = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center font-['Plus_Jakarta_Sans']">
+        <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
             <div className="absolute top-0 left-0 w-16 h-16 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
@@ -63,7 +63,7 @@ const BlogDetailPage = () => {
   if (error || !post) {
     return (
       <MainLayout>
-        <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center font-['Plus_Jakarta_Sans'] px-4">
+        <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center px-4">
           <div className="max-w-md w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-3xl p-8 text-center">
             <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600 dark:text-red-400">
               <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -85,7 +85,7 @@ const BlogDetailPage = () => {
   // --- MAIN CONTENT ---
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 pb-20">
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 pb-20">
 
         {/* Styles Injection */}
         <style>{`
@@ -201,15 +201,15 @@ const BlogDetailPage = () => {
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Related Articles</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {relatedPosts.map((relatedPost) => (
-                  <Link 
-                    key={relatedPost.id} 
+                  <Link
+                    key={relatedPost.id}
                     to={`/blog/${relatedPost.slug}`}
                     className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:-translate-y-1 transition-transform cursor-pointer group"
                   >
                     <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl mb-4 overflow-hidden relative">
                       {relatedPost.featured_image ? (
-                        <img 
-                          src={relatedPost.featured_image} 
+                        <img
+                          src={relatedPost.featured_image}
                           alt={relatedPost.title}
                           className="w-full h-full object-cover"
                         />

@@ -2,22 +2,24 @@
 Pydantic schemas for report API.
 """
 
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel
 
 # ============ Request Schemas ============
 
+
 class ReportEventCreate(BaseModel):
     """Request to log a report event.
-    
+
     Rules:
     - event_uuid: unique identifier for idempotent logging
     - tab_switch: requires tab_key
     - page_view: requires page_no
     - meta: never null (defaults to {})
     """
+
     assessment_id: int
     report_id: int
     report_type: str  # 'big5' | 'riasec'
@@ -31,6 +33,7 @@ class ReportEventCreate(BaseModel):
 
 class SendReportEmailRequest(BaseModel):
     """Request to send report via email."""
+
     assessment_id: int
     email: Optional[str] = None  # If None, use logged-in user's email
     use_logged_in_email: bool = False  # If True, send to logged-in user's email
@@ -38,8 +41,10 @@ class SendReportEmailRequest(BaseModel):
 
 # ============ Response Schemas ============
 
+
 class FacetLabel(BaseModel):
     """A single label within a facet quadrant."""
+
     name: str
     percent: int
     description: str
@@ -47,6 +52,7 @@ class FacetLabel(BaseModel):
 
 class Facet(BaseModel):
     """A behavioral facet with 4 quadrant labels."""
+
     name: str
     title: str
     dominant: str
@@ -56,6 +62,7 @@ class Facet(BaseModel):
 
 class CoverData(BaseModel):
     """Cover page data."""
+
     title: str
     subtitle: Optional[str] = None
     user_name: Optional[str] = None
@@ -65,6 +72,7 @@ class CoverData(BaseModel):
 
 class NarrativeData(BaseModel):
     """Personality type narrative."""
+
     type_name: str  # e.g., "Persuasive Idealist"
     type_description: str
     paragraphs: List[str] = []
@@ -72,6 +80,7 @@ class NarrativeData(BaseModel):
 
 class ScoreItem(BaseModel):
     """A single score with label."""
+
     trait: str
     score: float
     percentile_label: str  # 'Low' | 'Average' | 'High'
@@ -79,6 +88,7 @@ class ScoreItem(BaseModel):
 
 class ReportResponse(BaseModel):
     """Full report response for a single report type."""
+
     id: int
     assessment_id: int
     report_type: str
@@ -95,6 +105,7 @@ class ReportResponse(BaseModel):
 
 class FullReportResponse(BaseModel):
     """Combined response with both Big5 and RIASEC reports."""
+
     assessment_id: int
     user_id: int
     big5: Optional[ReportResponse] = None
@@ -103,6 +114,7 @@ class FullReportResponse(BaseModel):
 
 class ReportEventResponse(BaseModel):
     """Response after logging an event."""
+
     success: bool
     event_id: Optional[int] = None
     message: Optional[str] = None
@@ -110,6 +122,7 @@ class ReportEventResponse(BaseModel):
 
 class SendReportEmailResponse(BaseModel):
     """Response after sending report email."""
+
     success: bool
     message: str
     email_sent_to: Optional[str] = None

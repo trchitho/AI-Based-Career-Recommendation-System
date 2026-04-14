@@ -3,8 +3,118 @@
 @tailwind utilities;
 
 body {
-    overflow-x: hidden;
+  overflow-x: hidden;
 }
+
+/* ============================================
+   GRADIENT UTILITIES
+   ============================================ */
+
+@layer utilities {
+
+  /* Primary Gradients */
+  .bg-gradient-brand {
+    @apply bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600;
+  }
+
+  .bg-gradient-brand-hover {
+    @apply bg-gradient-to-r from-green-700 via-emerald-700 to-teal-700;
+  }
+
+  .bg-gradient-cta {
+    @apply bg-gradient-to-r from-primary-cta to-primary-dark;
+  }
+
+  /* Premium Gradients */
+  .bg-gradient-premium-pro {
+    @apply bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600;
+  }
+
+  .bg-gradient-premium-pro-hover {
+    @apply bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700;
+  }
+
+  .bg-gradient-premium-plus {
+    @apply bg-gradient-to-r from-green-500 via-emerald-500 to-green-600;
+  }
+
+  .bg-gradient-premium-basic {
+    @apply bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600;
+  }
+
+  /* Surface Gradients */
+  .bg-gradient-surface {
+    @apply bg-gradient-to-r from-beige-light to-beige;
+  }
+
+  .bg-gradient-hero {
+    @apply bg-gradient-to-br from-primary-cta to-primary-dark;
+  }
+
+  /* Text Gradients */
+  .text-gradient-brand {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500;
+  }
+
+  .text-gradient-hero {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700;
+  }
+
+  /* Subtle Background Gradients */
+  .bg-gradient-subtle-purple {
+    @apply bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20;
+  }
+
+  .bg-gradient-subtle-green {
+    @apply bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20;
+  }
+
+  /* Avatar Gradients */
+  .bg-gradient-avatar {
+    @apply bg-gradient-to-br from-gray-400 to-gray-600;
+  }
+
+  .bg-gradient-avatar-premium {
+    @apply bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600;
+  }
+}
+
+/* ============================================
+   SHADOW UTILITIES (Dark Mode Strategy)
+   ============================================ */
+
+@layer utilities {
+
+  /* Primary Shadows with Dark Mode Highlight */
+  .shadow-primary-sm {
+    @apply shadow-sm dark:shadow-dark-highlight;
+  }
+
+  .shadow-primary-md {
+    @apply shadow-md dark:shadow-dark-highlight;
+  }
+
+  .shadow-primary-lg {
+    @apply shadow-lg dark:shadow-dark-highlight-lg;
+  }
+
+  /* Colored Shadows for Buttons */
+  .shadow-success-button {
+    @apply shadow-lg shadow-success-sm hover:shadow-success dark:shadow-dark-highlight;
+  }
+
+  .shadow-cta-button {
+    @apply shadow-lg shadow-primary-cta-sm hover:shadow-primary-cta dark:shadow-dark-highlight;
+  }
+
+  .shadow-purple-button {
+    @apply shadow-lg shadow-purple-sm hover:shadow-purple dark:shadow-dark-highlight;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
 
 /* Chatbot animations */
 @keyframes bounce-in {
@@ -12,10 +122,12 @@ body {
     opacity: 0;
     transform: translateY(20px) scale(0.9);
   }
+
   50% {
     opacity: 0.8;
     transform: translateY(-5px) scale(1.02);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -24,4 +136,75 @@ body {
 
 .animate-bounce-in {
   animation: bounce-in 0.4s ease-out;
+}
+
+/* Gradient animation for text */
+@keyframes gradient-x {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
+}
+
+/* ============================================
+   ACCESSIBILITY - MOTION REDUCE
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Fade in up animation */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* ============================================
+   MOTION REDUCE UTILITIES
+   ============================================ */
+
+@layer utilities {
+  .motion-safe\:transition {
+    @media (prefers-reduced-motion: no-preference) {
+      transition-property: all;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 200ms;
+    }
+  }
+
+  .motion-safe\:animate-spin {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: spin 1s linear infinite;
+    }
+  }
 }

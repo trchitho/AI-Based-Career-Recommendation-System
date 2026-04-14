@@ -298,11 +298,11 @@ const CareerRecommendationsDisplay = ({
                   <div className="flex items-center">
                     <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3 ${isLocked
                       ? 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30'
-                      : 'bg-[#E8DCC8] dark:bg-green-900/30'
+                      : 'bg-beige-light dark:bg-green-900/30'
                       }`}>
                       <span className={`font-bold text-lg ${isLocked
                         ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-[#4A7C59] dark:text-green-400'
+                        : 'text-primary-cta dark:text-green-400'
                         }`}>
                         #{index + 1}
                       </span>
@@ -356,7 +356,7 @@ const CareerRecommendationsDisplay = ({
                         requiredPlanInfo?.color === 'green' ? 'from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' :
                           'from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
                       } text-white`
-                      : 'bg-[#4A7C59] dark:bg-green-600 text-white hover:bg-[#3d6449] dark:hover:bg-green-700'
+                      : 'bg-primary-cta dark:bg-green-600 text-white hover:bg-primary-dark dark:hover:bg-green-700'
                       }`}
                   >
                     {isLocked ? (() => {

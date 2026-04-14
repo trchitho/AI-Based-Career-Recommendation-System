@@ -1,10 +1,11 @@
-import google.generativeai as genai
-from typing import List, Dict, Optional
-import os
-from datetime import datetime
 import logging
+import os
+from typing import Dict, List, Optional
+
+import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
+
 
 class GeminiChatbotService:
     def __init__(self):
@@ -12,15 +13,15 @@ class GeminiChatbotService:
         self.model_name = os.getenv("GEMINI_MODEL", "gemini-pro")
         self.max_tokens = int(os.getenv("GEMINI_MAX_TOKENS", "1000"))
         self.temperature = float(os.getenv("GEMINI_TEMPERATURE", "0.7"))
-        
+
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY not found in environment variables")
-        
+
         genai.configure(api_key=self.api_key)
-        
+
         # Try to initialize model with fallback
         self.model = self._initialize_model()
-    
+
     def _initialize_model(self):
         """Initialize model with fallback options"""
         fallback_models = [
@@ -30,41 +31,41 @@ class GeminiChatbotService:
             "models/gemini-2.0-flash-lite",
             "models/gemini-flash-lite-latest",
             "models/gemini-2.5-flash-lite",
-            "models/gemini-flash-latest"
+            "models/gemini-flash-latest",
         ]
-        
+
         for model_name in fallback_models:
             try:
                 logger.info(f"Trying to initialize model: {model_name}")
                 model = genai.GenerativeModel(model_name)
-                
+
                 # Test the model with a simple request
-                test_response = model.generate_content(
+                model.generate_content(
                     "Test",
                     generation_config=genai.types.GenerationConfig(
                         max_output_tokens=10,
                         temperature=0.1,
-                    )
+                    ),
                 )
-                
+
                 logger.info(f"Successfully initialized model: {model_name}")
                 self.model_name = model_name  # Update the working model name
                 return model
-                
+
             except Exception as e:
                 logger.warning(f"Failed to initialize model {model_name}: {e}")
                 continue
-        
+
         # If all models fail, raise error - API is required
         raise ValueError("Gemini API is required but no working model found. Please check API key and model names.")
-        
+
     def generate_response(self, message: str, context: Optional[str] = None) -> str:
         """Generate response from Gemini API or fallback"""
-        
+
         # API is required - no fallback allowed
         if self.model is None:
             raise ValueError("Gemini API model is required but not available")
-        
+
         try:
             # Create prompt with career counseling context - ALWAYS respond in English
             system_prompt = """
@@ -80,11 +81,11 @@ class GeminiChatbotService:
             Be friendly, professional, and helpful.
             Provide specific and practical advice.
             """
-            
+
             full_prompt = f"{system_prompt}\n\nUser asks: {message}"
             if context:
                 full_prompt += f"\n\nAdditional context: {context}"
-            
+
             # Sử dụng max_tokens nếu > 0, nếu không thì không giới hạn
             if self.max_tokens > 0:
                 response = self.model.generate_content(
@@ -92,39 +93,39 @@ class GeminiChatbotService:
                     generation_config=genai.types.GenerationConfig(
                         max_output_tokens=self.max_tokens,
                         temperature=self.temperature,
-                    )
+                    ),
                 )
             else:
                 response = self.model.generate_content(
                     full_prompt,
                     generation_config=genai.types.GenerationConfig(
                         temperature=self.temperature,
-                    )
+                    ),
                 )
-            
+
             return response.text
-            
+
         except Exception as e:
             error_msg = str(e)
             logger.error(f"Error generating Gemini response: {error_msg}")
-            
+
             # Always use fallback on any error
             return self._get_fallback_response(message)
-    
+
     def get_career_advice(self, user_profile: Dict) -> str:
         """Generate personalized career advice based on user profile"""
-        skills = user_profile.get('skills', [])
-        interests = user_profile.get('interests', [])
-        experience = user_profile.get('experience', '')
-        education = user_profile.get('education', '')
-        
+        skills = user_profile.get("skills", [])
+        interests = user_profile.get("interests", [])
+        experience = user_profile.get("experience", "")
+        education = user_profile.get("education", "")
+
         prompt = f"""
         Based on the following user information, provide specific and detailed career advice in English:
         
-        Current skills: {', '.join(skills) if skills else 'Not provided'}
-        Interests/Passions: {', '.join(interests) if interests else 'Not provided'}
-        Work experience: {experience if experience else 'No experience'}
-        Education level: {education if education else 'Not provided'}
+        Current skills: {", ".join(skills) if skills else "Not provided"}
+        Interests/Passions: {", ".join(interests) if interests else "Not provided"}
+        Work experience: {experience if experience else "No experience"}
+        Education level: {education if education else "Not provided"}
         
         Please analyze and suggest:
         1. 3-5 most suitable careers for this profile
@@ -135,13 +136,13 @@ class GeminiChatbotService:
         
         IMPORTANT: Respond in English only.
         """
-        
+
         return self.generate_response(prompt)
-    
+
     def get_skill_development_plan(self, current_skills: List[str], target_job: str) -> str:
         """Generate skill development plan for target job"""
         prompt = f"""
-        User currently has these skills: {', '.join(current_skills)}
+        User currently has these skills: {", ".join(current_skills)}
         Career goal: {target_job}
         
         Create a detailed skill development plan in English:
@@ -154,9 +155,9 @@ class GeminiChatbotService:
         
         IMPORTANT: Respond in English only. Be specific and actionable.
         """
-        
+
         return self.generate_response(prompt)
-    
+
     def analyze_job_market(self, job_title: str, location: str = "Vietnam") -> str:
         """Analyze job market for specific position"""
         prompt = f"""
@@ -172,15 +173,15 @@ class GeminiChatbotService:
         
         IMPORTANT: Respond in English only. Base on 2024-2025 market data.
         """
-        
+
         return self.generate_response(prompt)
-    
+
     def _get_fallback_response(self, message: str) -> str:
         """Provide comprehensive fallback responses when API is unavailable"""
         message_lower = message.lower()
-        
+
         # Marketing related
-        if any(word in message_lower for word in ['marketing', 'advertising', 'digital marketing', 'social media']):
+        if any(word in message_lower for word in ["marketing", "advertising", "digital marketing", "social media"]):
             return """
 **Digital Marketing Roadmap:**
 
@@ -199,9 +200,9 @@ class GeminiChatbotService:
 **Salary:** $400-800 (junior), $800-1,500 (senior)
 **Opportunities:** Agency, in-house, freelance
             """
-        
+
         # Data Science/Analytics
-        elif any(word in message_lower for word in ['data', 'analysis', 'analyst', 'scientist', 'ai', 'machine learning']):
+        elif any(word in message_lower for word in ["data", "analysis", "analyst", "scientist", "ai", "machine learning"]):
             return """
 **Data Science Roadmap:**
 
@@ -221,9 +222,9 @@ class GeminiChatbotService:
 **Salary:** $600-1,000 (junior), $1,200-2,500 (senior)
 **Opportunities:** Fintech, e-commerce, consulting
             """
-        
+
         # Business/Finance
-        elif any(word in message_lower for word in ['business', 'finance', 'accounting', 'financial']):
+        elif any(word in message_lower for word in ["business", "finance", "accounting", "financial"]):
             return """
 **Business/Finance Roadmap:**
 
@@ -241,9 +242,9 @@ class GeminiChatbotService:
 
 **Tip:** Combine tech skills with domain knowledge
             """
-        
+
         # Design/Creative
-        elif any(word in message_lower for word in ['design', 'ui', 'ux', 'graphic', 'creative']):
+        elif any(word in message_lower for word in ["design", "ui", "ux", "graphic", "creative"]):
             return """
 **Design Roadmap:**
 
@@ -261,9 +262,9 @@ class GeminiChatbotService:
 
 **Path:** Learn tools → Build portfolio → Internship → Full-time
             """
-        
+
         # Career advice responses
-        elif any(word in message_lower for word in ['career', 'advice', 'guidance', 'direction', 'choose']):
+        elif any(word in message_lower for word in ["career", "advice", "guidance", "direction", "choose"]):
             return """
 **Career Selection Guide:**
 
@@ -286,9 +287,11 @@ class GeminiChatbotService:
 
 **Question to consider:** What do you want to be doing in 5 years?
             """
-        
+
         # IT/Tech related
-        elif any(word in message_lower for word in ['it', 'programming', 'developer', 'python', 'java', 'web', 'mobile', 'software']):
+        elif any(
+            word in message_lower for word in ["it", "programming", "developer", "python", "java", "web", "mobile", "software"]
+        ):
             return """
 **IT Career Roadmap:**
 
@@ -312,9 +315,9 @@ class GeminiChatbotService:
 3. Build real projects for 2-3 months
 4. Find internship/junior position
             """
-        
+
         # General greeting
-        elif any(word in message_lower for word in ['hello', 'hi', 'hey', 'greetings', 'who are you']):
+        elif any(word in message_lower for word in ["hello", "hi", "hey", "greetings", "who are you"]):
             return """
 **Hello! I'm your AI Career Advisor**
 
@@ -334,9 +337,9 @@ class GeminiChatbotService:
 
 **Ask me:** "How to become a [job title]?" or "What career should I choose?"
             """
-        
+
         # Salary/Income related
-        elif any(word in message_lower for word in ['salary', 'income', 'pay', 'money', 'earn']):
+        elif any(word in message_lower for word in ["salary", "income", "pay", "money", "earn"]):
             return """
 **Salary Information by Industry (2024):**
 
@@ -362,9 +365,9 @@ class GeminiChatbotService:
 
 *Note: Salary depends on experience, company, and skills*
             """
-        
+
         # Skills development
-        elif any(word in message_lower for word in ['skill', 'learn', 'course', 'certificate', 'training']):
+        elif any(word in message_lower for word in ["skill", "learn", "course", "certificate", "training"]):
             return """
 **Effective Skill Development:**
 
@@ -386,7 +389,7 @@ class GeminiChatbotService:
 
 **Tips:** Learn 1-2 skills at a time, practice immediately, build portfolio
             """
-        
+
         # Default fallback
         else:
             return f"""
@@ -411,33 +414,22 @@ class GeminiChatbotService:
 - "What industries are hot right now?"
 
 **Please ask a more specific question so I can help you better!**
-            """    
+            """
 
     def check_quota_status(self) -> Dict:
         """Check current API quota status"""
         try:
             # Simple test call to check if API is working
-            test_response = self.model.generate_content(
+            self.model.generate_content(
                 "Test",
                 generation_config=genai.types.GenerationConfig(
                     max_output_tokens=10,
                     temperature=0.1,
-                )
+                ),
             )
-            return {
-                "status": "available",
-                "message": "API quota available"
-            }
+            return {"status": "available", "message": "API quota available"}
         except Exception as e:
             error_msg = str(e)
             if "429" in error_msg or "quota" in error_msg.lower():
-                return {
-                    "status": "quota_exceeded", 
-                    "message": "API quota exceeded",
-                    "error": error_msg
-                }
-            return {
-                "status": "error",
-                "message": "API error",
-                "error": error_msg
-            }
+                return {"status": "quota_exceeded", "message": "API quota exceeded", "error": error_msg}
+            return {"status": "error", "message": "API error", "error": error_msg}

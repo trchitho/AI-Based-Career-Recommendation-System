@@ -1,7 +1,7 @@
 # apps/backend/app/etl/online_parsers.py
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 
 def as_list(x: Any) -> List[Any]:
@@ -14,6 +14,7 @@ def as_list(x: Any) -> List[Any]:
 
 
 # ---------- Work Activities (summary box) ----------
+
 
 def parse_work_activities_online(obj: Dict[str, Any]) -> List[str]:
     """
@@ -43,6 +44,7 @@ def parse_work_activities_online(obj: Dict[str, Any]) -> List[str]:
 
 # ---------- Detailed Work Activities (DWAs) ----------
 
+
 def parse_dwas_online(obj: Dict[str, Any]) -> List[str]:
     """
     Trả về list string DWA.
@@ -69,6 +71,7 @@ def parse_dwas_online(obj: Dict[str, Any]) -> List[str]:
 
 
 # ---------- Work Context ----------
+
 
 def parse_work_context_online(obj: Dict[str, Any]) -> List[str]:
     """
@@ -100,6 +103,7 @@ def parse_work_context_online(obj: Dict[str, Any]) -> List[str]:
 
 # ---------- Education % ----------
 
+
 def parse_education_pct_online(obj: Dict[str, Any]) -> List[Tuple[str, float | None]]:
     """
     Trả về [(label, pct)].
@@ -107,9 +111,7 @@ def parse_education_pct_online(obj: Dict[str, Any]) -> List[Tuple[str, float | N
     """
     out: List[Tuple[str, float | None]] = []
 
-    for it in as_list(
-        obj.get("distribution") or obj.get("education_levels") or obj.get("items") or obj.get("list")
-    ):
+    for it in as_list(obj.get("distribution") or obj.get("education_levels") or obj.get("items") or obj.get("list")):
         if not isinstance(it, dict):
             continue
         label = (it.get("label") or it.get("name") or "").strip()

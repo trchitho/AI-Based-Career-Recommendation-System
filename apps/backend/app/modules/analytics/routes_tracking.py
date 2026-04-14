@@ -4,13 +4,13 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
+from app.core.db import get_db
+from app.modules.auth.deps import get_current_user_optional
+from app.modules.users.models import User
 from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.core.db import get_db
-from app.modules.auth.deps import get_current_user_optional
-from app.modules.users.models import User
 from .service_career_events import CareerEventsService
 
 router = APIRouter(prefix="", tags=["tracking"])
@@ -61,8 +61,7 @@ def track_career_event(
         if dwell_ms is None:
             # Auto-fix: set to 0 with warning log
             logger.warning(
-                f"[TRACKING] {event_type} event missing dwell_ms, "
-                f"auto-fixing to 0. job_id={payload.job_id}, user_id={user_id}"
+                f"[TRACKING] {event_type} event missing dwell_ms, auto-fixing to 0. job_id={payload.job_id}, user_id={user_id}"
             )
             dwell_ms = 0
         elif dwell_ms < 0:

@@ -3,14 +3,13 @@ from __future__ import annotations
 import argparse
 import asyncio
 
+from app.core.db import close_pg_pool, get_pg_pool
+from app.etl.onet_enrich_ksas import upsert_career_ksa_rows
+from app.services.onet_client_v2 import OnetV2Client
 from loguru import logger
 
-from app.services.onet_client_v2 import OnetV2Client
-from app.core.db import get_pg_pool, close_pg_pool
-from app.etl.onet_enrich_ksas import upsert_career_ksa_rows
-
-
 # ---------- Helper: lấy danh sách onet_code ----------
+
 
 async def fetch_onet_codes(pool):
     async with pool.acquire() as conn:
@@ -27,11 +26,13 @@ async def fetch_onet_codes(pool):
 
 # ---------- Helper: gọi O*NET v2 trong thread (không block event loop) ----------
 
+
 async def fetch_table_rows(client: OnetV2Client, table_id: str, code: str):
     """
     Gọi OnetV2Client.iter_database_rows(...) trong thread pool để không block event loop.
     Trả về list các rows cho table_id & onet_code.
     """
+
     def _job():
         return list(
             client.iter_database_rows(

@@ -72,7 +72,7 @@ const CareersPage = () => {
   return (
     <MainLayout>
       <SubscriptionRefresh />
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-hidden pb-20">
+      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-hidden pb-20">
 
         {/* --- CSS INJECTION --- */}
         <style>{`
@@ -188,7 +188,7 @@ const CareersPage = () => {
                 const bgGradient = gradients[index % gradients.length];
 
                 const CardContent = (
-                  <div className={`group bg-white dark:bg-gray-800 rounded-[32px] border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-300 flex flex-col overflow-hidden h-full relative ${isLocked ? 'opacity-75' : ''}`}>
+                  <div className={`group bg-white dark:bg-gray-800 rounded-card-hero border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-slow flex flex-col overflow-hidden h-full relative ${isLocked ? 'opacity-75' : ''}`}>
 
                     {/* Premium overlay for locked careers */}
                     {isLocked && (

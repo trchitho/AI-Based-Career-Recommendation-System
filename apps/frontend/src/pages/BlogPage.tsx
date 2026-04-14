@@ -34,7 +34,7 @@ const BlogPage = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 relative overflow-hidden">
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 relative overflow-hidden">
 
         {/* CSS Injection */}
         <style>{`

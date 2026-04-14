@@ -1,7 +1,6 @@
-from sqlalchemy import TIMESTAMP, BigInteger, Boolean, Column, Text, func
+from sqlalchemy import TIMESTAMP, BigInteger, Boolean, Column, Date, Text, func, text
 
 from ...core.db import Base
-from sqlalchemy import Date, text
 
 
 class RefreshToken(Base):
@@ -14,6 +13,7 @@ class RefreshToken(Base):
     expires_at = Column(TIMESTAMP(timezone=True), nullable=False)
     revoked = Column(Boolean, default=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
 
 class User(Base):
     __tablename__ = "users"
@@ -34,4 +34,3 @@ class User(Base):
     email_verified_at = Column(TIMESTAMP(timezone=True), nullable=True)
     riasec_top_dim = Column(Text, nullable=True)
     big5_profile = Column(Text, nullable=True)
-    

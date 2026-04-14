@@ -1,0 +1,165 @@
+🧭 TOÀN BỘ KẾT QUẢ VÀ LỆNH CHẠY
+
+________________________________________
+1️⃣ Chuẩn hóa dữ liệu O*NET + ESCO
+Sinh file mapping RIASEC nghề (chuẩn hóa 0–1)
+python -m src.data.build_job_riasec_map `
+  --interests "data/raw/onet/Interests_clean_final.txt" `
+  --titles "data/raw/onet/Occupation Data.txt" `
+  --output "data/processed/job_riasec_map.json"
+Chuyển mapping sang dạng có ID riêng
+python -m src.data.convert_riasec_map
+✅ Kết quả:
+data/processed/job_riasec_map.json
+data/processed/job_riasec_map_id.json
+________________________________________
+2️⃣ Sinh catalog nghề & từ vựng tiếng Việt
+python -m src.data.translate_tags_vi `
+  --input data/catalog/jobs_translated.csv `
+  --output data/catalog/skill_trans_vi.json
+
+python -m src.data.build_en2vi_alias
+python -m src.data.build_vi2en_alias
+✅ Kết quả:
+data/catalog/skill_trans_vi.json
+data/processed/job_alias_en2vi.json
+data/processed/job_alias_vi2en.json
+________________________________________
+3️⃣ Chuẩn bị dữ liệu huấn luyện NLP (essay, big5, riasec)
+python -m src.data.make_dataset
+python -m src.data.make_nlp_csv
+✅ Kết quả:
+data/nlp/train|val|test_riasec.csv
+data/nlp/train|val|test_big5.csv
+data/processed/train|val|test.jsonl
+________________________________________
+4️⃣ Sinh embeddings bài luận (PhoBERT)
+python -m src.nlp.encode_corpus --config .\configs\encode.yaml
+✅ Kết quả:
+data/embeddings/train_embeddings.npy
+data/embeddings/val_embeddings.npy
+data/embeddings/test_embeddings.npy
+data/embeddings/train|val|test_index.json
+________________________________________
+5️⃣ Sinh embeddings nghề (vi-SBERT, 384D)
+(đã thêm file models/vi_sbert/tokenizer_name.txt)
+'Sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2' `
+| Set-Content -Encoding ASCII models\vi_sbert\tokenizer_name.txt
+
+python -m src.nlp.encode_jobs `
+  --catalog data/catalog/jobs_vi_tagged.csv `
+  --model models/vi_sbert `
+  --include_skills `
+  --batch_size 32 `
+  --emb_out data/embeddings/jobs_embeddings_visbert.npy `
+  --idx_out data/embeddings/jobs_index_visbert.json
+✅ Kết quả:
+data/embeddings/jobs_embeddings_visbert.npy  (1016, 384)
+data/embeddings/jobs_index_visbert.json
+________________________________________
+6️⃣ Nạp embeddings vào PostgreSQL (pgvector)
+python -m src.retrieval.pgvector_load `
+  --table retrieval_jobs_visbert `
+  --idx_json data/embeddings/jobs_index_visbert.json `
+  --emb_npy data/embeddings/jobs_embeddings_visbert.npy `
+  --normalize `
+  --truncate
+Bảng retrieval_jobs_visbert có vector(384) + metadata nghề.
+________________________________________
+7️⃣ Kiểm thử truy vấn ngữ nghĩa (pgvector search)
+python -m src.retrieval.search_pgvector `
+  --table retrieval_jobs_visbert `
+  --topk 10 `
+  --query_text "phân tích dữ liệu, Python, trực quan hóa BI" `
+  --model models/vi_sbert `
+  --alpha 0.85 --beta 0.0 --gamma 0.15 --probes 32
+✅ Trả về top-10 nghề phù hợp với mô tả người dùng.
+________________________________________
+8️⃣ Sinh vector người dùng
+python -m src.data.make_user_vector --user_id 9
+✅ Kết quả:
+data/embeddings/user_vector.npy
+________________________________________
+9️⃣ Sinh đặc trưng item & user (từ PostgreSQL)
+(chạy khi DB đã có bảng retrieval_jobs_visbert)
+a) Đặc trưng nghề (item_feats.json)
+python -m src.recsys.neumf.build_feats_from_db `
+  --db postgresql://postgres:123456@localhost:5433/career_ai `
+  --item_out data/processed/item_feats.json `
+  --user_out data/processed/user_feats.json `
+  --item_id_mode onet_code
+b) Tạo tương tác user–item (NeuMF training)
+python -m src.recsys.neumf.build_interactions_bootstrap `
+  --db postgresql://postgres:123456@localhost:5433/career_ai `
+  --topn 500 `
+  --neg_per_pos 4 `
+  --out data/processed/user_feats.json
+✅ Kết quả:
+data/processed/item_feats.json
+data/processed/user_feats.json
+________________________________________
+🧱 KẾT CẤU THƯ MỤC CUỐI CÙNG (HOÀN CHỈNH)
+E:\OneDrive\Desktop\ai-core\data
+├── catalog/
+│   ├── jobs.csv
+│   ├── jobs_translated.csv
+│   ├── jobs_vi_tagged.csv
+│   ├── onet_tags.json
+│   ├── skill_trans_vi.json
+│   └── tag_vocab.json
+│
+├── embeddings/
+│   ├── jobs_embeddings_visbert.npy
+│   ├── jobs_index_visbert.json
+│   ├── train|val|test_embeddings.npy
+│   ├── train|val|test_index.json
+│   └── user_vector.npy
+│
+├── nlp/
+│   ├── big5_en_100.csv
+│   ├── essay_en_5.csv
+│   ├── riasec_en_120.csv
+│   ├── train|val|test_big5.csv
+│   └── train|val|test_riasec.csv
+│
+├── processed/
+│   ├── item_feats.json
+│   ├── user_feats.json
+│   ├── job_alias_en2vi.json
+│   ├── job_alias_vi2en.json
+│   ├── job_riasec_map.json
+│   ├── job_riasec_map_id.json
+│   ├── interactions.csv
+│   ├── responses_processed.csv
+│   ├── responses_processed.jsonl
+│   ├── train|val|test.jsonl
+│   └── unified_vi.jsonl
+│
+└── raw/
+    ├── esco/
+    │   ├── ISCOGroups_en.csv
+    │   ├── occupationSkillRelations_en.csv
+    │   ├── occupations_en.csv
+    │   └── skills_en.csv
+    └── onet/
+        ├── Alternate Titles.txt
+        ├── Interests.txt
+        ├── Interests_clean_final.txt
+        ├── Occupation Data.txt
+        ├── Skills.txt
+        ├── Task Statements.txt
+        ├── Technology Skills.txt
+        └── Tools Used.txt
+________________________________________
+✅ Tổng kết pipeline dữ liệu
+Bước	Mục tiêu	Lệnh chính	Đầu ra
+1️⃣	Sinh map RIASEC nghề	build_job_riasec_map	job_riasec_map.json
+2️⃣	Sinh catalog tiếng Việt	translate_tags_vi, build_en2vi_alias	skill_trans_vi.json
+3️⃣	Tạo dữ liệu NLP	make_dataset, make_nlp_csv	.jsonl, .csv
+4️⃣	Encode essay	encode_corpus	train/val/test_embeddings.npy
+5️⃣	Encode jobs (vi-SBERT)	encode_jobs	jobs_embeddings_visbert.npy
+6️⃣	Nạp embeddings vào DB	pgvector_load	bảng retrieval_jobs_visbert
+7️⃣	Search thử (pgvector)	search_pgvector	top nghề
+8️⃣	Sinh user vector	make_user_vector	user_vector.npy
+9️⃣	Sinh đặc trưng user/item	build_feats_from_db, build_interactions_bootstrap	item_feats.json, user_feats.json
+________________________________________

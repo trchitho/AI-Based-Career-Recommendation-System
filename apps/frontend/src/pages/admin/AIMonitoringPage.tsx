@@ -38,18 +38,18 @@ interface UserFeedback {
 ---------------------------------------------- */
 const baseInput =
   "w-full px-3 py-2 rounded-lg border " +
-  "bg-white dark:bg-[#1E293B] " +
-  "border-gray-300 dark:border-[#2C3A4B] " +
+  "bg-white dark:bg-admin-dark-card " +
+  "border-gray-300 dark:border-admin-dark-border " +
   "text-gray-800 dark:text-gray-200 " +
   "placeholder-gray-400 dark:placeholder-gray-500 " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 const cardClass =
-  "bg-gray-50 dark:bg-[#0F172A] rounded-xl shadow p-6 " +
-  "border border-gray-200 dark:border-[#1E293B]";
+  "bg-gray-50 dark:bg-admin-dark-bg rounded-xl shadow p-6 " +
+  "border border-gray-200 dark:border-admin-dark-card";
 
 const tableHead =
-  "bg-gray-100 dark:bg-[#1E293B] text-gray-700 dark:text-gray-300";
+  "bg-gray-100 dark:bg-admin-dark-card text-gray-700 dark:text-gray-300";
 
 /* ---------------------------------------------
    MAIN COMPONENT
@@ -326,9 +326,9 @@ const AIMonitoringPage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-[#0F172A]">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-admin-dark-bg">
                 {feedback.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-[#1E293B]">
+                  <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-admin-dark-card">
                     <td className="px-6 py-4 text-gray-900 dark:text-white">
                       {item.userName}
                     </td>

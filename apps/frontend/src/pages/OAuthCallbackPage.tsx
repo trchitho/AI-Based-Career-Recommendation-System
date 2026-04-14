@@ -35,7 +35,7 @@ const OAuthCallbackPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white flex flex-col items-center justify-center relative overflow-hidden">
 
       {/* CSS Injection */}
       <style>{`

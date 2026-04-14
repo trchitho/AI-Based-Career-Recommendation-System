@@ -54,7 +54,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-[32px] overflow-hidden font-['Plus_Jakarta_Sans'] h-full flex flex-col">
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-card-hero overflow-hidden h-full flex flex-col">
 
       {/* Header with gradient */}
       <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden shrink-0">
@@ -65,14 +65,14 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
         <div className="relative z-10">
           {/* Avatar and basic info */}
           <div className="flex items-center gap-4 mb-6">
-            <ProfileAvatar 
+            <ProfileAvatar
               name={`${profile.first_name || ''} ${profile.last_name || ''}`.trim()}
               email={profile.email}
               size="lg"
             />
             <div className="flex-1">
               <h3 className="text-2xl font-extrabold text-white mb-1 tracking-tight">
-                {profile.first_name || profile.last_name 
+                {profile.first_name || profile.last_name
                   ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
                   : 'Your Profile'
                 }

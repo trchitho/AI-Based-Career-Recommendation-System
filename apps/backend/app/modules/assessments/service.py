@@ -6,11 +6,12 @@ import random
 from typing import Any, Literal, Optional
 
 import requests
-from sqlalchemy import select, text, func
+from app.core.exceptions import NotFoundError
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 # Essay, EssayPrompt thực chất nằm ở module content
-from ..content.models import Essay, Career, EssayPrompt
+from ..content.models import Career, Essay, EssayPrompt
 
 # Các model riêng của module assessments
 from .models import (
@@ -21,33 +22,31 @@ from .models import (
     AssessmentSession,
     UserFeedback,
 )
+from .schemas import TraitSnapshot
 
 # URL AI-core (có thể override qua env)
 AI_CORE_URL = os.getenv("AI_CORE_URL", "http://localhost:9000")
-
-
-
-from app.core.security import hash_password  # nếu cần; bỏ nếu không dùng
-from app.core.exceptions import NotFoundError
-from .schemas import TraitSnapshot
 
 # ĐÃ CÓ: fuse_user_traits(session, user_id, test_riasec=None, test_big5=None)
 # Mình chỉ wrap lại cho gọn.
 
 
 def get_user_from_assessment(session: Session, assessment_id: int) -> Optional[int]:
-    row = session.execute(
-        text("SELECT user_id FROM core.assessments WHERE id = :aid"),
-        {"aid": assessment_id},
-    ).mappings().first()
+    row = (
+        session.execute(
+            text("SELECT user_id FROM core.assessments WHERE id = :aid"),
+            {"aid": assessment_id},
+        )
+        .mappings()
+        .first()
+    )
     return int(row["user_id"]) if row else None
-
-
 
 
 # -------------------------------------------------
 # 1) Lưu embedding + traits từ AI-core vào schema ai.*
 # -------------------------------------------------
+
 
 def _to_pg_real_array(values: Optional[list[float]]) -> Optional[str]:
     """
@@ -131,27 +130,30 @@ def infer_user_traits_for_essay(
         print(f"[assessments] infer_user_traits_for_essay: empty essay_text for user_id={user_id}, essay_id={essay_id}")
         return
 
-    print(f"[assessments] infer_user_traits_for_essay: calling AI-core for user_id={user_id}, essay_id={essay_id}, text_len={len(essay_text)}")
-    
+    print(
+        f"[assessments] infer_user_traits_for_essay: calling AI-core for "
+        f"user_id={user_id}, essay_id={essay_id}, text_len={len(essay_text)}"
+    )
+
     try:
         url = f"{AI_CORE_URL}/ai/infer_user_traits"
         print(f"[assessments] POST {url}")
-        
+
         resp = requests.post(
             url,
             json={"essay_text": essay_text, "lang": "auto"},
             timeout=60,
         )
-        
+
         print(f"[assessments] AI-core response status: {resp.status_code}")
-        
+
         resp.raise_for_status()
         data = resp.json()
 
         embedding = data.get("embedding") or []
         riasec = data.get("riasec")
         big5 = data.get("big5")
-        
+
         print(f"[assessments] AI-core returned: embedding_len={len(embedding)}, riasec={riasec}, big5={big5}")
 
         save_essay_traits(
@@ -171,17 +173,17 @@ def infer_user_traits_for_essay(
         print(f"[assessments] Error details: {repr(e)}")
     except requests.exceptions.Timeout as e:
         session.rollback()
-        print(f"[assessments] infer_user_traits_for_essay TIMEOUT: AI-core took too long")
+        print("[assessments] infer_user_traits_for_essay TIMEOUT: AI-core took too long")
         print(f"[assessments] Error details: {repr(e)}")
     except Exception as e:
         session.rollback()
         print(f"[assessments] infer_user_traits_for_essay error: {repr(e)}")
 
 
-
 # -------------------------------------------------
 # 2) Assessments: câu hỏi, lưu bài test, bài luận, kết quả
 # -------------------------------------------------
+
 
 def get_questions(
     session: Session,
@@ -245,7 +247,6 @@ def get_questions(
     return out
 
 
-
 LIKERT_MAP = {
     # RIASEC thang 5 mức
     "STRONGLY DISLIKE": 1.0,
@@ -294,7 +295,6 @@ def _coerce_answer(raw) -> float | None:
     # Text Likert
     s_up = s.upper()
     return LIKERT_MAP.get(s_up)
-
 
 
 def _normalize_type(t: str) -> str:
@@ -365,12 +365,7 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             test_types.add(nt)
 
     # 2) Lấy responses từ nhiều key để tương thích các version FE khác nhau
-    responses_raw = (
-        payload.get("responses")
-        or payload.get("answers")
-        or payload.get("items")
-        or []
-    )
+    responses_raw = payload.get("responses") or payload.get("answers") or payload.get("items") or []
 
     # ---- helper: parse answer → score 1..5 ----
     def _to_score(raw: Any) -> float | None:
@@ -429,11 +424,7 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             if not isinstance(item, dict):
                 continue
             qid = item.get("questionId") or item.get("question_id") or item.get("qid")
-            ans = (
-                item.get("answer")
-                if "answer" in item
-                else item.get("value") or item.get("score")
-            )
+            ans = item.get("answer") if "answer" in item else item.get("value") or item.get("score")
             if qid is None:
                 continue
             normalized_responses.append({"questionId": qid, "answer": ans})
@@ -567,17 +558,21 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
         # Calculate processed RIASEC scores (normalize to 0-1 scale)
         processed_riasec = {}
         riasec_name_map = {
-            "R": "realistic", "I": "investigative", "A": "artistic",
-            "S": "social", "E": "enterprising", "C": "conventional"
+            "R": "realistic",
+            "I": "investigative",
+            "A": "artistic",
+            "S": "social",
+            "E": "enterprising",
+            "C": "conventional",
         }
         for letter, name in riasec_name_map.items():
             raw = riasec_scores.get(letter, 0.0)
             # Convert 1-5 scale to 0-1 scale: (raw - 1) / 4
             processed_riasec[name] = round((raw - 1) / 4, 3) if raw > 0 else 0.0
-        
+
         # Calculate top interest (highest scoring dimension)
         top_interest = max(riasec_scores.keys(), key=lambda k: riasec_scores.get(k, 0))
-        
+
         riasec_assess = Assessment(
             user_id=user_id,
             a_type="RIASEC",
@@ -593,18 +588,15 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
     if big5_scores:
         # Calculate processed Big Five scores (normalize to 0-1 scale)
         processed_big5 = {}
-        big5_name_map = {
-            "O": "openness", "C": "conscientiousness", "E": "extraversion",
-            "A": "agreeableness", "N": "neuroticism"
-        }
+        big5_name_map = {"O": "openness", "C": "conscientiousness", "E": "extraversion", "A": "agreeableness", "N": "neuroticism"}
         for letter, name in big5_name_map.items():
             raw = big5_scores.get(letter, 0.0)
             # Convert 1-5 scale to 0-1 scale: (raw - 1) / 4
             processed_big5[name] = round((raw - 1) / 4, 3) if raw > 0 else 0.0
-        
+
         # Calculate top trait for Big Five
         top_trait = max(big5_scores.keys(), key=lambda k: big5_scores.get(k, 0))
-        
+
         big5_assess = Assessment(
             user_id=user_id,
             a_type="BigFive",
@@ -710,7 +702,7 @@ def fuse_user_traits(
                 .first()
             )
             test_riasec = dict(riasec_row.scores or {}) if riasec_row else None
-        
+
         if test_big5 is None:
             big5_row = (
                 session.query(Assessment)
@@ -928,7 +920,8 @@ def fuse_user_traits(
             "has_essay_traits": False,
             "has_fused_traits": False,
         }
-    
+
+
 def get_user_traits(
     session: Session,
     user_id: int,
@@ -958,6 +951,7 @@ def get_user_traits(
         riasec_fused=raw.get("riasec_fused"),
         big5_fused=raw.get("big5_fused"),
     )
+
 
 def save_essay(
     session: Session,
@@ -1079,16 +1073,16 @@ def build_results(session: Session, assessment_id: int) -> dict:
     - top_interest: L1 dimension từ raw test scores (1-5, khớp với filter logic)
     """
     print(f"[DEBUG build_results] START assessment_id={assessment_id}")
-    
+
     obj = session.get(Assessment, assessment_id)
     if not obj:
         raise NotFoundError("Assessment not found")
-    
+
     print(f"[DEBUG build_results] Found assessment: a_type={obj.a_type}, user_id={obj.user_id}, scores={obj.scores}")
 
     user_id = int(obj.user_id)
     assessment_created_at = obj.created_at
-    
+
     # Map thứ tự vector → tên dimension FE đang dùng
     riasec_letters = ["R", "I", "A", "S", "E", "C"]
     riasec_name_map = {
@@ -1114,7 +1108,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
     # Nếu không, tìm RIASEC trong cùng session
     riasec_scores_raw = None
     bigfive_scores_raw = None
-    
+
     if obj.a_type == "RIASEC" and obj.scores:
         riasec_scores_raw = obj.scores
         print(f"[DEBUG build_results] Using RIASEC scores from current assessment: {riasec_scores_raw}")
@@ -1127,10 +1121,8 @@ def build_results(session: Session, assessment_id: int) -> dict:
                 Assessment.a_type == "RIASEC",
                 Assessment.scores.isnot(None),
             )
-            .filter(
-                func.abs(func.extract('epoch', Assessment.created_at - assessment_created_at)) < 300
-            )
-            .order_by(func.abs(func.extract('epoch', Assessment.created_at - assessment_created_at)))
+            .filter(func.abs(func.extract("epoch", Assessment.created_at - assessment_created_at)) < 300)
+            .order_by(func.abs(func.extract("epoch", Assessment.created_at - assessment_created_at)))
             .first()
         )
         if riasec_row and riasec_row.scores:
@@ -1138,7 +1130,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
             print(f"[DEBUG build_results] Found RIASEC in session: id={riasec_row.id}, scores={riasec_scores_raw}")
         else:
             print(f"[DEBUG build_results] No RIASEC found in session for user {user_id}")
-    
+
     if obj.a_type == "BigFive" and obj.scores:
         bigfive_scores_raw = obj.scores
         print(f"[DEBUG build_results] Using BigFive scores from current assessment: {bigfive_scores_raw}")
@@ -1151,10 +1143,8 @@ def build_results(session: Session, assessment_id: int) -> dict:
                 Assessment.a_type == "BigFive",
                 Assessment.scores.isnot(None),
             )
-            .filter(
-                func.abs(func.extract('epoch', Assessment.created_at - assessment_created_at)) < 300
-            )
-            .order_by(func.abs(func.extract('epoch', Assessment.created_at - assessment_created_at)))
+            .filter(func.abs(func.extract("epoch", Assessment.created_at - assessment_created_at)) < 300)
+            .order_by(func.abs(func.extract("epoch", Assessment.created_at - assessment_created_at)))
             .first()
         )
         if bigfive_row and bigfive_row.scores:
@@ -1168,7 +1158,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
         """Convert raw scores (1-5 scale) to percentage (0-100)"""
         result = {name_map[ch]: 0.0 for ch in letters}
         if not raw_scores:
-            print(f"[DEBUG _raw_to_percent] raw_scores is None/empty")
+            print("[DEBUG _raw_to_percent] raw_scores is None/empty")
             return result
         print(f"[DEBUG _raw_to_percent] raw_scores = {raw_scores}")
         for letter in letters:
@@ -1182,7 +1172,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
 
     riasec_scores = _raw_to_percent(riasec_scores_raw, riasec_letters, riasec_name_map)
     big_five_scores = _raw_to_percent(bigfive_scores_raw, big5_letters, big5_name_map)
-    
+
     print(f"[DEBUG build_results] Final riasec_scores = {riasec_scores}")
     print(f"[DEBUG build_results] Final big_five_scores = {big_five_scores}")
 
@@ -1190,10 +1180,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
     top_interest: str | None = None
     if riasec_scores_raw:
         raw_riasec_vec = [float(riasec_scores_raw.get(dim, 0.0)) for dim in riasec_letters]
-        sorted_indices = sorted(
-            range(6),
-            key=lambda i: (-raw_riasec_vec[i], i)
-        )
+        sorted_indices = sorted(range(6), key=lambda i: (-raw_riasec_vec[i], i))
         top_interest = riasec_letters[sorted_indices[0]]
 
     # 4) Lấy traits snapshot cho thông tin bổ sung
@@ -1202,55 +1189,57 @@ def build_results(session: Session, assessment_id: int) -> dict:
         session=session,
         user_id=user_id,
         test_riasec=riasec_scores_raw,  # Dùng scores của assessment này
-        test_big5=bigfive_scores_raw,   # Dùng scores của assessment này
+        test_big5=bigfive_scores_raw,  # Dùng scores của assessment này
     )
 
     # 4) Gợi ý nghề dựa trên top_interest và RIASEC scores
     # Map top_interest letter to column name in career_interests table
-    riasec_column_map = {
-        "R": "r", "I": "i", "A": "a", "S": "s", "E": "e", "C": "c"
-    }
-    
+    riasec_column_map = {"R": "r", "I": "i", "A": "a", "S": "s", "E": "e", "C": "c"}
+
     rec_ids: list[str] = []
     careers_full: list[dict] = []
-    
+
     if top_interest and top_interest in riasec_column_map:
         # Get careers sorted by the top_interest RIASEC dimension
         interest_col = riasec_column_map[top_interest]
-        
+
         print(f"[DEBUG build_results] top_interest={top_interest}, interest_col={interest_col}")
-        
+
         # Query careers with highest score in the user's top interest dimension
         # Join with career_interests table and sort by the relevant RIASEC column
         try:
-            rec_query = text(f"""
+            rec_query = text(
+                f"""
                 SELECT c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vn, c.short_desc_en
                 FROM core.careers c
                 JOIN core.career_interests ci ON c.onet_code = ci.onet_code
                 WHERE ci.{interest_col} IS NOT NULL
                 ORDER BY ci.{interest_col} DESC, RANDOM()
                 LIMIT 5
-            """)
-            
+            """
+            )
+
             rows = session.execute(rec_query).all()
             print(f"[DEBUG build_results] career_interests query returned {len(rows)} rows")
-            
+
             for rid, slug, tvi, ten, sdesc_vn, sdesc_en in rows:
                 rec_ids.append(str(rid))
                 title = tvi or ten or ((slug or "").replace("-", " ").title())
                 sdesc = sdesc_vn or sdesc_en or ""
-                careers_full.append({
-                    "id": str(rid),
-                    "title": title,
-                    "description": sdesc,
-                    "slug": slug,
-                })
+                careers_full.append(
+                    {
+                        "id": str(rid),
+                        "title": title,
+                        "description": sdesc,
+                        "slug": slug,
+                    }
+                )
         except Exception as e:
             print(f"[DEBUG build_results] career_interests query error: {repr(e)}")
-    
+
     # Fallback: if no careers found via RIASEC, get random careers
     if not rec_ids:
-        print(f"[DEBUG build_results] No careers from career_interests, trying fallback from careers table")
+        print("[DEBUG build_results] No careers from career_interests, trying fallback from careers table")
         try:
             rec_rows = session.execute(
                 select(
@@ -1260,24 +1249,28 @@ def build_results(session: Session, assessment_id: int) -> dict:
                     Career.title_en,
                     Career.short_desc_vn,
                     Career.short_desc_en,
-                ).order_by(func.random()).limit(5)
+                )
+                .order_by(func.random())
+                .limit(5)
             ).all()
-            
+
             print(f"[DEBUG build_results] fallback careers query returned {len(rec_rows)} rows")
-            
+
             for rid, slug, tvi, ten, sdesc_vn, sdesc_en in rec_rows:
                 rec_ids.append(str(rid))
                 title = tvi or ten or ((slug or "").replace("-", " ").title())
                 sdesc = sdesc_vn or sdesc_en or ""
-                careers_full.append({
-                    "id": str(rid),
-                    "title": title,
-                    "description": sdesc,
-                    "slug": slug,
-                })
+                careers_full.append(
+                    {
+                        "id": str(rid),
+                        "title": title,
+                        "description": sdesc,
+                        "slug": slug,
+                    }
+                )
         except Exception as e:
             print(f"[DEBUG build_results] fallback careers query error: {repr(e)}")
-    
+
     print(f"[DEBUG build_results] Final: {len(rec_ids)} careers, riasec_scores={riasec_scores}")
 
     return {
@@ -1289,13 +1282,8 @@ def build_results(session: Session, assessment_id: int) -> dict:
         "traits": traits_snapshot.model_dump(),
         "career_recommendations": rec_ids,
         "career_recommendations_full": careers_full,
-        "completed_at": (
-            obj.created_at.isoformat()
-            if getattr(obj, "created_at", None)
-            else None
-        ),
+        "completed_at": (obj.created_at.isoformat() if getattr(obj, "created_at", None) else None),
     }
-
 
 
 def save_feedback(

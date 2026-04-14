@@ -49,7 +49,7 @@ const DashboardPage = () => {
   // ==========================================
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 relative overflow-x-hidden">
+      <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 relative overflow-x-hidden">
 
         {/* CSS Injection: Patterns & Animations */}
         <style>{`
@@ -137,7 +137,7 @@ const DashboardPage = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Profile Summary - Main Card */}
                 <div className="lg:col-span-2 flex flex-col h-full">
-                  <div className="h-full bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 overflow-hidden relative group">
+                  <div className="h-full bg-white dark:bg-gray-800 rounded-card-special shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-base overflow-hidden relative group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-500/10 to-transparent rounded-bl-[100px] pointer-events-none group-hover:from-green-500/20 transition-all"></div>
                     <ProfileSummaryCard profile={dashboardData.profileSummary} />
                   </div>
@@ -146,7 +146,7 @@ const DashboardPage = () => {
                 {/* Metrics - Side Card */}
                 {dashboardData.hasCompletedAssessment && (
                   <div className="lg:col-span-1 flex flex-col h-full">
-                    <div className="h-full bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 p-1">
+                    <div className="h-full bg-white dark:bg-gray-800 rounded-card-special shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-base p-1">
                       <ProgressMetricsCard metrics={dashboardData.progressMetrics} />
                     </div>
                   </div>
@@ -216,7 +216,7 @@ const DashboardPage = () => {
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6">Processing your assessment results</p>
                     </div>
                   </div>
-                  <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-[24px] p-10 text-center shadow-sm">
+                  <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-card-feature p-10 text-center shadow-sm">
                     <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-yellow-600 dark:text-yellow-400">
                       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
@@ -228,7 +228,7 @@ const DashboardPage = () => {
                 </div>
               ) : (
                 // --- NO ASSESSMENT STATE - Only show if user hasn't completed any assessments ---
-                <div className="bg-white dark:bg-gray-800 rounded-[32px] border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none p-1.5">
+                <div className="bg-white dark:bg-gray-800 rounded-card-hero border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none p-1.5">
                   <NoAssessmentPrompt />
                 </div>
               )}

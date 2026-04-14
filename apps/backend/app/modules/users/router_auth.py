@@ -48,24 +48,29 @@ def log_audit(
                     entity_id_val = int(resource_id)
                 except (ValueError, TypeError):
                     entity_id_val = None
-            
-            new_session.execute(text("""
+
+            new_session.execute(
+                text(
+                    """
                 INSERT INTO core.audit_logs 
                 (actor_id, action, entity, entity_id, data_json, user_id, resource_type, resource_id, details, ip_address, created_at)
                 VALUES 
                 (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :user_id, :resource_type, :resource_id, CAST(:details AS jsonb), :ip_address, NOW())
-            """), {
-                "actor_id": user_id,
-                "action": action,
-                "entity": resource_type,
-                "entity_id": entity_id_val,
-                "data_json": details_json,
-                "user_id": user_id,
-                "resource_type": resource_type,
-                "resource_id": resource_id,
-                "details": details_json,
-                "ip_address": ip_address,
-            })
+            """
+                ),
+                {
+                    "actor_id": user_id,
+                    "action": action,
+                    "entity": resource_type,
+                    "entity_id": entity_id_val,
+                    "data_json": details_json,
+                    "user_id": user_id,
+                    "resource_type": resource_type,
+                    "resource_id": resource_id,
+                    "details": details_json,
+                    "ip_address": ip_address,
+                },
+            )
             new_session.commit()
             logger.info(f"Audit log saved: user={user_id}, action={action}")
         finally:
@@ -189,13 +194,13 @@ def register(request: Request, payload: RegisterPayload, background_tasks: Backg
     session.add(u)
     session.commit()
     session.refresh(u)
-    
+
     # Ghi audit log cho register
     client_ip = request.client.host if request.client else None
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
         client_ip = forwarded.split(",")[0].strip()
-    
+
     log_audit(
         session=session,
         user_id=u.id,
@@ -220,7 +225,7 @@ def login(request: Request, payload: LoginPayload):
     session = _db(request)
     email = payload.email.strip().lower()
     password = payload.password
-    
+
     # Get client IP
     client_ip = request.client.host if request.client else None
     forwarded = request.headers.get("x-forwarded-for")
@@ -266,7 +271,7 @@ def login(request: Request, payload: LoginPayload):
     )
     session.add(rt)
     session.commit()
-    
+
     # Ghi audit log cho login
     user_agent = request.headers.get("user-agent", "")
     browser = "Unknown"
@@ -278,7 +283,7 @@ def login(request: Request, payload: LoginPayload):
         browser = "Safari"
     elif "Edge" in user_agent:
         browser = "Edge"
-    
+
     log_audit(
         session=session,
         user_id=u.id,
@@ -362,7 +367,7 @@ def refresh_token(request: Request, payload: dict):
     # Lấy role thực của user thay vì hardcode "user"
     user = session.get(User, rt.user_id)
     user_role = user.role if user else "user"
-    
+
     new_access = create_access_token({"sub": str(rt.user_id), "role": user_role})
     return {"access_token": new_access}
 
@@ -377,13 +382,13 @@ def logout(request: Request, payload: dict):
     if rt:
         rt.revoked = True
         session.commit()
-        
+
         # Ghi audit log cho logout
         client_ip = request.client.host if request.client else None
         forwarded = request.headers.get("x-forwarded-for")
         if forwarded:
             client_ip = forwarded.split(",")[0].strip()
-        
+
         log_audit(
             session=session,
             user_id=rt.user_id,

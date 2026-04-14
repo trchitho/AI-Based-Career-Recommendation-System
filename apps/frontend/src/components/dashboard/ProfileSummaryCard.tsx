@@ -26,13 +26,13 @@ const ProfileSummaryCard: React.FC<ProfileSummaryCardProps> = ({ profile }) => {
     <div className="relative h-full flex flex-col justify-center overflow-hidden p-10 bg-white dark:bg-gray-800">
 
       {/* Decorative Background Elements */}
-      <div className="absolute top-0 right-0 h-full w-1/2 bg-[#F0FDF4] dark:bg-green-900/10 rounded-l-full transform translate-x-1/3 scale-125 pointer-events-none opacity-60"></div>
+      <div className="absolute top-0 right-0 h-full w-1/2 bg-primary-50 dark:bg-green-900/10 rounded-l-full transform translate-x-1/3 scale-125 pointer-events-none opacity-60"></div>
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-500/5 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10"></div>
 
       <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-8 w-full">
 
         {/* Avatar Square */}
-        <div className="w-24 h-24 bg-[#5D8468] rounded-[24px] flex items-center justify-center text-white text-4xl font-bold shadow-xl shadow-green-900/10 shrink-0 border-4 border-white dark:border-gray-700">
+        <div className="w-24 h-24 bg-primary-avatar rounded-card-feature flex items-center justify-center text-white text-4xl font-bold shadow-xl shadow-green-900/10 shrink-0 border-4 border-white dark:border-gray-700">
           {displayName.charAt(0).toUpperCase()}
         </div>
 

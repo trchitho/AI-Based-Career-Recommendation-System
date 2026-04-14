@@ -57,11 +57,11 @@ class Assessment(Base):
 
     id = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger, nullable=False)
-    a_type = Column(Text, nullable=False)          # 'RIASEC' | 'BigFive'
+    a_type = Column(Text, nullable=False)  # 'RIASEC' | 'BigFive'
     scores = Column(JSONB, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    session_id = Column(BigInteger)                # <<< THÊM DÒNG NÀY
-    
+    session_id = Column(BigInteger)  # <<< THÊM DÒNG NÀY
+
     # Processed results fields for persistence
     processed_riasec_scores = Column(JSONB, nullable=True)
     processed_big_five_scores = Column(JSONB, nullable=True)

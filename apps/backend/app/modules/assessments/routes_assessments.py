@@ -4,23 +4,22 @@ import base64
 import json
 from typing import Any, List, Optional
 
+from app.modules.assessments.schemas import AssessmentResultsOut
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.modules.assessments.schemas import AssessmentResultsOut
-from .models import Assessment, AssessmentSession
-from sqlalchemy import func
-
+from ...core.subscription import SubscriptionService
 from ..content.models import EssayPrompt
-from ...core.subscription import SubscriptionService, require_feature_access
+from .models import Assessment, AssessmentSession
 from .service import (
+    build_results,
+    fuse_user_traits,
     get_questions,
     save_assessment,
     save_essay,
-    build_results,
-    save_feedback,   # ✅ thêm
-    fuse_user_traits,
+    save_feedback,  # ✅ thêm
 )
 
 # KHÔNG thêm "/api" ở đây vì main.py đã prefix="/api/assessments"
@@ -88,9 +87,7 @@ def _current_user_id(req: Request) -> int:
     # 2) req.state.user
     user_obj = getattr(req.state, "user", None)
     if uid is None and user_obj is not None:
-        uid = getattr(user_obj, "id", None) or getattr(
-            user_obj, "user_id", None
-        )
+        uid = getattr(user_obj, "id", None) or getattr(user_obj, "user_id", None)
 
     # 3) header X-User-Id (tuỳ chọn – nếu FE muốn gửi kèm)
     if uid is None:
@@ -109,11 +106,7 @@ def _current_user_id(req: Request) -> int:
             if token:
                 try:
                     payload = _decode_jwt_payload(token)
-                    uid = (
-                        payload.get("user_id")
-                        or payload.get("sub")
-                        or payload.get("id")
-                    )
+                    uid = payload.get("user_id") or payload.get("sub") or payload.get("id")
                 except ValueError as e:
                     # Log nhẹ cho debug, nhưng vẫn coi như chưa lấy được uid
                     print(
@@ -220,17 +213,17 @@ def api_submit_assessment(
     Nhận toàn bộ bài làm trắc nghiệm và trả về assessmentId.
     user_id lấy từ _current_user_id (dựa trên req.state / header / JWT).
     """
-    
+
     # Check subscription status
     subscription = SubscriptionService.get_user_subscription(user_id, db)
     is_premium = subscription["is_premium"]
-    
+
     if not is_premium:
         # For free users, check monthly assessment limit
         usage = SubscriptionService.get_user_usage(user_id, "assessment", db)
         current_usage = usage["usage_count"]
         limit = subscription["limits"].get("assessments_per_month", 5)
-        
+
         if current_usage >= limit:
             raise HTTPException(
                 status_code=402,  # Payment Required
@@ -240,17 +233,17 @@ def api_submit_assessment(
                     "current_usage": current_usage,
                     "limit": limit,
                     "upgrade_required": True,
-                    "reset_date": "Đầu tháng tới"
-                }
+                    "reset_date": "Đầu tháng tới",
+                },
             )
-    
+
     try:
         assessment_id = save_assessment(
             db,
             user_id=user_id,
             payload=body.model_dump(),
         )
-        
+
         # Increment usage count for non-premium users
         if not is_premium:
             SubscriptionService.increment_usage(user_id, "assessment", db)
@@ -273,8 +266,8 @@ def api_submit_assessment(
                 "current_usage": current_usage,
                 "limit": limit,
                 "remaining": max(0, limit - current_usage) if limit != -1 else -1,
-                "is_premium": is_premium
-            }
+                "is_premium": is_premium,
+            },
         }
     except ValueError as e:
         db.rollback()
@@ -291,7 +284,6 @@ def api_submit_assessment(
         )
 
 
-
 @router.post("/essay")
 def api_submit_essay(
     body: EssaySubmitIn,
@@ -301,13 +293,16 @@ def api_submit_essay(
     """
     Ghi nhận essay tự luận sau khi hoàn thành test.
     """
-    print(f"[assessments] POST /essay called: user_id={user_id}, essayText_len={len(body.essayText or '')}, promptId={body.promptId}")
+    print(
+        f"[assessments] POST /essay called: user_id={user_id}, "
+        f"essayText_len={len(body.essayText or '')}, promptId={body.promptId}"
+    )
     try:
         essay_id = save_essay(
             db,
             user_id=user_id,
             content=body.essayText,
-            prompt_id=body.promptId,   # <-- dùng promptId FE gửi
+            prompt_id=body.promptId,  # <-- dùng promptId FE gửi
             lang=body.lang,
         )
         print(f"[assessments] POST /essay: essay saved with id={essay_id}")
@@ -347,7 +342,6 @@ def api_submit_essay(
         )
 
 
-
 @router.get("/essay-prompt", response_model=EssayPromptOut)
 def api_get_essay_prompt(
     db: Session = Depends(_db),
@@ -360,12 +354,7 @@ def api_get_essay_prompt(
     - Nếu không truyền lang: random toàn bộ prompts.
     """
     if lang:
-        prompt = (
-            db.query(EssayPrompt)
-            .filter(EssayPrompt.lang == lang)
-            .order_by(func.random())
-            .first()
-        )
+        prompt = db.query(EssayPrompt).filter(EssayPrompt.lang == lang).order_by(func.random()).first()
         if prompt is None:
             prompt = db.query(EssayPrompt).order_by(func.random()).first()
     else:
@@ -419,7 +408,7 @@ def api_submit_feedback(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to submit feedback",
         )
-    
+
 
 @router.get("/{assessment_id}/results", response_model=AssessmentResultsOut)
 def get_assessment_results(
@@ -478,56 +467,45 @@ def get_session_results(
     """
     try:
         # Lấy tất cả assessments trong session
-        assessments = db.query(Assessment).filter(
-            Assessment.session_id == session_id
-        ).all()
-        
+        assessments = db.query(Assessment).filter(Assessment.session_id == session_id).all()
+
         if not assessments:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Session not found"
-            )
-        
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
         # Kiểm tra quyền truy cập
         if assessments[0].user_id != current_user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not allowed to view this session"
-            )
-        
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed to view this session")
+
         riasec_assessment = None
         bigfive_assessment = None
-        
+
         for assessment in assessments:
             if assessment.a_type == "RIASEC":
                 riasec_assessment = assessment
             elif assessment.a_type == "BigFive":
                 bigfive_assessment = assessment
-        
+
         # Build results cho từng loại
         riasec_results = None
         bigfive_results = None
-        
+
         if riasec_assessment:
             riasec_results = build_results(db, riasec_assessment.id)
-        
+
         if bigfive_assessment:
             bigfive_results = build_results(db, bigfive_assessment.id)
-        
+
         return {
             "session_id": session_id,
             "user_id": current_user_id,
             "riasec": riasec_results,
             "bigfive": bigfive_results,
-            "created_at": assessments[0].created_at.isoformat() if assessments else None
+            "created_at": assessments[0].created_at.isoformat() if assessments else None,
         }
-        
+
     except Exception as e:
         print(f"[assessments] get_session_results error: {repr(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get session results"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get session results")
 
 
 @router.get("/user/sessions")
@@ -540,35 +518,40 @@ def get_user_sessions(
     """
     try:
         # Lấy sessions của user
-        sessions_query = db.query(AssessmentSession).filter(
-            AssessmentSession.user_id == current_user_id
-        ).order_by(AssessmentSession.created_at.desc()).all()
-        
+        sessions_query = (
+            db.query(AssessmentSession)
+            .filter(AssessmentSession.user_id == current_user_id)
+            .order_by(AssessmentSession.created_at.desc())
+            .all()
+        )
+
         sessions_data = []
         for session in sessions_query:
             # Lấy assessments trong session này
-            assessments = db.query(Assessment).filter(
-                Assessment.session_id == session.id
-            ).all()
-            
+            assessments = db.query(Assessment).filter(Assessment.session_id == session.id).all()
+
             if not assessments:
                 continue
-            
+
             assessment_types = [a.a_type for a in assessments]
-            
+
             # Get primary assessment ID (first assessment in session)
             primary_assessment_id = assessments[0].id if assessments else session.id
-            
+
             # Get RIASEC and BigFive scores from assessments
             riasec_scores = None
             big_five_scores = None
-            
+
             for assessment in assessments:
                 if assessment.a_type == "RIASEC" and assessment.scores:
                     # Convert raw scores (1-5) to percentage (0-100)
                     riasec_name_map = {
-                        "R": "realistic", "I": "investigative", "A": "artistic",
-                        "S": "social", "E": "enterprising", "C": "conventional"
+                        "R": "realistic",
+                        "I": "investigative",
+                        "A": "artistic",
+                        "S": "social",
+                        "E": "enterprising",
+                        "C": "conventional",
                     }
                     riasec_scores = {}
                     for letter, name in riasec_name_map.items():
@@ -578,12 +561,15 @@ def get_user_sessions(
                             riasec_scores[name] = round(max(0, min(100, percent)), 1)
                         else:
                             riasec_scores[name] = 0.0
-                            
+
                 elif assessment.a_type == "BigFive" and assessment.scores:
                     # Convert raw scores (1-5) to percentage (0-100)
                     big5_name_map = {
-                        "O": "openness", "C": "conscientiousness", "E": "extraversion",
-                        "A": "agreeableness", "N": "neuroticism"
+                        "O": "openness",
+                        "C": "conscientiousness",
+                        "E": "extraversion",
+                        "A": "agreeableness",
+                        "N": "neuroticism",
                     }
                     big_five_scores = {}
                     for letter, name in big5_name_map.items():
@@ -593,29 +579,25 @@ def get_user_sessions(
                             big_five_scores[name] = round(max(0, min(100, percent)), 1)
                         else:
                             big_five_scores[name] = 0.0
-            
-            sessions_data.append({
-                "session_id": session.id,
-                "id": str(primary_assessment_id),
-                "created_at": session.created_at.isoformat(),
-                "completed_at": session.created_at.isoformat(),
-                "assessment_count": len(assessments),
-                "assessment_types": ", ".join(assessment_types),
-                "riasec_scores": riasec_scores,
-                "big_five_scores": big_five_scores,
-            })
-        
-        return {
-            "user_id": current_user_id,
-            "sessions": sessions_data
-        }
-        
+
+            sessions_data.append(
+                {
+                    "session_id": session.id,
+                    "id": str(primary_assessment_id),
+                    "created_at": session.created_at.isoformat(),
+                    "completed_at": session.created_at.isoformat(),
+                    "assessment_count": len(assessments),
+                    "assessment_types": ", ".join(assessment_types),
+                    "riasec_scores": riasec_scores,
+                    "big_five_scores": big_five_scores,
+                }
+            )
+
+        return {"user_id": current_user_id, "sessions": sessions_data}
+
     except Exception as e:
         print(f"[assessments] get_user_sessions error: {repr(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get user sessions"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get user sessions")
 
 
 class SaveResultsIn(BaseModel):
@@ -639,33 +621,27 @@ def api_save_processed_results(
     try:
         # TODO: Tạm thời bỏ check user_id để test - BẬT LẠI SAU
         # Verify assessment belongs to user
-        assessment = db.query(Assessment).filter(
-            Assessment.id == assessment_id,
-            # Assessment.user_id == user_id  # Tạm comment
-        ).first()
-        
-        if not assessment:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Assessment not found"
+        assessment = (
+            db.query(Assessment)
+            .filter(
+                Assessment.id == assessment_id,
+                # Assessment.user_id == user_id  # Tạm comment
             )
-        
+            .first()
+        )
+
+        if not assessment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+
         # Update assessment with processed results if needed
         # For now, just return success since results are already stored
         # during assessment submission
-        
-        return {
-            "ok": True,
-            "message": "Results saved successfully",
-            "assessment_id": assessment_id
-        }
-        
+
+        return {"ok": True, "message": "Results saved successfully", "assessment_id": assessment_id}
+
     except HTTPException:
         raise
     except Exception as e:
         db.rollback()
         print(f"[assessments] save_processed_results error: {repr(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to save results"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save results")

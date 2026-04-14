@@ -5,9 +5,8 @@ from datetime import datetime
 from typing import Iterable
 
 import asyncpg
-from loguru import logger
-
 from app.core.config import settings
+from loguru import logger
 
 
 async def get_pg_pool():

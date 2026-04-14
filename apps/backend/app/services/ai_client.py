@@ -1,10 +1,11 @@
 # apps/backend/app/services/ai_client.py
 
-from fastapi import requests
-import httpx
-from pydantic import BaseModel
 from typing import Optional
+
+import httpx
 from app.core.config import settings
+from fastapi import requests
+from pydantic import BaseModel
 
 
 class InferTraitsPayload(BaseModel):

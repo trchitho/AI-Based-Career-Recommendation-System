@@ -337,7 +337,7 @@ const HomePage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 overflow-x-hidden">
+        <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 overflow-x-hidden">
 
             {/* --- CSS INJECTION --- */}
             <style>{`
@@ -502,7 +502,7 @@ const HomePage = () => {
 
                             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1] drop-shadow-sm">
                                 Build your future with <br className="hidden md:block" />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 animate-gradient-x">Intelligent Career Pathing</span>
+                                <span className="text-gradient-brand animate-gradient-x">Intelligent Career Pathing</span>
                             </h1>
 
                             <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed max-w-2xl mx-auto font-medium">
@@ -580,7 +580,7 @@ const HomePage = () => {
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">Everything you need to <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700">excel in your career</span></h2>
+                            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">Everything you need to <br /><span className="text-gradient-hero">excel in your career</span></h2>
                             <p className="text-lg text-gray-500 dark:text-gray-400">Our platform combines advanced AI with proven career strategies to give you the competitive edge.</p>
                         </div>
 

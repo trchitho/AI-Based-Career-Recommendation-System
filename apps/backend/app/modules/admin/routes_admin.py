@@ -3,7 +3,7 @@ import importlib.util as _importlib_util
 import json
 import logging
 import secrets
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from io import StringIO
 from pathlib import Path
 from typing import Any, Mapping
@@ -11,24 +11,19 @@ from typing import Any, Mapping
 from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import (
-    TIMESTAMP,
-    BigInteger,
-    Column,
-    Integer,
-    Text,
+    MetaData,
+    Table,
     case,
     func,
     or_,
     select,
     text,
-    Table,
-    MetaData,
 )
-from sqlalchemy.orm import Session, registry
+from sqlalchemy.orm import Session
 
 from ...core.jwt import require_admin
 from ..assessments.models import Assessment, AssessmentForm, AssessmentQuestion
-from ..content.models import BlogPost, Career, CareerKSA, CareerInterest, CareerOverview, Comment
+from ..content.models import BlogPost, Career, CareerInterest, CareerKSA, CareerOverview, Comment
 from ..system.models import AppSettings
 from ..users.models import User
 
@@ -99,13 +94,15 @@ def _payment_to_dict(
         "created_at": _iso_or_none(p.get("created_at")),
         "paid_at": _iso_or_none(p.get("paid_at")),
         "updated_at": _iso_or_none(p.get("updated_at")),
-        "user": {
-            "id": p.get("user_id"),
-            "email": email,
-            "full_name": full_name,
-        }
-        if email or full_name
-        else None,
+        "user": (
+            {
+                "id": p.get("user_id"),
+                "email": email,
+                "full_name": full_name,
+            }
+            if email or full_name
+            else None
+        ),
     }
 
     if include_callback:
@@ -133,55 +130,68 @@ def _payments_table(session: Session) -> Table:
 def dashboard_metrics(request: Request):
     _ = require_admin(request)
     session = _db(request)
-    
+
     try:
         # Total users - use raw SQL to be safe
         total_users = session.execute(text("SELECT COUNT(*) FROM core.users")).scalar() or 0
-        
+
         # Active users
         active_users = total_users
         try:
-            result = session.execute(text("""
+            result = session.execute(
+                text(
+                    """
                 SELECT COUNT(*) FROM core.users 
                 WHERE created_at >= now() - interval '30 days'
-            """)).scalar()
+            """
+                )
+            ).scalar()
             active_users = result if result else total_users
         except Exception as e:
             logger.warning(f"Active users query failed: {e}")
-        
+
         # Total assessments
         total_assessments = session.execute(text("SELECT COUNT(*) FROM core.assessments")).scalar() or 0
-        
+
         # Recent 7 days assessments
         recent_assessments = 0
         try:
-            recent_assessments = session.execute(text("""
+            recent_assessments = (
+                session.execute(
+                    text(
+                        """
                 SELECT COUNT(*) FROM core.assessments 
                 WHERE created_at >= now() - interval '7 days'
-            """)).scalar() or 0
+            """
+                    )
+                ).scalar()
+                or 0
+            )
         except Exception as e:
             logger.warning(f"Recent assessments query failed: {e}")
-        
+
         # Completed assessments
         completed_assessments = total_assessments
-        
+
         # Completion rate
         completion_rate = round((completed_assessments / total_users) * 100, 2) if total_users > 0 else 0.0
-        
+
         # Users with roadmaps - try user_progress table
         users_with_roadmaps = 0
         avg_roadmap_progress = 0.0
         try:
-            users_with_roadmaps = session.execute(text(
-                "SELECT COUNT(DISTINCT user_id) FROM core.user_progress"
-            )).scalar() or 0
-            
+            users_with_roadmaps = session.execute(text("SELECT COUNT(DISTINCT user_id) FROM core.user_progress")).scalar() or 0
+
             # Get average progress
-            progress_result = session.execute(text("""
+            progress_result = session.execute(
+                text(
+                    """
                 SELECT AVG(CAST(progress_percentage AS FLOAT)) 
                 FROM core.user_progress 
                 WHERE progress_percentage IS NOT NULL
-            """)).scalar()
+            """
+                )
+            ).scalar()
             avg_roadmap_progress = float(progress_result) if progress_result else 0.0
         except Exception as e:
             logger.warning(f"Roadmaps query failed: {e}")
@@ -214,9 +224,9 @@ def dashboard_metrics(request: Request):
 def ai_metrics(request: Request):
     _ = require_admin(request)
     session = _db(request)
-    
-    from ..assessments.models import Assessment, UserFeedback
-    
+
+    from ..assessments.models import UserFeedback
+
     # Default values
     riasec_dist = {
         "realistic": "0%",
@@ -233,7 +243,7 @@ def ai_metrics(request: Request):
         "agreeableness": "0%",
         "neuroticism": "0%",
     }
-    
+
     total_recs = 0
     total_assessments = 0
     assessments_with_essay = 0
@@ -243,91 +253,106 @@ def ai_metrics(request: Request):
     avg_processing_time = 0.0
     avg_feedback_rating = 0.0
     total_feedback = 0
-    
+
     try:
         # 1. Total assessments count
-        total_assessments = session.execute(
-            select(func.count(Assessment.id))
-        ).scalar() or 0
-        
+        total_assessments = session.execute(select(func.count(Assessment.id))).scalar() or 0
+
         # 2. Total recommendations count (assessments with career_recommendations)
-        total_recs = session.execute(
-            select(func.count(Assessment.id)).where(Assessment.career_recommendations.isnot(None))
-        ).scalar() or 0
-        
+        total_recs = (
+            session.execute(select(func.count(Assessment.id)).where(Assessment.career_recommendations.isnot(None))).scalar() or 0
+        )
+
         # 3. Calculate avg recommendations per assessment
         if total_assessments > 0:
             # Count total recommendation items
-            recs_with_data = session.execute(
-                select(Assessment.career_recommendations).where(Assessment.career_recommendations.isnot(None))
-            ).scalars().all()
+            recs_with_data = (
+                session.execute(select(Assessment.career_recommendations).where(Assessment.career_recommendations.isnot(None)))
+                .scalars()
+                .all()
+            )
             total_rec_items = 0
             for rec in recs_with_data:
                 if isinstance(rec, list):
                     total_rec_items += len(rec)
-                elif isinstance(rec, dict) and 'careers' in rec:
-                    total_rec_items += len(rec.get('careers', []))
+                elif isinstance(rec, dict) and "careers" in rec:
+                    total_rec_items += len(rec.get("careers", []))
             avg_recs_per_assessment = round(total_rec_items / max(total_assessments, 1), 1)
-        
+
         # 4. Assessments with essay analysis
-        assessments_with_essay = session.execute(
-            select(func.count(Assessment.id)).where(Assessment.essay_analysis.isnot(None))
-        ).scalar() or 0
-        
+        assessments_with_essay = (
+            session.execute(select(func.count(Assessment.id)).where(Assessment.essay_analysis.isnot(None))).scalar() or 0
+        )
+
         # 5. Calculate error rate from audit_logs (last 30 days)
         try:
             thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
             # Count errors (actions containing 'error' or 'fail')
-            error_count = session.execute(text("""
+            error_count = (
+                session.execute(
+                    text(
+                        """
                 SELECT COUNT(*) FROM core.audit_logs 
                 WHERE created_at >= :start_date
                 AND (LOWER(action) LIKE '%error%' OR LOWER(action) LIKE '%fail%')
-            """), {"start_date": thirty_days_ago}).scalar() or 0
-            
+            """
+                    ),
+                    {"start_date": thirty_days_ago},
+                ).scalar()
+                or 0
+            )
+
             # Count successes
-            success_count = session.execute(text("""
+            success_count = (
+                session.execute(
+                    text(
+                        """
                 SELECT COUNT(*) FROM core.audit_logs 
                 WHERE created_at >= :start_date
                 AND (LOWER(action) LIKE '%success%' OR LOWER(action) LIKE '%complete%' OR LOWER(action) LIKE '%create%')
-            """), {"start_date": thirty_days_ago}).scalar() or 0
+            """
+                    ),
+                    {"start_date": thirty_days_ago},
+                ).scalar()
+                or 0
+            )
         except Exception as e:
             logger.warning(f"Error counting audit logs: {e}")
-        
+
         # 6. Calculate average feedback rating
         try:
             avg_rating_result = session.execute(
                 select(func.avg(UserFeedback.rating)).where(UserFeedback.rating.isnot(None))
             ).scalar()
             avg_feedback_rating = round(float(avg_rating_result or 0), 1)
-            
-            total_feedback = session.execute(
-                select(func.count(UserFeedback.id))
-            ).scalar() or 0
+
+            total_feedback = session.execute(select(func.count(UserFeedback.id))).scalar() or 0
         except Exception as e:
             logger.warning(f"Error calculating feedback: {e}")
-        
+
         # 7. RIASEC distribution from actual assessment scores
         try:
-            riasec_rows = session.execute(
-                select(Assessment.scores).where(
-                    Assessment.a_type.ilike('%riasec%'),
-                    Assessment.scores.isnot(None)
-                ).limit(500)
-            ).scalars().all()
-            
+            riasec_rows = (
+                session.execute(
+                    select(Assessment.scores).where(Assessment.a_type.ilike("%riasec%"), Assessment.scores.isnot(None)).limit(500)
+                )
+                .scalars()
+                .all()
+            )
+
             if riasec_rows:
                 r_sum = i_sum = a_sum = s_sum = e_sum = c_sum = 0.0
                 count = 0
                 for scores in riasec_rows:
                     if isinstance(scores, dict):
-                        r_sum += float(scores.get('R', scores.get('r', scores.get('realistic', 0))) or 0)
-                        i_sum += float(scores.get('I', scores.get('i', scores.get('investigative', 0))) or 0)
-                        a_sum += float(scores.get('A', scores.get('a', scores.get('artistic', 0))) or 0)
-                        s_sum += float(scores.get('S', scores.get('s', scores.get('social', 0))) or 0)
-                        e_sum += float(scores.get('E', scores.get('e', scores.get('enterprising', 0))) or 0)
-                        c_sum += float(scores.get('C', scores.get('c', scores.get('conventional', 0))) or 0)
+                        r_sum += float(scores.get("R", scores.get("r", scores.get("realistic", 0))) or 0)
+                        i_sum += float(scores.get("I", scores.get("i", scores.get("investigative", 0))) or 0)
+                        a_sum += float(scores.get("A", scores.get("a", scores.get("artistic", 0))) or 0)
+                        s_sum += float(scores.get("S", scores.get("s", scores.get("social", 0))) or 0)
+                        e_sum += float(scores.get("E", scores.get("e", scores.get("enterprising", 0))) or 0)
+                        c_sum += float(scores.get("C", scores.get("c", scores.get("conventional", 0))) or 0)
                         count += 1
-                
+
                 if count > 0:
                     total = r_sum + i_sum + a_sum + s_sum + e_sum + c_sum
                     if total > 0:
@@ -341,32 +366,38 @@ def ai_metrics(request: Request):
                         }
         except Exception as e:
             logger.warning(f"RIASEC query error: {e}")
-        
+
         # 8. BigFive distribution from actual assessment scores
         try:
-            bigfive_rows = session.execute(
-                select(Assessment.scores).where(
-                    or_(
-                        Assessment.a_type.ilike('%big%five%'),
-                        Assessment.a_type.ilike('%bigfive%'),
-                        Assessment.a_type.ilike('%personality%')
-                    ),
-                    Assessment.scores.isnot(None)
-                ).limit(500)
-            ).scalars().all()
-            
+            bigfive_rows = (
+                session.execute(
+                    select(Assessment.scores)
+                    .where(
+                        or_(
+                            Assessment.a_type.ilike("%big%five%"),
+                            Assessment.a_type.ilike("%bigfive%"),
+                            Assessment.a_type.ilike("%personality%"),
+                        ),
+                        Assessment.scores.isnot(None),
+                    )
+                    .limit(500)
+                )
+                .scalars()
+                .all()
+            )
+
             if bigfive_rows:
                 o_sum = c_sum = e_sum = a_sum = n_sum = 0.0
                 count = 0
                 for scores in bigfive_rows:
                     if isinstance(scores, dict):
-                        o_sum += float(scores.get('O', scores.get('o', scores.get('openness', 0))) or 0)
-                        c_sum += float(scores.get('C', scores.get('c', scores.get('conscientiousness', 0))) or 0)
-                        e_sum += float(scores.get('E', scores.get('e', scores.get('extraversion', 0))) or 0)
-                        a_sum += float(scores.get('A', scores.get('a', scores.get('agreeableness', 0))) or 0)
-                        n_sum += float(scores.get('N', scores.get('n', scores.get('neuroticism', 0))) or 0)
+                        o_sum += float(scores.get("O", scores.get("o", scores.get("openness", 0))) or 0)
+                        c_sum += float(scores.get("C", scores.get("c", scores.get("conscientiousness", 0))) or 0)
+                        e_sum += float(scores.get("E", scores.get("e", scores.get("extraversion", 0))) or 0)
+                        a_sum += float(scores.get("A", scores.get("a", scores.get("agreeableness", 0))) or 0)
+                        n_sum += float(scores.get("N", scores.get("n", scores.get("neuroticism", 0))) or 0)
                         count += 1
-                
+
                 if count > 0:
                     total = o_sum + c_sum + e_sum + a_sum + n_sum
                     if total > 0:
@@ -379,14 +410,14 @@ def ai_metrics(request: Request):
                         }
         except Exception as e:
             logger.warning(f"BigFive query error: {e}")
-        
+
         # Calculate error rate percentage
         total_operations = error_count + success_count
         error_rate = round((error_count / max(total_operations, 1)) * 100, 1) if total_operations > 0 else 0.0
-        
+
         # Estimate processing time based on assessment count (placeholder - could be enhanced with actual timing data)
         avg_processing_time = 2.5 if total_assessments > 0 else 0.0
-        
+
         return {
             "totalRecommendations": int(total_recs),
             "totalAssessments": int(total_assessments),
@@ -479,9 +510,7 @@ def list_transactions(
 
     total = session.execute(select(func.count()).select_from(base_stmt.subquery())).scalar() or 0
 
-    rows = session.execute(
-        base_stmt.order_by(payments.c.created_at.desc()).limit(limit).offset(offset)
-    ).all()
+    rows = session.execute(base_stmt.order_by(payments.c.created_at.desc()).limit(limit).offset(offset)).all()
 
     items = []
     for row in rows:
@@ -495,18 +524,10 @@ def list_transactions(
             func.sum(case((func.lower(payments.c.status) == "success", payments.c.amount), else_=0)),
             0,
         ).label("success_amount"),
-        func.coalesce(func.sum(case((func.lower(payments.c.status) == "success", 1), else_=0)), 0).label(
-            "success_count"
-        ),
-        func.coalesce(func.sum(case((func.lower(payments.c.status) == "pending", 1), else_=0)), 0).label(
-            "pending_count"
-        ),
-        func.coalesce(func.sum(case((func.lower(payments.c.status) == "failed", 1), else_=0)), 0).label(
-            "failed_count"
-        ),
-        func.coalesce(func.sum(case((func.lower(payments.c.status) == "cancelled", 1), else_=0)), 0).label(
-            "cancelled_count"
-        ),
+        func.coalesce(func.sum(case((func.lower(payments.c.status) == "success", 1), else_=0)), 0).label("success_count"),
+        func.coalesce(func.sum(case((func.lower(payments.c.status) == "pending", 1), else_=0)), 0).label("pending_count"),
+        func.coalesce(func.sum(case((func.lower(payments.c.status) == "failed", 1), else_=0)), 0).label("failed_count"),
+        func.coalesce(func.sum(case((func.lower(payments.c.status) == "cancelled", 1), else_=0)), 0).label("cancelled_count"),
     ).select_from(payments.join(user_tbl, user_tbl.c.id == payments.c.user_id))
 
     if filters:
@@ -650,7 +671,9 @@ def get_transaction(request: Request, order_id: str):
     stmt = (
         select(payments, user_tbl.c.email.label("email"), user_tbl.c.full_name.label("full_name"))
         .join(user_tbl, user_tbl.c.id == payments.c.user_id)
-        .where(or_(*filters)) if filters else None
+        .where(or_(*filters))
+        if filters
+        else None
     )
     if stmt is None:
         raise HTTPException(status_code=400, detail="Payments schema missing identifier columns")
@@ -659,7 +682,9 @@ def get_transaction(request: Request, order_id: str):
     if not row:
         raise HTTPException(status_code=404, detail="Transaction not found")
     payment = {col.name: row.get(col.name) for col in payments.c if col.name in row}
-    return {"transaction": _payment_to_dict(payment, email=row.get("email"), full_name=row.get("full_name"), include_callback=True)}
+    return {
+        "transaction": _payment_to_dict(payment, email=row.get("email"), full_name=row.get("full_name"), include_callback=True)
+    }
 
 
 @router.delete("/transactions/{order_id}")
@@ -692,7 +717,6 @@ def delete_transaction(request: Request, order_id: str):
     return {"status": "deleted", "deleted": int(result.rowcount)}
 
 
-
 @router.get("/feedback")
 def user_feedback(
     request: Request,
@@ -707,38 +731,38 @@ def user_feedback(
     from ..users.models import User
 
     # Build query with user info
-    stmt = select(UserFeedback, User.email, User.full_name).outerjoin(
-        User, User.id == UserFeedback.user_id
-    )
+    stmt = select(UserFeedback, User.email, User.full_name).outerjoin(User, User.id == UserFeedback.user_id)
     if minRating is not None:
         stmt = stmt.where(UserFeedback.rating >= minRating)
     if startDate:
         try:
-            start_dt = datetime.fromisoformat(startDate.replace('Z', '+00:00'))
+            start_dt = datetime.fromisoformat(startDate.replace("Z", "+00:00"))
             stmt = stmt.where(UserFeedback.created_at >= start_dt)
-        except:
+        except Exception:
             pass
     if endDate:
         try:
-            end_dt = datetime.fromisoformat(endDate.replace('Z', '+00:00'))
+            end_dt = datetime.fromisoformat(endDate.replace("Z", "+00:00"))
             stmt = stmt.where(UserFeedback.created_at <= end_dt)
-        except:
+        except Exception:
             pass
-    
+
     rows = session.execute(stmt.order_by(UserFeedback.created_at.desc()).limit(200)).all()
-    
+
     feedback_list = []
     for fb, email, full_name in rows:
-        feedback_list.append({
-            "id": str(fb.id),
-            "userId": str(fb.user_id),
-            "userName": full_name or email or f"User #{fb.user_id}",
-            "assessmentId": str(fb.assessment_id) if fb.assessment_id else None,
-            "rating": int(fb.rating or 0),
-            "comment": fb.comment or "",
-            "createdAt": fb.created_at.isoformat() if fb.created_at else None,
-        })
-    
+        feedback_list.append(
+            {
+                "id": str(fb.id),
+                "userId": str(fb.user_id),
+                "userName": full_name or email or f"User #{fb.user_id}",
+                "assessmentId": str(fb.assessment_id) if fb.assessment_id else None,
+                "rating": int(fb.rating or 0),
+                "comment": fb.comment or "",
+                "createdAt": fb.created_at.isoformat() if fb.created_at else None,
+            }
+        )
+
     return {"feedback": feedback_list, "total": len(feedback_list)}
 
 
@@ -785,9 +809,7 @@ def _career_to_client(c: Career, session: Session) -> dict:
     riasec_profile = {"realistic": 0, "investigative": 0, "artistic": 0, "social": 0, "enterprising": 0, "conventional": 0}
     dominant_code = "N/A"
     if c.onet_code:
-        interest = session.execute(
-            select(CareerInterest).where(CareerInterest.onet_code == c.onet_code)
-        ).scalar_one_or_none()
+        interest = session.execute(select(CareerInterest).where(CareerInterest.onet_code == c.onet_code)).scalar_one_or_none()
         if interest:
             riasec_profile = {
                 "realistic": float(interest.r or 0),
@@ -802,16 +824,16 @@ def _career_to_client(c: Career, session: Session) -> dict:
     # Get skills from career_ksas (type = 'skill')
     skills = []
     if c.onet_code:
-        ksa_rows = session.execute(
-            select(CareerKSA).where(CareerKSA.onet_code == c.onet_code, CareerKSA.ksa_type == 'skill').limit(10)
-        ).scalars().all()
+        ksa_rows = (
+            session.execute(select(CareerKSA).where(CareerKSA.onet_code == c.onet_code, CareerKSA.ksa_type == "skill").limit(10))
+            .scalars()
+            .all()
+        )
         skills = [k.name for k in ksa_rows]
 
     # Get salary from career_overview
     salary_range = {"min": 0, "max": 0, "currency": "USD"}
-    overview = session.execute(
-        select(CareerOverview).where(CareerOverview.career_id == c.id)
-    ).scalar_one_or_none()
+    overview = session.execute(select(CareerOverview).where(CareerOverview.career_id == c.id)).scalar_one_or_none()
     if overview and overview.salary_min and overview.salary_max:
         salary_range = {
             "min": float(overview.salary_min),
@@ -854,18 +876,20 @@ def list_careers(
     if q:
         like = f"%{q.lower()}%"
         # Search in English title first, then Vietnamese
-        stmt = stmt.where(or_(
-            Career.title_en.ilike(like),
-            Career.title_vi.ilike(like),
-            Career.slug.ilike(like)
-        ))
+        stmt = stmt.where(or_(Career.title_en.ilike(like), Career.title_vi.ilike(like), Career.slug.ilike(like)))
 
     # If filtering by RIASEC code, join with career_interests
-    if riasecCode and riasecCode.upper() in ['R', 'I', 'A', 'S', 'E', 'C']:
+    if riasecCode and riasecCode.upper() in ["R", "I", "A", "S", "E", "C"]:
         code = riasecCode.upper()
         # Subquery to find onet_codes with dominant RIASEC code
-        code_map = {'R': CareerInterest.r, 'I': CareerInterest.i, 'A': CareerInterest.a,
-                    'S': CareerInterest.s, 'E': CareerInterest.e, 'C': CareerInterest.c}
+        code_map = {
+            "R": CareerInterest.r,
+            "I": CareerInterest.i,
+            "A": CareerInterest.a,
+            "S": CareerInterest.s,
+            "E": CareerInterest.e,
+            "C": CareerInterest.c,
+        }
         target_col = code_map[code]
         # Filter where the target code is the maximum
         subq = select(CareerInterest.onet_code).where(
@@ -1403,13 +1427,13 @@ def admin_update_post(request: Request, post_id: int, payload: dict):
     for field in ("title", "slug", "content_md"):
         if field in payload:
             setattr(p, field, payload[field] or getattr(p, field))
-    
+
     # Handle status field separately
     if "status" in payload:
         status = payload.get("status") or "Draft"
         p.status = status
     # Handle status updates
-    if hasattr(p, 'status') and p.status:
+    if hasattr(p, "status") and p.status:
         if p.status == "Published" and not p.published_at:
             p.published_at = datetime.now(timezone.utc)
         elif p.status != "Published":
@@ -1467,29 +1491,37 @@ def list_audit_logs(
     """List audit logs with filtering"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     # Check if audit_logs table exists
     try:
-        result = session.execute(text("""
+        result = session.execute(
+            text(
+                """
             SELECT EXISTS (
                 SELECT FROM information_schema.tables 
                 WHERE table_schema = 'core' AND table_name = 'audit_logs'
             )
-        """)).scalar()
-        
+        """
+            )
+        ).scalar()
+
         if not result:
             return {"items": [], "total": 0, "limit": limit, "offset": offset}
-        
+
         # Check actual columns
-        cols_result = session.execute(text("""
+        cols_result = session.execute(
+            text(
+                """
             SELECT column_name FROM information_schema.columns 
             WHERE table_schema = 'core' AND table_name = 'audit_logs'
-        """)).fetchall()
+        """
+            )
+        ).fetchall()
         columns = [r[0] for r in cols_result]
-        
-        has_actor_id = 'actor_id' in columns
-        has_entity = 'entity' in columns
-        
+
+        has_actor_id = "actor_id" in columns
+        has_entity = "entity" in columns
+
         # Build query based on actual schema
         if has_actor_id:
             # Schema with actor_id, entity, entity_id, data_json
@@ -1524,7 +1556,7 @@ def list_audit_logs(
                 WHERE 1=1
             """
         params = {}
-        
+
         if action:
             query += " AND al.action = :action"
             params["action"] = action
@@ -1546,33 +1578,35 @@ def list_audit_logs(
         if to_date:
             query += " AND al.created_at < (CAST(:to_date AS date) + interval '1 day')"
             params["to_date"] = to_date
-        
+
         # Count total
         count_query = f"SELECT COUNT(*) FROM ({query}) sub"
         total = session.execute(text(count_query), params).scalar() or 0
-        
+
         # Get items
         query += " ORDER BY al.created_at DESC LIMIT :limit OFFSET :offset"
         params["limit"] = limit
         params["offset"] = offset
-        
+
         rows = session.execute(text(query), params).mappings().all()
-        
+
         items = []
         for row in rows:
-            items.append({
-                "id": row.get("id"),
-                "user_id": row.get("user_id"),
-                "user_email": row.get("user_email"),
-                "action": row.get("action"),
-                "resource_type": row.get("resource_type") or row.get("entity"),
-                "resource_id": row.get("resource_id"),
-                "details": row.get("details"),
-                "ip_address": row.get("ip_address"),
-                "user_agent": row.get("user_agent"),
-                "created_at": _iso_or_none(row.get("created_at")),
-            })
-        
+            items.append(
+                {
+                    "id": row.get("id"),
+                    "user_id": row.get("user_id"),
+                    "user_email": row.get("user_email"),
+                    "action": row.get("action"),
+                    "resource_type": row.get("resource_type") or row.get("entity"),
+                    "resource_id": row.get("resource_id"),
+                    "details": row.get("details"),
+                    "ip_address": row.get("ip_address"),
+                    "user_agent": row.get("user_agent"),
+                    "created_at": _iso_or_none(row.get("created_at")),
+                }
+            )
+
         return {"items": items, "total": int(total), "limit": limit, "offset": offset}
     except Exception as e:
         logger.error(f"Error fetching audit logs: {e}")
@@ -1588,16 +1622,17 @@ def get_career_trends(
     """Get career recommendation trends from core.career_recommendations"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     # Calculate date filter
     period_days = {"7d": 7, "30d": 30, "90d": 90, "all": 9999}
     days = period_days.get(period, 30)
     period_labels = {"7d": "7 Days", "30d": "30 Days", "90d": "90 Days", "all": "All Time"}
-    
+
     try:
         # Get recommendation data from core.career_recommendations joined with core.careers
         # Use English title (title_en) first, fallback to title_vi
-        query = """
+        query = (
+            """
             SELECT 
                 c.id as career_id,
                 COALESCE(c.title_en, c.title_vi, c.slug) as career_title,
@@ -1609,24 +1644,28 @@ def get_career_trends(
             GROUP BY c.id, c.title_en, c.title_vi, c.slug, c.industry_category
             ORDER BY recommendation_count DESC
             LIMIT 20
-        """ % days
-        
+        """
+            % days
+        )
+
         rows = session.execute(text(query)).mappings().all()
-        
+
         total_recommendations = sum(row.get("recommendation_count", 0) for row in rows)
-        
+
         top_careers = []
         for row in rows:
             count = row.get("recommendation_count", 0)
             percentage = (count / total_recommendations * 100) if total_recommendations > 0 else 0
-            top_careers.append({
-                "career_id": str(row.get("career_id")),
-                "career_title": row.get("career_title"),
-                "industry_category": row.get("industry_category") or "Other",
-                "recommendation_count": count,
-                "percentage": round(percentage, 2),
-            })
-        
+            top_careers.append(
+                {
+                    "career_id": str(row.get("career_id")),
+                    "career_title": row.get("career_title"),
+                    "industry_category": row.get("industry_category") or "Other",
+                    "recommendation_count": count,
+                    "percentage": round(percentage, 2),
+                }
+            )
+
         return {
             "topCareers": top_careers,
             "totalRecommendations": total_recommendations,
@@ -1653,19 +1692,23 @@ def list_anomalies(
     """List detected anomalies"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     try:
         # Check if anomalies table exists
-        result = session.execute(text("""
+        result = session.execute(
+            text(
+                """
             SELECT EXISTS (
                 SELECT FROM information_schema.tables 
                 WHERE table_schema = 'core' AND table_name = 'anomalies'
             )
-        """)).scalar()
-        
+        """
+            )
+        ).scalar()
+
         if not result:
             return {"items": []}
-        
+
         query = """
             SELECT a.*, u.email as user_email
             FROM core.anomalies a
@@ -1673,7 +1716,7 @@ def list_anomalies(
             WHERE 1=1
         """
         params = {}
-        
+
         if type:
             query += " AND a.type = :type"
             params["type"] = type
@@ -1683,29 +1726,31 @@ def list_anomalies(
         if resolved is not None:
             query += " AND a.resolved = :resolved"
             params["resolved"] = resolved
-        
+
         query += " ORDER BY a.created_at DESC LIMIT :limit"
         params["limit"] = limit
-        
+
         rows = session.execute(text(query), params).mappings().all()
-        
+
         items = []
         for row in rows:
-            items.append({
-                "id": row.get("id"),
-                "type": row.get("type"),
-                "severity": row.get("severity"),
-                "title": row.get("title"),
-                "description": row.get("description"),
-                "user_id": row.get("user_id"),
-                "user_email": row.get("user_email"),
-                "metadata": row.get("metadata"),
-                "resolved": row.get("resolved", False),
-                "resolved_at": _iso_or_none(row.get("resolved_at")),
-                "resolved_by": row.get("resolved_by"),
-                "created_at": _iso_or_none(row.get("created_at")),
-            })
-        
+            items.append(
+                {
+                    "id": row.get("id"),
+                    "type": row.get("type"),
+                    "severity": row.get("severity"),
+                    "title": row.get("title"),
+                    "description": row.get("description"),
+                    "user_id": row.get("user_id"),
+                    "user_email": row.get("user_email"),
+                    "metadata": row.get("metadata"),
+                    "resolved": row.get("resolved", False),
+                    "resolved_at": _iso_or_none(row.get("resolved_at")),
+                    "resolved_by": row.get("resolved_by"),
+                    "created_at": _iso_or_none(row.get("created_at")),
+                }
+            )
+
         return {"items": items}
     except Exception as e:
         logger.error(f"Error fetching anomalies: {e}")
@@ -1717,15 +1762,19 @@ def get_anomaly_stats(request: Request):
     """Get anomaly statistics"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     try:
-        result = session.execute(text("""
+        result = session.execute(
+            text(
+                """
             SELECT EXISTS (
                 SELECT FROM information_schema.tables 
                 WHERE table_schema = 'core' AND table_name = 'anomalies'
             )
-        """)).scalar()
-        
+        """
+            )
+        ).scalar()
+
         if not result:
             return {
                 "total": 0,
@@ -1735,8 +1784,11 @@ def get_anomaly_stats(request: Request):
                 "medium": 0,
                 "low": 0,
             }
-        
-        stats = session.execute(text("""
+
+        stats = (
+            session.execute(
+                text(
+                    """
             SELECT 
                 COUNT(*) as total,
                 COUNT(*) FILTER (WHERE resolved = false) as unresolved,
@@ -1745,8 +1797,13 @@ def get_anomaly_stats(request: Request):
                 COUNT(*) FILTER (WHERE severity = 'medium') as medium,
                 COUNT(*) FILTER (WHERE severity = 'low') as low
             FROM core.anomalies
-        """)).mappings().first()
-        
+        """
+                )
+            )
+            .mappings()
+            .first()
+        )
+
         return {
             "total": stats.get("total", 0) if stats else 0,
             "unresolved": stats.get("unresolved", 0) if stats else 0,
@@ -1765,15 +1822,17 @@ def resolve_anomaly(request: Request, anomaly_id: int):
     """Mark an anomaly as resolved"""
     admin_id = require_admin(request)
     session = _db(request)
-    
+
     try:
         session.execute(
-            text("""
+            text(
+                """
                 UPDATE core.anomalies 
                 SET resolved = true, resolved_at = NOW(), resolved_by = :admin_id
                 WHERE id = :anomaly_id
-            """),
-            {"anomaly_id": anomaly_id, "admin_id": admin_id}
+            """
+            ),
+            {"anomaly_id": anomaly_id, "admin_id": admin_id},
         )
         session.commit()
         return {"status": "ok"}
@@ -1788,41 +1847,56 @@ def list_sync_jobs(request: Request, limit: int = Query(20, ge=1, le=100)):
     """List data sync jobs"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     try:
-        result = session.execute(text("""
+        result = session.execute(
+            text(
+                """
             SELECT EXISTS (
                 SELECT FROM information_schema.tables 
                 WHERE table_schema = 'core' AND table_name = 'sync_jobs'
             )
-        """)).scalar()
-        
+        """
+            )
+        ).scalar()
+
         if not result:
             return {"items": []}
-        
-        rows = session.execute(text("""
+
+        rows = (
+            session.execute(
+                text(
+                    """
             SELECT * FROM core.sync_jobs
             ORDER BY created_at DESC
             LIMIT :limit
-        """), {"limit": limit}).mappings().all()
-        
+        """
+                ),
+                {"limit": limit},
+            )
+            .mappings()
+            .all()
+        )
+
         items = []
         for row in rows:
-            items.append({
-                "id": row.get("id"),
-                "source": row.get("source"),
-                "type": row.get("type"),
-                "status": row.get("status"),
-                "total_items": row.get("total_items", 0),
-                "processed_items": row.get("processed_items", 0),
-                "created_items": row.get("created_items", 0),
-                "updated_items": row.get("updated_items", 0),
-                "error_message": row.get("error_message"),
-                "started_at": _iso_or_none(row.get("started_at")),
-                "completed_at": _iso_or_none(row.get("completed_at")),
-                "created_at": _iso_or_none(row.get("created_at")),
-            })
-        
+            items.append(
+                {
+                    "id": row.get("id"),
+                    "source": row.get("source"),
+                    "type": row.get("type"),
+                    "status": row.get("status"),
+                    "total_items": row.get("total_items", 0),
+                    "processed_items": row.get("processed_items", 0),
+                    "created_items": row.get("created_items", 0),
+                    "updated_items": row.get("updated_items", 0),
+                    "error_message": row.get("error_message"),
+                    "started_at": _iso_or_none(row.get("started_at")),
+                    "completed_at": _iso_or_none(row.get("completed_at")),
+                    "created_at": _iso_or_none(row.get("created_at")),
+                }
+            )
+
         return {"items": items}
     except Exception as e:
         logger.error(f"Error fetching sync jobs: {e}")
@@ -1834,41 +1908,41 @@ def get_sync_stats(request: Request):
     """Get data sync statistics"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     try:
         # Get career and skill counts
         career_count = session.execute(text("SELECT COUNT(*) FROM core.careers")).scalar() or 0
         skill_count = session.execute(text("SELECT COUNT(*) FROM core.career_ksas")).scalar() or 0
-        
+
         # Try to get source-specific counts
         onet_count = 0
         esco_count = 0
         last_sync = None
-        
+
         try:
-            onet_count = session.execute(text(
-                "SELECT COUNT(*) FROM core.careers WHERE source = 'onet'"
-            )).scalar() or 0
-        except:
+            onet_count = session.execute(text("SELECT COUNT(*) FROM core.careers WHERE source = 'onet'")).scalar() or 0
+        except Exception:
             pass
-        
+
         try:
-            esco_count = session.execute(text(
-                "SELECT COUNT(*) FROM core.careers WHERE source = 'esco'"
-            )).scalar() or 0
-        except:
+            esco_count = session.execute(text("SELECT COUNT(*) FROM core.careers WHERE source = 'esco'")).scalar() or 0
+        except Exception:
             pass
-        
+
         try:
-            last_sync_result = session.execute(text("""
+            last_sync_result = session.execute(
+                text(
+                    """
                 SELECT completed_at FROM core.sync_jobs 
                 WHERE status = 'completed' 
                 ORDER BY completed_at DESC LIMIT 1
-            """)).scalar()
+            """
+                )
+            ).scalar()
             last_sync = _iso_or_none(last_sync_result)
-        except:
+        except Exception:
             pass
-        
+
         return {
             "totalCareers": career_count,
             "totalSkills": skill_count,
@@ -1892,13 +1966,15 @@ def start_sync(request: Request, payload: dict):
     """Start a data sync job - syncs a small batch of careers/skills"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     source = payload.get("source", "onet")
     sync_type = payload.get("type", "careers")
-    
+
     try:
         # Check if sync_jobs table exists, create if not
-        session.execute(text("""
+        session.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS core.sync_jobs (
                 id SERIAL PRIMARY KEY,
                 source VARCHAR(50) NOT NULL,
@@ -1913,41 +1989,49 @@ def start_sync(request: Request, payload: dict):
                 completed_at TIMESTAMP WITH TIME ZONE,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create a new sync job
-        result = session.execute(text("""
+        result = session.execute(
+            text(
+                """
             INSERT INTO core.sync_jobs (source, type, status, started_at)
             VALUES (:source, :type, 'running', NOW())
             RETURNING id
-        """), {"source": source, "type": sync_type})
-        
+        """
+            ),
+            {"source": source, "type": sync_type},
+        )
+
         job_id = result.scalar()
         session.commit()
-        
+
         # Perform actual sync based on source and type
         total_items = 0
         processed_items = 0
         created_items = 0
         updated_items = 0
         error_message = None
-        
+
         try:
             if sync_type in ["careers", "all"]:
                 # Count existing careers for this source
                 if source == "onet":
-                    existing = session.execute(text(
-                        "SELECT COUNT(*) FROM core.careers WHERE source = 'onet' OR onet_code IS NOT NULL"
-                    )).scalar() or 0
+                    existing = (
+                        session.execute(
+                            text("SELECT COUNT(*) FROM core.careers WHERE source = 'onet' OR onet_code IS NOT NULL")
+                        ).scalar()
+                        or 0
+                    )
                     total_items = 10  # Small batch
                     processed_items = 10
                     # Mark as updated since data already exists
                     updated_items = min(existing, 10)
                     created_items = max(0, 10 - updated_items)
                 elif source == "esco":
-                    existing = session.execute(text(
-                        "SELECT COUNT(*) FROM core.careers WHERE source = 'esco'"
-                    )).scalar() or 0
+                    existing = session.execute(text("SELECT COUNT(*) FROM core.careers WHERE source = 'esco'")).scalar() or 0
                     total_items = 10
                     processed_items = 10
                     updated_items = min(existing, 10)
@@ -1957,12 +2041,12 @@ def start_sync(request: Request, payload: dict):
                     processed_items = 20
                     updated_items = 15
                     created_items = 5
-            
+
             if sync_type in ["skills", "all"]:
                 # Count skills
-                skill_count = session.execute(text(
-                    "SELECT COUNT(*) FROM core.career_ksas WHERE ksa_type = 'skill'"
-                )).scalar() or 0
+                skill_count = (
+                    session.execute(text("SELECT COUNT(*) FROM core.career_ksas WHERE ksa_type = 'skill'")).scalar() or 0
+                )
                 if sync_type == "skills":
                     total_items = 10
                     processed_items = 10
@@ -1974,15 +2058,17 @@ def start_sync(request: Request, payload: dict):
                     processed_items += 10
                     updated_items += 8
                     created_items += 2
-            
+
             status = "completed"
         except Exception as sync_error:
             error_message = str(sync_error)
             status = "failed"
             logger.error(f"Sync error: {sync_error}")
-        
+
         # Update the job with results
-        session.execute(text("""
+        session.execute(
+            text(
+                """
             UPDATE core.sync_jobs 
             SET status = :status, 
                 completed_at = NOW(),
@@ -1992,21 +2078,28 @@ def start_sync(request: Request, payload: dict):
                 updated_items = :updated,
                 error_message = :error
             WHERE id = :job_id
-        """), {
-            "job_id": job_id,
-            "status": status,
-            "total": total_items,
-            "processed": processed_items,
-            "created": created_items,
-            "updated": updated_items,
-            "error": error_message
-        })
+        """
+            ),
+            {
+                "job_id": job_id,
+                "status": status,
+                "total": total_items,
+                "processed": processed_items,
+                "created": created_items,
+                "updated": updated_items,
+                "error": error_message,
+            },
+        )
         session.commit()
-        
+
         return {
             "status": status,
             "job_id": job_id,
-            "message": f"Sync {status}: {processed_items} items processed, {created_items} new, {updated_items} updated" if status == "completed" else f"Sync failed: {error_message}"
+            "message": (
+                f"Sync {status}: {processed_items} items processed, {created_items} new, {updated_items} updated"
+                if status == "completed"
+                else f"Sync failed: {error_message}"
+            ),
         }
     except Exception as e:
         logger.error(f"Error starting sync: {e}")
@@ -2025,39 +2118,37 @@ def list_admin_notifications(
     """List admin notifications with filtering - uses existing notifications table"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     try:
         # Use existing notifications table
         # Build query
         query = "SELECT n.*, u.email as user_email FROM core.notifications n LEFT JOIN core.users u ON u.id = n.user_id WHERE 1=1"
         count_query = "SELECT COUNT(*) FROM core.notifications WHERE 1=1"
         params: dict = {}
-        
+
         if type:
             query += " AND n.type = :type"
             count_query += " AND type = :type"
             params["type"] = type
-        
+
         if is_read is not None:
             query += " AND n.is_read = :is_read"
             count_query += " AND is_read = :is_read"
             params["is_read"] = is_read
-        
+
         # Get total count
         total = session.execute(text(count_query), params).scalar() or 0
-        
+
         # Get unread count
-        unread_count = session.execute(text(
-            "SELECT COUNT(*) FROM core.notifications WHERE is_read = FALSE"
-        )).scalar() or 0
-        
+        unread_count = session.execute(text("SELECT COUNT(*) FROM core.notifications WHERE is_read = FALSE")).scalar() or 0
+
         # Get items
         query += " ORDER BY n.created_at DESC LIMIT :limit OFFSET :offset"
         params["limit"] = limit
         params["offset"] = offset
-        
+
         rows = session.execute(text(query), params).mappings().all()
-        
+
         items = []
         for row in rows:
             # Map type to severity for UI
@@ -2069,28 +2160,24 @@ def list_admin_notifications(
                 severity = "warning"
             elif notification_type in ["success", "payment_success"]:
                 severity = "success"
-            
-            items.append({
-                "id": row.get("id"),
-                "user_id": row.get("user_id"),
-                "user_email": row.get("user_email"),
-                "type": notification_type,
-                "title": row.get("title"),
-                "message": row.get("message"),
-                "link": row.get("link"),
-                "severity": severity,
-                "is_read": row.get("is_read"),
-                "created_at": _iso_or_none(row.get("created_at")),
-            })
-        
-        return {
-            "items": items, 
-            "total": int(total), 
-            "unread_count": int(unread_count),
-            "limit": limit, 
-            "offset": offset
-        }
-        
+
+            items.append(
+                {
+                    "id": row.get("id"),
+                    "user_id": row.get("user_id"),
+                    "user_email": row.get("user_email"),
+                    "type": notification_type,
+                    "title": row.get("title"),
+                    "message": row.get("message"),
+                    "link": row.get("link"),
+                    "severity": severity,
+                    "is_read": row.get("is_read"),
+                    "created_at": _iso_or_none(row.get("created_at")),
+                }
+            )
+
+        return {"items": items, "total": int(total), "unread_count": int(unread_count), "limit": limit, "offset": offset}
+
     except Exception as e:
         logger.error(f"Error fetching notifications: {e}")
         return {"items": [], "total": 0, "unread_count": 0, "limit": limit, "offset": offset}
@@ -2101,21 +2188,26 @@ def mark_notification_read(request: Request, notification_id: int):
     """Mark a notification as read"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     try:
-        result = session.execute(text("""
+        result = session.execute(
+            text(
+                """
             UPDATE core.notifications 
             SET is_read = TRUE
             WHERE id = :notification_id
             RETURNING id
-        """), {"notification_id": notification_id})
-        
+        """
+            ),
+            {"notification_id": notification_id},
+        )
+
         if not result.scalar():
             raise HTTPException(status_code=404, detail="Notification not found")
-        
+
         session.commit()
         return {"status": "success", "message": "Notification marked as read"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -2128,17 +2220,21 @@ def mark_all_notifications_read(request: Request):
     """Mark all notifications as read"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     try:
-        result = session.execute(text("""
+        result = session.execute(
+            text(
+                """
             UPDATE core.notifications 
             SET is_read = TRUE
             WHERE is_read = FALSE
-        """))
-        
+        """
+            )
+        )
+
         session.commit()
         return {"status": "success", "message": "All notifications marked as read", "count": result.rowcount}
-        
+
     except Exception as e:
         logger.error(f"Error marking all notifications as read: {e}")
         raise HTTPException(status_code=500, detail="Failed to update notifications")
@@ -2149,19 +2245,24 @@ def delete_notification(request: Request, notification_id: int):
     """Delete a notification"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     try:
-        result = session.execute(text("""
+        result = session.execute(
+            text(
+                """
             DELETE FROM core.notifications WHERE id = :notification_id
             RETURNING id
-        """), {"notification_id": notification_id})
-        
+        """
+            ),
+            {"notification_id": notification_id},
+        )
+
         if not result.scalar():
             raise HTTPException(status_code=404, detail="Notification not found")
-        
+
         session.commit()
         return {"status": "success", "message": "Notification deleted"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -2174,32 +2275,37 @@ def create_admin_notification(request: Request, payload: dict):
     """Create a new admin notification"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     notification_type = payload.get("type", "system")
     title = payload.get("title", "")
     message = payload.get("message", "")
     link = payload.get("link", "")
     user_id = payload.get("user_id")
-    
+
     if not title:
         raise HTTPException(status_code=400, detail="Title is required")
-    
+
     try:
-        result = session.execute(text("""
+        result = session.execute(
+            text(
+                """
             INSERT INTO core.notifications (user_id, type, title, message, link, is_read)
             VALUES (:user_id, :type, :title, :message, :link, FALSE)
             RETURNING id, created_at
-        """), {
-            "user_id": user_id,
-            "type": notification_type,
-            "title": title,
-            "message": message,
-            "link": link,
-        })
-        
+        """
+            ),
+            {
+                "user_id": user_id,
+                "type": notification_type,
+                "title": title,
+                "message": message,
+                "link": link,
+            },
+        )
+
         row = result.mappings().first()
         session.commit()
-        
+
         return {
             "status": "success",
             "notification": {
@@ -2208,9 +2314,9 @@ def create_admin_notification(request: Request, payload: dict):
                 "title": title,
                 "message": message,
                 "created_at": _iso_or_none(row["created_at"]) if row else None,
-            }
+            },
         }
-        
+
     except Exception as e:
         logger.error(f"Error creating notification: {e}")
         raise HTTPException(status_code=500, detail="Failed to create notification")
@@ -2221,49 +2327,50 @@ def broadcast_notification(request: Request, payload: dict):
     """Send notification to all users"""
     _ = require_admin(request)
     session = _db(request)
-    
+
     notification_type = payload.get("type", "system")
     title = payload.get("title", "")
     message = payload.get("message", "")
     link = payload.get("link", "")
-    
+
     if not title:
         raise HTTPException(status_code=400, detail="Title is required")
-    
+
     try:
         # Get all user IDs
         users_result = session.execute(text("SELECT id FROM core.users")).fetchall()
         user_ids = [row[0] for row in users_result]
-        
+
         if not user_ids:
             return {"status": "success", "message": "No users found", "count": 0}
-        
+
         # Insert notification for each user
         inserted_count = 0
         for user_id in user_ids:
             try:
-                session.execute(text("""
+                session.execute(
+                    text(
+                        """
                     INSERT INTO core.notifications (user_id, type, title, message, link, is_read)
                     VALUES (:user_id, :type, :title, :message, :link, FALSE)
-                """), {
-                    "user_id": user_id,
-                    "type": notification_type,
-                    "title": title,
-                    "message": message,
-                    "link": link or None,
-                })
+                """
+                    ),
+                    {
+                        "user_id": user_id,
+                        "type": notification_type,
+                        "title": title,
+                        "message": message,
+                        "link": link or None,
+                    },
+                )
                 inserted_count += 1
             except Exception as e:
                 logger.warning(f"Failed to insert notification for user {user_id}: {e}")
-        
+
         session.commit()
-        
-        return {
-            "status": "success",
-            "message": f"Notification sent to {inserted_count} users",
-            "count": inserted_count
-        }
-        
+
+        return {"status": "success", "message": f"Notification sent to {inserted_count} users", "count": inserted_count}
+
     except Exception as e:
         logger.error(f"Error broadcasting notification: {e}")
         raise HTTPException(status_code=500, detail="Failed to broadcast notification")

@@ -3,14 +3,14 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-
-from .service import RecService, CareerEventsService
 from app.modules.auth.deps import get_current_user_optional
 from app.modules.users.models import User
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from .service import CareerEventsService, RecService
 
 router = APIRouter(prefix="", tags=["recommendations"])
 svc = RecService()
@@ -21,6 +21,7 @@ def _db(req: Request) -> Session:
 
 
 # ===== DTO =====
+
 
 class CareerDTO(BaseModel):
     career_id: str
@@ -67,15 +68,16 @@ def get_saved_recommendations(
 ):
     """
     GET /api/recommendations/saved?assessment_id=372&top_k=3
-    
+
     Fetch saved career recommendations from core.career_recommendations table.
     This is used by Dashboard to show career suggestions without calling AI-core.
     """
     db = _db(request)
-    
+
     try:
         # Query saved recommendations with career details
-        sql = text("""
+        sql = text(
+            """
             SELECT 
                 cr.career_id,
                 cr.score,
@@ -90,33 +92,30 @@ def get_saved_recommendations(
             WHERE cr.assessment_id = :assessment_id
             ORDER BY cr.rank ASC
             LIMIT :top_k
-        """)
-        
+        """
+        )
+
         rows = db.execute(sql, {"assessment_id": assessment_id, "top_k": top_k}).fetchall()
-        
+
         items = []
         for row in rows:
-            items.append({
-                "career_id": row[0],
-                "score": float(row[1]) if row[1] else 0.0,
-                "rank": row[2],
-                "slug": row[3],
-                "title_vi": row[4],
-                "title_en": row[5],
-                "description": row[6] or row[7] or ""
-            })
-        
-        return {
-            "assessment_id": assessment_id,
-            "items": items
-        }
-        
+            items.append(
+                {
+                    "career_id": row[0],
+                    "score": float(row[1]) if row[1] else 0.0,
+                    "rank": row[2],
+                    "slug": row[3],
+                    "title_vi": row[4],
+                    "title_en": row[5],
+                    "description": row[6] or row[7] or "",
+                }
+            )
+
+        return {"assessment_id": assessment_id, "items": items}
+
     except Exception as e:
         print(f"[recommendations] get_saved_recommendations error: {repr(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to fetch saved recommendations"
-        )
+        raise HTTPException(status_code=500, detail="Failed to fetch saved recommendations")
 
 
 @router.get("", response_model=RecommendationsRes)
@@ -145,7 +144,7 @@ def get_recommendations(
 
 
 class ClickPayload(BaseModel):
-    career_id: str      # slug hoặc onet_code FE gửi lên
+    career_id: str  # slug hoặc onet_code FE gửi lên
     position: int
     request_id: Optional[str] = None
     match_score: Optional[float] = None
@@ -167,7 +166,7 @@ def log_click(
       "match_score": 0.95,
       "request_id": "uuid từ /api/recommendations"
     }
-    
+
     CRITICAL: user_id lấy từ JWT (current_user), không nhận từ client.
     Nếu không có user đăng nhập, vẫn log với user_id = None (guest click).
     """

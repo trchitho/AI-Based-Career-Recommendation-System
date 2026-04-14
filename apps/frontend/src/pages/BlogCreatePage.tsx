@@ -9,7 +9,7 @@ const BlogCreatePage = () => {
   const { isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     content_md: '',
@@ -38,15 +38,15 @@ const BlogCreatePage = () => {
         ...formData,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
       };
-      
+
       await blogService.createBlog(blogData);
-      
+
       // Show different messages based on user role
       if (isAdmin) {
         navigate('/blog');
       } else {
-        alert(formData.is_published 
-          ? 'Blog đã được gửi để duyệt. Admin sẽ xem xét và xuất bản.' 
+        alert(formData.is_published
+          ? 'Blog đã được gửi để duyệt. Admin sẽ xem xét và xuất bản.'
           : 'Blog đã được lưu dưới dạng bản nháp.'
         );
         navigate('/blog');
@@ -60,8 +60,8 @@ const BlogCreatePage = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white">
-        
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+
         {/* CSS Injection */}
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -71,14 +71,14 @@ const BlogCreatePage = () => {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-green-500/5 dark:bg-green-500/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          
+
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
               {isAdmin ? 'Tạo Blog Mới' : 'Viết Blog'} <span className="text-green-600 dark:text-green-500">Của Bạn</span>
             </h1>
             <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
-              {isAdmin 
+              {isAdmin
                 ? 'Tạo và xuất bản blog ngay lập tức'
                 : 'Chia sẻ kinh nghiệm và kiến thức của bạn với cộng đồng'
               }
@@ -92,7 +92,7 @@ const BlogCreatePage = () => {
 
           {/* Form */}
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-8">
-            
+
             {error && (
               <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400">
                 {error}
@@ -100,7 +100,7 @@ const BlogCreatePage = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              
+
               {/* Title */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -153,7 +153,7 @@ const BlogCreatePage = () => {
 
               {/* Category and Tags Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* Category */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -229,7 +229,7 @@ const BlogCreatePage = () => {
                 >
                   {loading ? 'Đang tạo...' : (isAdmin ? 'Tạo Blog' : 'Gửi Blog')}
                 </button>
-                
+
                 <button
                   type="button"
                   onClick={() => navigate('/blog')}

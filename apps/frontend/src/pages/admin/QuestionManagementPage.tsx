@@ -8,18 +8,18 @@ import { Question, QuestionFormData } from '../../types/admin';
 
 const baseInput =
   "w-full px-4 py-3 rounded-lg border " +
-  "bg-white dark:bg-[#1E293B] " +
-  "border-gray-300 dark:border-[#2C3A4B] " +
+  "bg-white dark:bg-admin-dark-card " +
+  "border-gray-300 dark:border-admin-dark-border " +
   "text-gray-800 dark:text-gray-200 " +
   "placeholder-gray-400 dark:placeholder-gray-500 " +
   "focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 const cardClass =
-  "bg-gray-50 dark:bg-[#0F172A] rounded-lg shadow p-4 " +
-  "border border-gray-200 dark:border-[#1E293B]";
+  "bg-gray-50 dark:bg-admin-dark-bg rounded-lg shadow p-4 " +
+  "border border-gray-200 dark:border-admin-dark-card";
 
 const tableHead =
-  "bg-gray-100 dark:bg-[#1E293B] text-gray-700 dark:text-gray-300";
+  "bg-gray-100 dark:bg-admin-dark-card text-gray-700 dark:text-gray-300";
 
 const QuestionManagementPage = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -148,7 +148,7 @@ const QuestionManagementPage = () => {
           <div className="flex items-end">
             <div className="ml-auto flex items-center gap-2">
               <button
-                className="px-4 py-2 rounded-full border bg-white dark:bg-[#1E293B] text-gray-900 dark:text-gray-200 disabled:opacity-50"
+                className="px-4 py-2 rounded-full border bg-white dark:bg-admin-dark-card text-gray-900 dark:text-gray-200 disabled:opacity-50"
                 disabled={page <= 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
               >
@@ -158,7 +158,7 @@ const QuestionManagementPage = () => {
                 Page {page} / {Math.max(1, Math.ceil(total / pageSize))}
               </span>
               <button
-                className="px-4 py-2 rounded-full border bg-white dark:bg-[#1E293B] text-gray-900 dark:text-gray-200 disabled:opacity-50"
+                className="px-4 py-2 rounded-full border bg-white dark:bg-admin-dark-card text-gray-900 dark:text-gray-200 disabled:opacity-50"
                 disabled={page >= Math.max(1, Math.ceil(total / pageSize))}
                 onClick={() => setPage(p => p + 1)}
               >
@@ -175,7 +175,7 @@ const QuestionManagementPage = () => {
           <p className="text-gray-500 dark:text-gray-300">Loading...</p>
         </div>
       ) : (
-        <div className="rounded-lg shadow overflow-hidden bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-[#1E293B]">
+        <div className="rounded-lg shadow overflow-hidden bg-white dark:bg-admin-dark-bg border border-gray-200 dark:border-admin-dark-card">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className={tableHead}>
               <tr>
@@ -187,9 +187,9 @@ const QuestionManagementPage = () => {
                 <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-[#0F172A] divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-white dark:bg-admin-dark-bg divide-y divide-gray-200 dark:divide-gray-700">
               {questions.map(question => (
-                <tr key={question.id} className="hover:bg-gray-50 dark:hover:bg-[#1A2333]">
+                <tr key={question.id} className="hover:bg-gray-50 dark:hover:bg-admin-dark-hover">
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900 dark:text-gray-200 line-clamp-2">
                       {question.text}
@@ -322,15 +322,15 @@ const QuestionForm = ({ question, onClose, onSuccess }: QuestionFormProps) => {
 
   const baseInput =
     "w-full px-4 py-3 rounded-lg border " +
-    "bg-white dark:bg-[#1E293B] " +
-    "border-gray-300 dark:border-[#2C3A4B] " +
+    "bg-white dark:bg-admin-dark-card " +
+    "border-gray-300 dark:border-admin-dark-border " +
     "text-gray-800 dark:text-gray-200 " +
     "placeholder-gray-400 dark:placeholder-gray-500 " +
     "focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-[#0F172A] rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-admin-dark-bg rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             {question ? 'Edit Question' : 'Add Question'}

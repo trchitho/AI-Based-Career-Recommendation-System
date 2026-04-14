@@ -122,7 +122,7 @@ const CareerManagementPage = () => {
       </div>
 
       {/* Search + Filter */}
-      <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
@@ -156,7 +156,7 @@ const CareerManagementPage = () => {
       {loading ? (
         <div className="text-center py-10 text-gray-500">Loading...</div>
       ) : (
-        <div className="bg-white dark:bg-[#0F1629] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow">
+        <div className="bg-white dark:bg-admin-dark-bg border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow">
           <table className="min-w-full">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
@@ -338,7 +338,7 @@ const CareerFormModal: React.FC<CareerFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#0F1629] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-admin-dark-bg rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
             {career ? "Edit Career" : "Add Career"}

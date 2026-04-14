@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
+import time
 from contextlib import asynccontextmanager
-from typing import Iterable
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -76,6 +76,12 @@ async def lifespan(_: FastAPI):
 
 
 def create_app() -> FastAPI:
+    # Initialize error tracking first
+    try:
+        print("✅ Error tracking initialized")
+    except Exception as e:
+        print(f"⚠️ Error tracking initialization failed: {e}")
+
     app = FastAPI(
         title="NCKH API",
         version=os.getenv("API_VERSION", "0.1.0"),
@@ -85,11 +91,6 @@ def create_app() -> FastAPI:
     )
 
     # CORS - Fix for payment issues
-    origins: Iterable[str] = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000,http://127.0.0.1:3000")
-    allow_headers = _split_csv_env(os.getenv("ALLOWED_HEADERS"), "*, Authorization, Content-Type, X-Requested-With")
-    allow_methods = _split_csv_env(os.getenv("ALLOWED_METHODS"), "GET, POST, PUT, DELETE, OPTIONS")
-    allow_credentials = _bool_env("ALLOW_CREDENTIALS", True)
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],  # Temporary fix for development
@@ -99,6 +100,26 @@ def create_app() -> FastAPI:
         expose_headers=["*"],
         max_age=600,
     )
+
+    # Performance monitoring middleware
+    try:
+        from .core.monitoring import PerformanceMonitoringMiddleware, set_performance_monitor
+
+        monitoring_middleware = PerformanceMonitoringMiddleware(app)
+        app.add_middleware(PerformanceMonitoringMiddleware)
+        set_performance_monitor(monitoring_middleware)
+        print("✅ Performance monitoring enabled")
+    except Exception as e:
+        print(f"⚠️ Performance monitoring disabled: {e}")
+
+    # Rate limiting middleware
+    try:
+        from .core.rate_limiter import RateLimitMiddleware
+
+        app.add_middleware(RateLimitMiddleware, default_limit=100, default_window=60)
+        print("✅ Rate limiting enabled")
+    except Exception as e:
+        print(f"⚠️ Rate limiting disabled: {e}")
 
     # DB session per-request
     @app.middleware("http")
@@ -115,10 +136,52 @@ def create_app() -> FastAPI:
         finally:
             db.close()
 
+    # Authentication handled by dependency injection in routes
+    # No middleware needed - see auth_deps.py for get_current_user_from_token dependency
+
     # Health & root
     @app.get("/health", tags=["system"])
     def health():
         return {"status": "ok"}
+
+    @app.get("/health/detailed", tags=["system"])
+    async def detailed_health():
+        """Comprehensive health check with performance metrics"""
+        try:
+            from .core.monitoring import get_health_checker
+
+            health_checker = get_health_checker()
+            return await health_checker.get_system_health()
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    @app.get("/metrics", tags=["system"])
+    def get_metrics():
+        """Get comprehensive performance metrics"""
+        try:
+            from .core.cache import cache_manager
+            from .core.database_monitor import db_monitor
+            from .core.error_tracking import error_tracker
+            from .core.monitoring import get_performance_monitor
+
+            monitor = get_performance_monitor()
+
+            metrics = {"performance": monitor.get_metrics_summary() if monitor else {}, "timestamp": time.time()}
+
+            # Add database metrics if available
+            if db_monitor:
+                metrics["database"] = db_monitor.get_metrics()
+
+            # Add cache metrics if available
+            if cache_manager:
+                metrics["cache"] = cache_manager.get_stats()
+
+            # Add error tracking metrics
+            metrics["errors"] = error_tracker.get_error_stats()
+
+            return metrics
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
 
     @app.get("/", include_in_schema=False)
     def root():
@@ -138,9 +201,9 @@ def create_app() -> FastAPI:
         from .api import bff_career
 
         app.include_router(bff_career.router)
-        print("✅ BFF Career router registered at /bff/catalog/career/{onet_code}")
+        print("✅ BFF Career API")
     except Exception as e:
-        print("❌ Skip BFF Career router:", repr(e))
+        print("❌ BFF Career API:", str(e)[:50])
 
     # Auth / Users
     from .modules.users.router_auth import router as auth_router
@@ -300,7 +363,7 @@ def create_app() -> FastAPI:
         app.include_router(chatbot_router.router, tags=["chatbot"])
     except Exception as e:
         print("??  Skip chatbot router:", repr(e))
-    # Career 
+    # Career
     try:
         from .modules.careers import routes_trait_evidence as career_router
 
@@ -315,6 +378,15 @@ def create_app() -> FastAPI:
         app.include_router(reports_router.router)
     except Exception as e:
         print("??  Skip reports router:", repr(e))
+
+    # AI Mock Interview
+    try:
+        from .modules.interview import routes as interview_router
+
+        app.include_router(interview_router.router, prefix="/api/interview", tags=["interview"])
+        print("✅ AI Mock Interview API")
+    except Exception as e:
+        print("❌ AI Mock Interview API:", str(e)[:50])
 
     return app
 

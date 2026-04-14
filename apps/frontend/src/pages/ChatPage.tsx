@@ -37,7 +37,7 @@ const ChatPage = () => {
   // ==========================================
   return (
     <MainLayout>
-      <div className="min-h-[calc(100vh-64px)] bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-hidden flex flex-col">
+      <div className="min-h-[calc(100vh-64px)] bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-hidden flex flex-col">
 
         {/* CSS Injection */}
         <style>{`
@@ -84,7 +84,7 @@ const ChatPage = () => {
           </div>
 
           {/* --- CHAT CONTAINER --- */}
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-[32px] shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col relative">
+          <div className="flex-1 bg-white dark:bg-gray-800 rounded-card-hero shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col relative">
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
@@ -114,8 +114,8 @@ const ChatPage = () => {
 
                         {/* Avatar */}
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${m.role === 'user'
-                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                            : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
+                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                          : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
                           }`}>
                           {m.role === 'user' ? (
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -126,8 +126,8 @@ const ChatPage = () => {
 
                         {/* Bubble */}
                         <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${m.role === 'user'
-                            ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-tr-none'
-                            : 'bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 rounded-tl-none border border-gray-200 dark:border-gray-700'
+                          ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-tr-none'
+                          : 'bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 rounded-tl-none border border-gray-200 dark:border-gray-700'
                           }`}>
                           {m.content}
                         </div>

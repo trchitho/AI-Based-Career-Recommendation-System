@@ -150,7 +150,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
   }, [showComparison, selectedSessions, groupedSessions]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-[32px] overflow-hidden font-['Plus_Jakarta_Sans']">
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-card-hero overflow-hidden">
 
       {/* Header with gradient */}
       <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden">

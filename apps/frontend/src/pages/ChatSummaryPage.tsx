@@ -71,7 +71,7 @@ const ChatSummaryPage = () => {
   // ==========================================
   return (
     <MainLayout>
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
 
         {/* CSS Injection */}
         <style>{`
@@ -130,8 +130,8 @@ const ChatSummaryPage = () => {
 
             {/* --- SUMMARY CARD --- */}
             {!loading && !error && (
-              <div className="bg-white dark:bg-gray-800 rounded-[32px] p-1 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700">
-                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-[28px] p-8 md:p-10">
+              <div className="bg-white dark:bg-gray-800 rounded-card-hero p-1 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700">
+                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-card-special p-8 md:p-10">
 
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">

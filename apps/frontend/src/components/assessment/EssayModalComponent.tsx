@@ -40,7 +40,7 @@ const EssayModalComponent = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 font-['Plus_Jakarta_Sans']">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
 
       {/* CSS Animation Injection for Modal */}
       <style>{`
@@ -94,8 +94,8 @@ const EssayModalComponent = ({
             {/* Character Count */}
             <div className="absolute bottom-4 right-4 flex items-center gap-3">
               <span className={`text-xs font-bold px-2 py-1 rounded-md transition-colors ${essayText.trim().length >= MIN_CHARS
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
                 }`}>
                 {essayText.trim().length} / {MIN_CHARS} chars
               </span>

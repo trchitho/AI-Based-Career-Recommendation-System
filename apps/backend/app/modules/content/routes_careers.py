@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from ...core.jwt import require_user
-from ...core.subscription import SubscriptionService, require_feature_access
+from ...core.subscription import SubscriptionService
 from . import service_careers as svc
 
 router = APIRouter()
@@ -28,34 +28,33 @@ def list_careers(
 def get_career(request: Request, id_or_slug: str):
     user_id = require_user(request)
     session = _db(request)
-    
+
     # Get career data first
     obj = svc.get_career(session, id_or_slug)
     if not obj:
         raise HTTPException(status_code=404, detail="Career not found")
-    
+
     # Check subscription status
     subscription = SubscriptionService.get_user_subscription(user_id, session)
     is_premium = subscription["is_premium"]
-    
+
     if is_premium:
         # Premium users get full access to all details
-        return {
-            **obj,
-            "access_level": "full",
-            "upgrade_required": False,
-            "access_info": {"allowed": True, "level": "premium"}
-        }
+        return {**obj, "access_level": "full", "upgrade_required": False, "access_info": {"allowed": True, "level": "premium"}}
     else:
         # Free users get basic level access to all careers
         return {
             **obj,
             # Limit description to basic info only
-            "description": (obj.get("description", "") or obj.get("short_desc", ""))[:200] + "..." if len(obj.get("description", "") or obj.get("short_desc", "")) > 200 else (obj.get("description", "") or obj.get("short_desc", "")),
+            "description": (
+                (obj.get("description", "") or obj.get("short_desc", ""))[:200] + "..."
+                if len(obj.get("description", "") or obj.get("short_desc", "")) > 200
+                else (obj.get("description", "") or obj.get("short_desc", ""))
+            ),
             # Remove or limit advanced details
             "skills": [],  # Hide detailed skills
             "education_requirements": "🔒 Upgrade to view detailed education requirements",
-            "salary_range": "🔒 Upgrade to view detailed salary information", 
+            "salary_range": "🔒 Upgrade to view detailed salary information",
             "job_outlook": "🔒 Upgrade to view detailed job outlook",
             "detailed_description": "🔒 Upgrade to view full description",
             "career_path": "🔒 Upgrade to view career development path",
@@ -67,8 +66,8 @@ def get_career(request: Request, id_or_slug: str):
             "access_info": {
                 "allowed": True,
                 "level": "basic",
-                "message": "You are viewing at basic level. Upgrade to Premium for full detailed information."
-            }
+                "message": "You are viewing at basic level. Upgrade to Premium for full detailed information.",
+            },
         }
 
 
@@ -77,21 +76,21 @@ def get_career(request: Request, id_or_slug: str):
 def get_roadmap(request: Request, career_id: str):
     user_id = require_user(request)
     session = _db(request)
-    
+
     # Get full roadmap data first
     data = svc.get_roadmap(session, user_id, career_id)
     if not data:
         raise HTTPException(status_code=404, detail="Roadmap not found")
-    
+
     # Check subscription for roadmap access
     subscription = SubscriptionService.get_user_subscription(user_id, session)
     is_premium = subscription["is_premium"]
     max_level = subscription["limits"].get("roadmap_max_level", 1)
-    
+
     # Convert milestones to levels (group milestones by level)
     milestones = data.get("milestones", [])
     levels = []
-    
+
     # Group milestones into levels (assume each milestone is a level for now)
     for i, milestone in enumerate(milestones, 1):
         level_data = {
@@ -100,25 +99,27 @@ def get_roadmap(request: Request, career_id: str):
             "description": milestone.get("description", ""),
             "milestones": [milestone],
             "locked": False,
-            "upgrade_required": False
+            "upgrade_required": False,
         }
-        
+
         # Check if this level should be locked for free users
         if not is_premium and max_level != -1 and i > max_level:
-            level_data.update({
-                "description": f"🔒 Upgrade your account to unlock {milestone.get('skillName', f'Level {i}')}",
-                "milestones": [],
-                "locked": True,
-                "upgrade_required": True
-            })
-        
+            level_data.update(
+                {
+                    "description": f"🔒 Upgrade your account to unlock {milestone.get('skillName', f'Level {i}')}",
+                    "milestones": [],
+                    "locked": True,
+                    "upgrade_required": True,
+                }
+            )
+
         levels.append(level_data)
-    
+
     # Add levels to data
     data["levels"] = levels
     data["upgrade_required"] = not is_premium and len(milestones) > max_level
     data["max_free_level"] = max_level if not is_premium else -1
-    
+
     return data
 
 

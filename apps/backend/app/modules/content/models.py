@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import enum
 from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Numeric, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
-import enum
 
 from ...core.db import Base
+
 
 class BlogStatus(enum.Enum):
     DRAFT = "Draft"
@@ -15,7 +16,7 @@ class BlogStatus(enum.Enum):
     PENDING = "Pending"
     REJECTED = "Rejected"
     ARCHIVED = "Archived"
-    
+
     def __str__(self):
         return self.value
 
@@ -106,7 +107,7 @@ class BlogPost(Base):
 
     def to_dict(self) -> dict:
         import json
-        
+
         # Parse tags from JSON string
         tags = []
         if self.tags:
@@ -114,7 +115,7 @@ class BlogPost(Base):
                 tags = json.loads(self.tags) if isinstance(self.tags, str) else self.tags
             except (TypeError, ValueError, json.JSONDecodeError):
                 tags = []
-        
+
         return {
             "id": self.id,
             "author_id": self.author_id,
@@ -229,16 +230,16 @@ class CareerInterest(Base):
     def get_dominant_code(self) -> str:
         """Return the dominant RIASEC code (highest score)"""
         scores = [
-            ('R', float(self.r or 0)),
-            ('I', float(self.i or 0)),
-            ('A', float(self.a or 0)),
-            ('S', float(self.s or 0)),
-            ('E', float(self.e or 0)),
-            ('C', float(self.c or 0)),
+            ("R", float(self.r or 0)),
+            ("I", float(self.i or 0)),
+            ("A", float(self.a or 0)),
+            ("S", float(self.s or 0)),
+            ("E", float(self.e or 0)),
+            ("C", float(self.c or 0)),
         ]
         scores.sort(key=lambda x: x[1], reverse=True)
         if scores[0][1] == 0:
-            return 'N/A'
+            return "N/A"
         return scores[0][0]
 
 
@@ -253,5 +254,5 @@ class CareerOverview(Base):
     salary_min = Column(Numeric(12, 2))
     salary_max = Column(Numeric(12, 2))
     salary_avg = Column(Numeric(12, 2))
-    salary_currency = Column(Text, default='VND')
+    salary_currency = Column(Text, default="VND")
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

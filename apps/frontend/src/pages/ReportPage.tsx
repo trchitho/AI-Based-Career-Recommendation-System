@@ -355,7 +355,7 @@ const ReportPage = () => {
 
     return (
         <MainLayout>
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white">
+            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
                 {/* Print Styles - Standardized for A4 */}
                 <style>{`
                     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
