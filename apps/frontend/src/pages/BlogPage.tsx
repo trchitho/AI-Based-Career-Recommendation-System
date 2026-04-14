@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import { blogService, BlogPost, BlogListResponse } from '../services/blogService';
 import { useAuth } from '../contexts/AuthContext';
+import { useApiCallTracker } from '../hooks/useApiCallTracker';
 
 const BlogPage = () => {
   const navigate = useNavigate();
@@ -12,23 +13,39 @@ const BlogPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [page] = useState(1);
   const [pageSize] = useState(9);
-  // Removed unused 'total' state
 
-  const load = async () => {
+  // API call tracking and duplicate prevention
+  const { trackCall } = useApiCallTracker('BlogPage');
+  const hasLoadedRef = useRef(false);
+
+  const load = useCallback(async () => {
+    if (hasLoadedRef.current) {
+      console.log('⚠️ [BlogPage] Duplicate load attempt prevented');
+      return;
+    }
+
+    hasLoadedRef.current = true;
+    console.log('🔄 [BlogPage] Loading blog posts...');
+
     setLoading(true);
     setError(null);
     try {
+      trackCall('/api/blog/list');
       const resp: BlogListResponse = await blogService.list({ page, pageSize });
       setPosts(resp.items || []);
-      // Removed setTotal since 'total' is unused
+      console.log(`✅ [BlogPage] Loaded ${resp.items?.length || 0} blog posts`);
     } catch (e: any) {
+      console.error('❌ [BlogPage] Error loading posts:', e);
       setError(e?.response?.data?.detail || e?.message || 'Failed to load posts');
+      hasLoadedRef.current = false; // Reset on error to allow retry
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, trackCall]);
 
-  useEffect(() => { load(); }, [page, pageSize]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   // Create form state omitted for brevity, logic remains same
 

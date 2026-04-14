@@ -16,9 +16,13 @@ const NotificationCenter = () => {
 
   useEffect(() => {
     if (user) {
-      fetchNotifications();
+      // Debounce notification fetching
+      const timeoutId = setTimeout(() => {
+        fetchNotifications();
+      }, 100);
+      return () => clearTimeout(timeoutId);
     }
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id to prevent unnecessary re-fetches
 
   useEffect(() => {
     if (!ws || !connected) return;

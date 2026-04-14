@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import api from '../lib/api';
 import { clearSubscriptionCache } from '../hooks/useSubscription';
 
@@ -46,8 +46,12 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const initRef = useRef(false); // Prevent duplicate initialization
 
   useEffect(() => {
+    if (initRef.current) return; // Prevent duplicate calls
+    initRef.current = true;
+
     const initAuth = async () => {
       const token = localStorage.getItem('accessToken');
       if (token) {
@@ -64,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initAuth();
-  }, []);
+  }, []); // Remove dependencies to prevent re-runs
 
   const login = async (email: string, password: string) => {
     try {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { dashboardService } from '../services/dashboardService';
@@ -9,6 +9,7 @@ import ProgressMetricsCard from '../components/dashboard/ProgressMetricsCard';
 import NoAssessmentPrompt from '../components/dashboard/NoAssessmentPrompt';
 // import NotificationCenter from '../components/notifications/NotificationCenter';
 import MainLayout from '../components/layout/MainLayout';
+import { useApiCallTracker } from '../hooks/useApiCallTracker';
 
 const DashboardPage = () => {
   // ==========================================
@@ -20,23 +21,40 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await dashboardService.getDashboardData();
-        setDashboardData(data);
-      } catch (err) {
-        console.error('Error loading dashboard:', err);
-        setError('Failed to load dashboard data. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // API call tracking and duplicate prevention
+  const { trackCall } = useApiCallTracker('DashboardPage');
+  const hasLoadedRef = useRef(false);
 
+  const fetchDashboardData = useCallback(async () => {
+    if (hasLoadedRef.current) {
+      console.log('⚠️ [DashboardPage] Duplicate load attempt prevented');
+      return;
+    }
+
+    hasLoadedRef.current = true;
+    console.log('🔄 [DashboardPage] Loading dashboard data...');
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      trackCall('/api/dashboard/data');
+      const data = await dashboardService.getDashboardData();
+      setDashboardData(data);
+
+      console.log('✅ [DashboardPage] Dashboard data loaded successfully');
+    } catch (err) {
+      console.error('❌ [DashboardPage] Error loading dashboard:', err);
+      setError('Failed to load dashboard data. Please try again.');
+      hasLoadedRef.current = false; // Reset on error to allow retry
+    } finally {
+      setLoading(false);
+    }
+  }, [trackCall]);
+
+  useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
   const handleViewResults = () => {
     if (dashboardData?.latestAssessmentId) {

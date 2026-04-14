@@ -2,10 +2,15 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
-
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -13,7 +18,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-
     /* Linting - Strict Type Checking */
     "strict": true,
     "noUnusedLocals": true,
@@ -31,13 +35,20 @@
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
     "noPropertyAccessFromIndexSignature": true,
-
     /* Path mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

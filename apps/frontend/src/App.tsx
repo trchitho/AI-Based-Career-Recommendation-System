@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import { ChatbotWrapper } from './components/chatbot/ChatbotWrapper';
@@ -39,6 +40,11 @@ import DebugAuthPage from './pages/DebugAuthPage';
 import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
 import ProgressComparisonPage from './pages/ProgressComparisonPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
+import InterviewListPage from './pages/InterviewListPage';
+import InterviewSelectionPage from './pages/InterviewSelectionPage';
+import InterviewPage from './pages/InterviewPage';
+import InterviewResultsPage from './pages/InterviewResultsPage';
+import InterviewHistoryPage from './pages/InterviewHistoryPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -48,227 +54,269 @@ const RootRedirect = () => {
 function App() {
   return (
     <ThemeProvider>
-      <Router>
-        <AuthProvider>
-          <SocketProvider>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<RootRedirect />} />
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot" element={<ForgotPasswordPage />} />
-              <Route path="/reset" element={<ResetPasswordPage />} />
-              <Route path="/verify" element={<VerifyEmailPage />} />
-              <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
-              <Route path="/pricing" element={<PaymentPage />} />
-              <Route path="/payment/return" element={<PaymentReturn />} />
+      <LanguageProvider>
+        <Router>
+          <AuthProvider>
+            <SocketProvider>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<RootRedirect />} />
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot" element={<ForgotPasswordPage />} />
+                <Route path="/reset" element={<ResetPasswordPage />} />
+                <Route path="/verify" element={<VerifyEmailPage />} />
+                <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+                <Route path="/pricing" element={<PaymentPage />} />
+                <Route path="/payment/return" element={<PaymentReturn />} />
 
-              {/* Protected routes */}
-              <Route
-                path="/payment"
-                element={
-                  <ProtectedRoute>
-                    <PaymentPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/debug-auth"
-                element={
-                  <ProtectedRoute>
-                    <DebugAuthPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/subscription-demo"
-                element={
-                  <ProtectedRoute>
-                    <SubscriptionDemoPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/careers"
-                element={
-                  <ProtectedRoute>
-                    <CareersPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/careers/:idOrSlug"
-                element={
-                  <ProtectedRoute>
-                    <CareerDetailPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/assessment"
-                element={
-                  <ProtectedRoute>
-                    <AssessmentPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/blog"
-                element={
-                  <ProtectedRoute>
-                    <BlogPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/blog/:slug"
-                element={
-                  <ProtectedRoute>
-                    <BlogDetailPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/blog/create"
-                element={
-                  <ProtectedRoute>
-                    <UserBlogCreatePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/blog/create"
-                element={
-                  <AdminRoute>
-                    <BlogCreatePage />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/admin/blog/manage"
-                element={
-                  <AdminRoute>
-                    <BlogManagementPage />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/admin/blog/edit/:id"
-                element={
-                  <AdminRoute>
-                    <BlogEditPage />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/chat/summary"
-                element={
-                  <ProtectedRoute>
-                    <ChatSummaryPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/chat"
-                element={
-                  <ProtectedRoute>
-                    <ChatPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/results/:assessmentId"
-                element={
-                  <ProtectedRoute>
-                    <ResultsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/results/:assessmentId/report"
-                element={
-                  <ProtectedRoute>
-                    <ReportPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/session-results/:sessionId"
-                element={
-                  <ProtectedRoute>
-                    <SessionResultsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/assessment-history"
-                element={
-                  <ProtectedRoute>
-                    <AssessmentHistoryPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/careers/:careerId/roadmap"
-                element={
-                  <ProtectedRoute>
-                    <RoadmapPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/progress-comparison"
-                element={
-                  <ProtectedRoute>
-                    <ProgressComparisonPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/career-goals"
-                element={
-                  <ProtectedRoute>
-                    <CareerGoalsPage />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected routes */}
+                <Route
+                  path="/payment"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/debug-auth"
+                  element={
+                    <ProtectedRoute>
+                      <DebugAuthPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/subscription-demo"
+                  element={
+                    <ProtectedRoute>
+                      <SubscriptionDemoPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/careers"
+                  element={
+                    <ProtectedRoute>
+                      <CareersPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/careers/:idOrSlug"
+                  element={
+                    <ProtectedRoute>
+                      <CareerDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/assessment"
+                  element={
+                    <ProtectedRoute>
+                      <AssessmentPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/blog"
+                  element={
+                    <ProtectedRoute>
+                      <BlogPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/blog/:slug"
+                  element={
+                    <ProtectedRoute>
+                      <BlogDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/blog/create"
+                  element={
+                    <ProtectedRoute>
+                      <UserBlogCreatePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/blog/create"
+                  element={
+                    <AdminRoute>
+                      <BlogCreatePage />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/blog/manage"
+                  element={
+                    <AdminRoute>
+                      <BlogManagementPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/blog/edit/:id"
+                  element={
+                    <AdminRoute>
+                      <BlogEditPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/chat/summary"
+                  element={
+                    <ProtectedRoute>
+                      <ChatSummaryPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/chat"
+                  element={
+                    <ProtectedRoute>
+                      <ChatPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/results/:assessmentId"
+                  element={
+                    <ProtectedRoute>
+                      <ResultsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/results/:assessmentId/report"
+                  element={
+                    <ProtectedRoute>
+                      <ReportPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/session-results/:sessionId"
+                  element={
+                    <ProtectedRoute>
+                      <SessionResultsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/assessment-history"
+                  element={
+                    <ProtectedRoute>
+                      <AssessmentHistoryPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/careers/:careerId/roadmap"
+                  element={
+                    <ProtectedRoute>
+                      <RoadmapPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/progress-comparison"
+                  element={
+                    <ProtectedRoute>
+                      <ProgressComparisonPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/career-goals"
+                  element={
+                    <ProtectedRoute>
+                      <CareerGoalsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/interview"
+                  element={
+                    <ProtectedRoute>
+                      <InterviewListPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/interview/results"
+                  element={
+                    <ProtectedRoute>
+                      <InterviewHistoryPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/interview/select/:jobId"
+                  element={
+                    <ProtectedRoute>
+                      <InterviewSelectionPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/interview/results/:sessionId"
+                  element={
+                    <ProtectedRoute>
+                      <InterviewResultsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/interview/:jobId"
+                  element={
+                    <ProtectedRoute>
+                      <InterviewPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Admin routes */}
-              <Route
-                path="/admin/*"
-                element={
-                  <AdminRoute>
-                    <AdminDashboardPage />
-                  </AdminRoute>
-                }
-              />
+                {/* Admin routes */}
+                <Route
+                  path="/admin/*"
+                  element={
+                    <AdminRoute>
+                      <AdminDashboardPage />
+                    </AdminRoute>
+                  }
+                />
 
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
 
-            {/* Global Chatbot - chỉ hiện khi đã đăng nhập */}
-            <ChatbotWrapper />
-          </SocketProvider>
-        </AuthProvider>
-      </Router>
+              {/* Global Chatbot - chỉ hiện khi đã đăng nhập */}
+              <ChatbotWrapper />
+            </SocketProvider>
+          </AuthProvider>
+        </Router>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }
