@@ -5,6 +5,8 @@
 // Mapping of blog categories to their corresponding images
 const BLOG_IMAGE_MAPPING: Record<string, string> = {
     'career-advice': '/images/blog/career-advice.jpg',
+    'career-development': '/images/blog/career-development.jpg',
+    'career-tips': '/images/blog/career-tips.jpg',
     'interview-tips': '/images/blog/interview-tips.jpg',
     'resume-writing': '/images/blog/resume-writing.jpg',
     'workplace-culture': '/images/blog/workplace-culture.jpg',
@@ -14,6 +16,7 @@ const BLOG_IMAGE_MAPPING: Record<string, string> = {
     'technology': '/images/blog/technology.jpg',
     'leadership': '/images/blog/leadership.jpg',
     'remote-work': '/images/blog/remote-work.jpg',
+    'personal-branding': '/images/blog/personal-branding.jpg',
 };
 
 // Default fallback image
@@ -26,6 +29,9 @@ const DEFAULT_BLOG_IMAGE = '/images/blog/career-advice.jpg';
  * @returns The image URL to use for the blog post
  */
 export const getBlogImage = (category?: string, featuredImage?: string): string => {
+    // Debug logging
+    console.log('🖼️ getBlogImage called with category:', category);
+
     // If there's a custom featured image, use it
     if (featuredImage && featuredImage.trim()) {
         return featuredImage;
@@ -39,7 +45,18 @@ export const getBlogImage = (category?: string, featuredImage?: string): string 
     // Normalize category to lowercase and handle variations
     const normalizedCategory = category.toLowerCase().trim();
 
-    // Direct mapping
+    // Convert spaces to dashes for consistent mapping
+    const dashCategory = normalizedCategory.replace(/\s+/g, '-');
+
+    console.log('🔍 Trying mappings:', { normalized: normalizedCategory, dash: dashCategory });
+
+    // Direct mapping with dash format
+    if (BLOG_IMAGE_MAPPING[dashCategory]) {
+        console.log('✅ Found dash mapping:', BLOG_IMAGE_MAPPING[dashCategory]);
+        return BLOG_IMAGE_MAPPING[dashCategory];
+    }
+
+    // Direct mapping with original format
     if (BLOG_IMAGE_MAPPING[normalizedCategory]) {
         return BLOG_IMAGE_MAPPING[normalizedCategory];
     }
@@ -48,6 +65,8 @@ export const getBlogImage = (category?: string, featuredImage?: string): string 
     const categoryMappings: Record<string, string> = {
         'career': 'career-advice',
         'advice': 'career-advice',
+        'development': 'career-development',
+        'tips': 'career-tips',
         'interview': 'interview-tips',
         'resume': 'resume-writing',
         'cv': 'resume-writing',
@@ -61,7 +80,6 @@ export const getBlogImage = (category?: string, featuredImage?: string): string 
         'search': 'job-search',
         'hiring': 'job-search',
         'skill': 'skill-development',
-        'development': 'skill-development',
         'learning': 'skill-development',
         'training': 'skill-development',
         'tech': 'technology',
@@ -74,11 +92,14 @@ export const getBlogImage = (category?: string, featuredImage?: string): string 
         'remote': 'remote-work',
         'wfh': 'remote-work',
         'work-from-home': 'remote-work',
+        'personal': 'personal-branding',
+        'branding': 'personal-branding',
+        'brand': 'personal-branding',
     };
 
     // Check for partial matches
     for (const [keyword, mappedCategory] of Object.entries(categoryMappings)) {
-        if (normalizedCategory.includes(keyword)) {
+        if (normalizedCategory.includes(keyword) || dashCategory.includes(keyword)) {
             return BLOG_IMAGE_MAPPING[mappedCategory] || DEFAULT_BLOG_IMAGE;
         }
     }
@@ -95,6 +116,8 @@ export const getBlogImage = (category?: string, featuredImage?: string): string 
 export const getBlogGradient = (category?: string): string => {
     const gradients: Record<string, string> = {
         'career-advice': 'from-blue-400 to-purple-500',
+        'career-development': 'from-emerald-400 to-blue-500',
+        'career-tips': 'from-green-400 to-teal-500',
         'interview-tips': 'from-green-400 to-blue-500',
         'resume-writing': 'from-purple-400 to-pink-500',
         'workplace-culture': 'from-yellow-400 to-orange-500',
@@ -104,10 +127,18 @@ export const getBlogGradient = (category?: string): string => {
         'technology': 'from-cyan-400 to-blue-500',
         'leadership': 'from-orange-400 to-red-500',
         'remote-work': 'from-pink-400 to-purple-500',
+        'personal-branding': 'from-rose-400 to-pink-500',
     };
 
-    const normalizedCategory = category?.toLowerCase().trim() || '';
-    return gradients[normalizedCategory] || 'from-green-400 to-blue-500';
+    if (!category) {
+        return 'from-green-400 to-blue-500';
+    }
+
+    const normalizedCategory = category.toLowerCase().trim();
+    const dashCategory = normalizedCategory.replace(/\s+/g, '-');
+
+    // Try dash format first, then original format
+    return gradients[dashCategory] || gradients[normalizedCategory] || 'from-green-400 to-blue-500';
 };
 
 /**
