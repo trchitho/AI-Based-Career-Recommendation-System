@@ -7,6 +7,7 @@ import ProfileSummaryCard from '../components/dashboard/ProfileSummaryCard';
 import CareerSuggestionCard from '../components/dashboard/CareerSuggestionCard';
 import ProgressMetricsCard from '../components/dashboard/ProgressMetricsCard';
 import NoAssessmentPrompt from '../components/dashboard/NoAssessmentPrompt';
+// import InterviewActionCard from '../components/dashboard/InterviewActionCard'; // Removed per user request
 // import NotificationCenter from '../components/notifications/NotificationCenter';
 import MainLayout from '../components/layout/MainLayout';
 
@@ -152,6 +153,11 @@ const DashboardPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* SECOND ROW: Action Cards - Removed per user request */}
+              {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <InterviewActionCard hasCompletedAssessment={dashboardData.hasCompletedAssessment} />
+              </div> */}
 
               {/* SECTION: Career Suggestions - Only show if user has completed assessments */}
               {dashboardData.hasCompletedAssessment && dashboardData.topCareerSuggestions.length > 0 ? (

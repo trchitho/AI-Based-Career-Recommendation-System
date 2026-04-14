@@ -42,6 +42,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navLinks = [
     { to: "/dashboard", label: t('nav.dashboard') },
     { to: "/assessment", label: t('nav.assessment') },
+    { to: "/interview", label: t('nav.interview') },
     { to: "/skill-gap", label: t('nav.skillGap') },
     { to: "/blog", label: t('nav.blogs') },
     { to: "/careers", label: t('nav.careers') },
@@ -81,13 +82,18 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `text-[15px] font-semibold transition-colors duration-200 ${isActive
+                  `text-[15px] font-semibold transition-colors duration-200 relative hover:text-green-600 dark:hover:text-green-400 ${isActive
                     ? "text-green-600 dark:text-green-400"
-                    : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                    : "text-gray-600 dark:text-gray-300"
                   }`
                 }
               >
-                {item.label}
+                {({ isActive }) => (
+                  <>
+                    {item.label}
+                    {isActive && <span className="absolute -bottom-6 left-0 right-0 h-0.5 bg-green-500 rounded-t-full shadow-[0_-2px_10px_rgba(34,197,94,0.5)]"></span>}
+                  </>
+                )}
               </NavLink>
             ))}
           </nav>

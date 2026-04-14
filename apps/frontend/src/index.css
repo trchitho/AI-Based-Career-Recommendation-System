@@ -3,25 +3,57 @@
 @tailwind utilities;
 
 html {
-    box-sizing: border-box;
-    -webkit-text-size-adjust: 100%;
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
 }
 
-*, *::before, *::after {
-    box-sizing: inherit;
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
 }
 
 body {
-    overflow-x: hidden;
-    min-width: 320px;
+  overflow-x: hidden;
+  min-width: 320px;
 }
 
 /* Ensure images and media don't overflow containers */
-img, video, iframe {
-    max-width: 100%;
-    height: auto;
+img,
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
 }
 
+/* Line clamp utilities for consistent text truncation */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 /* Chatbot animations */
 @keyframes bounce-in {
@@ -29,10 +61,12 @@ img, video, iframe {
     opacity: 0;
     transform: translateY(20px) scale(0.9);
   }
+
   50% {
     opacity: 0.8;
     transform: translateY(-5px) scale(1.02);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);

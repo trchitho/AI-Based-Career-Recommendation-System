@@ -5,6 +5,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
+import AppLogo from '../components/common/AppLogo';
 
 // --- TYPES ---
 interface PublicStats {
@@ -311,16 +312,18 @@ const HomePage = () => {
         ? [
             { label: t('nav.dashboard'), path: 'dashboard' },
             { label: t('nav.assessment'), path: 'assessment' },
+            { label: t('nav.interview'), path: 'interview' },
+            { label: t('nav.skillGap'), path: 'skill-gap' },
             { label: t('nav.blogs'), path: 'blog' },
             { label: t('nav.careers'), path: 'careers' },
             { label: t('nav.pricing'), path: 'pricing' },
-          ]
+        ]
         : [
             { label: t('nav.assessment'), path: 'assessment' },
             { label: t('nav.blogs'), path: 'blog' },
             { label: t('nav.careers'), path: 'careers' },
             { label: t('nav.pricing'), path: 'pricing' },
-          ];
+        ];
 
     // --- DATA ---
     const testimonials = [
@@ -339,14 +342,6 @@ const HomePage = () => {
         { q: t('home.faq.q3'), a: t('home.faq.a3') },
         { q: t('home.faq.q4'), a: t('home.faq.a4') },
     ];
-
-    const ModernLogo = () => (
-        <Link to="/home" className="flex items-center gap-2 group">
-            <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
-                career<span className="text-green-500">bridge</span><span className="text-green-500 text-3xl leading-none">.</span>
-            </span>
-        </Link>
-    );
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 overflow-x-hidden">
@@ -431,10 +426,10 @@ const HomePage = () => {
             `}</style>
 
             {/* --- HEADER --- */}
-            <header className="sticky top-0 z-50 w-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
+            <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 h-[72px] transition-all duration-300">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
                     <div className="flex-shrink-0">
-                        <ModernLogo />
+                        <AppLogo />
                     </div>
 
                     <nav className="hidden md:flex items-center gap-8">
@@ -442,7 +437,7 @@ const HomePage = () => {
                             <NavLink
                                 key={item.path}
                                 to={`/${item.path}`}
-                                className={({ isActive }) => `text-[15px] font-medium transition-all duration-200 relative hover:text-green-600 dark:hover:text-green-400 ${isActive
+                                className={({ isActive }) => `text-[15px] font-semibold transition-all duration-200 relative hover:text-green-600 dark:hover:text-green-400 ${isActive
                                     ? 'text-green-600 dark:text-green-400'
                                     : 'text-gray-600 dark:text-gray-300'
                                     }`}
@@ -457,7 +452,7 @@ const HomePage = () => {
                         ))}
                     </nav>
 
-                    <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-4">
                         {/* Hamburger Button (Mobile) */}
                         <button
                             className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -475,7 +470,7 @@ const HomePage = () => {
                             )}
                         </button>
 
-                        <div className="hidden lg:flex items-center gap-3 pr-3 border-r border-gray-200 dark:border-gray-700">
+                        <div className="hidden lg:flex items-center gap-1 pr-3 border-r border-gray-200 dark:border-gray-700">
                             <LanguageSwitcher />
                             <ThemeToggle />
                         </div>
@@ -516,7 +511,7 @@ const HomePage = () => {
             {isMobileMenuOpen && (
                 <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setIsMobileMenuOpen(false)}>
                     <div
-                        className="absolute top-[65px] left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-xl py-4 px-4"
+                        className="absolute top-[72px] left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-xl py-4 px-4"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <nav className="flex flex-col gap-1 mb-4">
@@ -1067,7 +1062,7 @@ const HomePage = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
                             <div className="col-span-2 lg:col-span-2">
-                                <ModernLogo />
+                                <AppLogo />
                                 <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-xs">
                                     {t('home.footer.tagline')}
                                 </p>

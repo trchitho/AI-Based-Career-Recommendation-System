@@ -15,6 +15,7 @@ export interface StartInterviewResponse {
         skill_type: string;
         importance: number;
         level: number;
+        is_hard_skill?: boolean;
     }>;
     question_count: number;
     question_distribution: {
@@ -130,6 +131,7 @@ export interface InterviewHistory {
             skill_type: string;
             importance: number;
             level: number;
+            is_hard_skill?: boolean;
         }>;
     };
     messages: InterviewMessage[];

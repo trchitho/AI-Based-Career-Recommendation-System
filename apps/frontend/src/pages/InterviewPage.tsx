@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { interviewService } from '../services/interviewService';
 import ScoreTooltip from '../components/interview/ScoreTooltip';
 import STARMethodGuide from '../components/interview/STARMethodGuide';
+import MainLayout from '../components/layout/MainLayout';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Message {
@@ -30,6 +31,7 @@ interface SessionState {
     currentQuestion: string;
     questionNumber: number;
     questionType: string;
+    questionCount: number; // Total number of questions in this session
     skillsContext: Array<{ skill_name: string; skill_type: string; importance: number; level: number }>;
     hardSkills?: Array<{ skill_name: string; importance: number }>;
 }
@@ -196,6 +198,7 @@ const InterviewPage: React.FC = () => {
                 currentQuestion: res.first_question,
                 questionNumber: 1,
                 questionType: 'warm_up',
+                questionCount: res.question_count, // Store the actual question count from backend
                 skillsContext: res.skills_context,
                 hardSkills,
             });
@@ -394,348 +397,350 @@ const InterviewPage: React.FC = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
-            <ToastContainer toasts={toasts} onRemove={removeToast} />
-            <div className="max-w-5xl mx-auto px-4">
+        <MainLayout>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
+                <ToastContainer toasts={toasts} onRemove={removeToast} />
+                <div className="max-w-5xl mx-auto px-4">
 
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h1 className="text-xl font-bold text-gray-900">Phỏng vấn AI — {session?.jobTitle}</h1>
-                        <p className="text-sm text-gray-500">Câu {session?.questionNumber} • {qTypeLabel[session?.questionType || ''] || 'Khác'}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                            <Clock className="h-4 w-4" /><span>{fmt(elapsedTime)}</span>
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h1 className="text-xl font-bold text-gray-900">Phỏng vấn AI — {session?.jobTitle}</h1>
+                            <p className="text-sm text-gray-500">Câu {session?.questionNumber} • {qTypeLabel[session?.questionType || ''] || 'Khác'}</p>
                         </div>
-                        <Badge className={session?.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}>
-                            {session?.status === 'active' ? 'Đang diễn ra' : 'Hoàn thành'}
-                        </Badge>
-                    </div>
-                </div>
-
-                {/* Per-question countdown bar */}
-                {session?.status === 'active' && (
-                    <div className="mb-4">
-                        <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                            <span className="flex items-center gap-1"><Timer className="h-3 w-3" /> Thời gian câu hỏi</span>
-                            <span className={remaining <= 30 ? 'text-red-600 font-semibold' : ''}>{fmt(remaining)}</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div className={`h-2 rounded-full transition-all duration-1000 ${timerColor}`} style={{ width: `${timerPct}%` }} />
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                                <Clock className="h-4 w-4" /><span>{fmt(elapsedTime)}</span>
+                            </div>
+                            <Badge className={session?.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}>
+                                {session?.status === 'active' ? 'Đang diễn ra' : 'Hoàn thành'}
+                            </Badge>
                         </div>
                     </div>
-                )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    {/* Chat */}
-                    <div className="lg:col-span-2">
-                        <Card className="flex flex-col" style={{ height: '580px' }}>
-                            <CardHeader><CardTitle className="text-base">Cuộc trò chuyện</CardTitle></CardHeader>
-                            <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
-                                <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-                                    {messages.map(msg => (
-                                        <React.Fragment key={msg.id}>
-                                            <div className={`flex ${msg.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
-                                                <div className={`max-w-[82%] rounded-xl px-4 py-3 text-sm ${msg.role === 'candidate' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        {msg.role === 'candidate' ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
-                                                        <span className="font-medium text-xs">{msg.role === 'candidate' ? 'Bạn' : 'HR Manager'}</span>
-                                                        {msg.questionType && (
-                                                            <Badge className={`text-xs ${qTypeColor[msg.questionType] || 'bg-gray-100 text-gray-700'}`}>
-                                                                {qTypeLabel[msg.questionType] || msg.questionType}
-                                                            </Badge>
-                                                        )}
+                    {/* Per-question countdown bar */}
+                    {session?.status === 'active' && (
+                        <div className="mb-4">
+                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                <span className="flex items-center gap-1"><Timer className="h-3 w-3" /> Thời gian câu hỏi</span>
+                                <span className={remaining <= 30 ? 'text-red-600 font-semibold' : ''}>{fmt(remaining)}</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div className={`h-2 rounded-full transition-all duration-1000 ${timerColor}`} style={{ width: `${timerPct}%` }} />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        {/* Chat */}
+                        <div className="lg:col-span-2">
+                            <Card className="flex flex-col" style={{ height: '580px' }}>
+                                <CardHeader><CardTitle className="text-base">Cuộc trò chuyện</CardTitle></CardHeader>
+                                <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
+                                    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+                                        {messages.map(msg => (
+                                            <React.Fragment key={msg.id}>
+                                                <div className={`flex ${msg.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
+                                                    <div className={`max-w-[82%] rounded-xl px-4 py-3 text-sm ${msg.role === 'candidate' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            {msg.role === 'candidate' ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
+                                                            <span className="font-medium text-xs">{msg.role === 'candidate' ? 'Bạn' : 'HR Manager'}</span>
+                                                            {msg.questionType && (
+                                                                <Badge className={`text-xs ${qTypeColor[msg.questionType] || 'bg-gray-100 text-gray-700'}`}>
+                                                                    {qTypeLabel[msg.questionType] || msg.questionType}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        {msg.content
+                                                            ? <p className="leading-relaxed">{msg.content}</p>
+                                                            : <p className="leading-relaxed italic opacity-60">Bỏ qua câu hỏi này</p>
+                                                        }
                                                     </div>
-                                                    {msg.content
-                                                        ? <p className="leading-relaxed">{msg.content}</p>
-                                                        : <p className="leading-relaxed italic opacity-60">Bỏ qua câu hỏi này</p>
-                                                    }
                                                 </div>
-                                            </div>
 
-                                            {/* Eval card directly under candidate message - only when scored */}
-                                            {msg.role === 'candidate' && msg.score !== undefined && msg.score !== null && (
-                                                <div className="w-full bg-white border border-blue-100 rounded-xl p-4 text-sm shadow-sm">
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <span className="font-semibold text-gray-800">Đánh giá câu trả lời</span>
-                                                        <span className={`text-xl font-bold ${scoreColor(msg.score)}`}>{msg.score?.toFixed(1)}/10</span>
-                                                    </div>
+                                                {/* Eval card directly under candidate message - only when scored */}
+                                                {msg.role === 'candidate' && msg.score !== undefined && msg.score !== null && (
+                                                    <div className="w-full bg-white border border-blue-100 rounded-xl p-4 text-sm shadow-sm">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="font-semibold text-gray-800">Đánh giá câu trả lời</span>
+                                                            <span className={`text-xl font-bold ${scoreColor(msg.score)}`}>{msg.score?.toFixed(1)}/10</span>
+                                                        </div>
 
-                                                    {msg.detailedScores && (
-                                                        <div className="space-y-2 mb-3">
-                                                            {([
-                                                                { key: 'technical' as const, label: 'Kỹ năng chuyên môn' },
-                                                                { key: 'logic' as const, label: 'Tư duy logic' },
-                                                                { key: 'communication' as const, label: 'Giao tiếp' },
-                                                                { key: 'experience' as const, label: 'Kinh nghiệm thực tế' },
-                                                                { key: 'attitude' as const, label: 'Thái độ' },
-                                                            ]).map(({ key, label }) => {
-                                                                const s = msg.detailedScores![key];
-                                                                const reason = msg.scoreReasoning?.[key];
-                                                                return (
-                                                                    <div key={key} className="bg-gray-50 rounded-lg p-2">
-                                                                        <div className="flex items-center justify-between mb-0.5">
-                                                                            <span className="font-medium text-gray-700 text-xs">{label}</span>
-                                                                            <div className="flex items-center gap-1">
-                                                                                <span className={`font-bold text-sm ${scoreColor(s)}`}>{s}/10</span>
-                                                                                <ScoreTooltip score={s || 0} skillName={label} />
+                                                        {msg.detailedScores && (
+                                                            <div className="space-y-2 mb-3">
+                                                                {([
+                                                                    { key: 'technical' as const, label: 'Kỹ năng chuyên môn' },
+                                                                    { key: 'logic' as const, label: 'Tư duy logic' },
+                                                                    { key: 'communication' as const, label: 'Giao tiếp' },
+                                                                    { key: 'experience' as const, label: 'Kinh nghiệm thực tế' },
+                                                                    { key: 'attitude' as const, label: 'Thái độ' },
+                                                                ]).map(({ key, label }) => {
+                                                                    const s = msg.detailedScores![key];
+                                                                    const reason = msg.scoreReasoning?.[key];
+                                                                    return (
+                                                                        <div key={key} className="bg-gray-50 rounded-lg p-2">
+                                                                            <div className="flex items-center justify-between mb-0.5">
+                                                                                <span className="font-medium text-gray-700 text-xs">{label}</span>
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <span className={`font-bold text-sm ${scoreColor(s)}`}>{s}/10</span>
+                                                                                    <ScoreTooltip score={s || 0} skillName={label} />
+                                                                                </div>
                                                                             </div>
+                                                                            <div className="w-full bg-gray-200 rounded-full h-1 mb-1">
+                                                                                <div className={`h-1 rounded-full ${(s ?? 0) >= 8 ? 'bg-green-500' : (s ?? 0) >= 6 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                                                                    style={{ width: `${(s ?? 0) * 10}%` }} />
+                                                                            </div>
+                                                                            {reason && <p className="text-xs text-gray-500 leading-relaxed">{reason}</p>}
                                                                         </div>
-                                                                        <div className="w-full bg-gray-200 rounded-full h-1 mb-1">
-                                                                            <div className={`h-1 rounded-full ${(s ?? 0) >= 8 ? 'bg-green-500' : (s ?? 0) >= 6 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                                                                style={{ width: `${(s ?? 0) * 10}%` }} />
-                                                                        </div>
-                                                                        {reason && <p className="text-xs text-gray-500 leading-relaxed">{reason}</p>}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-
-                                                    {msg.feedback && (
-                                                        <div className="bg-blue-50 rounded-lg p-2 mb-2">
-                                                            <p className="text-xs font-medium text-blue-800 mb-0.5">Nhận xét tổng thể</p>
-                                                            <p className="text-xs text-blue-700">{msg.feedback}</p>
-                                                        </div>
-                                                    )}
-
-                                                    <div className="grid grid-cols-2 gap-2 mb-2">
-                                                        {msg.strengths && msg.strengths.length > 0 && (
-                                                            <div className="bg-green-50 rounded-lg p-2">
-                                                                <p className="text-xs font-medium text-green-800 mb-1">✓ Điểm mạnh</p>
-                                                                {msg.strengths.map((s, i) => <p key={i} className="text-xs text-green-700">• {s}</p>)}
+                                                                    );
+                                                                })}
                                                             </div>
                                                         )}
-                                                        {msg.weaknesses && msg.weaknesses.length > 0 && (
-                                                            <div className="bg-red-50 rounded-lg p-2">
-                                                                <p className="text-xs font-medium text-red-800 mb-1">✗ Cần cải thiện</p>
-                                                                {msg.weaknesses.map((w, i) => <p key={i} className="text-xs text-red-700">• {w}</p>)}
+
+                                                        {msg.feedback && (
+                                                            <div className="bg-blue-50 rounded-lg p-2 mb-2">
+                                                                <p className="text-xs font-medium text-blue-800 mb-0.5">Nhận xét tổng thể</p>
+                                                                <p className="text-xs text-blue-700">{msg.feedback}</p>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="grid grid-cols-2 gap-2 mb-2">
+                                                            {msg.strengths && msg.strengths.length > 0 && (
+                                                                <div className="bg-green-50 rounded-lg p-2">
+                                                                    <p className="text-xs font-medium text-green-800 mb-1">✓ Điểm mạnh</p>
+                                                                    {msg.strengths.map((s, i) => <p key={i} className="text-xs text-green-700">• {s}</p>)}
+                                                                </div>
+                                                            )}
+                                                            {msg.weaknesses && msg.weaknesses.length > 0 && (
+                                                                <div className="bg-red-50 rounded-lg p-2">
+                                                                    <p className="text-xs font-medium text-red-800 mb-1">✗ Cần cải thiện</p>
+                                                                    {msg.weaknesses.map((w, i) => <p key={i} className="text-xs text-red-700">• {w}</p>)}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {msg.suggestion && (
+                                                            <div className="bg-yellow-50 rounded-lg p-2">
+                                                                <p className="text-xs font-medium text-yellow-800 mb-0.5">💡 Gợi ý</p>
+                                                                <p className="text-xs text-yellow-700">{msg.suggestion}</p>
                                                             </div>
                                                         )}
                                                     </div>
+                                                )}
 
-                                                    {msg.suggestion && (
-                                                        <div className="bg-yellow-50 rounded-lg p-2">
-                                                            <p className="text-xs font-medium text-yellow-800 mb-0.5">💡 Gợi ý</p>
-                                                            <p className="text-xs text-yellow-700">{msg.suggestion}</p>
-                                                        </div>
-                                                    )}
+                                                {/* Suggestion-only card for skipped questions */}
+                                                {msg.role === 'candidate' && (msg.score === undefined || msg.score === null) && msg.suggestion && (
+                                                    <div className="w-full bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm">
+                                                        <p className="text-xs font-medium text-yellow-800 mb-0.5">💡 Gợi ý cho câu hỏi này</p>
+                                                        <p className="text-xs text-yellow-700">{msg.suggestion}</p>
+                                                    </div>
+                                                )}
+                                            </React.Fragment>
+                                        ))}
+                                        <div ref={messagesEndRef} />
+                                    </div>
+
+                                    {/* Input */}
+                                    {session?.status === 'active' && (
+                                        <div className="border-t px-4 py-3 space-y-2">
+                                            {/* Loading indicator */}
+                                            {isLoading && (
+                                                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg text-sm text-blue-700">
+                                                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                                                    <span>Đang chấm điểm và chuẩn bị câu hỏi tiếp theo...</span>
                                                 </div>
                                             )}
-
-                                            {/* Suggestion-only card for skipped questions */}
-                                            {msg.role === 'candidate' && (msg.score === undefined || msg.score === null) && msg.suggestion && (
-                                                <div className="w-full bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm">
-                                                    <p className="text-xs font-medium text-yellow-800 mb-0.5">💡 Gợi ý cho câu hỏi này</p>
-                                                    <p className="text-xs text-yellow-700">{msg.suggestion}</p>
+                                            <textarea
+                                                value={currentAnswer}
+                                                onChange={e => setCurrentAnswer(e.target.value)}
+                                                onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSubmit(); }}
+                                                placeholder="Nhập câu trả lời... (Ctrl+Enter để gửi)"
+                                                disabled={isLoading}
+                                                rows={3}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 resize-none"
+                                            />
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Btn variant={isRecording ? 'danger' : 'outline'} size="sm"
+                                                        onClick={isRecording ? stopRecording : startRecording} disabled={isLoading}>
+                                                        {isRecording ? <><MicOff className="h-3.5 w-3.5 mr-1" />Dừng ghi âm</> : <><Mic className="h-3.5 w-3.5 mr-1" />Ghi âm</>}
+                                                    </Btn>
+                                                    {isRecording && <span className="text-xs text-red-600 animate-pulse">● Đang ghi...</span>}
+                                                    {audioDuration && !isRecording && <span className="text-xs text-green-600">✓ {audioDuration.toFixed(1)}s</span>}
+                                                    <span className="text-xs text-gray-400">{currentAnswer.length} ký tự</span>
                                                 </div>
-                                            )}
-                                        </React.Fragment>
-                                    ))}
-                                    <div ref={messagesEndRef} />
-                                </div>
-
-                                {/* Input */}
-                                {session?.status === 'active' && (
-                                    <div className="border-t px-4 py-3 space-y-2">
-                                        {/* Loading indicator */}
-                                        {isLoading && (
-                                            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg text-sm text-blue-700">
-                                                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                                                <span>Đang chấm điểm và chuẩn bị câu hỏi tiếp theo...</span>
-                                            </div>
-                                        )}
-                                        <textarea
-                                            value={currentAnswer}
-                                            onChange={e => setCurrentAnswer(e.target.value)}
-                                            onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSubmit(); }}
-                                            placeholder="Nhập câu trả lời... (Ctrl+Enter để gửi)"
-                                            disabled={isLoading}
-                                            rows={3}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 resize-none"
-                                        />
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <Btn variant={isRecording ? 'danger' : 'outline'} size="sm"
-                                                    onClick={isRecording ? stopRecording : startRecording} disabled={isLoading}>
-                                                    {isRecording ? <><MicOff className="h-3.5 w-3.5 mr-1" />Dừng ghi âm</> : <><Mic className="h-3.5 w-3.5 mr-1" />Ghi âm</>}
+                                                <Btn onClick={() => handleSubmit()} disabled={isLoading || (!currentAnswer.trim() && !audioDuration)}>
+                                                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
+                                                    Gửi
                                                 </Btn>
-                                                {isRecording && <span className="text-xs text-red-600 animate-pulse">● Đang ghi...</span>}
-                                                {audioDuration && !isRecording && <span className="text-xs text-green-600">✓ {audioDuration.toFixed(1)}s</span>}
-                                                <span className="text-xs text-gray-400">{currentAnswer.length} ký tự</span>
-                                            </div>
-                                            <Btn onClick={() => handleSubmit()} disabled={isLoading || (!currentAnswer.trim() && !audioDuration)}>
-                                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
-                                                Gửi
-                                            </Btn>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="space-y-4">
-                        <Card>
-                            <CardContent className="p-5 text-center">
-                                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-3 flex items-center justify-center">
-                                    <Bot className="h-8 w-8 text-white" />
-                                </div>
-                                <p className="font-semibold text-gray-900 text-sm">HR Manager</p>
-                                <p className="text-xs text-gray-500">AI Interviewer</p>
-                                {session?.status === 'active' && (
-                                    <div className="mt-2 flex items-center justify-center gap-1">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                        <span className="text-xs text-green-600">Đang hoạt động</span>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        {/* Progress */}
-                        <Card>
-                            <CardHeader><CardTitle className="text-sm">Tiến độ</CardTitle></CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex justify-between text-sm"><span>Câu hỏi</span><span>{session?.questionNumber || 0}/5</span></div>
-                                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div className="bg-blue-600 h-1.5 rounded-full transition-all" style={{ width: `${((session?.questionNumber || 0) / 5) * 100}%` }} />
-                                </div>
-                                <div className="text-xs text-gray-500">Tổng thời gian: {fmt(elapsedTime)}</div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Enhanced Skills Section - Consistent with Results Page */}
-                        {session?.skillsContext && session.skillsContext.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-sm flex items-center">
-                                        <Brain className="h-4 w-4 mr-2 text-indigo-600" />
-                                        Kỹ năng được đánh giá
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {/* Soft Skills */}
-                                    <div>
-                                        <h4 className="text-xs font-semibold text-gray-900 mb-2 flex items-center">
-                                            <Users className="h-3 w-3 mr-1 text-blue-600" />
-                                            Kỹ năng mềm
-                                        </h4>
-                                        <div className="space-y-1">
-                                            {session.skillsContext.slice(0, 5).map((skill, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                                                    title={`${skill.skill_name} - Mức độ quan trọng: ${skill.importance.toFixed(1)}/5`}
-                                                >
-                                                    <span className="text-gray-700 group-hover:text-blue-700 transition-colors flex-1 mr-2 truncate">
-                                                        {skill.skill_name}
-                                                    </span>
-                                                    <span className="text-blue-600 font-medium group-hover:text-blue-700 transition-colors shrink-0">
-                                                        {skill.importance.toFixed(1)}/5
-                                                    </span>
-
-                                                    {/* Enhanced Hover Tooltip */}
-                                                    <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
-                                                        <div className="font-medium mb-1">{skill.skill_name}</div>
-                                                        <div className="text-gray-300">
-                                                            Mức độ quan trọng: <span className="text-blue-300 font-medium">{skill.importance.toFixed(1)}/5</span>
-                                                        </div>
-                                                        <div className="text-gray-300">
-                                                            Loại: <span className="text-blue-300 font-medium">{skill.skill_type}</span>
-                                                        </div>
-                                                        {/* Arrow */}
-                                                        <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {session.skillsContext.length > 5 && (
-                                                <p className="text-xs text-gray-500 mt-2 text-center">
-                                                    +{session.skillsContext.length - 5} kỹ năng khác
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {session?.hardSkills && session.hardSkills.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-sm flex items-center">
-                                        <div className="h-4 w-4 mr-2 text-orange-600">🔧</div>
-                                        Kỹ năng chuyên ngành
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-1">
-                                    {session.hardSkills.slice(0, 5).map((skill, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-orange-50 transition-colors"
-                                            title={`${skill.skill_name} - Mức độ quan trọng: ${skill.importance.toFixed(1)}/5`}
-                                        >
-                                            <span className="text-gray-700 group-hover:text-orange-700 transition-colors flex-1 mr-2 truncate">
-                                                {skill.skill_name}
-                                            </span>
-                                            <span className="text-orange-600 font-medium group-hover:text-orange-700 transition-colors shrink-0">
-                                                {skill.importance.toFixed(1)}/5
-                                            </span>
-
-                                            {/* Enhanced Hover Tooltip */}
-                                            <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
-                                                <div className="font-medium mb-1">{skill.skill_name}</div>
-                                                <div className="text-gray-300">
-                                                    Mức độ quan trọng: <span className="text-orange-300 font-medium">{skill.importance.toFixed(1)}/5</span>
-                                                </div>
-                                                <div className="text-gray-300">
-                                                    Loại: <span className="text-orange-300 font-medium">Kỹ năng chuyên ngành</span>
-                                                </div>
-                                                {/* Arrow */}
-                                                <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                                             </div>
                                         </div>
-                                    ))}
-                                    {session.hardSkills.length > 5 && (
-                                        <p className="text-xs text-gray-500 mt-2 text-center">
-                                            +{session.hardSkills.length - 5} kỹ năng khác
-                                        </p>
                                     )}
                                 </CardContent>
                             </Card>
-                        )}
+                        </div>
 
-                        {/* Tips */}
-                        <STARMethodGuide className="mb-4" />
+                        {/* Sidebar */}
+                        <div className="space-y-4">
+                            <Card>
+                                <CardContent className="p-5 text-center">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-3 flex items-center justify-center">
+                                        <Bot className="h-8 w-8 text-white" />
+                                    </div>
+                                    <p className="font-semibold text-gray-900 text-sm">HR Manager</p>
+                                    <p className="text-xs text-gray-500">AI Interviewer</p>
+                                    {session?.status === 'active' && (
+                                        <div className="mt-2 flex items-center justify-center gap-1">
+                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                            <span className="text-xs text-green-600">Đang hoạt động</span>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
 
-                        <Card>
-                            <CardHeader><CardTitle className="text-sm">Gợi ý thêm</CardTitle></CardHeader>
-                            <CardContent>
-                                <ul className="text-xs text-gray-600 space-y-1.5">
-                                    <li>• Nói chậm, rõ ràng và tự tin</li>
-                                    <li>• Sử dụng ví dụ cụ thể, có số liệu</li>
-                                    <li>• Thể hiện thái độ tích cực và học hỏi</li>
-                                    <li>• Đừng ngại hỏi lại nếu không hiểu câu hỏi</li>
-                                </ul>
-                            </CardContent>
-                        </Card>
+                            {/* Progress */}
+                            <Card>
+                                <CardHeader><CardTitle className="text-sm">Tiến độ</CardTitle></CardHeader>
+                                <CardContent className="space-y-2">
+                                    <div className="flex justify-between text-sm"><span>Câu hỏi</span><span>{session?.questionNumber || 0}/{session?.questionCount || 5}</span></div>
+                                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                        <div className="bg-blue-600 h-1.5 rounded-full transition-all" style={{ width: `${((session?.questionNumber || 0) / (session?.questionCount || 5)) * 100}%` }} />
+                                    </div>
+                                    <div className="text-xs text-gray-500">Tổng thời gian: {fmt(elapsedTime)}</div>
+                                </CardContent>
+                            </Card>
 
-                        {/* Completed actions */}
-                        {session?.status === 'completed' && (
-                            <div className="space-y-2">
-                                <Btn className="w-full" onClick={() => navigate(`/interview/results/${session.sessionId}`)}>
-                                    Xem kết quả chi tiết
-                                </Btn>
-                                <Btn variant="outline" className="w-full" onClick={() => navigate('/dashboard')}>
-                                    Về Dashboard
-                                </Btn>
-                            </div>
-                        )}
+                            {/* Enhanced Skills Section - Consistent with Results Page */}
+                            {session?.skillsContext && session.skillsContext.length > 0 && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-sm flex items-center">
+                                            <Brain className="h-4 w-4 mr-2 text-indigo-600" />
+                                            Kỹ năng được đánh giá
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {/* Soft Skills */}
+                                        <div>
+                                            <h4 className="text-xs font-semibold text-gray-900 mb-2 flex items-center">
+                                                <Users className="h-3 w-3 mr-1 text-blue-600" />
+                                                Kỹ năng mềm
+                                            </h4>
+                                            <div className="space-y-1">
+                                                {session.skillsContext.slice(0, 5).map((skill, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                                                        title={`${skill.skill_name} - Mức độ quan trọng: ${skill.importance.toFixed(1)}/5`}
+                                                    >
+                                                        <span className="text-gray-700 group-hover:text-blue-700 transition-colors flex-1 mr-2 truncate">
+                                                            {skill.skill_name}
+                                                        </span>
+                                                        <span className="text-blue-600 font-medium group-hover:text-blue-700 transition-colors shrink-0">
+                                                            {skill.importance.toFixed(1)}/5
+                                                        </span>
+
+                                                        {/* Enhanced Hover Tooltip */}
+                                                        <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
+                                                            <div className="font-medium mb-1">{skill.skill_name}</div>
+                                                            <div className="text-gray-300">
+                                                                Mức độ quan trọng: <span className="text-blue-300 font-medium">{skill.importance.toFixed(1)}/5</span>
+                                                            </div>
+                                                            <div className="text-gray-300">
+                                                                Loại: <span className="text-blue-300 font-medium">{skill.skill_type}</span>
+                                                            </div>
+                                                            {/* Arrow */}
+                                                            <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {session.skillsContext.length > 5 && (
+                                                    <p className="text-xs text-gray-500 mt-2 text-center">
+                                                        +{session.skillsContext.length - 5} kỹ năng khác
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {session?.hardSkills && session.hardSkills.length > 0 && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-sm flex items-center">
+                                            <div className="h-4 w-4 mr-2 text-orange-600">🔧</div>
+                                            Kỹ năng chuyên ngành
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-1">
+                                        {session.hardSkills.slice(0, 5).map((skill, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-orange-50 transition-colors"
+                                                title={`${skill.skill_name} - Mức độ quan trọng: ${skill.importance.toFixed(1)}/5`}
+                                            >
+                                                <span className="text-gray-700 group-hover:text-orange-700 transition-colors flex-1 mr-2 truncate">
+                                                    {skill.skill_name}
+                                                </span>
+                                                <span className="text-orange-600 font-medium group-hover:text-orange-700 transition-colors shrink-0">
+                                                    {skill.importance.toFixed(1)}/5
+                                                </span>
+
+                                                {/* Enhanced Hover Tooltip */}
+                                                <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
+                                                    <div className="font-medium mb-1">{skill.skill_name}</div>
+                                                    <div className="text-gray-300">
+                                                        Mức độ quan trọng: <span className="text-orange-300 font-medium">{skill.importance.toFixed(1)}/5</span>
+                                                    </div>
+                                                    <div className="text-gray-300">
+                                                        Loại: <span className="text-orange-300 font-medium">Kỹ năng chuyên ngành</span>
+                                                    </div>
+                                                    {/* Arrow */}
+                                                    <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {session.hardSkills.length > 5 && (
+                                            <p className="text-xs text-gray-500 mt-2 text-center">
+                                                +{session.hardSkills.length - 5} kỹ năng khác
+                                            </p>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* Tips */}
+                            <STARMethodGuide className="mb-4" />
+
+                            <Card>
+                                <CardHeader><CardTitle className="text-sm">Gợi ý thêm</CardTitle></CardHeader>
+                                <CardContent>
+                                    <ul className="text-xs text-gray-600 space-y-1.5">
+                                        <li>• Nói chậm, rõ ràng và tự tin</li>
+                                        <li>• Sử dụng ví dụ cụ thể, có số liệu</li>
+                                        <li>• Thể hiện thái độ tích cực và học hỏi</li>
+                                        <li>• Đừng ngại hỏi lại nếu không hiểu câu hỏi</li>
+                                    </ul>
+                                </CardContent>
+                            </Card>
+
+                            {/* Completed actions */}
+                            {session?.status === 'completed' && (
+                                <div className="space-y-2">
+                                    <Btn className="w-full" onClick={() => navigate(`/interview/results/${session.sessionId}`)}>
+                                        Xem kết quả chi tiết
+                                    </Btn>
+                                    <Btn variant="outline" className="w-full" onClick={() => navigate('/dashboard')}>
+                                        Về Dashboard
+                                    </Btn>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </MainLayout>
     );
 };
 
