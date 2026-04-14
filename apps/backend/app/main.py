@@ -107,9 +107,12 @@ def create_app() -> FastAPI:
     try:
         from .core.monitoring import PerformanceMonitoringMiddleware, set_performance_monitor
 
-        monitoring_middleware = PerformanceMonitoringMiddleware(app)
-        app.add_middleware(PerformanceMonitoringMiddleware)
-        set_performance_monitor(monitoring_middleware)
+        class RegisteredPerformanceMonitoringMiddleware(PerformanceMonitoringMiddleware):
+            def __init__(self, app, *args, **kwargs):
+                super().__init__(app, *args, **kwargs)
+                set_performance_monitor(self)
+
+        app.add_middleware(RegisteredPerformanceMonitoringMiddleware)
         print("✅ Performance monitoring enabled")
     except Exception as e:
         print(f"⚠️ Performance monitoring disabled: {e}")
