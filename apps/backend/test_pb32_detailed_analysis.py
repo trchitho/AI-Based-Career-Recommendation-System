@@ -13,24 +13,19 @@ Analysis Coverage:
 """
 
 import json
-import time
-import statistics
-import numpy as np
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
-import sys
 import os
+import statistics
+import sys
+import time
+from typing import Dict, List
+
+import numpy as np
 
 # Add the app directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
 try:
-    from app.modules.nlp.service_nlp import (
-        analyze_essay,
-        _analyze_via_aicore,
-        _analyze_via_gemini,
-        AI_CORE_URL
-    )
+    from app.modules.nlp.service_nlp import AI_CORE_URL, _analyze_via_aicore, _analyze_via_gemini, analyze_essay
     
     RIASEC_KEYS = ["realistic", "investigative", "artistic", "social", "enterprising", "conventional"]
     BIG5_KEYS = ["openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"]
@@ -152,7 +147,7 @@ class DetailedAnalyzer:
         # Calculate correlation
         try:
             correlation = np.corrcoef(predicted, expected_vector)[0, 1]
-        except:
+        except Exception:
             correlation = 0.0
         
         return {
@@ -282,33 +277,33 @@ class DetailedAnalyzer:
         
         # Performance metrics
         perf = analysis["performance_metrics"]
-        print(f"⏱️  Performance:")
+        print("⏱️  Performance:")
         print(f"   Average response time: {perf['avg_response_time_ms']:.1f}ms")
         print(f"   Response time range: {perf['min_response_time_ms']:.1f}ms - {perf['max_response_time_ms']:.1f}ms")
         
         # Accuracy metrics
         acc = analysis["accuracy_metrics"]
-        print(f"🎯 Accuracy:")
+        print("🎯 Accuracy:")
         print(f"   Dominant trait accuracy: {acc['dominant_trait_accuracy']:.2%}")
         print(f"   Average correlation: {acc['avg_correlation']:.3f}")
         
         # Per-trait correlations
         if acc["correlations_by_trait"]:
-            print(f"📊 Correlations by trait:")
+            print("📊 Correlations by trait:")
             for trait, data in acc["correlations_by_trait"].items():
                 print(f"   {trait}: {data['avg_correlation']:.3f} (n={data['sample_count']})")
         
         # Vector analysis
         riasec_analysis = analysis["vector_analysis"]["riasec"]
         if riasec_analysis:
-            print(f"🔢 RIASEC Vector Analysis:")
+            print("🔢 RIASEC Vector Analysis:")
             overall = riasec_analysis.get("overall", {})
             print(f"   Mean across all dimensions: {overall.get('mean_across_all', 0):.3f}")
             print(f"   Std across all dimensions: {overall.get('std_across_all', 0):.3f}")
             print(f"   Variance between dimensions: {overall.get('variance_between_dimensions', 0):.3f}")
         
         # Recommendations
-        print(f"\n💡 RECOMMENDATIONS:")
+        print("\n💡 RECOMMENDATIONS:")
         
         if acc['dominant_trait_accuracy'] < 0.5:
             print("   🔴 CRITICAL: Dominant trait accuracy < 50%. Model needs retraining or fine-tuning.")
@@ -351,7 +346,7 @@ def main():
     # Save report
     report_file = analyzer.save_analysis_report(analysis)
     
-    print(f"\n🎯 DETAILED ANALYSIS COMPLETED")
+    print("\n🎯 DETAILED ANALYSIS COMPLETED")
     print(f"   Report: {report_file}")
     
     return analysis

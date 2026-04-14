@@ -2,8 +2,8 @@
 Enhanced Test Runner for TC-CV-11 to TC-CV-13
 Runs performance, complex layout, and data quality tests with detailed reporting
 """
-import sys
 import os
+import sys
 import time
 from datetime import datetime
 
@@ -78,9 +78,9 @@ def run_tests():
     print(f"  Exit Code: {exit_code}")
     
     if exit_code == 0:
-        print(f"  Status: ✅ ALL TESTS PASSED")
+        print("  Status: ✅ ALL TESTS PASSED")
     else:
-        print(f"  Status: ❌ SOME TESTS FAILED")
+        print("  Status: ❌ SOME TESTS FAILED")
     
     print()
     print("=" * 100)

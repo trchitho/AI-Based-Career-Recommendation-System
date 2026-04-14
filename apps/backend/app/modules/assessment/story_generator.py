@@ -2,10 +2,10 @@
 Story Generator Service — single Gemini call for ALL groups at once.
 Each group of ~5 questions shares one narrative context (like a book chapter).
 """
-import re
 import json
 import logging
-from typing import List, Dict, Any
+import re
+from typing import Any, Dict, List
 
 from app.core.gemini_manager import multi_stream_manager
 

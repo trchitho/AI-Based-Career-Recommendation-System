@@ -15,11 +15,8 @@ Covers:
 """
 from __future__ import annotations
 
-from collections import deque
-from unittest.mock import MagicMock, patch
 from datetime import datetime, timezone
-import pytest
-
+from unittest.mock import MagicMock, patch
 
 # ──────────────────────────────────────────────────────────────
 # TC16.9 — Singleton kiểm tra
@@ -185,8 +182,8 @@ def _fake_audit_log_row(action: str, status_code: int):
 
 def test_get_ai_errors_merges_sources():
     """TC16.7: /admin/ai-errors merge audit_logs (persistent) + live_tracker."""
-    from app.modules.admin.routes_admin import get_ai_errors
     from app.core.gemini_manager import _GeminiErrorTracker
+    from app.modules.admin.routes_admin import get_ai_errors
 
     # Fake live tracker có 1 entry
     fake_tracker = _GeminiErrorTracker(maxlen=10)
@@ -222,8 +219,8 @@ def test_get_ai_errors_merges_sources():
 
 def test_get_ai_errors_response_shape():
     """TC16.8: Response phải có total_errors, error_504_count, errors, days."""
-    from app.modules.admin.routes_admin import get_ai_errors
     from app.core.gemini_manager import _GeminiErrorTracker
+    from app.modules.admin.routes_admin import get_ai_errors
 
     tracker = _GeminiErrorTracker(maxlen=5)
 
@@ -243,8 +240,8 @@ def test_get_ai_errors_response_shape():
 
 def test_error_504_count_only_counts_504():
     """TC16.8: error_504_count chỉ đếm các lỗi có status_code=504."""
-    from app.modules.admin.routes_admin import get_ai_errors
     from app.core.gemini_manager import _GeminiErrorTracker
+    from app.modules.admin.routes_admin import get_ai_errors
 
     tracker = _GeminiErrorTracker(maxlen=20)
     tracker.record("s1", "DeadlineExceeded", 504, "t1")

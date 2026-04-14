@@ -31,10 +31,9 @@ Covers:
 """
 from __future__ import annotations
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Sample texts
@@ -176,8 +175,9 @@ def test_pdf_non01_error_message_guidance():
 def _make_multi_page_pdf(num_pages: int) -> bytes:
     """Tạo PDF có num_pages trang bằng PyPDF2 (mỗi trang trắng)."""
     try:
-        import PyPDF2
         from io import BytesIO
+
+        import PyPDF2
 
         writer = PyPDF2.PdfWriter()
         for _ in range(num_pages):

@@ -2,13 +2,11 @@
 Gemini API utilities với retry logic và quota management
 Updated to use Multi-Stream Manager for CV Analysis
 """
-import os
-import time
 import json
-from typing import Optional, Dict, Any
-import google.generativeai as genai
-from google.api_core.exceptions import ResourceExhausted, DeadlineExceeded
-from app.core.gemini_manager import multi_stream_manager, GeminiStream
+from typing import Optional
+
+from app.core.gemini_manager import multi_stream_manager
+
 
 class GeminiAPIManager:
     """Manager cho Gemini API với retry logic và quota handling - Updated for CV Stream"""
@@ -26,7 +24,7 @@ class GeminiAPIManager:
         self.fast_fail = self.stream_manager.fast_fail
         self.model = self.stream_manager.model
         
-        print(f"🔧 CV Analysis Gemini Manager initialized")
+        print("🔧 CV Analysis Gemini Manager initialized")
         print(f"   Stream available: {'✅' if self.stream_manager.is_available() else '❌'}")
         print(f"   Model: {self.model_name}")
         print(f"   Fast fail: {self.fast_fail}")

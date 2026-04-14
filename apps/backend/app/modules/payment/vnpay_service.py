@@ -6,7 +6,7 @@ import hashlib
 import hmac
 import urllib.parse
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
 from loguru import logger
 

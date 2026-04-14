@@ -2,20 +2,18 @@
 TC-CV-14 to TC-CV-15: Edit After Parse & Loading States Tests
 Tests for editing parsed CV data and loading state management
 """
-import pytest
-import sys
 import os
+import sys
 import time
-import asyncio
-from typing import Dict, List
-from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime
+from unittest.mock import Mock
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.modules.skill_gap.cv_parser import CVParser
-from app.modules.skill_gap.service import SkillGapService
 
 
 class TestEditAfterParse:
@@ -51,7 +49,7 @@ class TestEditAfterParse:
         # Verify edit
         assert parsed_data['skills'][0]['name'] == 'Python'
         assert len(parsed_data['skills']) == 3
-        print(f"  ✅ Edited skill: 'Pythn' → 'Python'")
+        print("  ✅ Edited skill: 'Pythn' → 'Python'")
     
     def test_edit_multiple_skills(self):
         """TC-CV-14.2: Edit multiple skills at once"""
@@ -95,7 +93,7 @@ class TestEditAfterParse:
         # Verify addition
         assert len(parsed_data['skills']) == 3
         assert parsed_data['skills'][2]['name'] == 'Docker'
-        print(f"  ✅ Added missing skill: 'Docker'")
+        print("  ✅ Added missing skill: 'Docker'")
     
     def test_remove_incorrect_skill(self):
         """TC-CV-14.4: Remove a skill that was incorrectly extracted"""
@@ -115,7 +113,7 @@ class TestEditAfterParse:
         assert len(parsed_data['skills']) == 2
         assert removed_skill['name'] == 'Microsoft'
         assert all(s['name'] != 'Microsoft' for s in parsed_data['skills'])
-        print(f"  ✅ Removed incorrect skill: 'Microsoft'")
+        print("  ✅ Removed incorrect skill: 'Microsoft'")
     
     def test_edit_skill_category(self):
         """TC-CV-14.5: Edit skill category"""
@@ -131,7 +129,7 @@ class TestEditAfterParse:
         
         # Verify edit
         assert parsed_data['skills'][0]['category'] == 'Soft Skills'
-        print(f"  ✅ Corrected category: 'Programming' → 'Soft Skills'")
+        print("  ✅ Corrected category: 'Programming' → 'Soft Skills'")
     
     def test_edit_personal_info(self):
         """TC-CV-14.6: Edit personal information"""
@@ -150,7 +148,7 @@ class TestEditAfterParse:
         # Verify edits
         assert parsed_data['personal_info']['name'] == 'Nguyen Van An'
         assert parsed_data['personal_info']['phone'] == '0912345678'
-        print(f"  ✅ Edited personal info: name and phone corrected")
+        print("  ✅ Edited personal info: name and phone corrected")
     
     def test_validate_edited_data(self):
         """TC-CV-14.7: Validate edited data before saving"""
@@ -209,7 +207,7 @@ class TestEditAfterParse:
         # Verify save was called
         assert result is True
         mock_db.update_analysis.assert_called_once()
-        print(f"  ✅ Saved edited data to database")
+        print("  ✅ Saved edited data to database")
     
     def test_track_edit_history(self):
         """TC-CV-14.9: Track edit history for audit"""
@@ -263,7 +261,7 @@ class TestEditAfterParse:
         # Verify undo
         assert current_data['skills'][0]['name'] == 'Pythn'
         assert len(edit_history) == 0
-        print(f"  ✅ Undo successful: reverted to 'Pythn'")
+        print("  ✅ Undo successful: reverted to 'Pythn'")
 
 
 class TestLoadingStates:

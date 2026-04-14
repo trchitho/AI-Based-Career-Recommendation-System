@@ -2,11 +2,10 @@
 TC-CV-04 to TC-CV-07: CV Information Extraction Tests
 Tests for personal info, skills, normalization, and experience extraction
 """
-import pytest
-import sys
 import os
-from io import BytesIO
-from typing import Dict, List
+import sys
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

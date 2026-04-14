@@ -2,15 +2,15 @@
 Service layer for Skill Gap Analysis
 """
 from typing import Dict, List
-from sqlalchemy.orm import Session
+
+from app.core.r2_storage import r2_storage
 from fastapi import UploadFile
+from sqlalchemy.orm import Session
 
 from .cv_parser import CVParser
 from .cv_parser_v2 import CVParserV2
 from .graph_analyzer import SkillGraphAnalyzer
 from .models import SkillGapAnalysis
-from app.modules.graph.neo4j_client import get_driver
-from app.core.r2_storage import r2_storage
 
 
 class SkillGapService:
@@ -63,7 +63,7 @@ class SkillGapService:
         print(f"  File size: {len(file_content)} bytes, Type: {file_type}")
         
         # Parse CV
-        print(f"[2/4] Parsing CV with AI (reading full content)...")
+        print("[2/4] Parsing CV with AI (reading full content)...")
         parse_start = time.time()
         
         # Use V2 parser - AI reads entire CV
@@ -96,13 +96,13 @@ class SkillGapService:
         print(f"  Extracted {len(cv_skills)} skills in {time.time() - parse_start:.2f}s")
         
         # Analyze skill gap
-        print(f"[3/4] Analyzing skill gap...")
+        print("[3/4] Analyzing skill gap...")
         analyze_start = time.time()
         analysis_result = self.graph_analyzer.analyze_skill_gap(cv_skills, career_id)
         print(f"  Analysis complete in {time.time() - analyze_start:.2f}s")
         
         # Upload CV to Cloudflare R2
-        print(f"[4/5] Uploading CV to Cloudflare R2...")
+        print("[4/5] Uploading CV to Cloudflare R2...")
         cv_file_url = r2_storage.upload_cv(
             file_content=file_content,
             original_filename=cv_file.filename,
@@ -111,10 +111,10 @@ class SkillGapService:
         if cv_file_url:
             print(f"  Uploaded: {cv_file_url}")
         else:
-            print(f"  R2 upload skipped (not configured or failed)")
+            print("  R2 upload skipped (not configured or failed)")
 
         # Save to database
-        print(f"[5/5] Saving to database...")
+        print("[5/5] Saving to database...")
         db_start = time.time()
 
         # Extract personal info

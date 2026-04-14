@@ -15,30 +15,21 @@ Test Coverage:
 """
 
 import json
-import time
-import requests
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
-import sys
 import os
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+import sys
+import time
+from dataclasses import dataclass
+from typing import Dict, List, Optional
+
+import requests
+from sqlalchemy import text
 
 # Add the app directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
 
 from app.core.database import get_db_session
-from app.modules.assessments.service import (
-    save_assessment,
-    save_essay,
-    build_results,
-    fuse_user_traits
-)
-from app.modules.nlp.service_nlp import (
-    analyze_essay,
-    store_user_embedding,
-    get_index_status
-)
+from app.modules.assessments.service import build_results, fuse_user_traits, save_assessment, save_essay
+
 
 @dataclass
 class E2ETestCase:
@@ -490,7 +481,7 @@ class E2EIntegrationTester:
         # Print failed tests
         failed_tests = [r for r in self.results if not r.success]
         if failed_tests:
-            print(f"\n❌ Failed tests:")
+            print("\n❌ Failed tests:")
             for r in failed_tests:
                 print(f"  {r.test_name}: {', '.join(r.errors)}")
         
@@ -538,7 +529,7 @@ def main():
     
     # Print final summary
     summary = results.get("summary", {})
-    print(f"\n🎯 E2E INTEGRATION TEST COMPLETED")
+    print("\n🎯 E2E INTEGRATION TEST COMPLETED")
     print(f"   Success Rate: {summary.get('success_rate', 0):.2%}")
     print(f"   Tests Passed: {summary.get('successful_tests', 0)}/{summary.get('total_tests', 0)}")
     print(f"   Report: {report_file}")

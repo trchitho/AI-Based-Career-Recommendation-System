@@ -11,13 +11,10 @@ Kiểm tra toàn diện chức năng upload CV với các test cases:
 
 import os
 import sys
-import io
-import pytest
-from pathlib import Path
-from fastapi.testclient import TestClient
-from fastapi import UploadFile
 import tempfile
-import time
+
+import pytest
+from fastapi.testclient import TestClient
 
 # Add app to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
@@ -45,7 +42,7 @@ class TestCVUpload:
             try:
                 if os.path.exists(filepath):
                     os.remove(filepath)
-            except:
+            except Exception:
                 pass
     
     def create_test_file(self, filename: str, size_bytes: int = 1024, content: bytes = None) -> str:
@@ -297,7 +294,7 @@ class TestCVUpload:
             )
         
         assert response.status_code in [200, 500]
-        print(f"✅ TC-CV-03.2: Safe special chars accepted")
+        print("✅ TC-CV-03.2: Safe special chars accepted")
     
     def test_tc_cv_03_special_chars_unsafe(self):
         """TC-CV-03.3: Handle unsafe special characters"""
@@ -328,7 +325,7 @@ class TestCVUpload:
         
         # Should sanitize filename and not cause path traversal
         assert response.status_code in [200, 400, 500]
-        print(f"✅ TC-CV-03.4: Path traversal prevented")
+        print("✅ TC-CV-03.4: Path traversal prevented")
     
     def test_tc_cv_03_unicode_emoji(self):
         """TC-CV-03.5: Handle Unicode emoji in filename"""
@@ -342,7 +339,7 @@ class TestCVUpload:
             )
         
         assert response.status_code in [200, 400, 500]
-        print(f"✅ TC-CV-03.5: Unicode emoji handled")
+        print("✅ TC-CV-03.5: Unicode emoji handled")
     
     def test_tc_cv_03_very_long_filename(self):
         """TC-CV-03.6: Handle very long filename"""
@@ -357,7 +354,7 @@ class TestCVUpload:
             )
         
         assert response.status_code in [200, 400, 500]
-        print(f"✅ TC-CV-03.6: Long filename handled")
+        print("✅ TC-CV-03.6: Long filename handled")
     
     # ==================== TC-CV-04: Corrupted Files ====================
     
@@ -377,7 +374,7 @@ class TestCVUpload:
         if response.status_code in [400, 422]:
             data = response.json()
             assert 'error' in str(data).lower() or 'invalid' in str(data).lower()
-        print(f"✅ TC-CV-04.1: Corrupted PDF handled gracefully")
+        print("✅ TC-CV-04.1: Corrupted PDF handled gracefully")
     
     def test_tc_cv_04_wrong_extension(self):
         """TC-CV-04.2: Handle file with wrong extension (txt renamed to pdf)"""
@@ -392,7 +389,7 @@ class TestCVUpload:
         
         # Should detect and handle
         assert response.status_code in [200, 400, 422, 500]
-        print(f"✅ TC-CV-04.2: Wrong extension handled")
+        print("✅ TC-CV-04.2: Wrong extension handled")
     
     # ==================== TC-CV-05: Concurrent Uploads ====================
     
@@ -457,7 +454,7 @@ class TestCVUpload:
         
         # Should handle gracefully
         assert response.status_code in [200, 400, 404, 500]
-        print(f"✅ TC-CV-06.3: Invalid career_id handled")
+        print("✅ TC-CV-06.3: Invalid career_id handled")
 
 
 def run_tests():

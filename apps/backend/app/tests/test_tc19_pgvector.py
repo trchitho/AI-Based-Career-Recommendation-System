@@ -16,9 +16,9 @@ Covers:
 """
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch, call
-import pytest
+from unittest.mock import MagicMock, patch
 
+import pytest
 
 # ──────────────────────────────────────────────────────────────
 # TC19 — SLA Constants
@@ -293,7 +293,7 @@ def test_hybrid_semantic_weight_0_equals_pure_riasec():
 
 def test_search_result_schema():
     """TC19.1: SearchResult phải có query, total, items, search_type."""
-    from app.modules.nlp.routes_nlp import semantic_search, SemanticSearchRequest
+    from app.modules.nlp.routes_nlp import SemanticSearchRequest, semantic_search
 
     fake_items = [
         {"career_id": "c1", "onet_code": "11-1001.00", "title": "T",
@@ -316,7 +316,7 @@ def test_search_result_schema():
 
 def test_search_result_hybrid_when_riasec_provided():
     """TC19.8: riasec=[...] → search_type='hybrid'."""
-    from app.modules.nlp.routes_nlp import semantic_search, SemanticSearchRequest
+    from app.modules.nlp.routes_nlp import SemanticSearchRequest, semantic_search
 
     fake_items = [
         {"career_id": "c1", "onet_code": "11-1001.00", "title": "T",

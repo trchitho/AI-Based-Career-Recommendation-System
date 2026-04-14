@@ -1,13 +1,14 @@
 """
 Test CV Parser
 """
-import sys
 import os
+import sys
 
 # Add app to path
 sys.path.insert(0, os.path.dirname(__file__))
 
 from app.modules.skill_gap.cv_parser import CVParser
+
 
 def test_parser():
     print("🧪 Testing CV Parser...")

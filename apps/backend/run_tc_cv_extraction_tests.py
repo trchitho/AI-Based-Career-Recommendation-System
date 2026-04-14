@@ -2,9 +2,8 @@
 Test Runner for TC-CV-04 to TC-CV-07
 Runs all CV extraction tests and generates comprehensive report
 """
-import sys
 import os
-import json
+import sys
 from datetime import datetime
 
 # Add parent directory to path

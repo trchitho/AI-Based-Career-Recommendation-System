@@ -9,12 +9,12 @@ Supports:
 - TC-IMG-06: Skill bar detection
 - TC-IMG-07: Multi-column reading
 """
+import io
+from typing import Dict, List, Tuple
+
 import cv2
 import numpy as np
-from PIL import Image, ImageEnhance
-from typing import Dict, List, Tuple
-import io
-import re
+from PIL import Image
 
 try:
     import pytesseract
@@ -518,7 +518,7 @@ class SkillBarDetector:
             roi_image = Image.fromarray(roi)
             text = pytesseract.image_to_string(roi_image, config='--psm 7')
             return text.strip()
-        except:
+        except Exception:
             return ''
     
     @staticmethod
@@ -801,7 +801,7 @@ class AdvancedCVParser:
             
             result['success'] = True
             
-            print(f"  ✅ Advanced CV parsing complete")
+            print("  ✅ Advanced CV parsing complete")
             print(f"     - Quality: {quality_result['quality_score']:.1f}/100")
             print(f"     - Background: {result['preprocessing']['background_type']}")
             print(f"     - Skill bars: {len(skill_bar_result['bars_detected'])}")

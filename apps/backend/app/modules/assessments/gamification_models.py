@@ -2,7 +2,7 @@
 Gamification models - separate from assessment data
 Stores XP, levels, achievements without affecting assessment results
 """
-from sqlalchemy import Column, Integer, BigInteger, String, DateTime, ForeignKey, JSON, Boolean
+from sqlalchemy import JSON, BigInteger, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.sql import func
 
 # Import Base from the correct location

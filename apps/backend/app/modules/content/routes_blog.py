@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ...core.jwt import require_user, require_admin
+from ...core.jwt import require_admin, require_user
 from .models import BlogPost, BlogPostReaction
 
 router = APIRouter()
@@ -47,7 +47,7 @@ def get_post_by_slug(request: Request, slug: str):
         ).scalar_one_or_none()
         
         post_dict["user_reaction"] = user_reaction.reaction_type if user_reaction else None
-    except:
+    except Exception:
         post_dict["user_reaction"] = None
     
     return post_dict

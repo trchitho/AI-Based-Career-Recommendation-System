@@ -1,9 +1,9 @@
-import google.generativeai as genai
-from typing import List, Dict, Optional
-import os
-from datetime import datetime
 import logging
-from app.core.gemini_manager import multi_stream_manager, GeminiStream
+import os
+from typing import Dict, List, Optional
+
+import google.generativeai as genai
+from app.core.gemini_manager import multi_stream_manager
 
 logger = logging.getLogger(__name__)
 

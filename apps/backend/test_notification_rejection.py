@@ -2,7 +2,6 @@
 Test để verify rằng thông báo học phí bị reject NGAY (không tốn token Gemini)
 """
 from app.modules.skill_gap.cv_parser_v2 import CVParserV2
-import pytest
 
 
 def test_tuition_notification_rejected_immediately():
@@ -91,7 +90,7 @@ def test_official_notice_rejected():
         print(f"  Reason: {reason}")
         
         assert not is_cv, f"{expected_type} phải bị reject!"
-        print(f"  ✅ PASSED")
+        print("  ✅ PASSED")
 
 
 def test_valid_cv_still_accepted():

@@ -3,7 +3,7 @@ Auto fix PDF extraction - Install libraries and restart
 """
 import subprocess
 import sys
-import os
+
 
 def install_package(package):
     """Install a package using pip"""

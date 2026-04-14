@@ -4,8 +4,10 @@ Run: python setup_gemini.py
 """
 import os
 import sys
+
 import requests
 from dotenv import load_dotenv, set_key
+
 
 def test_api_key(api_key: str) -> bool:
     """Test if API key works"""
@@ -72,7 +74,7 @@ def main():
         print("\n✅ SUCCESS! API key is working!")
         
         # Update .env file
-        print(f"\n💾 Updating .env file...")
+        print("\n💾 Updating .env file...")
         set_key(env_path, "GEMINI_API_KEY", new_key)
         set_key(env_path, "GEMINI_MODEL", "gemini-2.5-flash")
         

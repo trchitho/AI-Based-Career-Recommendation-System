@@ -1,8 +1,8 @@
 """
 Test PDF extraction với nhiều methods khác nhau
 """
-import sys
 import os
+
 
 def test_pypdf2(pdf_path):
     """Test PyPDF2"""

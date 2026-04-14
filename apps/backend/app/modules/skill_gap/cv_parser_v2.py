@@ -3,11 +3,11 @@ CV Parser V2 - Improved version with AI-first approach
 Đọc toàn bộ CV bằng AI để extract chính xác
 Updated to use 3-stream system
 """
-import re
 import json
-from typing import List, Dict
+import re
+from typing import Dict
+
 import PyPDF2
-from io import BytesIO
 from app.core.gemini_manager import multi_stream_manager
 
 
@@ -34,10 +34,9 @@ class CVParserV2:
             str: Text extracted by AI
         """
         try:
-            import google.generativeai as genai
-            import os
-            from PIL import Image
             import io
+
+            from PIL import Image
             
             # Use the dedicated CV analysis stream
             cv_stream = multi_stream_manager.get_cv_stream()
@@ -166,8 +165,9 @@ Use clear formatting with line breaks between sections.
             Ảnh meme/phong cảnh → ít cạnh dạng text → edge_mean thấp (< 5)
             Ảnh logo/banner đơn giản → rất ít cạnh → edge_mean rất thấp
         """
-        from PIL import Image, ImageFilter, ImageStat
         import io
+
+        from PIL import Image, ImageFilter, ImageStat
 
         try:
             img_orig = Image.open(io.BytesIO(image_bytes))
@@ -357,8 +357,9 @@ Use clear formatting with line breaks between sections.
         - Trả về bytes đã nén (hoặc bytes gốc nếu đã đủ nhỏ)
         """
         try:
-            from PIL import Image
             import io
+
+            from PIL import Image
 
             img = Image.open(io.BytesIO(file_content))
 
@@ -520,8 +521,9 @@ Use clear formatting with line breaks between sections.
     def _extract_with_pdfplumber(self, file_content: bytes) -> str:
         """Extract using pdfplumber"""
         try:
-            import pdfplumber
             from io import BytesIO
+
+            import pdfplumber
             
             print("  [pdfplumber] Opening PDF...")
             with pdfplumber.open(BytesIO(file_content)) as pdf:
@@ -610,9 +612,10 @@ Use clear formatting with line breaks between sections.
             Dict: {personal_info: {...}, skills: [...]}
         """
         try:
-            import google.generativeai as genai
-            import os
             import json
+            import os
+
+            import google.generativeai as genai
             
             # Check if Gemini is enabled
             gemini_enabled = os.getenv('GEMINI_ENABLED', 'true').lower() == 'true'
@@ -638,7 +641,7 @@ Use clear formatting with line breaks between sections.
             # Use full CV text
             cv_text = text[:20000]  # Up to 20k chars
             
-            print(f"\n📤 SENDING TO AI:")
+            print("\n📤 SENDING TO AI:")
             print(f"   Text length: {len(cv_text)} chars")
             print(f"   Model: {model_name}")
             print(f"   Target career: {target_career or 'None'}")
@@ -706,9 +709,9 @@ CRITICAL RULES:
                 print("  ⚠️ AI complete extraction failed")
                 return {}
             
-            print(f"\n📥 AI RESPONSE RECEIVED:")
+            print("\n📥 AI RESPONSE RECEIVED:")
             print(f"   Length: {len(response_text)} chars")
-            print(f"   Preview (first 500 chars):")
+            print("   Preview (first 500 chars):")
             print("-" * 80)
             print(response_text[:500])
             print("-" * 80)
@@ -721,19 +724,19 @@ CRITICAL RULES:
                 response_text = response_text.split('```')[1].split('```')[0].strip()
                 print("   ✅ Extracted JSON from code block")
             
-            print(f"\n🔍 PARSING JSON:")
+            print("\n🔍 PARSING JSON:")
             print(f"   JSON length: {len(response_text)} chars")
             
             data = json.loads(response_text)
             
-            print(f"   ✅ JSON parsed successfully")
+            print("   ✅ JSON parsed successfully")
             print(f"   Keys: {list(data.keys())}")
             
             # Validate and clean data
             personal_info = data.get('personal_info', {})
             skills = data.get('skills', [])
             
-            print(f"\n📊 EXTRACTED DATA:")
+            print("\n📊 EXTRACTED DATA:")
             print(f"   Personal info keys: {list(personal_info.keys())}")
             print(f"   Skills count: {len(skills)}")
             if skills:
@@ -747,17 +750,17 @@ CRITICAL RULES:
                 words = name.split()
                 print(f"   Word count: {len(words)}")
                 if len(words) < 2 or len(words) > 4:
-                    print(f"   ⚠️ Invalid name format (need 2-4 words)")
+                    print("   ⚠️ Invalid name format (need 2-4 words)")
                     name = ''
                 else:
                     # Check not a job title
                     invalid_keywords = ['engineer', 'developer', 'designer', 'manager', 
                                        'laravel', 'php', 'python', 'backend', 'frontend']
                     if any(kw in name.lower() for kw in invalid_keywords):
-                        print(f"   ⚠️ Name looks like job title")
+                        print("   ⚠️ Name looks like job title")
                         name = ''
                     else:
-                        print(f"   ✅ Name validated successfully")
+                        print("   ✅ Name validated successfully")
             
             personal_info['name'] = name
             
@@ -765,7 +768,7 @@ CRITICAL RULES:
             for skill in skills:
                 skill['source'] = 'ai'
             
-            print(f"\n✅ AI EXTRACTION COMPLETE:")
+            print("\n✅ AI EXTRACTION COMPLETE:")
             print(f"   - Name: {personal_info.get('name') or 'Not found'}")
             print(f"   - Email: {personal_info.get('email') or 'Not found'}")
             print(f"   - Phone: {personal_info.get('phone') or 'Not found'}")
@@ -1041,7 +1044,7 @@ Return ONLY valid JSON, no markdown, no explanations.
             document_type = result.get('document_type', 'Unknown')
             reason = result.get('reason', 'No reason provided')
             
-            print(f"  📥 Gemini response:")
+            print("  📥 Gemini response:")
             print(f"     - Is CV: {is_cv}")
             print(f"     - Confidence: {confidence}")
             print(f"     - Document type: {document_type}")
@@ -1093,8 +1096,9 @@ Return ONLY valid JSON, no markdown, no explanations.
 
         # pdfplumber — last resort
         try:
-            import pdfplumber
             from io import BytesIO as _BIO
+
+            import pdfplumber
             with pdfplumber.open(_BIO(file_content)) as pdf:
                 return len(pdf.pages)
         except Exception:
@@ -1153,17 +1157,17 @@ Return ONLY valid JSON, no markdown, no explanations.
             print(f"\n❌ ERROR: File does not appear to be a CV — {reason}")
             raise ValueError(f"File tải lên không phải là CV. {reason}")
 
-        print(f"\n✅ TEXT EXTRACTION SUCCESSFUL")
+        print("\n✅ TEXT EXTRACTION SUCCESSFUL")
         print(f"   Extracted: {len(text)} characters")
         
         # Show preview
-        print(f"\n📝 TEXT PREVIEW (first 500 chars):")
+        print("\n📝 TEXT PREVIEW (first 500 chars):")
         print("-" * 80)
         print(text[:500])
         print("-" * 80)
         
         # Show last 200 chars too
-        print(f"\n📝 TEXT PREVIEW (last 200 chars):")
+        print("\n📝 TEXT PREVIEW (last 200 chars):")
         print("-" * 80)
         print(text[-200:] if len(text) > 200 else text)
         print("-" * 80)

@@ -1,17 +1,16 @@
 """
 Centralized Gemini API Manager with 3 separate streams
 """
+import logging
 import os
 import time
-import json
-import logging
 from collections import deque
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 import google.generativeai as genai
-from google.api_core.exceptions import ResourceExhausted, DeadlineExceeded
+from google.api_core.exceptions import DeadlineExceeded, ResourceExhausted
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +139,7 @@ class GeminiStreamManager:
                 
                 # Check if it's a quota/auth issue (don't try other models)
                 if any(keyword in error_msg for keyword in ['quota', '429', 'rate limit', 'api key', 'expired', 'invalid', 'authentication']):
-                    print(f"[err] API issue detected, stopping fallback attempts")
+                    print("[err] API issue detected, stopping fallback attempts")
                     break
                 
                 # Continue to next model for other errors
@@ -250,7 +249,7 @@ class GeminiStreamManager:
 
                 # FAST FAIL mode: Try fallback model if available
                 if self.fast_fail:
-                    print(f"  [fast] FAST FAIL mode - trying fallback model...")
+                    print("  [fast] FAST FAIL mode - trying fallback model...")
 
                     # Try to switch to next available model (different API key might have quota)
                     if self._try_fallback_model():
@@ -258,7 +257,7 @@ class GeminiStreamManager:
                         # Retry with new model
                         continue
                     else:
-                        print(f"  [err] No fallback models available - immediate fallback")
+                        print("  [err] No fallback models available - immediate fallback")
                         return None
 
                 # Normal mode: retry once
@@ -267,7 +266,7 @@ class GeminiStreamManager:
                     print(f"  ⏰ Waiting {delay} seconds before retry...")
                     time.sleep(delay)
                 else:
-                    print(f"  [err] Max retries exceeded")
+                    print("  [err] Max retries exceeded")
                     return None
 
             except Exception as e:
@@ -290,7 +289,7 @@ class GeminiStreamManager:
                         # Retry with new model
                         continue
                     else:
-                        print(f"  [err] All fallback models failed")
+                        print("  [err] All fallback models failed")
                         return None
                 
                 # For other errors, don't retry
@@ -348,10 +347,10 @@ class MultiStreamGeminiManager:
         self.assessment_stream = GeminiStreamManager(GeminiStream.ASSESSMENT)
         self.cv_stream = GeminiStreamManager(GeminiStream.CV_ANALYSIS)
         
-        print(f"[start] Multi-stream Gemini Manager initialized (lazy mode)")
-        print(f"   Chatbot: [pkg] Ready (will init on first use)")
-        print(f"   Assessment: [pkg] Ready (will init on first use)")
-        print(f"   CV Analysis: [pkg] Ready (will init on first use)")
+        print("[start] Multi-stream Gemini Manager initialized (lazy mode)")
+        print("   Chatbot: [pkg] Ready (will init on first use)")
+        print("   Assessment: [pkg] Ready (will init on first use)")
+        print("   CV Analysis: [pkg] Ready (will init on first use)")
     
     def get_stream(self, stream_type: GeminiStream) -> GeminiStreamManager:
         """Get specific stream manager"""

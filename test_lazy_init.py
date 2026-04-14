@@ -3,8 +3,8 @@ Test script to verify:
 1. Lazy initialization is working (no API calls on import)
 2. Subscription endpoints are accessible
 """
-import sys
 import os
+import sys
 
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'apps', 'backend'))
@@ -46,7 +46,7 @@ result = multi_stream_manager.chatbot_stream.generate_content_with_retry(
     max_output_tokens=5
 )
 
-print(f"\n✅ First call complete!")
+print("\n✅ First call complete!")
 print(f"   Result: {result}")
 print(f"   Chatbot initialized: {multi_stream_manager.chatbot_stream._initialized}")
 print(f"   Active model: {multi_stream_manager.chatbot_stream.active_model_name}")
@@ -63,9 +63,9 @@ result2 = multi_stream_manager.chatbot_stream.generate_content_with_retry(
     max_output_tokens=5
 )
 
-print(f"\n✅ Second call complete!")
+print("\n✅ Second call complete!")
 print(f"   Result: {result2}")
-print(f"   No re-initialization occurred (as expected)")
+print("   No re-initialization occurred (as expected)")
 
 print("\n" + "=" * 60)
 print("TEST 4: Verify Other Streams Not Initialized")

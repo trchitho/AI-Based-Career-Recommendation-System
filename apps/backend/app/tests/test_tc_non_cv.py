@@ -33,7 +33,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # ──────────────────────────────────────────────────────────────────────────────
 # PIL availability guard
 # ──────────────────────────────────────────────────────────────────────────────
@@ -307,8 +306,8 @@ def test_non03_detect_selfie_skin_tone_image_true():
     TC-NON-03.1: _detect_selfie với ảnh fill 100% tông màu da → is_selfie=True.
     Tier B (skin tone heuristic) được dùng nếu cv2 không có hoặc không phát hiện face.
     """
-    from PIL import Image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from PIL import Image
 
     # RGB (200, 130, 90) thỏa skin formula:
     #   r=200>95, g=130>40, b=90>20, r>g, r>b, |r-g|=70>15, r-b=110>15
@@ -327,8 +326,8 @@ def test_non03_detect_selfie_skin_tone_image_true():
 @pil_required
 def test_non03_detect_selfie_white_image_false():
     """TC-NON-03.2: _detect_selfie với ảnh trắng thuần → is_selfie=False."""
-    from PIL import Image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from PIL import Image
 
     img = Image.new("RGB", (200, 200), color=(255, 255, 255))
     is_selfie, reason = CVParserV2._detect_selfie(img)
@@ -339,8 +338,8 @@ def test_non03_detect_selfie_white_image_false():
 @pil_required
 def test_non03_detect_selfie_with_opencv_face():
     """TC-NON-03.3: _detect_selfie trả True khi OpenCV phát hiện khuôn mặt."""
-    from PIL import Image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from PIL import Image
 
     img = Image.new("RGB", (300, 300), color=(230, 200, 180))
 
@@ -426,8 +425,8 @@ def test_non03_detect_selfie_does_not_raise_without_cv2():
 @pil_required
 def test_non03_skin_tone_formula_boundary():
     """TC-NON-03 bonus: Màu da biên giới (r=96, g=41, b=21) → nhận là skin pixel."""
-    from PIL import Image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from PIL import Image
 
     # Minimum skin tone values:
     # r=96>95✓, g=41>40✓, b=21>20✓, r>g✓, r>b✓, |r-g|=55>15✓, r-b=75>15✓
@@ -442,8 +441,8 @@ def test_non03_skin_tone_formula_boundary():
 @pil_required
 def test_non03_dark_skin_tone_not_selfie():
     """TC-NON-03 bonus: Màu không thỏa skin formula → không nhận là selfie."""
-    from PIL import Image
     from app.modules.skill_gap.cv_parser_v2 import CVParserV2
+    from PIL import Image
 
     # r=50 không đủ (cần >95) → không phải skin
     img = Image.new("RGB", (200, 200), color=(50, 30, 20))

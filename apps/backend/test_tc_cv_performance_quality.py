@@ -2,21 +2,18 @@
 TC-CV-11 to TC-CV-13: Performance, Complex Layout, and Data Quality Tests
 Tests for latency, complex PDF layouts, and noisy data handling
 """
-import pytest
-import sys
 import os
+import sys
 import time
-from io import BytesIO
 from typing import Dict
-from unittest.mock import Mock, patch
-import PyPDF2
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.modules.skill_gap.cv_parser import CVParser
 from app.modules.skill_gap.cv_parser_v2 import CVParserV2
-from app.modules.skill_gap.service import SkillGapService
 
 
 class TestPerformanceLatency:
@@ -207,7 +204,6 @@ class TestPerformanceLatency:
     
     def test_memory_efficient_processing(self):
         """TC-CV-11.8: Ensure memory-efficient processing"""
-        import sys
         
         # Create multiple CV texts
         cv_texts = []
@@ -542,7 +538,7 @@ class TestNoisyDataHandling:
         # Should not crash, but find minimal info
         assert isinstance(personal_info, dict)
         assert isinstance(skills, list)
-        print(f"  ✅ Random text handled gracefully")
+        print("  ✅ Random text handled gracefully")
     
     def test_empty_file_handling(self):
         """TC-CV-13.3: Handle empty or nearly empty files"""
@@ -563,7 +559,7 @@ class TestNoisyDataHandling:
         
         assert isinstance(personal_info2, dict)
         assert isinstance(skills2, list)
-        print(f"  ✅ Empty/minimal files handled gracefully")
+        print("  ✅ Empty/minimal files handled gracefully")
     
     def test_corrupted_text_handling(self):
         """TC-CV-13.4: Handle corrupted or garbled text"""
@@ -583,7 +579,7 @@ class TestNoisyDataHandling:
         # May or may not extract correctly, but should not crash
         assert isinstance(personal_info, dict)
         assert isinstance(skills, list)
-        print(f"  ✅ Corrupted text handled without crash")
+        print("  ✅ Corrupted text handled without crash")
     
     def test_cv_quality_validation(self):
         """TC-CV-13.5: Validate CV quality and completeness"""
@@ -636,7 +632,7 @@ class TestNoisyDataHandling:
             assert isinstance(personal_info, dict)
             assert isinstance(skills, list)
         
-        print(f"  ✅ Invalid formats handled gracefully")
+        print("  ✅ Invalid formats handled gracefully")
     
     def test_mixed_language_noise(self):
         """TC-CV-13.7: Handle mixed language with noise"""

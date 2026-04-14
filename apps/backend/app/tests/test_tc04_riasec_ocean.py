@@ -13,19 +13,13 @@ Test Cases:
 """
 from __future__ import annotations
 
-import pytest
-from unittest.mock import MagicMock, patch, call
-
-
 # ---------------------------------------------------------------------------
 # Import các hàm cần test trực tiếp từ service
 # ---------------------------------------------------------------------------
 from app.modules.assessments.service import (
     _coerce_answer,
     _normalize_type,
-    LIKERT_MAP,
 )
-
 
 # ===========================================================================
 # TC04.3 — Kiểm tra _coerce_answer()

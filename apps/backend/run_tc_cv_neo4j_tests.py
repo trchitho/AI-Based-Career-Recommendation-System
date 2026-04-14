@@ -2,8 +2,8 @@
 Test Runner for TC-CV-08 to TC-CV-10
 Runs Neo4j integration, heatmap, and mixed language tests
 """
-import sys
 import os
+import sys
 from datetime import datetime
 
 # Add parent directory to path

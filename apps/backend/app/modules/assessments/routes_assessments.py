@@ -4,7 +4,7 @@ import base64
 import json
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -653,9 +653,6 @@ def api_save_processed_results(
     except Exception as e:
         db.rollback()
         print(f"[assessments] save_processed_results error: {repr(e)}")
-<<<<<<< HEAD
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to save results")
-=======
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to save results"
@@ -682,6 +679,7 @@ async def api_submit_voice(
     """
     import asyncio
     from concurrent.futures import ThreadPoolExecutor
+
     from .voice_analyzer import analyse_voice, save_voice_traits
 
     try:
@@ -786,7 +784,7 @@ def update_voice_transcript(
 
     try:
         db.commit()
-    except Exception as e:
+    except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to save transcript edit")
 
@@ -802,9 +800,12 @@ def update_voice_transcript(
 # Story Generator — singleton + endpoints
 # -------------------------------------------------------------------
 
-import sys as _sys, os as _os
+import os as _os
+import sys as _sys
+
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".."))
 from assessment.story_generator import StoryGeneratorService as _StoryService
+
 _story_service = _StoryService()   # created once at import time — no repeated Gemini init calls
 
 

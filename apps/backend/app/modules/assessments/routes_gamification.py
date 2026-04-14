@@ -2,13 +2,12 @@
 Gamification API routes
 Separate from assessment routes to maintain clear separation
 """
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from typing import Optional, Dict, Any
 
 from .gamification_service import GamificationService
-
 
 router = APIRouter(prefix="/gamification", tags=["gamification"])
 

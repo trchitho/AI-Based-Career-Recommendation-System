@@ -22,10 +22,9 @@ except Exception:
 
 # DB Session (SQLAlchemy sync)
 from app.core.db import engine, test_connection
-from sqlalchemy.orm import sessionmaker
 
 # Initialize multi-stream Gemini manager
-from app.core.gemini_manager import multi_stream_manager
+from sqlalchemy.orm import sessionmaker
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
@@ -431,10 +430,11 @@ def create_app() -> FastAPI:
         print("??  Skip NLP router:", repr(e))
 
     # CV Documents admin endpoint (direct registration - guaranteed)
+    from fastapi import Depends as _Depends
     from fastapi import Query as _Query
     from sqlalchemy.orm import Session as _Session
+
     from .core.db import get_db as _get_db
-    from fastapi import Depends as _Depends
 
     @app.get("/api/admin/cv-documents", tags=["admin"])
     async def admin_cv_documents(
@@ -443,8 +443,9 @@ def create_app() -> FastAPI:
         search: str = _Query(""),
         db: _Session = _Depends(_get_db),
     ):
+        from sqlalchemy import desc, or_
+
         from .modules.skill_gap.models import SkillGapAnalysis
-        from sqlalchemy import or_, desc
 
         try:
             query = db.query(
@@ -509,8 +510,9 @@ def create_app() -> FastAPI:
     @app.get("/api/admin/r2-status", tags=["admin"])
     def admin_r2_status():
         """Check R2 storage configuration and test upload"""
-        from .core.r2_storage import r2_storage
         import os
+
+        from .core.r2_storage import r2_storage
         result = {
             "is_configured": r2_storage.is_configured,
             "account_id": os.getenv("CF_R2_ACCOUNT_ID", "")[:8] + "..." if os.getenv("CF_R2_ACCOUNT_ID") else "NOT SET",

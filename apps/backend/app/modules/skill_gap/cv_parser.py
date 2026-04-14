@@ -4,9 +4,10 @@ Trích xuất kỹ năng từ CV (PDF/Word) sử dụng NLP
 Updated to use 3-stream system
 """
 import re
-from typing import List, Dict, Set
-import PyPDF2
 from io import BytesIO
+from typing import Dict, List
+
+import PyPDF2
 from app.core.gemini_manager import multi_stream_manager
 
 
@@ -139,8 +140,8 @@ class CVParser:
         try:
             # Try to import OCR libraries
             try:
-                from PIL import Image
                 import pytesseract
+                from PIL import Image
             except ImportError:
                 print("⚠️ OCR libraries not installed")
                 print("   Install: pip install pytesseract pillow")
@@ -388,7 +389,7 @@ class CVParser:
                 if not email_name.isdigit():
                     info['name'] = email_name.replace('.', ' ').replace('_', ' ').title()
             
-            print(f"  📋 Personal Info Extracted:")
+            print("  📋 Personal Info Extracted:")
             print(f"     - Name: {info['name'] or 'Not found'}")
             print(f"     - Email: {info['email'] or 'Not found'}")
             print(f"     - Phone: {info['phone'] or 'Not found'}")
@@ -551,7 +552,7 @@ Return ONLY the name, nothing else.
         ai_only_count = sum(1 for s in normalized_skills if s['source'] == 'ai')
         keyword_only_count = sum(1 for s in normalized_skills if s['source'] == 'cv')
         
-        print(f"  📊 Final Stats:")
+        print("  📊 Final Stats:")
         print(f"     - Verified (both methods): {verified_count}")
         print(f"     - AI only: {ai_only_count}")
         print(f"     - Keyword only: {keyword_only_count}")
@@ -608,7 +609,7 @@ Return ONLY the name, nothing else.
                 if not info['name']:
                     info['name'] = self._extract_name_with_ai(text)
 
-                print(f"  📋 Personal Info Extracted:")
+                print("  📋 Personal Info Extracted:")
                 print(f"     - Name: {info['name'] or 'Not found'}")
                 print(f"     - Email: {info['email'] or 'Not found'}")
                 print(f"     - Phone: {info['phone'] or 'Not found'}")

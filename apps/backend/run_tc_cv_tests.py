@@ -4,12 +4,11 @@ TC-CV Test Runner
 Chạy toàn bộ test suite cho CV upload và tạo báo cáo chi tiết
 """
 
-import sys
-import os
 import json
+import os
+import sys
 import time
 from datetime import datetime
-from pathlib import Path
 
 # Add app to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
@@ -30,10 +29,10 @@ def run_tests_with_pytest():
         '-v',  # Verbose
         '--tb=short',  # Short traceback
         '--color=yes',  # Colored output
-        f'--html=tc_cv_test_report.html',  # HTML report
+        '--html=tc_cv_test_report.html',  # HTML report
         '--self-contained-html',  # Standalone HTML
-        f'--json-report',  # JSON report
-        f'--json-report-file=tc_cv_test_report.json',
+        '--json-report',  # JSON report
+        '--json-report-file=tc_cv_test_report.json',
     ]
     
     # Run tests
@@ -103,11 +102,11 @@ def generate_summary_report(duration: float):
     print(f"⏳ Pending: {summary['implementation_status']['pending']}")
     print(f"❌ Failed: {summary['implementation_status']['failed']}")
     
-    print(f"\n🔒 Security Features:")
+    print("\n🔒 Security Features:")
     for feature in summary['security_features']:
         print(f"  ✅ {feature}")
     
-    print(f"\n📁 Supported Formats:")
+    print("\n📁 Supported Formats:")
     for format_info in summary['supported_formats']:
         print(f"  ✅ {format_info}")
     

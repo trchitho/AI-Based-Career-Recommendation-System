@@ -13,20 +13,17 @@ Test Cases:
 from __future__ import annotations
 
 import json
-import pytest
 from unittest.mock import MagicMock, patch
-
 
 # ---------------------------------------------------------------------------
 # Import trực tiếp từ voice_analyzer
 # ---------------------------------------------------------------------------
 from app.modules.assessments.voice_analyzer import (
-    _parse_response,
-    _neutral_fallback,
     BIG5_KEYS,
     RIASEC_KEYS,
+    _neutral_fallback,
+    _parse_response,
 )
-
 
 # ===========================================================================
 # TC05.4 — _neutral_fallback()

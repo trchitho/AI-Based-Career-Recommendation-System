@@ -3,15 +3,15 @@ from __future__ import annotations
 
 from typing import List, Optional
 
+from app.modules.auth.deps import get_current_user, get_current_user_optional
+from app.modules.users.models import User
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from .service import RecService, CareerEventsService
+from .service import CareerEventsService, RecService
 from .thompson_sampling import ThompsonSamplingService
-from app.modules.auth.deps import get_current_user_optional, get_current_user
-from app.modules.users.models import User
 
 router = APIRouter(prefix="", tags=["recommendations"])
 svc = RecService()

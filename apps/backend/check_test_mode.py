@@ -2,6 +2,7 @@
 Check if test_mode column exists and has data in database
 """
 import os
+
 from sqlalchemy import create_engine, text
 
 # Get database URL from environment

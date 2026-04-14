@@ -1,20 +1,20 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Request, status, Query
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
-from sqlalchemy import and_, desc, func, or_
+from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
 
 from ...core.jwt import require_user
 from ...modules.users.models import User
-from .models import BlogPost, BlogComment, CommentLike, CommentRateLimit
 from ..realtime.ws_comments import (
     broadcast_comment_created,
-    broadcast_comment_updated, 
     broadcast_comment_deleted,
-    broadcast_comment_liked
+    broadcast_comment_liked,
+    broadcast_comment_updated,
 )
+from .models import BlogComment, BlogPost, CommentLike, CommentRateLimit
 
 router = APIRouter()
 
@@ -220,7 +220,7 @@ def get_comments(
     user_id = None
     try:
         user_id = require_user(request)
-    except:
+    except Exception:
         pass  # Anonymous user
 
     # Verify post exists

@@ -17,11 +17,7 @@ Covers:
 """
 from __future__ import annotations
 
-import hashlib
-import time
-from unittest.mock import MagicMock, patch
-import pytest
-
+from unittest.mock import patch
 
 # ──────────────────────────────────────────────────────────────
 # TC18.11 — Cache key

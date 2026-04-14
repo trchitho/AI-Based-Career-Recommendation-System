@@ -2,8 +2,8 @@
 Test Runner for TC-CV-11 to TC-CV-13
 Runs performance, complex layout, and data quality tests
 """
-import sys
 import os
+import sys
 from datetime import datetime
 
 # Add parent directory to path

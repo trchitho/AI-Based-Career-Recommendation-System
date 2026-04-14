@@ -4,6 +4,7 @@ Run this to initialize the database and test the module
 """
 import os
 import sys
+
 from sqlalchemy import create_engine, text
 
 # Add parent directory to path
@@ -79,8 +80,8 @@ def test_graph_analyzer():
     print("\n🧪 Testing Graph Analyzer...")
     
     try:
-        from app.modules.skill_gap.graph_analyzer import SkillGraphAnalyzer
         from app.modules.graph.neo4j_client import Neo4jClient
+        from app.modules.skill_gap.graph_analyzer import SkillGraphAnalyzer
         
         neo4j = Neo4jClient()
         analyzer = SkillGraphAnalyzer(neo4j)

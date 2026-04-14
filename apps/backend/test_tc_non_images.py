@@ -8,11 +8,10 @@ Covers:
 """
 from __future__ import annotations
 
-import io
 from io import BytesIO
 from unittest.mock import MagicMock, patch
-import pytest
 
+import pytest
 
 # ──────────────────────────────────────────────────────────────
 # Helpers
@@ -41,8 +40,8 @@ def _make_fake_pdf_bytes(text_content: str, page_count: int = 1) -> bytes:
     Sử dụng reportlab để tạo PDF thật nếu có, fallback về bytes giả.
     """
     try:
-        from reportlab.pdfgen import canvas
         from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
         
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=letter)

@@ -6,6 +6,7 @@ Executes data protection and UX test cases
 import subprocess
 import sys
 
+
 def main():
     print("="*80)
     print("🧪 RUNNING TC-NON-07 to TC-NON-08 INTEGRATION TESTS")

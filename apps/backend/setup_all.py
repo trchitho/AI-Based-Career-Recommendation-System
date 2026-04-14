@@ -5,6 +5,7 @@ Runs all setup steps automatically
 import subprocess
 import sys
 
+
 def run_step(name, command):
     """Run a setup step"""
     print(f"\n{'='*60}")
