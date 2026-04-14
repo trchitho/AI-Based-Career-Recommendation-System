@@ -7,7 +7,7 @@ import json
 import re
 from typing import Dict
 
-import PyPDF2
+import pypdf as PyPDF2
 from app.core.gemini_manager import multi_stream_manager
 
 
@@ -946,21 +946,19 @@ CRITICAL RULES:
             has_skills_section,
         ])
 
-        # TC-PDF-NON-04: Nếu chỉ có contact mà không có experience/education/skills → reject
-        if positive_signals == 1 and contact_score >= 1 and not (has_experience or has_education or has_skills_section):
-            return False, "File thiếu thông tin nghề nghiệp (kinh nghiệm, học vấn hoặc kỹ năng)."
-
-        if positive_signals >= 2:
+        # Relaxed validation: Nếu có email hoặc >= 2 signals thì accept
+        if has_email or positive_signals >= 2:
             return True, ""
 
-        if positive_signals == 1:
-            # Cận biên: chỉ có 1 tín hiệu → reject để tránh xử lý nhầm
-            if has_email:
-                # Email là tín hiệu mạnh nhất của CV cá nhân
-                return True, ""
-            return False, "Không tìm thấy đủ nội dung CV."
+        # TC-PDF-NON-04: Chỉ reject nếu hoàn toàn không có thông tin CV
+        if positive_signals == 0:
+            return False, "File không chứa nội dung CV/Resume."
 
-        return False, "File không chứa nội dung CV/Resume."
+        # Nếu có ít nhất 1 signal (không phải chỉ contact) thì accept
+        if has_experience or has_education or has_skills_section:
+            return True, ""
+
+        return False, "File thiếu thông tin nghề nghiệp (kinh nghiệm, học vấn hoặc kỹ năng)."
 
     def _ask_gemini_is_cv(self, text: str) -> bool:
         """

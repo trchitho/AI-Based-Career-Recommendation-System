@@ -73,7 +73,16 @@ def get_career(session: Session, id_or_slug: str):
 
     from sqlalchemy import and_  # noqa: F401
 
-    where = (Career.id == int(id_or_slug)) if id_or_slug.isdigit() else (Career.slug == id_or_slug)
+    # Handle both ONET code formats: 53-7051-00 and 53-7051.00
+    if id_or_slug.isdigit():
+        where = Career.id == int(id_or_slug)
+    elif '-' in id_or_slug and len(id_or_slug.split('-')) == 3:
+        # Looks like ONET code with dashes, try both formats
+        onet_dash = id_or_slug  # 53-7051-00
+        onet_dot = id_or_slug.replace('-', '.', 1).replace('-', '.', 1)  # 53-7051.00
+        where = or_(Career.slug == id_or_slug, Career.onet_code == onet_dash, Career.onet_code == onet_dot)
+    else:
+        where = Career.slug == id_or_slug
 
     row = None
     try:

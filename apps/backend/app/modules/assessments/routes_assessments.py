@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from ...core.subscription import SubscriptionService
 from ..content.models import EssayPrompt
 from .models import Assessment, AssessmentSession
+from .schemas import AssessmentResultsOut, EssaySubmitIn
 from .service import (
     build_results,
     fuse_user_traits,

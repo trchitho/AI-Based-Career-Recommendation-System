@@ -7,7 +7,7 @@ import re
 from io import BytesIO
 from typing import Dict, List
 
-import PyPDF2
+import pypdf as PyPDF2
 from app.core.gemini_manager import multi_stream_manager
 
 

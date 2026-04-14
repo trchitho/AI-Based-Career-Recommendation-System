@@ -26,7 +26,12 @@ def list_careers(
 
 @router.get("/{id_or_slug}")
 def get_career(request: Request, id_or_slug: str):
-    user_id = require_user(request)
+    # Try to get user_id, but don't require it for public access
+    try:
+        user_id = require_user(request)
+    except:
+        user_id = None
+        
     session = _db(request)
 
     # Get career data first
@@ -34,7 +39,16 @@ def get_career(request: Request, id_or_slug: str):
     if not obj:
         raise HTTPException(status_code=404, detail="Career not found")
 
-    # Check subscription status
+    # If no user, return basic info
+    if not user_id:
+        return {
+            **obj, 
+            "access_level": "public", 
+            "upgrade_required": True,
+            "access_info": {"allowed": True, "level": "public"}
+        }
+
+    # Check subscription status for logged in users
     subscription = SubscriptionService.get_user_subscription(user_id, session)
     is_premium = subscription["is_premium"]
 

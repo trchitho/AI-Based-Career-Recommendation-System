@@ -16,25 +16,6 @@ class UserGoal:
     goal_text = Column(Text)
 
 
-@mapper_registry.mapped
-class UserSkillMap:
-    __tablename__ = "user_skills_map"
-    __table_args__ = {"schema": "core"}
-    user_id = Column(BigInteger, primary_key=True)
-    skill_name = Column(Text, primary_key=True)
-    level = Column(Text)
-
-
-@mapper_registry.mapped
-class CareerJourney:
-    __tablename__ = "career_journey"
-    __table_args__ = {"schema": "core"}
-    id = Column(BigInteger, primary_key=True)
-    user_id = Column(BigInteger)
-    title = Column(Text)
-    description = Column(Text)
-
-
 router = APIRouter()
 
 
@@ -48,6 +29,61 @@ def list_goals(request: Request):
     session = _db(request)
     rows = session.execute(select(UserGoal).where(UserGoal.user_id == uid)).scalars().all()
     return [{"id": str(g.id), "goal_text": g.goal_text} for g in rows]
+
+
+@router.get("")
+def get_profile(request: Request):
+    """Get user profile information"""
+    try:
+        uid = require_user(request)
+    except:
+        raise HTTPException(status_code=401, detail="Authentication required")
+        
+    session = _db(request)
+    
+    try:
+        # Get user basic info
+        from ..auth.models import User
+        user = session.get(User, uid)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get goals only (removed skills and journey)
+        goals = []
+        try:
+            goals = session.execute(select(UserGoal).where(UserGoal.user_id == uid)).scalars().all()
+        except Exception as e:
+            print(f"Warning: Could not fetch goals: {e}")
+            goals = []
+        
+        return {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "role": user.role,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "goals": [{"id": str(g.id), "goal_text": g.goal_text} for g in goals]
+        }
+        
+    except Exception as e:
+        # If there's a transaction error, rollback and try again with basic info only
+        session.rollback()
+        print(f"Database error, returning basic profile: {e}")
+        
+        # Get user basic info only
+        from ..auth.models import User
+        user = session.get(User, uid)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        return {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "role": user.role,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "goals": []
+        }
 
 
 @router.post("/goals")
@@ -74,67 +110,3 @@ def delete_goal(request: Request, goal_id: int):
     session.delete(g)
     session.commit()
     return {"status": "ok"}
-
-
-@router.get("/skills")
-def list_skills(request: Request):
-    uid = require_user(request)
-    session = _db(request)
-    rows = session.execute(select(UserSkillMap).where(UserSkillMap.user_id == uid)).scalars().all()
-    return [{"skill_name": r.skill_name, "level": r.level} for r in rows]
-
-
-@router.post("/skills")
-def upsert_skill(request: Request, payload: dict):
-    uid = require_user(request)
-    session = _db(request)
-    name = (payload.get("skill_name") or "").strip()
-    level = (payload.get("level") or "").strip() or None
-    if not name:
-        raise HTTPException(status_code=400, detail="skill_name required")
-    existing = session.execute(
-        select(UserSkillMap).where(UserSkillMap.user_id == uid, UserSkillMap.skill_name == name)
-    ).scalar_one_or_none()
-    if existing:
-        existing.level = level
-    else:
-        session.add(UserSkillMap(user_id=uid, skill_name=name, level=level))
-    session.commit()
-    return {"status": "ok"}
-
-
-@router.delete("/skills/{skill_name}")
-def delete_skill(request: Request, skill_name: str):
-    uid = require_user(request)
-    session = _db(request)
-    r = session.execute(
-        select(UserSkillMap).where(UserSkillMap.user_id == uid, UserSkillMap.skill_name == skill_name)
-    ).scalar_one_or_none()
-    if not r:
-        raise HTTPException(status_code=404, detail="Not found")
-    session.delete(r)
-    session.commit()
-    return {"status": "ok"}
-
-
-@router.get("/journey")
-def list_journey(request: Request):
-    uid = require_user(request)
-    session = _db(request)
-    rows = session.execute(select(CareerJourney).where(CareerJourney.user_id == uid)).scalars().all()
-    return [{"id": str(j.id), "title": j.title, "description": j.description} for j in rows]
-
-
-@router.post("/journey")
-def add_journey(request: Request, payload: dict):
-    uid = require_user(request)
-    session = _db(request)
-    title = (payload.get("title") or "").strip()
-    description = payload.get("description")
-    if not title:
-        raise HTTPException(status_code=400, detail="title required")
-    j = CareerJourney(user_id=uid, title=title, description=description)
-    session.add(j)
-    session.commit()
-    session.refresh(j)
-    return {"id": str(j.id), "title": j.title, "description": j.description}
