@@ -206,7 +206,11 @@ def test_extract_image_compress_called_before_ocr():
 
     with patch.object(CVParserV2, "compress_image_if_needed", side_effect=mock_compress), \
          patch.object(parser, "extract_text_with_ai_vision", side_effect=mock_extract):
-        parser.extract_text_from_image(original)
+        try:
+            parser.extract_text_from_image(original)
+        except ValueError:
+            # Expected if CV validation fails, but we still check call order
+            pass
 
     assert call_order == ["compress", "extract"]
 

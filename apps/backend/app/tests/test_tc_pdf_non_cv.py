@@ -177,7 +177,7 @@ def _make_multi_page_pdf(num_pages: int) -> bytes:
     try:
         from io import BytesIO
 
-        import PyPDF2
+        import pypdf as PyPDF2
 
         writer = PyPDF2.PdfWriter()
         for _ in range(num_pages):

@@ -45,6 +45,8 @@ def _mock_user(
     return u
 
 
+import asyncio
+
 def _call_export(users):
     """Gọi export_users_csv và trả về nội dung bytes của StreamingResponse."""
     from app.modules.admin.routes_admin import export_users_csv
@@ -58,8 +60,21 @@ def _call_export(users):
     with patch("app.modules.admin.routes_admin.require_admin", return_value=99):
         response = export_users_csv(req)
 
-    # StreamingResponse → đọc body
-    body = b"".join(response.body_iterator)
+    # StreamingResponse với BytesIO → đọc body từ stream
+    async def read_async_body():
+        chunks = []
+        async for chunk in response.body_iterator:
+            chunks.append(chunk)
+        return b"".join(chunks)
+    
+    # Run async function
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    body = loop.run_until_complete(read_async_body())
     return response, body
 
 

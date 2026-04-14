@@ -216,8 +216,8 @@ class TestSaveVoiceTraits:
         # session.get() trả về mock_assessment
         mock_session.get.return_value = mock_assessment
 
-        # Mock fuse_user_traits để không cần DB thực
-        with patch("app.modules.assessments.voice_analyzer.fuse_user_traits"):
+        # Mock fuse_user_traits từ service module
+        with patch("app.modules.assessments.service.fuse_user_traits"):
             save_voice_traits(
                 session=mock_session,
                 user_id=1,
@@ -248,7 +248,7 @@ class TestSaveVoiceTraits:
 
         mock_session.get.return_value = mock_assessment
 
-        with patch("app.modules.assessments.voice_analyzer.fuse_user_traits"):
+        with patch("app.modules.assessments.service.fuse_user_traits"):
             save_voice_traits(
                 session=mock_session,
                 user_id=1,
@@ -268,7 +268,7 @@ class TestSaveVoiceTraits:
         mock_session = MagicMock()
         mock_session.get.return_value = None  # assessment không tìm thấy
 
-        with patch("app.modules.assessments.voice_analyzer.fuse_user_traits"):
+        with patch("app.modules.assessments.service.fuse_user_traits"):
             # Không nên raise exception
             save_voice_traits(
                 session=mock_session,

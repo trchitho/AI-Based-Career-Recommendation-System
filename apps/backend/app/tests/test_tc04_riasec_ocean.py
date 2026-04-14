@@ -33,10 +33,10 @@ class TestCoerceAnswer:
 
     def test_strongly_like_case_insensitive(self):
         assert _coerce_answer("STRONGLY LIKE") == 5.0
-        assert _coerce_answer("strongly like") is None  # LIKERT_MAP dùng uppercase
+        assert _coerce_answer("strongly like") == 5.0  # Now case-insensitive
 
     def test_like_returns_4(self):
-        assert _coerce_answer("Like") is None  # "LIKE" → yes
+        assert _coerce_answer("Like") == 4.0  # Now case-insensitive
         assert _coerce_answer("LIKE") == 4.0
 
     def test_numeric_int(self):
@@ -291,8 +291,8 @@ class TestAssessmentDBRecord:
         """Kiểm tra các field bắt buộc của Assessment record."""
         from app.modules.assessments.models import Assessment
 
-        # Tạo mock Assessment object để kiểm tra field names
-        a = Assessment.__new__(Assessment)
+        # Tạo Assessment object bình thường
+        a = Assessment()
         a.user_id = 1
         a.a_type = "RIASEC"
         a.scores = {"R": 5.0, "I": 5.0, "A": 5.0, "S": 5.0, "E": 5.0, "C": 5.0}
@@ -313,7 +313,7 @@ class TestAssessmentDBRecord:
         """Kiểm tra Assessment BigFive record."""
         from app.modules.assessments.models import Assessment
 
-        a = Assessment.__new__(Assessment)
+        a = Assessment()
         a.user_id = 1
         a.a_type = "BigFive"
         a.scores = {"O": 5.0, "C": 4.0, "E": 3.0, "A": 4.5, "N": 2.0}

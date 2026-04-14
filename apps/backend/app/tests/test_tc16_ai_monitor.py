@@ -204,7 +204,7 @@ def test_get_ai_errors_merges_sources():
     req.state.db = session
 
     with patch("app.modules.admin.routes_admin.require_admin", return_value=99), \
-         patch("app.modules.admin.routes_admin.gemini_error_tracker", fake_tracker):
+         patch("app.core.gemini_manager.gemini_error_tracker", fake_tracker):
         result = get_ai_errors(req, days=7, limit=50)
 
     assert result["total_errors"] >= 1
@@ -231,7 +231,7 @@ def test_get_ai_errors_response_shape():
     req.state.db = session
 
     with patch("app.modules.admin.routes_admin.require_admin", return_value=99), \
-         patch("app.modules.admin.routes_admin.gemini_error_tracker", tracker):
+         patch("app.core.gemini_manager.gemini_error_tracker", tracker):
         result = get_ai_errors(req, days=7, limit=50)
 
     required_keys = {"total_errors", "error_504_count", "errors", "days"}
@@ -255,7 +255,7 @@ def test_error_504_count_only_counts_504():
     req.state.db = session
 
     with patch("app.modules.admin.routes_admin.require_admin", return_value=99), \
-         patch("app.modules.admin.routes_admin.gemini_error_tracker", tracker):
+         patch("app.core.gemini_manager.gemini_error_tracker", tracker):
         result = get_ai_errors(req, days=7, limit=50)
 
     assert result["error_504_count"] == 2
