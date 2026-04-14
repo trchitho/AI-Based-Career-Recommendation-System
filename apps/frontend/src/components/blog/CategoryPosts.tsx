@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { BlogPost } from '../../services/blogService';
+import { getBlogImage, getBlogGradient } from '../../utils/blogImages';
 
 interface CategoryPostsProps {
     posts: BlogPost[];
@@ -24,15 +25,7 @@ const CategoryPosts = ({ posts, category }: CategoryPostsProps) => {
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {posts.map((post, index) => {
-                    const gradients = [
-                        'from-green-500 to-teal-600',
-                        'from-blue-500 to-indigo-600',
-                        'from-orange-400 to-pink-500',
-                        'from-purple-500 to-pink-600',
-                    ];
-                    const bgGradient = gradients[index % gradients.length];
-
+                {posts.map((post) => {
                     return (
                         <Link
                             key={post.id}
@@ -40,28 +33,24 @@ const CategoryPosts = ({ posts, category }: CategoryPostsProps) => {
                             className="group bg-gray-50 dark:bg-gray-700/50 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 hover:border-green-500 dark:hover:border-green-500 transition-all hover:-translate-y-1 hover:shadow-lg"
                         >
                             {/* Featured Image */}
-                            <div className={`h-32 bg-gradient-to-br ${bgGradient} relative overflow-hidden`}>
-                                {post.featured_image ? (
-                                    <>
-                                        <img
-                                            src={post.featured_image}
-                                            alt={post.title}
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300"></div>
-                                    </>
-                                ) : (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <svg className="w-8 h-8 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={1}
-                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                            />
-                                        </svg>
+                            <div className={`h-32 bg-gradient-to-br ${getBlogGradient(post.category)} relative overflow-hidden`}>
+                                <img
+                                    src={getBlogImage(post.category, post.featured_image)}
+                                    alt={post.title}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
+                                />
+
+                                {/* Fallback content */}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="text-white/20 text-3xl font-bold">
+                                        {post.title.charAt(0)}
                                     </div>
-                                )}
+                                </div>
+
+                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300"></div>
                             </div>
 
                             {/* Content */}

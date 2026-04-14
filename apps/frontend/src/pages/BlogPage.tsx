@@ -4,6 +4,7 @@ import { Search, TrendingUp, Clock, Calendar, ArrowRight, Sparkles, Edit3, Setti
 import MainLayout from '../components/layout/MainLayout';
 import { blogService, BlogPost, BlogListResponse } from '../services/blogService';
 import { useAuth } from '../contexts/AuthContext';
+import { getBlogImage, getBlogGradient } from '../utils/blogImages';
 
 const BlogPage = () => {
   const navigate = useNavigate();
@@ -353,18 +354,16 @@ const BlogPage = () => {
                       className="group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-2xl hover:shadow-green-500/10 hover:-translate-y-2 transition-all duration-300 flex flex-col"
                     >
                       {/* Featured Image */}
-                      <div className="relative h-56 overflow-hidden bg-gradient-to-br from-green-400 to-blue-500">
-                        {post.featured_image ? (
-                          <img
-                            src={post.featured_image}
-                            alt={post.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            onError={(e) => {
-                              // Fallback to gradient background if image fails to load
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : null}
+                      <div className={`relative h-56 overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)}`}>
+                        <img
+                          src={getBlogImage(post.category, post.featured_image)}
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          onError={(e) => {
+                            // If image fails to load, hide it and show gradient background
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
 
                         {/* Fallback content - always show but behind image */}
                         <div className="absolute inset-0 flex items-center justify-center">

@@ -7,6 +7,7 @@ import ReactionBar from '../components/blog/ReactionBar';
 import CommentsSection from '../components/blog/CommentsSection';
 import RelatedPosts from '../components/blog/RelatedPosts';
 import CategoryPosts from '../components/blog/CategoryPosts';
+import { getBlogImage, getBlogGradient } from '../utils/blogImages';
 
 const BlogDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -154,15 +155,26 @@ const BlogDetailPage = () => {
             </div>
 
             {/* Featured Image */}
-            {post.featured_image && (
-              <div className="mb-8">
+            <div className="mb-8">
+              <div className={`relative h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)} shadow-lg`}>
                 <img
-                  src={post.featured_image}
+                  src={getBlogImage(post.category, post.featured_image)}
                   alt={post.title}
-                  className="w-full h-64 md:h-80 lg:h-96 object-cover rounded-2xl shadow-lg"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // If image fails to load, hide it and show gradient background
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
+
+                {/* Fallback content */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-white/20 text-8xl font-bold">
+                    {post.title.charAt(0)}
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Simple Article Layout */}
