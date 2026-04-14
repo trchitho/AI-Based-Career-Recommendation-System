@@ -5,6 +5,7 @@ Rate limiting middleware for API protection
 import logging
 import os
 import time
+import uuid
 from collections import defaultdict, deque
 from typing import Dict
 
@@ -79,16 +80,20 @@ class RateLimiter:
             # Count current requests in the window
             pipe.zcard(key)
 
+            # Fetch the oldest entry (score) to compute accurate reset_time on denial
+            pipe.zrange(key, 0, 0, withscores=True)
+
             results = await pipe.execute()
             current_count = results[1]
+            oldest_entries = results[2]
 
             # Match in-memory fallback semantics: only record allowed requests
             allowed = current_count < limit
             updated_count = current_count
 
             if allowed:
-                # Use a unique member to avoid collisions for requests sharing the same timestamp
-                request_member = f"{current_time}:{time.time_ns()}"
+                # Use uuid4 for a truly unique member to avoid any collisions
+                request_member = f"{current_time}:{uuid.uuid4()}"
                 add_pipe = redis_client.pipeline()
                 add_pipe.zadd(key, {request_member: current_time})
                 add_pipe.expire(key, window + 1)
@@ -96,13 +101,9 @@ class RateLimiter:
                 updated_count = current_count + 1
 
             # Compute reset_time from the oldest entry for accuracy
-            if not allowed:
-                oldest = await redis_client.zrange(key, 0, 0, withscores=True)
-                if oldest:
-                    oldest_time = oldest[0][1]
-                    reset_time = oldest_time + window
-                else:
-                    reset_time = current_time + window
+            if not allowed and oldest_entries:
+                oldest_time = oldest_entries[0][1]
+                reset_time = oldest_time + window
                 retry_after = max(0, reset_time - current_time)
             else:
                 reset_time = current_time + window
