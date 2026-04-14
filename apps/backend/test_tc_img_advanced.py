@@ -618,7 +618,7 @@ class TestMultiColumnReadingOrder:
         
         # Text should be organized by column
         # Check that sections are not interleaved
-        lines = text.strip().split('\n')
+        # lines = text.strip().split('\n')  # Unused variable removed
         
         # Should have clear section separation
         assert 'SUMMARY' in text

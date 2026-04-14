@@ -311,7 +311,7 @@ async def test_error_includes_file_type_guidance():
     from app.modules.skill_gap.routes import analyze_cv_image
     
     # Try uploading wrong file type
-    invalid_img = _make_test_image()
+    # invalid_img = _make_test_image()  # Unused variable removed
     upload_file = _make_upload_file("document.txt", b"plain text content")
     upload_file.content_type = "text/plain"
     
@@ -325,7 +325,7 @@ async def test_error_includes_file_type_guidance():
         )
     except HTTPException as e:
         # Should mention accepted file types
-        error_msg = str(e.detail).lower()
+        # error_msg = str(e.detail).lower()  # Unused variable removed
         # Error should guide about file types (checked in route validation)
         assert e.status_code in [400, 422]
 

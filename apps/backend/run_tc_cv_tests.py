@@ -164,7 +164,7 @@ def main():
         exit_code, duration = run_tests_with_pytest()
         
         # Generate summary
-        summary = generate_summary_report(duration)
+        # summary = generate_summary_report(duration)  # Unused variable removed
         
         # Final status
         print("\n" + "=" * 60)

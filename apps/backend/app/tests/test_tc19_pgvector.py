@@ -196,8 +196,8 @@ def test_semantic_search_sets_ef_search():
         svc.semantic_search(db, query_text="test", top_k=5, ef_search=200)
 
     # Kiểm tra SET hnsw.ef_search=200 được gọi
-    calls_sql = [str(c) for c in db.execute.call_args_list]
-    set_calls = [c for c in calls_sql if "ef_search" in c.lower() or "200" in c]
+    # calls_sql = [str(c) for c in db.execute.call_args_list]  # Unused variable removed
+    # set_calls = [c for c in calls_sql if "ef_search" in c.lower() or "200" in c]  # Unused variable removed
     # Ít nhất phải có 1 lần SET hoặc execute với ef_search
     assert db.execute.called
 

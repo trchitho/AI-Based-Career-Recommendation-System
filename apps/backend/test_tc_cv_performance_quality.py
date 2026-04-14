@@ -27,9 +27,9 @@ class TestPerformanceLatency:
     def test_pdf_extraction_latency(self):
         """TC-CV-11.1: PDF text extraction should be fast (< 2s)"""
         # Create a simple PDF content
-        simple_cv = """
-        NGUYEN VAN AN
-        Email: test@example.com
+        # simple_cv = """  # Unused variable removed
+        # NGUYEN VAN AN
+        # Email: test@example.com
         Phone: 0912345678
         
         SKILLS
@@ -40,8 +40,8 @@ class TestPerformanceLatency:
         start_time = time.time()
         
         # Simulate PDF extraction (using text directly for speed)
-        result = self.parser.extract_personal_info(simple_cv)
-        skills = self.parser.extract_skills(simple_cv)
+        # result = self.parser.extract_personal_info(simple_cv)  # Unused variable removed
+        # skills = self.parser.extract_skills(simple_cv)  # Unused variable removed
         
         end_time = time.time()
         latency = end_time - start_time
@@ -115,9 +115,9 @@ class TestPerformanceLatency:
         start_time = time.time()
         
         # Extract all information
-        personal_info = self.parser.extract_personal_info(cv_text)
-        skills = self.parser.extract_skills(cv_text)
-        normalized = self.parser.normalize_skills(skills)
+        # personal_info = self.parser.extract_personal_info(cv_text)  # Unused variable removed
+        # skills = self.parser.extract_skills(cv_text)  # Unused variable removed
+        # normalized = self.parser.normalize_skills(skills)  # Unused variable removed
         
         end_time = time.time()
         total_latency = end_time - start_time
@@ -167,8 +167,8 @@ class TestPerformanceLatency:
         
         start_time = time.time()
         
-        personal_info = self.parser.extract_personal_info(large_cv)
-        skills = self.parser.extract_skills(large_cv)
+        # personal_info = self.parser.extract_personal_info(large_cv)  # Unused variable removed
+        # skills = self.parser.extract_skills(large_cv)  # Unused variable removed
         
         end_time = time.time()
         latency = end_time - start_time
@@ -180,9 +180,9 @@ class TestPerformanceLatency:
     def test_ocr_simulation_performance(self):
         """TC-CV-11.7: Simulate OCR processing time for image-based CVs"""
         # Simulate OCR extracted text (typically has more noise)
-        ocr_text = """
-        NGUYEN  VAN   AN
-        Em ail: test@example.com
+        # ocr_text = """  # Unused variable removed
+        # NGUYEN  VAN   AN
+        # Em ail: test@example.com
         Ph one: 091 234 5678
         
         SKI LLS
@@ -192,8 +192,8 @@ class TestPerformanceLatency:
         start_time = time.time()
         
         # Extract with noise tolerance
-        personal_info = self.parser.extract_personal_info(ocr_text)
-        skills = self.parser.extract_skills(ocr_text)
+        # personal_info = self.parser.extract_personal_info(ocr_text)  # Unused variable removed
+        # skills = self.parser.extract_skills(ocr_text)  # Unused variable removed
         
         end_time = time.time()
         latency = end_time - start_time
@@ -233,7 +233,8 @@ class TestPerformanceLatency:
         
         # Simulate 50 rapid requests
         for _ in range(50):
-            skills = self.parser.extract_skills(cv_text)
+            # skills = self.parser.extract_skills(cv_text)  # Unused variable removed
+            self.parser.extract_skills(cv_text)
         
         end_time = time.time()
         total_time = end_time - start_time
@@ -719,8 +720,10 @@ class TestNoisyDataHandling:
         for file_type, content in file_types.items():
             # Try to extract (should handle gracefully)
             try:
-                personal_info = self.parser.extract_personal_info(content)
-                skills = self.parser.extract_skills(content)
+                # personal_info = self.parser.extract_personal_info(content)  # Unused variable removed
+                # skills = self.parser.extract_skills(content)  # Unused variable removed
+                self.parser.extract_personal_info(content)
+                self.parser.extract_skills(content)
                 print(f"  ✅ Handled {file_type} content gracefully")
             except Exception as e:
                 print(f"  ⚠️  {file_type} caused error: {str(e)[:50]}")
@@ -735,7 +738,7 @@ class TestNoisyDataHandling:
         Skills: Python, JavaScript
         """
         
-        personal_info = self.parser.extract_personal_info(malformed_cv)
+        # personal_info = self.parser.extract_personal_info(malformed_cv)  # Unused variable removed
         skills = self.parser.extract_skills(malformed_cv)
         
         # Should extract skills even if contact info is malformed
@@ -757,7 +760,7 @@ class TestNoisyDataHandling:
         Python, JavaScript, Python, SQL, JavaScript
         """
         
-        personal_info = self.parser.extract_personal_info(duplicate_cv)
+        # personal_info = self.parser.extract_personal_info(duplicate_cv)  # Unused variable removed
         skills = self.parser.extract_skills(duplicate_cv)
         normalized = self.parser.normalize_skills(skills)
         
@@ -804,13 +807,13 @@ class TestNoisyDataHandling:
         
         # Should extract skills with special characters
         assert len(skills) > 0
-        skill_names = [s['name'].lower() for s in skills]
+        # skill_names = [s['name'].lower() for s in skills]  # Unused variable removed
         
         # Check for skills with special chars
-        has_special = any(
-            any(char in name for char in ['+', '#', '.'])
-            for name in skill_names
-        )
+        # has_special = any(  # Unused variable removed
+        #     any(char in name for char in ['+', '#', '.'])
+        #     for name in skill_names
+        # )
         
         print(f"  ✅ Extracted {len(skills)} skills with special characters")
     

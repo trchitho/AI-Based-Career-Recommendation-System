@@ -478,7 +478,7 @@ class TestPgvectorIntegration:
         corrected = nlp_corrector.correct_ocr_typos(ocr_text_with_typos)
         
         # Create embedding from corrected text
-        embedding = self.vector_db.create_embedding(corrected['corrected_text'])
+        # embedding = self.vector_db.create_embedding(corrected['corrected_text'])  # Unused variable removed
         
         # Search jobs
         skills = ['Python', 'JavaScript', 'React', 'Docker']

@@ -618,11 +618,11 @@ class TestOCRHandwriting:
         )
         
         # Should have clear warning
-        warning_messages = [
-            "Phát hiện chữ viết tay trong CV",
-            "Chữ viết tay có thể không được nhận diện chính xác",
-            "Khuyến nghị: Sử dụng CV đánh máy hoặc file PDF"
-        ]
+        # warning_messages = [  # Unused variable removed
+        #     "Phát hiện chữ viết tay trong CV",
+        #     "Chữ viết tay có thể không được nhận diện chính xác",
+        #     "Khuyến nghị: Sử dụng CV đánh máy hoặc file PDF"
+        # ]
         
         # At least one warning should be present
         has_warning = len(ocr_result['warnings']) > 0

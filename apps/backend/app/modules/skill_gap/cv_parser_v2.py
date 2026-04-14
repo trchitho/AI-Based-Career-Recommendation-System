@@ -46,7 +46,7 @@ class CVParserV2:
                 return ''
             
             print(f"Using CV analysis stream: {cv_stream.model_name}")
-            model = cv_stream.model
+            # model = cv_stream.model  # Unused variable removed
             
             prompt = """
 Read this CV/Resume image carefully and extract ALL text content.
@@ -636,7 +636,7 @@ Use clear formatting with line breaks between sections.
             model_name = model_name.replace('models/', '').replace('model/', '')
             
             print(f"Using Gemini model: {model_name}")
-            model = genai.GenerativeModel(model_name)
+            # model = genai.GenerativeModel(model_name)  # Unused variable removed
             
             # Use full CV text
             cv_text = text[:20000]  # Up to 20k chars

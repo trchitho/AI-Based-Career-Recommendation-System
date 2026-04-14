@@ -57,7 +57,7 @@ class VNPayService:
             
             # Tạo thời gian
             create_date = datetime.now().strftime('%Y%m%d%H%M%S')
-            expire_date = datetime.now().strftime('%Y%m%d%H%M%S')
+            # expire_date = datetime.now().strftime('%Y%m%d%H%M%S')  # Unused variable removed
             
             # Params theo thứ tự alphabet
             vnp_params = {
