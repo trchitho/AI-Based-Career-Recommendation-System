@@ -105,7 +105,28 @@ async def submit_answer(
             request.session_id, request.answer, request.has_audio, request.audio_duration, request.is_skipped
         )
 
-        if result["status"] == "continue":
+        # Handle different response types
+        if result["status"] == "guidance_needed":
+            return SubmitAnswerResponse(
+                status="guidance_needed",
+                message=result["message"],
+                guidance=result["guidance"],
+                original_question=result["original_question"],
+                question_type=result["question_type"],
+                question_number=result["question_number"]
+            )
+        elif result["status"] == "skipped_guidance":
+            return SubmitAnswerResponse(
+                status="skipped_guidance", 
+                message=result["message"],
+                guidance=result["guidance"],
+                original_question=result["original_question"],
+                question_type=result["question_type"],
+                question_number=result["question_number"],
+                can_retry=result["can_retry"],
+                skip_count=result["skip_count"]
+            )
+        elif result["status"] == "continue":
             return SubmitAnswerResponse(
                 status="continue",
                 evaluation=result.get("evaluation"),
@@ -120,6 +141,47 @@ async def submit_answer(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Lỗi khi xử lý câu trả lời: {str(e)}")
+
+
+@router.post("/force-skip")
+async def force_skip_question(
+    session_id: int,
+    current_user: User = Depends(get_current_user_from_token),
+    service: InterviewService = Depends(get_interview_service),
+):
+    """
+    Force skip current question and move to next (when user confirms skip)
+    
+    - **session_id**: ID của phiên phỏng vấn
+    """
+    try:
+        # Kiểm tra quyền truy cập session
+        session = (
+            service.db.query(InterviewSession)
+            .filter(InterviewSession.id == session_id, InterviewSession.user_id == current_user.id)
+            .first()
+        )
+
+        if not session:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bạn không có quyền truy cập phiên phỏng vấn này")
+
+        result = service.force_skip_question(session_id)
+
+        if result["status"] == "continue":
+            return SubmitAnswerResponse(
+                status="continue",
+                evaluation=result.get("evaluation"),
+                next_question=result["question"],
+                question_number=result["question_number"],
+                question_type=result["question_type"],
+            )
+        else:
+            return SubmitAnswerResponse(status="completed", evaluation=result.get("evaluation"), final_summary=result["summary"])
+
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Lỗi khi bỏ qua câu hỏi: {str(e)}")
 
 
 @router.get("/session/{session_id}", response_model=InterviewHistoryResponse)
@@ -568,16 +630,16 @@ async def health_check(service: InterviewService = Depends(get_interview_service
     except Exception as e:
         neo4j_status = f"error: {str(e)}"
 
-    # Test Gemini API
+    # Test Interview Gemini Stream
     try:
-        if service.gemini.model:
-            gemini_status = "configured"
+        if service.gemini.stream_manager.is_available():
+            gemini_status = f"available ({service.gemini.stream_manager.active_model_name or 'not initialized'})"
         else:
-            gemini_status = "not configured"
+            gemini_status = "not available"
     except Exception as e:
         gemini_status = f"error: {str(e)}"
 
-    return {"status": "ok", "services": {"postgres": postgres_status, "neo4j": neo4j_status, "gemini": gemini_status}}
+    return {"status": "ok", "services": {"postgres": postgres_status, "neo4j": neo4j_status, "interview_gemini": gemini_status}}
 
 
 # Import models để tránh circular import

@@ -1,28 +1,19 @@
 """
 AI Mock Interview Services
-Tích hợp Gemini API, Neo4j và PostgreSQL
+Tích hợp Gemini API, Neo4j và PostgreSQL với 4-Stream System
 """
 
 import json
 import os
+import re
 from datetime import datetime
 from typing import Dict, List, Optional
 
-import google.generativeai as genai
-from neo4j import GraphDatabase
 from sqlalchemy.orm import Session
+from neo4j import GraphDatabase
 
+from ...core.gemini_manager import multi_stream_manager
 from .models import InterviewMessage, InterviewSession
-
-# Cấu hình Gemini API
-try:
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
-    if gemini_api_key:
-        genai.configure(api_key=gemini_api_key)
-    else:
-        print("⚠️ GEMINI_API_KEY not found in environment variables")
-except Exception as e:
-    print(f"⚠️ Failed to configure Gemini API: {e}")
 
 
 class Neo4jService:
@@ -310,18 +301,11 @@ class Neo4jService:
 
 
 class GeminiService:
-    """Service để tương tác với Gemini AI"""
+    """Service để tương tác với Gemini AI sử dụng Interview Stream"""
 
     def __init__(self):
-        try:
-            model_name = os.getenv("GEMINI_MODEL", "models/gemma-3-12b-it")
-            self.model = genai.GenerativeModel(model_name)
-            self.model_name = model_name
-            print(f"✅ Gemini AI model initialized: {model_name}")
-        except Exception as e:
-            print(f"⚠️ Failed to initialize Gemini model: {e}")
-            self.model = None
-            self.model_name = None
+        self.stream_manager = multi_stream_manager.get_interview_stream()
+        print(f"✅ Interview Gemini service initialized with stream: {self.stream_manager.stream_type.value}")
 
     def generate_interview_start(self, job_title: str, skills_context: List[Dict]) -> Dict:
         """Tạo lời chào và câu hỏi đầu tiên"""
@@ -331,15 +315,14 @@ Trả về JSON (chỉ JSON):
 {{"greeting": "...", "first_question": "..."}}"""
 
         try:
-            if self.model:
-                response = self.model.generate_content(prompt)
+            response_text = self.stream_manager.generate_content_with_retry(prompt)
+            if response_text:
                 import re as _re
-
-                match = _re.search(r"\{[\s\S]*\}", response.text)
+                match = _re.search(r"\{[\s\S]*\}", response_text)
                 if match:
                     return json.loads(match.group())
         except Exception as e:
-            print(f"⚠️ Gemini API failed: {e}")
+            print(f"⚠️ Interview Gemini API failed: {e}")
 
         return {
             "greeting": f"Xin chào! Tôi là HR Manager và sẽ phỏng vấn bạn cho vị trí {job_title}. Buổi phỏng vấn khoảng 15-20 phút với 5 câu hỏi. Hãy thư giãn nhé!",
@@ -367,11 +350,11 @@ Loại câu hỏi: {question_type}{history_note}
             prompt += "\nHãy đặt câu hỏi KHÁC, không lặp lại nội dung trên."
 
         try:
-            if self.model:
-                response = self.model.generate_content(prompt)
-                return response.text.strip()
+            response_text = self.stream_manager.generate_content_with_retry(prompt)
+            if response_text:
+                return response_text.strip()
         except Exception as e:
-            print(f"⚠️ Gemini API failed: {e}")
+            print(f"⚠️ Interview Gemini API failed: {e}")
 
         # Fallback: rotate through different question templates based on history length
         session_skills = skills_context[0]["skill_name"] if skills_context else "kỹ năng chuyên môn"
@@ -452,13 +435,12 @@ Câu trả lời của ứng viên: {user_answer}{skill_context}{question_contex
 }}"""
 
         try:
-            if self.gemini.model:
-                response = self.gemini.model.generate_content(prompt)
-                text = response.text.strip()
+            response_text = self.stream_manager.generate_content_with_retry(prompt)
+            if response_text:
                 # Extract JSON robustly - find outermost { }
                 import re as _re
 
-                match = _re.search(r"\{[\s\S]*\}", text)
+                match = _re.search(r"\{[\s\S]*\}", response_text)
                 if not match:
                     raise ValueError("No JSON found in response")
                 result = json.loads(match.group())
@@ -468,7 +450,7 @@ Câu trả lời của ứng viên: {user_answer}{skill_context}{question_contex
                     result["score"] = round(sum(v for v in ds.values() if v) / len(ds), 1)
                 return result
         except Exception as e:
-            print(f"⚠️ Gemini API failed: {e}")
+            print(f"⚠️ Interview Gemini API failed: {e}")
 
         # Fallback evaluation
         answer_len = len(user_answer.strip())
@@ -537,17 +519,16 @@ Trả về JSON (chỉ JSON, không có text khác):
 }}"""
 
         try:
-            if self.model:
-                response = self.model.generate_content(prompt)
+            response_text = self.stream_manager.generate_content_with_retry(prompt)
+            if response_text:
                 import re as _re
-
-                match = _re.search(r"\{[\s\S]*\}", response.text)
+                match = _re.search(r"\{[\s\S]*\}", response_text)
                 if match:
                     result = json.loads(match.group())
                     result["overall_score"] = avg_score
                     return result
         except Exception as e:
-            print(f"⚠️ Gemini API failed: {e}")
+            print(f"⚠️ Interview Gemini API failed: {e}")
 
         # Fallback summary
         if avg_score >= 7.5:
@@ -620,11 +601,26 @@ class InterviewService:
 
         # Fallback for other counts - proportional distribution
         if question_count not in distributions:
+            # Handle edge cases: negative or zero counts
+            if question_count <= 0:
+                return {"warm_up": 0, "technical": 0, "behavioral": 0, "situational": 0}
+            
             warm_up = 1
             remaining = question_count - 1
-            technical = max(2, remaining // 2)  # At least 2 technical
-            behavioral = max(1, remaining // 3)  # At least 1 behavioral
-            situational = remaining - technical - behavioral
+            
+            # Ensure non-negative values
+            if remaining <= 0:
+                return {"warm_up": 1, "technical": 0, "behavioral": 0, "situational": 0}
+            elif remaining == 1:  # count = 2
+                return {"warm_up": 1, "technical": 1, "behavioral": 0, "situational": 0}
+            
+            technical = max(1, remaining // 2)  # At least 1 technical
+            behavioral = max(1, remaining // 3)  # At least 1 behavioral  
+            situational = max(0, remaining - technical - behavioral)  # Ensure non-negative
+            
+            # Special adjustment for count=3 to ensure total=3
+            if question_count == 3:
+                return {"warm_up": 1, "technical": 1, "behavioral": 1, "situational": 0}
             return {"warm_up": warm_up, "technical": technical, "behavioral": behavioral, "situational": situational}
 
         return distributions[question_count]
@@ -796,9 +792,8 @@ class InterviewService:
 
         result = sorted(tasks, key=lambda x: -x.get("importance", 0))[:5]
         try:
-            if self.gemini.model:
-                task_list = "\n".join([f"{i + 1}. {t['task_en']}" for i, t in enumerate(tasks[:20])])
-                prompt = f"""You are selecting the 5 most important tasks for occupation code {job_id}.
+            task_list = "\n".join([f"{i + 1}. {t['task_en']}" for i, t in enumerate(tasks[:20])])
+            prompt = f"""You are selecting the 5 most important tasks for occupation code {job_id}.
 From this list, pick the 5 most distinctive and important ones.
 List:
 {task_list}
@@ -806,13 +801,13 @@ List:
 Respond with ONLY a JSON object, no explanation:
 {{"selected_indices": [1, 2, 3, 4, 5]}}"""
 
-                response = self.gemini.model.generate_content(prompt)
-                text = response.text.strip()
+            response_text = self.gemini.stream_manager.generate_content_with_retry(prompt)
+            if response_text:
                 # Extract JSON robustly
                 import json as _json
                 import re as _re
 
-                match = _re.search(r'\{[^{}]*"selected_indices"[^{}]*\}', text, _re.DOTALL)
+                match = _re.search(r'\{[^{}]*"selected_indices"[^{}]*\}', response_text, _re.DOTALL)
                 if match:
                     indices = _json.loads(match.group()).get("selected_indices", [])[:5]
                     selected = [tasks[i - 1] for i in indices if 1 <= i <= len(tasks)]
@@ -929,10 +924,75 @@ Respond with ONLY a JSON object, no explanation:
 
         return session
 
+    def _validate_answer_relevance(self, question: str, answer: str, job_title: str, question_type: str) -> Dict:
+        """Validate if answer is relevant to the question and provide guidance if not"""
+        if not answer or len(answer.strip()) < 3:
+            return {"is_relevant": False, "reason": "empty", "guidance": None}
+        
+        # Check for obviously irrelevant answers
+        irrelevant_patterns = [
+            r'^\d+\s*(giờ|h|pm|am|:\d+)',  # Time patterns like "6 giờ", "6h", "6:30"
+            r'^(ok|okay|yes|no|không|có|được|good|bad|maybe|hmm|wow|cool|nice)$',  # Single word responses
+            r'^[^\w\s]*$',  # Only punctuation/symbols
+            r'^\d+$',  # Only numbers
+            r'^(haha|hehe|lol|:D|:P|\.\.\.)$',  # Casual expressions
+        ]
+        
+        answer_clean = answer.strip().lower()
+        
+        # Check patterns
+        for pattern in irrelevant_patterns:
+            if re.match(pattern, answer_clean):
+                return {
+                    "is_relevant": False, 
+                    "reason": "pattern_match",
+                    "guidance": self._generate_guidance_for_irrelevant_answer(question, question_type, job_title)
+                }
+        
+        # Use AI to check relevance for more complex cases
+        try:
+            relevance_prompt = f"""Đánh giá câu trả lời có liên quan đến câu hỏi phỏng vấn không:
+
+Câu hỏi: {question}
+Câu trả lời: {answer}
+Vị trí: {job_title}
+
+Trả về JSON (chỉ JSON):
+{{"is_relevant": true/false, "confidence": 0.0-1.0, "reason": "lý do ngắn gọn"}}"""
+
+            response_text = self.gemini.stream_manager.generate_content_with_retry(relevance_prompt)
+            if response_text:
+                import json as _json
+                import re as _re
+                match = _re.search(r'\{[^{}]*"is_relevant"[^{}]*\}', response_text)
+                if match:
+                    result = _json.loads(match.group())
+                    if not result.get("is_relevant", True) and result.get("confidence", 0) > 0.7:
+                        return {
+                            "is_relevant": False,
+                            "reason": "ai_detected", 
+                            "guidance": self._generate_guidance_for_irrelevant_answer(question, question_type, job_title)
+                        }
+        except Exception:
+            pass
+        
+        return {"is_relevant": True, "reason": "relevant", "guidance": None}
+
+    def _generate_guidance_for_irrelevant_answer(self, question: str, question_type: str, job_title: str) -> str:
+        """Generate guidance for irrelevant answers"""
+        guidance_templates = {
+            "warm_up": f"Hãy chia sẻ về động lực và mục tiêu của bạn khi ứng tuyển vị trí {job_title}. Câu trả lời nên thể hiện sự hiểu biết về công việc và lý do bạn phù hợp.",
+            "technical": f"Đây là câu hỏi kỹ thuật về {job_title}. Hãy chia sẻ kinh nghiệm, kỹ năng hoặc công cụ cụ thể mà bạn đã sử dụng. Nếu chưa có kinh nghiệm, hãy nói về cách bạn sẽ học hỏi.",
+            "behavioral": f"Câu hỏi này yêu cầu bạn chia sẻ kinh nghiệm thực tế từ quá khứ cho vị trí {job_title}. Hãy sử dụng phương pháp STAR: Tình huống (S) → Nhiệm vụ (T) → Hành động (A) → Kết quả (R).",
+            "situational": f"Đây là câu hỏi tình huống giả định cho vị trí {job_title}. Hãy mô tả cách bạn sẽ xử lý tình huống này, bao gồm các bước cụ thể và lý do đằng sau quyết định của bạn."
+        }
+        
+        return guidance_templates.get(question_type, f"Hãy trả lời câu hỏi một cách cụ thể và liên quan đến vị trí {job_title}. Câu trả lời nên thể hiện kỹ năng và kinh nghiệm của bạn.")
+
     def submit_answer(
         self, session_id: int, user_answer: str, has_audio: bool = False, audio_duration: float = None, is_skipped: bool = False
     ) -> Dict:
-        """Gửi câu trả lời và nhận câu hỏi tiếp theo"""
+        """Gửi câu trả lời và nhận câu hỏi tiếp theo với intelligent validation"""
         session = self.db.query(InterviewSession).filter(InterviewSession.id == session_id).first()
         if not session or session.status != "active":
             raise ValueError("Phiên phỏng vấn không hợp lệ hoặc đã kết thúc")
@@ -948,46 +1008,33 @@ Respond with ONLY a JSON object, no explanation:
         if not last_question:
             raise ValueError("Không tìm thấy câu hỏi để trả lời")
 
-        is_skipped = is_skipped or user_answer.strip() == ""
+        # Enhanced skip detection
+        is_skipped = is_skipped or user_answer.strip() == "" or user_answer.strip().lower() in ["skip", "bỏ qua", "next"]
+        
+        # Validate answer relevance if not skipped
+        if not is_skipped:
+            relevance_check = self._validate_answer_relevance(
+                last_question.content, 
+                user_answer, 
+                session.job_title, 
+                last_question.question_type or "general"
+            )
+            
+            # If answer is irrelevant, provide guidance and ask for clarification
+            if not relevance_check["is_relevant"]:
+                return {
+                    "status": "guidance_needed",
+                    "message": "Câu trả lời chưa liên quan đến câu hỏi",
+                    "guidance": relevance_check["guidance"],
+                    "original_question": last_question.content,
+                    "question_type": last_question.question_type,
+                    "question_number": last_question.question_number,
+                    "reason": relevance_check["reason"]
+                }
 
         if is_skipped:
-            # Dùng Gemini tạo gợi ý thực sự cho câu hỏi bị bỏ qua
-            suggestion = "Hãy cố gắng trả lời câu hỏi này trong lần phỏng vấn tiếp theo."
-            try:
-                if self.gemini.model:
-                    hint_prompt = f"""Ứng viên bỏ qua câu hỏi phỏng vấn sau cho vị trí {session.job_title}:
-"{last_question.content}"
-
-Hãy đưa ra gợi ý ngắn gọn (2-3 câu) về cách trả lời câu hỏi này hiệu quả. Chỉ trả về gợi ý, không giải thích thêm."""
-                    resp = self.gemini.model.generate_content(hint_prompt)
-                    if resp.text.strip():
-                        suggestion = resp.text.strip()
-            except Exception:
-                pass
-
-            answer_msg = InterviewMessage(
-                session_id=session_id,
-                role="candidate",
-                content="",
-                question_type=f"answer_{last_question.question_type}" if last_question.question_type else "answer",
-                question_number=last_question.question_number,
-                score=None,
-                detailed_scores=None,
-                feedback=None,
-                strengths=None,
-                weaknesses=None,
-                suggestion=suggestion,
-                has_audio=False,
-                audio_duration=None,
-            )
-            evaluation = {
-                "score": None,
-                "detailed_scores": None,
-                "feedback": None,
-                "strengths": None,
-                "weaknesses": None,
-                "suggestion": suggestion,
-            }
+            # Enhanced skip handling with better guidance
+            return self._handle_skipped_question(session, last_question)
         else:
             # Đánh giá câu trả lời bình thường với context kỹ năng
             evaluation = self.gemini.evaluate_answer(
@@ -1038,6 +1085,133 @@ Hãy đưa ra gợi ý ngắn gọn (2-3 câu) về cách trả lời câu hỏi
             next_result = self._generate_next_question(session)
             next_result["evaluation"] = evaluation
             return next_result
+
+    def _handle_skipped_question(self, session: InterviewSession, last_question: InterviewMessage) -> Dict:
+        """Handle skipped questions with enhanced guidance and no progression"""
+        
+        # Generate contextual guidance for the skipped question
+        try:
+            guidance_prompt = f"""Ứng viên bỏ qua câu hỏi phỏng vấn cho vị trí {session.job_title}:
+"{last_question.content}"
+
+Loại câu hỏi: {last_question.question_type}
+Kỹ năng đang test: {', '.join(last_question.skills_tested or [])}
+
+Hãy tạo:
+1. Lời khuyên cụ thể về cách trả lời (2-3 câu)
+2. Ví dụ câu trả lời mẫu ngắn gọn
+3. Lý do tại sao câu hỏi này quan trọng
+
+Trả về JSON:
+{{"advice": "...", "example": "...", "importance": "..."}}"""
+
+            response_text = self.gemini.stream_manager.generate_content_with_retry(guidance_prompt)
+            guidance_data = {"advice": "Hãy cố gắng trả lời câu hỏi để thể hiện năng lực của bạn.", "example": "", "importance": ""}
+            
+            if response_text:
+                import json as _json
+                import re as _re
+                match = _re.search(r'\{[\s\S]*\}', response_text)
+                if match:
+                    try:
+                        guidance_data = _json.loads(match.group())
+                    except:
+                        pass
+        except Exception:
+            guidance_data = {
+                "advice": "Hãy cố gắng trả lời câu hỏi để thể hiện năng lực của bạn.",
+                "example": "Ví dụ: Chia sẻ kinh nghiệm cụ thể hoặc cách bạn sẽ xử lý tình huống.",
+                "importance": "Câu hỏi này giúp đánh giá kỹ năng quan trọng cho vị trí này."
+            }
+
+        # Return guidance without progressing to next question
+        guidance_text = f"{guidance_data.get('advice', '')} {guidance_data.get('example', '')} {guidance_data.get('importance', '')}"
+        return {
+            "status": "skipped_guidance",
+            "message": "Bạn đã bỏ qua câu hỏi này",
+            "guidance": guidance_text.strip(),
+            "original_question": last_question.content,
+            "question_type": last_question.question_type,
+            "question_number": last_question.question_number,
+            "skills_tested": last_question.skills_tested or [],
+            "can_retry": True,
+            "skip_count": self._get_skip_count(session.id)
+        }
+
+    def force_skip_question(self, session_id: int) -> Dict:
+        """Force skip current question and move to next (when user confirms skip)"""
+        session = self.db.query(InterviewSession).filter(InterviewSession.id == session_id).first()
+        if not session or session.status != "active":
+            raise ValueError("Phiên phỏng vấn không hợp lệ hoặc đã kết thúc")
+
+        # Get last question
+        last_question = (
+            self.db.query(InterviewMessage)
+            .filter(InterviewMessage.session_id == session_id, InterviewMessage.role == "interviewer")
+            .order_by(InterviewMessage.timestamp.desc())
+            .first()
+        )
+
+        if not last_question:
+            raise ValueError("Không tìm thấy câu hỏi để bỏ qua")
+
+        # Save skipped answer
+        answer_msg = InterviewMessage(
+            session_id=session_id,
+            role="candidate",
+            content="(Đã bỏ qua)",
+            question_type=f"answer_{last_question.question_type}" if last_question.question_type else "answer",
+            question_number=last_question.question_number,
+            score=0,  # Low score for skipped
+            detailed_scores={"technical": 0, "logic": 0, "communication": 0, "experience": 0, "attitude": 0},
+            feedback="Câu hỏi đã được bỏ qua. Hãy cố gắng trả lời đầy đủ các câu hỏi tiếp theo.",
+            strengths=[],
+            weaknesses=["Bỏ qua câu hỏi"],
+            suggestion="Trong các câu hỏi tiếp theo, hãy cố gắng trả lời đầy đủ để thể hiện năng lực.",
+            has_audio=False,
+            audio_duration=None,
+        )
+        self.db.add(answer_msg)
+
+        # Check if interview should continue
+        question_count = (
+            self.db.query(InterviewMessage)
+            .filter(
+                InterviewMessage.session_id == session_id,
+                InterviewMessage.role == "interviewer",
+                InterviewMessage.question_type != "greeting",
+            )
+            .count()
+        )
+
+        max_questions = session.question_count or 5
+
+        if question_count >= max_questions:
+            # End interview
+            finish_result = self._finish_interview(session)
+            finish_result["evaluation"] = {
+                "score": 0,
+                "feedback": "Câu hỏi đã được bỏ qua",
+                "suggestion": "Hãy chuẩn bị tốt hơn cho lần phỏng vấn tiếp theo"
+            }
+            return finish_result
+        else:
+            # Generate next question
+            next_result = self._generate_next_question(session)
+            next_result["evaluation"] = {
+                "score": 0,
+                "feedback": "Câu hỏi đã được bỏ qua",
+                "suggestion": "Hãy cố gắng trả lời câu hỏi tiếp theo đầy đủ"
+            }
+            return next_result
+
+    def _get_skip_count(self, session_id: int) -> int:
+        """Get number of skipped questions in this session"""
+        return self.db.query(InterviewMessage).filter(
+            InterviewMessage.session_id == session_id,
+            InterviewMessage.role == "candidate",
+            InterviewMessage.content == ""
+        ).count()
 
     def _generate_next_question(self, session: InterviewSession, suggested_question: str = None) -> Dict:
         """Tạo câu hỏi tiếp theo dựa trên phân bố động"""

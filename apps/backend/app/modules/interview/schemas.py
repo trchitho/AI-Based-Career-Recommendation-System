@@ -40,8 +40,7 @@ class StartInterviewRequest(BaseModel):
     job_id: str = Field(..., description="O*NET code của nghề nghiệp")
     question_count: int = Field(default=5, ge=5, le=12, description="Số lượng câu hỏi phỏng vấn (5, 7, 8, 10, 12)")
 
-    class Config:
-        json_schema_extra = {"example": {"job_id": "15-1252.00", "question_count": 7}}
+    model_config = {"json_schema_extra": {"example": {"job_id": "15-1252.00", "question_count": 7}}}
 
 
 class SubmitAnswerRequest(BaseModel):
@@ -128,8 +127,8 @@ class StartInterviewResponse(BaseModel):
     question_count: int = Field(..., description="Tổng số câu hỏi trong phiên phỏng vấn")
     question_distribution: Dict[str, int] = Field(..., description="Phân bố loại câu hỏi")
 
-    class Config:
-        json_schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "session_id": "123e4567-e89b-12d3-a456-426614174000",
                 "job_title": "Software Developer",
@@ -142,15 +141,23 @@ class StartInterviewResponse(BaseModel):
                 "question_distribution": {"warm_up": 1, "technical": 3, "behavioral": 2, "situational": 1},
             }
         }
+    }
 
 
 class SubmitAnswerResponse(BaseModel):
-    status: str  # "continue" hoặc "completed"
+    status: str  # "continue", "completed", "guidance_needed", "skipped_guidance"
     evaluation: Optional[Dict[str, Any]] = None  # Đánh giá câu trả lời hiện tại
     next_question: Optional[str] = None
     question_number: Optional[int] = None
     question_type: Optional[QuestionType] = None
     final_summary: Optional[Dict[str, Any]] = None
+    
+    # New fields for guidance functionality
+    message: Optional[str] = None  # Message for guidance cases
+    guidance: Optional[Any] = None  # Guidance data (can be string or dict)
+    original_question: Optional[str] = None  # Original question for guidance
+    can_retry: Optional[bool] = None  # Whether user can retry
+    skip_count: Optional[int] = None  # Number of skipped questions
 
 
 class InterviewHistoryResponse(BaseModel):
@@ -185,14 +192,15 @@ class ErrorResponse(BaseModel):
     message: str
     details: Optional[Dict[str, Any]] = None
 
-    class Config:
-        json_schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "error": "INVALID_SESSION",
                 "message": "Phiên phỏng vấn không hợp lệ hoặc đã kết thúc",
                 "details": {"session_id": "invalid-id"},
             }
         }
+    }
 
 
 # Statistics Schemas (for admin)

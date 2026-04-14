@@ -61,6 +61,7 @@ class GeminiStream(Enum):
     CHATBOT = "chatbot"
     ASSESSMENT = "assessment" 
     CV_ANALYSIS = "cv_analysis"
+    INTERVIEW = "interview"
 
 
 class GeminiStreamManager:
@@ -158,6 +159,8 @@ class GeminiStreamManager:
             return os.getenv('GEMINI_ASSESSMENT_API_KEY', os.getenv('GEMINI_API_KEY', ''))
         elif self.stream_type == GeminiStream.CV_ANALYSIS:
             return os.getenv('GEMINI_CV_API_KEY', os.getenv('GEMINI_API_KEY', ''))
+        elif self.stream_type == GeminiStream.INTERVIEW:
+            return os.getenv('GEMINI_INTERVIEW_API_KEY', os.getenv('GEMINI_API_KEY', ''))
         return os.getenv('GEMINI_API_KEY', '')
     
     def _get_model_name(self) -> str:
@@ -168,6 +171,8 @@ class GeminiStreamManager:
             return os.getenv('GEMINI_ASSESSMENT_MODEL', os.getenv('GEMINI_MODEL', 'gemini-flash-latest'))
         elif self.stream_type == GeminiStream.CV_ANALYSIS:
             return os.getenv('GEMINI_CV_MODEL', os.getenv('GEMINI_MODEL', 'gemini-flash-latest'))
+        elif self.stream_type == GeminiStream.INTERVIEW:
+            return os.getenv('GEMINI_INTERVIEW_MODEL', os.getenv('GEMINI_MODEL', 'gemini-flash-latest'))
         return os.getenv('GEMINI_MODEL', 'gemini-flash-latest')
     
     def is_available(self) -> bool:
@@ -346,11 +351,13 @@ class MultiStreamGeminiManager:
         self.chatbot_stream = GeminiStreamManager(GeminiStream.CHATBOT)
         self.assessment_stream = GeminiStreamManager(GeminiStream.ASSESSMENT)
         self.cv_stream = GeminiStreamManager(GeminiStream.CV_ANALYSIS)
+        self.interview_stream = GeminiStreamManager(GeminiStream.INTERVIEW)
         
         print("[start] Multi-stream Gemini Manager initialized (lazy mode)")
         print("   Chatbot: [pkg] Ready (will init on first use)")
         print("   Assessment: [pkg] Ready (will init on first use)")
         print("   CV Analysis: [pkg] Ready (will init on first use)")
+        print("   Interview: [pkg] Ready (will init on first use)")
     
     def get_stream(self, stream_type: GeminiStream) -> GeminiStreamManager:
         """Get specific stream manager"""
@@ -360,6 +367,8 @@ class MultiStreamGeminiManager:
             return self.assessment_stream
         elif stream_type == GeminiStream.CV_ANALYSIS:
             return self.cv_stream
+        elif stream_type == GeminiStream.INTERVIEW:
+            return self.interview_stream
         else:
             raise ValueError(f"Unknown stream type: {stream_type}")
     
@@ -374,6 +383,10 @@ class MultiStreamGeminiManager:
     def get_cv_stream(self) -> GeminiStreamManager:
         """Get CV analysis stream"""
         return self.cv_stream
+    
+    def get_interview_stream(self) -> GeminiStreamManager:
+        """Get interview stream"""
+        return self.interview_stream
     
     def check_all_streams_status(self) -> Dict[str, Dict[str, any]]:
         """Check status of all streams with detailed info"""
@@ -392,6 +405,11 @@ class MultiStreamGeminiManager:
                 'available': self.cv_stream.is_available(),
                 'model': self.cv_stream.active_model_name,
                 'api_key_prefix': self.cv_stream.api_key[:20] + '...' if self.cv_stream.api_key else None
+            },
+            'interview': {
+                'available': self.interview_stream.is_available(),
+                'model': self.interview_stream.active_model_name,
+                'api_key_prefix': self.interview_stream.api_key[:20] + '...' if self.interview_stream.api_key else None
             }
         }
 
