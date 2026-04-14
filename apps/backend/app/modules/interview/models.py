@@ -4,7 +4,7 @@ Database models for AI Mock Interview feature
 
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 
 from ...core.db import Base
 
@@ -117,7 +117,7 @@ class InterviewFeedback(Base):
     __table_args__ = {"schema": "interview"}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(String, nullable=False)  # References interview.interview_sessions.id
+    session_id = Column(Integer, ForeignKey("interview.interview_sessions.id"), nullable=False)
     user_id = Column(Integer, nullable=False)  # References core.users.id
 
     # Feedback ratings (1-5 scale)
