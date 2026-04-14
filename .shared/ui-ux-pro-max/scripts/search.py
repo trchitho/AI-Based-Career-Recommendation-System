@@ -15,8 +15,9 @@ Persistence (Master + Overrides pattern):
 """
 
 import argparse
-from core import CSV_CONFIG, AVAILABLE_STACKS, MAX_RESULTS, search, search_stack
-from design_system import generate_design_system, persist_design_system
+
+from core import AVAILABLE_STACKS, CSV_CONFIG, MAX_RESULTS, search, search_stack
+from design_system import generate_design_system
 
 
 def format_output(result):
@@ -26,14 +27,14 @@ def format_output(result):
 
     output = []
     if result.get("stack"):
-        output.append(f"## UI Pro Max Stack Guidelines")
+        output.append("## UI Pro Max Stack Guidelines")
         output.append(f"**Stack:** {result['stack']} | **Query:** {result['query']}")
     else:
-        output.append(f"## UI Pro Max Search Results")
+        output.append("## UI Pro Max Search Results")
         output.append(f"**Domain:** {result['domain']} | **Query:** {result['query']}")
     output.append(f"**Source:** {result['file']} | **Found:** {result['count']} results\n")
 
-    for i, row in enumerate(result['results'], 1):
+    for i, row in enumerate(result["results"], 1):
         output.append(f"### Result {i}")
         for key, value in row.items():
             value_str = str(value)
@@ -57,42 +58,42 @@ if __name__ == "__main__":
     parser.add_argument("--project-name", "-p", type=str, default=None, help="Project name for design system output")
     parser.add_argument("--format", "-f", choices=["ascii", "markdown"], default="ascii", help="Output format for design system")
     # Persistence (Master + Overrides pattern)
-    parser.add_argument("--persist", action="store_true", help="Save design system to design-system/MASTER.md (creates hierarchical structure)")
+    parser.add_argument(
+        "--persist", action="store_true", help="Save design system to design-system/MASTER.md (creates hierarchical structure)"
+    )
     parser.add_argument("--page", type=str, default=None, help="Create page-specific override file in design-system/pages/")
-    parser.add_argument("--output-dir", "-o", type=str, default=None, help="Output directory for persisted files (default: current directory)")
+    parser.add_argument(
+        "--output-dir", "-o", type=str, default=None, help="Output directory for persisted files (default: current directory)"
+    )
 
     args = parser.parse_args()
 
     # Design system takes priority
     if args.design_system:
         result = generate_design_system(
-            args.query, 
-            args.project_name, 
-            args.format,
-            persist=args.persist,
-            page=args.page,
-            output_dir=args.output_dir
+            args.query, args.project_name, args.format, persist=args.persist, page=args.page, output_dir=args.output_dir
         )
         print(result)
-        
+
         # Print persistence confirmation
         if args.persist:
-            project_slug = args.project_name.lower().replace(' ', '-') if args.project_name else "default"
+            project_slug = args.project_name.lower().replace(" ", "-") if args.project_name else "default"
             print("\n" + "=" * 60)
             print(f"✅ Design system persisted to design-system/{project_slug}/")
             print(f"   📄 design-system/{project_slug}/MASTER.md (Global Source of Truth)")
             if args.page:
-                page_filename = args.page.lower().replace(' ', '-')
+                page_filename = args.page.lower().replace(" ", "-")
                 print(f"   📄 design-system/{project_slug}/pages/{page_filename}.md (Page Overrides)")
             print("")
             print(f"📖 Usage: When building a page, check design-system/{project_slug}/pages/[page].md first.")
-            print(f"   If exists, its rules override MASTER.md. Otherwise, use MASTER.md.")
+            print("   If exists, its rules override MASTER.md. Otherwise, use MASTER.md.")
             print("=" * 60)
     # Stack search
     elif args.stack:
         result = search_stack(args.query, args.stack, args.max_results)
         if args.json:
             import json
+
             print(json.dumps(result, indent=2, ensure_ascii=False))
         else:
             print(format_output(result))
@@ -101,6 +102,7 @@ if __name__ == "__main__":
         result = search(args.query, args.domain, args.max_results)
         if args.json:
             import json
+
             print(json.dumps(result, indent=2, ensure_ascii=False))
         else:
             print(format_output(result))
