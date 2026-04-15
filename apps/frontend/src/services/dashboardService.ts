@@ -55,40 +55,62 @@ export const dashboardService = {
           latestAssessment.id,
         );
 
-        // Use the SAME API as Results page - recommendationService.getMain()
+        // Use FAST saved recommendations for dashboard (no AI-core call)
         try {
-          const recData = await recommendationService.getMain(
-            latestAssessment.id,
-            3,
-          ); // Get top 3 careers
-          console.log(
-            '📋 [DashboardService] Recommendations from BFF:',
-            recData,
-          );
+          console.log('⚡ [DashboardService] Getting SAVED recommendations (fast)...');
+          const savedRecResponse = await api.get('/api/recommendations/saved', {
+            params: {
+              assessment_id: latestAssessment.id,
+              top_k: 3
+            }
+          });
 
-          if (recData.items && recData.items.length > 0) {
-            topCareerSuggestions = recData.items.slice(0, 3).map((career) => ({
-              id: career.career_id,
+          console.log('📋 [DashboardService] Saved recommendations response:', savedRecResponse.data);
+
+          if (savedRecResponse.data && savedRecResponse.data.length > 0) {
+            // Handle direct array response
+            topCareerSuggestions = savedRecResponse.data.slice(0, 3).map((career: any) => ({
+              id: career.career_id || career.id,
               slug: career.slug || career.career_id,
-              title: career.title_en || career.title_vi || 'Unknown Career',
+              title: career.title_vi || career.title_en || 'Unknown Career',
               description: career.description || 'No description available',
-              matchPercentage: career.display_match || career.match_score || 0,
+              matchPercentage: Math.round(career.score || 0),
             }));
 
-            console.log(
-              '✅ [DashboardService] Career suggestions from BFF:',
-              topCareerSuggestions,
-            );
+            console.log('✅ [DashboardService] Fast career suggestions loaded:', topCareerSuggestions);
+          } else if (savedRecResponse.data.items && savedRecResponse.data.items.length > 0) {
+            // Handle items wrapper response
+            topCareerSuggestions = savedRecResponse.data.items.slice(0, 3).map((career: any) => ({
+              id: career.career_id || career.id,
+              slug: career.slug || career.career_id,
+              title: career.title_vi || career.title_en || 'Unknown Career',
+              description: career.description || 'No description available',
+              matchPercentage: Math.round(career.score || 0),
+            }));
+
+            console.log('✅ [DashboardService] Fast career suggestions loaded (items):', topCareerSuggestions);
           } else {
-            console.log(
-              '⚠️ [DashboardService] No career recommendations from BFF',
-            );
+            console.log('⚠️ [DashboardService] No saved recommendations found, trying fallback...');
+
+            // Fallback: try to get fresh recommendations only if no saved data
+            try {
+              const recData = await recommendationService.getMain(latestAssessment.id, 3);
+              if (recData.items && recData.items.length > 0) {
+                topCareerSuggestions = recData.items.slice(0, 3).map((career) => ({
+                  id: career.career_id,
+                  slug: career.slug || career.career_id,
+                  title: career.title_en || career.title_vi || 'Unknown Career',
+                  description: career.description || 'No description available',
+                  matchPercentage: career.display_match || career.match_score || 0,
+                }));
+                console.log('✅ [DashboardService] Fallback recommendations loaded');
+              }
+            } catch (fallbackError) {
+              console.error('❌ [DashboardService] Fallback recommendations failed:', fallbackError);
+            }
           }
         } catch (error) {
-          console.error(
-            '❌ [DashboardService] Error fetching recommendations from BFF:',
-            error,
-          );
+          console.error('❌ [DashboardService] Error fetching saved recommendations:', error);
         }
 
         // Fetch user progress data

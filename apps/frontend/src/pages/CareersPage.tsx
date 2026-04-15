@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import { careerService, CareerItem } from '../services/careerService';
 import { Link } from 'react-router-dom';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh';
+import { useApiCallTracker } from '../hooks/useApiCallTracker';
 
 const CareersPage = () => {
   // ==========================================
@@ -19,6 +20,10 @@ const CareersPage = () => {
 
   const { hasFeature, currentPlan, getPlanInfo } = useFeatureAccess();
   const { canUseFeature, incrementUsage } = useUsageTracking();
+
+  // API call tracking and duplicate prevention
+  const { trackCall } = useApiCallTracker('CareersPage');
+  const hasLoadedRef = useRef(false);
 
   // Handle career click - REMOVED usage tracking from here
   const handleCareerClick = (career: CareerItem, isLocked: boolean) => {
@@ -42,27 +47,43 @@ const CareersPage = () => {
   };
 
   // 🟢 Lấy dữ liệu
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const query = q.trim();
-        const resp = await careerService.list({
-          page,
-          pageSize,
-          ...(query && { q: query }),
-        });
-        setItems(resp.items);
-        setTotal(resp.total);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (err) {
-        console.error('Error loading careers:', err);
-      } finally {
-        setLoading(false);
+  const fetchData = useCallback(async () => {
+    // Reset hasLoadedRef when search query or page changes
+    if (hasLoadedRef.current && page === 1 && q === '') {
+      console.log('⚠️ [CareersPage] Duplicate load attempt prevented');
+      return;
+    }
+
+    console.log(`🔄 [CareersPage] Loading careers (page: ${page}, query: "${q}")...`);
+
+    setLoading(true);
+    try {
+      const query = q.trim();
+      trackCall(`/api/careers/list?page=${page}&q=${query}`);
+      const resp = await careerService.list({
+        page,
+        pageSize,
+        ...(query && { q: query }),
+      });
+      setItems(resp.items);
+      setTotal(resp.total);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      console.log(`✅ [CareersPage] Loaded ${resp.items.length} careers (total: ${resp.total})`);
+
+      if (page === 1 && q === '') {
+        hasLoadedRef.current = true;
       }
-    };
+    } catch (err) {
+      console.error('❌ [CareersPage] Error loading careers:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, pageSize, q, trackCall]);
+
+  useEffect(() => {
     fetchData();
-  }, [page, pageSize, q]);
+  }, [fetchData]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -72,7 +93,7 @@ const CareersPage = () => {
   return (
     <MainLayout>
       <SubscriptionRefresh />
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-hidden pb-20">
+      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-hidden pb-20">
 
         {/* --- CSS INJECTION --- */}
         <style>{`
@@ -188,7 +209,7 @@ const CareersPage = () => {
                 const bgGradient = gradients[index % gradients.length];
 
                 const CardContent = (
-                  <div className={`group bg-white dark:bg-gray-800 rounded-[32px] border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-300 flex flex-col overflow-hidden h-full relative ${isLocked ? 'opacity-75' : ''}`}>
+                  <div className={`group bg-white dark:bg-gray-800 rounded-card-hero border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-slow flex flex-col overflow-hidden h-full relative ${isLocked ? 'opacity-75' : ''}`}>
 
                     {/* Premium overlay for locked careers */}
                     {isLocked && (

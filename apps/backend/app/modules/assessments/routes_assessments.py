@@ -2,29 +2,30 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.modules.assessments.schemas import AssessmentResultsOut
-from .models import Assessment, AssessmentSession
-from sqlalchemy import func
-
+from ...core.subscription import SubscriptionService
 from ..content.models import EssayPrompt
-from ...core.subscription import SubscriptionService, require_feature_access
+from .models import Assessment, AssessmentSession
+from .schemas import AssessmentResultsOut, EssaySubmitIn
 from .service import (
+    build_results,
+    fuse_user_traits,
     get_questions,
     save_assessment,
     save_essay,
-    build_results,
-    save_feedback,   # ✅ thêm
-    fuse_user_traits,
+    save_feedback,  # ✅ thêm
 )
 
 # KHÔNG thêm "/api" ở đây vì main.py đã prefix="/api/assessments"
 router = APIRouter(prefix="", tags=["assessments"])
+logger = logging.getLogger(__name__)
 
 
 # -------------------------------------------------------------------
@@ -88,9 +89,7 @@ def _current_user_id(req: Request) -> int:
     # 2) req.state.user
     user_obj = getattr(req.state, "user", None)
     if uid is None and user_obj is not None:
-        uid = getattr(user_obj, "id", None) or getattr(
-            user_obj, "user_id", None
-        )
+        uid = getattr(user_obj, "id", None) or getattr(user_obj, "user_id", None)
 
     # 3) header X-User-Id (tuỳ chọn – nếu FE muốn gửi kèm)
     if uid is None:
@@ -109,11 +108,7 @@ def _current_user_id(req: Request) -> int:
             if token:
                 try:
                     payload = _decode_jwt_payload(token)
-                    uid = (
-                        payload.get("user_id")
-                        or payload.get("sub")
-                        or payload.get("id")
-                    )
+                    uid = payload.get("user_id") or payload.get("sub") or payload.get("id")
                 except ValueError as e:
                     # Log nhẹ cho debug, nhưng vẫn coi như chưa lấy được uid
                     print(
@@ -152,6 +147,7 @@ class QuestionResponseIn(BaseModel):
 class AssessmentSubmitIn(BaseModel):
     testTypes: List[str] = []
     responses: List[QuestionResponseIn]
+    test_mode: Optional[str] = None  # 'traditional', 'story', or None
 
 
 class EssaySubmitIn(BaseModel):
@@ -221,16 +217,19 @@ def api_submit_assessment(
     user_id lấy từ _current_user_id (dựa trên req.state / header / JWT).
     """
     
+    print(f"[DEBUG] 🔥 Submit assessment - test_mode from body: {getattr(body, 'test_mode', 'NOT FOUND')}")
+    print(f"[DEBUG] 🔥 Body dump: {body.model_dump()}")
+    
     # Check subscription status
     subscription = SubscriptionService.get_user_subscription(user_id, db)
     is_premium = subscription["is_premium"]
-    
+
     if not is_premium:
         # For free users, check monthly assessment limit
         usage = SubscriptionService.get_user_usage(user_id, "assessment", db)
         current_usage = usage["usage_count"]
         limit = subscription["limits"].get("assessments_per_month", 5)
-        
+
         if current_usage >= limit:
             raise HTTPException(
                 status_code=402,  # Payment Required
@@ -240,17 +239,17 @@ def api_submit_assessment(
                     "current_usage": current_usage,
                     "limit": limit,
                     "upgrade_required": True,
-                    "reset_date": "Đầu tháng tới"
-                }
+                    "reset_date": "Đầu tháng tới",
+                },
             )
-    
+
     try:
         assessment_id = save_assessment(
             db,
             user_id=user_id,
             payload=body.model_dump(),
         )
-        
+
         # Increment usage count for non-premium users
         if not is_premium:
             SubscriptionService.increment_usage(user_id, "assessment", db)
@@ -273,8 +272,8 @@ def api_submit_assessment(
                 "current_usage": current_usage,
                 "limit": limit,
                 "remaining": max(0, limit - current_usage) if limit != -1 else -1,
-                "is_premium": is_premium
-            }
+                "is_premium": is_premium,
+            },
         }
     except ValueError as e:
         db.rollback()
@@ -291,7 +290,6 @@ def api_submit_assessment(
         )
 
 
-
 @router.post("/essay")
 def api_submit_essay(
     body: EssaySubmitIn,
@@ -301,13 +299,16 @@ def api_submit_essay(
     """
     Ghi nhận essay tự luận sau khi hoàn thành test.
     """
-    print(f"[assessments] POST /essay called: user_id={user_id}, essayText_len={len(body.essayText or '')}, promptId={body.promptId}")
+    print(
+        f"[assessments] POST /essay called: user_id={user_id}, "
+        f"essayText_len={len(body.essayText or '')}, promptId={body.promptId}"
+    )
     try:
         essay_id = save_essay(
             db,
             user_id=user_id,
             content=body.essayText,
-            prompt_id=body.promptId,   # <-- dùng promptId FE gửi
+            prompt_id=body.promptId,  # <-- dùng promptId FE gửi
             lang=body.lang,
         )
         print(f"[assessments] POST /essay: essay saved with id={essay_id}")
@@ -347,7 +348,6 @@ def api_submit_essay(
         )
 
 
-
 @router.get("/essay-prompt", response_model=EssayPromptOut)
 def api_get_essay_prompt(
     db: Session = Depends(_db),
@@ -360,12 +360,7 @@ def api_get_essay_prompt(
     - Nếu không truyền lang: random toàn bộ prompts.
     """
     if lang:
-        prompt = (
-            db.query(EssayPrompt)
-            .filter(EssayPrompt.lang == lang)
-            .order_by(func.random())
-            .first()
-        )
+        prompt = db.query(EssayPrompt).filter(EssayPrompt.lang == lang).order_by(func.random()).first()
         if prompt is None:
             prompt = db.query(EssayPrompt).order_by(func.random()).first()
     else:
@@ -419,7 +414,7 @@ def api_submit_feedback(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to submit feedback",
         )
-    
+
 
 @router.get("/{assessment_id}/results", response_model=AssessmentResultsOut)
 def get_assessment_results(
@@ -478,56 +473,45 @@ def get_session_results(
     """
     try:
         # Lấy tất cả assessments trong session
-        assessments = db.query(Assessment).filter(
-            Assessment.session_id == session_id
-        ).all()
-        
+        assessments = db.query(Assessment).filter(Assessment.session_id == session_id).all()
+
         if not assessments:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Session not found"
-            )
-        
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
         # Kiểm tra quyền truy cập
         if assessments[0].user_id != current_user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not allowed to view this session"
-            )
-        
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed to view this session")
+
         riasec_assessment = None
         bigfive_assessment = None
-        
+
         for assessment in assessments:
             if assessment.a_type == "RIASEC":
                 riasec_assessment = assessment
             elif assessment.a_type == "BigFive":
                 bigfive_assessment = assessment
-        
+
         # Build results cho từng loại
         riasec_results = None
         bigfive_results = None
-        
+
         if riasec_assessment:
             riasec_results = build_results(db, riasec_assessment.id)
-        
+
         if bigfive_assessment:
             bigfive_results = build_results(db, bigfive_assessment.id)
-        
+
         return {
             "session_id": session_id,
             "user_id": current_user_id,
             "riasec": riasec_results,
             "bigfive": bigfive_results,
-            "created_at": assessments[0].created_at.isoformat() if assessments else None
+            "created_at": assessments[0].created_at.isoformat() if assessments else None,
         }
-        
+
     except Exception as e:
         print(f"[assessments] get_session_results error: {repr(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get session results"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get session results")
 
 
 @router.get("/user/sessions")
@@ -540,35 +524,45 @@ def get_user_sessions(
     """
     try:
         # Lấy sessions của user
-        sessions_query = db.query(AssessmentSession).filter(
-            AssessmentSession.user_id == current_user_id
-        ).order_by(AssessmentSession.created_at.desc()).all()
-        
+        sessions_query = (
+            db.query(AssessmentSession)
+            .filter(AssessmentSession.user_id == current_user_id)
+            .order_by(AssessmentSession.created_at.desc())
+            .all()
+        )
+
         sessions_data = []
         for session in sessions_query:
             # Lấy assessments trong session này
-            assessments = db.query(Assessment).filter(
-                Assessment.session_id == session.id
-            ).all()
-            
+            assessments = db.query(Assessment).filter(Assessment.session_id == session.id).all()
+
             if not assessments:
                 continue
-            
+
             assessment_types = [a.a_type for a in assessments]
-            
+
             # Get primary assessment ID (first assessment in session)
             primary_assessment_id = assessments[0].id if assessments else session.id
-            
+
             # Get RIASEC and BigFive scores from assessments
             riasec_scores = None
             big_five_scores = None
+            test_mode = None  # Track test_mode from assessments
             
             for assessment in assessments:
+                # Get test_mode from any assessment in the session
+                if assessment.test_mode and not test_mode:
+                    test_mode = assessment.test_mode
+                    
                 if assessment.a_type == "RIASEC" and assessment.scores:
                     # Convert raw scores (1-5) to percentage (0-100)
                     riasec_name_map = {
-                        "R": "realistic", "I": "investigative", "A": "artistic",
-                        "S": "social", "E": "enterprising", "C": "conventional"
+                        "R": "realistic",
+                        "I": "investigative",
+                        "A": "artistic",
+                        "S": "social",
+                        "E": "enterprising",
+                        "C": "conventional",
                     }
                     riasec_scores = {}
                     for letter, name in riasec_name_map.items():
@@ -578,12 +572,15 @@ def get_user_sessions(
                             riasec_scores[name] = round(max(0, min(100, percent)), 1)
                         else:
                             riasec_scores[name] = 0.0
-                            
+
                 elif assessment.a_type == "BigFive" and assessment.scores:
                     # Convert raw scores (1-5) to percentage (0-100)
                     big5_name_map = {
-                        "O": "openness", "C": "conscientiousness", "E": "extraversion",
-                        "A": "agreeableness", "N": "neuroticism"
+                        "O": "openness",
+                        "C": "conscientiousness",
+                        "E": "extraversion",
+                        "A": "agreeableness",
+                        "N": "neuroticism",
                     }
                     big_five_scores = {}
                     for letter, name in big5_name_map.items():
@@ -601,6 +598,7 @@ def get_user_sessions(
                 "completed_at": session.created_at.isoformat(),
                 "assessment_count": len(assessments),
                 "assessment_types": ", ".join(assessment_types),
+                "test_mode": test_mode,
                 "riasec_scores": riasec_scores,
                 "big_five_scores": big_five_scores,
             })
@@ -609,13 +607,9 @@ def get_user_sessions(
             "user_id": current_user_id,
             "sessions": sessions_data
         }
-        
     except Exception as e:
         print(f"[assessments] get_user_sessions error: {repr(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get user sessions"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get user sessions")
 
 
 class SaveResultsIn(BaseModel):
@@ -639,27 +633,24 @@ def api_save_processed_results(
     try:
         # TODO: Tạm thời bỏ check user_id để test - BẬT LẠI SAU
         # Verify assessment belongs to user
-        assessment = db.query(Assessment).filter(
-            Assessment.id == assessment_id,
-            # Assessment.user_id == user_id  # Tạm comment
-        ).first()
-        
-        if not assessment:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Assessment not found"
+        assessment = (
+            db.query(Assessment)
+            .filter(
+                Assessment.id == assessment_id,
+                # Assessment.user_id == user_id  # Tạm comment
             )
-        
+            .first()
+        )
+
+        if not assessment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+
         # Update assessment with processed results if needed
         # For now, just return success since results are already stored
         # during assessment submission
-        
-        return {
-            "ok": True,
-            "message": "Results saved successfully",
-            "assessment_id": assessment_id
-        }
-        
+
+        return {"ok": True, "message": "Results saved successfully", "assessment_id": assessment_id}
+
     except HTTPException:
         raise
     except Exception as e:
@@ -669,3 +660,201 @@ def api_save_processed_results(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to save results"
         )
+
+
+# -------------------------------------------------------------------
+# Voice Analysis Endpoint
+# -------------------------------------------------------------------
+
+@router.post("/{assessment_id}/voice")
+async def api_submit_voice(
+    assessment_id: int,
+    audio: UploadFile = File(...),
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Nhận file audio, phân tích personality bằng Gemini multimodal,
+    lưu kết quả vào Assessment.essay_analysis và ai.user_trait_preds.
+
+    POST /api/assessments/{assessment_id}/voice
+    Form-data: audio (file)
+    """
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+
+    from .voice_analyzer import analyse_voice, save_voice_traits
+
+    try:
+        # ---- 1. Validate ----
+        content_type = (audio.content_type or "").lower()
+        allowed = content_type.startswith("audio/") or content_type == "application/octet-stream"
+        if not allowed:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="Only audio files are accepted",
+            )
+
+        MAX_SIZE = 20 * 1024 * 1024
+        audio_bytes = await audio.read(MAX_SIZE + 1)
+        if len(audio_bytes) > MAX_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="Audio file too large (max 20 MB)",
+            )
+
+        mime_type = content_type if content_type.startswith("audio/") else "audio/webm"
+        print(
+            f"[assessments] Voice upload: assessment_id={assessment_id} "
+            f"user_id={user_id} size={len(audio_bytes)} bytes mime={mime_type!r}"
+        )
+
+        # ---- 2. Analyse with Gemini (run sync Gemini call in thread pool) ----
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            analysis = await loop.run_in_executor(
+                pool, analyse_voice, audio_bytes, mime_type
+            )
+
+        print(
+            f"[assessments] Voice analysis done: confidence={analysis.get('confidence')}, "
+            f"has_transcript={bool(analysis.get('transcript'))}"
+        )
+
+        # ---- 3. Persist results ----
+        save_voice_traits(db, user_id=user_id, assessment_id=assessment_id, analysis=analysis)
+
+        return {
+            "ok": True,
+            "assessment_id": assessment_id,
+            "confidence": analysis.get("confidence", 0.0),
+            "voice_summary": analysis.get("voice_summary", ""),
+            "transcript_preview": (analysis.get("transcript") or "")[:120],
+            "big5": analysis.get("big5"),
+            "riasec": analysis.get("riasec"),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[assessments] voice endpoint error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process voice recording",
+        )
+
+
+# -------------------------------------------------------------------
+# Voice Transcript Edit Endpoint — TC05.2
+# -------------------------------------------------------------------
+
+class TranscriptUpdatePayload(BaseModel):
+    transcript: str
+
+
+@router.patch("/{assessment_id}/voice-transcript")
+def update_voice_transcript(
+    assessment_id: int,
+    payload: TranscriptUpdatePayload,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Cập nhật transcript đã chỉnh sửa bởi user sau khi STT trả về.
+
+    PATCH /api/assessments/{assessment_id}/voice-transcript
+    Body: { "transcript": "edited transcript text" }
+
+    TC05.2: Hệ thống cập nhật bản lưu theo nội dung người dùng đã sửa.
+    """
+    assessment = db.get(Assessment, assessment_id)
+    if assessment is None:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    if assessment.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    existing = dict(assessment.essay_analysis or {})
+    if "voice_analysis" not in existing:
+        raise HTTPException(
+            status_code=400,
+            detail="No voice analysis found. Submit a voice recording first.",
+        )
+
+    existing["voice_analysis"] = dict(existing["voice_analysis"])
+    existing["voice_analysis"]["transcript"] = payload.transcript
+    existing["voice_analysis"]["transcript_edited"] = True
+    assessment.essay_analysis = existing
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to save transcript edit")
+
+    return {
+        "ok": True,
+        "assessment_id": assessment_id,
+        "transcript": payload.transcript,
+        "transcript_edited": True,
+    }
+
+
+# -------------------------------------------------------------------
+# Story Generator — singleton + endpoints
+# -------------------------------------------------------------------
+
+import os as _os
+import sys as _sys
+
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".."))
+from assessment.story_generator import StoryGeneratorService as _StoryService
+
+_story_service = _StoryService()   # created once at import time — no repeated Gemini init calls
+
+
+class QuestionForStory(BaseModel):
+    id: str
+    question_text: str
+    dimension: Optional[str] = None
+    test_type: str
+
+class GenerateAllStoriesRequest(BaseModel):
+    questions: List[QuestionForStory]
+    group_size: int = 5
+
+
+@router.post("/generate-stories-batch")
+def generate_all_story_scenarios(request: GenerateAllStoriesRequest):
+    """
+    Single Gemini call → group stories for ALL question groups.
+    Each group of ~5 questions shares one narrative context (like a book chapter).
+
+    POST /api/assessments/generate-stories-batch
+    Returns:
+      groups: list of {groupScenario, questionScenarios} — one entry per group
+      scenarios: flat list of all questionScenarios (one per question, for convenience)
+    """
+    questions_data = [q.dict() for q in request.questions]
+    try:
+        groups = _story_service.generate_group_stories(questions_data, request.group_size)
+        flat = [qs for g in groups for qs in g["questionScenarios"]]
+        return {
+            "success": True,
+            "groups": groups,
+            "scenarios": flat,
+            "count": len(flat),
+        }
+    except Exception as e:
+        logger.exception("Failed to generate story scenarios in batch endpoint")
+        flat = [
+            {"emoji": "💭", "title": f"Tình Huống {i+1}",
+             "context": "Hãy đánh giá mức độ phù hợp:", "situation": q.question_text}
+            for i, q in enumerate(request.questions)
+        ]
+        return {
+            "success": False,
+            "groups": [],
+            "scenarios": flat,
+            "count": len(flat),
+            "error": "An internal error has occurred while generating scenarios.",
+        }

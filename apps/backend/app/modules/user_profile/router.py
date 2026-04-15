@@ -1,13 +1,13 @@
 # app/modules/user_profile/router.py
 
+from app.modules.assessments.routes_assessments import _current_user_id, _db
+from app.modules.assessments.schemas import TraitSnapshot
+from app.modules.assessments.service import get_user_traits
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.modules.assessments.routes_assessments import _db, _current_user_id
-from app.modules.assessments.service import get_user_traits
-from app.modules.assessments.schemas import TraitSnapshot
-
 router = APIRouter(prefix="", tags=["users"])
+
 
 @router.get("/me/traits", response_model=TraitSnapshot)
 def get_my_traits(

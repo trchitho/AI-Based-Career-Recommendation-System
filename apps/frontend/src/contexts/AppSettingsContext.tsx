@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import api from "../lib/api";
 
 export interface AppSettings {
@@ -29,49 +29,12 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
 
-  // 👇 NEW — auto detect theme from <html>
-  const detectTheme = () => {
-    const isDark = document.documentElement.classList.contains("dark");
-    return isDark ? "dark" : "light";
-  };
-
+  // Simple version without API calls for now
   useEffect(() => {
-    // 1) Load settings from API
-    const fetchSettings = async () => {
-      try {
-        const resp = await api.get("/api/app/settings");
-        const serverSettings = resp.data || {};
-
-        setSettings((prev) => ({
-          ...prev,
-          ...serverSettings,
-          theme: detectTheme(), // 🔥 sync theme on load
-        }));
-      } catch {
-        // keep defaults
-        setSettings((prev) => ({
-          ...prev,
-          theme: detectTheme(),
-        }));
-      }
-    };
-
-    fetchSettings();
-
-    // 2) Observer — listen to <html class="dark">
-    const observer = new MutationObserver(() => {
-      setSettings((prev) => ({
-        ...prev,
-        theme: detectTheme(),
-      }));
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
+    setSettings(prev => ({
+      ...prev,
+      theme: document.documentElement.classList.contains("dark") ? "dark" : "light"
+    }));
   }, []);
 
   return (

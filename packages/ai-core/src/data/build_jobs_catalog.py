@@ -1,4 +1,4 @@
-﻿# src/data/build_jobs_catalog.py
+# src/data/build_jobs_catalog.py
 from __future__ import annotations
 
 import argparse
@@ -24,9 +24,7 @@ ALL_OTHER_PHRASES = ("all other", "not listed separately")
 def is_all_other_row(row: pd.Series) -> bool:
     """Heuristic phát hiện các job kiểu 'All Other' / 'not listed separately'."""
     title = str(row.get("title") or "").lower()
-    desc = str(
-        row.get("Description") or row.get("description") or ""
-    ).lower()  # core có thể dùng 'Description' (O*NET)
+    desc = str(row.get("Description") or row.get("description") or "").lower()  # core có thể dùng 'Description' (O*NET)
     title_norm = str(row.get("title_norm") or "").lower()
 
     for kw in ALL_OTHER_PHRASES:
@@ -93,14 +91,10 @@ def main() -> None:
     # -------------------------------------------------------------
     core = load_onet_core()  # job_id, title, Description, title_norm
     riasec = load_onet_riasec()  # job_id, R..C (đã scale 0..1)
-    onet_sk = load_onet_skills(
-        args.topn_onet_skills, args.min_importance
-    )  # job_id, skills_onet(list)
+    onet_sk = load_onet_skills(args.topn_onet_skills, args.min_importance)  # job_id, skills_onet(list)
 
     # Merge 3 bảng O*NET theo job_id
-    onet = core.merge(riasec, on="job_id", how="left").merge(
-        onet_sk, on="job_id", how="left"
-    )
+    onet = core.merge(riasec, on="job_id", how="left").merge(onet_sk, on="job_id", how="left")
     onet["job_id"] = onet["job_id"].astype(str).str.strip()
 
     # Chuẩn hoá 6 cột RIASEC, không có NaN và nằm trong [0..1]
@@ -111,9 +105,7 @@ def main() -> None:
         onet[d] = pd.to_numeric(onet[d], errors="coerce").fillna(0.0).clip(0, 1)
 
     # Đảm bảo skills_onet là list (nếu NaN -> [])
-    onet["skills_onet"] = onet["skills_onet"].apply(
-        lambda v: v if isinstance(v, list) else []
-    )
+    onet["skills_onet"] = onet["skills_onet"].apply(lambda v: v if isinstance(v, list) else [])
 
     # ---------------- CLEAN: loại bỏ nghề "All Other" ----------------
     mask_all_other = onet.apply(is_all_other_row, axis=1)
@@ -137,9 +129,7 @@ def main() -> None:
         occ_uri_col,
         isco_col,
     ) = load_esco_csv()
-    esco_title_norm_to_uri = dict(
-        zip(esco_occ["title_norm"], esco_occ[occ_uri_col], strict=False)
-    )
+    esco_title_norm_to_uri = dict(zip(esco_occ["title_norm"], esco_occ[occ_uri_col], strict=False))
     occ_by_uri = esco_occ.set_index(occ_uri_col, drop=False)
 
     # Nạp cây ISCO nếu bật cờ
@@ -149,9 +139,7 @@ def main() -> None:
     if args.exact_only:
         esco_title_set = set(esco_occ["title_norm"].fillna("").tolist())
         fuzzy_map = {
-            r["job_id"]: r["title_norm"]
-            for _, r in onet.iterrows()
-            if isinstance(r["title_norm"], str) and r["title_norm"] in esco_title_set
+            r["job_id"]: r["title_norm"] for _, r in onet.iterrows() if isinstance(r["title_norm"], str) and r["title_norm"] in esco_title_set
         }
     else:
         fuzzy_map = build_fuzzy_map(
@@ -186,23 +174,14 @@ def main() -> None:
             if isco_tree is not None:
                 tg = []
                 isco_value = None
-                if (
-                    occ_uri_val
-                    and (occ_uri_val in occ_by_uri.index)
-                    and isco_col
-                    and (isco_col in occ_by_uri.columns)
-                ):
+                if occ_uri_val and (occ_uri_val in occ_by_uri.index) and isco_col and (isco_col in occ_by_uri.columns):
                     cell = occ_by_uri.loc[occ_uri_val, isco_col]
                     if isinstance(cell, pd.Series):
                         cell = cell.iloc[0]
                     isco_value = str(cell).strip() if pd.notna(cell) else None
 
                 # Ưu tiên gắn theo mã trong CSV; nếu không có thì leo từ URI
-                tg = (
-                    build_isco_tags_from_value(isco_value, isco_tree)
-                    if isco_value
-                    else []
-                )
+                tg = build_isco_tags_from_value(isco_value, isco_tree) if isco_value else []
                 if not tg and occ_uri_val:
                     tg = build_isco_tags_from_value(occ_uri_val, isco_tree)
 
@@ -217,9 +196,7 @@ def main() -> None:
     # --- Fallback: nghề .xx mượn skills từ gốc .00 nếu thiếu ---
     onet_sk_copy = onet_sk.copy()
     onet_sk_copy["_base"] = onet_sk_copy["job_id"].map(base_code)
-    base_to_skills = (
-        onet_sk_copy.groupby("_base")["skills_onet"].first().to_dict()
-    )
+    base_to_skills = onet_sk_copy.groupby("_base")["skills_onet"].first().to_dict()
 
     def borrow_if_missing(job_id: str, val: Any) -> list[str]:
         if isinstance(val, list) and len(val) > 0:
@@ -227,10 +204,7 @@ def main() -> None:
         b = base_code(job_id)
         return base_to_skills.get(b, [])
 
-    onet["skills_onet"] = [
-        borrow_if_missing(j, v)
-        for j, v in zip(onet["job_id"], onet["skills_onet"], strict=False)
-    ]
+    onet["skills_onet"] = [borrow_if_missing(j, v) for j, v in zip(onet["job_id"], onet["skills_onet"], strict=False)]
 
     # -------------------------------------------------------------
     # 4) Hợp nhất skills: ESCO essential -> O*NET -> ESCO optional
@@ -265,14 +239,10 @@ def main() -> None:
     out = onet[["job_id", "title", "description", "skills", "riasec_vector", "tags"]].copy()
 
     # skills: join bằng ';' cho CSV-friendly
-    out["skills"] = out["skills"].apply(
-        lambda xs: ";".join(xs) if isinstance(xs, list) else ""
-    )
+    out["skills"] = out["skills"].apply(lambda xs: ";".join(xs) if isinstance(xs, list) else "")
 
     # tags_en: join list tags bằng '|'
-    out["tags_en"] = out["tags"].apply(
-        lambda xs: "|".join(xs) if isinstance(xs, list) else ""
-    )
+    out["tags_en"] = out["tags"].apply(lambda xs: "|".join(xs) if isinstance(xs, list) else "")
 
     # Giữ đúng thứ tự cột mong muốn
     out = out[["job_id", "title", "description", "skills", "riasec_vector", "tags_en"]]

@@ -1,23 +1,41 @@
 import { useTranslation } from 'react-i18next';
-import { Globe } from 'lucide-react';
 
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
 
+  const isVi = i18n.language === 'vi' || i18n.language?.startsWith('vi');
+
   const toggleLanguage = () => {
-    const newLang = i18n.language === 'en' ? 'vi' : 'en';
+    const newLang = isVi ? 'en' : 'vi';
     i18n.changeLanguage(newLang);
+    localStorage.setItem('i18nextLng', newLang);
   };
 
   return (
     <button
       onClick={toggleLanguage}
-      className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-      title={i18n.language === 'en' ? 'Switch to Vietnamese' : 'Chuyển sang tiếng Anh'}
+      title={isVi ? 'Switch to English' : 'Chuyển sang tiếng Việt'}
+      className="
+        flex items-center gap-1.5
+        px-2.5 py-1.5
+        rounded-lg
+        text-sm font-semibold
+        border border-gray-200 dark:border-gray-700
+        text-gray-700 dark:text-gray-200
+        hover:bg-gray-100 dark:hover:bg-gray-700
+        hover:border-green-400 dark:hover:border-green-500
+        hover:text-green-700 dark:hover:text-green-400
+        transition-all duration-150
+        select-none
+      "
     >
-      <Globe className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-      <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-        {i18n.language === 'en' ? 'VI' : 'EN'}
+      {/* Flag emoji */}
+      <span className="text-base leading-none">
+        {isVi ? '🇻🇳' : '🇬🇧'}
+      </span>
+      {/* Current language label */}
+      <span className="hidden sm:inline tracking-wide uppercase text-xs">
+        {isVi ? 'VI' : 'EN'}
       </span>
     </button>
   );

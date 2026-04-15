@@ -50,8 +50,8 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
         <div className="col-span-3 flex justify-center">
           {change && change.direction !== 'same' ? (
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${change.direction === 'increase'
-                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
               }`}>
               {change.direction === 'increase' ? '↑' : '↓'} {change.value.toFixed(0)}
             </span>
@@ -69,7 +69,7 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-['Plus_Jakarta_Sans']">
+    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 
       {/* Modal Container */}
       <div className="bg-white dark:bg-gray-900 rounded-[32px] shadow-2xl border border-gray-100 dark:border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-fade-in-up">

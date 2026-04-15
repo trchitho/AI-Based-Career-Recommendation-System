@@ -1,11 +1,9 @@
-﻿import torch.nn as nn
+import torch.nn as nn
 from transformers import AutoModel
 
 
 class TextRegressor(nn.Module):
-    def __init__(
-        self, base_model_name: str, out_dim: int, freeze_base: bool = False, pooling: str = "mean"
-    ):
+    def __init__(self, base_model_name: str, out_dim: int, freeze_base: bool = False, pooling: str = "mean"):
         super().__init__()
         self.backbone = AutoModel.from_pretrained(base_model_name)
         hidden = self.backbone.config.hidden_size
@@ -18,11 +16,7 @@ class TextRegressor(nn.Module):
 
     def forward(self, input_ids, attention_mask):
         out = self.backbone(input_ids=input_ids, attention_mask=attention_mask)
-        if (
-            self.pooling == "cls"
-            and hasattr(out, "pooler_output")
-            and out.pooler_output is not None
-        ):
+        if self.pooling == "cls" and hasattr(out, "pooler_output") and out.pooler_output is not None:
             pooled = out.pooler_output
         else:
             # fallback mean pooling

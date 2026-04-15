@@ -122,6 +122,7 @@ export const assessmentService = {
           id: session.id || session.session_id.toString(),
           completed_at: session.created_at || session.completed_at,
           test_types: session.assessment_types ? session.assessment_types.split(', ') : [],
+          test_mode: session.test_mode || undefined,
           riasec_scores: session.riasec_scores || undefined,
           big_five_scores: session.big_five_scores || undefined
         });

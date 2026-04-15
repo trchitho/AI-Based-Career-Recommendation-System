@@ -4,11 +4,13 @@ import MainLayout from '../components/layout/MainLayout';
 import { careerService, CareerDetailDTO } from '../services/careerService';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const CareerDetailPage = () => {
   const { idOrSlug } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { language } = useLanguage();
   const [detail, setDetail] = useState<CareerDetailDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'knowledge' | 'skills' | 'abilities'>('knowledge');
@@ -25,7 +27,7 @@ const CareerDetailPage = () => {
           const canView = canUseFeature('career_view');
           if (!canView) { window.location.href = '/pricing'; return; }
         }
-        const data = await careerService.getDetail(idOrSlug, currentPlan);
+        const data = await careerService.getDetail(idOrSlug, currentPlan, language);
         setDetail(data);
         const isFromCareersPage = location.state?.fromCareersPage === true;
         if (!hasTrackedUsageRef.current && !hasFeature('unlimited_careers') && isFromCareersPage) {
@@ -35,7 +37,7 @@ const CareerDetailPage = () => {
       } catch (err: any) { console.error(err); } finally { setLoading(false); }
     };
     run();
-  }, [idOrSlug, currentPlan]);
+  }, [idOrSlug, currentPlan, language]);
 
   const isSectionLocked = (section: string) => detail?.locked_sections?.includes(section) ?? false;
   const formatSalary = (amount: number | null | undefined, currency: string = 'USD') => {
@@ -48,7 +50,7 @@ const CareerDetailPage = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');.bg-dot-pattern{background-image:radial-gradient(#E5E7EB 1px,transparent 1px);background-size:24px 24px}.dark .bg-dot-pattern{background-image:radial-gradient(#374151 1px,transparent 1px)}@keyframes fade-in-up{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}.animate-fade-in-up{animation:fade-in-up 0.6s ease-out forwards}`}</style>
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60"></div>
         <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-green-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
@@ -121,8 +123,8 @@ const CareerDetailPage = () => {
                             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                           ).join(' ');
                           // Use level and importance directly from DB (scale 0-5)
-                          const levelValue = item.level ?? 0;
-                          const importanceValue = item.importance ?? 0;
+                          const levelValue = Number(item.level || 0);
+                          const importanceValue = Number(item.importance || 0);
 
                           return (
                             <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg gap-4">
@@ -156,6 +158,131 @@ const CareerDetailPage = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Block E: NEW - Detailed Work Activities */}
+                  <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                      <span className="w-2 h-6 bg-indigo-500 rounded-full"></span>
+                      Detailed Work Activities
+                    </h2>
+                    {detail.sections.detailed_work_activities && detail.sections.detailed_work_activities.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {detail.sections.detailed_work_activities.slice(0, 8).map((dwa, i) => (
+                          <div key={i} className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-800">
+                            <div className="flex items-start gap-3">
+                              <span className="mt-1 w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                {i + 1}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-gray-700 dark:text-gray-300 text-sm font-medium leading-relaxed">
+                                  {dwa.dwa_title}
+                                </p>
+                                {dwa.element_id && (
+                                  <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1 font-mono">
+                                    {dwa.element_id}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 italic">No detailed work activities data available.</p>
+                    )}
+                  </div>
+
+                  {/* Block F: NEW - Work Activities Summary */}
+                  <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                      <span className="w-2 h-6 bg-amber-500 rounded-full"></span>
+                      Top Work Activities
+                    </h2>
+                    {detail.sections.work_activities && detail.sections.work_activities.length > 0 ? (
+                      <div className="space-y-3">
+                        {detail.sections.work_activities.slice(0, 10).map((activity, i) => {
+                          const activityName = language === 'vi'
+                            ? (activity.element_name_vi || activity.element_name || 'Unknown Activity')
+                            : (activity.element_name || activity.element_name_vi || 'Unknown Activity');
+
+                          // Safely handle numeric values
+                          const combinedScore = Number(activity.combined_score || 0);
+                          const activityRank = Number(activity.activity_rank || i + 1);
+
+                          return (
+                            <div key={i} className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-800">
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <div className="flex items-center justify-center w-8 h-8 bg-amber-500 text-white rounded-full text-sm font-bold flex-shrink-0">
+                                  #{activityRank}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-gray-700 dark:text-gray-300 font-medium text-sm leading-relaxed">
+                                    {activityName}
+                                  </p>
+                                  {activity.is_top_activity && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 mt-1">
+                                      ⭐ Top Activity
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4 flex-shrink-0">
+                                <div className="text-right">
+                                  <div className="text-xs text-gray-400 dark:text-gray-500">Combined Score</div>
+                                  <div className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                                    {combinedScore.toFixed(2)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 italic">No work activities data available.</p>
+                    )}
+                  </div>
+
+                  {/* Block G: NEW - Work Context */}
+                  <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                      <span className="w-2 h-6 bg-cyan-500 rounded-full"></span>
+                      Work Environment
+                    </h2>
+                    {detail.sections.work_context && detail.sections.work_context.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {detail.sections.work_context.slice(0, 8).map((context, i) => (
+                          <div key={i} className="p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg border border-cyan-100 dark:border-cyan-800">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex-1 min-w-0">
+                                {context.element_name}
+                              </h4>
+                              {context.data_value && (
+                                <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/50 px-2 py-1 rounded-full flex-shrink-0">
+                                  {Number(context.data_value || 0).toFixed(1)}%
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {context.category_description}
+                            </p>
+                            {context.data_value && (
+                              <div className="mt-2">
+                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                  <div
+                                    className="bg-cyan-500 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${Math.min(Number(context.data_value || 0), 100)}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 italic">No work context data available.</p>
+                    )}
+                  </div>
                 </div>
                 {/* Right Column - Sidebar */}
                 <div className="space-y-6">
@@ -201,17 +328,136 @@ const CareerDetailPage = () => {
                       <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">📋 Requirements</h3>
                         <div className="space-y-4">
-                          <div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Experience</div><div className="text-base font-semibold text-gray-900 dark:text-white">{detail.sections.overview?.experience_text || 'Varies by position'}</div></div>
-                          <div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Education</div><div className="text-base font-semibold text-gray-900 dark:text-white">{detail.sections.overview?.degree_text || 'Varies by position'}</div></div>
+                          <div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Experience</div><div className="text-base font-semibold text-gray-900 dark:text-white">{detail.sections.overview?.experience_text || detail.sections.preparation?.experience_summary || 'Varies by position'}</div></div>
+                          <div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Education</div><div className="text-base font-semibold text-gray-900 dark:text-white">{detail.sections.overview?.degree_text || detail.sections.preparation?.education_summary || 'Varies by position'}</div></div>
+                          {detail.sections.preparation?.job_zone && (
+                            <div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Job Zone</div><div className="text-base font-semibold text-gray-900 dark:text-white">Zone {detail.sections.preparation.job_zone}</div></div>
+                          )}
                         </div>
                       </div>
-                      {/* Salary */}
+
+                      {/* Education Requirements Breakdown */}
+                      {detail.sections.education_requirements && detail.sections.education_requirements.length > 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">🎓 Education Breakdown</h3>
+                          <div className="space-y-3">
+                            {detail.sections.education_requirements.slice(0, 5).map((edu, i) => (
+                              <div key={i} className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                                    {edu.element_name}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {edu.category_description}
+                                  </p>
+                                </div>
+                                <div className="flex-shrink-0 ml-3">
+                                  <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                                    {Number(edu.data_value || 0).toFixed(1)}%
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Enhanced Salary */}
                       <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">💰 Salary Information</h3>
-                        <div className="space-y-3">
-                          {detail.sections.overview?.salary_avg && (<div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl"><div className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">Average Salary</div><div className="text-2xl font-extrabold text-green-700 dark:text-green-300">{formatSalary(detail.sections.overview.salary_avg, detail.sections.overview.salary_currency || 'USD')}</div></div>)}
-                          <div className="flex justify-between text-sm"><span className="text-gray-500">Min:</span><span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.overview?.salary_min, detail.sections.overview?.salary_currency || 'USD')}</span></div>
-                          <div className="flex justify-between text-sm"><span className="text-gray-500">Max:</span><span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.overview?.salary_max, detail.sections.overview?.salary_currency || 'USD')}</span></div>
+                        <div className="space-y-4">
+                          {/* Primary salary display */}
+                          {detail.sections.wages ? (
+                            <div>
+                              {language === 'vi' ? (
+                                // Vietnamese wages
+                                <>
+                                  {detail.sections.wages.monthly_median_vnd && (
+                                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl mb-3">
+                                      <div className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">Monthly Median (VN)</div>
+                                      <div className="text-2xl font-extrabold text-green-700 dark:text-green-300">{formatSalary(detail.sections.wages.monthly_median_vnd, 'VND')}</div>
+                                    </div>
+                                  )}
+                                  {detail.sections.wages.annual_median_vnd && (
+                                    <div className="flex justify-between text-sm mb-2">
+                                      <span className="text-gray-500">Annual:</span>
+                                      <span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.wages.annual_median_vnd, 'VND')}</span>
+                                    </div>
+                                  )}
+                                  {/* Regional breakdown for Vietnam */}
+                                  {(detail.sections.wages.region_hcm_monthly || detail.sections.wages.region_hanoi_monthly) && (
+                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                      <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">By Region</div>
+                                      {detail.sections.wages.region_hcm_monthly && (
+                                        <div className="flex justify-between text-sm mb-1">
+                                          <span className="text-gray-500">Ho Chi Minh:</span>
+                                          <span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.wages.region_hcm_monthly, 'VND')}</span>
+                                        </div>
+                                      )}
+                                      {detail.sections.wages.region_hanoi_monthly && (
+                                        <div className="flex justify-between text-sm mb-1">
+                                          <span className="text-gray-500">Hanoi:</span>
+                                          <span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.wages.region_hanoi_monthly, 'VND')}</span>
+                                        </div>
+                                      )}
+                                      {detail.sections.wages.region_danang_monthly && (
+                                        <div className="flex justify-between text-sm mb-1">
+                                          <span className="text-gray-500">Da Nang:</span>
+                                          <span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.wages.region_danang_monthly, 'VND')}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                // US wages
+                                <>
+                                  {detail.sections.wages.annual_median && (
+                                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl mb-3">
+                                      <div className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">Annual Median (US)</div>
+                                      <div className="text-2xl font-extrabold text-green-700 dark:text-green-300">{formatSalary(detail.sections.wages.annual_median, 'USD')}</div>
+                                    </div>
+                                  )}
+                                  {detail.sections.wages.hourly_median && (
+                                    <div className="flex justify-between text-sm mb-2">
+                                      <span className="text-gray-500">Hourly:</span>
+                                      <span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.wages.hourly_median, 'USD')}/hr</span>
+                                    </div>
+                                  )}
+                                  {/* Percentile breakdown for US */}
+                                  {(detail.sections.wages.annual_10th_percentile || detail.sections.wages.annual_90th_percentile) && (
+                                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                      <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Salary Range</div>
+                                      {detail.sections.wages.annual_10th_percentile && (
+                                        <div className="flex justify-between text-sm mb-1">
+                                          <span className="text-gray-500">10th percentile:</span>
+                                          <span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.wages.annual_10th_percentile, 'USD')}</span>
+                                        </div>
+                                      )}
+                                      {detail.sections.wages.annual_90th_percentile && (
+                                        <div className="flex justify-between text-sm mb-1">
+                                          <span className="text-gray-500">90th percentile:</span>
+                                          <span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.wages.annual_90th_percentile, 'USD')}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          ) : (
+                            // Fallback to overview data
+                            <div className="space-y-3">
+                              {detail.sections.overview?.salary_avg && (
+                                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                                  <div className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">Average Salary</div>
+                                  <div className="text-2xl font-extrabold text-green-700 dark:text-green-300">{formatSalary(detail.sections.overview.salary_avg, detail.sections.overview.salary_currency || 'USD')}</div>
+                                </div>
+                              )}
+                              <div className="flex justify-between text-sm"><span className="text-gray-500">Min:</span><span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.overview?.salary_min, detail.sections.overview?.salary_currency || 'USD')}</span></div>
+                              <div className="flex justify-between text-sm"><span className="text-gray-500">Max:</span><span className="font-semibold text-gray-900 dark:text-white">{formatSalary(detail.sections.overview?.salary_max, detail.sections.overview?.salary_currency || 'USD')}</span></div>
+                            </div>
+                          )}
                         </div>
                       </div>
                       {/* Job Outlook */}
@@ -219,7 +465,7 @@ const CareerDetailPage = () => {
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">📈 Job Outlook</h3>
                         <div className="space-y-3">
                           {detail.sections.outlook?.growth_label && (<div className="flex items-center gap-2"><span className={`px-3 py-1 rounded-full text-sm font-bold ${detail.sections.outlook.growth_label.toLowerCase().includes('faster') || detail.sections.outlook.growth_label.toLowerCase().includes('much faster') ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : detail.sections.outlook.growth_label.toLowerCase().includes('decline') ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>{detail.sections.outlook.growth_label}</span></div>)}
-                          {detail.sections.outlook?.openings_est && (<div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Projected Openings</div><div className="text-lg font-bold text-gray-900 dark:text-white">{detail.sections.outlook.openings_est.toLocaleString()} / year</div></div>)}
+                          {detail.sections.outlook?.openings_est && (<div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Projected Openings</div><div className="text-lg font-bold text-gray-900 dark:text-white">{Number(detail.sections.outlook.openings_est || 0).toLocaleString()} / year</div></div>)}
                           {detail.sections.outlook?.summary_md && (<p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{detail.sections.outlook.summary_md}</p>)}
                         </div>
                       </div>

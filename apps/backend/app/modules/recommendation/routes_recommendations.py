@@ -3,17 +3,19 @@ from __future__ import annotations
 
 from typing import List, Optional
 
+from app.modules.auth.deps import get_current_user, get_current_user_optional
+from app.modules.users.models import User
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from .service import RecService, CareerEventsService
-from app.modules.auth.deps import get_current_user_optional
-from app.modules.users.models import User
+from .service import CareerEventsService, RecService
+from .thompson_sampling import ThompsonSamplingService
 
 router = APIRouter(prefix="", tags=["recommendations"])
 svc = RecService()
+ts_svc = ThompsonSamplingService()
 
 
 def _db(req: Request) -> Session:
@@ -195,3 +197,39 @@ def log_click(
     )
 
     return {"status": "ok"}
+
+
+# ===== THOMPSON SAMPLING — LIKE =====
+
+class LikePayload(BaseModel):
+    career_id: str          # slug or O*NET code
+    assessment_id: Optional[int] = None
+
+
+@router.post("/like")
+def like_career(
+    request: Request,
+    payload: LikePayload,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    POST /api/recommendations/like
+    Body: {"career_id": "software-developers-15-1252-00", "assessment_id": 97}
+
+    Records a "like" reward for Thompson Sampling.
+    - Increments alpha in analytics.career_feedback (user_id, job_onet).
+    - Also logs a 'save' event in analytics.career_events for future ML training.
+    - Future calls to /api/recommendations will apply TS boost to liked careers.
+
+    Requires authentication (JWT).
+    """
+    db = _db(request)
+
+    # Resolve slug/career_id → O*NET code
+    job_onet = svc.get_onet_code_by_slug(db, payload.career_id)
+    if not job_onet:
+        # Try the career_id directly as an onet_code
+        job_onet = payload.career_id
+
+    result = ts_svc.record_like(db=db, user_id=current_user.id, job_onet=job_onet)
+    return result

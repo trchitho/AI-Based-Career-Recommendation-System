@@ -1,7 +1,8 @@
 # app/modules/analytics/service_career_events.py
 from typing import Optional
-from sqlalchemy.orm import Session
+
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 
 class CareerEventsService:

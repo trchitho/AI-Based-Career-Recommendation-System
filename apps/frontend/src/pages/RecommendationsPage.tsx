@@ -8,6 +8,17 @@ import {
   RecommendationsResponse,
 } from "../services/recommendationService";
 import { getRIASECTagDisplay } from "../utils/riasec";
+import api from "../lib/api";
+
+// RIASEC tag → Vietnamese explanation
+const RIASEC_WHY: Record<string, string> = {
+  R: "Bạn thích làm việc thực tế với công cụ, máy móc và vật chất",
+  I: "Bạn có tư duy phân tích, thích nghiên cứu và giải quyết vấn đề phức tạp",
+  A: "Bạn có khả năng sáng tạo, thiên về nghệ thuật và biểu đạt",
+  S: "Bạn có kỹ năng giao tiếp, thích giúp đỡ và làm việc với con người",
+  E: "Bạn có tố chất lãnh đạo, thích thuyết phục và quản lý",
+  C: "Bạn cẩn thận, có kỷ luật, làm việc tốt với dữ liệu và quy trình",
+};
 
 const RecommendationsPage = () => {
   const navigate = useNavigate();
@@ -15,6 +26,12 @@ const RecommendationsPage = () => {
   const [data, setData] = useState<RecommendationsResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  // PB10: which card is expanded for explainability
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  // PB11: feedback state per career_id: 'up' | 'down' | null
+  const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>(() => {
+    try { return JSON.parse(localStorage.getItem('career_feedback') || '{}'); } catch { return {}; }
+  });
 
   const items: CareerRecommendationDTO[] = data?.items ?? [];
   const requestId = data?.request_id ?? null;
@@ -23,24 +40,46 @@ const RecommendationsPage = () => {
     const fetchRecommendations = async () => {
       setError(null);
       setLoading(true);
-
       try {
-        // Lấy 20 nghề, UI hiển thị dạng lưới
-        const res = await recommendationService.getMain(20);
+        // Get latest assessment ID from user sessions
+        const token = localStorage.getItem('accessToken');
+        let assessmentId: number | null = null;
+        try {
+          const sessRes = await fetch('/api/assessments/user/sessions', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (sessRes.ok) {
+            const sessions = await sessRes.json();
+            if (sessions?.length > 0) assessmentId = sessions[0].primary_assessment_id ?? sessions[0].id;
+          }
+        } catch { /* fallback to null */ }
+
+        if (!assessmentId) throw new Error("Chưa có kết quả đánh giá. Hãy hoàn thành bài kiểm tra trước.");
+
+        const res = await recommendationService.getMain(assessmentId, 20);
         setData(res);
       } catch (err: any) {
-        const msg =
-          err?.response?.data?.detail ||
-          err?.message ||
-          "Failed to load recommendations";
-        setError(msg);
+        setError(err?.response?.data?.detail || err?.message || "Failed to load recommendations");
       } finally {
         setLoading(false);
       }
     };
-
     fetchRecommendations();
   }, []);
+
+  // PB11: send feedback
+  const handleFeedback = async (career_id: string, value: 'up' | 'down') => {
+    const newFb = { ...feedback, [career_id]: value };
+    setFeedback(newFb);
+    localStorage.setItem('career_feedback', JSON.stringify(newFb));
+    try {
+      await api.post('/api/recommendations/feedback', {
+        career_id,
+        rating: value === 'up' ? 5 : 1,
+        comment: `User ${value === 'up' ? 'liked' : 'disliked'} career: ${career_id}`,
+      });
+    } catch { /* non-critical */ }
+  };
 
   // Match style theo % match_score
   const getMatchStyle = (score: number) => {
@@ -89,7 +128,7 @@ const RecommendationsPage = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
         {/* CSS Injection */}
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -181,7 +220,7 @@ const RecommendationsPage = () => {
                 return (
                   <div
                     key={it.career_id}
-                    className="group bg-white dark:bg-gray-800 rounded-[32px] border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-300 flex flex-col overflow-hidden h-full"
+                    className="group bg-white dark:bg-gray-800 rounded-card-hero border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-slow flex flex-col overflow-hidden h-full"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     {/* Card Header with Score */}
@@ -250,9 +289,57 @@ const RecommendationsPage = () => {
 
                     {/* Description + Action */}
                     <div className="p-8 pt-6 flex-grow flex flex-col">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-4 leading-relaxed mb-6 flex-grow">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-4 leading-relaxed mb-4 flex-grow">
                         {desc || "No description available."}
                       </p>
+
+                      {/* PB10: Explainability – "Tại sao phù hợp?" */}
+                      <button
+                        onClick={() => setExpandedCard(expandedCard === it.career_id ? null : it.career_id)}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-green-600 dark:text-green-400 hover:text-green-700 mb-3 self-start"
+                      >
+                        <svg className={`w-3.5 h-3.5 transition-transform ${expandedCard === it.career_id ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        Tại sao phù hợp?
+                      </button>
+                      {expandedCard === it.career_id && (
+                        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-xl text-xs text-green-800 dark:text-green-200 space-y-1.5">
+                          {it.tags && it.tags.length > 0 ? (
+                            it.tags.map((tag) => (
+                              <div key={tag} className="flex items-start gap-2">
+                                <span className="mt-0.5 w-4 h-4 rounded-full bg-green-200 dark:bg-green-800 flex items-center justify-center text-green-700 dark:text-green-200 font-bold shrink-0 text-[10px]">{tag.toUpperCase()}</span>
+                                <span>{RIASEC_WHY[tag.toUpperCase()] ?? `Nhóm RIASEC: ${tag.toUpperCase()}`}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-gray-500 dark:text-gray-400">Dựa trên kết quả đánh giá tính cách RIASEC của bạn với điểm phù hợp {percent}%.</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* PB11: Feedback buttons */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-xs text-gray-400 dark:text-gray-500">Phù hợp không?</span>
+                        <button
+                          onClick={() => handleFeedback(it.career_id, 'up')}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${feedback[it.career_id] === 'up' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-green-400 hover:text-green-600'}`}
+                        >
+                          <svg className="w-3.5 h-3.5" fill={feedback[it.career_id] === 'up' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                          </svg>
+                          Có
+                        </button>
+                        <button
+                          onClick={() => handleFeedback(it.career_id, 'down')}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${feedback[it.career_id] === 'down' ? 'bg-red-500 border-red-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-red-400 hover:text-red-600'}`}
+                        >
+                          <svg className="w-3.5 h-3.5" fill={feedback[it.career_id] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                          </svg>
+                          Không
+                        </button>
+                      </div>
 
                       <button
                         onClick={() => handleClick(it, index)}

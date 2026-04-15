@@ -5,6 +5,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
+import AppFooter from '../components/layout/AppFooter';
 
 // --- TYPES ---
 interface PublicStats {
@@ -300,15 +301,22 @@ const HomePage = () => {
     const isAuthenticated = Boolean(user);
     const isAdmin = user?.role === 'admin';
     const displayName = user?.email?.split('@')[0] || 'User';
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
         navigate('/login');
     };
 
-    const navItems = isAuthenticated
-        ? ['Dashboard', 'Assessment', 'Blog', 'Careers', 'Pricing']
-        : ['Assessment', 'Blog', 'Careers', 'Pricing'];
+    const navItems = [
+        { label: t('nav.dashboard'), path: 'dashboard' },
+        { label: t('nav.assessment'), path: 'assessment' },
+        { label: t('nav.skillGap'), path: 'skill-gap' },
+        { label: t('nav.interview'), path: 'interview' },
+        { label: t('nav.blogs'), path: 'blog' },
+        { label: t('nav.careers'), path: 'careers' },
+        { label: t('nav.pricing'), path: 'pricing' },
+    ];
 
     // --- DATA ---
     const testimonials = [
@@ -322,10 +330,10 @@ const HomePage = () => {
     const row2 = [...testimonials].reverse().concat([...testimonials].reverse());
 
     const faqs = [
-        { q: "Is CareerBridge suitable for beginners?", a: "Absolutely! Whether you're a fresh graduate or an experienced professional looking to pivot, our AI adapts to your level." },
-        { q: "How does the AI analysis work?", a: "We analyze your personality traits, interests, and skills against thousands of career paths and market trends to find your perfect match." },
-        { q: "What assessments are included?", a: "Our platform includes RIASEC (Holland Codes) and Big Five personality assessments, providing comprehensive career insights." },
-        { q: "Is my data secure?", a: "Security is our priority. Your personal data is encrypted and never shared with third parties without consent." },
+        { q: t('home.faq.q1'), a: t('home.faq.a1') },
+        { q: t('home.faq.q2'), a: t('home.faq.a2') },
+        { q: t('home.faq.q3'), a: t('home.faq.a3') },
+        { q: t('home.faq.q4'), a: t('home.faq.a4') },
     ];
 
     const ModernLogo = () => (
@@ -419,8 +427,8 @@ const HomePage = () => {
             `}</style>
 
             {/* --- HEADER --- */}
-            <header className="sticky top-0 z-50 w-full bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
+            <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 h-[72px] transition-all duration-300 shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
                     <div className="flex-shrink-0">
                         <ModernLogo />
                     </div>
@@ -428,8 +436,8 @@ const HomePage = () => {
                     <nav className="hidden md:flex items-center gap-8">
                         {navItems.map((item) => (
                             <NavLink
-                                key={item}
-                                to={`/${item.toLowerCase()}`}
+                                key={item.path}
+                                to={`/${item.path}`}
                                 className={({ isActive }) => `text-[15px] font-medium transition-all duration-200 relative hover:text-green-600 dark:hover:text-green-400 ${isActive
                                     ? 'text-green-600 dark:text-green-400'
                                     : 'text-gray-600 dark:text-gray-300'
@@ -437,7 +445,7 @@ const HomePage = () => {
                             >
                                 {({ isActive }) => (
                                     <>
-                                        {item}
+                                        {item.label}
                                         {isActive && <span className="absolute -bottom-6 left-0 right-0 h-0.5 bg-green-500 rounded-t-full shadow-[0_-2px_10px_rgba(34,197,94,0.5)]"></span>}
                                     </>
                                 )}
@@ -446,6 +454,23 @@ const HomePage = () => {
                     </nav>
 
                     <div className="flex items-center gap-5">
+                        {/* Hamburger Button (Mobile) */}
+                        <button
+                            className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            aria-label="Toggle menu"
+                        >
+                            {isMobileMenuOpen ? (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            ) : (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            )}
+                        </button>
+
                         <div className="hidden lg:flex items-center gap-3 pr-3 border-r border-gray-200 dark:border-gray-700">
                             <LanguageSwitcher />
                             <ThemeToggle />
@@ -475,7 +500,7 @@ const HomePage = () => {
                                 </Link>
                                 <Link to="/assessment" className="relative inline-flex items-center justify-center px-6 py-2.5 overflow-hidden font-bold text-white transition-all duration-300 bg-green-600 rounded-full group hover:bg-green-600 ring-offset-2 focus:ring-2 ring-green-400 ease focus:outline-none">
                                     <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
-                                    <span className="relative">Get started</span>
+                                    <span className="relative">{t('nav.getStarted')}</span>
                                 </Link>
                             </div>
                         )}
@@ -483,7 +508,68 @@ const HomePage = () => {
                 </div>
             </header>
 
-            <main>
+            {/* Mobile Menu Drawer */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setIsMobileMenuOpen(false)}>
+                    <div
+                        className="absolute top-[72px] left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-xl py-4 px-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <nav className="flex flex-col gap-1 mb-4">
+                            {navItems.map((item) => (
+                                <NavLink
+                                    key={item.path}
+                                    to={`/${item.path}`}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className={({ isActive }) =>
+                                        `px-4 py-3 rounded-xl text-[15px] font-semibold transition-colors ${isActive
+                                            ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
+                                            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                        }`
+                                    }
+                                >
+                                    {item.label}
+                                </NavLink>
+                            ))}
+                        </nav>
+                        <div className="flex items-center gap-3 px-4 py-2 border-t border-gray-100 dark:border-gray-800">
+                            <LanguageSwitcher />
+                            <ThemeToggle />
+                        </div>
+                        {!isAuthenticated && (
+                            <div className="flex flex-col gap-2 mt-3">
+                                <Link
+                                    to="/login"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="w-full px-4 py-3 rounded-xl text-[15px] font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-center"
+                                >
+                                    {t('auth.signIn')}
+                                </Link>
+                                <Link
+                                    to="/assessment"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="w-full px-4 py-3 rounded-full text-[15px] font-bold bg-green-600 text-white hover:bg-green-700 transition-colors text-center"
+                                >
+                                    {t('nav.getStarted')}
+                                </Link>
+                            </div>
+                        )}
+                        {isAuthenticated && (
+                            <div className="mt-3 border-t border-gray-100 dark:border-gray-800 pt-3">
+                                <button
+                                    onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+                                    className="w-full px-4 py-3 rounded-xl text-[15px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                    {t('common.logout')}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            <main className="pt-[72px]">
                 {/* --- HERO SECTION --- */}
                 <section className="relative pt-20 pb-32 overflow-hidden bg-white dark:bg-gray-900">
                     {/* Animated Background Blobs */}
@@ -497,27 +583,27 @@ const HomePage = () => {
                     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                         <div className="flex flex-col items-center justify-center gap-4 mb-8 animate-fade-in-up">
                             <span className="relative px-4 py-1.5 rounded-full bg-white/50 dark:bg-gray-800/50 border border-green-200 dark:border-green-800 backdrop-blur-sm text-sm font-bold inline-block mb-4 shadow-sm hover:scale-105 transition-transform cursor-default">
-                                <span className="text-shimmer">✨ New AI Engine v2.0 Released</span>
+                                <span className="text-shimmer">{t('home.badge')}</span>
                             </span>
 
                             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1] drop-shadow-sm">
-                                Build your future with <br className="hidden md:block" />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 animate-gradient-x">Intelligent Career Pathing</span>
+                                {t('home.hero.title')} <br className="hidden md:block" />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 animate-gradient-x">{t('home.hero.titleHighlight')}</span>
                             </h1>
 
                             <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed max-w-2xl mx-auto font-medium">
-                                Discover your ideal career path with AI-powered personality assessments, personalized recommendations, and detailed roadmaps.
+                                {t('home.hero.subtitle')}
                             </p>
 
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-5 w-full">
                                 <Link to="/assessment" className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-green-600 rounded-full hover:bg-green-700 transition-all shadow-[0_10px_20px_-10px_rgba(22,163,74,0.5)] hover:shadow-[0_20px_20px_-10px_rgba(22,163,74,0.6)] hover:-translate-y-1 relative overflow-hidden group">
                                     <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></span>
-                                    Start Assessment
+                                    {t('home.hero.cta')}
                                     <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                 </Link>
                                 <Link to="/careers" className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-gray-600 bg-white/80 border border-gray-200 rounded-full hover:bg-white hover:border-gray-300 dark:bg-gray-800/80 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-800 transition-all backdrop-blur-sm shadow-sm hover:shadow-md">
                                     <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                                    Explore Careers
+                                    {t('home.hero.exploreBtn')}
                                 </Link>
                             </div>
                         </div>
@@ -530,17 +616,17 @@ const HomePage = () => {
                                     <div className="flex flex-col items-center justify-center p-2">
                                         <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600 mb-3 shadow-inner"><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></div>
                                         <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">98%</div>
-                                        <div className="text-sm font-medium text-gray-500">Success Rate</div>
+                                        <div className="text-sm font-medium text-gray-500">{t('home.stats.successRate')}</div>
                                     </div>
                                     <div className="flex flex-col items-center justify-center p-2">
                                         <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center text-green-600 mb-3 shadow-inner"><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div>
                                         <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">20K+</div>
-                                        <div className="text-sm font-medium text-gray-500">Career Data</div>
+                                        <div className="text-sm font-medium text-gray-500">{t('home.stats.careerDataPoints')}</div>
                                     </div>
                                     <div className="flex flex-col items-center justify-center p-2">
                                         <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center text-purple-600 mb-3 shadow-inner"><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                                         <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">&lt; 10min</div>
-                                        <div className="text-sm font-medium text-gray-500">Assessment Time</div>
+                                        <div className="text-sm font-medium text-gray-500">{t('home.stats.assessmentTime')}</div>
                                     </div>
                                 </div>
                             </div>
@@ -580,8 +666,8 @@ const HomePage = () => {
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">Everything you need to <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700">excel in your career</span></h2>
-                            <p className="text-lg text-gray-500 dark:text-gray-400">Our platform combines advanced AI with proven career strategies to give you the competitive edge.</p>
+                            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">{t('home.features.sectionTitle')} <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700">{t('home.features.sectionHighlight')}</span></h2>
+                            <p className="text-lg text-gray-500 dark:text-gray-400">{t('home.features.sectionSubtitle')}</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-2 gap-6 h-auto md:h-[650px]">
@@ -592,8 +678,8 @@ const HomePage = () => {
                                     <div className="w-14 h-14 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                                         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">AI Career Assessment</h3>
-                                    <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">Discover your ideal career path with our comprehensive RIASEC & Big Five personality assessments powered by advanced AI analysis.</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">{t('home.features.assessment.title')}</h3>
+                                    <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">{t('home.features.assessment.desc')}</p>
 
                                     {/* Abstract UI Representation - Assessment Visual */}
                                     <div className="mt-auto relative w-full h-64 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-inner transform group-hover:scale-[1.02] transition-transform duration-500 flex flex-col gap-4 overflow-hidden">
@@ -635,8 +721,8 @@ const HomePage = () => {
                                 <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 text-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:rotate-12 transition-transform">
                                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Skill Gap Analysis</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Identify missing skills for your dream career.</p>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.features.skillGap.title')}</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('home.features.skillGap.desc')}</p>
                                 {/* Abstract Chart */}
                                 <div className="flex items-end justify-between h-24 px-2 pb-2">
                                     {[40, 70, 50, 90, 60].map((h, i) => (
@@ -654,8 +740,8 @@ const HomePage = () => {
                                 <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:-rotate-12 transition-transform">
                                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Career Roadmaps</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Personalized learning paths to success.</p>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.features.roadmap.title')}</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('home.features.roadmap.desc')}</p>
                                 {/* Abstract Roadmap Animation */}
                                 <div className="relative w-full h-24 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                                     <div className="flex items-center gap-3">
@@ -677,9 +763,9 @@ const HomePage = () => {
                     <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-gray-50 dark:from-gray-800/50 to-transparent"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="mb-20 text-center">
-                            <span className="text-green-500 font-bold tracking-wider uppercase text-sm bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full">Workflow</span>
-                            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mt-4">How CareerBridge works</h2>
-                            <p className="text-lg text-gray-500 dark:text-gray-400 mt-4 max-w-2xl mx-auto">Our AI-powered platform guides you through a comprehensive career discovery journey</p>
+                            <span className="text-green-500 font-bold tracking-wider uppercase text-sm bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full">{t('home.howItWorks.label')}</span>
+                            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mt-4">{t('home.howItWorks.title')}</h2>
+                            <p className="text-lg text-gray-500 dark:text-gray-400 mt-4 max-w-2xl mx-auto">{t('home.howItWorks.subtitle')}</p>
                         </div>
 
                         <div className="relative">
@@ -687,10 +773,10 @@ const HomePage = () => {
                             <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-100 dark:bg-gray-800 -translate-x-1/2"></div>
 
                             {[
-                                { title: "Complete Assessment", desc: "Take our comprehensive RIASEC & Big Five personality assessments to discover your work style, interests, and strengths.", icon: "1", align: "left" },
-                                { title: "Get AI Analysis", desc: "Our advanced AI engine analyzes your profile against thousands of career paths and market trends to find your perfect match.", icon: "2", align: "right" },
-                                { title: "Explore Career Paths", desc: "Browse personalized career recommendations with detailed roadmaps, required skills, and salary insights.", icon: "3", align: "left" },
-                                { title: "Build Your Roadmap", desc: "Get a customized learning path with courses, certifications, and milestones to achieve your career goals.", icon: "4", align: "right" }
+                                { title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc'), icon: "1", align: "left" },
+                                { title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc'), icon: "2", align: "right" },
+                                { title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc'), icon: "3", align: "left" },
+                                { title: t('home.howItWorks.step4.title'), desc: t('home.howItWorks.step4.desc'), icon: "4", align: "right" }
                             ].map((step, idx) => (
                                 <div key={idx} className={`relative flex items-center justify-between mb-16 ${step.align === 'right' ? 'flex-row-reverse' : ''} group`}>
                                     <div className="hidden md:block w-5/12"></div>
@@ -720,15 +806,15 @@ const HomePage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                             <CounterItem
                                 value={`${stats?.totalAssessments ?? 0}+`}
-                                label="Assessments Completed"
+                                label={t('home.stats.assessments')}
                             />
                             <CounterItem
                                 value={`${stats?.totalCareerPaths ?? 0}+`}
-                                label="Career Paths Created"
+                                label={t('home.stats.careerPaths')}
                             />
                             <CounterItem
                                 value={`${Math.round((stats?.totalCareerInfo ?? 20000) / 1000)}K+`}
-                                label="Career Data Points"
+                                label={t('home.stats.careerData')}
                             />
                         </div>
                     </div>
@@ -737,7 +823,7 @@ const HomePage = () => {
                 {/* --- TESTIMONIALS --- */}
                 <section className="py-24 bg-white dark:bg-gray-900 overflow-hidden">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center">
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Loved by professionals</h2>
+                        <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">{t('home.testimonials.title')}</h2>
                     </div>
 
                     <div className="relative group hover:cursor-grab active:cursor-grabbing">
@@ -786,8 +872,8 @@ const HomePage = () => {
                 <section className="py-24 bg-gray-50 dark:bg-gray-800/50">
                     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
-                            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
-                            <p className="text-gray-500 dark:text-gray-400">Everything you need to know about CareerBridge.</p>
+                            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-4">{t('home.faq.title')}</h2>
+                            <p className="text-gray-500 dark:text-gray-400">{t('home.faq.subtitle')}</p>
                         </div>
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
                             <div className="space-y-2">
@@ -809,12 +895,12 @@ const HomePage = () => {
                             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-black opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
 
-                            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 relative z-10 text-center">Ready to launch your career?</h2>
-                            <p className="text-green-100 text-lg mb-10 max-w-2xl mx-auto relative z-10 text-center">Join thousands of professionals who have found their dream jobs using CareerBridge AI.</p>
+                            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 relative z-10 text-center">{t('home.cta.title')}</h2>
+                            <p className="text-green-100 text-lg mb-10 max-w-2xl mx-auto relative z-10 text-center">{t('home.cta.subtitle')}</p>
 
                             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
                                 <Link to="/assessment" className="px-8 py-4 bg-white text-green-700 rounded-full font-bold hover:bg-gray-100 hover:scale-105 transition-all shadow-lg text-center">
-                                    Get Started for Free
+                                    {t('home.cta.btn')}
                                 </Link>
                             </div>
                         </div>
@@ -822,8 +908,8 @@ const HomePage = () => {
                         {/* Contact Developer Section */}
                         <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-8 md:p-12 shadow-xl border border-gray-100 dark:border-gray-700">
                             <div className="text-center mb-8">
-                                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">Contact Developer</h3>
-                                <p className="text-gray-600 dark:text-gray-400">Have questions or feedback? We'd love to hear from you!</p>
+                                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">{t('home.contact.title')}</h3>
+                                <p className="text-gray-600 dark:text-gray-400">{t('home.contact.subtitle')}</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -850,8 +936,8 @@ const HomePage = () => {
                                             </svg>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">Response Time</p>
-                                            <p className="text-gray-900 dark:text-white font-semibold">Within 24 hours</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">{t('home.contact.responseTime')}</p>
+                                            <p className="text-gray-900 dark:text-white font-semibold">{t('home.contact.responseTimeValue')}</p>
                                         </div>
                                     </div>
 
@@ -862,8 +948,8 @@ const HomePage = () => {
                                             </svg>
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">Support</p>
-                                            <p className="text-gray-900 dark:text-white font-semibold">Technical & Career Guidance</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">{t('home.contact.support')}</p>
+                                            <p className="text-gray-900 dark:text-white font-semibold">{t('home.contact.supportValue')}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -873,8 +959,8 @@ const HomePage = () => {
                                     {!showContactForm ? (
                                         <div className="flex flex-col justify-center items-center h-full">
                                             <div className="text-6xl mb-4">💬</div>
-                                            <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Send us a message</h4>
-                                            <p className="text-gray-600 dark:text-gray-400 text-center mb-6">Click below to send us a message directly.</p>
+                                            <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.contact.sendTitle')}</h4>
+                                            <p className="text-gray-600 dark:text-gray-400 text-center mb-6">{t('home.contact.sendDesc')}</p>
                                             <button
                                                 onClick={() => setShowContactForm(true)}
                                                 className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center gap-2"
@@ -882,52 +968,52 @@ const HomePage = () => {
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                 </svg>
-                                                Contact Developer
+                                                {t('home.contact.btn')}
                                             </button>
                                         </div>
                                     ) : (
                                         <form onSubmit={handleContactSubmit} className="space-y-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.nameLabel')}</label>
                                                 <input
                                                     type="text"
                                                     required
                                                     value={contactForm.name}
                                                     onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                                                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                    placeholder="Your name"
+                                                    placeholder={t('home.contact.namePlaceholder')}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.emailLabel')}</label>
                                                 <input
                                                     type="email"
                                                     required
                                                     value={contactForm.email}
                                                     onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                                                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                    placeholder="your@email.com"
+                                                    placeholder={t('home.contact.emailPlaceholder')}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone (optional)</label>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.phoneLabel')}</label>
                                                 <input
                                                     type="tel"
                                                     value={contactForm.phone}
                                                     onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
                                                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                    placeholder="Your phone number"
+                                                    placeholder={t('home.contact.phonePlaceholder')}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.messageLabel')}</label>
                                                 <textarea
                                                     required
                                                     rows={3}
                                                     value={contactForm.message}
                                                     onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                                                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                                                    placeholder="Your message..."
+                                                    placeholder={t('home.contact.messagePlaceholder')}
                                                 />
                                             </div>
 
@@ -946,7 +1032,7 @@ const HomePage = () => {
                                                     }}
                                                     className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                                 >
-                                                    Cancel
+                                                    {t('common.cancel')}
                                                 </button>
                                                 <button
                                                     type="submit"
@@ -959,9 +1045,9 @@ const HomePage = () => {
                                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                             </svg>
-                                                            Sending...
+                                                            {t('home.contact.sending')}
                                                         </>
-                                                    ) : 'Send Message'}
+                                                    ) : t('home.contact.sendBtn')}
                                                 </button>
                                             </div>
                                         </form>
@@ -973,54 +1059,7 @@ const HomePage = () => {
                 </section>
 
                 {/* --- FOOTER --- */}
-                <footer className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pt-16 pb-8">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
-                            <div className="col-span-2 lg:col-span-2">
-                                <ModernLogo />
-                                <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-xs">
-                                    CareerBridge AI helps you build professional resumes, analyze your skills, and find your perfect career path using advanced artificial intelligence.
-                                </p>
-                            </div>
-
-                            {/* (Giữ nguyên các cột link footer...) */}
-                            <div>
-                                <h4 className="font-bold text-gray-900 dark:text-white mb-4">Product</h4>
-                                <ul className="space-y-3 text-sm text-gray-500 dark:text-gray-400">
-                                    <li><Link to="/features" className="hover:text-green-500 transition-colors">Features</Link></li>
-                                    <li><Link to="/pricing" className="hover:text-green-500 transition-colors">Pricing</Link></li>
-                                    <li><Link to="/assessment" className="hover:text-green-500 transition-colors">Assessment</Link></li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-gray-900 dark:text-white mb-4">Resources</h4>
-                                <ul className="space-y-3 text-sm text-gray-500 dark:text-gray-400">
-                                    <li><Link to="/blog" className="hover:text-green-500 transition-colors">Blog</Link></li>
-                                    <li><Link to="/guide" className="hover:text-green-500 transition-colors">Career Guide</Link></li>
-                                    <li><Link to="/help" className="hover:text-green-500 transition-colors">Help Center</Link></li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-gray-900 dark:text-white mb-4">Legal</h4>
-                                <ul className="space-y-3 text-sm text-gray-500 dark:text-gray-400">
-                                    <li><Link to="/privacy" className="hover:text-green-500 transition-colors">Privacy</Link></li>
-                                    <li><Link to="/terms" className="hover:text-green-500 transition-colors">Terms</Link></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-gray-100 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                            <p className="text-sm text-gray-400">© 2025 CareerBridge AI. All rights reserved.</p>
-                            <div className="flex gap-6">
-                                {['Twitter', 'GitHub', 'LinkedIn', 'Discord'].map((social) => (
-                                    <a key={social} href="#" className="text-gray-400 hover:text-green-500 hover:scale-110 transition-all text-sm font-medium">
-                                        {social}
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </footer>
+                <AppFooter />
             </main>
         </div>
     );

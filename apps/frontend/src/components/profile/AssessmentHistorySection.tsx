@@ -26,12 +26,20 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
 
   // Group assessments by session/time (within 5 minutes = same session)
   const groupedSessions = useMemo(() => {
+    console.log('🔍 [AssessmentHistory] Raw assessmentHistory:', assessmentHistory);
+    console.log('🔍 [AssessmentHistory] First item test_mode:', assessmentHistory[0]?.test_mode);
     const sessions: GroupedSession[] = [];
     const sortedHistory = [...assessmentHistory].sort(
       (a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
     );
 
     for (const assessment of sortedHistory) {
+      console.log('🔍 [AssessmentHistory] Processing assessment:', {
+        id: assessment.id,
+        test_mode: assessment.test_mode,
+        test_types: assessment.test_types,
+        full_object: assessment
+      });
       const assessmentTime = new Date(assessment.completed_at).getTime();
       const testTypes = assessment.test_types || [];
       const isRiasec = testTypes.some(t => t.toLowerCase().includes('riasec'));
@@ -79,6 +87,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
       }
     }
 
+    console.log('🔍 [AssessmentHistory] Grouped sessions:', sessions);
     return sessions;
   }, [assessmentHistory]);
 
@@ -150,7 +159,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
   }, [showComparison, selectedSessions, groupedSessions]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-[32px] overflow-hidden font-['Plus_Jakarta_Sans']">
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-card-hero overflow-hidden">
 
       {/* Header with gradient */}
       <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden">
@@ -245,6 +254,26 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                         <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">
                           {getSessionTestTypes(session)}
                         </span>
+                        {/* Test Mode Badge */}
+                        {(() => {
+                          const testMode = session.riasec_assessment?.test_mode || session.bigfive_assessment?.test_mode;
+                          console.log('🔍 [Badge] Session:', session.session_id, 'test_mode:', testMode);
+                          
+                          if (testMode === 'story') {
+                            return (
+                              <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-semibold rounded-full">
+                                📖 Story Mode
+                              </span>
+                            );
+                          } else if (testMode === 'traditional') {
+                            return (
+                              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full">
+                                📝 Traditional
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
 
                       <div className="flex flex-wrap gap-4 text-sm">

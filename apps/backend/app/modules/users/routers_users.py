@@ -1,7 +1,6 @@
 import json
 import logging
 from datetime import date
-import json
 
 from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import select, text
@@ -13,6 +12,7 @@ from ..assessments.models import Assessment
 from .models import User
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # Session factory for audit logs
 _AuditSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
@@ -44,12 +44,14 @@ def _log_audit(
                     entity_id_val = None
 
             new_session.execute(
-                text("""
+                text(
+                    """
                 INSERT INTO core.audit_logs 
                 (actor_id, action, entity, entity_id, data_json, user_id, resource_type, resource_id, details, ip_address, created_at)
                 VALUES 
                 (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :user_id, :resource_type, :resource_id, CAST(:details AS jsonb), :ip_address, NOW())
-            """),
+            """
+                ),
                 {
                     "actor_id": user_id,
                     "action": action,
@@ -178,6 +180,10 @@ def get_history(request: Request, user_id: int):
         .scalars()
         .all()
     )
+    
+    print(f"[DEBUG] Found {len(rows)} assessments for user {user_id}")
+    if rows:
+        print(f"[DEBUG] First assessment test_mode: {rows[0].test_mode}")
 
     def _map_riasec(s: dict | None) -> dict | None:
         if not isinstance(s, dict):
@@ -249,8 +255,14 @@ def get_history(request: Request, user_id: int):
                 "test_types": test_types,
                 "riasec_scores": riasec_scores,
                 "big_five_scores": big5_scores,
+                "test_mode": a.test_mode,
             }
         )
+    
+    print(f"[DEBUG] Returning {len(history)} history items")
+    if history:
+        print(f"[DEBUG] First history item: {history[0]}")
+    
     return history
 
 

@@ -1,11 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import csv
-from pathlib import Path
-from typing import Dict, List, Tuple
-
 import json
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -42,7 +41,7 @@ def _normalize_job_id(raw: str) -> str:
     return s
 
 
-def load_pairs(path: Path) -> List[Tuple[str, str, float]]:
+def load_pairs(path: Path) -> list[tuple[str, str, float]]:
     """
     Đọc interactions và trả về list (user_id, job_id, label).
 
@@ -52,7 +51,7 @@ def load_pairs(path: Path) -> List[Tuple[str, str, float]]:
 
     Đồng thời chuẩn hoá job_id về O*NET code (11-1021.00).
     """
-    pairs: List[Tuple[str, str, float]] = []
+    pairs: list[tuple[str, str, float]] = []
     with path.open("r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -87,8 +86,7 @@ def load_pairs(path: Path) -> List[Tuple[str, str, float]]:
     return pairs
 
 
-
-def split_train_val(pairs: List[Tuple[str, str, float]], val_ratio: float = 0.1):
+def split_train_val(pairs: list[tuple[str, str, float]], val_ratio: float = 0.1):
     n = len(pairs)
     split = int(n * (1 - val_ratio))
     return pairs[:split], pairs[split:]
@@ -97,8 +95,8 @@ def split_train_val(pairs: List[Tuple[str, str, float]], val_ratio: float = 0.1)
 def train_mlp(
     train_pairs,
     val_pairs,
-    user_feats: Dict[str, list[float]],
-    item_feats: Dict[str, list[float]],
+    user_feats: dict[str, list[float]],
+    item_feats: dict[str, list[float]],
     epochs: int = 5,
     bs: int = 512,
     lr: float = 1e-3,
@@ -142,7 +140,7 @@ def train_mlp(
             T.cat(Yv).numpy(),
             T.cat(Xv).numpy(),
         )
-        print(f"Epoch {ep+1}: val AUC={auc:.4f}")
+        print(f"Epoch {ep + 1}: val AUC={auc:.4f}")
 
     return model
 

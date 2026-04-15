@@ -5,7 +5,7 @@ SQLAlchemy models for report tables.
 - analytics.report_events: Report viewing analytics
 """
 
-from sqlalchemy import Column, BigInteger, Integer, Text, Boolean, DateTime, ForeignKey
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 
@@ -14,13 +14,14 @@ from ...core.db import Base
 
 class ReportTemplate(Base):
     """Template configuration for report generation."""
+
     __tablename__ = "report_templates"
     __table_args__ = {"schema": "core"}
 
     id = Column(BigInteger, primary_key=True, index=True)
     template_key = Column(Text, nullable=False)  # 'big5_v1', 'riasec_v1'
     version = Column(Text, nullable=False)  # '1.0.0'
-    locale = Column(Text, nullable=False, default='vi')  # 'vi' | 'en'
+    locale = Column(Text, nullable=False, default="vi")  # 'vi' | 'en'
     title = Column(Text, nullable=True)
     description = Column(Text, nullable=True)
     config_json = Column(JSONB, nullable=False)  # weights, mapping rules, labels, text blocks
@@ -31,6 +32,7 @@ class ReportTemplate(Base):
 
 class AssessmentReport(Base):
     """Snapshot report for an assessment."""
+
     __tablename__ = "assessment_reports"
     __table_args__ = {"schema": "core"}
 
@@ -40,14 +42,14 @@ class AssessmentReport(Base):
     assessment_id = Column(BigInteger, ForeignKey("core.assessments.id", ondelete="CASCADE"), nullable=False)
     template_id = Column(BigInteger, ForeignKey("core.report_templates.id", ondelete="RESTRICT"), nullable=False)
     report_type = Column(Text, nullable=False)  # 'big5' | 'riasec'
-    locale = Column(Text, nullable=False, default='vi')
-    status = Column(Text, nullable=False, default='ready')  # 'ready'|'generating'|'failed'
+    locale = Column(Text, nullable=False, default="vi")
+    status = Column(Text, nullable=False, default="ready")  # 'ready'|'generating'|'failed'
     source_hash = Column(Text, nullable=True)  # hash of inputs to detect stale
     computed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Layout version for tracking layout changes
-    layout_version = Column(Text, nullable=False, default='print_v1')
-    
+    layout_version = Column(Text, nullable=False, default="print_v1")
+
     # SNAPSHOT payload - all fields have defaults to ensure never null
     cover_json = Column(JSONB, nullable=False, default={})
     narrative_json = Column(JSONB, nullable=False, default={})  # "Persuasive Idealist" + intro
@@ -63,13 +65,14 @@ class AssessmentReport(Base):
 
 class ReportEvent(Base):
     """Analytics events for report viewing.
-    
+
     Rules:
     - event_uuid: unique identifier for idempotent logging (skip if duplicate)
     - tab_switch: requires tab_key
     - page_view: requires page_no
     - meta_json: never null (defaults to {})
     """
+
     __tablename__ = "report_events"
     __table_args__ = {"schema": "analytics"}
 

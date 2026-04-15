@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import logging
 import os
+import time
 from contextlib import asynccontextmanager
-from typing import Iterable
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy import text
+
+logger = logging.getLogger(__name__)
 
 # dotenv (optional)
 try:
@@ -22,6 +25,8 @@ except Exception:
 
 # DB Session (SQLAlchemy sync)
 from app.core.db import engine, test_connection
+
+# Initialize multi-stream Gemini manager
 from sqlalchemy.orm import sessionmaker
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
@@ -76,6 +81,12 @@ async def lifespan(_: FastAPI):
 
 
 def create_app() -> FastAPI:
+    # Initialize error tracking first
+    try:
+        print("✅ Error tracking initialized")
+    except Exception as e:
+        print(f"⚠️ Error tracking initialization failed: {e}")
+
     app = FastAPI(
         title="NCKH API",
         version=os.getenv("API_VERSION", "0.1.0"),
@@ -85,11 +96,6 @@ def create_app() -> FastAPI:
     )
 
     # CORS - Fix for payment issues
-    origins: Iterable[str] = _split_csv_env(os.getenv("ALLOWED_ORIGINS"), "http://localhost:3000,http://127.0.0.1:3000")
-    allow_headers = _split_csv_env(os.getenv("ALLOWED_HEADERS"), "*, Authorization, Content-Type, X-Requested-With")
-    allow_methods = _split_csv_env(os.getenv("ALLOWED_METHODS"), "GET, POST, PUT, DELETE, OPTIONS")
-    allow_credentials = _bool_env("ALLOW_CREDENTIALS", True)
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],  # Temporary fix for development
@@ -99,6 +105,29 @@ def create_app() -> FastAPI:
         expose_headers=["*"],
         max_age=600,
     )
+
+    # Performance monitoring middleware
+    try:
+        from .core.monitoring import PerformanceMonitoringMiddleware, set_performance_monitor
+
+        class RegisteredPerformanceMonitoringMiddleware(PerformanceMonitoringMiddleware):
+            def __init__(self, app, *args, **kwargs):
+                super().__init__(app, *args, **kwargs)
+                set_performance_monitor(self)
+
+        app.add_middleware(RegisteredPerformanceMonitoringMiddleware)
+        print("✅ Performance monitoring enabled")
+    except Exception as e:
+        print(f"⚠️ Performance monitoring disabled: {e}")
+
+    # Rate limiting middleware
+    try:
+        from .core.rate_limiter import RateLimitMiddleware
+
+        app.add_middleware(RateLimitMiddleware, default_limit=100, default_window=60)
+        print("✅ Rate limiting enabled")
+    except Exception as e:
+        print(f"⚠️ Rate limiting disabled: {e}")
 
     # DB session per-request
     @app.middleware("http")
@@ -115,10 +144,55 @@ def create_app() -> FastAPI:
         finally:
             db.close()
 
+    # JWT Auth middleware — sets request.state.user (TC02 session management)
+    from .core.auth_middleware import jwt_auth_middleware
+    app.middleware("http")(jwt_auth_middleware)
+
     # Health & root
     @app.get("/health", tags=["system"])
     def health():
         return {"status": "ok"}
+
+    @app.get("/health/detailed", tags=["system"])
+    async def detailed_health():
+        """Comprehensive health check with performance metrics"""
+        try:
+            from .core.monitoring import get_health_checker
+
+            health_checker = get_health_checker()
+            return await health_checker.get_system_health()
+        except Exception:
+            logger.exception("Detailed health check failed")
+            return {"status": "error", "message": "Failed to retrieve detailed health status"}
+
+    @app.get("/metrics", tags=["system"])
+    def get_metrics():
+        """Get comprehensive performance metrics"""
+        try:
+            from .core.cache import cache_manager
+            from .core.database_monitor import db_monitor
+            from .core.error_tracking import error_tracker
+            from .core.monitoring import get_performance_monitor
+
+            monitor = get_performance_monitor()
+
+            metrics = {"performance": monitor.get_metrics_summary() if monitor else {}, "timestamp": time.time()}
+
+            # Add database metrics if available
+            if db_monitor:
+                metrics["database"] = db_monitor.get_metrics()
+
+            # Add cache metrics if available
+            if cache_manager:
+                metrics["cache"] = cache_manager.get_stats()
+
+            # Add error tracking metrics
+            metrics["errors"] = error_tracker.get_error_stats()
+
+            return metrics
+        except Exception:
+            logger.exception("Metrics retrieval failed")
+            return {"status": "error", "message": "Failed to retrieve metrics"}
 
     @app.get("/", include_in_schema=False)
     def root():
@@ -138,9 +212,9 @@ def create_app() -> FastAPI:
         from .api import bff_career
 
         app.include_router(bff_career.router)
-        print("✅ BFF Career router registered at /bff/catalog/career/{onet_code}")
+        print("✅ BFF Career API")
     except Exception as e:
-        print("❌ Skip BFF Career router:", repr(e))
+        print("❌ BFF Career API:", str(e)[:50])
 
     # Auth / Users
     from .modules.users.router_auth import router as auth_router
@@ -165,18 +239,29 @@ def create_app() -> FastAPI:
     # Assessments (nếu có thêm)
     try:
         from .modules.assessments import routes_assessments as assess_router
-
         app.include_router(assess_router.router, prefix="/api/assessments", tags=["assessments"])
+        print("✅ Assessments router registered")
     except Exception as e:
         print("ℹ️  Skip assessments router:", repr(e))
+    
+    # Gamification (optional - can be enabled after assessments work)
+    try:
+        from .modules.assessments import routes_gamification as gamification_router
+        app.include_router(gamification_router.router, prefix="/api/assessments", tags=["gamification"])
+        print("✅ Gamification router registered")
+    except Exception as e:
+        print("ℹ️  Skip gamification router:", repr(e))
 
     # Admin (dashboard, careers, questions, skills)
     try:
         from .modules.admin import routes_admin as admin_router
 
         app.include_router(admin_router.router, prefix="/api/admin", tags=["admin"])
+        print("Admin router registered OK")
     except Exception as e:
-        print("??  Skip admin router:", repr(e))
+        import traceback
+        print("!! Skip admin router:", repr(e))
+        traceback.print_exc()
 
     # Public system settings (no auth)
     try:
@@ -211,6 +296,14 @@ def create_app() -> FastAPI:
         app.include_router(ws_notifs.router)
     except Exception as e:
         print("??  Skip ws notifications:", repr(e))
+
+    # WS comments (real-time comment updates)
+    try:
+        from .modules.realtime import ws_comments as ws_comments
+
+        app.include_router(ws_comments.router)
+    except Exception as e:
+        print("??  Skip ws comments:", repr(e))
 
     # Search API (Elastic or fallback)
     try:
@@ -300,7 +393,17 @@ def create_app() -> FastAPI:
         app.include_router(chatbot_router.router, tags=["chatbot"])
     except Exception as e:
         print("??  Skip chatbot router:", repr(e))
-    # Career 
+
+    # Skill Gap Analysis
+    try:
+        from .modules.skill_gap import routes as skill_gap_router
+
+        app.include_router(skill_gap_router.router, prefix="/api/skill-gap", tags=["skill-gap"])
+        print("✅ Skill Gap Analysis router registered")
+    except Exception as e:
+        print("??  Skip skill gap router:", repr(e))
+    
+    # Career
     try:
         from .modules.careers import routes_trait_evidence as career_router
 
@@ -315,6 +418,124 @@ def create_app() -> FastAPI:
         app.include_router(reports_router.router)
     except Exception as e:
         print("??  Skip reports router:", repr(e))
+
+    # AI Mock Interview
+    try:
+        from .modules.interview import routes as interview_router
+
+        app.include_router(interview_router.router, prefix="/api/interview", tags=["interview"])
+        print("✅ AI Mock Interview API")
+    except Exception as e:
+        print("❌ AI Mock Interview API:", str(e)[:50])
+
+    # NLP — PB32 essay analysis, PB33 career embeddings, PB34 pgvector search
+    try:
+        from .modules.nlp import routes_nlp as nlp_router
+
+        app.include_router(nlp_router.router, prefix="/api/nlp", tags=["nlp"])
+        print("✅ NLP router registered at /api/nlp")
+    except Exception as e:
+        print("??  Skip NLP router:", repr(e))
+
+    # CV Documents admin endpoint (direct registration - guaranteed)
+    from fastapi import Depends as _Depends
+    from fastapi import Query as _Query
+    from sqlalchemy.orm import Session as _Session
+
+    from .core.db import get_db as _get_db
+
+    @app.get("/api/admin/cv-documents", tags=["admin"])
+    async def admin_cv_documents(
+        page: int = _Query(1, ge=1),
+        page_size: int = _Query(20, ge=1, le=100),
+        search: str = _Query(""),
+        db: _Session = _Depends(_get_db),
+    ):
+        from sqlalchemy import desc, or_
+
+        from .modules.skill_gap.models import SkillGapAnalysis
+
+        try:
+            query = db.query(
+                SkillGapAnalysis.id,
+                SkillGapAnalysis.user_id,
+                SkillGapAnalysis.career_id,
+                SkillGapAnalysis.cv_filename,
+                SkillGapAnalysis.cv_file_url,
+                SkillGapAnalysis.cv_name,
+                SkillGapAnalysis.cv_email,
+                SkillGapAnalysis.cv_phone,
+                SkillGapAnalysis.match_percentage,
+                SkillGapAnalysis.matched_skills_count,
+                SkillGapAnalysis.missing_skills_count,
+                SkillGapAnalysis.total_required_skills,
+                SkillGapAnalysis.created_at,
+            )
+            if search:
+                query = query.filter(
+                    or_(
+                        SkillGapAnalysis.cv_name.ilike(f"%{search}%"),
+                        SkillGapAnalysis.cv_email.ilike(f"%{search}%"),
+                        SkillGapAnalysis.cv_filename.ilike(f"%{search}%"),
+                    )
+                )
+            total = query.count()
+            records = (
+                query.order_by(desc(SkillGapAnalysis.created_at))
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
+            items = [
+                {
+                    "id": r.id,
+                    "user_id": r.user_id,
+                    "career_id": r.career_id,
+                    "cv_filename": r.cv_filename,
+                    "cv_file_url": r.cv_file_url,
+                    "cv_name": r.cv_name,
+                    "cv_email": r.cv_email,
+                    "cv_phone": r.cv_phone,
+                    "match_percentage": round(r.match_percentage or 0, 1),
+                    "matched_skills_count": r.matched_skills_count or 0,
+                    "missing_skills_count": r.missing_skills_count or 0,
+                    "total_required_skills": r.total_required_skills or 0,
+                    "created_at": r.created_at.isoformat() if r.created_at else None,
+                }
+                for r in records
+            ]
+            return {
+                "success": True,
+                "total": total,
+                "page": page,
+                "page_size": page_size,
+                "total_pages": (total + page_size - 1) // page_size if total else 1,
+                "items": items,
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e), "items": [], "total": 0}
+
+    @app.get("/api/admin/r2-status", tags=["admin"])
+    def admin_r2_status():
+        """Check R2 storage configuration and test upload"""
+        import os
+
+        from .core.r2_storage import r2_storage
+        result = {
+            "is_configured": r2_storage.is_configured,
+            "account_id": os.getenv("CF_R2_ACCOUNT_ID", "")[:8] + "..." if os.getenv("CF_R2_ACCOUNT_ID") else "NOT SET",
+            "bucket": os.getenv("CF_R2_BUCKET_NAME", "NOT SET"),
+            "public_url": os.getenv("CF_R2_PUBLIC_URL", "NOT SET"),
+            "test_upload": None,
+            "error": None,
+        }
+        if r2_storage.is_configured:
+            try:
+                url = r2_storage.upload_cv(b"R2 test ping", "r2_test.txt", 0)
+                result["test_upload"] = url
+            except Exception as e:
+                result["error"] = str(e)
+        return result
 
     return app
 

@@ -1,5 +1,6 @@
 # apps/backend/app/core/jwt.py
 import os
+import secrets
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
@@ -18,9 +19,13 @@ JWT_REFRESH_EXPIRES_DAYS = int(os.getenv("JWT_REFRESH_EXPIRES_DAYS", "30"))
 
 
 def create_access_token(payload: Dict[str, Any], expires_minutes: int | None = None) -> str:
-    # payload ví dụ: {"sub": "123", "role": "admin"}
+    """Create JWT access token with jti (JWT ID) for blacklist support."""
     exp_min = expires_minutes if expires_minutes is not None else JWT_ACCESS_EXPIRES_MIN
-    to_encode = {**payload, "exp": int(time.time()) + exp_min * 60}
+    to_encode = {
+        **payload,
+        "exp": int(time.time()) + exp_min * 60,
+        "jti": secrets.token_hex(16),  # unique token ID for revocation
+    }
     return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALG)
 
 
@@ -80,19 +85,14 @@ def get_current_user(request: Request) -> Dict[str, Any]:
     """
     token = _get_bearer_token(request)
     data = decode_token(token)
-    
+
     sub = data.get("sub")
     if sub is None:
         raise HTTPException(status_code=401, detail="Token missing sub")
-    
+
     try:
         user_id = int(sub)
     except ValueError:
         raise HTTPException(status_code=401, detail="Invalid subject in token")
-    
-    return {
-        "user_id": user_id,
-        "role": data.get("role", "user"),
-        "email": data.get("email"),
-        **data
-    }
+
+    return {"user_id": user_id, "role": data.get("role", "user"), "email": data.get("email"), **data}

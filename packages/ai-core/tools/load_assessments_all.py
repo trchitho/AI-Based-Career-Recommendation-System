@@ -118,9 +118,7 @@ def load_questions(cur, csv_path: Path):
                 try:
                     opt = json.loads(raw_opt)
                 except json.JSONDecodeError:
-                    print(
-                        f"[WARN] Invalid JSON at {csv_path.name} line {r.get('question_no', '?')}: using default"
-                    )
+                    print(f"[WARN] Invalid JSON at {csv_path.name} line {r.get('question_no', '?')}: using default")
                     opt = {
                         "options": [
                             "Very Inaccurate",

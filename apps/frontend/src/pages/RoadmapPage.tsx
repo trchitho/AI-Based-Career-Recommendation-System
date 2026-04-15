@@ -155,7 +155,7 @@ const RoadmapPage = () => {
   return (
     <MainLayout>
       <SubscriptionRefresh onUpgradeDetected={handleUpgradeDetected} />
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           .bg-dot-pattern { background-image: radial-gradient(#E5E7EB 1px, transparent 1px); background-size: 24px 24px; }
@@ -192,7 +192,7 @@ const RoadmapPage = () => {
           {!loading && roadmap && (
             <div className="animate-fade-in-up space-y-8">
               {/* Hero Header - Career Title + Stages */}
-              <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 rounded-[32px] p-8 md:p-10 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
+              <div className="bg-gradient-cta dark:from-green-800 dark:to-green-900 rounded-card-hero p-8 md:p-10 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
@@ -246,7 +246,7 @@ const RoadmapPage = () => {
 
               {/* Overview - Career Description */}
               {(careerDesc || navState.description) && (
-                <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <span className="w-2 h-6 bg-green-500 rounded-full" />Overview
                   </h3>
@@ -263,7 +263,7 @@ const RoadmapPage = () => {
 
               {/* Trait Evidence - Why this career matches */}
               {traitEvidence && (
-                <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <span className="w-2 h-6 bg-blue-500 rounded-full" />How your assessment supports this career match
                   </h3>
@@ -282,8 +282,8 @@ const RoadmapPage = () => {
               )}
 
               {/* Learning Journey Timeline */}
-              <div className="relative bg-white dark:bg-gray-800 rounded-[32px] shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <div className="relative bg-[#1a4731] dark:bg-gray-900 p-8 md:p-10 overflow-hidden">
+              <div className="relative bg-white dark:bg-gray-800 rounded-card-hero shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div className="relative bg-primary-dark dark:bg-gray-900 p-8 md:p-10 overflow-hidden">
                   <div className="absolute -right-10 -top-10 w-64 h-64 bg-green-500/20 rounded-full blur-3xl" />
 
                   <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">

@@ -197,7 +197,12 @@ git --version
 
 ```bash
 cd AI-Based-Career-Recommendation-System
+
+# Khởi động Docker services (3 containers: PostgreSQL, Redis, Neo4j)
 docker compose down -v ; docker compose up -d
+
+# Nếu lỗi thiếu biến môi trường, chạy lệnh này:
+docker compose down -v ; docker-compose --env-file apps/backend/.env up -d
 ```
 
 ```bash
@@ -241,13 +246,15 @@ pip install -r requirements.txt
 pip install -e ../../packages/ai-core
 uvicorn app.main:app --reload --port 8000
 ```
-
+pip install PyPDF2==3.0.1
 **Terminal 3: Frontend (port 3000)**
 
 ```bash
 cd apps/frontend
 npm install
 npm run dev
+npm install page-flip
+npm install react-pageflip
 ```
 
 Sau khi chạy xong, truy cập http://localhost:3000 để sử dụng ứng dụng.

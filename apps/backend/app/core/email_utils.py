@@ -58,7 +58,7 @@ def send_email(to_email: str, subject: str, body: str) -> Tuple[bool, str | None
     use_starttls = _bool_env("SMTP_STARTTLS", True)
     use_ssl = _bool_env("SMTP_SSL", False)
     sender = os.getenv("EMAIL_FROM") or user
-    
+
     # Only allow dev mode if explicitly configured
     is_dev_environment = os.getenv("ENVIRONMENT", "").lower() in {"development", "dev"}
 

@@ -2,12 +2,13 @@
 ZaloPay Payment Service
 Tích hợp ZaloPay API cho thanh toán
 """
+
 import hashlib
 import hmac
 import json
 import time
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
 import requests
 from loguru import logger
@@ -41,13 +42,13 @@ class ZaloPayService:
     ) -> Dict[str, Any]:
         """
         Tạo đơn hàng ZaloPay
-        
+
         Args:
             amount: Số tiền (VND)
             description: Mô tả đơn hàng
             user_id: ID người dùng
             order_id: Mã đơn hàng (tự động tạo nếu không có)
-            
+
         Returns:
             Dict chứa order_url và thông tin đơn hàng
         """
@@ -59,18 +60,11 @@ class ZaloPayService:
         # Redirect URL: Khi user hoàn tất/hủy thanh toán, ZaloPay sẽ redirect về đây
         # Đính kèm app_trans_id để BE/FE có thể query lại trạng thái
         redirect_url = (
-            f"{self.redirect_url}?apptransid={app_trans_id}&order_id={order_id}"
-            if self.redirect_url
-            else self.callback_url
+            f"{self.redirect_url}?apptransid={app_trans_id}&order_id={order_id}" if self.redirect_url else self.callback_url
         )
         embed_data = json.dumps({"redirecturl": redirect_url})
-        
-        items = json.dumps([{
-            "itemid": "premium_plan",
-            "itemname": description,
-            "itemprice": amount,
-            "itemquantity": 1
-        }])
+
+        items = json.dumps([{"itemid": "premium_plan", "itemname": description, "itemprice": amount, "itemquantity": 1}])
 
         order = {
             "app_id": self.app_id,
@@ -87,27 +81,25 @@ class ZaloPayService:
 
         # Tạo MAC
         data = f"{order['app_id']}|{order['app_trans_id']}|{order['app_user']}|{order['amount']}|{order['app_time']}|{order['embed_data']}|{order['item']}"
-        order["mac"] = hmac.new(
-            self.key1.encode(), data.encode(), hashlib.sha256
-        ).hexdigest()
+        order["mac"] = hmac.new(self.key1.encode(), data.encode(), hashlib.sha256).hexdigest()
 
         try:
             response = requests.post(self.endpoint, data=order, timeout=30)
             result = response.json()
-            
+
             logger.info(f"ZaloPay create order response: {result}")
-            
+
             if result.get("return_code") == 1:
                 zp_trans_token = result.get("zp_trans_token")
-                
+
                 # ZaloPay Sandbox URLs:
                 # - order_url: QR code page (qcgateway.zalopay.vn) - cho mobile scan
                 # - cashier_order_url: Onelink page - redirect to app
                 # - Gateway URL: sbgateway.zalopay.vn - có CORS issues
-                # 
+                #
                 # Dùng order_url gốc từ ZaloPay response
                 payment_url = result.get("order_url")
-                
+
                 return {
                     "success": True,
                     "order_url": payment_url,
@@ -131,22 +123,20 @@ class ZaloPayService:
     def verify_callback(self, callback_data: Dict[str, Any]) -> bool:
         """
         Xác thực callback từ ZaloPay
-        
+
         Args:
             callback_data: Dữ liệu callback từ ZaloPay
-            
+
         Returns:
             True nếu hợp lệ, False nếu không
         """
         try:
             mac = callback_data.get("mac", "")
             data = callback_data.get("data", "")
-            
+
             # Tính MAC để verify
-            computed_mac = hmac.new(
-                self.key2.encode(), data.encode(), hashlib.sha256
-            ).hexdigest()
-            
+            computed_mac = hmac.new(self.key2.encode(), data.encode(), hashlib.sha256).hexdigest()
+
             return hmac.compare_digest(mac, computed_mac)
         except Exception as e:
             logger.error(f"ZaloPay verify callback error: {e}")
@@ -155,13 +145,13 @@ class ZaloPayService:
     def query_order(self, app_trans_id: str) -> Dict[str, Any]:
         """
         Truy vấn trạng thái đơn hàng
-        
+
         Args:
             app_trans_id: Mã giao dịch
-            
+
         Returns:
             Dict chứa thông tin trạng thái đơn hàng
-            
+
         ZaloPay return_code:
             1: Thanh toán thành công
             2: Thanh toán thất bại
@@ -169,24 +159,24 @@ class ZaloPayService:
             -49: Đơn hàng hết hạn/đã hủy
         """
         query_endpoint = "https://sb-openapi.zalopay.vn/v2/query"
-        
+
         data = f"{self.app_id}|{app_trans_id}|{self.key1}"
         mac = hmac.new(self.key1.encode(), data.encode(), hashlib.sha256).hexdigest()
-        
+
         params = {
             "app_id": self.app_id,
             "app_trans_id": app_trans_id,
             "mac": mac,
         }
-        
+
         try:
             response = requests.post(query_endpoint, data=params, timeout=30)
             result = response.json()
-            
+
             logger.info(f"ZaloPay query order response: {result}")
-            
+
             return_code = result.get("return_code")
-            
+
             # Xác định status dựa trên return_code
             if return_code == 1:
                 status = "success"
@@ -201,7 +191,7 @@ class ZaloPayService:
             else:
                 # Các mã lỗi khác coi như failed
                 status = "failed"
-            
+
             return {
                 "success": return_code == 1,
                 "status": status,
@@ -214,5 +204,5 @@ class ZaloPayService:
             return {
                 "success": False,
                 "status": "error",
-                "message": f"Lỗi truy vấn đơn hàng: {str(e)}",
+                "message": "Lỗi truy vấn đơn hàng",
             }

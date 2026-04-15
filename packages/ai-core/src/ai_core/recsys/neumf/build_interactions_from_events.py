@@ -5,7 +5,6 @@ import csv
 import os
 from collections import defaultdict
 from datetime import datetime
-from typing import Dict, Tuple, List
 
 import psycopg2
 
@@ -13,7 +12,7 @@ DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres:123456@localhost:5433/
 OUT_CSV = os.getenv("INTERACTIONS_CSV", "data/processed/interactions.csv")
 
 
-def load_events() -> List[Tuple[int, str, str]]:
+def load_events() -> list[tuple[int, str, str]]:
     """
     Đọc analytics.career_events, trả về list (user_id, job_id, event_type).
     """
@@ -28,14 +27,14 @@ def load_events() -> List[Tuple[int, str, str]]:
     return [(int(u), str(j), str(e)) for (u, j, e) in rows]
 
 
-def build_interactions(events: List[Tuple[int, str, str]], neg_ratio: int = 3):
+def build_interactions(events: list[tuple[int, str, str]], neg_ratio: int = 3):
     """
     Tạo pairs (user_id, job_id, label) với negative sampling.
     label=1 nếu có click/save/apply; label=0 nếu chỉ impression.
     """
     # 1) Gom theo user_job
-    stats: Dict[Tuple[int, str], Dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    jobs_by_user: Dict[int, set] = defaultdict(set)
+    stats: dict[tuple[int, str], dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    jobs_by_user: dict[int, set] = defaultdict(set)
     all_jobs = set()
 
     for user_id, job_id, etype in events:
@@ -69,7 +68,7 @@ def build_interactions(events: List[Tuple[int, str, str]], neg_ratio: int = 3):
 
 
 def main():
-    print(f"[B4] Load events from analytics.career_events ...")
+    print("[B4] Load events from analytics.career_events ...")
     events = load_events()
     print(f"[B4] Total raw events: {len(events)}")
 
@@ -81,12 +80,14 @@ def main():
         writer = csv.writer(f)
         writer.writerow(["user_id", "job_id", "implicit_rating", "timestamp"])
         for user_id, job_id, label in pairs:
-            writer.writerow([
-                user_id,
-                job_id,                     # phải là onet_code chuẩn
-                float(label),               # implicit rating as float
-                datetime.utcnow().isoformat()
-            ])
+            writer.writerow(
+                [
+                    user_id,
+                    job_id,  # phải là onet_code chuẩn
+                    float(label),  # implicit rating as float
+                    datetime.utcnow().isoformat(),
+                ]
+            )
 
     print(f"[B4] Wrote {OUT_CSV}")
 

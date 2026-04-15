@@ -13,7 +13,6 @@ from typing import Any, Iterable
 import httpx
 import psycopg
 from dotenv import load_dotenv
-from psycopg import Connection, sql
 from psycopg.rows import dict_row
 
 from ..services.onetsvc import OnetService
@@ -54,7 +53,6 @@ DO UPDATE SET
 """
 
 # (wages_us để phase sau – bạn có thể define UPSERT skeleton ở đây nếu muốn)
-
 
 
 # ----------------- UPSERT SQL (khớp schema tài liệu) -----------------
@@ -225,7 +223,6 @@ def _riasec_one_hot(top_interest: str | None):
     elif t == "Conventional":
         c = 1.0
     return (r, i, a, s, e, c)
-
 
 
 def upsert_all_for_code(conn: psycopg.Connection, svc: OnetService, code: str) -> None:

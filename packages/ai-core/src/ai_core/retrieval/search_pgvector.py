@@ -1,4 +1,4 @@
-﻿# src/retrieval/search_pgvector.py
+# src/retrieval/search_pgvector.py
 import argparse
 import json
 import os
@@ -29,17 +29,11 @@ def encode_queries(
 ) -> np.ndarray:
     model_name = (Path(model_dir) / "tokenizer_name.txt").read_text().strip()
     tok = AutoTokenizer.from_pretrained(model_name, use_fast=True)
-    mdl = (
-        AutoModel.from_pretrained(model_name)
-        .eval()
-        .to("cuda" if torch.cuda.is_available() else "cpu")
-    )
+    mdl = AutoModel.from_pretrained(model_name).eval().to("cuda" if torch.cuda.is_available() else "cpu")
     vecs = []
     with torch.no_grad():
         for t in texts:
-            enc = tok(
-                [t], padding=True, truncation=True, max_length=max_length, return_tensors="pt"
-            ).to(mdl.device)
+            enc = tok([t], padding=True, truncation=True, max_length=max_length, return_tensors="pt").to(mdl.device)
             out = mdl(**enc)
             v = mean_pool(out.last_hidden_state, enc["attention_mask"])
             if normalize:
@@ -91,9 +85,7 @@ def main():
 
     # tham số tìm kiếm
     ap.add_argument("--topk", type=int, default=10)
-    ap.add_argument(
-        "--fetch_k", type=int, default=None, help="Overfetch trước lọc; mặc định max(topk*5, 100)"
-    )
+    ap.add_argument("--fetch_k", type=int, default=None, help="Overfetch trước lọc; mặc định max(topk*5, 100)")
     ap.add_argument("--probes", type=int, default=10, help="ivfflat.probes")
 
     # nguồn truy vấn
@@ -104,12 +96,8 @@ def main():
     ap.add_argument("--no_norm", action="store_true")
 
     # lọc domain
-    ap.add_argument(
-        "--allowed_tokens", nargs="*", default=None, help="VD: cong_nghe_thong_tin du_lieu ml bi"
-    )
-    ap.add_argument(
-        "--soc_prefix", default="", help="VD: 15- cho Computer & Mathematical; rỗng để bỏ qua"
-    )
+    ap.add_argument("--allowed_tokens", nargs="*", default=None, help="VD: cong_nghe_thong_tin du_lieu ml bi")
+    ap.add_argument("--soc_prefix", default="", help="VD: 15- cho Computer & Mathematical; rỗng để bỏ qua")
     ap.add_argument("--min_match", type=int, default=0, help="Yêu cầu tối thiểu số tag trùng")
 
     # hybrid score
@@ -117,9 +105,7 @@ def main():
     ap.add_argument("--beta", type=float, default=0.15)
     ap.add_argument("--gamma", type=float, default=0.10)
     ap.add_argument("--user_riasec", nargs="*", type=float, default=None, help="6 sá»‘ [R,I,A,S,E,C]")
-    ap.add_argument(
-        "--min_score", type=float, default=None, help="Ngưỡng final_score; bỏ qua nếu không đạt"
-    )
+    ap.add_argument("--min_score", type=float, default=None, help="Ngưỡng final_score; bỏ qua nếu không đạt")
 
     args = ap.parse_args()
     db_url = get_db_url(args.db_url)
@@ -127,9 +113,7 @@ def main():
     # chuẩn bị vector truy vấn
     if args.query_text:
         texts = [expand_query_vi(t) for t in args.query_text]
-        Q = encode_queries(
-            texts, args.model, max_length=args.max_length, normalize=(not args.no_norm)
-        )
+        Q = encode_queries(texts, args.model, max_length=args.max_length, normalize=(not args.no_norm))
     elif args.query_vector:
         Q = np.load(args.query_vector).astype("float32")
         if Q.ndim == 1:
@@ -152,13 +136,7 @@ def main():
         t0 = time.perf_counter()
 
         # ---- CTE: lấy candidates theo cosine, rồi lọc, cộng điểm hybrid ----
-        if (
-            args.allowed_tokens
-            or args.soc_prefix
-            or args.min_match > 0
-            or gamma > 0.0
-            or args.beta > 0.0
-        ):
+        if args.allowed_tokens or args.soc_prefix or args.min_match > 0 or gamma > 0.0 or args.beta > 0.0:
             # Truy vấn có hybrid score (alpha/beta/gamma) + lọc SOC, tag, min_match
             sql = f"""
             WITH cand AS (
@@ -260,10 +238,7 @@ def main():
             cur.execute(sql, (qlit, qlit, args.topk))
             rows = cur.fetchall()
             dt_ms = (time.perf_counter() - t0) * 1000.0
-            results = [
-                {"rank": i + 1, "job_id": r[0], "title": r[1], "score_cosine": float(1.0 - r[2])}
-                for i, r in enumerate(rows)
-            ]
+            results = [{"rank": i + 1, "job_id": r[0], "title": r[1], "score_cosine": float(1.0 - r[2])} for i, r in enumerate(rows)]
 
     payload = {
         "latency_ms": round(dt_ms, 3),

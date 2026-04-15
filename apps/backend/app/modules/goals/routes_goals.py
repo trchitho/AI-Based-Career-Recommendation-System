@@ -3,16 +3,17 @@ Career Goals API Routes - Pro Feature
 Allows users to set and track career goals with AI-powered milestone generation
 """
 
-from fastapi import APIRouter, Request, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from pydantic import BaseModel
-from typing import Optional, List
-from datetime import date, datetime, timedelta
 import json
 import logging
 import os
+from datetime import date, datetime, timedelta
+from typing import Optional
+
 import google.generativeai as genai
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from ...core.jwt import require_user
 from ...core.subscription import SubscriptionService
@@ -396,12 +397,12 @@ def _get_gemini_models():
     
     # Prioritize fast models - same as chatbot
     return [
-        "models/gemma-3-4b-it",  # Free model, no rate limit
+        "models/gemini-2.5-flash",       # Fast and efficient (2025)
+        "models/gemini-2.0-flash",       # Stable alternative
+        "models/gemini-flash-latest",    # Always latest
+        "models/gemma-3-4b-it",          # Free model, no rate limit
         "models/gemma-3-1b-it",
-        "gemini-2.0-flash",
         "models/gemini-2.0-flash-lite",
-        "gemini-1.5-flash-latest",
-        "gemini-pro",
     ]
 
 
@@ -414,13 +415,24 @@ def _generate_with_fallback(prompt: str, max_tokens: int = 1000):
         try:
             logger.info(f"Trying model: {model_name}")
             model = genai.GenerativeModel(model_name)
-            response = model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    max_output_tokens=max_tokens,
-                    temperature=0.5,
+            
+            # Không giới hạn token nếu max_tokens <= 0
+            if max_tokens > 0:
+                response = model.generate_content(
+                    prompt,
+                    generation_config=genai.types.GenerationConfig(
+                        max_output_tokens=max_tokens,
+                        temperature=0.5,
+                    )
                 )
-            )
+            else:
+                response = model.generate_content(
+                    prompt,
+                    generation_config=genai.types.GenerationConfig(
+                        temperature=0.5,
+                    )
+                )
+            
             logger.info(f"Success with model: {model_name}")
             return response.text.strip()
         except Exception as e:
@@ -500,7 +512,7 @@ def _parse_duration_to_weeks(duration_str: str) -> int:
         try:
             num = int(''.join(filter(str.isdigit, duration_str)))
             return max(1, num)
-        except:
+        except Exception:
             return 2
     
     # Parse months
@@ -508,7 +520,7 @@ def _parse_duration_to_weeks(duration_str: str) -> int:
         try:
             num = int(''.join(filter(str.isdigit, duration_str)))
             return max(1, num * 4)
-        except:
+        except Exception:
             return 4
     
     # Parse days
@@ -516,7 +528,7 @@ def _parse_duration_to_weeks(duration_str: str) -> int:
         try:
             num = int(''.join(filter(str.isdigit, duration_str)))
             return max(1, num // 7) or 1
-        except:
+        except Exception:
             return 1
     
     return 2
@@ -580,7 +592,7 @@ def generate_ai_milestones(request: Request, goal_id: int, payload: GenerateMile
     # Build prompt for AI - keep it short for faster response
     roadmap_info = ""
     if roadmap_data and roadmap_data.get("milestones"):
-        roadmap_info = f"Available roadmap: "
+        roadmap_info = "Available roadmap: "
         skills = [m['skill_name'] for m in roadmap_data["milestones"][:5]]  # Limit to 5
         roadmap_info += ", ".join(skills)
     
@@ -595,7 +607,9 @@ ONLY JSON, no other text."""
 
     try:
         # Use fallback function that tries multiple models
-        response_text = _generate_with_fallback(prompt, max_tokens=1000)
+        # Sử dụng cấu hình từ environment, -1 nghĩa là không giới hạn
+        max_tokens = int(os.getenv("GEMINI_MAX_TOKENS", "1000"))
+        response_text = _generate_with_fallback(prompt, max_tokens=max_tokens)
         
         # Clean up response - extract JSON
         if "```json" in response_text:

@@ -3,8 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy import TIMESTAMP, BigInteger, Column, Text, select, update
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import registry
+from sqlalchemy.orm import Session, registry
 
 """
 Lightweight model for auth_tokens to avoid circular imports.
@@ -74,11 +73,6 @@ def mark_all_tokens_used(session: Session, user_id: int, ttype: str) -> None:
 def get_valid_token(session: Session, token: str, ttype: str) -> Optional[AuthToken]:
     stmt = select(AuthToken).where(AuthToken.token == token, AuthToken.ttype == ttype)
     tok = session.execute(stmt).scalar_one_or_none()
-    if (
-        not tok
-        or tok.used_at is not None
-        or tok.expires_at is None
-        or tok.expires_at < datetime.now(timezone.utc)
-    ):
+    if not tok or tok.used_at is not None or tok.expires_at is None or tok.expires_at < datetime.now(timezone.utc):
         return None
     return tok

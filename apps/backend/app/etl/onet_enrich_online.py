@@ -4,11 +4,9 @@ import argparse
 import asyncio
 from typing import Iterable
 
-from loguru import logger
-
 from app.core.db import get_pg_pool
 from app.services.onet_client_v2 import OnetV2Client
-
+from loguru import logger
 
 # ---------------- DB helpers -----------------
 
@@ -18,9 +16,7 @@ async def fetch_onet_codes(pool, only_code: str | None = None) -> list[str]:
         return [only_code]
 
     async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            "SELECT DISTINCT onet_code FROM core.careers WHERE onet_code IS NOT NULL"
-        )
+        rows = await conn.fetch("SELECT DISTINCT onet_code FROM core.careers WHERE onet_code IS NOT NULL")
     return [r["onet_code"] for r in rows]
 
 
@@ -209,10 +205,7 @@ async def enrich_online(only_code: str | None = None, max_concurrent: int = 5) -
     client = OnetV2Client()
 
     onet_codes = await fetch_onet_codes(pool, only_code)
-    logger.info(
-        f"Enrich ONLINE for {len(onet_codes)} occupations "
-        f"(max_concurrent={max_concurrent})"
-    )
+    logger.info(f"Enrich ONLINE for {len(onet_codes)} occupations (max_concurrent={max_concurrent})")
 
     semaphore = asyncio.Semaphore(max_concurrent)
 

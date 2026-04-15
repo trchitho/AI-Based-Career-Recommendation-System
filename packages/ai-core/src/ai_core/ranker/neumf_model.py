@@ -4,9 +4,9 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple, Optional
 
 import torch
+
 from ai_core.recsys.neumf.model import MLPScore
 
 
@@ -48,8 +48,8 @@ def _resolve_paths(model_dir: Path) -> NeuMFPaths:
 
 def load_neumf_model(
     model_dir: str = "models/recsys_mlp",
-    device: Optional[torch.device] = None,
-) -> Tuple[torch.nn.Module, NeuMFPaths]:
+    device: torch.device | None = None,
+) -> tuple[torch.nn.Module, NeuMFPaths]:
     """
     Load model NeuMF/MLPScore từ thư mục model_dir (mặc định: models/recsys_mlp).
 
@@ -70,9 +70,7 @@ def load_neumf_model(
 
     state = torch.load(paths.model_path, map_location=device)
     # Hỗ trợ cả dạng {"state_dict": {...}}
-    if isinstance(state, dict) and "state_dict" in state and isinstance(
-        state["state_dict"], dict
-    ):
+    if isinstance(state, dict) and "state_dict" in state and isinstance(state["state_dict"], dict):
         state = state["state_dict"]
 
     missing, unexpected = model.load_state_dict(state, strict=False)

@@ -1,6 +1,5 @@
 # src/ai_core/retrieval/service_pgvector.py
 from dataclasses import dataclass
-from typing import List
 
 import numpy as np
 from psycopg_pool import ConnectionPool
@@ -10,7 +9,7 @@ from api.config import get_pg_dsn  # helper lấy DATABASE_URL
 
 @dataclass
 class Candidate:
-    job_id: str       # O*NET code
+    job_id: str  # O*NET code
     score_sim: float  # 0–1, similarity
 
 
@@ -19,6 +18,7 @@ pool = ConnectionPool(get_pg_dsn())
 
 
 # ---------- helper parse / format pgvector ----------
+
 
 def _pgvector_to_np(v) -> np.ndarray:
     """
@@ -57,6 +57,7 @@ def _np_to_pgvector_str(vec: np.ndarray) -> str:
 
 # ---------- core logic ----------
 
+
 def _fetch_user_vector(user_id: int) -> np.ndarray:
     """
     Lấy embedding essay mới nhất của user từ ai.user_embeddings.
@@ -81,7 +82,7 @@ def _fetch_user_vector(user_id: int) -> np.ndarray:
         return _pgvector_to_np(row[0])
 
 
-def search_candidates_for_embedding(user_vec: np.ndarray, top_n: int = 200) -> List[Candidate]:
+def search_candidates_for_embedding(user_vec: np.ndarray, top_n: int = 200) -> list[Candidate]:
     """
     Retrieval B3 theo VECTOR của bài test, không theo user_id.
     """
@@ -102,7 +103,8 @@ def search_candidates_for_embedding(user_vec: np.ndarray, top_n: int = 200) -> L
 
     return [Candidate(job_id=r[0], score_sim=float(r[1])) for r in rows]
 
-def search_candidates_for_user(user_id: int, top_n: int = 200) -> List[Candidate]:
+
+def search_candidates_for_user(user_id: int, top_n: int = 200) -> list[Candidate]:
     """
     B3 – Retrieval bằng pgvector cho 1 user cụ thể.
     Dùng ai.user_embeddings → emb → search trên ai.retrieval_jobs_visbert.
@@ -111,7 +113,7 @@ def search_candidates_for_user(user_id: int, top_n: int = 200) -> List[Candidate
     return search_candidates_for_embedding(user_vec, top_n=top_n)
 
 
-def list_user_ids_with_embeddings(source: str = "essay") -> List[int]:
+def list_user_ids_with_embeddings(source: str = "essay") -> list[int]:
     """
     Trả về list user_id có embedding trong ai.user_embeddings, để test B3 cho ALL users.
     """
@@ -164,5 +166,3 @@ if __name__ == "__main__":
         else:
             for c in cands:
                 print(f"{c.job_id}  sim={c.score_sim:.4f}")
-
-                

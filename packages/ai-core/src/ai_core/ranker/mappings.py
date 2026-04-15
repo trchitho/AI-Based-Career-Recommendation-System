@@ -1,9 +1,8 @@
 # src/ai_core/ranker/mappings.py
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Dict, Tuple
 import json
+from pathlib import Path
 
 
 def _load_json(path: Path):
@@ -12,7 +11,7 @@ def _load_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _build_and_save_mappings(model_dir: Path) -> Tuple[Dict[int, int], Dict[str, int]]:
+def _build_and_save_mappings(model_dir: Path) -> tuple[dict[int, int], dict[str, int]]:
     """
     Khi chưa có user_mapping.json / item_mapping.json:
     - Đọc data/processed/user_feats.json & item_feats.json
@@ -24,15 +23,15 @@ def _build_and_save_mappings(model_dir: Path) -> Tuple[Dict[int, int], Dict[str,
     uf_path = Path("data/processed/user_feats.json")
     it_path = Path("data/processed/item_feats.json")
 
-    uf = _load_json(uf_path)   # { "9": {...}, "18": {...}, ... }
-    it = _load_json(it_path)   # { "15-1244.00": {...}, ... }
+    uf = _load_json(uf_path)  # { "9": {...}, "18": {...}, ... }
+    it = _load_json(it_path)  # { "15-1244.00": {...}, ... }
 
     # user_id key trong JSON là string → convert về int, sort cho ổn định
     user_ids = sorted([int(uid) for uid in uf.keys()])
     job_ids = sorted([str(jid) for jid in it.keys()])
 
-    user_map: Dict[int, int] = {uid: idx for idx, uid in enumerate(user_ids)}
-    item_map: Dict[str, int] = {jid: idx for idx, jid in enumerate(job_ids)}
+    user_map: dict[int, int] = {uid: idx for idx, uid in enumerate(user_ids)}
+    item_map: dict[str, int] = {jid: idx for idx, jid in enumerate(job_ids)}
 
     model_dir.mkdir(parents=True, exist_ok=True)
     (model_dir / "user_mapping.json").write_text(
@@ -44,14 +43,11 @@ def _build_and_save_mappings(model_dir: Path) -> Tuple[Dict[int, int], Dict[str,
         encoding="utf-8",
     )
 
-    print(
-        f"[INFO] Built mappings from feats: "
-        f"users={len(user_map)}, items={len(item_map)} → saved to {model_dir}"
-    )
+    print(f"[INFO] Built mappings from feats: users={len(user_map)}, items={len(item_map)} → saved to {model_dir}")
     return user_map, item_map
 
 
-def load_mappings(model_dir: str | Path) -> Tuple[Dict[int, int], Dict[str, int]]:
+def load_mappings(model_dir: str | Path) -> tuple[dict[int, int], dict[str, int]]:
     """
     Đọc mapping từ folder model:
       - user_mapping.json : { "<user_id>": user_index, ... }
@@ -77,14 +73,11 @@ def load_mappings(model_dir: str | Path) -> Tuple[Dict[int, int], Dict[str, int]
         with item_path.open("r", encoding="utf-8") as f:
             raw_item = json.load(f)
 
-        user_map: Dict[int, int] = {int(k): int(v) for k, v in raw_user.items()}
-        item_map: Dict[str, int] = {str(k): int(v) for k, v in raw_item.items()}
+        user_map: dict[int, int] = {int(k): int(v) for k, v in raw_user.items()}
+        item_map: dict[str, int] = {str(k): int(v) for k, v in raw_item.items()}
 
         return user_map, item_map
 
     # Case 2: thiếu mapping → build từ feats
-    print(
-        f"[WARN] user_mapping.json / item_mapping.json not found in {model_dir}. "
-        f"Building from data/processed/*_feats.json ..."
-    )
+    print(f"[WARN] user_mapping.json / item_mapping.json not found in {model_dir}. Building from data/processed/*_feats.json ...")
     return _build_and_save_mappings(model_dir)

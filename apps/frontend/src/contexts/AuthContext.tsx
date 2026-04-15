@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import api from '../lib/api';
 import { clearSubscriptionCache } from '../hooks/useSubscription';
 
 interface User {
   id: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
+  full_name?: string;
+  avatar_url?: string;
   role?: string; // 'admin' | 'user' | 'manager'
   is_email_verified?: boolean;
 }
@@ -46,8 +46,12 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const initRef = useRef(false); // Prevent duplicate initialization
 
   useEffect(() => {
+    if (initRef.current) return; // Prevent duplicate calls
+    initRef.current = true;
+
     const initAuth = async () => {
       const token = localStorage.getItem('accessToken');
       if (token) {
@@ -58,13 +62,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.error('Failed to fetch user profile:', error);
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
+        } finally {
+          setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initAuth();
-  }, []);
+  }, []); // Remove dependencies to prevent re-runs
 
   const login = async (email: string, password: string) => {
     try {
@@ -155,9 +162,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    const accessToken = localStorage.getItem('accessToken');
+
+    // Revoke tokens server-side (blacklist access_token for TC02)
+    if (refreshToken) {
+      api.post('/api/auth/logout', {
+        refresh_token: refreshToken,
+        access_token: accessToken || '',
+      }).catch(() => {/* ignore network errors on logout */ });
+    }
+
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    clearSubscriptionCache(); // Clear subscription cache on logout
+    clearSubscriptionCache();
     setUser(null);
     window.location.href = '/login';
   };

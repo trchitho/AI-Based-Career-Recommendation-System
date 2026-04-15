@@ -177,7 +177,7 @@ const ResultsPage = () => {
   // ==========================================
   return (
     <MainLayout>
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
         {/* CSS Injection */}
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -241,7 +241,7 @@ const ResultsPage = () => {
           {!loadingResults && !errorResults && results && (
             <div className="animate-fade-in-up space-y-8">
               {/* 1. HERO BANNER */}
-              <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 rounded-[32px] p-8 md:p-10 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
+              <div className="bg-gradient-cta dark:from-green-800 dark:to-green-900 rounded-card-hero p-8 md:p-10 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div>
@@ -369,7 +369,7 @@ const ResultsPage = () => {
                 {activeTab === 'summary' && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in-up">
                     {/* Highlights */}
-                    <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                    <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                         <span className="w-2 h-6 bg-green-500 rounded-full" />
                         Key Highlights
@@ -377,7 +377,7 @@ const ResultsPage = () => {
 
                       <div className="grid gap-6">
                         {/* Top Interest */}
-                        <div className="bg-[#F0FDF4] dark:bg-green-900/10 rounded-2xl p-6 border border-green-100 dark:border-green-800/30 relative overflow-hidden">
+                        <div className="bg-green-50 dark:bg-green-900/10 rounded-2xl p-6 border border-green-100 dark:border-green-800/30 relative overflow-hidden">
                           <div className="relative z-10">
                             <p className="text-sm font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">
                               Top Career Interest
@@ -436,7 +436,7 @@ const ResultsPage = () => {
 
                     {/* Essay Insights */}
                     {results.essay_analysis && (
-                      <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col">
+                      <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col">
                         <h3 className="text-xl font-bold text-gray-900 dark:text_white mb-6 flex items-center gap-2">
                           <span className="w-2 h-6 bg-purple-500 rounded-full" />
                           AI Analysis
@@ -493,7 +493,7 @@ const ResultsPage = () => {
                 {activeTab === 'detailed' && (
                   <div className="space-y-8 animate-fade-in-up">
                     {/* RIASEC Section */}
-                    <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                    <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
                       <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
                           <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -567,7 +567,7 @@ const ResultsPage = () => {
                     </div>
 
                     {/* Big Five Section */}
-                    <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                    <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
                       <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-xl flex items-center justify-center">
                           <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -620,7 +620,7 @@ const ResultsPage = () => {
 
               {/* 4. FEEDBACK SECTION */}
               {!fbDone && (
-                <div className="mt-12 bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700 animate-fade-in-up relative overflow-hidden">
+                <div className="mt-12 bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700 animate-fade-in-up relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-green-500 to-teal-500" />
                   <div className="max-w-3xl mx-auto text-center">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">

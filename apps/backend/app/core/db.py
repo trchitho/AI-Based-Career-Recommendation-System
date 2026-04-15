@@ -2,9 +2,9 @@
 import os
 
 from dotenv import load_dotenv
+from fastapi import HTTPException, Request, status
 from sqlalchemy import create_engine, event, text
-from sqlalchemy.orm import declarative_base, Session
-from fastapi import Request, HTTPException, status
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 try:
     import asyncpg
@@ -21,10 +21,7 @@ else:
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise RuntimeError(
-        "DATABASE_URL environment variable is not set. "
-        "Please set it in your environment or .env file."
-    )
+    raise RuntimeError("DATABASE_URL environment variable is not set. Please set it in your environment or .env file.")
 
 # Engine dùng chung
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
@@ -33,8 +30,6 @@ engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 Base = declarative_base()
 
 # SessionLocal cho dependency injection
-from sqlalchemy.orm import sessionmaker
-
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -60,6 +55,7 @@ def _db(req: Request) -> Session:
             detail="Database session not available on request state",
         )
     return db
+
 
 def test_connection():
     with engine.connect() as conn:
@@ -94,7 +90,7 @@ async def get_pg_pool():
     """
     if asyncpg is None:
         raise RuntimeError("asyncpg not installed")
-        
+
     global _pg_pool
     if _pg_pool is None:
         _pg_pool = await asyncpg.create_pool(

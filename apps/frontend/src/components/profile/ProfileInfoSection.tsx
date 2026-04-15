@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { UserProfile } from '../../types/profile';
 import { profileService } from '../../services/profileService';
 import ProfileAvatar from './ProfileAvatar';
+import { useLanguage, Language, getLanguageLabel, getLanguageFlag } from '../../contexts/LanguageContext';
 
 interface ProfileInfoSectionProps {
   profile: UserProfile;
@@ -9,6 +10,7 @@ interface ProfileInfoSectionProps {
 }
 
 const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
+  const { language, setLanguage } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: profile.first_name || '',
@@ -54,7 +56,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-[32px] overflow-hidden font-['Plus_Jakarta_Sans'] h-full flex flex-col">
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-card-hero overflow-hidden h-full flex flex-col">
 
       {/* Header with gradient */}
       <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden shrink-0">
@@ -65,14 +67,14 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
         <div className="relative z-10">
           {/* Avatar and basic info */}
           <div className="flex items-center gap-4 mb-6">
-            <ProfileAvatar 
+            <ProfileAvatar
               name={`${profile.first_name || ''} ${profile.last_name || ''}`.trim()}
               email={profile.email}
               size="lg"
             />
             <div className="flex-1">
               <h3 className="text-2xl font-extrabold text-white mb-1 tracking-tight">
-                {profile.first_name || profile.last_name 
+                {profile.first_name || profile.last_name
                   ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
                   : 'Your Profile'
                 }
@@ -238,7 +240,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
             </div>
 
             {/* DOB */}
-            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-green-200 dark:hover:border-green-800 transition-colors group md:col-span-2">
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-green-200 dark:hover:border-green-800 transition-colors group">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-green-600 shadow-sm group-hover:text-green-500 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -246,6 +248,47 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Date of Birth</p>
               </div>
               <p className="text-lg font-bold text-gray-900 dark:text-white pl-1">{formatDate(profile.date_of_birth)}</p>
+            </div>
+
+            {/* Language Setting */}
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-green-200 dark:hover:border-green-800 transition-colors group">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-green-600 shadow-sm group-hover:text-green-500 transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
+                </div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Language / Ngôn ngữ</p>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${language === 'en'
+                      ? 'bg-green-600 text-white shadow-lg shadow-green-600/20'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                >
+                  <span>{getLanguageFlag('en')}</span>
+                  <span>English</span>
+                </button>
+
+                <button
+                  onClick={() => setLanguage('vi')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${language === 'vi'
+                      ? 'bg-green-600 text-white shadow-lg shadow-green-600/20'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                >
+                  <span>{getLanguageFlag('vi')}</span>
+                  <span>Tiếng Việt</span>
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 pl-1">
+                {language === 'en'
+                  ? 'This affects career information display language'
+                  : 'Điều này ảnh hưởng đến ngôn ngữ hiển thị thông tin nghề nghiệp'
+                }
+              </p>
             </div>
 
           </div>

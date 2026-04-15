@@ -11,13 +11,14 @@ python -m ai_core.retrieval.pgvector_load_en ^
 
 import argparse
 import json
-import psycopg
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from tqdm import tqdm
-from sentence_transformers import SentenceTransformer
+import psycopg
 import torch
+from sentence_transformers import SentenceTransformer
+from tqdm import tqdm
 
 
 def normalize(vecs: np.ndarray) -> np.ndarray:

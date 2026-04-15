@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import psycopg2
@@ -13,9 +12,9 @@ import torch
 from fastapi import APIRouter, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoModel, AutoTokenizer
 
-from ai_core.retrieval.service_pgvector import search_candidates_for_user, Candidate
+from ai_core.retrieval.service_pgvector import Candidate, search_candidates_for_user
 from ai_core.traits.loader import load_traits_and_embedding_for_assessment
 
 router = APIRouter(prefix="/search", tags=["retrieval"])
@@ -72,16 +71,18 @@ def encode_text(text: str) -> list[float]:
             max_length=256,
         ).to(_DEVICE)
         out = mdl(**inputs).last_hidden_state  # [1, L, H]
-        vec = out.mean(dim=1).squeeze(0)       # mean pooling
+        vec = out.mean(dim=1).squeeze(0)  # mean pooling
         v = vec / (vec.norm(p=2) + 1e-12)
         return v.detach().cpu().numpy().astype("float32").tolist()
 
 
 # ---------------- SCHEMA ----------------
 
+
 class SearchByAssessmentReq(BaseModel):
     assessment_id: int
     top_k: int = 20
+
 
 @router.post("/by_assessment")
 def search_by_assessment(req: SearchByAssessmentReq):
@@ -95,15 +96,18 @@ def search_by_assessment(req: SearchByAssessmentReq):
     return [{"job_id": c.job_id, "score": c.score_sim} for c in cands]
 
 
-
-class SearchReq(BaseModel):
+class UserSearchReq(BaseModel):
     user_id: int
     top_k: int = 50
+
+
 class SearchResItem(BaseModel):
     job_id: str
     score: float
+
+
 @router.post("", response_model=list[SearchResItem])
-def search(req: SearchReq):
+def search_for_user(req: UserSearchReq):
     try:
         cands: list[Candidate] = search_candidates_for_user(
             user_id=req.user_id,
@@ -112,20 +116,18 @@ def search(req: SearchReq):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    return [
-        SearchResItem(job_id=c.job_id, score=c.score_sim)
-        for c in cands
-    ]
+    return [SearchResItem(job_id=c.job_id, score=c.score_sim) for c in cands]
 
 
-
-class SearchReq(BaseModel):
-    text: Optional[str] = None
-    vector: Optional[list[float]] = None
+class VectorSearchReq(BaseModel):
+    text: str | None = None
+    vector: list[float] | None = None
     topk: int = 10
-    allowed_tokens: Optional[list[str]] = None  # optional filter on tag_tokens
+    allowed_tokens: list[str] | None = None  # optional filter on tag_tokens
+
+
 @router.post("/search")
-def search(req: SearchReq):
+def search_by_vector(req: VectorSearchReq):
     # 1) Chuẩn bị vector truy vấn
     if req.text:
         q = encode_text(req.text)

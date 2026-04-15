@@ -1,14 +1,18 @@
 """
 Payment Schemas (Pydantic)
 """
+
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Union
-from .models import PaymentStatus, PaymentMethod
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from .models import PaymentMethod, PaymentStatus
 
 
 class PaymentCreateRequest(BaseModel):
     """Request tạo thanh toán"""
+
     amount: int = Field(..., gt=0, description="Số tiền (VND)")
     description: str = Field(..., min_length=1, max_length=500)
     payment_method: PaymentMethod = PaymentMethod.ZALOPAY
@@ -16,6 +20,7 @@ class PaymentCreateRequest(BaseModel):
 
 class PaymentCreateResponse(BaseModel):
     """Response tạo thanh toán"""
+
     success: bool
     order_id: str  # sử dụng app_trans_id/order_id
     order_url: Optional[str] = None
@@ -24,6 +29,7 @@ class PaymentCreateResponse(BaseModel):
 
 class PaymentCallbackRequest(BaseModel):
     """Callback từ ZaloPay"""
+
     data: str
     mac: str
     type: int
@@ -31,6 +37,7 @@ class PaymentCallbackRequest(BaseModel):
 
 class PaymentResponse(BaseModel):
     """Response thông tin thanh toán"""
+
     id: int
     order_id: str  # ưu tiên app_trans_id, fallback order_id
     transaction_id: Optional[str] = None  # alias to app_trans_id for compatibility
@@ -46,6 +53,7 @@ class PaymentResponse(BaseModel):
 
 class PaymentQueryResponse(BaseModel):
     """Response truy vấn thanh toán"""
+
     success: bool
     status: Union[PaymentStatus, str]
     message: Optional[str] = None

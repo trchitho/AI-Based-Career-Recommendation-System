@@ -1,5 +1,6 @@
 # app/core/exceptions.py
 
+
 class NotFoundError(Exception):
     """Domain-level 'not found' error (không gắn HTTP ở đây)."""
 

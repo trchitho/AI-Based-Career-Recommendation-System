@@ -1,4 +1,4 @@
-﻿import json
+import json
 import random
 from pathlib import Path
 
@@ -27,9 +27,7 @@ def main():
     OUTD.mkdir(parents=True, exist_ok=True)
     # 11) ghi ra 3 file JSONL: train.jsonl, val.jsonl, test.jsonl
     for k, recs in splits.items():
-        (OUTD / f"{k}.jsonl").write_text(
-            "\n".join(json.dumps(r, ensure_ascii=False) for r in recs), encoding="utf-8"
-        )
+        (OUTD / f"{k}.jsonl").write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in recs), encoding="utf-8")
     # 12) in thng k s lng mi phn
     print({k: len(v) for k, v in splits.items()})
 

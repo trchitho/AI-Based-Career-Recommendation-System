@@ -1,9 +1,9 @@
 from typing import List, Optional
 
+from app.core.logging import logger
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.core.logging import logger
 from .schema import TraitEvidenceDTO
 
 
@@ -97,9 +97,7 @@ class TraitEvidenceService:
         if user_top_dim:
             for tag in tags_upper:
                 if tag.startswith(user_top_dim):
-                    logger.info(
-                        f"Scale selected: {user_top_dim} (matches user top interest)"
-                    )
+                    logger.info(f"Scale selected: {user_top_dim} (matches user top interest)")
                     return user_top_dim
 
         # Priority 2: Use first letter of first tag
@@ -120,9 +118,10 @@ class TraitEvidenceService:
         Get latest RIASEC assessment for user.
         Returns dict with 'id' and 'session_id' or None.
         """
-        row = self.db.execute(
-            text(
-                """
+        row = (
+            self.db.execute(
+                text(
+                    """
                 SELECT id, session_id
                 FROM core.assessments
                 WHERE user_id = :uid
@@ -130,9 +129,12 @@ class TraitEvidenceService:
                 ORDER BY created_at DESC
                 LIMIT 1
                 """
-            ),
-            {"uid": user_id},
-        ).mappings().first()
+                ),
+                {"uid": user_id},
+            )
+            .mappings()
+            .first()
+        )
 
         if not row:
             logger.warning(f"No RIASEC assessment found for user {user_id}")
@@ -162,9 +164,10 @@ class TraitEvidenceService:
         ]
 
         for pattern in patterns:
-            rows = self.db.execute(
-                text(
-                    """
+            rows = (
+                self.db.execute(
+                    text(
+                        """
                     SELECT
                         q.prompt AS question_text,
                         r.answer_raw,
@@ -176,32 +179,30 @@ class TraitEvidenceService:
                     ORDER BY r.score_value DESC NULLS LAST, r.id ASC
                     LIMIT :limit
                     """
-                ),
-                {"aid": assessment_id, "pattern": pattern, "limit": limit},
-            ).mappings().all()
+                    ),
+                    {"aid": assessment_id, "pattern": pattern, "limit": limit},
+                )
+                .mappings()
+                .all()
+            )
 
             if rows:
-                logger.info(
-                    f"Found {len(rows)} answers for scale {scale} "
-                    f"(assessment {assessment_id}, pattern {pattern})"
-                )
+                logger.info(f"Found {len(rows)} answers for scale {scale} (assessment {assessment_id}, pattern {pattern})")
 
                 items = []
                 for r in rows:
                     question = str(r["question_text"] or "").strip()
                     answer = str(r["answer_raw"] or "").strip()
-                    
+
                     # Format as readable string
                     if question and answer:
                         items.append(f"{question} - {answer}")
                     elif question:
                         items.append(question)
-                
+
                 return items
 
-        logger.warning(
-            f"No answers found for scale {scale} (assessment {assessment_id})"
-        )
+        logger.warning(f"No answers found for scale {scale} (assessment {assessment_id})")
         return []
 
     # ------------------------------------------------------------------ #
@@ -226,10 +227,7 @@ class TraitEvidenceService:
         tags = self._get_career_tags(career_slug_or_onet)
 
         if not tags:
-            logger.warning(
-                f"No RIASEC tags for career {career_slug_or_onet}, "
-                f"returning empty evidence"
-            )
+            logger.warning(f"No RIASEC tags for career {career_slug_or_onet}, returning empty evidence")
             return TraitEvidenceDTO(scale="", items=[])
 
         # 3. Select scale for evidence
@@ -237,8 +235,7 @@ class TraitEvidenceService:
 
         if not scale:
             logger.warning(
-                f"Cannot determine scale for user {user_id}, "
-                f"career {career_slug_or_onet}, top_dim={top_dim}, tags={tags}"
+                f"Cannot determine scale for user {user_id}, career {career_slug_or_onet}, top_dim={top_dim}, tags={tags}"
             )
             return TraitEvidenceDTO(scale="", items=[])
 
@@ -257,15 +254,9 @@ class TraitEvidenceService:
         )
 
         if not answers:
-            logger.warning(
-                f"No answers for scale {scale} "
-                f"(user {user_id}, assessment {latest['id']})"
-            )
+            logger.warning(f"No answers for scale {scale} (user {user_id}, assessment {latest['id']})")
             return TraitEvidenceDTO(scale="", items=[])
 
-        logger.info(
-            f"Trait evidence for user {user_id}, career {career_slug_or_onet}: "
-            f"scale={scale}, {len(answers)} items"
-        )
+        logger.info(f"Trait evidence for user {user_id}, career {career_slug_or_onet}: scale={scale}, {len(answers)} items")
 
         return TraitEvidenceDTO(scale=scale, items=answers)

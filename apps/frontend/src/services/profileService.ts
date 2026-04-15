@@ -6,11 +6,21 @@ export const profileService = {
   async getProfileData(): Promise<ProfileData> {
     try {
       console.log('🔍 [ProfileService] Getting profile data...');
-      
-      // Fetch user profile
-      const profileResponse = await api.get('/api/users/me');
-      const profile: UserProfile = profileResponse.data;
-      console.log('👤 [ProfileService] Profile loaded:', profile);
+
+      // Fetch user profile from the new endpoint
+      const profileResponse = await api.get('/api/profile');
+      const backendProfile = profileResponse.data;
+      console.log('👤 [ProfileService] Backend profile loaded:', backendProfile);
+
+      // Transform backend response to match frontend types
+      const profile: UserProfile = {
+        id: backendProfile.id?.toString() || '',
+        email: backendProfile.email || '',
+        first_name: backendProfile.full_name?.split(' ')[0] || '',
+        last_name: backendProfile.full_name?.split(' ').slice(1).join(' ') || '',
+        created_at: backendProfile.created_at || new Date().toISOString(),
+        updated_at: backendProfile.created_at || new Date().toISOString(),
+      };
 
       // Fetch assessment history using the new assessmentService
       let assessmentHistory: any[] = [];
@@ -36,7 +46,7 @@ export const profileService = {
         assessmentHistory,
         developmentProgress,
       };
-      
+
       console.log('🎯 [ProfileService] Final profile data:', result);
       return result;
     } catch (error) {

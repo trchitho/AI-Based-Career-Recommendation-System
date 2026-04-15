@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Mapping
+from typing import Any
 
 
 @dataclass
@@ -35,11 +36,11 @@ def _get_career_id(item: Any) -> str:
 
     # object-like
     if hasattr(item, "career_id"):
-        val = getattr(item, "career_id")
+        val = item.career_id
         if val is not None:
             return str(val)
     if hasattr(item, "job_id"):
-        val = getattr(item, "job_id")
+        val = item.job_id
         if val is not None:
             return str(val)
 
@@ -75,7 +76,7 @@ def recommend_with_bandit(
     ranked_items: Iterable[Any],
     user_id: int,  # hiện tại chưa dùng, để dành cho bandit thật sau này
     top_k: int,
-) -> List[FinalItem]:
+) -> list[FinalItem]:
     """
     Bản stub: chưa dùng bandit, chỉ:
     - sort theo rank_score giảm dần
@@ -96,7 +97,7 @@ def recommend_with_bandit(
         reverse=True,
     )
 
-    final_items: List[FinalItem] = []
+    final_items: list[FinalItem] = []
 
     for it in items_sorted[:top_k]:
         cid = _get_career_id(it)
@@ -105,7 +106,7 @@ def recommend_with_bandit(
         final_items.append(
             FinalItem(
                 career_id=cid,
-                final_score=rs,          # bandit stub = rank_score
+                final_score=rs,  # bandit stub = rank_score
                 rank_score=rs,
                 sim_score=_get_field_float(it, "sim_score"),
                 cf_score=_get_field_float(it, "cf_score"),

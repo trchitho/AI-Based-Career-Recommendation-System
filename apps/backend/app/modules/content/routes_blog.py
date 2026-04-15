@@ -4,8 +4,8 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ...core.jwt import require_user, require_admin
-from .models import BlogPost
+from ...core.jwt import require_admin, require_user
+from .models import BlogPost, BlogPostReaction
 
 router = APIRouter()
 
@@ -33,7 +33,24 @@ def get_post_by_slug(request: Request, slug: str):
     obj = session.execute(select(BlogPost).where(BlogPost.slug == slug)).scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Post not found")
-    return obj.to_dict()
+    
+    post_dict = obj.to_dict()
+    
+    # Add user reaction if authenticated
+    try:
+        user_id = require_user(request)
+        user_reaction = session.execute(
+            select(BlogPostReaction).where(
+                BlogPostReaction.post_id == obj.id,
+                BlogPostReaction.user_id == user_id
+            )
+        ).scalar_one_or_none()
+        
+        post_dict["user_reaction"] = user_reaction.reaction_type if user_reaction else None
+    except Exception:
+        post_dict["user_reaction"] = None
+    
+    return post_dict
 
 
 @router.post("")
@@ -195,3 +212,117 @@ def delete_post(request: Request, post_id: int):
     session.delete(post)
     session.commit()
     return {"message": "Post deleted successfully"}
+
+
+@router.post("/{post_id}/like")
+def like_post(request: Request, post_id: int):
+    """Like or unlike a blog post"""
+    user_id = require_user(request)
+    session = _db(request)
+    
+    # Check if post exists
+    post = session.execute(select(BlogPost).where(BlogPost.id == post_id)).scalar_one_or_none()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    # Check if user already has a reaction
+    existing_reaction = session.execute(
+        select(BlogPostReaction).where(
+            BlogPostReaction.post_id == post_id,
+            BlogPostReaction.user_id == user_id
+        )
+    ).scalar_one_or_none()
+    
+    if existing_reaction:
+        if existing_reaction.reaction_type == "like":
+            # Remove like (toggle off)
+            session.delete(existing_reaction)
+        else:
+            # Change dislike to like
+            existing_reaction.reaction_type = "like"
+    else:
+        # Add new like
+        reaction = BlogPostReaction(
+            post_id=post_id,
+            user_id=user_id,
+            reaction_type="like"
+        )
+        session.add(reaction)
+    
+    session.commit()
+    
+    # Refresh post to get updated counts from trigger
+    session.refresh(post)
+    
+    # Check final reaction status
+    final_reaction = session.execute(
+        select(BlogPostReaction).where(
+            BlogPostReaction.post_id == post_id,
+            BlogPostReaction.user_id == user_id
+        )
+    ).scalar_one_or_none()
+    
+    user_reaction = final_reaction.reaction_type if final_reaction else None
+    
+    return {
+        "like_count": post.like_count or 0,
+        "dislike_count": post.dislike_count or 0,
+        "user_reaction": user_reaction
+    }
+
+
+@router.post("/{post_id}/dislike")
+def dislike_post(request: Request, post_id: int):
+    """Dislike or remove dislike from a blog post"""
+    user_id = require_user(request)
+    session = _db(request)
+    
+    # Check if post exists
+    post = session.execute(select(BlogPost).where(BlogPost.id == post_id)).scalar_one_or_none()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    # Check if user already has a reaction
+    existing_reaction = session.execute(
+        select(BlogPostReaction).where(
+            BlogPostReaction.post_id == post_id,
+            BlogPostReaction.user_id == user_id
+        )
+    ).scalar_one_or_none()
+    
+    if existing_reaction:
+        if existing_reaction.reaction_type == "dislike":
+            # Remove dislike (toggle off)
+            session.delete(existing_reaction)
+        else:
+            # Change like to dislike
+            existing_reaction.reaction_type = "dislike"
+    else:
+        # Add new dislike
+        reaction = BlogPostReaction(
+            post_id=post_id,
+            user_id=user_id,
+            reaction_type="dislike"
+        )
+        session.add(reaction)
+    
+    session.commit()
+    
+    # Refresh post to get updated counts from trigger
+    session.refresh(post)
+    
+    # Check final reaction status
+    final_reaction = session.execute(
+        select(BlogPostReaction).where(
+            BlogPostReaction.post_id == post_id,
+            BlogPostReaction.user_id == user_id
+        )
+    ).scalar_one_or_none()
+    
+    user_reaction = final_reaction.reaction_type if final_reaction else None
+    
+    return {
+        "like_count": post.like_count or 0,
+        "dislike_count": post.dislike_count or 0,
+        "user_reaction": user_reaction
+    }

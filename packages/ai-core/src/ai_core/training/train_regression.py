@@ -1,4 +1,4 @@
-﻿# src/training/train_regression.py
+# src/training/train_regression.py
 import argparse
 import math
 import random
@@ -180,9 +180,7 @@ def main():
         mae_dim_avg = (mae_dim_sum / max(1, len(dl_va))).tolist()
 
         print(f"\nEpoch {epoch}: train_loss={tr_loss:.6f}  val_loss={va_loss:.6f}")
-        print(
-            f"MAE per-dim ({TASK2CFG[cfg['task']]['dims']}): {[round(x, 6) for x in mae_dim_avg]}"
-        )
+        print(f"MAE per-dim ({TASK2CFG[cfg['task']]['dims']}): {[round(x, 6) for x in mae_dim_avg]}")
 
         # Early stopping + save best
         if va_loss < best_val - 1e-9:

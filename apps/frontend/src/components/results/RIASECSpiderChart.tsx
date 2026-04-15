@@ -87,10 +87,10 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
               <Radar
                 name="Score"
                 dataKey="score"
-                stroke="#4F46E5"
+                stroke="#16a34a"
                 strokeWidth={3}
-                fill="#6366f1"
-                fillOpacity={0.4}
+                fill="#16a34a"
+                fillOpacity={0.35}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ strokeWidth: 2 }} />
             </RadarChart>

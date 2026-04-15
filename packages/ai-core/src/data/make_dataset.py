@@ -1,4 +1,4 @@
-﻿# src/data/make_dataset.py
+# src/data/make_dataset.py
 import csv
 import json
 import os
@@ -54,8 +54,7 @@ def to_record(row: dict[str, str]) -> dict[str, Any] | None:
             "A": parse_float((row.get("A2", "") or "").strip()),
             "N": parse_float((row.get("N", "") or "").strip()),
         },
-        "target_jobs": [j.strip() for j in (row.get("target_jobs") or "").split("|") if j.strip()]
-        or None,
+        "target_jobs": [j.strip() for j in (row.get("target_jobs") or "").split("|") if j.strip()] or None,
         "source": (row.get("source") or "survey").strip(),
     }
     return record

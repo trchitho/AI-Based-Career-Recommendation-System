@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import json
@@ -59,6 +59,7 @@ WHERE a_type IN ('RIASEC', 'BigFive');
 
 # ========= Utils =========
 
+
 def table_exists(conn, schema: str, table: str) -> bool:
     with conn.cursor() as cur:
         cur.execute(
@@ -66,6 +67,7 @@ def table_exists(conn, schema: str, table: str) -> bool:
             (f"{schema}.{table}",),
         )
         return cur.fetchone()[0]
+
 
 def vec_to_list(v):
     """Parse pgvector -> list[float]. Hỗ trợ list/tuple/ndarray/bytes/str."""
@@ -81,11 +83,13 @@ def vec_to_list(v):
     parts = [p.strip() for p in s.replace("\n", "").split(",") if p.strip()]
     return [float(p) for p in parts]
 
+
 def to_float_list_from_scores(scores_val: Any, expected_len: int) -> list[float]:
     """
     Chấp nhận list/tuple, dict (RIASEC:R,I,A,S,E,C; BigFive:O,C,E,A,N) hoặc JSON text.
     Normalize về [0,1]: nếu có giá trị >1 coi như 0..100 và chia 100; sau đó clip 0..1.
     """
+
     def _normalize(lst: list[float]) -> list[float]:
         if any(abs(x) > 1.0 for x in lst):
             lst = [x / 100.0 for x in lst]
@@ -123,7 +127,9 @@ def to_float_list_from_scores(scores_val: Any, expected_len: int) -> list[float]
 
     return [0.0] * expected_len
 
+
 # ========= Main =========
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -209,19 +215,15 @@ def main():
             cur.execute(sql_item)
             for item_id, onet, emb, title in cur.fetchall():
                 item_feats[str(item_id)] = {
-                    "text":   np.array(vec_to_list(emb), dtype=np.float32).tolist(),
+                    "text": np.array(vec_to_list(emb), dtype=np.float32).tolist(),
                     "riasec": onet_to_riasec.get(onet, [0, 0, 0, 0, 0, 0]),
-                    "title":  title or "",
+                    "title": title or "",
                 }
 
     # 4) Ghi file
     Path(args.user_out).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.user_out).write_text(
-        json.dumps(user_feats, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    Path(args.item_out).write_text(
-        json.dumps(item_feats, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    Path(args.user_out).write_text(json.dumps(user_feats, ensure_ascii=False, indent=2), encoding="utf-8")
+    Path(args.item_out).write_text(json.dumps(item_feats, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(f"[OK] Write → {args.user_out}, {args.item_out}")
     print(f"[INFO] item_id_mode = {args.item_id_mode}, use_assessments={args.use_assessments}")

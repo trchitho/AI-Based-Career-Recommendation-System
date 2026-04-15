@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import enum
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import TIMESTAMP, BigInteger, Column, Numeric, Text, func
+from sqlalchemy import TIMESTAMP, BigInteger, Boolean, Column, Numeric, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
-import enum
 
 from ...core.db import Base
+
 
 class BlogStatus(enum.Enum):
     DRAFT = "Draft"
@@ -15,7 +16,7 @@ class BlogStatus(enum.Enum):
     PENDING = "Pending"
     REJECTED = "Rejected"
     ARCHIVED = "Archived"
-    
+
     def __str__(self):
         return self.value
 
@@ -98,6 +99,8 @@ class BlogPost(Base):
     tags = Column(Text)  # JSON string for tags array
     featured_image = Column(Text)
     view_count = Column(BigInteger, default=0)
+    like_count = Column(BigInteger, default=0)
+    dislike_count = Column(BigInteger, default=0)
     is_featured = Column(Text)  # Boolean as text
     status = Column(Text, default="Draft")
     published_at = Column(TIMESTAMP(timezone=True))
@@ -106,7 +109,7 @@ class BlogPost(Base):
 
     def to_dict(self) -> dict:
         import json
-        
+
         # Parse tags from JSON string
         tags = []
         if self.tags:
@@ -114,7 +117,7 @@ class BlogPost(Base):
                 tags = json.loads(self.tags) if isinstance(self.tags, str) else self.tags
             except (TypeError, ValueError, json.JSONDecodeError):
                 tags = []
-        
+
         return {
             "id": self.id,
             "author_id": self.author_id,
@@ -126,6 +129,8 @@ class BlogPost(Base):
             "tags": tags,
             "featured_image": self.featured_image or "",
             "view_count": self.view_count or 0,
+            "like_count": self.like_count or 0,
+            "dislike_count": self.dislike_count or 0,
             "is_featured": self.is_featured == "true" if self.is_featured else False,
             "is_published": self.status == "Published" if self.status else False,
             "status": self.status or "Draft",
@@ -135,17 +140,19 @@ class BlogPost(Base):
         }
 
 
-# bảng core.comments
-class Comment(Base):
-    __tablename__ = "comments"
+# bảng core.blog_comments
+class BlogComment(Base):
+    __tablename__ = "blog_comments"
     __table_args__ = {"schema": "core"}
     id = Column(BigInteger, primary_key=True)
     post_id = Column(BigInteger, nullable=False)
     user_id = Column(BigInteger, nullable=False)
     parent_id = Column(BigInteger)
     content = Column(Text, nullable=False)
-    status = Column(Text)  # 'Visible' | ...
+    like_count = Column(BigInteger, default=0)
+    is_deleted = Column(Boolean, default=False)  # Use proper Boolean type
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     def to_dict(self) -> dict:
         return {
@@ -153,9 +160,69 @@ class Comment(Base):
             "post_id": self.post_id,
             "user_id": self.user_id,
             "parent_id": self.parent_id,
-            "content": self.content,
-            "status": self.status,
+            "content": self.content if self.is_deleted != "true" else "[deleted]",
+            "like_count": self.like_count or 0,
+            "is_deleted": self.is_deleted if isinstance(self.is_deleted, bool) else self.is_deleted == "true",
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+# bảng core.comment_likes
+class CommentLike(Base):
+    __tablename__ = "comment_likes"
+    __table_args__ = {"schema": "core"}
+    id = Column(BigInteger, primary_key=True)
+    comment_id = Column(BigInteger, nullable=False)
+    user_id = Column(BigInteger, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "comment_id": self.comment_id,
+            "user_id": self.user_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# bảng core.comment_rate_limits
+class CommentRateLimit(Base):
+    __tablename__ = "comment_rate_limits"
+    __table_args__ = {"schema": "core"}
+    id = Column(BigInteger, primary_key=True)
+    user_id = Column(BigInteger, nullable=False)
+    post_id = Column(BigInteger, nullable=False)
+    comment_count = Column(BigInteger, default=1)
+    window_start = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
+# Blog post reactions (likes/dislikes)
+class BlogPostReaction(Base):
+    __tablename__ = "blog_post_reactions"
+    __table_args__ = {"schema": "core"}
+    id = Column(BigInteger, primary_key=True)
+    post_id = Column(BigInteger, nullable=False)
+    user_id = Column(BigInteger, nullable=False)
+    reaction_type = Column(Text, nullable=False)  # 'like' or 'dislike'
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "post_id": self.post_id,
+            "user_id": self.user_id,
+            "reaction_type": self.reaction_type,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "post_id": self.post_id,
+            "comment_count": self.comment_count,
+            "window_start": self.window_start.isoformat() if self.window_start else None,
         }
 
 
@@ -229,16 +296,16 @@ class CareerInterest(Base):
     def get_dominant_code(self) -> str:
         """Return the dominant RIASEC code (highest score)"""
         scores = [
-            ('R', float(self.r or 0)),
-            ('I', float(self.i or 0)),
-            ('A', float(self.a or 0)),
-            ('S', float(self.s or 0)),
-            ('E', float(self.e or 0)),
-            ('C', float(self.c or 0)),
+            ("R", float(self.r or 0)),
+            ("I", float(self.i or 0)),
+            ("A", float(self.a or 0)),
+            ("S", float(self.s or 0)),
+            ("E", float(self.e or 0)),
+            ("C", float(self.c or 0)),
         ]
         scores.sort(key=lambda x: x[1], reverse=True)
         if scores[0][1] == 0:
-            return 'N/A'
+            return "N/A"
         return scores[0][0]
 
 
@@ -253,5 +320,5 @@ class CareerOverview(Base):
     salary_min = Column(Numeric(12, 2))
     salary_max = Column(Numeric(12, 2))
     salary_avg = Column(Numeric(12, 2))
-    salary_currency = Column(Text, default='VND')
+    salary_currency = Column(Text, default="VND")
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

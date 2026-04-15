@@ -133,28 +133,33 @@ const SkillManagementPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <span className="w-2 h-8 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></span>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
             Skill Management
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-5">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Manage skills, knowledge and abilities
           </p>
         </div>
         <button
           onClick={handleCreate}
-          className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5"
+          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
           Add Skill
         </button>
       </div>
 
       {/* FILTERS & SEARCH */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 shadow-lg p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4">
         <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -165,7 +170,7 @@ const SkillManagementPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name, category, or ONET code..."
-              className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
+              className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:text-white transition-colors"
             />
           </div>
 
@@ -176,7 +181,7 @@ const SkillManagementPage = () => {
             <select
               value={ksaTypeFilter}
               onChange={(e) => setKsaTypeFilter(e.target.value)}
-              className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
+              className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-800 dark:text-white transition-colors"
             >
               <option value="">All Types</option>
               <option value="knowledge">Knowledge</option>
@@ -192,7 +197,7 @@ const SkillManagementPage = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
+              className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-800 dark:text-white transition-colors"
             >
               <option value="name">Name</option>
               <option value="ksa_type">KSA Type</option>
@@ -206,14 +211,14 @@ const SkillManagementPage = () => {
           <div className="flex items-end gap-2">
             <button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-4 py-2.5 rounded-xl font-semibold transition-all"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               Search
             </button>
             <button
               type="button"
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold transition-colors"
+              className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold transition-colors text-sm"
               title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
@@ -224,12 +229,12 @@ const SkillManagementPage = () => {
 
       {/* STATS */}
       {skillsData && (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 shadow-lg p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4">
           <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
             <span>
               Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, skillsData.total)} of {skillsData.total} skills
             </span>
-            <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-medium">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               Page {currentPage} / {skillsData.total_pages}
             </span>
           </div>
@@ -238,16 +243,17 @@ const SkillManagementPage = () => {
 
       {/* TABLE */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-center py-16 gap-3 text-gray-500 dark:text-gray-400">
+          <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          Loading...
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 shadow-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                  className="px-6 py-3 text-left font-semibold text-gray-600 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
@@ -258,7 +264,7 @@ const SkillManagementPage = () => {
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                  className="px-6 py-3 text-left font-semibold text-gray-600 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                   onClick={() => handleSort('ksa_type')}
                 >
                   <div className="flex items-center gap-1">
@@ -269,7 +275,7 @@ const SkillManagementPage = () => {
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                  className="px-6 py-3 text-left font-semibold text-gray-600 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                   onClick={() => handleSort('category')}
                 >
                   <div className="flex items-center gap-1">
@@ -280,7 +286,7 @@ const SkillManagementPage = () => {
                   </div>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                  className="px-6 py-3 text-left font-semibold text-gray-600 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                   onClick={() => handleSort('onet_code')}
                 >
                   <div className="flex items-center gap-1">
@@ -290,23 +296,23 @@ const SkillManagementPage = () => {
                     )}
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">
                   Level
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">
                   Importance
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">
                   Actions
                 </th>
               </tr>
             </thead>
 
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
               {skillsData?.items.map((skill, index) => (
                 <tr
                   key={`skill-${skill.id}-${index}`}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -319,8 +325,8 @@ const SkillManagementPage = () => {
 
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${skill.ksa_type === 'Knowledge' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                        skill.ksa_type === 'Skills' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                          'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                      skill.ksa_type === 'Skills' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                        'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                       }`}>
                       {skill.ksa_type}
                     </span>
@@ -382,7 +388,7 @@ const SkillManagementPage = () => {
           </table>
 
           {skillsData?.items.length === 0 && (
-            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-10 text-sm text-gray-500 dark:text-gray-400">
               No skills found
             </div>
           )}
@@ -450,10 +456,12 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
     }
   };
 
+  const inputClass = "w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:text-white transition-colors";
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-5">
           {skill ? 'Edit Skill' : 'Add Skill'}
         </h2>
 
@@ -466,7 +474,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
               required
               value={formData.onet_code}
               onChange={(e) => setFormData({ ...formData, onet_code: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              className={inputClass}
               placeholder="e.g., 11-1011.00"
             />
           </div>
@@ -479,7 +487,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
               required
               value={formData.ksa_type}
               onChange={(e) => setFormData({ ...formData, ksa_type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              className={inputClass}
             >
               <option value="Knowledge">Knowledge</option>
               <option value="Skills">Skills</option>
@@ -495,7 +503,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              className={inputClass}
               placeholder="Skill name"
             />
           </div>
@@ -507,7 +515,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
             <input
               value={formData.category || ''}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              className={inputClass}
               placeholder="Category"
             />
           </div>
@@ -524,7 +532,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
                 step="0.1"
                 value={formData.level || ''}
                 onChange={(e) => setFormData({ ...formData, level: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className={inputClass}
               />
             </div>
 
@@ -539,7 +547,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
                 step="0.1"
                 value={formData.importance || ''}
                 onChange={(e) => setFormData({ ...formData, importance: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className={inputClass}
               />
             </div>
           </div>
@@ -551,23 +559,23 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
             <input
               value={formData.source || ''}
               onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              className={inputClass}
               placeholder="Data source"
             />
           </div>
 
-          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              className="px-4 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="px-5 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium transition-colors"
             >
               {submitting ? 'Saving...' : skill ? 'Update' : 'Create'}
             </button>

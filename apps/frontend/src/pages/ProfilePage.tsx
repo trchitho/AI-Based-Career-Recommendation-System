@@ -49,7 +49,7 @@ const ProfilePage = () => {
   // ==========================================
   return (
     <MainLayout>
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
 
         {/* CSS Injection */}
         <style>{`
@@ -123,9 +123,9 @@ const ProfilePage = () => {
 
               {/* Right Column: History (Chiếm 2/3 trên màn lớn) */}
               <div className="lg:col-span-2">
-                <div className="bg-white dark:bg-gray-800 rounded-[32px] p-1 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 h-full">
+                <div className="bg-white dark:bg-gray-800 rounded-card-hero p-1 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 h-full">
                   {/* Wrapper để đồng bộ style với ProfileInfoSection */}
-                  <div className="h-full bg-gray-50/50 dark:bg-gray-900/50 rounded-[28px] overflow-hidden p-0">
+                  <div className="h-full bg-gray-50/50 dark:bg-gray-900/50 rounded-card-special overflow-hidden p-0">
                     <AssessmentHistorySection assessmentHistory={profileData.assessmentHistory} />
                   </div>
                 </div>
