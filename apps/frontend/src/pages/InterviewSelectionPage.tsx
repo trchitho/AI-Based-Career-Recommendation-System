@@ -93,30 +93,34 @@ const InterviewSelectionPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-                    <p className="text-gray-600">Đang tải thông tin nghề nghiệp...</p>
+            <MainLayout>
+                <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+                        <p className="text-gray-600">Đang tải thông tin nghề nghiệp...</p>
+                    </div>
                 </div>
-            </div>
+            </MainLayout>
         );
     }
 
     if (error || !jobInfo) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center max-w-md">
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                        <p className="text-red-800 mb-4">{error || 'Không tìm thấy thông tin nghề nghiệp'}</p>
-                        <button
-                            onClick={() => navigate('/careers')}
-                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                        >
-                            Quay lại danh sách nghề nghiệp
-                        </button>
+            <MainLayout>
+                <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                    <div className="text-center max-w-md">
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                            <p className="text-red-800 mb-4">{error || 'Không tìm thấy thông tin nghề nghiệp'}</p>
+                            <button
+                                onClick={() => navigate('/careers')}
+                                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                                Quay lại danh sách nghề nghiệp
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </MainLayout>
         );
     }
 

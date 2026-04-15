@@ -391,9 +391,11 @@ const InterviewPage: React.FC = () => {
     const scoreColor = (s?: number) => !s ? 'text-gray-400' : s >= 8 ? 'text-green-600' : s >= 6 ? 'text-yellow-600' : 'text-red-600';
 
     if (isLoading && !session) return (
-        <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-blue-600" /><p className="text-gray-600">Đang chuẩn bị phỏng vấn...</p></div>
-        </div>
+        <MainLayout>
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-blue-600" /><p className="text-gray-600">Đang chuẩn bị phỏng vấn...</p></div>
+            </div>
+        </MainLayout>
     );
 
     return (
