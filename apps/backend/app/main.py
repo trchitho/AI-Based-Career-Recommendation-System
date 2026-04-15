@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 import time
 from contextlib import asynccontextmanager
@@ -8,6 +9,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy import text
+
+logger = logging.getLogger(__name__)
 
 # dotenv (optional)
 try:
@@ -158,8 +161,9 @@ def create_app() -> FastAPI:
 
             health_checker = get_health_checker()
             return await health_checker.get_system_health()
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
+        except Exception:
+            logger.exception("Detailed health check failed")
+            return {"status": "error", "message": "Failed to retrieve detailed health status"}
 
     @app.get("/metrics", tags=["system"])
     def get_metrics():
@@ -186,8 +190,9 @@ def create_app() -> FastAPI:
             metrics["errors"] = error_tracker.get_error_stats()
 
             return metrics
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
+        except Exception:
+            logger.exception("Metrics retrieval failed")
+            return {"status": "error", "message": "Failed to retrieve metrics"}
 
     @app.get("/", include_in_schema=False)
     def root():

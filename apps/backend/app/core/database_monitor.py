@@ -310,5 +310,10 @@ async def check_database_performance(database_url: str) -> Dict[str, Any]:
             "performance_metrics": db_monitor.get_metrics(),
         }
 
-    except Exception as e:
-        return {"status": "unhealthy", "error": str(e), "performance_metrics": db_monitor.get_metrics()}
+    except Exception:
+        logger.exception("Database performance check failed")
+        return {
+            "status": "unhealthy",
+            "error": "Internal database performance check error",
+            "performance_metrics": db_monitor.get_metrics(),
+        }
