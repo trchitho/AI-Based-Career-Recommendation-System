@@ -80,9 +80,15 @@ class GeminiStreamManager:
         seen = set()
         candidates = [
             self.model_name,        # Primary from env
+            "models/gemma-3-4b-it", # Free model that works well
             "gemini-flash-latest",  # Always-latest alias (works for all keys)
             "gemini-2.5-flash",     # Newer stable
-            "gemini-2.5-flash-lite",
+            "gemini-2.0-flash-exp", # Experimental (different quota)
+            "gemini-2.0-flash",     # Stable 2.0
+            "gemini-1.5-flash",     # Older but reliable
+            "models/gemini-flash-latest",  # With models/ prefix
+            "models/gemini-2.5-flash",
+            "models/gemini-2.0-flash",
         ]
         self.fallback_models = []
         for m in candidates:
@@ -139,9 +145,13 @@ class GeminiStreamManager:
                 print(f"[warn] Model {model_name} failed: {e}")
                 
                 # Check if it's a quota/auth issue (don't try other models)
-                if any(keyword in error_msg for keyword in ['quota', '429', 'rate limit', 'api key', 'expired', 'invalid', 'authentication']):
-                    print("[err] API issue detected, stopping fallback attempts")
+                if any(keyword in error_msg for keyword in ['api key', 'expired', 'invalid', 'authentication', 'not valid']):
+                    print("[err] API authentication issue detected, stopping fallback attempts")
                     break
+                elif any(keyword in error_msg for keyword in ['quota', '429', 'rate limit', 'exceeded']):
+                    print("[warn] Quota exceeded - will try fallback models with different endpoints")
+                    # Continue to try other models which might use different quotas
+                    continue
                 
                 # Continue to next model for other errors
                 continue
@@ -177,8 +187,16 @@ class GeminiStreamManager:
     
     def is_available(self) -> bool:
         """Check if this stream is available"""
-        # Don't initialize just to check availability
-        return self.enabled and self.api_key is not None and self.api_key != ''
+        # Basic checks first
+        if not self.enabled or not self.api_key or self.api_key == '':
+            return False
+        
+        # If not initialized yet, assume available (will initialize on first use)
+        if not self._initialized:
+            return True
+            
+        # If initialized, check if model is actually working
+        return self.model is not None
     
     def generate_content_with_retry(self, prompt: str, **kwargs) -> Optional[str]:
         """
@@ -196,7 +214,10 @@ class GeminiStreamManager:
         self._ensure_initialized()
         
         if not self.model:
-            print(f"  [warn] {self.stream_type.value.title()} stream not available")
+            print(f"[warn] {self.stream_type.value.title()} stream not available")
+            print(f"[debug] API key: {'✓' if self.api_key else '✗'}")
+            print(f"[debug] Enabled: {self.enabled}")
+            print(f"[debug] Initialized: {self._initialized}")
             return None
         
         for attempt in range(self.max_retries + 1):
@@ -204,17 +225,23 @@ class GeminiStreamManager:
                 # Prepare generation config
                 config_params = {}
                 
-                # Handle max tokens
+                # Handle max tokens - use correct parameter name
                 max_tokens = int(os.getenv('GEMINI_MAX_TOKENS', '1000'))
                 if max_tokens > 0:
-                    config_params['max_output_tokens'] = max_tokens
+                    config_params['max_output_tokens'] = max_tokens  # Changed from maxOutputTokens
                 
                 # Handle temperature
                 temperature = float(os.getenv('GEMINI_TEMPERATURE', '0.7'))
                 config_params['temperature'] = temperature
                 
-                # Override with kwargs
-                config_params.update(kwargs)
+                # Override with kwargs - fix parameter names
+                for key, value in kwargs.items():
+                    if key == 'maxOutputTokens':
+                        config_params['max_output_tokens'] = value  # Convert to correct name
+                    elif key == 'max_output_tokens':
+                        config_params['max_output_tokens'] = value
+                    else:
+                        config_params[key] = value
                 
                 # Generate content
                 if config_params:

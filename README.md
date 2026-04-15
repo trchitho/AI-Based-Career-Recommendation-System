@@ -191,31 +191,19 @@ git --version
 
 ---
 
-### B1: Khởi tạo Database và Services
+### B1: Khởi tạo Database
 
-**Cách 1: Sử dụng script tự động (Khuyến nghị)**
-
-```bash
-# Khởi động tất cả services (PostgreSQL, Redis, Neo4j)
-./start_services.bat
-
-# Hoặc trên Linux/macOS
-chmod +x start_services.sh && ./start_services.sh
-```
-
-**Cách 2: Thủ công**
+**Terminal : Database**
 
 ```bash
 cd AI-Based-Career-Recommendation-System
 
-# Khởi động Docker services
-docker-compose --env-file .env.docker up -d
+# Khởi động Docker services (3 containers: PostgreSQL, Redis, Neo4j)
+docker compose down -v ; docker compose up -d
 
-# Kiểm tra services đang chạy
-docker-compose ps
+# Nếu lỗi thiếu biến môi trường, chạy lệnh này:
+docker compose down -v ; docker-compose --env-file apps/backend/.env up -d
 ```
-
-**Khôi phục dữ liệu từ backup:**
 
 ```bash
 # 1) Đá hết connection đang giữ DB
@@ -231,18 +219,6 @@ docker compose cp db/backup/dev_snapshot_utf8.sql postgres:/tmp/dev_snapshot_utf
 # 4) Import vào DB
 docker compose exec -T postgres psql -U postgres -d career_ai -v ON_ERROR_STOP=1 -f /tmp/dev_snapshot_utf8.sql
 ```
-
-**Thiết lập Neo4j Graph Database:**
-
-```bash
-cd apps/backend
-python app/etl/build_graph_fixed.py
-```
-
-**Kiểm tra kết nối:**
-- 📊 PostgreSQL: `localhost:5433` (user: postgres, pass: 123456)
-- 🔄 Redis: `localhost:6379`
-- 🌐 Neo4j Browser: `http://localhost:7474` (user: neo4j, pass: password123456)
 
 ### B2: Cài đặt thư viện và chạy dự án
 

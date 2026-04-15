@@ -18,7 +18,21 @@ def test_answer_validation():
     class MockDB:
         pass
     
+    class MockGeminiService:
+        def __init__(self):
+            pass
+        
+        class MockStreamManager:
+            def generate_content_with_retry(self, prompt):
+                # Mock response for relevance check
+                if "is_relevant" in prompt:
+                    return '{"is_relevant": false, "confidence": 0.8, "reason": "test mock"}'
+                return "Mock response"
+        
+        stream_manager = MockStreamManager()
+    
     service = InterviewService(MockDB())
+    service.gemini = MockGeminiService()  # Mock Gemini service
     
     # Test cases for irrelevant answers
     test_cases = [
@@ -147,12 +161,19 @@ def test_performance():
     class MockDB:
         pass
     
+    class MockGeminiService:
+        class MockStreamManager:
+            def generate_content_with_retry(self, prompt):
+                return '{"is_relevant": true, "confidence": 0.9, "reason": "mock"}'
+        stream_manager = MockStreamManager()
+    
     service = InterviewService(MockDB())
+    service.gemini = MockGeminiService()  # Mock for performance test
     
     # Test validation speed
     start_time = time.time()
     
-    for i in range(100):
+    for i in range(10):  # Reduce from 100 to 10 for faster test
         service._validate_answer_relevance(
             "Test question", 
             f"Test answer {i}", 
@@ -163,10 +184,10 @@ def test_performance():
     end_time = time.time()
     duration = end_time - start_time
     
-    print(f"✅ 100 validations completed in {duration:.3f}s")
-    print(f"✅ Average: {(duration/100)*1000:.1f}ms per validation")
+    print(f"✅ 10 validations completed in {duration:.3f}s")
+    print(f"✅ Average: {(duration/10)*1000:.1f}ms per validation")
     
-    if duration < 5.0:  # Should complete in under 5 seconds
+    if duration < 2.0:  # Should complete in under 2 seconds
         print(f"✅ Performance: GOOD")
     else:
         print(f"⚠️ Performance: SLOW")

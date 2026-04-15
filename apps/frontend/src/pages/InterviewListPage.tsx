@@ -319,47 +319,51 @@ const InterviewListPage: React.FC = () => {
                                             {jobs.map((job) => (
                                                 <div
                                                     key={job.id}
-                                                    className="border border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 group bg-gradient-to-br from-white to-gray-50 flex flex-col h-[350px] md:h-[380px]"
+                                                    className="border border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 group bg-gradient-to-br from-white to-gray-50 flex flex-col h-[360px]"
                                                 >
-                                                    {/* Content Area - Flex grow để chiếm hết không gian */}
-                                                    <div className="flex-1 flex flex-col">
-                                                        <div className="flex items-start justify-between mb-4">
-                                                            <div className="flex-1 min-w-0">
-                                                                <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-lg md:text-xl mb-3 line-clamp-2 leading-tight">
+                                                    {/* Header - Fixed height */}
+                                                    <div className="mb-4 h-[100px] flex flex-col justify-between">
+                                                        <div>
+                                                            <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-lg mb-2 leading-tight">
+                                                                <span className="line-clamp-2">
                                                                     {job.title}
-                                                                </h3>
-                                                                <p className="text-xs md:text-sm text-gray-500 mb-4 font-medium">
-                                                                    Mã nghề: {job.id}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Description với chiều cao mở rộng */}
-                                                        <div className="flex-1 mb-6">
-                                                            {job.description_vi && (
-                                                                <div className="text-sm text-gray-600 leading-relaxed h-[120px] md:h-[140px] overflow-hidden">
-                                                                    <p className="line-clamp-5 md:line-clamp-6">
-                                                                        {job.description_vi}
-                                                                    </p>
-                                                                </div>
-                                                            )}
+                                                                </span>
+                                                            </h3>
+                                                            <p className="text-sm text-gray-500 font-medium">
+                                                                Mã nghề: {job.id}
+                                                            </p>
                                                         </div>
                                                     </div>
 
-                                                    {/* Action Buttons - Luôn ở cuối với kích thước responsive */}
+                                                    {/* Description - Fixed height with scroll */}
+                                                    <div className="flex-1 mb-6 h-[140px] overflow-hidden">
+                                                        {job.description_vi ? (
+                                                            <div className="text-sm text-gray-600 leading-relaxed h-full">
+                                                                <p className="line-clamp-6">
+                                                                    {job.description_vi}
+                                                                </p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-sm text-gray-400 italic h-full flex items-center">
+                                                                <span>Mô tả nghề nghiệp sẽ được cập nhật sớm</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Action Buttons - Fixed at bottom */}
                                                     <div className="flex gap-3 mt-auto">
                                                         <button
                                                             onClick={() => navigate(`/interview/selection/${job.id}`)}
-                                                            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 md:px-5 py-3 md:py-4 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-sm md:text-base"
+                                                            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-sm"
                                                         >
-                                                            <Play className="h-4 w-4 md:h-5 md:w-5" />
+                                                            <Play className="h-4 w-4" />
                                                             Phỏng vấn
                                                         </button>
                                                         <button
                                                             onClick={() => navigate(`/careers/${job.id.replace(/\./g, '-')}`)}
-                                                            className="flex-1 bg-gray-100 text-gray-700 px-4 md:px-5 py-3 md:py-4 rounded-xl font-bold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-2 text-sm md:text-base"
+                                                            className="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-2 text-sm"
                                                         >
-                                                            <Eye className="h-4 w-4 md:h-5 md:w-5" />
+                                                            <Eye className="h-4 w-4" />
                                                             Chi tiết
                                                         </button>
                                                     </div>

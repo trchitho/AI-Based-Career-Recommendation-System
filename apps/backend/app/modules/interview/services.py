@@ -308,14 +308,26 @@ class GeminiService:
         print(f"✅ Interview Gemini service initialized with stream: {self.stream_manager.stream_type.value}")
 
     def generate_interview_start(self, job_title: str, skills_context: List[Dict]) -> Dict:
-        """Tạo lời chào và câu hỏi đầu tiên"""
-        prompt = f"""Bạn là HR Manager phỏng vấn vị trí {job_title}.
-Tạo lời chào ngắn gọn và câu hỏi mở đầu về động lực ứng tuyển.
-Trả về JSON (chỉ JSON):
-{{"greeting": "...", "first_question": "..."}}"""
+        """Tạo lời chào và câu hỏi đầu tiên với prompt cải tiến - dài hơn và chuyên nghiệp hơn"""
+        # Prompt cải tiến - dài hơn, chuyên nghiệp và thân thiện hơn
+        prompt = f"""Bạn là một HR Manager chuyên nghiệp và giàu kinh nghiệm đang thực hiện buổi phỏng vấn quan trọng cho vị trí {job_title}. 
+
+Hãy tạo ra một lời chào ấm áp, chuyên nghiệp và một câu hỏi mở đầu thú vị để tạo không khí thoải mái cho ứng viên. Lời chào nên thể hiện sự chào đón, giới thiệu bản thân và tạo cảm giác thoải mái. Câu hỏi đầu tiên nên khuyến khích ứng viên chia sẻ về động lực và mục tiêu nghề nghiệp của họ.
+
+Yêu cầu:
+- Lời chào: 3-4 câu, ấm áp và chuyên nghiệp, giới thiệu vai trò HR Manager
+- Câu hỏi: Thú vị, mở, khuyến khích chia sẻ về động lực và hành trình nghề nghiệp
+- Tông điệu: Thân thiện nhưng chuyên nghiệp, tạo cảm giác thoải mái
+
+Trả về JSON chính xác:
+{{"greeting": "Lời chào ấm áp và chuyên nghiệp (3-4 câu)", "first_question": "Câu hỏi mở đầu thú vị về động lực và hành trình nghề nghiệp"}}"""
 
         try:
-            response_text = self.stream_manager.generate_content_with_retry(prompt)
+            response_text = self.stream_manager.generate_content_with_retry(
+                prompt, 
+                max_output_tokens=250,  # Tăng lên để có câu văn dài hơn và chuyên nghiệp hơn
+                temperature=0.4  # Tăng creativity một chút
+            )
             if response_text:
                 import re as _re
                 match = _re.search(r"\{[\s\S]*\}", response_text)
@@ -325,129 +337,113 @@ Trả về JSON (chỉ JSON):
             print(f"⚠️ Interview Gemini API failed: {e}")
 
         return {
-            "greeting": f"Xin chào! Tôi là HR Manager và sẽ phỏng vấn bạn cho vị trí {job_title}. Buổi phỏng vấn khoảng 15-20 phút với 5 câu hỏi. Hãy thư giãn nhé!",
-            "first_question": "Trước tiên, bạn có thể chia sẻ lý do tại sao bạn quan tâm đến vị trí này không?",
+            "greeting": f"Xin chào và chào mừng bạn đến với buổi phỏng vấn hôm nay! Tôi là HR Manager và rất vui được gặp gỡ bạn. Chúng ta sẽ có một cuộc trò chuyện thú vị và thoải mái khoảng 15-20 phút về vị trí {job_title}. Tôi hy vọng bạn sẽ cảm thấy thoải mái để chia sẻ những kinh nghiệm và suy nghĩ của mình một cách tự nhiên nhất. Hãy coi đây như một cuộc trò chuyện giữa hai người bạn về nghề nghiệp nhé!",
+            "first_question": "Để bắt đầu cuộc trò chuyện, tôi rất tò mò về câu chuyện nghề nghiệp của bạn. Điều gì đã khiến bạn quan tâm và quyết định ứng tuyển vào vị trí này? Hãy chia sẻ với tôi về hành trình, động lực và những mong đợi của bạn đối với cơ hội này.",
         }
 
     def generate_question(
         self, job_title: str, skills_context: List[Dict], question_history: List[str], question_type: str = "technical"
     ) -> str:
-        """Tạo câu hỏi phỏng vấn dựa trên context"""
-        skills_list = ", ".join([s["skill_name"] for s in skills_context[:5]])
-        history_note = ""
-        if question_history:
-            history_note = f"\nCÁC CÂU HỎI ĐÃ HỎI: {'; '.join(question_history[-3:])}. Hãy đặt câu hỏi KHÁC."
+        """Tạo câu hỏi phỏng vấn với prompt cải tiến - dài hơn và chuyên nghiệp hơn"""
+        skills_list = ", ".join([s["skill_name"] for s in skills_context[:3]])  # Giới hạn 3 skills
+        
+        # Prompt cải tiến - dài hơn, chi tiết hơn và chuyên nghiệp hơn
+        prompt = f"""Bạn là một HR Manager chuyên nghiệp và giàu kinh nghiệm đang thực hiện buổi phỏng vấn cho vị trí {job_title}.
 
-        prompt = f"""Bạn là HR Manager phỏng vấn vị trí {job_title}.
-Kỹ năng cần kiểm tra: {skills_list}
-Loại câu hỏi: {question_type}{history_note}
+Thông tin ngữ cảnh:
+- Kỹ năng cần đánh giá: {skills_list}
+- Loại câu hỏi cần tạo: {question_type}
+- Các câu hỏi đã được hỏi trước đó: {'; '.join(question_history[-2:]) if question_history else 'Chưa có câu hỏi nào'}
 
-Đặt 1 câu hỏi tình huống thực tế (không hỏi định nghĩa). Chỉ trả về câu hỏi, không giải thích."""
+Yêu cầu tạo câu hỏi:
+1. Tạo một câu hỏi {question_type} thú vị, thực tế và có chiều sâu
+2. Câu hỏi nên tập trung vào tình huống cụ thể thay vì lý thuyết suông
+3. Khuyến khích ứng viên chia sẻ kinh nghiệm thực tế và suy nghĩ của họ
+4. Phù hợp với vị trí {job_title} và các kỹ năng cần đánh giá
+5. Tạo cơ hội để ứng viên thể hiện năng lực và kinh nghiệm
 
-        # Thêm lịch sử câu hỏi để tránh lặp lại
-        if question_history:
-            prompt += f"\n\nCÁC CÂU HỎI ĐÃ HỎI: {'; '.join(question_history[-3:])}"
-            prompt += "\nHãy đặt câu hỏi KHÁC, không lặp lại nội dung trên."
+Lưu ý:
+- Câu hỏi nên rõ ràng, dễ hiểu và không quá phức tạp
+- Tránh câu hỏi trùng lặp với những câu đã hỏi
+- Tạo không khí thoải mái và khuyến khích chia sẻ
+
+Chỉ trả về câu hỏi, không cần giải thích thêm."""
 
         try:
-            response_text = self.stream_manager.generate_content_with_retry(prompt)
+            response_text = self.stream_manager.generate_content_with_retry(
+                prompt, 
+                max_output_tokens=150,  # Tăng lên để có câu hỏi dài hơn và chi tiết hơn
+                temperature=0.5  # Tăng creativity
+            )
             if response_text:
                 return response_text.strip()
         except Exception as e:
             print(f"⚠️ Interview Gemini API failed: {e}")
 
-        # Fallback: rotate through different question templates based on history length
+        # Fallback questions cải tiến - dài hơn và chuyên nghiệp hơn
         session_skills = skills_context[0]["skill_name"] if skills_context else "kỹ năng chuyên môn"
 
-        # Fallback: rotate through different question templates based on history length
         fallback_questions = {
             "technical": [
-                f"Bạn đã từng sử dụng công cụ hoặc phần mềm nào liên quan đến {session_skills} chưa? Hãy mô tả cách bạn sử dụng.",
-                "Quy trình làm việc hàng ngày của bạn trong lĩnh vực này như thế nào?",
-                f"Bạn tự đánh giá mức độ thành thạo của mình về {session_skills} như thế nào?",
+                f"Hãy mô tả một dự án hoặc tình huống thực tế mà bạn đã áp dụng {session_skills}. Bạn đã gặp những thách thức cụ thể nào trong quá trình thực hiện và đã giải quyết chúng như thế nào? Kết quả cuối cùng ra sao?",
+                f"Trong kinh nghiệm làm việc của bạn, công cụ, phương pháp hoặc kỹ thuật nào liên quan đến {session_skills} mà bạn thấy hiệu quả nhất? Hãy chia sẻ một ví dụ cụ thể về cách bạn đã sử dụng nó và tại sao bạn cho rằng nó hiệu quả.",
+                f"Nếu bạn phải hướng dẫn một đồng nghiệp mới về {session_skills}, bạn sẽ tiếp cận như thế nào? Hãy chia sẻ những kinh nghiệm thực tế và bài học quan trọng mà bạn muốn truyền đạt.",
             ],
             "behavioral": [
-                "Hãy kể về một lần bạn phải làm việc nhóm để giải quyết vấn đề khó khăn.",
-                "Bạn đã từng xử lý tình huống áp lực cao như thế nào? Kết quả ra sao?",
-                "Kể về một lần bạn nhận được phản hồi tiêu cực và bạn đã phản ứng như thế nào.",
+                "Hãy kể về một lần bạn phải làm việc với một đồng nghiệp có quan điểm hoặc phong cách làm việc khác biệt hoàn toàn so với bạn. Bạn đã xử lý tình huống đó như thế nào, học được gì từ trải nghiệm này và kết quả cuối cùng ra sao?",
+                "Mô tả một tình huống mà bạn phải đưa ra quyết định quan trọng dưới áp lực thời gian và thông tin hạn chế. Quá trình suy nghĩ của bạn diễn ra như thế nào, bạn đã cân nhắc những yếu tố gì và kết quả cuối cùng có đáp ứng kỳ vọng không?",
+                "Kể về một lần bạn nhận được phản hồi tiêu cực hoặc chỉ trích từ cấp trên, khách hàng hoặc đồng nghiệp. Bạn đã phản ứng như thế nào trong lúc đó, và sau đó đã thực hiện những hành động gì để cải thiện tình hình?",
             ],
             "situational": [
-                "Nếu bạn được giao một dự án mới mà bạn chưa có kinh nghiệm, bạn sẽ bắt đầu từ đâu?",
-                "Nếu có xung đột với đồng nghiệp về cách tiếp cận công việc, bạn sẽ xử lý thế nào?",
-                "Nếu deadline bị rút ngắn đột ngột, bạn sẽ ưu tiên công việc như thế nào?",
+                f"Giả sử bạn được giao một dự án {job_title} hoàn toàn mới mà bạn chưa có kinh nghiệm trước đó. Bạn sẽ lập kế hoạch và tiếp cận như thế nào trong 30 ngày đầu tiên? Hãy chia sẻ các bước cụ thể và cách bạn sẽ đảm bảo thành công.",
+                "Nếu bạn phát hiện ra một sai sót nghiêm trọng trong công việc của đồng nghiệp ngay trước một deadline quan trọng, bạn sẽ xử lý tình huống này như thế nào? Hãy mô tả từng bước và lý do đằng sau quyết định của bạn.",
+                f"Trong vai trò {job_title}, nếu bạn phải thuyết phục một khách hàng khó tính chấp nhận giải pháp của bạn trong khi họ có những lo ngại cụ thể, chiến lược và cách tiếp cận của bạn sẽ là gì?",
             ],
         }
 
         questions_for_type = fallback_questions.get(question_type, fallback_questions["behavioral"])
-        # Pick based on history length to avoid repeats
         idx = len(question_history) % len(questions_for_type)
         return questions_for_type[idx]
 
     def evaluate_answer(
         self, question: str, user_answer: str, job_title: str, skills_tested: List[str] = None, question_type: str = None
     ) -> Dict:
-        """Đánh giá câu trả lời với context kỹ năng cụ thể"""
-        is_no_answer = user_answer.strip() in ["(Không trả lời)", ""]
+        """Đánh giá câu trả lời với logic chặt chẽ và tiết kiệm token"""
+        is_no_answer = user_answer.strip() in ["(Không trả lời)", "", "skip", "bỏ qua"]
+        
+        # Kiểm tra nếu copy câu hỏi (similarity > 80%)
+        is_copy_question = self._is_copying_question(question, user_answer)
+        
+        # Nếu không trả lời hoặc copy câu hỏi -> trả về điểm thấp ngay
+        if is_no_answer or is_copy_question:
+            return self._get_low_score_result(is_no_answer, is_copy_question, question)
+        
+        # Đánh giá nhanh với prompt ngắn gọn
+        prompt = f"""Đánh giá câu trả lời phỏng vấn {job_title}:
+Q: {question[:100]}...
+A: {user_answer[:200]}...
 
-        # Build skill context for evaluation
-        skill_context = ""
-        if skills_tested:
-            skill_context = f"\nKỹ năng đang được đánh giá: {', '.join(skills_tested)}"
+Chấm điểm 1-10 theo 3 tiêu chí:
+- Kỹ thuật: Hiểu biết chuyên môn
+- Logic: Tư duy rõ ràng  
+- Thực tế: Có ví dụ cụ thể
 
-        question_context = ""
-        if question_type:
-            type_descriptions = {
-                "technical": "câu hỏi kỹ thuật/chuyên môn",
-                "behavioral": "câu hỏi hành vi/kinh nghiệm",
-                "situational": "câu hỏi tình huống giả định",
-                "warm_up": "câu hỏi làm quen/động lực",
-            }
-            question_context = f"\nLoại câu hỏi: {type_descriptions.get(question_type, question_type)}"
-
-        prompt = f"""Bạn là HR Manager đang đánh giá câu trả lời phỏng vấn cho vị trí {job_title}.
-
-Câu hỏi: {question}
-Câu trả lời của ứng viên: {user_answer}{skill_context}{question_context}
-
-{"LƯU Ý: Ứng viên không trả lời. Chấm điểm thấp nhưng vẫn đưa ra nhận xét mang tính xây dựng." if is_no_answer else ""}
-
-Đánh giá theo 5 tiêu chí sau và trả về JSON (chỉ JSON thuần, không markdown):
-{{
-    "score": <điểm tổng 1-10, là trung bình có trọng số của 5 tiêu chí>,
-    "detailed_scores": {{
-        "technical": <1-10, Kỹ năng chuyên môn: mức độ hiểu biết kỹ thuật/chuyên ngành liên quan đến câu hỏi>,
-        "logic": <1-10, Tư duy logic: khả năng lập luận, phân tích, cấu trúc câu trả lời>,
-        "communication": <1-10, Giao tiếp: sự rõ ràng, mạch lạc, dễ hiểu trong diễn đạt>,
-        "experience": <1-10, Kinh nghiệm thực tế: có ví dụ cụ thể, tình huống thực tế không>,
-        "attitude": <1-10, Thái độ: sự tích cực, chủ động, tinh thần học hỏi>
-    }},
-    "score_reasoning": {{
-        "technical": "<lý do chấm điểm kỹ năng chuyên môn>",
-        "logic": "<lý do chấm điểm tư duy logic>",
-        "communication": "<lý do chấm điểm giao tiếp>",
-        "experience": "<lý do chấm điểm kinh nghiệm>",
-        "attitude": "<lý do chấm điểm thái độ>"
-    }},
-    "feedback": "<nhận xét tổng thể 2-3 câu, cụ thể và có ích>",
-    "strengths": ["<điểm mạnh cụ thể 1>", "<điểm mạnh cụ thể 2>"],
-    "weaknesses": ["<điểm yếu cụ thể 1>"],
-    "suggestion": "<gợi ý cải thiện cụ thể, có ví dụ>"
-}}"""
+JSON:
+{{"score": <1-10>, "technical": <1-10>, "logic": <1-10>, "experience": <1-10>, "feedback": "<ngắn gọn>"}}"""
 
         try:
-            response_text = self.stream_manager.generate_content_with_retry(prompt)
+            response_text = self.stream_manager.generate_content_with_retry(
+                prompt, 
+                max_output_tokens=150,  # Giới hạn token output
+                temperature=0.3  # Giảm creativity để ổn định
+            )
             if response_text:
-                # Extract JSON robustly - find outermost { }
                 import re as _re
-
                 match = _re.search(r"\{[\s\S]*\}", response_text)
-                if not match:
-                    raise ValueError("No JSON found in response")
-                result = json.loads(match.group())
-                result.pop("next_question", None)
-                ds = result.get("detailed_scores", {})
-                if ds:
-                    result["score"] = round(sum(v for v in ds.values() if v) / len(ds), 1)
+                if match:
+                    result = json.loads(match.group())
+                    # Chuẩn hóa format
+                    return self._normalize_evaluation_result(result)
                 return result
         except Exception as e:
             print(f"⚠️ Interview Gemini API failed: {e}")
@@ -554,6 +550,92 @@ Trả về JSON (chỉ JSON, không có text khác):
                 }
             ],
         }
+
+    def _is_copying_question(self, question: str, answer: str) -> bool:
+        """Kiểm tra xem có copy câu hỏi không"""
+        if not answer or len(answer) < 10:
+            return False
+            
+        # Chuyển về lowercase và loại bỏ dấu câu
+        q_clean = ''.join(c.lower() for c in question if c.isalnum() or c.isspace())
+        a_clean = ''.join(c.lower() for c in answer if c.isalnum() or c.isspace())
+        
+        # Tách từ
+        q_words = set(q_clean.split())
+        a_words = set(a_clean.split())
+        
+        # Nếu > 70% từ trong câu trả lời có trong câu hỏi -> copy
+        if len(a_words) > 0:
+            overlap = len(q_words.intersection(a_words))
+            similarity = overlap / len(a_words)
+            return similarity > 0.7
+        return False
+    
+    def _get_low_score_result(self, is_no_answer: bool, is_copy: bool, question: str) -> Dict:
+        """Trả về kết quả điểm thấp cho trường hợp không trả lời hoặc copy"""
+        if is_no_answer:
+            return {
+                "score": 1.0,
+                "detailed_scores": {"technical": 1, "logic": 1, "experience": 1},
+                "feedback": "Bạn chưa trả lời câu hỏi này. Hãy thử chia sẻ suy nghĩ của mình.",
+                "strengths": [],
+                "weaknesses": ["Chưa có câu trả lời"],
+                "suggestion": "Hãy thử trả lời dù chỉ là ý kiến cá nhân của bạn."
+            }
+        elif is_copy:
+            return {
+                "score": 2.0,
+                "detailed_scores": {"technical": 2, "logic": 2, "experience": 2},
+                "feedback": "Câu trả lời có vẻ như đang lặp lại câu hỏi. Hãy chia sẻ kinh nghiệm thực tế của bạn.",
+                "strengths": [],
+                "weaknesses": ["Chưa thể hiện được kinh nghiệm cá nhân"],
+                "suggestion": "Hãy kể về tình huống cụ thể bạn đã trải qua."
+            }
+    
+    def _get_fallback_evaluation(self, answer: str, question: str) -> Dict:
+        """Đánh giá fallback đơn giản dựa trên độ dài và từ khóa"""
+        answer_len = len(answer.strip())
+        
+        # Điểm dựa trên độ dài
+        if answer_len < 20:
+            score = 3.0
+            feedback = "Câu trả lời còn ngắn. Hãy mở rộng thêm với ví dụ cụ thể."
+        elif answer_len < 50:
+            score = 5.0
+            feedback = "Câu trả lời ổn. Có thể bổ sung thêm chi tiết về kinh nghiệm."
+        else:
+            score = 7.0
+            feedback = "Câu trả lời khá chi tiết. Tốt!"
+        
+        return {
+            "score": score,
+            "detailed_scores": {"technical": score, "logic": score, "experience": score},
+            "feedback": feedback,
+            "strengths": ["Có cố gắng trả lời"],
+            "weaknesses": ["Cần thêm chi tiết"],
+            "suggestion": "Hãy kể về kinh nghiệm thực tế của bạn."
+        }
+    
+    def _normalize_evaluation_result(self, result: Dict) -> Dict:
+        """Chuẩn hóa kết quả đánh giá"""
+        # Đảm bảo có đủ các field cần thiết
+        normalized = {
+            "score": result.get("score", 5.0),
+            "detailed_scores": result.get("detailed_scores", {}),
+            "feedback": result.get("feedback", "Cảm ơn bạn đã trả lời."),
+            "strengths": result.get("strengths", []),
+            "weaknesses": result.get("weaknesses", []),
+            "suggestion": result.get("suggestion", "Tiếp tục phát huy.")
+        }
+        
+        # Đảm bảo detailed_scores có đủ 3 tiêu chí chính
+        ds = normalized["detailed_scores"]
+        if not ds:
+            score = normalized["score"]
+            ds = {"technical": score, "logic": score, "experience": score}
+            normalized["detailed_scores"] = ds
+        
+        return normalized
 
 
 # Module-level cache để tránh gọi Gemini lặp lại cho cùng job_id
@@ -1008,8 +1090,12 @@ Trả về JSON (chỉ JSON):
         if not last_question:
             raise ValueError("Không tìm thấy câu hỏi để trả lời")
 
-        # Enhanced skip detection
-        is_skipped = is_skipped or user_answer.strip() == "" or user_answer.strip().lower() in ["skip", "bỏ qua", "next"]
+        # Enhanced skip detection - CHỈ skip khi user chủ động muốn skip
+        is_skipped = is_skipped or user_answer.strip().lower() in ["skip", "bỏ qua", "next"]
+        
+        # Nếu answer rỗng, KHÔNG tự động skip mà vẫn đánh giá bình thường
+        if user_answer.strip() == "":
+            user_answer = "(Không trả lời)"  # Đánh dấu nhưng vẫn tiếp tục
         
         # Validate answer relevance if not skipped
         if not is_skipped:
@@ -1044,18 +1130,29 @@ Trả về JSON (chỉ JSON):
                 skills_tested=last_question.skills_tested,
                 question_type=last_question.question_type,
             )
+            
+            # Validate evaluation data to prevent database errors
+            safe_evaluation = {
+                "score": float(evaluation.get("score", 0)) if evaluation.get("score") is not None else 0.0,
+                "detailed_scores": evaluation.get("detailed_scores") if isinstance(evaluation.get("detailed_scores"), dict) else {},
+                "feedback": str(evaluation.get("feedback", "")) if evaluation.get("feedback") else "",
+                "strengths": evaluation.get("strengths") if isinstance(evaluation.get("strengths"), list) else [],
+                "weaknesses": evaluation.get("weaknesses") if isinstance(evaluation.get("weaknesses"), list) else [],
+                "suggestion": str(evaluation.get("suggestion", "")) if evaluation.get("suggestion") else "",
+            }
+            
             answer_msg = InterviewMessage(
                 session_id=session_id,
                 role="candidate",
                 content=user_answer,
                 question_type=f"answer_{last_question.question_type}" if last_question.question_type else "answer",
                 question_number=last_question.question_number,
-                score=evaluation.get("score"),
-                detailed_scores=evaluation.get("detailed_scores"),
-                feedback=evaluation.get("feedback"),
-                strengths=evaluation.get("strengths"),
-                weaknesses=evaluation.get("weaknesses"),
-                suggestion=evaluation.get("suggestion"),
+                score=safe_evaluation["score"],
+                detailed_scores=safe_evaluation["detailed_scores"],
+                feedback=safe_evaluation["feedback"],
+                strengths=safe_evaluation["strengths"],
+                weaknesses=safe_evaluation["weaknesses"],
+                suggestion=safe_evaluation["suggestion"],
                 has_audio=has_audio,
                 audio_duration=audio_duration,
             )
@@ -1249,7 +1346,8 @@ Trả về JSON:
 
         return {
             "status": "continue",
-            "question": next_question,
+            "question": next_question,  # Changed from "next_question" to "question"
+            "next_question": next_question,  # Keep both for compatibility
             "question_number": question_number,
             "question_type": question_type,
         }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, Mic, MicOff, Send, Clock, User, Bot, CheckCircle, XCircle, AlertCircle, Timer, Users, Brain } from 'lucide-react';
+import { Loader2, Mic, MicOff, Send, Clock, User, Bot, CheckCircle, XCircle, AlertCircle, Timer, Users, Brain, Code, MessageSquare, Target, Lightbulb } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { interviewService } from '../services/interviewService';
 import ScoreTooltip from '../components/interview/ScoreTooltip';
@@ -222,7 +222,7 @@ const InterviewPage: React.FC = () => {
     const handleSubmit = async (auto = false) => {
         if (!session) return;
         const answer = auto ? '' : currentAnswer.trim();
-        if (!answer && !auto) return;
+        // Cho phép gửi empty answer (không return early)
         if (isLoadingRef.current) return; // prevent double submit
 
         if (autoSubmitRef.current) clearTimeout(autoSubmitRef.current);
@@ -233,7 +233,7 @@ const InterviewPage: React.FC = () => {
         const userMsg: Message = {
             id: userMsgId,
             role: 'candidate',
-            content: answer,
+            content: answer || '(Không trả lời)', // Hiển thị placeholder nếu empty
             timestamp: new Date().toISOString(),
         };
         setMessages(prev => [...prev, userMsg]);
@@ -242,10 +242,10 @@ const InterviewPage: React.FC = () => {
         try {
             const res = await interviewService.submitAnswer({
                 session_id: session.sessionId,
-                answer,
+                answer: answer || '', // Gửi empty string thay vì undefined
                 has_audio: audioDuration !== null,
                 audio_duration: audioDuration,
-                is_skipped: auto,
+                is_skipped: false, // KHÔNG bao giờ set is_skipped = true từ frontend
             });
             setAudioDuration(null);
 
@@ -406,7 +406,20 @@ const InterviewPage: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                         <div>
                             <h1 className="text-xl font-bold text-gray-900">Phỏng vấn AI — {session?.jobTitle}</h1>
-                            <p className="text-sm text-gray-500">Câu {session?.questionNumber} • {qTypeLabel[session?.questionType || ''] || 'Khác'}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-500">Câu {session?.questionNumber}</span>
+                                <span className="text-gray-300">•</span>
+                                {session?.questionType && (
+                                    <Badge className={`text-xs font-medium ${session.questionType === 'technical' ? 'bg-red-100 text-red-800' :
+                                        session.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800' :
+                                            session.questionType === 'situational' ? 'bg-orange-100 text-orange-800' :
+                                                session.questionType === 'warm_up' ? 'bg-green-100 text-green-800' :
+                                                    'bg-blue-100 text-blue-800'
+                                        }`}>
+                                        {qTypeLabel[session.questionType] || 'Khác'}
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-1 text-sm text-gray-600">
@@ -434,28 +447,117 @@ const InterviewPage: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                         {/* Chat */}
                         <div className="lg:col-span-2">
-                            <Card className="flex flex-col" style={{ height: '580px' }}>
+                            <Card className="flex flex-col" style={{ height: 'min(900px, 88vh)' }}>
                                 <CardHeader><CardTitle className="text-base">Cuộc trò chuyện</CardTitle></CardHeader>
                                 <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
                                     <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
                                         {messages.map(msg => (
                                             <React.Fragment key={msg.id}>
                                                 <div className={`flex ${msg.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
-                                                    <div className={`max-w-[82%] rounded-xl px-4 py-3 text-sm ${msg.role === 'candidate' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            {msg.role === 'candidate' ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
-                                                            <span className="font-medium text-xs">{msg.role === 'candidate' ? 'Bạn' : 'HR Manager'}</span>
-                                                            {msg.questionType && (
-                                                                <Badge className={`text-xs ${qTypeColor[msg.questionType] || 'bg-gray-100 text-gray-700'}`}>
-                                                                    {qTypeLabel[msg.questionType] || msg.questionType}
-                                                                </Badge>
-                                                            )}
+                                                    {msg.role === 'interviewer' ? (
+                                                        /* HR Manager Message - Enhanced styling */
+                                                        <div className="max-w-[85%] bg-white border border-gray-200 rounded-xl shadow-sm">
+                                                            {/* Header with role and question type */}
+                                                            <div className={`px-4 py-3 rounded-t-xl border-b ${msg.questionType === 'technical' ? 'bg-red-50 border-red-100' :
+                                                                msg.questionType === 'behavioral' ? 'bg-purple-50 border-purple-100' :
+                                                                    msg.questionType === 'situational' ? 'bg-orange-50 border-orange-100' :
+                                                                        msg.questionType === 'warm_up' ? 'bg-green-50 border-green-100' :
+                                                                            'bg-blue-50 border-blue-100'
+                                                                }`}>
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`p-2 rounded-lg ${msg.questionType === 'technical' ? 'bg-red-100' :
+                                                                        msg.questionType === 'behavioral' ? 'bg-purple-100' :
+                                                                            msg.questionType === 'situational' ? 'bg-orange-100' :
+                                                                                msg.questionType === 'warm_up' ? 'bg-green-100' :
+                                                                                    'bg-blue-100'
+                                                                        }`}>
+                                                                        <Bot className={`h-4 w-4 ${msg.questionType === 'technical' ? 'text-red-600' :
+                                                                            msg.questionType === 'behavioral' ? 'text-purple-600' :
+                                                                                msg.questionType === 'situational' ? 'text-orange-600' :
+                                                                                    msg.questionType === 'warm_up' ? 'text-green-600' :
+                                                                                        'text-blue-600'
+                                                                            }`} />
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="font-semibold text-gray-900">HR Manager</span>
+                                                                            {msg.questionType && (
+                                                                                <Badge className={`text-xs font-medium ${msg.questionType === 'technical' ? 'bg-red-100 text-red-800' :
+                                                                                    msg.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800' :
+                                                                                        msg.questionType === 'situational' ? 'bg-orange-100 text-orange-800' :
+                                                                                            msg.questionType === 'warm_up' ? 'bg-green-100 text-green-800' :
+                                                                                                'bg-blue-100 text-blue-800'
+                                                                                    }`}>
+                                                                                    {qTypeLabel[msg.questionType] || msg.questionType}
+                                                                                </Badge>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Question content */}
+                                                            <div className="px-4 py-4">
+                                                                {msg.content ? (
+                                                                    <div className="text-gray-800 leading-relaxed text-xs">
+                                                                        {/* Enhanced question formatting with proper line breaks */}
+                                                                        {msg.content.split('\n').map((paragraph, index) => {
+                                                                            // Check if this is a question type label line
+                                                                            const isQuestionTypeLabel = paragraph.includes('**') &&
+                                                                                (paragraph.includes('câu hỏi') || paragraph.includes('question'));
+
+                                                                            return (
+                                                                                <div key={index} className={index > 0 ? 'mt-3' : ''}>
+                                                                                    {isQuestionTypeLabel ? (
+                                                                                        // Special formatting for question type labels
+                                                                                        <div className="mb-3">
+                                                                                            <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-lg font-medium text-xs ${msg.questionType === 'technical' ? 'bg-red-100 text-red-800 border border-red-200' :
+                                                                                                msg.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+                                                                                                    msg.questionType === 'situational' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
+                                                                                                        msg.questionType === 'warm_up' ? 'bg-green-100 text-green-800 border border-green-200' :
+                                                                                                            'bg-blue-100 text-blue-800 border border-blue-200'
+                                                                                                }`}>
+                                                                                                {/* Question type icon */}
+                                                                                                {msg.questionType === 'technical' && <Code className="h-4 w-4" />}
+                                                                                                {msg.questionType === 'behavioral' && <MessageSquare className="h-4 w-4" />}
+                                                                                                {msg.questionType === 'situational' && <Target className="h-4 w-4" />}
+                                                                                                {msg.questionType === 'warm_up' && <Lightbulb className="h-4 w-4" />}
+                                                                                                {!msg.questionType && <MessageSquare className="h-4 w-4" />}
+
+                                                                                                <span>{paragraph.replace(/\*\*/g, '')}</span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        // Regular paragraph formatting
+                                                                                        <p className="leading-relaxed text-xs">
+                                                                                            {paragraph}
+                                                                                        </p>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="flex items-center gap-2 text-gray-500 italic">
+                                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                                        <span>Đang chuẩn bị câu hỏi...</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        {msg.content
-                                                            ? <p className="leading-relaxed">{msg.content}</p>
-                                                            : <p className="leading-relaxed italic opacity-60">Bỏ qua câu hỏi này</p>
-                                                        }
-                                                    </div>
+                                                    ) : (
+                                                        /* Candidate Message - Keep existing style */
+                                                        <div className="max-w-[82%] bg-blue-600 text-white rounded-xl px-4 py-3 text-sm">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <User className="h-3.5 w-3.5" />
+                                                                <span className="font-medium text-xs">Bạn</span>
+                                                            </div>
+                                                            {msg.content
+                                                                ? <p className="leading-relaxed">{msg.content}</p>
+                                                                : <p className="leading-relaxed italic opacity-60">Bỏ qua câu hỏi này</p>
+                                                            }
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Eval card directly under candidate message - only when scored */}
@@ -569,7 +671,7 @@ const InterviewPage: React.FC = () => {
                                                     {audioDuration && !isRecording && <span className="text-xs text-green-600">✓ {audioDuration.toFixed(1)}s</span>}
                                                     <span className="text-xs text-gray-400">{currentAnswer.length} ký tự</span>
                                                 </div>
-                                                <Btn onClick={() => handleSubmit()} disabled={isLoading || (!currentAnswer.trim() && !audioDuration)}>
+                                                <Btn onClick={() => handleSubmit()} disabled={isLoading}>
                                                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
                                                     Gửi
                                                 </Btn>
@@ -738,9 +840,9 @@ const InterviewPage: React.FC = () => {
                             )}
                         </div>
                     </div>
-                </div>
-            </div>
-        </MainLayout>
+                </div >
+            </div >
+        </MainLayout >
     );
 };
 
