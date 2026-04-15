@@ -252,7 +252,7 @@ pip install PyPDF2==3.0.1
 ```bash
 cd apps/frontend
 npm install
-npm run devnpm run dev
+npm run dev
 npm install page-flip
 npm install react-pageflip
 ```

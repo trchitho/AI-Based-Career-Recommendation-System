@@ -525,8 +525,14 @@ def force_check_payment(
                 db.commit()
                 logger.info(f"Payment {payment.order_id} marked as FAILED due to timeout after force check")
 
-        # Return updated status
-        return {"message": "Status updated", "status": payment.status, "zalopay_result": result}
+        # Return updated status (sanitized ZaloPay payload)
+        safe_result = {
+            "success": result.get("success"),
+            "status": result.get("status"),
+            "return_code": result.get("return_code"),
+            "message": result.get("message"),
+        }
+        return {"message": "Status updated", "status": payment.status, "zalopay_result": safe_result}
 
     return {"message": "No app_trans_id to query", "status": payment.status}
 
@@ -893,10 +899,14 @@ def admin_list_payments(
 
         where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
-        # Validate sort_by
-        valid_sort_columns = ["created_at", "amount", "order_id", "status"]
-        if sort_by not in valid_sort_columns:
-            sort_by = "created_at"
+        # Validate sort_by using trusted column mapping
+        sort_column_map = {
+            "created_at": "p.created_at",
+            "amount": "p.amount",
+            "order_id": "p.order_id",
+            "status": "p.status",
+        }
+        safe_sort_column = sort_column_map.get(sort_by, "p.created_at")
 
         sort_direction = "DESC" if sort_order.lower() == "desc" else "ASC"
 
@@ -935,7 +945,7 @@ def admin_list_payments(
             FROM core.payments p
             LEFT JOIN core.users u ON p.user_id = u.id
             WHERE {where_sql}
-            ORDER BY p.{sort_by} {sort_direction}
+            ORDER BY {safe_sort_column} {sort_direction}
             LIMIT :limit OFFSET :offset
         """
         )

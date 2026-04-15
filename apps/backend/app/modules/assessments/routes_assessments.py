@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
@@ -24,6 +25,7 @@ from .service import (
 
 # KHÔNG thêm "/api" ở đây vì main.py đã prefix="/api/assessments"
 router = APIRouter(prefix="", tags=["assessments"])
+logger = logging.getLogger(__name__)
 
 
 # -------------------------------------------------------------------
@@ -843,9 +845,16 @@ def generate_all_story_scenarios(request: GenerateAllStoriesRequest):
             "count": len(flat),
         }
     except Exception as e:
+        logger.exception("Failed to generate story scenarios in batch endpoint")
         flat = [
             {"emoji": "💭", "title": f"Tình Huống {i+1}",
              "context": "Hãy đánh giá mức độ phù hợp:", "situation": q.question_text}
             for i, q in enumerate(request.questions)
         ]
-        return {"success": False, "groups": [], "scenarios": flat, "count": len(flat), "error": str(e)}
+        return {
+            "success": False,
+            "groups": [],
+            "scenarios": flat,
+            "count": len(flat),
+            "error": "An internal error has occurred while generating scenarios.",
+        }
