@@ -160,6 +160,9 @@ const InterviewPage: React.FC = () => {
 
     // ── Init ───────────────────────────────────────────────────────────────────
     useEffect(() => {
+        // Scroll to top when component mounts
+        window.scrollTo(0, 0);
+
         if (jobId && user && !startedRef.current) {
             startedRef.current = true;
             startInterview();

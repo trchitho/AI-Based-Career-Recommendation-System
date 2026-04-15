@@ -37,6 +37,9 @@ const InterviewSelectionPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        // Scroll to top when component mounts
+        window.scrollTo(0, 0);
+
         if (!user) {
             navigate('/login', {
                 state: {

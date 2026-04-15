@@ -179,6 +179,9 @@ const InterviewListPage: React.FC = () => {
 
     // Check authentication and load data ONLY ONCE
     useEffect(() => {
+        // Scroll to top when component mounts
+        window.scrollTo(0, 0);
+
         if (!user) {
             navigate('/login', {
                 state: {
