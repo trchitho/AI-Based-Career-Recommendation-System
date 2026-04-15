@@ -415,6 +415,16 @@ class MultiStreamGeminiManager:
         """Get interview stream"""
         return self.interview_stream
     
+    def reinitialize_all(self) -> None:
+        """Force reinitialize all Gemini streams (public API)."""
+        for stream in (
+            self.chatbot_stream,
+            self.assessment_stream,
+            self.cv_stream,
+            self.interview_stream,
+        ):
+            stream._initialize_with_fallback()
+
     def check_all_streams_status(self) -> Dict[str, Dict[str, any]]:
         """Check status of all streams with detailed info"""
         return {

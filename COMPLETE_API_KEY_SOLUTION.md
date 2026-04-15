@@ -33,7 +33,7 @@ python update_api_key.py
 ```bash
 # Edit apps/backend/.env file
 # Find this line:
-GEMINI_INTERVIEW_API_KEY=AIzaSyCf4IA7UHgBd-kwfH6gJXxOJENEyMRHwoE
+GEMINI_INTERVIEW_API_KEY=YOUR_OLD_API_KEY_HERE
 
 # Replace with your new key:
 GEMINI_INTERVIEW_API_KEY=YOUR_NEW_API_KEY_HERE

@@ -18,8 +18,8 @@ def _configure_root_logger() -> logging.Logger:
 
     # Chỉ config nếu chưa có handler (tránh bị add trùng khi reload)
     if not logger.handlers:
-        level_name = os.getenv("LOG_LEVEL", "WARNING").upper()
-        level = getattr(logging, level_name, logging.WARNING)
+        level_name = os.getenv("LOG_LEVEL", "INFO").upper()
+        level = getattr(logging, level_name, logging.INFO)
 
         logger.setLevel(level)
 

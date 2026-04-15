@@ -53,10 +53,8 @@ async def reinitialize_gemini_streams():
     Force reinitialize all Gemini streams (useful when models are updated)
     """
     try:
-        # Reinitialize all streams
-        multi_stream_manager.chatbot_stream._initialize_with_fallback()
-        multi_stream_manager.assessment_stream._initialize_with_fallback()
-        multi_stream_manager.cv_stream._initialize_with_fallback()
+        # Reinitialize all streams via public API
+        multi_stream_manager.reinitialize_all()
         
         # Get new status
         status = multi_stream_manager.check_all_streams_status()
