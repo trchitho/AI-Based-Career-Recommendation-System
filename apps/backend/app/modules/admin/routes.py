@@ -1,13 +1,28 @@
 """
 Admin routes for monitoring system status
 """
+import os
+
 from app.core.db import get_db
 from app.core.gemini_manager import multi_stream_manager
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/api/admin", tags=["admin"])
 
+def require_admin(x_admin_token: str | None = Header(default=None, alias="X-Admin-Token")):
+    admin_token = os.getenv("ADMIN_API_TOKEN")
+    if not admin_token or x_admin_token != admin_token:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden",
+        )
+
+
+router = APIRouter(
+    prefix="/api/admin",
+    tags=["admin"],
+    dependencies=[Depends(require_admin)],
+)
 @router.get("/gemini-status")
 async def get_gemini_status():
     """
