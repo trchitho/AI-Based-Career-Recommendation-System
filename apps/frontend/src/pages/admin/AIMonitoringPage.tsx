@@ -60,19 +60,19 @@ interface AnomalyStats {
    SHARED STYLE CONSTANTS
 ---------------------------------------------- */
 const baseInput =
-  "w-full px-3 py-2 rounded-lg border " +
-  "bg-white dark:bg-admin-dark-card " +
-  "border-gray-300 dark:border-admin-dark-border " +
-  "text-gray-800 dark:text-gray-200 " +
+  "w-full px-3 py-2 text-sm rounded-lg border " +
+  "bg-white dark:bg-gray-800 " +
+  "border-gray-200 dark:border-gray-700 " +
+  "text-gray-900 dark:text-gray-100 " +
   "placeholder-gray-400 dark:placeholder-gray-500 " +
-  "focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "focus:outline-none focus:ring-2 focus:ring-green-500";
 
 const cardClass =
-  "bg-gray-50 dark:bg-admin-dark-bg rounded-xl shadow p-6 " +
-  "border border-gray-200 dark:border-admin-dark-card";
+  "bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 " +
+  "border border-gray-100 dark:border-gray-700";
 
 const tableHead =
-  "bg-gray-100 dark:bg-admin-dark-card text-gray-700 dark:text-gray-300";
+  "bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300";
 
 /* ---------------------------------------------
    MAIN COMPONENT
@@ -211,78 +211,126 @@ const AIMonitoringPage = () => {
 
   if (loading) {
     return (
-      <div className="h-64 flex justify-center items-center text-gray-500 dark:text-gray-400">
-        Loading metrics...
+      <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+        <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+        Đang tải...
       </div>
     );
   }
 
   if (!metrics) {
     return (
-      <div className={`${cardClass} text-red-500`}>
-        Failed to load metrics
+      <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen">
+        <div className={`${cardClass} text-red-500`}>Failed to load metrics</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-10">
-      {/* TITLE */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          AI Performance Monitoring
-        </h1>
-        <button onClick={loadMetrics} className="px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 transition-colors">
-          ↻ Refresh
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-6 space-y-6">
+      {/* Modern Header with Gradient */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-8 shadow-2xl">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2" />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-bold text-white">AI Performance Monitoring</h1>
+            </div>
+            <p className="text-white/90 text-sm ml-16">Real-time AI system health and performance metrics</p>
+          </div>
+          <button
+            onClick={loadMetrics}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+        </div>
       </div>
 
-      {/* PB28: GEMINI LIVE STATUS */}
+      {/* PB28: GEMINI LIVE STATUS - Modern Card */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full ${geminiStatus?.streams_initialized ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}/>
-          Gemini AI Status
-        </h2>
-        <div className={`${cardClass} relative`}>
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className={`relative w-4 h-4 rounded-full ${geminiStatus?.streams_initialized ? 'bg-green-500' : 'bg-red-500'}`}>
+                {geminiStatus?.streams_initialized && (
+                  <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></span>
+                )}
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Gemini AI Status</h2>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={loadGeminiStatus}
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-all duration-200 hover:scale-105"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={handleReinit}
+                disabled={reiniting}
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              >
+                {reiniting ? "Reinitializing..." : "Reinitialize"}
+              </button>
+            </div>
+          </div>
+
           {geminiLoading ? (
-            <div className="flex items-center gap-3 text-gray-400"><div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"/> Loading status...</div>
+            <div className="flex items-center justify-center gap-3 text-gray-400 py-8">
+              <div className="w-6 h-6 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span>Loading status...</span>
+            </div>
           ) : geminiStatus ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Overall', value: geminiStatus.streams_initialized ? '✅ Online' : '❌ Offline', ok: geminiStatus.streams_initialized },
-                  { label: 'Assessment', value: geminiStatus.streams?.assessment?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.assessment?.initialized },
-                  { label: 'Chatbot', value: geminiStatus.streams?.chatbot?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.chatbot?.initialized },
-                  { label: 'CV Parser', value: geminiStatus.streams?.cv?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.cv?.initialized },
-                ].map(({ label, value, ok }) => (
-                  <div key={label} className={`p-3 rounded-xl border-2 ${ok ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20' : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'}`}>
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">{label}</p>
-                    <p className={`text-sm font-bold ${ok ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>{value}</p>
+                  { label: 'Overall Status', value: geminiStatus.streams_initialized ? '✅ Online' : '❌ Offline', ok: geminiStatus.streams_initialized, gradient: 'from-green-500 to-emerald-600' },
+                  { label: 'Assessment AI', value: geminiStatus.streams?.assessment?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.assessment?.initialized, gradient: 'from-blue-500 to-cyan-600' },
+                  { label: 'Chatbot AI', value: geminiStatus.streams?.chatbot?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.chatbot?.initialized, gradient: 'from-purple-500 to-pink-600' },
+                  { label: 'CV Parser AI', value: geminiStatus.streams?.cv?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.cv?.initialized, gradient: 'from-orange-500 to-red-600' },
+                ].map(({ label, value, ok, gradient }) => (
+                  <div key={label} className={`relative overflow-hidden rounded-xl p-4 ${ok ? 'bg-gradient-to-br ' + gradient : 'bg-gradient-to-br from-gray-400 to-gray-500'} shadow-lg transition-all duration-300 hover:scale-105`}>
+                    <div className="absolute inset-0 bg-white/10"></div>
+                    <div className="relative z-10">
+                      <p className="text-xs font-semibold text-white/80 mb-1">{label}</p>
+                      <p className="text-lg font-bold text-white">{value}</p>
+                    </div>
                   </div>
                 ))}
               </div>
               {geminiStatus.model && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">Model: <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{geminiStatus.model}</span></p>
+                <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span className="text-sm text-blue-900 dark:text-blue-100">Model: <span className="font-mono font-bold">{geminiStatus.model}</span></span>
+                </div>
               )}
               {geminiStatus.error && (
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-red-700 dark:text-red-300 font-mono">{geminiStatus.error}</div>
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                  <p className="text-sm text-red-700 dark:text-red-300 font-mono">{geminiStatus.error}</p>
+                </div>
               )}
             </div>
           ) : (
-            <p className="text-gray-500">Unable to fetch Gemini status.</p>
+            <p className="text-center text-gray-500 py-8">Unable to fetch Gemini status.</p>
           )}
-          <div className="absolute top-4 right-4 flex gap-2">
-            <button onClick={loadGeminiStatus} className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Refresh</button>
-            <button onClick={handleReinit} disabled={reiniting} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50">
-              {reiniting ? "Reinitializing..." : "Reinitialize"}
-            </button>
-          </div>
         </div>
       </section>
 
-      {/* PERFORMANCE METRICS */}
+      {/* PERFORMANCE METRICS - Modern Cards */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+          <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
           Performance Metrics
         </h2>
 
@@ -479,9 +527,9 @@ const AIMonitoringPage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-admin-dark-bg">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-[#0F172A]">
                 {feedback.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-admin-dark-card">
+                  <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-[#1E293B]">
                     <td className="px-6 py-4 text-gray-900 dark:text-white">
                       {item.userName}
                     </td>
@@ -575,7 +623,7 @@ const AIMonitoringPage = () => {
         {/* Stats row */}
         {anomalyStats && (
           <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
-            {(["total","unresolved","critical","high","medium","low"] as const).map((k) => {
+            {(["total", "unresolved", "critical", "high", "medium", "low"] as const).map((k) => {
               const colorMap = { total: "text-gray-700 dark:text-gray-300", unresolved: "text-orange-600 dark:text-orange-400", critical: "text-red-600 dark:text-red-400", high: "text-red-500 dark:text-red-400", medium: "text-yellow-600 dark:text-yellow-400", low: "text-blue-600 dark:text-blue-400" };
               return (
                 <div key={k} className={`${cardClass} text-center py-3`}>
@@ -652,19 +700,51 @@ interface MetricProps {
 }
 
 const MetricCard: React.FC<MetricProps> = ({ title, value, subtitle, status }) => {
-  const statusColors = {
-    good: "border-green-500",
-    warning: "border-yellow-500",
-    error: "border-red-500",
+  const statusConfig = {
+    good: {
+      gradient: 'from-green-500 to-emerald-600',
+      icon: '✓',
+      iconBg: 'bg-green-500/20',
+      iconColor: 'text-green-600 dark:text-green-400'
+    },
+    warning: {
+      gradient: 'from-yellow-500 to-orange-600',
+      icon: '⚠',
+      iconBg: 'bg-yellow-500/20',
+      iconColor: 'text-yellow-600 dark:text-yellow-400'
+    },
+    error: {
+      gradient: 'from-red-500 to-pink-600',
+      icon: '✕',
+      iconBg: 'bg-red-500/20',
+      iconColor: 'text-red-600 dark:text-red-400'
+    },
   };
 
+  const config = status ? statusConfig[status] : null;
+
   return (
-    <div className={`${cardClass} ${status ? `border-l-4 ${statusColors[status]}` : ""}`}>
-      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{title}</p>
-      <p className="text-3xl font-semibold text-gray-900 dark:text-white mt-1">{value}</p>
-      {subtitle && (
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{subtitle}</p>
+    <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+      {config && (
+        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${config.gradient} opacity-10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500`}></div>
       )}
+
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">{title}</p>
+          {config && (
+            <div className={`w-8 h-8 rounded-xl ${config.iconBg} flex items-center justify-center ${config.iconColor} font-bold text-lg`}>
+              {config.icon}
+            </div>
+          )}
+        </div>
+        <p className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          {value}
+        </p>
+        {subtitle && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+        )}
+      </div>
     </div>
   );
 };

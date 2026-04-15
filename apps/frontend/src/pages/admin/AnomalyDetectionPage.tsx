@@ -126,21 +126,36 @@ const AnomalyDetectionPage = () => {
   const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString("en-US");
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold dark:text-white">Anomaly Detection</h1>
+    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Anomaly Detection
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monitor and resolve system anomalies</p>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={runDetection}
             disabled={detecting}
-            className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 font-medium transition-colors"
           >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             {detecting ? "Scanning..." : "Run Detection"}
           </button>
           <button
             onClick={loadAnomalies}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
             Refresh
           </button>
         </div>
@@ -155,29 +170,29 @@ const AnomalyDetectionPage = () => {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4">
             <p className="text-sm text-gray-500 dark:text-gray-400">Total Alerts</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.total}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4">
             <p className="text-sm text-gray-500 dark:text-gray-400">Unresolved</p>
-            <p className="text-2xl font-bold text-orange-600">{stats.unresolved}</p>
+            <p className="text-2xl font-bold text-orange-600 mt-1">{stats.unresolved}</p>
           </div>
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-100 dark:border-red-900/30 shadow-sm p-4">
             <p className="text-sm text-red-600 dark:text-red-400">Critical</p>
-            <p className="text-2xl font-bold text-red-600">{stats.critical}</p>
+            <p className="text-2xl font-bold text-red-600 mt-1">{stats.critical}</p>
           </div>
-          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-orange-100 dark:border-orange-900/30 shadow-sm p-4">
             <p className="text-sm text-orange-600 dark:text-orange-400">High</p>
-            <p className="text-2xl font-bold text-orange-600">{stats.high}</p>
+            <p className="text-2xl font-bold text-orange-600 mt-1">{stats.high}</p>
           </div>
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-yellow-100 dark:border-yellow-900/30 shadow-sm p-4">
             <p className="text-sm text-yellow-600 dark:text-yellow-400">Medium</p>
-            <p className="text-2xl font-bold text-yellow-600">{stats.medium}</p>
+            <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.medium}</p>
           </div>
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm p-4">
             <p className="text-sm text-blue-600 dark:text-blue-400">Low</p>
-            <p className="text-2xl font-bold text-blue-600">{stats.low}</p>
+            <p className="text-2xl font-bold text-blue-600 mt-1">{stats.low}</p>
           </div>
         </div>
       )}

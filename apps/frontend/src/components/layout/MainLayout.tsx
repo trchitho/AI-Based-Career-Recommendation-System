@@ -6,6 +6,7 @@ import ThemeToggle from "../ThemeToggle";
 import LanguageSwitcher from "../LanguageSwitcher";
 import { useAppSettings } from "../../contexts/AppSettingsContext";
 import AppLogo from "../common/AppLogo";
+import AppFooter from "./AppFooter";
 import NotificationCenter from "../notifications/NotificationCenter";
 
 interface MainLayoutProps {
@@ -42,8 +43,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navLinks = [
     { to: "/dashboard", label: t('nav.dashboard') },
     { to: "/assessment", label: t('nav.assessment') },
-    { to: "/interview", label: t('nav.interview') },
     { to: "/skill-gap", label: t('nav.skillGap') },
+    { to: "/interview", label: t('nav.interview') },
     { to: "/blog", label: t('nav.blogs') },
     { to: "/careers", label: t('nav.careers') },
     { to: "/pricing", label: t('nav.pricing') },
@@ -82,18 +83,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `text-[15px] font-semibold transition-colors duration-200 relative hover:text-green-600 dark:hover:text-green-400 ${isActive
+                  `text-[15px] font-semibold transition-colors duration-200 ${isActive
                     ? "text-green-600 dark:text-green-400"
-                    : "text-gray-600 dark:text-gray-300"
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                   }`
                 }
               >
-                {({ isActive }) => (
-                  <>
-                    {item.label}
-                    {isActive && <span className="absolute -bottom-6 left-0 right-0 h-0.5 bg-green-500 rounded-t-full shadow-[0_-2px_10px_rgba(34,197,94,0.5)]"></span>}
-                  </>
-                )}
+                {item.label}
               </NavLink>
             ))}
           </nav>
@@ -294,20 +290,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-gray-100 dark:border-gray-800 py-10 bg-white dark:bg-gray-900 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex justify-center mb-6 scale-90 opacity-80 hover:opacity-100 transition-opacity">
-            <AppLogo />
-          </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-            {app.footer_html ? (
-              <span dangerouslySetInnerHTML={{ __html: app.footer_html }} />
-            ) : (
-              "© 2025 CareerBridge AI. All rights reserved."
-            )}
-          </p>
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   );
 };

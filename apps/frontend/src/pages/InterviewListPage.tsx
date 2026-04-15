@@ -201,12 +201,14 @@ const InterviewListPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-                    <p className="text-gray-600">Đang tải danh sách nghề nghiệp...</p>
+            <MainLayout>
+                <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+                        <p className="text-gray-600">Đang tải danh sách nghề nghiệp...</p>
+                    </div>
                 </div>
-            </div>
+            </MainLayout>
         );
     }
 

@@ -22,7 +22,7 @@ const SkillGapPage: React.FC = () => {
   const [planLoading, setPlanLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Paywall state
   const [checkingSubscription, setCheckingSubscription] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
@@ -36,7 +36,7 @@ const SkillGapPage: React.FC = () => {
   const checkSubscription = async () => {
     try {
       setCheckingSubscription(true);
-      
+
       // Call backend to check subscription
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/subscription/status', {
@@ -44,12 +44,12 @@ const SkillGapPage: React.FC = () => {
           'Authorization': `Bearer ${token}`,
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const plan = data.plan_name || 'Free';
         setUserPlan(plan);
-        
+
         // Allow access only for paid plans
         const isPaid = plan !== 'Free';
         setHasAccess(isPaid);
@@ -75,6 +75,23 @@ const SkillGapPage: React.FC = () => {
     }
   }, [analysisId]);
 
+  // Prevent navigation during loading
+  useEffect(() => {
+    if (loading) {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = 'Đang tải dữ liệu phân tích. Bạn có chắc muốn rời khỏi trang?';
+        return e.returnValue;
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }
+  }, [loading]);
+
   const loadAnalysis = async (id: number) => {
     setLoading(true);
     setError(null);
@@ -87,7 +104,7 @@ const SkillGapPage: React.FC = () => {
       setPlanLoading(true);
       skillGapService.getLearningPlan(id)
         .then(res => setLearningPlan({ plan: res.plan, career_id: res.career_id }))
-        .catch(() => {/* non-critical */})
+        .catch(() => {/* non-critical */ })
         .finally(() => setPlanLoading(false));
     } catch (err: any) {
       setError(err.message || 'Failed to load analysis');
@@ -168,7 +185,7 @@ const SkillGapPage: React.FC = () => {
               <p style={{ fontSize: '1.1rem', marginBottom: '2rem', opacity: 0.95 }}>
                 Tính năng cao cấp - Yêu cầu gói trả phí
               </p>
-              
+
               <div style={{
                 background: 'rgba(255, 255, 255, 0.15)',
                 backdropFilter: 'blur(10px)',
@@ -355,62 +372,62 @@ const SkillGapPage: React.FC = () => {
     <MainLayout>
       <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
-        <div className="page-header">
-          <h1>🎯 Skill Gap Analysis</h1>
-          <p className="page-subtitle">
-            Discover your skill gaps and get personalized learning recommendations
-          </p>
-        </div>
+          <div className="page-header">
+            <h1>🎯 Skill Gap Analysis</h1>
+            <p className="page-subtitle">
+              Discover your skill gaps and get personalized learning recommendations
+            </p>
+          </div>
         </div>
 
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
-        {currentStep === 'upload' && (
-          <>
-            <CVUploadForm onAnalysisComplete={handleAnalysisComplete} />
-            <WhyUseAIScanner />
-          </>
-        )}
+          {currentStep === 'upload' && (
+            <>
+              <CVUploadForm onAnalysisComplete={handleAnalysisComplete} />
+              <WhyUseAIScanner />
+            </>
+          )}
 
-        {currentStep === 'result' && analysis && (
-          <>
-            <div className="result-header">
-              <button onClick={handleNewAnalysis} className="back-button">
-                ← New Analysis
-              </button>
-              <div className="analysis-info">
-                <span className="analysis-date">
-                  Analyzed: {new Date(analysis.created_at).toLocaleDateString()}
-                </span>
-                <span className="analysis-career">
-                  Target: {analysis.career_id}
-                </span>
-              </div>
-            </div>
-
-            {/* PB12+PB13: CV analysis result */}
-            <SkillGapResult
-              analysis={analysis}
-              onStartInterview={handleStartInterview}
-            />
-
-            {/* PB14: Skill Heatmap Grid */}
-            <div style={{ marginTop: '1.5rem' }}>
-              <SkillHeatmapGrid analysis={analysis} />
-            </div>
-
-            {/* PB15: AI Learning Plan */}
-            <div style={{ marginTop: '1.5rem' }}>
-              {planLoading ? (
-                <div style={{ background: 'white', borderRadius: 16, padding: '2rem', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🤖</div>
-                  <p style={{ color: '#64748b' }}>AI đang tạo lộ trình học tập...</p>
+          {currentStep === 'result' && analysis && (
+            <>
+              <div className="result-header">
+                <button onClick={handleNewAnalysis} className="back-button">
+                  ← New Analysis
+                </button>
+                <div className="analysis-info">
+                  <span className="analysis-date">
+                    Analyzed: {new Date(analysis.created_at).toLocaleDateString()}
+                  </span>
+                  <span className="analysis-career">
+                    Target: {analysis.career_id}
+                  </span>
                 </div>
-              ) : learningPlan ? (
-                <LearningPlan plan={learningPlan.plan} careerName={learningPlan.career_id} />
-              ) : null}
-            </div>
-          </>
-        )}
+              </div>
+
+              {/* PB12+PB13: CV analysis result */}
+              <SkillGapResult
+                analysis={analysis}
+                onStartInterview={handleStartInterview}
+              />
+
+              {/* PB14: Skill Heatmap Grid */}
+              <div style={{ marginTop: '1.5rem' }}>
+                <SkillHeatmapGrid analysis={analysis} />
+              </div>
+
+              {/* PB15: AI Learning Plan */}
+              <div style={{ marginTop: '1.5rem' }}>
+                {planLoading ? (
+                  <div style={{ background: 'white', borderRadius: 16, padding: '2rem', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🤖</div>
+                    <p style={{ color: '#64748b' }}>AI đang tạo lộ trình học tập...</p>
+                  </div>
+                ) : learningPlan ? (
+                  <LearningPlan plan={learningPlan.plan} careerName={learningPlan.career_id} />
+                ) : null}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </MainLayout>

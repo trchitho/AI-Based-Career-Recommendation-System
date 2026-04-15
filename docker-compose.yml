@@ -1,7 +1,8 @@
+version: "3.9"
+
 services:
   postgres:
     image: ankane/pgvector:latest
-    container_name: careerai_postgres
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     environment:
@@ -11,20 +12,16 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
-      - ./db/backup:/docker-entrypoint-initdb.d/../backup:ro
+      - ./db/backup:/backup:ro
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-career_ai}",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d career_ai"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
 
   redis:
     image: redis:alpine
-    container_name: careerai_redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -35,16 +32,16 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
 
   neo4j:
     image: neo4j:5.15-community
-    container_name: careerai_neo4j
     ports:
       - "${NEO4J_HTTP_PORT:-7474}:7474"
       - "${NEO4J_BOLT_PORT:-7687}:7687"
     environment:
       NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASS:-password123456}
-      NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
+      NEO4J_PLUGINS: '["apoc","graph-data-science"]'
       NEO4J_dbms_security_procedures_unrestricted: apoc.*,gds.*
       NEO4J_server_memory_heap_initial__size: 512m
       NEO4J_server_memory_heap_max__size: 2G
@@ -59,6 +56,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    restart: unless-stopped
 
 volumes:
   db_data:

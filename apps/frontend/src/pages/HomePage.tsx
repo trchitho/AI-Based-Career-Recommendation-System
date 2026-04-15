@@ -5,7 +5,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
-import AppLogo from '../components/common/AppLogo';
+import AppFooter from '../components/layout/AppFooter';
 
 // --- TYPES ---
 interface PublicStats {
@@ -308,22 +308,15 @@ const HomePage = () => {
         navigate('/login');
     };
 
-    const navItems = isAuthenticated
-        ? [
-            { label: t('nav.dashboard'), path: 'dashboard' },
-            { label: t('nav.assessment'), path: 'assessment' },
-            { label: t('nav.interview'), path: 'interview' },
-            { label: t('nav.skillGap'), path: 'skill-gap' },
-            { label: t('nav.blogs'), path: 'blog' },
-            { label: t('nav.careers'), path: 'careers' },
-            { label: t('nav.pricing'), path: 'pricing' },
-        ]
-        : [
-            { label: t('nav.assessment'), path: 'assessment' },
-            { label: t('nav.blogs'), path: 'blog' },
-            { label: t('nav.careers'), path: 'careers' },
-            { label: t('nav.pricing'), path: 'pricing' },
-        ];
+    const navItems = [
+        { label: t('nav.dashboard'), path: 'dashboard' },
+        { label: t('nav.assessment'), path: 'assessment' },
+        { label: t('nav.skillGap'), path: 'skill-gap' },
+        { label: t('nav.interview'), path: 'interview' },
+        { label: t('nav.blogs'), path: 'blog' },
+        { label: t('nav.careers'), path: 'careers' },
+        { label: t('nav.pricing'), path: 'pricing' },
+    ];
 
     // --- DATA ---
     const testimonials = [
@@ -342,6 +335,14 @@ const HomePage = () => {
         { q: t('home.faq.q3'), a: t('home.faq.a3') },
         { q: t('home.faq.q4'), a: t('home.faq.a4') },
     ];
+
+    const ModernLogo = () => (
+        <Link to="/home" className="flex items-center gap-2 group">
+            <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
+                career<span className="text-green-500">bridge</span><span className="text-green-500 text-3xl leading-none">.</span>
+            </span>
+        </Link>
+    );
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 overflow-x-hidden">
@@ -426,10 +427,10 @@ const HomePage = () => {
             `}</style>
 
             {/* --- HEADER --- */}
-            <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 h-[72px] transition-all duration-300">
+            <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 h-[72px] transition-all duration-300 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
                     <div className="flex-shrink-0">
-                        <AppLogo />
+                        <ModernLogo />
                     </div>
 
                     <nav className="hidden md:flex items-center gap-8">
@@ -437,7 +438,7 @@ const HomePage = () => {
                             <NavLink
                                 key={item.path}
                                 to={`/${item.path}`}
-                                className={({ isActive }) => `text-[15px] font-semibold transition-all duration-200 relative hover:text-green-600 dark:hover:text-green-400 ${isActive
+                                className={({ isActive }) => `text-[15px] font-medium transition-all duration-200 relative hover:text-green-600 dark:hover:text-green-400 ${isActive
                                     ? 'text-green-600 dark:text-green-400'
                                     : 'text-gray-600 dark:text-gray-300'
                                     }`}
@@ -452,7 +453,7 @@ const HomePage = () => {
                         ))}
                     </nav>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-5">
                         {/* Hamburger Button (Mobile) */}
                         <button
                             className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -470,7 +471,7 @@ const HomePage = () => {
                             )}
                         </button>
 
-                        <div className="hidden lg:flex items-center gap-1 pr-3 border-r border-gray-200 dark:border-gray-700">
+                        <div className="hidden lg:flex items-center gap-3 pr-3 border-r border-gray-200 dark:border-gray-700">
                             <LanguageSwitcher />
                             <ThemeToggle />
                         </div>
@@ -568,7 +569,7 @@ const HomePage = () => {
                 </div>
             )}
 
-            <main>
+            <main className="pt-[72px]">
                 {/* --- HERO SECTION --- */}
                 <section className="relative pt-20 pb-32 overflow-hidden bg-white dark:bg-gray-900">
                     {/* Animated Background Blobs */}
@@ -1058,53 +1059,7 @@ const HomePage = () => {
                 </section>
 
                 {/* --- FOOTER --- */}
-                <footer className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pt-16 pb-8">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
-                            <div className="col-span-2 lg:col-span-2">
-                                <AppLogo />
-                                <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-xs">
-                                    {t('home.footer.tagline')}
-                                </p>
-                            </div>
-
-                            <div>
-                                <h4 className="font-bold text-gray-900 dark:text-white mb-4">{t('home.footer.product')}</h4>
-                                <ul className="space-y-3 text-sm text-gray-500 dark:text-gray-400">
-                                    <li><Link to="/features" className="hover:text-green-500 transition-colors">{t('home.footer.features')}</Link></li>
-                                    <li><Link to="/pricing" className="hover:text-green-500 transition-colors">{t('home.footer.pricing')}</Link></li>
-                                    <li><Link to="/assessment" className="hover:text-green-500 transition-colors">{t('home.footer.assessment')}</Link></li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-gray-900 dark:text-white mb-4">{t('home.footer.resources')}</h4>
-                                <ul className="space-y-3 text-sm text-gray-500 dark:text-gray-400">
-                                    <li><Link to="/blog" className="hover:text-green-500 transition-colors">{t('home.footer.blog')}</Link></li>
-                                    <li><Link to="/guide" className="hover:text-green-500 transition-colors">{t('home.footer.careerGuide')}</Link></li>
-                                    <li><Link to="/help" className="hover:text-green-500 transition-colors">{t('home.footer.helpCenter')}</Link></li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-gray-900 dark:text-white mb-4">{t('home.footer.legal')}</h4>
-                                <ul className="space-y-3 text-sm text-gray-500 dark:text-gray-400">
-                                    <li><Link to="/privacy" className="hover:text-green-500 transition-colors">{t('home.footer.privacy')}</Link></li>
-                                    <li><Link to="/terms" className="hover:text-green-500 transition-colors">{t('home.footer.terms')}</Link></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-gray-100 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                            <p className="text-sm text-gray-400">{t('home.footer.copyright')}</p>
-                            <div className="flex gap-6">
-                                {['Twitter', 'GitHub', 'LinkedIn', 'Discord'].map((social) => (
-                                    <a key={social} href="#" className="text-gray-400 hover:text-green-500 hover:scale-110 transition-all text-sm font-medium">
-                                        {social}
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </footer>
+                <AppFooter />
             </main>
         </div>
     );
