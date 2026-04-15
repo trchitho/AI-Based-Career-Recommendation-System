@@ -525,8 +525,14 @@ def force_check_payment(
                 db.commit()
                 logger.info(f"Payment {payment.order_id} marked as FAILED due to timeout after force check")
 
-        # Return updated status
-        return {"message": "Status updated", "status": payment.status, "zalopay_result": result}
+        # Return updated status (sanitized ZaloPay payload)
+        safe_result = {
+            "success": result.get("success"),
+            "status": result.get("status"),
+            "return_code": result.get("return_code"),
+            "message": result.get("message"),
+        }
+        return {"message": "Status updated", "status": payment.status, "zalopay_result": safe_result}
 
     return {"message": "No app_trans_id to query", "status": payment.status}
 

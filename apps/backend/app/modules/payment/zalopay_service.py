@@ -204,5 +204,5 @@ class ZaloPayService:
             return {
                 "success": False,
                 "status": "error",
-                "message": f"Lỗi truy vấn đơn hàng: {str(e)}",
+                "message": "Lỗi truy vấn đơn hàng",
             }
