@@ -3,6 +3,7 @@ Enhanced caching layer with Redis
 """
 
 import hashlib
+import inspect
 import json
 import logging
 import os
@@ -174,8 +175,6 @@ def cached(prefix: str, ttl: int = 3600, key_params: list = None):
     """
 
     def decorator(func):
-        import inspect
-
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # Bind all arguments (positional and keyword) to parameter names

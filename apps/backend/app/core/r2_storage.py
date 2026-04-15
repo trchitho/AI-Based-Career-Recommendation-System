@@ -14,7 +14,7 @@ try:
     from botocore.exceptions import ClientError
     BOTO3_AVAILABLE = True
 except ImportError:
-    ClientError = None
+    ClientError = Exception  # Fallback so except clauses remain valid
     BOTO3_AVAILABLE = False
 
 
