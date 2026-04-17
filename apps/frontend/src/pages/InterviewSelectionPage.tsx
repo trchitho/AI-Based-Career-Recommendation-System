@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -35,6 +35,8 @@ const InterviewSelectionPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isStarting, setIsStarting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const loadingRef = useRef(false);
 
     useEffect(() => {
         // Scroll to top when component mounts
@@ -51,22 +53,53 @@ const InterviewSelectionPage: React.FC = () => {
         }
 
         if (jobId) {
-            loadJobInfo();
+            // Tránh double call trong React StrictMode
+            if (!loadingRef.current) {
+                loadingRef.current = true;
+                loadJobInfo();
+            }
         }
     }, [jobId, user, navigate]);
 
-    const loadJobInfo = async () => {
+    const loadJobInfo = async (retry = false) => {
         if (!jobId) return;
 
         try {
-            setIsLoading(true);
+            if (!retry) {
+                setIsLoading(true);
+                setError(null);
+            }
+
+            // Check if URL has invalid ONET code format
+            // Valid format: XX-XXXX.XX (e.g., 27-2099.00)
+            // Invalid formats: XX-XXXX-XX, XX-XXXX-X, etc.
+            const validOnetPattern = /^\d{2}-\d{4}\.\d{2}$/;
+            if (!validOnetPattern.test(jobId)) {
+                console.log(`Invalid ONET code format in URL: ${jobId} (expected format: XX-XXXX.XX)`);
+                setError('Không thể tải thông tin nghề nghiệp. Vui lòng thử lại.');
+                return;
+            }
+
+            console.log(`Loading job info for: ${jobId} (attempt ${retryCount + 1})`);
             const info = await interviewService.getJobInfo(jobId);
             setJobInfo(info);
+            setRetryCount(0); // Reset retry count on success
         } catch (err: any) {
-            setError('Không thể tải thông tin nghề nghiệp. Vui lòng thử lại.');
             console.error('Error loading job info:', err);
+
+            // Retry logic for timeout errors
+            if (err.code === 'ECONNABORTED' && retryCount < 2) {
+                console.log(`Retrying... (${retryCount + 1}/2)`);
+                setRetryCount(prev => prev + 1);
+                setTimeout(() => loadJobInfo(true), 2000); // Retry after 2 seconds
+                return;
+            }
+
+            setError('Không thể tải thông tin nghề nghiệp. Vui lòng thử lại.');
         } finally {
-            setIsLoading(false);
+            if (!retry || retryCount >= 2) {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -75,8 +108,18 @@ const InterviewSelectionPage: React.FC = () => {
 
         try {
             setIsStarting(true);
+
+            // Check if URL has invalid ONET code format
+            // Valid format: XX-XXXX.XX (e.g., 27-2099.00)
+            const validOnetPattern = /^\d{2}-\d{4}\.\d{2}$/;
+            if (!validOnetPattern.test(jobId)) {
+                console.log(`Invalid ONET code format in URL: ${jobId} (expected format: XX-XXXX.XX)`);
+                throw new Error('Invalid ONET code format');
+            }
+
+            console.log(`Starting interview for job ID: ${jobId}`);
             const response = await interviewService.startInterview(jobId, selectedQuestionCount);
-            // Navigate to interview page with session info
+            // Navigate to interview page with session info using the job ID
             navigate(`/interview/${jobId}?session=${response.session_id}&questions=${selectedQuestionCount}`);
         } catch (err: any) {
             if (err?.response?.status === 401) {
@@ -113,13 +156,25 @@ const InterviewSelectionPage: React.FC = () => {
                 <div className="min-h-screen flex items-center justify-center bg-gray-50">
                     <div className="text-center max-w-md">
                         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                            <p className="text-red-800 mb-4">{error || 'Không tìm thấy thông tin nghề nghiệp'}</p>
-                            <button
-                                onClick={() => navigate('/careers')}
-                                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                            >
-                                Quay lại danh sách nghề nghiệp
-                            </button>
+                            <p className="text-red-800 mb-4">{error || 'Không thể tải thông tin nghề nghiệp. Vui lòng thử lại.'}</p>
+                            <div className="flex gap-3 justify-center">
+                                <button
+                                    onClick={() => {
+                                        setRetryCount(0);
+                                        loadingRef.current = false;
+                                        loadJobInfo();
+                                    }}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                    Thử lại
+                                </button>
+                                <button
+                                    onClick={() => navigate('/interview')}
+                                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                                >
+                                    Quay lại danh sách phỏng vấn
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -195,7 +195,7 @@ class InterviewService {
         const response = await api.post<StartInterviewResponse>(`${this.baseUrl}/start`, {
             job_id: jobId,
             question_count: questionCount
-        });
+        }, { timeout: 30000 }); // 30 giây
         return response.data;
     }
 
@@ -235,7 +235,10 @@ class InterviewService {
     }
 
     async getJobInfo(jobId: string): Promise<JobInfo> {
-        const response = await api.get<JobInfo>(`${this.baseUrl}/jobs/${jobId}`);
+        // Tăng timeout cho interview API vì backend có thể chậm
+        const response = await api.get<JobInfo>(`${this.baseUrl}/jobs/${jobId}`, {
+            timeout: 30000 // 30 giây
+        });
         return response.data;
     }
 

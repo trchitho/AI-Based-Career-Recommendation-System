@@ -120,8 +120,10 @@ const SkillGapPage: React.FC = () => {
 
   const handleStartInterview = () => {
     if (analysis) {
-      // Navigate to interview page with analysis data
-      navigate(`/interview?analysisId=${analysis.id}`);
+      // Convert career_id format from "27-2099-00" to "27-2099.00" for URL
+      const formattedCareerId = analysis.career_id.replace(/-(\d{2})$/, '.$1');
+      // Navigate to interview selection page with the formatted career ID
+      navigate(`/interview/selection/${formattedCareerId}`);
     }
   };
 

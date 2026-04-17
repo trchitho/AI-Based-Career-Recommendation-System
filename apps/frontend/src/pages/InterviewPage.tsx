@@ -177,6 +177,16 @@ const InterviewPage: React.FC = () => {
         if (!jobId) return;
         setIsLoading(true);
         try {
+            // Check if URL has invalid ONET code format
+            // Valid format: XX-XXXX.XX (e.g., 27-2099.00)
+            const validOnetPattern = /^\d{2}-\d{4}\.\d{2}$/;
+            if (!validOnetPattern.test(jobId)) {
+                console.log(`Invalid ONET code format in URL: ${jobId} (expected format: XX-XXXX.XX)`);
+                throw new Error('Invalid ONET code format');
+            }
+
+            console.log(`Starting interview for job ID: ${jobId}`);
+
             // Get question count from URL params or use default
             const urlParams = new URLSearchParams(window.location.search);
             const questionCount = parseInt(urlParams.get('questions') || '7');

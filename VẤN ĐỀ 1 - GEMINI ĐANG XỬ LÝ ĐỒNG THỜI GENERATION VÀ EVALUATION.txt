@@ -1,0 +1,209 @@
+VẤN ĐỀ 1: GEMINI ĐANG XỬ LÝ ĐỒNG THỜI GENERATION VÀ EVALUATION
+________________________________________
+1. Vấn đề hiện tại
+Trong thiết kế hiện tại, hệ thống sử dụng một lần gọi Gemini để xử lý đồng thời:
+•	Sinh câu hỏi (question generation)
+•	Đánh giá câu trả lời (evaluation)
+•	Sinh câu hỏi tiếp theo (follow-up)
+Cách tiếp cận này dẫn đến các vấn đề sau:
+________________________________________
+(1) Xung đột nhiệm vụ (Task Conflict)
+•	Question Generation:
+o	yêu cầu tính sáng tạo (creative reasoning)
+•	Evaluation:
+o	yêu cầu tính ổn định, có cấu trúc (deterministic reasoning)
+→ Hai loại reasoning khác nhau bị trộn trong cùng một prompt → giảm chất lượng output.
+________________________________________
+(2) Output không ổn định
+•	Follow-up question phụ thuộc trực tiếp vào kết quả evaluation
+•	Không có control layer riêng cho question
+→ dẫn đến:
+•	câu hỏi lệch skill
+•	lặp lại
+•	hoặc không tăng độ khó đúng cách
+________________________________________
+(3) Khó debug và kiểm soát
+•	Không thể xác định lỗi nằm ở:
+o	prompt generation
+o	hay evaluation logic
+•	Toàn bộ flow là một black-box call
+________________________________________
+2. Giải pháp thay đổi
+Tách pipeline thành 3 thành phần độc lập:
+________________________________________
+(1) Question Chain
+•	Nhiệm vụ: sinh câu hỏi phỏng vấn
+•	Input:
+o	career context (Neo4j)
+o	level (Fresher/Junior/…)
+o	history (tóm tắt)
+•	Output:
+o	câu hỏi
+________________________________________
+(2) Evaluation Chain
+•	Nhiệm vụ: đánh giá câu trả lời
+•	Input:
+o	question
+o	user_answer
+o	expected_skill
+•	Output:
+o	score
+o	feedback
+o	missing_skills
+________________________________________
+(3) Interview Orchestrator
+•	Điều phối:
+o	gọi Question Chain
+o	nhận answer
+o	gọi Evaluation Chain
+o	quyết định next question
+________________________________________
+3. Cách thực hiện, tích hợp (ĐÃ SỬA THEO MONOREPO)
+________________________________________
+3.1 Mapping đúng vào structure của bạn
+KHÔNG dùng structure cũ:
+ai_core/
+  chains/
+  orchestrator/
+________________________________________
+PHẢI dùng structure theo monorepo:
+packages/
+ └── ai-core/
+      ├── prompts/
+      │    ├── interview/
+      │    │     ├── question.prompt.ts
+      │    │     ├── evaluation.prompt.ts
+      │
+      ├── llm/
+      │    ├── gemini.client.ts
+      │
+      ├── interview/
+      │    ├── question.chain.ts
+      │    ├── evaluation.chain.ts
+      │    ├── interview.pipeline.ts   ← ORCHESTRATOR
+________________________________________
+3.2 Implement từng phần
+________________________________________
+(A) Question Chain
+// packages/ai-core/interview/question.chain.ts
+
+export async function generateQuestion(input) {
+  const prompt = buildQuestionPrompt(input)
+
+  const res = await geminiClient.generate(prompt)
+
+  return res.text
+}
+________________________________________
+(B) Evaluation Chain
+// packages/ai-core/interview/evaluation.chain.ts
+
+export async function evaluateAnswer(input) {
+  const prompt = buildEvaluationPrompt(input)
+
+  const res = await geminiClient.generate(prompt)
+
+  return JSON.parse(res.text)
+}
+________________________________________
+(C) Interview Pipeline (Orchestrator)
+// packages/ai-core/interview/interview.pipeline.ts
+
+export async function interviewStep(session, userAnswer) {
+  const evaluation = await evaluateAnswer({
+    question: session.currentQuestion,
+    answer: userAnswer,
+    context: session.context
+  })
+
+  const nextQuestion = await generateQuestion({
+    context: session.context,
+    missingSkills: evaluation.missing_skills
+  })
+
+  return {
+    evaluation,
+    nextQuestion
+  }
+}
+________________________________________
+3.3 interview-service (KHÔNG chứa AI logic)
+// apps/interview-service
+
+@Post("/chat")
+async chat(req) {
+  return interviewPipeline(session, req.answer)
+}
+👉 Service chỉ:
+•	lấy session (Redis)
+•	gọi pipeline
+•	lưu DB
+________________________________________
+3.4 Prompt tách riêng
+________________________________________
+Question Prompt
+•	focus:
+o	tình huống thực tế
+o	theo level
+________________________________________
+Evaluation Prompt
+•	bắt buộc:
+{
+  "score": number,
+  "feedback": "...",
+  "missing_skills": []
+}
+________________________________________
+4. Áp dụng vào hệ thống hiện tại
+________________________________________
+Trước khi thay đổi
+interview-service
+   ↓
+Gemini (1 call)
+   → question
+   → evaluation
+   → next_question
+________________________________________
+Sau khi thay đổi
+Frontend
+   ↓
+BFF
+   ↓
+interview-service
+   ↓
+packages/ai-core
+   ├── question.chain
+   ├── evaluation.chain
+   └── interview.pipeline
+________________________________________
+Phân tách rõ trách nhiệm
+Layer	Responsibility
+interview-service	orchestration (API level)
+ai-core	AI logic
+Neo4j	context
+Redis	session
+Postgres	persistence
+________________________________________
+5. Kết quả đạt được
+•	Pipeline rõ ràng, không còn black-box
+•	Debug được từng bước:
+o	lỗi question
+o	lỗi evaluation
+•	Output ổn định hơn
+•	Dễ mở rộng:
+o	level-based interview
+o	JD-based interview
+o	adaptive difficulty
+________________________________________
+KẾT LUẬN CUỐI
+👉 Điểm quan trọng nhất bạn vừa sửa:
+❗ Tách AI logic ra khỏi service + chuẩn hóa thành pipeline trong packages/ai-core
+Nếu bạn giữ design cũ:
+•	chỉ là demo chatbot
+Nếu làm theo design này:
+•	bạn có AI Interview Engine đúng nghĩa (production-ready)
+________________________________________
+Nếu cần, bước tiếp theo nên làm:
+•	tôi viết luôn interface TypeScript chuẩn cho input/output của 2 chain
+•	hoặc build luôn flow Redis session + state machine interview
+
