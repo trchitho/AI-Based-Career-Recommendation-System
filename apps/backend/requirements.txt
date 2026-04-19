@@ -27,3 +27,12 @@ boto3==1.34.0
 
 PyMuPDF>=1.23.0
 pdfplumber>=0.10.0
+
+# Course Recommendation — embedding pipeline
+sentence-transformers>=2.7.0
+neo4j>=5.0.0
+
+# Web scraping (no API keys needed)
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+fake-useragent>=1.4.0

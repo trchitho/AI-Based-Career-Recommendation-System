@@ -6,6 +6,7 @@ import SkillGapResult from '../components/skillgap/SkillGapResult';
 import SkillHeatmapGrid from '../components/skillgap/SkillHeatmapGrid';
 import LearningPlan from '../components/skillgap/LearningPlan';
 import WhyUseAIScanner from '../components/skillgap/WhyUseAIScanner';
+import CourseRecommendationPage from './CourseRecommendationPage';
 import { skillGapService } from '../services/skillGapService';
 import { SkillGapAnalysis, LearningPlan as LearningPlanType } from '../types/skillGap';
 import { useTheme } from '../contexts/ThemeContext';
@@ -426,6 +427,24 @@ const SkillGapPage: React.FC = () => {
                   <LearningPlan plan={learningPlan.plan} careerName={learningPlan.career_id} />
                 ) : null}
               </div>
+
+              {/* Course Recommendations — auto-populated from missing skills */}
+              {(() => {
+                const gaps = analysis.skill_gaps as any;
+                const missing: string[] = [
+                  ...(gaps?.critical ?? []),
+                  ...(gaps?.important ?? []),
+                  ...(gaps?.nice_to_have ?? []),
+                ]
+                  .map((s: any) => (typeof s === 'string' ? s : s?.name))
+                  .filter(Boolean)
+                  .slice(0, 8);
+                return missing.length > 0 ? (
+                  <div style={{ marginTop: '1.5rem' }}>
+                    <CourseRecommendationPage missingSkills={missing} />
+                  </div>
+                ) : null;
+              })()}
             </>
           )}
         </div>

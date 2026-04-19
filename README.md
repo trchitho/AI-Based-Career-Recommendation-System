@@ -245,6 +245,8 @@ python -m venv .venv ; .\.venv\Scripts\activate
 pip install -r requirements.txt
 pip install -e ../../packages/ai-core
 uvicorn app.main:app --reload --port 8000
+pip install sentence-transformers>=2.7.0 neo4j>=5.0.0
+pip install beautifulsoup4 lxml fake-useragent
 ```
 pip install PyPDF2==3.0.1
 **Terminal 3: Frontend (port 3000)**

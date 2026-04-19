@@ -43,6 +43,7 @@ import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
 import ProgressComparisonPage from './pages/ProgressComparisonPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
 import SkillGapPage from './pages/SkillGapPage';
+import CourseRecommendationPage from './pages/CourseRecommendationPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import InterviewPage from './pages/InterviewPage';
 import InterviewSelectionPage from './pages/InterviewSelectionPage';
@@ -156,6 +157,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <SkillGapPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/courses"
+                    element={
+                      <ProtectedRoute>
+                        <CourseRecommendationPage />
                       </ProtectedRoute>
                     }
                   />
