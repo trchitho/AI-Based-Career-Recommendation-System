@@ -1,0 +1,189 @@
+/* ── CareerMentorSection — embedded in recommendation cards ──── */
+
+.career-mentor-section {
+  border-top: 1px solid var(--neu-shadow-dark, #e5e7eb);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+/* Toggle button */
+.cms-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  color: var(--neu-accent, #16a34a);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: opacity 0.15s;
+  box-shadow: none !important;
+}
+.cms-toggle:hover { opacity: 0.8; }
+
+.cms-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cms-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--neu-accent, #16a34a);
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+/* Body */
+.cms-body {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Loading */
+.cms-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.82rem;
+  padding: 0.4rem 0;
+}
+.cms-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #e5e7eb;
+  border-top-color: var(--neu-accent, #16a34a);
+  border-radius: 50%;
+  animation: cms-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes cms-spin { to { transform: rotate(360deg); } }
+
+/* Empty */
+.cms-empty {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+.cms-empty p { font-size: 0.82rem; color: #6b7280; margin: 0 0 0.4rem; }
+.cms-link-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--neu-accent, #16a34a);
+  padding: 0;
+  box-shadow: none !important;
+}
+
+/* Mentor row */
+.cms-mentor-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.03);
+  transition: background 0.15s;
+}
+.cms-mentor-row:hover { background: rgba(0,0,0,0.06); }
+
+.cms-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--neu-accent, #16a34a);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cms-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.cms-name {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cms-pos {
+  font-size: 0.75rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cms-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.2rem;
+}
+.cms-skill-tag {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(22,163,74,0.1);
+  color: #15803d;
+  font-weight: 500;
+}
+
+.cms-score-pill {
+  flex-shrink: 0;
+  padding: 0.15rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(22,163,74,0.12);
+  color: var(--neu-accent, #16a34a);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* See all link */
+.cms-see-all {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--neu-accent, #16a34a);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.2rem 0;
+  align-self: flex-start;
+  box-shadow: none !important;
+  transition: opacity 0.15s;
+}
+.cms-see-all:hover { opacity: 0.75; }
+
+/* Dark mode compatibility */
+.dark .cms-mentor-row { background: rgba(255,255,255,0.04); }
+.dark .cms-mentor-row:hover { background: rgba(255,255,255,0.08); }
+.dark .cms-name { color: #f9fafb; }
+.dark .cms-pos { color: #9ca3af; }
+.dark .cms-skill-tag { background: rgba(74,222,128,0.1); color: #4ade80; }
+.dark .cms-score-pill { background: rgba(74,222,128,0.12); color: #4ade80; }
+.dark .career-mentor-section { border-color: #374151; }

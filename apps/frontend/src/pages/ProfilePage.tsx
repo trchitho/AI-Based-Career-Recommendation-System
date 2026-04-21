@@ -8,6 +8,7 @@ import ProfileStatsCard from '../components/profile/ProfileStatsCard';
 import PremiumBenefitsCard from '../components/profile/PremiumBenefitsCard';
 import MainLayout from '../components/layout/MainLayout';
 import { useSubscription } from '../hooks/useSubscription';
+import ChatInboxPanel from '../components/chat/ChatInboxPanel';
 
 const ProfilePage = () => {
   // ==========================================
@@ -119,6 +120,11 @@ const ProfilePage = () => {
 
                 {/* Premium Benefits Card - Only for premium users */}
                 <PremiumBenefitsCard />
+
+                {/* Chat History */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden" style={{ minHeight: 360 }}>
+                  <ChatInboxPanel />
+                </div>
               </div>
 
               {/* Right Column: History (Chiếm 2/3 trên màn lớn) */}

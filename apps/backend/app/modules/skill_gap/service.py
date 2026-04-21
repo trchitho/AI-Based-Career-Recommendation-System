@@ -95,19 +95,21 @@ class SkillGapService:
         
         print(f"  Extracted {len(cv_skills)} skills in {time.time() - parse_start:.2f}s")
         
-        # Analyze skill gap
-        print("[3/4] Analyzing skill gap...")
+        # Analyze skill gap + Upload CV in PARALLEL (tiết kiệm ~30-60% thời gian bước này)
+        print("[3/4] Analyzing skill gap + uploading CV in parallel...")
+        import asyncio
+        loop = asyncio.get_event_loop()
+
         analyze_start = time.time()
-        analysis_result = self.graph_analyzer.analyze_skill_gap(cv_skills, career_id)
-        print(f"  Analysis complete in {time.time() - analyze_start:.2f}s")
-        
-        # Upload CV to Cloudflare R2
-        print("[4/5] Uploading CV to Cloudflare R2...")
-        cv_file_url = r2_storage.upload_cv(
-            file_content=file_content,
-            original_filename=cv_file.filename,
-            user_id=user_id,
+        analysis_result, cv_file_url = await asyncio.gather(
+            loop.run_in_executor(None, lambda: self.graph_analyzer.analyze_skill_gap(cv_skills, career_id)),
+            loop.run_in_executor(None, lambda: r2_storage.upload_cv(
+                file_content=file_content,
+                original_filename=cv_file.filename,
+                user_id=user_id,
+            )),
         )
+        print(f"  Parallel done in {time.time() - analyze_start:.2f}s")
         if cv_file_url:
             print(f"  Uploaded: {cv_file_url}")
         else:

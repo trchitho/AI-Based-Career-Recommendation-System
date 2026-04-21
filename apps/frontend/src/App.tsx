@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import MainLayout from './components/layout/MainLayout';
 import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -41,9 +42,11 @@ import PaymentReturn from './components/payment/PaymentReturn';
 import DebugAuthPage from './pages/DebugAuthPage';
 import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
 import ProgressComparisonPage from './pages/ProgressComparisonPage';
+import SettingsPage from './pages/SettingsPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
 import SkillGapPage from './pages/SkillGapPage';
 import RecommendationsPage from './pages/RecommendationsPage';
+import MentorMatchingPage from './pages/MentorMatchingPage';
 import InterviewPage from './pages/InterviewPage';
 import InterviewSelectionPage from './pages/InterviewSelectionPage';
 import InterviewHistoryPage from './pages/InterviewHistoryPage';
@@ -66,7 +69,7 @@ function App() {
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<RootRedirect />} />
-                  <Route path="/home" element={<HomePage />} />
+                  <Route path="/home" element={<MainLayout><HomePage /></MainLayout>} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/forgot" element={<ForgotPasswordPage />} />
@@ -156,6 +159,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <SkillGapPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mentor-matching"
+                    element={
+                      <ProtectedRoute>
+                        <MentorMatchingPage />
                       </ProtectedRoute>
                     }
                   />
@@ -279,6 +290,14 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <SettingsPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
                   {/* Interview routes */}
                   <Route
@@ -318,6 +337,16 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <InterviewResultsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Mentor Matching */}
+                  <Route
+                    path="/mentor-matching"
+                    element={
+                      <ProtectedRoute>
+                        <MentorMatchingPage />
                       </ProtectedRoute>
                     }
                   />

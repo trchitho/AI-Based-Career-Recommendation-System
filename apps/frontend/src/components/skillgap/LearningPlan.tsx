@@ -119,7 +119,7 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
                   </div>
 
                   <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>
-                    📚 TÀI NGUYÊN HỌC TẬP
+                    TÀI NGUYÊN HỌC TẬP
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {phase.resources?.map((r, i) => (

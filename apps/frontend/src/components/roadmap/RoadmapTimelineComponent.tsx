@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Milestone, UserProgress } from '../../types/roadmap';
+import { mentorMatchingService, MentorMatch } from '../../services/mentorMatchingService';
 
 interface RoadmapTimelineComponentProps {
   milestones: Milestone[];
@@ -18,6 +19,23 @@ const RoadmapTimelineComponent = ({
   maxFreeLevel = -1,
 }: RoadmapTimelineComponentProps) => {
   const [expandedMilestone, setExpandedMilestone] = useState<number | null>(null);
+  const [mentorPanelStep, setMentorPanelStep] = useState<number | null>(null);
+  const [mentorCache, setMentorCache] = useState<Record<number, MentorMatch[]>>({});
+  const [mentorLoading, setMentorLoading] = useState<number | null>(null);
+
+  const loadMentorsForStep = async (order: number, skillName: string) => {
+    if (mentorCache[order]) { setMentorPanelStep(order); return; }
+    setMentorLoading(order);
+    setMentorPanelStep(order);
+    try {
+      const data = await mentorMatchingService.findMentorsForCareer(skillName, 3);
+      setMentorCache(prev => ({ ...prev, [order]: data }));
+    } catch {
+      setMentorCache(prev => ({ ...prev, [order]: [] }));
+    } finally {
+      setMentorLoading(null);
+    }
+  };
 
   const isMilestoneCompleted = (order: number) => {
     return userProgress?.completed_milestones?.includes(order.toString()) || false;
@@ -330,6 +348,105 @@ const RoadmapTimelineComponent = ({
                         </p>
                       </div>
                     )}
+
+                    {/* ── Find Mentor for this step ── */}
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          mentorPanelStep === milestone.order
+                            ? setMentorPanelStep(null)
+                            : loadMentorsForStep(milestone.order, milestone.skillName);
+                        }}
+                        className="flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {mentorPanelStep === milestone.order ? 'Ẩn mentor' : `Tìm Mentor cho "${milestone.skillName}"`}
+                        <svg
+                          className={`w-3.5 h-3.5 transition-transform ${mentorPanelStep === milestone.order ? 'rotate-180' : ''}`}
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {mentorPanelStep === milestone.order && (
+                        <div className="mt-3">
+                          {mentorLoading === milestone.order && (
+                            <div className="flex items-center gap-2 py-3 text-sm text-gray-500 dark:text-gray-400">
+                              <div className="w-4 h-4 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+                              Đang tìm mentor phù hợp...
+                            </div>
+                          )}
+
+                          {mentorLoading !== milestone.order && mentorCache[milestone.order]?.length === 0 && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 py-2">
+                              Chưa có mentor cho kỹ năng này.{' '}
+                              <a href="/mentor-matching?tab=become" className="text-purple-600 dark:text-purple-400 font-semibold hover:underline">
+                                Trở thành người đầu tiên →
+                              </a>
+                            </p>
+                          )}
+
+                          {mentorLoading !== milestone.order && (mentorCache[milestone.order] || []).map(m => (
+                            <div
+                              key={m.mentor_id}
+                              className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 mb-2 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
+                            >
+                              {/* Avatar */}
+                              <div className="w-9 h-9 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                {m.mentor_name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()}
+                              </div>
+
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{m.mentor_name}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                  {m.current_position}{m.company ? ` · ${m.company}` : ''}
+                                </p>
+                                {m.matching_skills.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {m.matching_skills.slice(0, 3).map((s: string) => (
+                                      <span key={s} className="px-1.5 py-0.5 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs rounded-md">
+                                        {s}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Score + CTA */}
+                              <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                                <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                                  {Math.round(m.compatibility_score)}%
+                                </span>
+                                <a
+                                  href="/mentor-matching"
+                                  className="px-2.5 py-1 text-xs font-semibold rounded-lg text-white"
+                                  style={{ background: '#7c3aed' }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Kết nối
+                                </a>
+                              </div>
+                            </div>
+                          ))}
+
+                          {mentorLoading !== milestone.order && (mentorCache[milestone.order] || []).length > 0 && (
+                            <a
+                              href="/mentor-matching"
+                              className="flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 font-semibold hover:underline mt-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Xem tất cả mentor →
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

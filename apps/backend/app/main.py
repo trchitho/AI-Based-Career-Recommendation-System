@@ -402,6 +402,24 @@ def create_app() -> FastAPI:
         print("✅ Skill Gap Analysis router registered")
     except Exception as e:
         print("??  Skip skill gap router:", repr(e))
+
+    # Mentor Matching
+    try:
+        from .modules.mentor_matching import routes as mentor_matching_router
+
+        app.include_router(mentor_matching_router.router)
+        print("✅ Mentor Matching router registered")
+    except Exception as e:
+        print("??  Skip mentor matching router:", repr(e))
+
+    # Chat (real-time messaging)
+    try:
+        from .modules.chat import routes as chat_router
+
+        app.include_router(chat_router.router)
+        print("✅ Chat router registered")
+    except Exception as e:
+        print("??  Skip chat router:", repr(e))
     
     # Career
     try:

@@ -605,15 +605,27 @@ class SkillGraphAnalyzer:
         cv_skill_dict = {s['name'].lower(): s for s in cv_skills}
         job_skill_dict = {s['name'].lower(): s for s in job_skills}
         
+        seen_cv_skills = set()
+        seen_job_skills = set()
         for pair in matched_pairs:
             cv_skill_name = pair['cv_skill']
             job_skill_name = pair['job_skill']
+            cv_key = cv_skill_name.lower()
+            job_key = job_skill_name.lower()
+
+            # Skip if either side already matched
+            if cv_key in seen_cv_skills or job_key in seen_job_skills:
+                continue
+
+            seen_cv_skills.add(cv_key)
+            seen_job_skills.add(job_key)
+
             confidence = pair.get('confidence', 0.8)
-            
+
             # Get original skill data
-            cv_skill = cv_skill_dict.get(cv_skill_name.lower(), {'name': cv_skill_name, 'category': 'Other'})
-            job_skill = job_skill_dict.get(job_skill_name.lower(), {'name': job_skill_name, 'importance': 0.5})
-            
+            cv_skill = cv_skill_dict.get(cv_key, {'name': cv_skill_name, 'category': 'Other'})
+            job_skill = job_skill_dict.get(job_key, {'name': job_skill_name, 'importance': 0.5})
+
             matched_skills.append({
                 'name': cv_skill['name'],
                 'onet_skill': job_skill['name'],

@@ -16,7 +16,7 @@ interface SkillCell {
 
 const STATUS_CONFIG: Record<Status, { label: string; bg: string; border: string; text: string; dot: string }> = {
   matched:     { label: '✅ Đã có',         bg: '#dcfce7', border: '#16a34a', text: '#15803d', dot: '#16a34a' },
-  critical:    { label: '🔴 Critical',      bg: '#fee2e2', border: '#dc2626', text: '#991b1b', dot: '#dc2626' },
+  critical:    { label: '🔴 Thiếu nghiêm trọng', bg: '#fee2e2', border: '#dc2626', text: '#991b1b', dot: '#dc2626' },
   important:   { label: '🟠 Quan trọng',    bg: '#ffedd5', border: '#ea580c', text: '#9a3412', dot: '#ea580c' },
   nice_to_have:{ label: '🟡 Nên có',        bg: '#fef9c3', border: '#ca8a04', text: '#854d0e', dot: '#ca8a04' },
 };
@@ -64,7 +64,7 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
 
       {/* Filter chips */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        {([['all', '🔍 Tất cả', allSkills.length], ['matched', '✅ Đã có', counts.matched], ['critical', '🔴 Critical', counts.critical], ['important', '🟠 Quan trọng', counts.important], ['nice_to_have', '🟡 Nên có', counts.nice_to_have]] as [Status | 'all', string, number][]).map(([key, label, count]) => (
+        {([['all', '🔍 Tất cả', allSkills.length], ['matched', '✅ Đã có', counts.matched], ['critical', '🔴 Thiếu nghiêm trọng', counts.critical], ['important', '🟠 Quan trọng', counts.important], ['nice_to_have', '🟡 Nên có', counts.nice_to_have]] as [Status | 'all', string, number][]).map(([key, label, count]) => (
           <button
             key={key}
             onClick={() => setActiveFilter(key)}

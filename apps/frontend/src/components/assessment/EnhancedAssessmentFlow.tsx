@@ -13,7 +13,7 @@ type FlowStep = 'intro' | 'assessment' | 'processing' | 'complete';
 
 const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlowProps) => {
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState<FlowStep>('intro');
+  const [currentStep, setCurrentStep] = useState<FlowStep>('assessment');
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
 
   const handleAssessmentComplete = async (responses: QuestionResponse[], essayText?: string) => {

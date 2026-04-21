@@ -135,11 +135,11 @@ const SkillGapPage: React.FC = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
+        <div className="skill-gap-page" style={{}}>
           <div style={{ maxWidth: 860, margin: '0 auto' }}>
             <div className="loading-container">
               <div className="loading-spinner"></div>
-              <p>Loading analysis...</p>
+              <p>Đang tải phân tích...</p>
             </div>
           </div>
         </div>
@@ -151,11 +151,11 @@ const SkillGapPage: React.FC = () => {
   if (checkingSubscription) {
     return (
       <MainLayout>
-        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
+        <div className="skill-gap-page" style={{}}>
           <div style={{ maxWidth: 860, margin: '0 auto' }}>
             <div className="loading-container">
               <div className="loading-spinner"></div>
-              <p>Checking subscription...</p>
+              <p>Đang kiểm tra gói dịch vụ...</p>
             </div>
           </div>
         </div>
@@ -167,7 +167,7 @@ const SkillGapPage: React.FC = () => {
   if (!hasAccess) {
     return (
       <MainLayout>
-        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
+        <div className="skill-gap-page" style={{}}>
           <div style={{ maxWidth: 860, margin: '0 auto', padding: '2rem' }}>
             {/* Paywall Screen */}
             <div style={{
@@ -264,23 +264,23 @@ const SkillGapPage: React.FC = () => {
 
             {/* Benefits comparison */}
             <div style={{ marginTop: '3rem', textAlign: 'center' }}>
-              <h2 style={{ fontSize: '1.8rem', marginBottom: '2rem', color: theme === 'dark' ? 'white' : '#1f2937' }}>
+              <h2 style={{ fontSize: '1.8rem', marginBottom: '2rem', color: 'var(--neu-text)' }}>
                 So sánh các gói
               </h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
                 {/* Basic Plan */}
                 <div style={{
-                  background: theme === 'dark' ? '#1f2937' : 'white',
+                  background: 'var(--neu-bg-card)',
                   borderRadius: '16px',
                   padding: '2rem',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  border: '2px solid #e5e7eb',
+                  boxShadow: 'var(--neu-raised)',
+                  border: '2px solid var(--neu-shadow-dark)',
                 }}>
                   <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#3b82f6' }}>Basic</h3>
-                  <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: theme === 'dark' ? 'white' : '#1f2937' }}>
+                  <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: 'var(--neu-text)' }}>
                     99,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/năm</span>
                   </p>
-                  <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: theme === 'dark' ? '#d1d5db' : '#6b7280' }}>
+                  <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: 'var(--neu-text-muted)' }}>
                     <li style={{ padding: '0.5rem 0' }}>✅ 20 phân tích/tháng</li>
                     <li style={{ padding: '0.5rem 0' }}>✅ AI phân tích CV</li>
                     <li style={{ padding: '0.5rem 0' }}>✅ Lộ trình học tập cơ bản</li>
@@ -324,17 +324,17 @@ const SkillGapPage: React.FC = () => {
 
                 {/* Pro Plan */}
                 <div style={{
-                  background: theme === 'dark' ? '#1f2937' : 'white',
+                  background: 'var(--neu-bg-card)',
                   borderRadius: '16px',
                   padding: '2rem',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  border: '2px solid #e5e7eb',
+                  boxShadow: 'var(--neu-raised)',
+                  border: '2px solid var(--neu-shadow-dark)',
                 }}>
                   <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#8b5cf6' }}>Pro</h3>
-                  <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: theme === 'dark' ? 'white' : '#1f2937' }}>
+                  <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: 'var(--neu-text)' }}>
                     299,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/năm</span>
                   </p>
-                  <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: theme === 'dark' ? '#d1d5db' : '#6b7280' }}>
+                  <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: 'var(--neu-text-muted)' }}>
                     <li style={{ padding: '0.5rem 0' }}>✅ Tất cả tính năng Premium</li>
                     <li style={{ padding: '0.5rem 0' }}>✅ Xuất PDF báo cáo</li>
                     <li style={{ padding: '0.5rem 0' }}>✅ AI Assistant 24/7</li>
@@ -352,7 +352,7 @@ const SkillGapPage: React.FC = () => {
   if (error) {
     return (
       <MainLayout>
-        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
+        <div className="skill-gap-page" style={{}}>
           <div style={{ maxWidth: 860, margin: '0 auto' }}>
             <div className="error-container">
               <span className="error-icon">⚠️</span>
@@ -370,12 +370,12 @@ const SkillGapPage: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
+      <div className="skill-gap-page" style={{}}>
         <div style={{ maxWidth: 860, margin: '0 auto' }}>
           <div className="page-header">
-            <h1>🎯 Skill Gap Analysis</h1>
+            <h1>Phân Tích Khoảng Cách Kỹ Năng</h1>
             <p className="page-subtitle">
-              Discover your skill gaps and get personalized learning recommendations
+              Khám phá khoảng cách kỹ năng và nhận đề xuất học tập được cá nhân hóa bởi AI
             </p>
           </div>
         </div>
@@ -418,9 +418,9 @@ const SkillGapPage: React.FC = () => {
               {/* PB15: AI Learning Plan */}
               <div style={{ marginTop: '1.5rem' }}>
                 {planLoading ? (
-                  <div style={{ background: 'white', borderRadius: 16, padding: '2rem', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                  <div style={{ background: 'var(--neu-bg-card)', borderRadius: 16, padding: '2rem', textAlign: 'center', boxShadow: 'var(--neu-raised)' }}>
                     <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🤖</div>
-                    <p style={{ color: '#64748b' }}>AI đang tạo lộ trình học tập...</p>
+                    <p style={{ color: 'var(--neu-text-muted)' }}>AI đang tạo lộ trình học tập...</p>
                   </div>
                 ) : learningPlan ? (
                   <LearningPlan plan={learningPlan.plan} careerName={learningPlan.career_id} />

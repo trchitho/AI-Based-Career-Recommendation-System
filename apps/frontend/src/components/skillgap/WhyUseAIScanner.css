@@ -1,9 +1,12 @@
+/* ── Why Use AI Scanner — Neumorphic themed ──────────────────────── */
+
 .why-use-ai-scanner {
   margin: 2rem 0;
   padding: 2rem;
-  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+  background: var(--neu-bg-card);
   border-radius: 16px;
-  color: white;
+  box-shadow: var(--neu-raised);
+  border-left: 4px solid var(--neu-accent);
 }
 
 .scanner-header {
@@ -15,12 +18,12 @@
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  color: white;
+  color: var(--neu-text);
 }
 
 .scanner-subtitle {
   font-size: 1.1rem;
-  opacity: 0.95;
+  color: var(--neu-text-muted);
   max-width: 600px;
   margin: 0 auto;
 }
@@ -33,19 +36,18 @@
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  background: var(--neu-bg);
+  border-radius: 14px;
   padding: 1.5rem;
   text-align: center;
-  transition: all 0.3s ease;
+  box-shadow: var(--neu-raised-sm);
+  border: none;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
 .feature-card:hover {
-  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 6px 6px 16px var(--neu-shadow-dark), -6px -6px 16px var(--neu-shadow-light);
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .feature-icon {
@@ -58,14 +60,13 @@
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  color: white;
+  color: var(--neu-text);
 }
 
 .feature-description {
   font-size: 0.95rem;
   line-height: 1.6;
-  opacity: 0.9;
-  color: white;
+  color: var(--neu-text-muted);
 }
 
 /* Responsive */

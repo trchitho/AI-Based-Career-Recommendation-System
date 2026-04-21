@@ -107,6 +107,14 @@ const CareersPage = () => {
           }
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+          
+          /* Force black text color */
+          .force-black-text {
+            color: #000000 !important;
+          }
+          .force-black-text h1, .force-black-text h2, .force-black-text h3, .force-black-text p {
+            color: #000000 !important;
+          }
         `}</style>
 
         {/* Background Layers */}
@@ -116,14 +124,14 @@ const CareersPage = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
           {/* --- HEADER & SEARCH --- */}
-          <div className="text-center mb-16 animate-fade-in-up">
+          <div className="text-center mb-16 animate-fade-in-up force-black-text">
             <span className="inline-block py-1.5 px-4 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold tracking-widest uppercase mb-6 border border-green-200 dark:border-green-800">
               Discover Opportunities
             </span>
-            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
-              Explore <span className="text-green-600 dark:text-green-500">Career Paths</span>
+            <h1 className="text-4xl md:text-6xl font-extrabold text-black dark:text-white mb-6 tracking-tight leading-tight" style={{ color: '#000000' }}>
+              Explore <span className="text-green-600 dark:text-green-400">Career Paths</span>
             </h1>
-            <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed mb-10">
+            <p className="text-xl text-black dark:text-white max-w-2xl mx-auto font-medium leading-relaxed mb-10" style={{ color: '#000000' }}>
               Find the perfect career that aligns with your personality, strengths, and interests.
             </p>
 
@@ -141,7 +149,7 @@ const CareersPage = () => {
                     setQ(e.target.value);
                   }}
                   placeholder="Search by job title, industry, or keyword..."
-                  className="w-full px-4 py-3 bg-transparent border-none text-gray-900 dark:text-white placeholder-gray-400 focus:ring-0 text-lg font-medium"
+                  className="w-full px-4 py-3 bg-transparent border-none text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-0 text-lg font-medium"
                 />
                 <button className="hidden sm:block px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:opacity-90 transition-opacity">
                   Search
@@ -250,8 +258,8 @@ const CareersPage = () => {
                     <div className="p-8 flex-grow flex flex-col">
                       <div className="mb-4">
                         <h3 className={`text-xl font-bold mb-2 line-clamp-2 h-14 transition-colors ${isLocked
-                          ? 'text-gray-600 dark:text-gray-400'
-                          : 'text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400'
+                          ? 'text-gray-500 dark:text-gray-400'
+                          : 'text-black dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400'
                           }`}>
                           {c.title}
                         </h3>
@@ -263,7 +271,7 @@ const CareersPage = () => {
 
                       <p className={`text-sm line-clamp-3 flex-grow mb-6 leading-relaxed ${isLocked
                         ? 'text-gray-400 dark:text-gray-500'
-                        : 'text-gray-500 dark:text-gray-400'
+                        : 'text-black dark:text-gray-200'
                         }`}>
                         {isLocked
                           ? (() => {
@@ -285,7 +293,7 @@ const CareersPage = () => {
                       </p>
 
                       <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-100 dark:border-gray-700">
-                        <span className={`text-xs font-bold uppercase tracking-wider ${isLocked ? 'text-gray-300 dark:text-gray-600' : 'text-gray-400'
+                        <span className={`text-xs font-bold uppercase tracking-wider ${isLocked ? 'text-gray-400 dark:text-gray-500' : 'text-black dark:text-gray-300'
                           }`}>
                           {isLocked ? 'Locked' : 'Full Time'}
                         </span>
@@ -349,8 +357,8 @@ const CareersPage = () => {
               <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400">
                 <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No careers found</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-8">We couldn't find any careers matching "{q}". Try adjusting your search terms.</p>
+              <h3 className="text-2xl font-bold text-black dark:text-white mb-2">No careers found</h3>
+              <p className="text-black dark:text-gray-200 mb-8">We couldn't find any careers matching "{q}". Try adjusting your search terms.</p>
               <button
                 onClick={() => setQ('')}
                 className="px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -375,8 +383,8 @@ const CareersPage = () => {
               </button>
 
               <div className="px-6 py-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
-                <span className="text-sm font-bold text-gray-600 dark:text-gray-300">
-                  Page <span className="text-gray-900 dark:text-white">{page}</span> of {totalPages}
+                <span className="text-sm font-bold text-black dark:text-white">
+                  Page <span className="text-black dark:text-white">{page}</span> of {totalPages}
                 </span>
               </div>
 

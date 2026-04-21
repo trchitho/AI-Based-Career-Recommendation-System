@@ -12,6 +12,8 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { getRIASECFullName } from '../utils/riasec';
+import { mentorMatchingService, MentorMatch } from '../services/mentorMatchingService';
+import ChatModal from '../components/chat/ChatModal';
 
 const RoadmapPage = () => {
   const { careerId } = useParams<{ careerId: string }>();
@@ -34,6 +36,11 @@ const RoadmapPage = () => {
   const { currentPlan, hasFeature } = useFeatureAccess();
   const hasLoadedTraitEvidenceRef = useRef(false);
   const hasTrackedUsageRef = useRef(false);
+
+  // Completed-users mentor panel
+  const [completedMentors, setCompletedMentors] = useState<MentorMatch[]>([]);
+  const [mentorsLoaded, setMentorsLoaded] = useState(false);
+  const [chatTarget, setChatTarget] = useState<{ userId: number; name: string } | null>(null);
 
   useEffect(() => {
     const hasUnlimitedCareers = hasFeature('unlimited_careers');
@@ -131,6 +138,15 @@ const RoadmapPage = () => {
     loadTraitEvidence();
   }, [careerId, fetchRoadmap, loadTraitEvidence]);
 
+  // Load users who completed this career's roadmap
+  useEffect(() => {
+    if (!roadmap?.careerTitle || mentorsLoaded) return;
+    setMentorsLoaded(true);
+    mentorMatchingService.findMentorsForCareer(roadmap.careerTitle, 5, careerId)
+      .then(setCompletedMentors)
+      .catch(() => setCompletedMentors([]));
+  }, [roadmap?.careerTitle, careerId, mentorsLoaded]);
+
   const handleCompleteMilestone = async (milestoneId: string) => {
     if (!careerId) return;
     try {
@@ -192,13 +208,13 @@ const RoadmapPage = () => {
           {!loading && roadmap && (
             <div className="animate-fade-in-up space-y-8">
               {/* Hero Header - Career Title + Stages */}
-              <div className="bg-gradient-cta dark:from-green-800 dark:to-green-900 rounded-card-hero p-8 md:p-10 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+              <div className="rounded-card-hero p-8 md:p-10 relative overflow-hidden" style={{ background: 'var(--neu-accent)', boxShadow: '8px 8px 20px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light)' }}>
+                <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/30">Career Path</span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.2)', color: 'var(--neu-btn-text, #ffffff)', border: '1px solid rgba(255,255,255,0.3)' }}>Lộ Trình Nghề Nghiệp</span>
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8">{roadmap.careerTitle}</h1>
+                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8" style={{ color: 'var(--neu-btn-text, #ffffff)' }}>{roadmap.careerTitle}</h1>
 
                   {/* Dynamic career stages based on milestones count */}
                   {(() => {
@@ -234,7 +250,7 @@ const RoadmapPage = () => {
                                 )}
                                 {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-green-800'}`} />}
                               </div>
-                              <span className={`mt-2 text-xs font-bold uppercase tracking-wide ${isCompleted || isCurrent ? 'text-white' : 'text-green-200/60'}`}>{label}</span>
+                              <span className="mt-2 text-xs font-bold uppercase tracking-wide" style={{ color: isCompleted || isCurrent ? 'var(--neu-btn-text, #ffffff)' : 'rgba(255,255,255,0.45)' }}>{label}</span>
                             </div>
                           );
                         })}
@@ -280,6 +296,73 @@ const RoadmapPage = () => {
                   </ul>
                 </div>
               )}
+
+              {/* Người đã hoàn thành lộ trình */}
+              <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <span className="w-2 h-6 bg-purple-500 rounded-full" />
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Người đã hoàn thành lộ trình này</h3>
+                  </div>
+                  {completedMentors.length > 0 && (
+                    <span className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold border border-purple-200 dark:border-purple-800">
+                      {completedMentors.length} người
+                    </span>
+                  )}
+                </div>
+
+                {!mentorsLoaded && (
+                  <div className="flex items-center gap-3 py-6 text-gray-400 text-sm">
+                    <div className="w-5 h-5 border-2 border-gray-200 border-t-purple-500 rounded-full animate-spin" />
+                    Đang tìm kiếm...
+                  </div>
+                )}
+
+                {mentorsLoaded && completedMentors.length === 0 && (
+                  <div className="text-center py-8 text-gray-400">
+                    <div className="text-3xl mb-2">🎓</div>
+                    <p className="text-sm">Chưa có ai hoàn thành lộ trình này.<br />Hãy là người đầu tiên!</p>
+                    <button onClick={() => navigate('/mentor-matching')} className="mt-4 px-4 py-2 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-semibold hover:bg-purple-200 transition-colors">
+                      Tìm Mentor khác →
+                    </button>
+                  </div>
+                )}
+
+                {mentorsLoaded && completedMentors.length > 0 && (
+                  <div className="space-y-3">
+                    {completedMentors.map((m, i) => (
+                      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700 transition-colors">
+                        {/* Avatar */}
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                          {m.mentor_name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()}
+                        </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-900 dark:text-white text-sm truncate">{m.mentor_name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{m.current_position}</div>
+                          {m.expertise_areas.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {m.expertise_areas.slice(0, 3).map((s: string) => (
+                                <span key={s} className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs rounded-full">{s}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {/* Score + Connect */}
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                          <span className="text-xs font-bold text-purple-600 dark:text-purple-400">{m.compatibility_score.toFixed(0)}%</span>
+                          <button
+                            onClick={() => setChatTarget({ userId: m.user_id, name: m.mentor_name })}
+                            className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold hover:opacity-90 transition-opacity shadow"
+                          >
+                            💬 Kết nối
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Learning Journey Timeline */}
               <div className="relative bg-white dark:bg-gray-800 rounded-card-hero shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -357,6 +440,15 @@ const RoadmapPage = () => {
           )}
         </div>
       </div>
+
+      {/* Real-time chat modal */}
+      {chatTarget && (
+        <ChatModal
+          otherUserId={chatTarget.userId}
+          otherName={chatTarget.name}
+          onClose={() => setChatTarget(null)}
+        />
+      )}
     </MainLayout>
   );
 };

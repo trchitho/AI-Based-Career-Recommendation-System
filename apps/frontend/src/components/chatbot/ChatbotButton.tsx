@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Bot, X } from 'lucide-react';
 import { Chatbot } from './Chatbot';
+import ChatInboxPanel from '../chat/ChatInboxPanel';
 
 export const ChatbotButton: React.FC = () => {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [isMessengerOpen, setIsMessengerOpen] = useState(false);
 
   useEffect(() => {
     // Show welcome message after 3 seconds, only once per session
@@ -30,6 +32,30 @@ export const ChatbotButton: React.FC = () => {
 
   return (
     <>
+      {/* Messenger popup panel */}
+      {isMessengerOpen && (
+        <div className="fixed bottom-28 right-6 z-50 w-80 h-[480px] rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700"
+          style={{ background: 'var(--neu-bg-card,#f0f0f3)' }}>
+          <ChatInboxPanel />
+        </div>
+      )}
+
+      {/* Floating Messenger Button (above chatbot) */}
+      <div className="fixed bottom-20 right-6 z-50">
+        <button
+          onClick={() => { setIsMessengerOpen(o => !o); setShowWelcome(false); }}
+          className="relative bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          title="Tin nhắn"
+        >
+          {isMessengerOpen
+            ? <X size={20} />
+            : <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.908 1.42 5.51 3.647 7.22V22l3.33-1.832A11.06 11.06 0 0012 20.486c5.523 0 10-4.145 10-9.243S17.523 2 12 2zm1.037 12.43l-2.551-2.719-4.98 2.719 5.48-5.82 2.612 2.719 4.918-2.719-5.479 5.82z"/></svg>
+          }
+          {/* Unread dot — refreshed in panel */}
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
+        </button>
+      </div>
+
       {/* Floating Chatbot Button */}
       <div className="fixed bottom-6 right-6 z-50">
         <button

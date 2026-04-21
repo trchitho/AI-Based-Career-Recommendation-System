@@ -960,6 +960,69 @@ CRITICAL RULES:
 
         return False, "File thiếu thông tin nghề nghiệp (kinh nghiệm, học vấn hoặc kỹ năng)."
 
+    def _validate_and_extract(self, text: str, target_career: str = None) -> Dict:
+        """
+        Gộp validate + extract thành 1 Gemini call duy nhất để giảm latency 50%.
+        Trả về dict với key 'is_cv' (bool) và toàn bộ extracted data.
+        """
+        import os
+        cv_text = text[:20000]
+        career_context = f"\nTarget Career: {target_career}" if target_career else ""
+
+        prompt = f"""You are a CV/Resume parser. Analyze the document below.{career_context}
+
+DOCUMENT:
+{cv_text}
+
+STEP 1 — Determine if this is a CV/Resume (contains name + contact + experience/education/skills).
+STEP 2 — If YES, extract all information.
+
+Return ONLY valid JSON:
+{{
+  "is_cv": true,
+  "personal_info": {{
+    "name": "Full Name",
+    "email": "email@example.com",
+    "phone": "0900000000"
+  }},
+  "skills": [
+    {{"name": "Python", "category": "Programming"}},
+    {{"name": "React", "category": "Frontend"}}
+  ]
+}}
+
+If NOT a CV/Resume, return:
+{{"is_cv": false, "reason": "brief reason"}}
+
+RULES:
+- Return ONLY valid JSON, no markdown
+- Extract ALL skills (technical + soft)
+- name = person's real name (2-4 words, NOT a job title)
+"""
+        try:
+            cv_stream = multi_stream_manager.get_cv_stream()
+            if not cv_stream.is_available():
+                return {"is_cv": False, "reason": "AI stream not available"}
+
+            print(f"  📤 [COMBINED] Sending {len(cv_text)} chars — validate + extract in 1 call")
+            response_text = cv_stream.generate_content_with_retry(prompt)
+
+            if not response_text:
+                return {"is_cv": False, "reason": "No AI response"}
+
+            # Strip markdown fences
+            if '```json' in response_text:
+                response_text = response_text.split('```json')[1].split('```')[0].strip()
+            elif '```' in response_text:
+                response_text = response_text.split('```')[1].split('```')[0].strip()
+
+            data = json.loads(response_text)
+            print(f"  ✅ [COMBINED] is_cv={data.get('is_cv')}, skills={len(data.get('skills', []))}")
+            return data
+        except Exception as e:
+            print(f"  ❌ [COMBINED] Error: {e}")
+            return {"is_cv": False, "reason": str(e)}
+
     def _ask_gemini_is_cv(self, text: str) -> bool:
         """
         Hỏi Gemini AI xác nhận xem văn bản có phải là CV/Resume không.
@@ -1170,19 +1233,14 @@ Return ONLY valid JSON, no markdown, no explanations.
         print(text[-200:] if len(text) > 200 else text)
         print("-" * 80)
         
-        # CRITICAL: Ask Gemini to verify if this is actually a CV/Resume
-        # This prevents false positives like test answer keys, textbooks, etc.
-        print("\n🤖 [GEMINI VALIDATION] Asking AI: Is this a CV/Resume?")
-        is_cv_by_ai = self._ask_gemini_is_cv(text)
-        if not is_cv_by_ai:
-            print("❌ [GEMINI VALIDATION] AI confirmed: This is NOT a CV/Resume")
-            raise ValueError("File tải lên không phải là CV/Resume.")
-        print("✅ [GEMINI VALIDATION] AI confirmed: This looks like a CV/Resume")
-        
-        # Use AI to extract everything
-        print("\n🤖 [CV Parser V2] STARTING AI EXTRACTION")
+        # OPTIMIZED: Gộp validate + extract thành 1 Gemini call (tiết kiệm ~50% thời gian)
+        print("\n🤖 [CV Parser V2] COMBINED validate + extract (1 Gemini call)")
         print("="*80)
-        result = self.extract_all_with_ai(text, target_career)
+        result = self._validate_and_extract(text, target_career)
+        if not result.get('is_cv', False):
+            reason = result.get('reason', '')
+            print(f"❌ AI confirmed: NOT a CV — {reason}")
+            raise ValueError(f"File tải lên không phải là CV/Resume. {reason}")
         
         result['text'] = text[:500]  # Preview
         
