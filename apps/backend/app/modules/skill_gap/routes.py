@@ -548,10 +548,8 @@ async def get_learning_plan(
     neo4j_driver = Depends(get_neo4j_driver)
 ):
     """
-    Tạo lộ trình học tập chi tiết (AI-generated) dựa trên skill gap analysis.
-    - Phân chia theo giai đoạn (phase)
-    - Gợi ý khóa học, tài liệu cụ thể
-    - Ước tính thời gian học
+    Tạo lộ trình học tập chi tiết (AI-generated). Kết quả được cache vào DB —
+    lần đầu gọi AI, các lần sau trả thẳng từ DB (không tốn token).
     """
     service = SkillGapService(db, neo4j_driver)
     analysis = service.get_analysis_by_id(analysis_id, user_id)
@@ -559,7 +557,20 @@ async def get_learning_plan(
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
 
-    # Build skill gap summary for Gemini
+    # ── CACHE HIT: trả ngay nếu đã có ────────────────────────────
+    if analysis.learning_plan_cache:
+        print(f"[learning-plan] Cache hit for analysis {analysis_id} — skipping AI call")
+        return {
+            'success': True,
+            'analysis_id': analysis_id,
+            'career_id': analysis.career_id,
+            'plan': analysis.learning_plan_cache,
+            'from_cache': True,
+        }
+
+    # ── CACHE MISS: gọi AI ────────────────────────────────────────
+    print(f"[learning-plan] Cache miss for analysis {analysis_id} — calling AI")
+
     critical = analysis.skill_gaps.get('critical', [])
     important = analysis.skill_gaps.get('important', [])
     nice_to_have = analysis.skill_gaps.get('nice_to_have', [])
@@ -600,6 +611,28 @@ Trả về JSON (không có text ngoài JSON):
 }}
 Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
 
+    def _save_cache(plan: dict):
+        """Lưu kết quả AI vào DB để dùng lại sau.
+        Phải dùng flag_modified vì SQLAlchemy không tự detect thay đổi JSONB.
+        """
+        try:
+            from sqlalchemy.orm.attributes import flag_modified
+            from sqlalchemy import text as _text
+            # Dùng raw SQL để chắc chắn commit thành công
+            import json as _json
+            db.execute(
+                _text("UPDATE core.skill_gap_analyses SET learning_plan_cache = :plan WHERE id = :id"),
+                {"plan": _json.dumps(plan), "id": analysis_id}
+            )
+            db.commit()
+            # Cập nhật object trong memory để cache hit ngay trong session này
+            analysis.learning_plan_cache = plan
+            flag_modified(analysis, "learning_plan_cache")
+            print(f"[learning-plan] Cache saved for analysis {analysis_id}")
+        except Exception as e:
+            print(f"[learning-plan] Failed to save cache: {e}")
+            db.rollback()
+
     try:
         from app.core.gemini_manager import multi_stream_manager
         stream = multi_stream_manager.get_cv_stream()
@@ -613,6 +646,7 @@ Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
             m = re.search(r'\{.*\}', cleaned, re.DOTALL)
             if m:
                 plan = _json.loads(m.group())
+                _save_cache(plan)
                 return {'success': True, 'analysis_id': analysis_id, 'career_id': analysis.career_id, 'plan': plan}
     except Exception as e:
         print(f"Learning plan AI error: {e}")
@@ -639,17 +673,19 @@ Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
                 {'name': f'Tài liệu {important_names[0]}', 'platform': 'YouTube', 'type': 'video', 'level': 'intermediate', 'free': True}
             ] if important_names else []
         })
+    fallback_plan = {
+        'total_weeks': 12,
+        'summary': f'Lộ trình {12} tuần để đạt mục tiêu {analysis.career_id}.',
+        'phases': phases,
+        'milestones': [
+            {'week': 4, 'title': 'Hoàn thành kỹ năng nền tảng', 'description': 'Nắm vững các kỹ năng Critical'},
+            {'week': 8, 'title': 'Hoàn thành kỹ năng quan trọng', 'description': 'Sẵn sàng apply'},
+            {'week': 12, 'title': 'Sẵn sàng phỏng vấn', 'description': 'Match rate > 80%'}
+        ]
+    }
+    _save_cache(fallback_plan)
     return {
         'success': True, 'analysis_id': analysis_id,
         'career_id': analysis.career_id,
-        'plan': {
-            'total_weeks': 12,
-            'summary': f'Lộ trình {12} tuần để đạt mục tiêu {analysis.career_id}.',
-            'phases': phases,
-            'milestones': [
-                {'week': 4, 'title': 'Hoàn thành kỹ năng nền tảng', 'description': 'Nắm vững các kỹ năng Critical'},
-                {'week': 8, 'title': 'Hoàn thành kỹ năng quan trọng', 'description': 'Sẵn sàng apply'},
-                {'week': 12, 'title': 'Sẵn sàng phỏng vấn', 'description': 'Match rate > 80%'}
-            ]
-        }
+        'plan': fallback_plan,
     }

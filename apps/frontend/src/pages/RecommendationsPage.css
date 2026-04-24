@@ -102,7 +102,7 @@
 /* ── Grid ────────────────────────────────────────────────────── */
 .rec-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 1.5rem;
 }
 
@@ -413,4 +413,16 @@ html body button.view-btn:hover {
   .rec-hero h1 { font-size: 1.75rem; }
   .rec-grid { grid-template-columns: 1fr; }
   .rec-content { padding: 0 1rem; }
+}
+
+@media (max-width: 640px) {
+  .rec-hero { padding: 1.5rem 1rem; }
+  .rec-hero h1 { font-size: 1.4rem; }
+  .rec-grid { grid-template-columns: 1fr; }
+  .rec-content { padding: 0 0.5rem; }
+}
+
+@media (max-width: 480px) {
+  .rec-hero h1 { font-size: 1.25rem; }
+  .rec-hero p { font-size: 0.85rem; }
 }

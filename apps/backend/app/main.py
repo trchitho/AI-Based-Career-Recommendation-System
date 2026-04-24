@@ -420,6 +420,15 @@ def create_app() -> FastAPI:
         print("✅ Chat router registered")
     except Exception as e:
         print("??  Skip chat router:", repr(e))
+
+    # Schedule (mentor session booking)
+    try:
+        from .modules.chat import schedule_routes as schedule_router
+
+        app.include_router(schedule_router.router)
+        print("✅ Schedule router registered")
+    except Exception as e:
+        print("??  Skip schedule router:", repr(e))
     
     # Career
     try:

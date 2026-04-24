@@ -152,3 +152,10 @@
     left: 1rem;
   }
 }
+
+@media (max-width: 480px) {
+  .skill-heatmap { padding: 0.75rem; }
+  .heatmap-row { min-width: 0; overflow-x: auto; }
+  .heatmap-grid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .node-tooltip { font-size: 0.75rem; max-width: 180px; }
+}

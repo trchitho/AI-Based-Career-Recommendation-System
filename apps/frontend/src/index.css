@@ -104,3 +104,30 @@ iframe {
 .animate-bounce-in {
   animation: bounce-in 0.4s ease-out;
 }
+/* ── Global Responsive Utilities ───────────────────────────── */
+@media (max-width: 768px) {
+  /* Prevent horizontal overflow globally */
+  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  /* Sidebar: auto-collapse on mobile (handled by JS already) */
+}
+
+@media (max-width: 480px) {
+  /* Tighter padding on very small screens */
+  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  /* Stack flex rows on mobile */
+  .sm\:flex-row { flex-direction: column; }
+  /* Table overflow */
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* Prevent inline-style grids from overflowing */
+[style*="gridTemplateColumns"] {
+  max-width: 100%;
+  overflow-x: hidden;
+}

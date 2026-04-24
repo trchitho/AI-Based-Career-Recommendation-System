@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getPaymentHistory, PaymentHistory } from '../../services/paymentService';
 import { getAccessToken } from '../../utils/auth';
 import RoadmapCapability from './RoadmapCapability';
+import './subscription-styles.css';
 
 interface UsageStatusProps {
   className?: string;
@@ -118,13 +119,13 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
   const getFeatureInfo = (feature: string) => {
     switch (feature) {
       case 'career_view':
-        return { name: 'Career Views', icon: '👔', color: 'blue' };
+        return { name: 'Career Views', color: 'blue' };
       case 'assessment':
-        return { name: 'Assessments', icon: '📝', color: 'green' };
+        return { name: 'Assessments', color: 'green' };
       case 'roadmap_level':
-        return { name: 'Roadmap Level', icon: '🗺️', color: 'purple' };
+        return { name: 'Roadmap Level', color: 'purple' };
       default:
-        return { name: feature, icon: '⭐', color: 'gray' };
+        return { name: feature, color: 'gray' };
     }
   };
 
@@ -160,12 +161,23 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
   }
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 ${className}`}>
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-        📊 Monthly Usage
-      </h3>
+    <div className={`subscription-card gradient-card rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 ${className}`}>
+      {/* Header with Plan Badge */}
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+          Monthly Usage
+        </h3>
+        <span className={`plan-badge px-3 py-1 rounded-full text-xs font-semibold ${
+          detectedPlan === 'Pro' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' :
+          detectedPlan === 'Premium' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
+          detectedPlan === 'Basic' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+          'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+        }`}>
+          {detectedPlan} Plan
+        </span>
+      </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {/* Display usage tracking for non-roadmap features */}
         {displayUsageData.filter(usage => usage.feature !== 'roadmap_level').map((usage) => {
           const info = getFeatureInfo(usage.feature);
@@ -175,48 +187,44 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
           let percentage = 0;
 
           if (usage.feature === 'career_view' && detectedPlan === 'Basic' && usage.limit === 25) {
-            // Show as X/25 and calculate progress based on total limit (25), not monthly limit
             percentage = (usage.current_usage / usage.limit) * 100;
           } else if (usage.limit > 0) {
             percentage = (usage.current_usage / usage.limit) * 100;
           }
 
           return (
-            <div key={usage.feature} className="space-y-1">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span>{info.icon}</span>
-                  <span className="text-gray-700 dark:text-gray-300">{info.name}</span>
-                </div>
-                <span className="text-gray-500 dark:text-gray-400">
-                  {usage.current_usage}/{displayLimit > 0 ? displayLimit : '∞'}
+            <div key={usage.feature} className="subscription-card bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{info.name}</span>
+                <span className="text-lg font-bold text-gray-900 dark:text-white">
+                  {usage.current_usage}<span className="text-sm text-gray-500 dark:text-gray-400">/{displayLimit > 0 ? displayLimit : '∞'}</span>
                 </span>
               </div>
 
               {displayLimit > 0 && (
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                <div className="usage-meter relative w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                   <div
-                    className={`h-1.5 rounded-full transition-all duration-300 ${getProgressColor(usage.current_usage, displayLimit, usage.feature)}`}
+                    className={`usage-meter-fill h-2 rounded-full ${getProgressColor(usage.current_usage, displayLimit, usage.feature)}`}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   ></div>
                 </div>
               )}
 
               {usage.remaining === 0 && usage.limit > 0 && detectedPlan === 'Free' && (
-                <p className="text-xs text-red-600 dark:text-red-400">
-                  Free usage limit reached
+                <p className="text-xs text-red-600 dark:text-red-400 mt-2 font-medium">
+                  Limit reached - Upgrade to continue
                 </p>
               )}
 
               {usage.feature === 'career_view' && usage.current_usage >= 5 && usage.limit === 25 && detectedPlan === 'Basic' && (
-                <p className="text-xs text-blue-600 dark:text-blue-400">
-                  Viewed {usage.current_usage} careers this month. Basic plan allows up to 25 careers
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                  {usage.current_usage} careers viewed this month
                 </p>
               )}
 
               {usage.current_usage > usage.limit && usage.limit > 0 && usage.feature !== 'career_view' && detectedPlan === 'Basic' && (
-                <p className="text-xs text-orange-600 dark:text-orange-400">
-                  Basic plan limit exceeded. Upgrade to Premium for unlimited access
+                <p className="text-xs text-orange-600 dark:text-orange-400 mt-2 font-medium">
+                  Limit exceeded - Upgrade for unlimited access
                 </p>
               )}
             </div>
@@ -227,16 +235,14 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
         <RoadmapCapability />
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          💡 {detectedPlan === 'Free'
-            ? 'Upgrade to Basic for more usage'
-            : detectedPlan === 'Basic'
-              ? 'Upgrade to Premium for unlimited access'
-              : 'You are on Premium/Pro plan'
-          }
-        </p>
-      </div>
+      {/* Upgrade CTA */}
+      {detectedPlan !== 'Pro' && detectedPlan !== 'Premium' && (
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button className="upgrade-button w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg">
+            {detectedPlan === 'Free' ? 'Upgrade to Basic' : 'Upgrade to Premium'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

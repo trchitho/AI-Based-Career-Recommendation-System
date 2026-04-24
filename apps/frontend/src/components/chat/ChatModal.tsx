@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { chatService, ChatMessage } from '../../services/chatService';
+import BookingModal from './BookingModal';
 import './ChatModal.css';
 
 interface Props {
@@ -30,6 +31,7 @@ const ChatModal: React.FC<Props> = ({ otherUserId, otherName, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [showBooking, setShowBooking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const roomId = makeRoomId(myId, otherUserId);
@@ -95,6 +97,7 @@ const ChatModal: React.FC<Props> = ({ otherUserId, otherName, onClose }) => {
   };
 
   return (
+    <>
     <div className="chat-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="chat-modal">
         {/* Header */}
@@ -104,6 +107,12 @@ const ChatModal: React.FC<Props> = ({ otherUserId, otherName, onClose }) => {
             <div className="chat-header-name">{otherName}</div>
             <div className="chat-header-sub">Đang hoạt động</div>
           </div>
+          <button
+            className="chat-close-btn"
+            title="Đặt lịch hẹn"
+            onClick={() => setShowBooking(true)}
+            style={{ marginRight: 4, fontSize: '0.9rem', background: 'rgba(139,92,246,0.12)', color: '#7c3aed' }}
+          >📅</button>
           <button className="chat-close-btn" onClick={onClose}>✕</button>
         </div>
 
@@ -154,6 +163,15 @@ const ChatModal: React.FC<Props> = ({ otherUserId, otherName, onClose }) => {
         </div>
       </div>
     </div>
+
+    {showBooking && (
+      <BookingModal
+        mentorUserId={otherUserId}
+        mentorName={otherName}
+        onClose={() => setShowBooking(false)}
+      />
+    )}
+    </>
   );
 };
 

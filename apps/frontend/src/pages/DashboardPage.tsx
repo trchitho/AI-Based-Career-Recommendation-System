@@ -7,6 +7,7 @@ import ProfileSummaryCard from '../components/dashboard/ProfileSummaryCard';
 import CareerSuggestionCard from '../components/dashboard/CareerSuggestionCard';
 import ProgressMetricsCard from '../components/dashboard/ProgressMetricsCard';
 import NoAssessmentPrompt from '../components/dashboard/NoAssessmentPrompt';
+import TopCareerWidget from '../components/dashboard/TopCareerWidget';
 // import InterviewActionCard from '../components/dashboard/InterviewActionCard'; // Removed per user request
 // import NotificationCenter from '../components/notifications/NotificationCenter';
 import MainLayout from '../components/layout/MainLayout';
@@ -135,7 +136,7 @@ const DashboardPage = () => {
               {void console.log('🎯 [DashboardPage] topCareerSuggestions.length:', dashboardData.topCareerSuggestions.length)}
 
               {/* TOP ROW: Profile & Metrics */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                 {/* Profile Summary - Main Card */}
                 <div className="lg:col-span-2 flex flex-col h-full">
                   <div className="h-full bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 overflow-hidden relative group">
@@ -154,10 +155,18 @@ const DashboardPage = () => {
                 )}
               </div>
 
-              {/* SECOND ROW: Action Cards - Removed per user request */}
-              {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <InterviewActionCard hasCompletedAssessment={dashboardData.hasCompletedAssessment} />
-              </div> */}
+              {/* SECOND ROW: Top Career Roadmap + Market Snapshot */}
+              {dashboardData.hasCompletedAssessment && dashboardData.topCareerSuggestions.length > 0 && (
+                <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-base font-bold text-gray-700 dark:text-gray-200">🎯 Nghề phù hợp nhất với bạn</span>
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                      {dashboardData.topCareerSuggestions[0].matchPercentage}% match
+                    </span>
+                  </div>
+                  <TopCareerWidget career={dashboardData.topCareerSuggestions[0]} />
+                </div>
+              )}
 
               {/* SECTION: Career Suggestions - Only show if user has completed assessments */}
               {dashboardData.hasCompletedAssessment && dashboardData.topCareerSuggestions.length > 0 ? (
@@ -199,7 +208,7 @@ const DashboardPage = () => {
                   </div>
 
                   {/* Career Cards Grid - Show top 3 career suggestions */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                     {dashboardData.topCareerSuggestions.map((career) => (
                       <div key={career.id} className="h-full transform hover:-translate-y-1 transition-transform duration-300">
                         <CareerSuggestionCard career={career} />

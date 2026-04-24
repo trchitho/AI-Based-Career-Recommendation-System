@@ -239,7 +239,7 @@ html body button.mm-request-btn.sent { background: #10b981 !important; }
 /* ── Mentor card grid ─────────────────────────────────────── */
 .mm-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 1.5rem;
 }
 .mm-card {
@@ -378,4 +378,15 @@ html body button.mm-request-btn.sent { background: #10b981 !important; }
   .mm-mentor-card { padding: 1.5rem; }
   .mm-req-item { flex-wrap: wrap; }
   .mm-tabs { width: 100%; flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .mm-hero { padding: 1.5rem 1rem; }
+  .mm-hero h1 { font-size: 1.3rem; }
+  .mm-hero p { font-size: 0.85rem; }
+  .mm-stats { gap: 1rem; flex-wrap: wrap; }
+  .mm-page { padding: 0 0.25rem; }
+  .mm-card { padding: 1rem; }
+  .mm-modal { padding: 1.25rem; margin: 0 1rem; }
+  .mm-tab { font-size: 0.78rem; padding: 0.5rem 0.85rem; }
 }

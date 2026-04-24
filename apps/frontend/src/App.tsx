@@ -45,6 +45,7 @@ import ProgressComparisonPage from './pages/ProgressComparisonPage';
 import SettingsPage from './pages/SettingsPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
 import SkillGapPage from './pages/SkillGapPage';
+import CVHistoryPage from './pages/CVHistoryPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import MentorMatchingPage from './pages/MentorMatchingPage';
 import InterviewPage from './pages/InterviewPage';
@@ -159,6 +160,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <SkillGapPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/cv-history"
+                    element={
+                      <ProtectedRoute>
+                        <CVHistoryPage />
                       </ProtectedRoute>
                     }
                   />

@@ -88,7 +88,7 @@ header {
 
 /* Cards already identified by shadow classes — just enhance the shadow */
 /* Only safe when they don't have a gradient or specific color bg */
-[class*="rounded-xl"][class*="shadow-sm"]:not([class*="bg-green"]):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([class*="from-"]):not([class*="bg-gradient"]) {
+[class*="rounded-xl"][class*="shadow-sm"]:not([class*="bg-green"]):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([class*="from-"]):not([class*="bg-gradient"]):not(button):not(a):not([role="button"]) {
   box-shadow: var(--neu-raised) !important;
   border-color: transparent !important;
 }
@@ -125,22 +125,23 @@ select:focus {
 
 /* ── 5. Plain buttons (no color class) — neu raised ──────────── */
 
-button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.view-btn) {
+button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]) {
   background: var(--neu-bg-card) !important;
   border: none !important;
   border-radius: var(--neu-radius-sm) !important;
   box-shadow: var(--neu-raised-sm) !important;
   transition: box-shadow 0.2s ease, transform 0.15s ease !important;
 }
-button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.view-btn):hover {
+button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]):hover {
   box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light) !important;
 }
-button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.browse-button):not(.view-btn):active {
+button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.browse-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]):active {
   box-shadow: var(--neu-pressed-sm) !important;
   transform: scale(0.97) !important;
 }
 
-/* Colored buttons — override bg with theme accent color */
+/* ── Colored buttons — keep their own bg, only clean shadow ───── */
+/* KHÔNG override background-color — giữ màu gốc của từng button */
 button[class*="bg-green"],
 button[class*="bg-blue"],
 button[class*="bg-red"],
@@ -152,17 +153,23 @@ button[class*="bg-cyan"],
 button[class*="bg-emerald"],
 button[class*="bg-pink"],
 button[class*="bg-amber"],
+button[class*="bg-violet"],
+button[class*="bg-sky"],
+button[class*="bg-rose"],
 a[class*="bg-green"],
 a[class*="bg-blue"],
 a[class*="bg-red"],
 a[class*="bg-purple"],
 a[class*="bg-indigo"],
 a[class*="bg-orange"],
-a[class*="bg-teal"] {
-  background-color: var(--neu-accent) !important;
-  color: var(--neu-btn-text, #ffffff) !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.18), -2px -2px 6px rgba(255,255,255,0.08) !important;
-  transition: box-shadow 0.2s ease, transform 0.15s ease, filter 0.15s ease !important;
+a[class*="bg-teal"],
+a[class*="bg-emerald"],
+a[class*="bg-violet"] {
+  /* Giữ background gốc — chỉ thêm shadow tối nhẹ, KHÔNG dùng white shadow */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.20) !important;
+  border: none !important;
+  color: #ffffff !important;
+  transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
 }
 button[class*="bg-green"]:hover,
 button[class*="bg-blue"]:hover,
@@ -170,28 +177,44 @@ button[class*="bg-red"]:hover,
 button[class*="bg-purple"]:hover,
 button[class*="bg-indigo"]:hover,
 button[class*="bg-orange"]:hover,
+button[class*="bg-teal"]:hover,
+button[class*="bg-emerald"]:hover,
+button[class*="bg-violet"]:hover,
 a[class*="bg-green"]:hover,
-a[class*="bg-blue"]:hover {
-  filter: brightness(1.1);
-  box-shadow: 6px 6px 14px rgba(0,0,0,0.22), -3px -3px 8px rgba(255,255,255,0.1) !important;
+a[class*="bg-blue"]:hover,
+a[class*="bg-indigo"]:hover,
+a[class*="bg-teal"]:hover,
+a[class*="bg-emerald"]:hover {
+  filter: brightness(1.07);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important;
+  transform: translateY(-1px);
 }
 button[class*="bg-green"]:active,
 button[class*="bg-blue"]:active,
 button[class*="bg-red"]:active,
-button[class*="bg-purple"]:active {
-  box-shadow: inset 2px 2px 6px rgba(0,0,0,0.2) !important;
-  transform: scale(0.97) !important;
+button[class*="bg-purple"]:active,
+button[class*="bg-indigo"]:active,
+button[class*="bg-teal"]:active,
+button[class*="bg-emerald"]:active {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18) !important;
+  transform: scale(0.97) translateY(0) !important;
+  filter: brightness(0.97);
 }
-/* Ensure child text inside colored buttons uses btn-text color */
+
+/* Text bên trong colored button luôn trắng */
 button[class*="bg-green"] *,
 button[class*="bg-blue"] *,
 button[class*="bg-red"] *,
 button[class*="bg-purple"] *,
 button[class*="bg-indigo"] *,
 button[class*="bg-orange"] *,
+button[class*="bg-teal"] *,
+button[class*="bg-emerald"] *,
+button[class*="bg-violet"] *,
 a[class*="bg-green"] *,
-a[class*="bg-blue"] * {
-  color: var(--neu-btn-text, #ffffff) !important;
+a[class*="bg-blue"] *,
+a[class*="bg-indigo"] * {
+  color: #ffffff !important;
 }
 
 button:disabled {
@@ -277,14 +300,16 @@ input[type="radio"]:checked {
 
 /* ── 13. Gradient buttons — keep their own background ─────────── */
 html body button.btn-game {
-  background: linear-gradient(135deg, #7c3aed, #ec4899, #f97316) !important;
+  background: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6) !important;
   color: #ffffff !important;
-  box-shadow: 4px 4px 12px rgba(124,58,237,0.4), -2px -2px 6px rgba(255,255,255,0.1) !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35), 0 4px 12px rgba(139, 92, 246, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 html body button.btn-interactive {
-  background: linear-gradient(135deg, #2563eb, #4f46e5, #7c3aed) !important;
+  background: linear-gradient(135deg, #8b5cf6, #a855f7, #ec4899) !important;
   color: #ffffff !important;
-  box-shadow: 4px 4px 12px rgba(37,99,235,0.4), -2px -2px 6px rgba(255,255,255,0.1) !important;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35), 0 4px 12px rgba(236, 72, 153, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 html body button.btn-game *,
 html body button.btn-interactive * {
@@ -296,8 +321,15 @@ html body button.submit-button,
 html body button.retry-button,
 html body label.browse-button {
   background: var(--neu-accent) !important;
-  color: var(--neu-btn-text, #ffffff) !important;
-  box-shadow: 4px 4px 10px rgba(0,0,0,0.15) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.20) !important;
+  border: none !important;
+}
+html body button.submit-button:hover,
+html body button.retry-button:hover {
+  filter: brightness(1.07);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important;
+  transform: translateY(-1px);
 }
 
 /* ── 15. Ghost buttons — transparent, no shadow ───────────────── */
@@ -305,6 +337,24 @@ html body button.btn-ghost {
   background: transparent !important;
   box-shadow: none !important;
   border: none !important;
+}
+
+/* ── 16. Protect inline-style buttons from neumorphic override ── */
+/* Buttons with explicit background in style attr keep their own look */
+button[style*="background"],
+button[style*="linear-gradient"],
+a[style*="background"],
+a[style*="linear-gradient"] {
+  background: revert !important;
+}
+/* But still allow color property & box-shadow from inline */
+button[style*="background"]:not([style*="linear"]) {
+  background: unset !important;
+}
+
+/* ── 17. Ensure action buttons are always visible ───────────── */
+.ap-btn-blue, .ap-btn-dark, .pill-blue, .pill-dark {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
 }
 
 /* ── Print ────────────────────────────────────────────────────── */

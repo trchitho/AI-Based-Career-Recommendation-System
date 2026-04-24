@@ -1,0 +1,283 @@
+/* ═══════════════════════════════════════════════════════════════
+   Global UI Polish — Buttons & Typography
+   Áp dụng cho toàn bộ dự án, không xung đột neumorphic.css
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&display=swap');
+
+/* ── 1. Root font & base text ──────────────────────────────── */
+:root {
+  --font-body:    'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Inter Tight', 'Plus Jakarta Sans', -apple-system, sans-serif;
+
+  /* Typography scale */
+  --text-xs:   0.75rem;    /* 12px — labels, meta */
+  --text-sm:   0.8125rem;  /* 13px — small body */
+  --text-base: 0.9375rem;  /* 15px — body */
+  --text-md:   1.0625rem;  /* 17px — lead */
+  --text-lg:   1.25rem;    /* 20px — subheadings */
+  --text-xl:   1.5rem;     /* 24px — section headings */
+  --text-2xl:  1.875rem;   /* 30px — page headings */
+  --text-3xl:  2.25rem;    /* 36px — hero */
+
+  /* Button sizing */
+  --btn-h-sm:  2rem;       /* 32px */
+  --btn-h-md:  2.375rem;   /* 38px */
+  --btn-h-lg:  2.75rem;    /* 44px */
+
+  /* Letter spacing */
+  --tracking-tight:  -0.025em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.04em;
+  --tracking-wider:   0.08em;
+
+  /* Line heights */
+  --leading-tight:  1.2;
+  --leading-snug:   1.4;
+  --leading-normal: 1.6;
+  --leading-loose:  1.75;
+}
+
+/* ── 2. Base body ──────────────────────────────────────────── */
+body {
+  font-family: var(--font-body) !important;
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── 3. Headings ────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display) !important;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--neu-text, #1f2937);
+  font-weight: 700;
+}
+
+h1 { font-size: clamp(1.75rem, 4vw, var(--text-3xl)); font-weight: 800; }
+h2 { font-size: clamp(1.375rem, 3vw, var(--text-2xl)); font-weight: 700; }
+h3 { font-size: clamp(1.125rem, 2.5vw, var(--text-xl)); font-weight: 700; }
+h4 { font-size: var(--text-lg); font-weight: 600; }
+h5 { font-size: var(--text-md); font-weight: 600; }
+h6 { font-size: var(--text-base); font-weight: 600; }
+
+/* Body text */
+p {
+  line-height: var(--leading-normal);
+  color: var(--neu-text-muted, #6b7280);
+}
+
+/* Strong / bold text */
+strong, b { font-weight: 700; color: var(--neu-text, #1f2937); }
+
+/* Small / meta text */
+small, .text-xs, .text-sm { letter-spacing: var(--tracking-normal); }
+
+/* Labels */
+label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--neu-text, #1f2937);
+  letter-spacing: 0.01em;
+}
+
+/* ── 3b. Force inline-style buttons to show their background ─── */
+/* CSS attribute selector can detect inline style containing "background" */
+button[style*="background:#"],
+button[style*="background: #"],
+button[style*="background:linear"],
+button[style*="background: linear"],
+button[style*="background: rgb"],
+button[style*="background:rgb"] {
+  background: revert-layer !important;
+}
+
+/* ── 4. Button Base Reset ────────────────────────────────────── */
+button, [role="button"] {
+  font-family: var(--font-body) !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.15s ease,
+    filter 0.15s ease !important;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+button:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--neu-accent, #16a34a);
+  outline-offset: 2px;
+}
+
+button:disabled, [role="button"]:disabled {
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+/* ── 5. Tailwind button classes — polish ────────────────────── */
+
+/* Primary green buttons */
+.bg-green-600,
+.bg-green-700,
+.hover\:bg-green-700,
+button.bg-green-600,
+button.bg-green-700 {
+  font-size: var(--text-sm) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* ── 6. Common page headings ─────────────────────────────────── */
+
+/* Page titles (h1 trong các trang) */
+.page-title,
+[class*="text-3xl"][class*="font-bold"],
+[class*="text-4xl"][class*="font-bold"],
+[class*="text-3xl"][class*="font-extrabold"],
+[class*="text-4xl"][class*="font-extrabold"] {
+  font-family: var(--font-display) !important;
+  letter-spacing: var(--tracking-tight) !important;
+  line-height: var(--leading-tight) !important;
+}
+
+/* Section headings */
+[class*="text-2xl"][class*="font-bold"],
+[class*="text-xl"][class*="font-bold"] {
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.015em !important;
+  line-height: 1.3 !important;
+}
+
+/* Card titles */
+[class*="text-lg"][class*="font-bold"],
+[class*="text-lg"][class*="font-semibold"] {
+  letter-spacing: -0.01em !important;
+  line-height: 1.35 !important;
+}
+
+/* ── 7. Badge / Chip labels ─────────────────────────────────── */
+[class*="rounded-full"][class*="text-xs"],
+[class*="rounded-full"][class*="text-sm"],
+[class*="rounded-lg"][class*="text-xs"] {
+  font-size: 0.725rem !important;
+  font-weight: 700 !important;
+  letter-spacing: var(--tracking-wide) !important;
+  text-transform: uppercase;
+  line-height: 1 !important;
+}
+
+/* ── 8. Navigation links ────────────────────────────────────── */
+nav a, nav button {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.005em;
+  transition: color 0.15s, background 0.15s !important;
+}
+
+/* Sidebar links */
+.sidebar-link, aside a, aside button {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+}
+
+/* ── 9. Input / Form labels ─────────────────────────────────── */
+input, textarea, select {
+  font-family: var(--font-body) !important;
+  font-size: var(--text-base) !important;
+  line-height: var(--leading-snug);
+}
+
+input::placeholder, textarea::placeholder {
+  color: #9ca3af !important;
+  font-weight: 400 !important;
+  font-style: normal;
+}
+
+/* ── 10. Table text ─────────────────────────────────────────── */
+th {
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: var(--tracking-wider) !important;
+  text-transform: uppercase;
+  color: var(--neu-text-muted, #6b7280) !important;
+}
+
+td {
+  font-size: var(--text-sm) !important;
+  font-weight: 400;
+  color: var(--neu-text, #1f2937);
+}
+
+/* ── 11. Card content polish ────────────────────────────────── */
+
+/* Card title */
+.card-title { font-weight: 700; letter-spacing: -0.01em; }
+
+/* Stat numbers */
+[class*="text-4xl"][class*="font-extrabold"],
+[class*="text-5xl"][class*="font-extrabold"],
+[class*="text-3xl"][class*="font-extrabold"] {
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em !important;
+  line-height: 1 !important;
+}
+
+/* ── 12. Muted / secondary text ────────────────────────────── */
+.text-gray-400, .text-gray-500,
+[class*="text-muted"], [class*="text-secondary"] {
+  color: var(--neu-text-muted, #6b7280) !important;
+}
+
+/* ── 13. Link styles ────────────────────────────────────────── */
+a:not([class*="bg-"]):not([class*="btn"]):not(.no-underline) {
+  color: var(--neu-accent, #16a34a);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s, opacity 0.15s;
+}
+a:not([class*="bg-"]):not([class*="btn"]):not(.no-underline):hover {
+  opacity: 0.8;
+}
+
+/* ── 14. Vietnamese text rendering ─────────────────────────── */
+/* Tiếng Việt cần line-height lớn hơn vì dấu */
+:lang(vi), html[lang="vi"] body {
+  line-height: 1.7;
+}
+
+/* ── 15. Responsive typography ──────────────────────────────── */
+@media (max-width: 768px) {
+  h1 { font-size: clamp(1.5rem, 5vw, 2rem) !important; }
+  h2 { font-size: clamp(1.25rem, 4vw, 1.625rem) !important; }
+  h3 { font-size: clamp(1.05rem, 3vw, 1.25rem) !important; }
+
+  button, [role="button"] {
+    font-size: 0.875rem !important;
+  }
+
+  /* Larger tap targets on mobile */
+  button:not(.icon-btn):not([class*="w-"]) {
+    min-height: var(--btn-h-md);
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: clamp(1.25rem, 6vw, 1.75rem) !important; }
+  p   { font-size: 0.9rem; }
+
+  /* Badge/chip smaller on tiny screens */
+  [class*="rounded-full"][class*="text-xs"] {
+    font-size: 0.65rem !important;
+    padding: 2px 8px !important;
+  }
+}

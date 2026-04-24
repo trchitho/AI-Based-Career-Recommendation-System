@@ -53,18 +53,15 @@ const useCounter = (end: number, duration: number = 2000) => {
 };
 
 const CounterItem = ({ value, label, suffix = '' }: { value: string, label: string, suffix?: string }) => {
-    // Tách số và chữ (ví dụ: '1M+' -> 1000000 và '+')
-    // Để đơn giản demo, ta giả định value là số hoặc số kèm k/M
     const parseValue = (val: string) => {
         if (val.includes('k')) return { num: parseFloat(val) * 1000, suf: 'k+' };
         if (val.includes('M')) return { num: parseFloat(val) * 1000000, suf: 'M+' };
         if (val.includes('%')) return { num: parseFloat(val), suf: '%' };
-        if (val.includes('<')) return { num: 2, suf: 'min' }; // Hardcode cho case < 2min
+        if (val.includes('<')) return { num: 2, suf: 'min' };
         return { num: parseFloat(val), suf: suffix };
     };
 
     const { num, suf } = parseValue(value);
-    // Nếu không parse được số (ví dụ '24/7'), hiển thị text gốc
     if (isNaN(num)) return (
         <div className="text-white">
             <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono">{value}</div>
@@ -109,10 +106,7 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
 const HomePage = () => {
     const { t } = useTranslation();
 
-    // --- PUBLIC STATS ---
     const [stats, setStats] = useState<PublicStats | null>(null);
-
-    // --- CONTACT FORM ---
     const [showContactForm, setShowContactForm] = useState(false);
     const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' });
     const [contactLoading, setContactLoading] = useState(false);
@@ -123,15 +117,8 @@ const HomePage = () => {
             try {
                 const response = await api.get('/api/app/stats');
                 setStats(response.data);
-            } catch (error) {
-                console.error('Failed to fetch public stats:', error);
-                // Use fallback stats
-                setStats({
-                    totalAssessments: 150,
-                    totalCareerPaths: 50,
-                    totalCareerInfo: 20000,
-                    satisfactionRate: 98
-                });
+            } catch {
+                setStats({ totalAssessments: 150, totalCareerPaths: 50, totalCareerInfo: 20000, satisfactionRate: 98 });
             }
         };
         fetchStats();
@@ -141,159 +128,33 @@ const HomePage = () => {
         e.preventDefault();
         setContactLoading(true);
         setContactResult(null);
-
-        // Validate Name
-        if (!contactForm.name.trim()) {
-            setContactResult({ success: false, message: 'Please enter your name.' });
-            setContactLoading(false);
-            return;
-        }
-        if (contactForm.name.trim().length < 2) {
-            setContactResult({ success: false, message: 'Name must be at least 2 characters long.' });
-            setContactLoading(false);
-            return;
-        }
-        if (contactForm.name.trim().length > 100) {
-            setContactResult({ success: false, message: 'Name must be less than 100 characters.' });
-            setContactLoading(false);
-            return;
-        }
-
-        // Validate Email
-        if (!contactForm.email.trim()) {
-            setContactResult({ success: false, message: 'Please enter your email address.' });
-            setContactLoading(false);
-            return;
+        if (!contactForm.name.trim() || contactForm.name.trim().length < 2) {
+            setContactResult({ success: false, message: 'Please enter your name (at least 2 characters).' });
+            setContactLoading(false); return;
         }
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(contactForm.email.trim())) {
-            setContactResult({ success: false, message: 'Please enter a valid email address (e.g., example@domain.com).' });
-            setContactLoading(false);
-            return;
+            setContactResult({ success: false, message: 'Please enter a valid email address.' });
+            setContactLoading(false); return;
         }
-        if (contactForm.email.trim().length > 254) {
-            setContactResult({ success: false, message: 'Email address is too long.' });
-            setContactLoading(false);
-            return;
+        if (!contactForm.message.trim() || contactForm.message.trim().length < 10) {
+            setContactResult({ success: false, message: 'Message must be at least 10 characters.' });
+            setContactLoading(false); return;
         }
-        // Check for common typos in email domains
-        const emailDomain = contactForm.email.split('@')[1]?.toLowerCase();
-        const commonTypos: Record<string, string> = {
-            'gmial.com': 'gmail.com',
-            'gmal.com': 'gmail.com',
-            'gamil.com': 'gmail.com',
-            'gmail.con': 'gmail.com',
-            'gmail.co': 'gmail.com',
-            'hotmal.com': 'hotmail.com',
-            'hotmai.com': 'hotmail.com',
-            'yaho.com': 'yahoo.com',
-            'yahooo.com': 'yahoo.com',
-        };
-        if (emailDomain && commonTypos[emailDomain]) {
-            setContactResult({ success: false, message: `Did you mean ${contactForm.email.split('@')[0]}@${commonTypos[emailDomain]}?` });
-            setContactLoading(false);
-            return;
-        }
-
-        // Validate Phone (optional but if provided, must be valid)
-        if (contactForm.phone.trim()) {
-            // Remove all non-digit characters for validation
-            const phoneDigits = contactForm.phone.replace(/\D/g, '');
-
-            if (phoneDigits.length < 9) {
-                setContactResult({ success: false, message: 'Phone number must have at least 9 digits.' });
-                setContactLoading(false);
-                return;
-            }
-            if (phoneDigits.length > 15) {
-                setContactResult({ success: false, message: 'Phone number is too long (max 15 digits).' });
-                setContactLoading(false);
-                return;
-            }
-            // Check for valid phone format (allows +, spaces, dashes, parentheses)
-            const phoneRegex = /^[\d\s\-+()]+$/;
-            if (!phoneRegex.test(contactForm.phone)) {
-                setContactResult({ success: false, message: 'Phone number contains invalid characters. Use only digits, +, -, (), or spaces.' });
-                setContactLoading(false);
-                return;
-            }
-            // Vietnam phone validation (if starts with 0 or +84)
-            if (phoneDigits.startsWith('84') || phoneDigits.startsWith('0')) {
-                const vnPhone = phoneDigits.startsWith('84') ? phoneDigits.slice(2) : phoneDigits.slice(1);
-                if (vnPhone.length !== 9) {
-                    setContactResult({ success: false, message: 'Vietnamese phone number must have 10 digits (e.g., 0901234567).' });
-                    setContactLoading(false);
-                    return;
-                }
-            }
-        }
-
-        // Validate Message
-        if (!contactForm.message.trim()) {
-            setContactResult({ success: false, message: 'Please enter your message.' });
-            setContactLoading(false);
-            return;
-        }
-        if (contactForm.message.trim().length < 10) {
-            setContactResult({ success: false, message: 'Message must be at least 10 characters long.' });
-            setContactLoading(false);
-            return;
-        }
-        if (contactForm.message.trim().length > 2000) {
-            setContactResult({ success: false, message: 'Message is too long (max 2000 characters).' });
-            setContactLoading(false);
-            return;
-        }
-
         try {
             const response = await api.post('/api/app/contact', contactForm);
             setContactResult(response.data);
             if (response.data.success) {
                 setContactForm({ name: '', email: '', phone: '', message: '' });
-                setTimeout(() => {
-                    setShowContactForm(false);
-                    setContactResult(null);
-                }, 3000);
+                setTimeout(() => { setShowContactForm(false); setContactResult(null); }, 3000);
             }
-        } catch (error: unknown) {
-            // Handle different error types
-            let errorMessage = 'Failed to send message. Please try again.';
-
-            if (error && typeof error === 'object' && 'response' in error) {
-                const axiosError = error as { response?: { status?: number; data?: { message?: string; detail?: string } } };
-                const status = axiosError.response?.status;
-                const data = axiosError.response?.data;
-
-                if (status === 400) {
-                    errorMessage = data?.message || data?.detail || 'Invalid form data. Please check your inputs.';
-                } else if (status === 422) {
-                    errorMessage = 'Invalid email format. Please enter a valid email address.';
-                } else if (status === 429) {
-                    errorMessage = 'Too many requests. Please wait a moment and try again.';
-                } else if (status === 500) {
-                    errorMessage = 'Server error. Please try again later or email us directly at careersystemai@gmail.com';
-                } else if (status === 503) {
-                    errorMessage = 'Service temporarily unavailable. Please try again later.';
-                } else if (status === 404) {
-                    errorMessage = 'Service not available. Please email us directly at careersystemai@gmail.com';
-                }
-            } else if (error instanceof Error) {
-                if (error.message.includes('Network Error') || error.message.includes('ERR_NETWORK')) {
-                    errorMessage = 'Network error. Please check your internet connection and try again.';
-                } else if (error.message.includes('timeout')) {
-                    errorMessage = 'Request timed out. Please try again.';
-                }
-            }
-
-            setContactResult({ success: false, message: errorMessage });
+        } catch {
+            setContactResult({ success: false, message: 'Failed to send. Please email careersystemai@gmail.com' });
         } finally {
             setContactLoading(false);
         }
     };
 
-    // --- LOGIC ---
-
-    // --- DATA ---
     const testimonials = [
         { name: 'Sarah Nguyen', role: 'Software Engineer', text: "The insights were incredibly accurate. I finally understand why certain careers appeal to me.", initial: 'S', color: 'bg-indigo-500' },
         { name: 'Michael Chen', role: 'Product Manager', text: "A game-changer for my career planning. The roadmap gave me clear direction.", initial: 'M', color: 'bg-emerald-500' },
@@ -314,19 +175,17 @@ const HomePage = () => {
     return (
         <div className="selection:bg-green-100 selection:text-green-900 overflow-x-hidden">
 
-            {/* --- CSS INJECTION --- */}
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-                
-                /* Animations */
+
                 @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 @keyframes scroll-reverse { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
                 @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
-                @keyframes blob { 
-                    0% { transform: translate(0px, 0px) scale(1); } 
-                    33% { transform: translate(30px, -50px) scale(1.1); } 
-                    66% { transform: translate(-20px, 20px) scale(0.9); } 
-                    100% { transform: translate(0px, 0px) scale(1); } 
+                @keyframes blob {
+                    0% { transform: translate(0px, 0px) scale(1); }
+                    33% { transform: translate(30px, -50px) scale(1.1); }
+                    66% { transform: translate(-20px, 20px) scale(0.9); }
+                    100% { transform: translate(0px, 0px) scale(1); }
                 }
                 @keyframes shimmer {
                     0% { background-position: 200% 0; }
@@ -339,7 +198,7 @@ const HomePage = () => {
                 .animate-blob { animation: blob 7s infinite; }
                 .animation-delay-2000 { animation-delay: 2s; }
                 .animation-delay-4000 { animation-delay: 4s; }
-                
+
                 .animate-shimmer {
                     background: linear-gradient(90deg, rgba(34,197,94,0) 0%, rgba(34,197,94,0.1) 50%, rgba(34,197,94,0) 100%);
                     background-size: 200% 100%;
@@ -362,11 +221,8 @@ const HomePage = () => {
                     background-clip: text;
                 }
 
-                .group:hover .animate-scroll, .group:hover .animate-scroll-reverse { animation-play-state: paused; }
-
-                /* Patterns & Glass */
                 .bg-grid-pattern {
-                    background-image: 
+                    background-image:
                         linear-gradient(to right, rgba(34, 197, 94, 0.05) 1px, transparent 1px),
                         linear-gradient(to bottom, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
                     background-size: 40px 40px;
@@ -383,14 +239,6 @@ const HomePage = () => {
                     border: 1px solid rgba(255, 255, 255, 0.05);
                     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
                 }
-                
-                /* Custom UI shapes for Bento Grid */
-                .skeleton-line {
-                    height: 8px;
-                    border-radius: 4px;
-                    background: #e5e7eb;
-                }
-                .dark .skeleton-line { background: #374151; }
             `}</style>
 
             <main>
@@ -404,7 +252,6 @@ const HomePage = () => {
                     </div>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                        {/* Split layout: text left, visual right */}
                         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
                             {/* LEFT — text */}
@@ -427,7 +274,6 @@ const HomePage = () => {
 
                                 <div className="flex flex-col sm:flex-row items-start gap-4">
                                     <Link to="/assessment" className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 relative overflow-hidden group uppercase tracking-wide">
-                                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></span>
                                         {t('home.hero.cta')}
                                         <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                     </Link>
@@ -439,16 +285,13 @@ const HomePage = () => {
 
                             {/* RIGHT — dashboard mockup */}
                             <div className="flex-1 w-full max-w-lg lg:max-w-none animate-fade-in-up relative" style={{ animationDelay: '0.2s' }}>
-                                {/* Main dark card */}
                                 <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e2d4a 100%)' }}>
-                                    {/* Header bar */}
                                     <div className="flex items-center gap-2 px-5 py-3 border-b border-white/10">
                                         <span className="w-2.5 h-2.5 rounded-full bg-red-400 opacity-80"></span>
                                         <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 opacity-80"></span>
                                         <span className="w-2.5 h-2.5 rounded-full bg-green-400 opacity-80"></span>
                                         <span className="ml-3 text-xs text-white/40 font-mono tracking-widest">• CAREER AI</span>
                                     </div>
-                                    {/* Chart area */}
                                     <div className="p-6">
                                         <div className="flex items-end justify-between h-36 gap-1.5 mb-4">
                                             {[35,55,42,70,58,85,65,90,72,80,60,95].map((h, i) => (
@@ -463,7 +306,6 @@ const HomePage = () => {
                                     </div>
                                 </div>
 
-                                {/* Floating market pulse card */}
                                 <div className="absolute -bottom-5 -right-4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl border border-gray-100 dark:border-gray-700 min-w-[180px]">
                                     <div className="flex items-center gap-1.5 mb-1.5">
                                         <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
@@ -475,29 +317,23 @@ const HomePage = () => {
                             </div>
                         </div>
 
-                        {/* ── 3 feature mini-cards ── */}
+                        {/* 3 feature mini-cards */}
                         <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6">
                             {[
                                 {
-                                    icon: (
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    ),
+                                    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
                                     color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
                                     title: t('home.features.assessment.title'),
                                     desc: t('home.features.assessment.shortDesc', 'Deep-dive cognitive and technical evaluation to uncover your hidden competitive edges.'),
                                 },
                                 {
-                                    icon: (
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                                    ),
+                                    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
                                     color: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
                                     title: t('home.features.skillGap.title'),
                                     desc: t('home.features.skillGap.shortDesc', 'Real-time data scraping from global sectors to identify emerging talent vacuums.'),
                                 },
                                 {
-                                    icon: (
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                    ),
+                                    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
                                     color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
                                     title: 'Mentor Network',
                                     desc: t('home.features.mentor.shortDesc', 'Direct access to industry architects who have already navigated the paths you seek.'),
@@ -519,19 +355,10 @@ const HomePage = () => {
                 <div className="border-y border-gray-200 dark:border-gray-700/50 py-10 overflow-hidden relative" style={{ background: 'var(--neu-bg)' }}>
                     <div className="absolute inset-y-0 left-0 w-32 z-10" style={{ background: 'linear-gradient(to right, var(--neu-bg), transparent)' }}></div>
                     <div className="absolute inset-y-0 right-0 w-32 z-10" style={{ background: 'linear-gradient(to left, var(--neu-bg), transparent)' }}></div>
-                    <div className="flex w-max animate-scroll hover:pause">
+                    <div className="flex w-max animate-scroll">
                         {[...Array(2)].map((_, i) => (
                             <div key={i} className="flex gap-20 px-12 items-center">
-                                {[
-                                    'RIASEC Assessment',
-                                    'Big Five Analysis',
-                                    'AI Career Matching',
-                                    'Learning Roadmaps',
-                                    '900+ Careers',
-                                    'Skill Gap Analysis',
-                                    'AI Assistant',
-                                    'PDF Reports'
-                                ].map((text, idx) => (
+                                {['RIASEC Assessment','Big Five Analysis','AI Career Matching','Learning Roadmaps','900+ Careers','Skill Gap Analysis','AI Assistant','PDF Reports'].map((text, idx) => (
                                     <span key={idx} className="text-xl font-bold tracking-wide text-gray-400 hover:text-green-600 dark:text-gray-500 dark:hover:text-green-400 select-none transition-colors duration-300 whitespace-nowrap uppercase">
                                         {text}
                                     </span>
@@ -547,12 +374,15 @@ const HomePage = () => {
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">{t('home.features.sectionTitle')} <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700">{t('home.features.sectionHighlight')}</span></h2>
+                            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
+                                {t('home.features.sectionTitle')} <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700">{t('home.features.sectionHighlight')}</span>
+                            </h2>
                             <p className="text-lg text-gray-500 dark:text-gray-400">{t('home.features.sectionSubtitle')}</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-2 gap-6 h-auto md:h-[650px]">
-                            {/* Feature 1: Large - Career Assessment */}
+                            {/* Feature 1: Large */}
                             <div className="md:col-span-4 md:row-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
                                 <div className="absolute top-0 right-0 w-96 h-96 bg-green-500/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-green-500/20 transition-colors duration-500"></div>
                                 <div className="relative z-10 h-full flex flex-col">
@@ -562,7 +392,6 @@ const HomePage = () => {
                                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">{t('home.features.assessment.title')}</h3>
                                     <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">{t('home.features.assessment.desc')}</p>
 
-                                    {/* Abstract UI Representation - Assessment Visual */}
                                     <div className="mt-auto relative w-full h-64 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-inner transform group-hover:scale-[1.02] transition-transform duration-500 flex flex-col gap-4 overflow-hidden">
                                         <div className="flex items-center gap-4 mb-2">
                                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold">R</div>
@@ -575,7 +404,6 @@ const HomePage = () => {
                                             </div>
                                         </div>
                                         <div className="w-full h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
-                                        {/* RIASEC Progress Bars */}
                                         <div className="space-y-2">
                                             {[{ l: 'Realistic', w: '75%', c: 'bg-red-400' }, { l: 'Investigative', w: '85%', c: 'bg-yellow-400' }, { l: 'Artistic', w: '60%', c: 'bg-green-400' }, { l: 'Social', w: '90%', c: 'bg-blue-400' }].map((item, i) => (
                                                 <div key={i} className="flex items-center gap-2">
@@ -586,8 +414,6 @@ const HomePage = () => {
                                                 </div>
                                             ))}
                                         </div>
-
-                                        {/* Floating Badge */}
                                         <div className="absolute bottom-6 right-6 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 flex items-center gap-2 animate-bounce">
                                             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                                             <span className="text-xs font-bold text-gray-700 dark:text-gray-200">Match: 95%</span>
@@ -596,7 +422,7 @@ const HomePage = () => {
                                 </div>
                             </div>
 
-                            {/* Feature 2: Small - Skills */}
+                            {/* Feature 2 */}
                             <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative">
                                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all"></div>
                                 <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 text-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:rotate-12 transition-transform">
@@ -604,18 +430,14 @@ const HomePage = () => {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.features.skillGap.title')}</h3>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('home.features.skillGap.desc')}</p>
-                                {/* Abstract Chart */}
                                 <div className="flex items-end justify-between h-24 px-2 pb-2">
                                     {[40, 70, 50, 90, 60].map((h, i) => (
-                                        <div key={i} className="w-1/6 bg-gray-100 dark:bg-gray-700 rounded-t-md relative overflow-hidden group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors" style={{ height: `${h}%` }}>
-                                            <div className="absolute bottom-0 left-0 w-full bg-purple-500 transition-all duration-1000 ease-out" style={{ height: '0%', animation: `grow ${1 + i * 0.2}s forwards` }}></div>
-                                        </div>
+                                        <div key={i} className="w-1/6 bg-gray-100 dark:bg-gray-700 rounded-t-md relative overflow-hidden group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors" style={{ height: `${h}%` }}></div>
                                     ))}
-                                    <style>{`@keyframes grow { to { height: 100%; } }`}</style>
                                 </div>
                             </div>
 
-                            {/* Feature 3: Small - Career Roadmap */}
+                            {/* Feature 3 */}
                             <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative">
                                 <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all"></div>
                                 <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:-rotate-12 transition-transform">
@@ -623,7 +445,6 @@ const HomePage = () => {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.features.roadmap.title')}</h3>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('home.features.roadmap.desc')}</p>
-                                {/* Abstract Roadmap Animation */}
                                 <div className="relative w-full h-24 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                                     <div className="flex items-center gap-3">
                                         {[1, 2, 3, 4].map((step) => (
@@ -639,7 +460,7 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* --- HOW IT WORKS (Timeline) --- */}
+                {/* --- HOW IT WORKS --- */}
                 <section className="py-24 relative" style={{ background: 'var(--neu-bg)' }}>
                     <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-gray-50 dark:from-gray-800/50 to-transparent"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -650,9 +471,7 @@ const HomePage = () => {
                         </div>
 
                         <div className="relative">
-                            {/* Line connecting steps */}
                             <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-100 dark:bg-gray-800 -translate-x-1/2"></div>
-
                             {[
                                 { title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc'), icon: "1", align: "left" },
                                 { title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc'), icon: "2", align: "right" },
@@ -677,26 +496,16 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* --- STATISTICS (Animated Counter) --- */}
+                {/* --- STATISTICS --- */}
                 <section className="py-20 bg-green-600 relative overflow-hidden">
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                     <div className="absolute -top-40 -right-40 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
                     <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
-
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                            <CounterItem
-                                value={`${stats?.totalAssessments ?? 0}+`}
-                                label={t('home.stats.assessments')}
-                            />
-                            <CounterItem
-                                value={`${stats?.totalCareerPaths ?? 0}+`}
-                                label={t('home.stats.careerPaths')}
-                            />
-                            <CounterItem
-                                value={`${Math.round((stats?.totalCareerInfo ?? 20000) / 1000)}K+`}
-                                label={t('home.stats.careerData')}
-                            />
+                            <CounterItem value={`${stats?.totalAssessments ?? 0}+`} label={t('home.stats.assessments')} />
+                            <CounterItem value={`${stats?.totalCareerPaths ?? 0}+`} label={t('home.stats.careerPaths')} />
+                            <CounterItem value={`${Math.round((stats?.totalCareerInfo ?? 20000) / 1000)}K+`} label={t('home.stats.careerData')} />
                         </div>
                     </div>
                 </section>
@@ -706,12 +515,9 @@ const HomePage = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center">
                         <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">{t('home.testimonials.title')}</h2>
                     </div>
-
-                    <div className="relative group hover:cursor-grab active:cursor-grabbing">
-                        {/* Gradient Masks */}
+                    <div className="relative">
                         <div className="absolute top-0 left-0 h-full w-24 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
                         <div className="absolute top-0 right-0 h-full w-24 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
-
                         <div className="flex w-max animate-scroll gap-6 mb-6">
                             {row1.map((item, idx) => (
                                 <div key={`r1-${idx}`} className="w-[380px] bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg transition-all duration-300">
@@ -721,9 +527,7 @@ const HomePage = () => {
                                             <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
-                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">
-                                            {[...Array(5)].map((_, i) => <span key={i}>★</span>)}
-                                        </div>
+                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300 italic text-sm leading-relaxed">"{item.text}"</p>
                                 </div>
@@ -738,9 +542,7 @@ const HomePage = () => {
                                             <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
-                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">
-                                            {[...Array(5)].map((_, i) => <span key={i}>★</span>)}
-                                        </div>
+                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300 italic text-sm leading-relaxed">"{item.text}"</p>
                                 </div>
@@ -749,7 +551,7 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* --- FAQ SECTION --- */}
+                {/* --- FAQ --- */}
                 <section className="py-24 bg-gray-50 dark:bg-gray-800/50">
                     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
@@ -766,19 +568,16 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* --- PRE-FOOTER CTA & CONTACT --- */}
+                {/* --- CTA & CONTACT --- */}
                 <section className="py-24 relative overflow-hidden">
                     <div className="absolute inset-0" style={{ background: 'var(--neu-bg)' }}></div>
                     <div className="max-w-5xl mx-auto px-4 relative z-10">
                         {/* CTA Card */}
                         <div className="bg-gradient-to-br from-green-600 to-teal-800 rounded-[2.5rem] p-12 md:p-20 shadow-2xl relative overflow-hidden group mb-16">
-                            {/* Decorative circles */}
                             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-black opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
-
                             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 relative z-10 text-center">{t('home.cta.title')}</h2>
                             <p className="text-green-100 text-lg mb-10 max-w-2xl mx-auto relative z-10 text-center">{t('home.cta.subtitle')}</p>
-
                             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
                                 <Link to="/assessment" className="px-8 py-4 bg-white text-green-700 rounded-full font-bold hover:bg-gray-100 hover:scale-105 transition-all shadow-lg text-center">
                                     {t('home.cta.btn')}
@@ -786,149 +585,64 @@ const HomePage = () => {
                             </div>
                         </div>
 
-                        {/* Contact Developer Section */}
+                        {/* Contact */}
                         <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-8 md:p-12 shadow-xl border border-gray-100 dark:border-gray-700">
                             <div className="text-center mb-8">
                                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">{t('home.contact.title')}</h3>
                                 <p className="text-gray-600 dark:text-gray-400">{t('home.contact.subtitle')}</p>
                             </div>
-
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Contact Info */}
                                 <div className="space-y-6">
-                                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600">
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                            </svg>
+                                    {[
+                                        { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, bg: 'bg-green-100 dark:bg-green-900/30 text-green-600', label: 'Email', val: 'careersystemai@gmail.com', href: 'mailto:careersystemai@gmail.com' },
+                                        { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />, bg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600', label: t('home.contact.responseTime'), val: t('home.contact.responseTimeValue') },
+                                        { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />, bg: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600', label: t('home.contact.support'), val: t('home.contact.supportValue') },
+                                    ].map((r, i) => (
+                                        <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                            <div className={`w-12 h-12 ${r.bg} rounded-full flex items-center justify-center`}>
+                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">{r.icon}</svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">{r.label}</p>
+                                                {r.href ? <a href={r.href} className="text-gray-900 dark:text-white font-semibold hover:text-green-600 transition-colors">{r.val}</a> : <p className="text-gray-900 dark:text-white font-semibold">{r.val}</p>}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-                                            <a href="mailto:careersystemai@gmail.com" className="text-gray-900 dark:text-white font-semibold hover:text-green-600 transition-colors">
-                                                careersystemai@gmail.com
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600">
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">{t('home.contact.responseTime')}</p>
-                                            <p className="text-gray-900 dark:text-white font-semibold">{t('home.contact.responseTimeValue')}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600">
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">{t('home.contact.support')}</p>
-                                            <p className="text-gray-900 dark:text-white font-semibold">{t('home.contact.supportValue')}</p>
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
 
-                                {/* Contact Form */}
                                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-100 dark:border-green-800">
                                     {!showContactForm ? (
                                         <div className="flex flex-col justify-center items-center h-full">
                                             <div className="text-6xl mb-4">💬</div>
                                             <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.contact.sendTitle')}</h4>
                                             <p className="text-gray-600 dark:text-gray-400 text-center mb-6">{t('home.contact.sendDesc')}</p>
-                                            <button
-                                                onClick={() => setShowContactForm(true)}
-                                                className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center gap-2"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                </svg>
+                                            <button onClick={() => setShowContactForm(true)} className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg">
                                                 {t('home.contact.btn')}
                                             </button>
                                         </div>
                                     ) : (
                                         <form onSubmit={handleContactSubmit} className="space-y-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.nameLabel')}</label>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    value={contactForm.name}
-                                                    onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                    placeholder={t('home.contact.namePlaceholder')}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.emailLabel')}</label>
-                                                <input
-                                                    type="email"
-                                                    required
-                                                    value={contactForm.email}
-                                                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                    placeholder={t('home.contact.emailPlaceholder')}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.phoneLabel')}</label>
-                                                <input
-                                                    type="tel"
-                                                    value={contactForm.phone}
-                                                    onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                    placeholder={t('home.contact.phonePlaceholder')}
-                                                />
-                                            </div>
+                                            {[
+                                                { label: t('home.contact.nameLabel'), key: 'name', type: 'text', ph: t('home.contact.namePlaceholder') },
+                                                { label: t('home.contact.emailLabel'), key: 'email', type: 'email', ph: t('home.contact.emailPlaceholder') },
+                                                { label: t('home.contact.phoneLabel'), key: 'phone', type: 'tel', ph: t('home.contact.phonePlaceholder') },
+                                            ].map(f => (
+                                                <div key={f.key}>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{f.label}</label>
+                                                    <input type={f.type} value={(contactForm as any)[f.key]} onChange={e => setContactForm({ ...contactForm, [f.key]: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder={f.ph} />
+                                                </div>
+                                            ))}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.messageLabel')}</label>
-                                                <textarea
-                                                    required
-                                                    rows={3}
-                                                    value={contactForm.message}
-                                                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                                                    placeholder={t('home.contact.messagePlaceholder')}
-                                                />
+                                                <textarea required rows={3} value={contactForm.message} onChange={e => setContactForm({ ...contactForm, message: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none" placeholder={t('home.contact.messagePlaceholder')} />
                                             </div>
-
                                             {contactResult && (
-                                                <div className={`p-3 rounded-lg text-sm ${contactResult.success ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                                    {contactResult.message}
-                                                </div>
+                                                <div className={`p-3 rounded-lg text-sm ${contactResult.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{contactResult.message}</div>
                                             )}
-
                                             <div className="flex gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setShowContactForm(false);
-                                                        setContactResult(null);
-                                                    }}
-                                                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                                >
-                                                    {t('common.cancel')}
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    disabled={contactLoading}
-                                                    className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                                >
-                                                    {contactLoading ? (
-                                                        <>
-                                                            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                            </svg>
-                                                            {t('home.contact.sending')}
-                                                        </>
-                                                    ) : t('home.contact.sendBtn')}
+                                                <button type="button" onClick={() => { setShowContactForm(false); setContactResult(null); }} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">{t('common.cancel')}</button>
+                                                <button type="submit" disabled={contactLoading} className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                                                    {contactLoading ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>{t('home.contact.sending')}</> : t('home.contact.sendBtn')}
                                                 </button>
                                             </div>
                                         </form>
@@ -938,7 +652,6 @@ const HomePage = () => {
                         </div>
                     </div>
                 </section>
-
             </main>
         </div>
     );

@@ -1,8 +1,7 @@
 import React from 'react';
 import {
   CheckCircle, XCircle, BarChart2, AlertCircle, AlertTriangle,
-  Star, Bot, BookOpen, GraduationCap, Tv, Book, Lightbulb,
-  Monitor, Mic, Download, Target, Circle
+  Star, Bot, BookOpen, Mic, Download, Target, Circle
 } from 'lucide-react';
 import { SkillGapAnalysis } from '../../types/skillGap';
 import './SkillGapResult.css';
@@ -331,99 +330,6 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           </div>
         </div>
       </div>
-
-      {/* Recommended Learning Path */}
-      {analysis.match_percentage < 100 && (
-        <div className="learning-path-section">
-          <h3 className="section-title-main">
-            <span className="title-icon"><BookOpen size={20} color="#16a34a" /></span>
-            Lộ trình học tập được đề xuất
-          </h3>
-          <p className="section-description">
-            Lộ trình học tập được AI đề xuất dựa trên kỹ năng bạn cần bổ sung
-          </p>
-
-          <div className="learning-path-grid">
-            {(() => {
-              const allGaps = [
-                ...(analysis.skill_gaps?.critical || []),
-                ...(analysis.skill_gaps?.important || []),
-                ...(analysis.skill_gaps?.nice_to_have || [])
-              ];
-
-              if (allGaps.length > 0) {
-                return allGaps.slice(0, 6).map((skill, index) => (
-                  <div key={index} className="learning-card">
-                    <div className="learning-header">
-                      <span className="learning-icon">{getPriorityIcon(skill.importance)}</span>
-                      <h4 className="learning-skill">{skill.name}</h4>
-                    </div>
-                    <p className="learning-category">{skill.category}</p>
-                    <div className="learning-resources">
-                      <a href={`https://www.udemy.com/courses/search/?q=${encodeURIComponent(skill.name)}`}
-                         target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <GraduationCap size={14} /> Khóa học Udemy
-                      </a>
-                      <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(skill.name + ' tutorial')}`}
-                         target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <Tv size={14} /> Video YouTube
-                      </a>
-                      <a href={`https://www.google.com/search?q=${encodeURIComponent(skill.name + ' documentation')}`}
-                         target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <Book size={14} /> Tài liệu
-                      </a>
-                    </div>
-                    <div className="learning-priority">
-                      {skill.importance && skill.importance >= 0.8 && (
-                        <span className="priority-badge critical">Ưu tiên cao</span>
-                      )}
-                      {skill.importance && skill.importance >= 0.5 && skill.importance < 0.8 && (
-                        <span className="priority-badge important">Ưu tiên trung bình</span>
-                      )}
-                      {skill.importance && skill.importance < 0.5 && (
-                        <span className="priority-badge nice">Nên học</span>
-                      )}
-                    </div>
-                  </div>
-                ));
-              } else {
-                return (
-                  <div className="learning-card generic">
-                    <div className="learning-header">
-                      <span className="learning-icon"><Lightbulb size={18} color="#f59e0b" /></span>
-                      <h4 className="learning-skill">Tiếp tục phát triển</h4>
-                    </div>
-                    <p className="learning-description">
-                      Tham gia các khóa học và dự án thực tế để nâng cao kỹ năng hiện có.
-                    </p>
-                    <div className="learning-resources">
-                      <a href="https://www.coursera.org/" target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <GraduationCap size={14} /> Coursera
-                      </a>
-                      <a href="https://www.udemy.com/" target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <GraduationCap size={14} /> Udemy
-                      </a>
-                      <a href="https://www.freecodecamp.org/" target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <Monitor size={14} /> FreeCodeCamp
-                      </a>
-                    </div>
-                  </div>
-                );
-              }
-            })()}
-          </div>
-
-          {analysis.missing_skills_count > 0 && (
-            <div className="learning-summary">
-              <p>
-                <BarChart2 size={16} style={{ display: 'inline', marginRight: 4 }} />
-                Tổng quan: Bạn cần học thêm <strong>{analysis.missing_skills_count} kỹ năng</strong> để đạt mức độ phù hợp cao hơn.
-                Ước tính thời gian: <strong>{Math.ceil(analysis.missing_skills_count * 2)} - {Math.ceil(analysis.missing_skills_count * 4)} tuần</strong>.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Action Buttons */}
       <div className="action-buttons">

@@ -74,7 +74,7 @@ const CareerDetailPage = () => {
                       <p className="text-sm font-mono" style={{ color: 'var(--neu-btn-text, #ffffff)', opacity: 0.7 }}>O*NET Code: {detail.onet_code}</p>
                     </div>
                     <div className="flex-shrink-0">
-                      <Link to={`/careers/${idOrSlug}/roadmap`} className="group inline-flex items-center px-6 py-3 rounded-xl font-bold text-base transition-all hover:-translate-y-1" style={{ background: 'var(--neu-bg-card)', color: 'var(--neu-accent)', boxShadow: 'var(--neu-raised-sm)' }}>
+                      <Link to={`/careers/${idOrSlug}/roadmap`} className="group inline-flex items-center px-6 py-3 rounded-xl font-bold text-base transition-all hover:-translate-y-1" style={{ background: 'rgba(255,255,255,0.18)', color: '#ffffff', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(8px)' }}>
                         Xem Lộ Trình Học Tập
                         <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                       </Link>

@@ -497,10 +497,21 @@
 
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .res-content { padding: 1.5rem 1rem; }
-  .res-hero { padding: 1.75rem 1.5rem; }
-  .res-hero h1 { font-size: 1.6rem; }
-  .res-section { padding: 1.5rem 1.25rem; }
-  .res-tabs { gap: 0; }
-  .res-tab-btn { padding: 0.65rem 0.75rem; font-size: 0.82rem; }
+  .res-content { padding: 1.5rem 0.75rem; }
+  .res-hero { padding: 1.5rem 1rem; }
+  .res-hero h1 { font-size: 1.4rem; }
+  .res-section { padding: 1.25rem 1rem; }
+  .res-tabs { gap: 0; flex-wrap: wrap; }
+  .res-tab-btn { padding: 0.55rem 0.65rem; font-size: 0.79rem; }
+  .res-chart-inner { height: 260px !important; }
+  .res-chart-inner.sm { height: 220px !important; }
+}
+
+@media (max-width: 480px) {
+  .res-content { padding: 1rem 0.5rem; }
+  .res-hero h1 { font-size: 1.2rem; }
+  .res-hero p { font-size: 0.85rem; }
+  .res-chart-inner { height: 220px !important; }
+  .res-chart-inner.sm { height: 180px !important; }
+  .res-tab-btn { font-size: 0.75rem; padding: 0.5rem; }
 }

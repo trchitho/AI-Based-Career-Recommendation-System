@@ -163,7 +163,6 @@ const SubscriptionStatusCard = ({
                       case 'career_view':
                         return {
                           name: 'Career View',
-                          icon: null,
                           description: currentPlan === 'free' ? 'View only 1 career' :
                             currentPlan === 'basic' ? 'View 5 best matching careers' :
                               'Full career catalog'
@@ -171,7 +170,6 @@ const SubscriptionStatusCard = ({
                       case 'assessment':
                         return {
                           name: 'Assessments',
-                          icon: null,
                           description: currentPlan === 'free' ? '5 tests/month' :
                             currentPlan === 'basic' ? '20 tests/month' :
                               'Unlimited tests'
@@ -179,13 +177,12 @@ const SubscriptionStatusCard = ({
                       case 'roadmap_level':
                         return {
                           name: 'Roadmap Level',
-                          icon: null,
                           description: currentPlan === 'free' ? 'Level 1 only' :
                             currentPlan === 'basic' ? 'Level 1-2 access' :
                               'All levels access'
                         };
                       default:
-                        return { name: feature, icon: null, description: '' };
+                        return { name: feature, description: '' };
                     }
                   };
 

@@ -72,17 +72,15 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
       </div>
 
       {/* Footer Action */}
-      <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between group/btn">
-        <span className="text-sm font-bold text-gray-400 group-hover/btn:text-gray-600 dark:group-hover/btn:text-gray-300 transition-colors">
+      <div className="mt-auto pt-5 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <span className="text-sm font-semibold text-green-600 dark:text-green-400 group-hover:underline transition-colors">
           View Career Details
         </span>
-        <button
-          className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-green-500/30"
-        >
-          <svg className="w-5 h-5 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        <div className="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center shadow-md group-hover:bg-green-700 transition-all duration-200">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
-        </button>
+        </div>
       </div>
     </div>
   );

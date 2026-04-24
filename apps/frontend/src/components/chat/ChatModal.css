@@ -6,14 +6,27 @@
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  padding: 24px;
+  padding: 16px;
   pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .chat-modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .chat-modal {
+    width: 100vw;
+    height: 90vh;
+    border-radius: 20px 20px 0 0;
+  }
 }
 
 .chat-modal {
   pointer-events: all;
-  width: 360px;
-  height: 520px;
+  width: min(360px, calc(100vw - 24px));
+  height: min(520px, calc(100vh - 80px));
   background: var(--neu-bg-card, #f0f0f3);
   border-radius: 20px;
   box-shadow: 0 24px 64px rgba(0,0,0,0.25);

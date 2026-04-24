@@ -8,9 +8,11 @@ import {
   MenteeProfileCreate,
   MentorProfileCreate,
 } from '../services/mentorMatchingService';
+import { scheduleService, MentorSession } from '../services/scheduleService';
+import BookingModal from '../components/chat/BookingModal';
 import './MentorMatchingPage.css';
 
-type Tab = 'find' | 'requests' | 'become';
+type Tab = 'find' | 'requests' | 'become' | 'schedule';
 
 /* ── tag-input helper ── */
 function TagInput({
@@ -88,6 +90,12 @@ const MentorMatchingPage = () => {
   const [myRequests, setMyRequests] = useState<MentorshipRequest[]>([]);
   const [reqLoading, setReqLoading] = useState(false);
 
+  /* ── schedule ── */
+  const [sessions, setSessions] = useState<MentorSession[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [bookingTarget, setBookingTarget] = useState<{ userId: number; name: string } | null>(null);
+  const [respondingId, setRespondingId] = useState<number | null>(null);
+
   /* ── become mentor form ── */
   const [mentorProfile, setMentorProfile] = useState<MentorProfileCreate>({
     full_name: user?.email?.split('@')[0] || '',
@@ -129,18 +137,28 @@ const MentorMatchingPage = () => {
       setHasProfile(false);
     })();
 
-    // Pre-load mentor profile for "Become Mentor" tab
-    (async () => {
-      try {
-        const mp = await mentorMatchingService.getMentorProfile();
-        setMentorProfile(prev => ({ ...prev, ...mp }));
-      } catch { /* no mentor profile yet — will auto-populate on demand */ }
-    })();
+    // Mentor profile is loaded lazily when user opens the "Become Mentor" tab
   }, []);
 
   useEffect(() => {
     if (tab === 'requests') loadRequests();
+    if (tab === 'schedule') loadSessions();
+    if (tab === 'become') {
+      mentorMatchingService.getMentorProfile()
+        .then(mp => setMentorProfile(prev => ({ ...prev, ...mp })))
+        .catch(() => { /* no mentor profile yet */ });
+    }
   }, [tab]);
+
+  const loadSessions = async () => {
+    setSessionsLoading(true);
+    try {
+      const data = await scheduleService.mySessions();
+      setSessions(data);
+    } catch { /* ignore */ } finally {
+      setSessionsLoading(false);
+    }
+  };
 
   const loadMentors = async () => {
     setMentorsLoading(true);
@@ -288,6 +306,9 @@ const MentorMatchingPage = () => {
             <button className={`mm-tab${tab === 'requests' ? ' active' : ''}`} onClick={() => setTab('requests')}>
               📋 Yêu cầu của tôi
               {pendingCount > 0 && <span className="mm-tab-count">{pendingCount}</span>}
+            </button>
+            <button className={`mm-tab${tab === 'schedule' ? ' active' : ''}`} onClick={() => setTab('schedule')}>
+              📅 Lịch hẹn
             </button>
             <button className={`mm-tab${tab === 'become' ? ' active' : ''}`} onClick={() => setTab('become')}>
               🌟 Trở thành Mentor
@@ -465,14 +486,28 @@ const MentorMatchingPage = () => {
                             <span>👥 {m.current_mentees_count}/{m.max_mentees} mentees</span>
                           </div>
 
-                          {/* Action */}
-                          <button
-                            className={`mm-request-btn${isSent ? ' sent' : ''}`}
-                            disabled={isFull || isSent}
-                            onClick={() => openModal(m)}
-                          >
-                            {isSent ? '✓ Đã gửi yêu cầu' : isFull ? 'Đã đầy slot' : 'Gửi yêu cầu'}
-                          </button>
+                          {/* Actions */}
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              className={`mm-request-btn${isSent ? ' sent' : ''}`}
+                              disabled={isFull || isSent}
+                              onClick={() => openModal(m)}
+                              style={{ flex: 1 }}
+                            >
+                              {isSent ? '✓ Đã gửi yêu cầu' : isFull ? 'Đã đầy slot' : 'Gửi yêu cầu'}
+                            </button>
+                            <button
+                              onClick={() => setBookingTarget({ userId: m.mentor_id, name: m.mentor_name })}
+                              title="Đặt lịch hẹn"
+                              style={{
+                                padding: '0 0.9rem',
+                                borderRadius: 10, border: '1.5px solid #8b5cf6',
+                                background: 'rgba(139,92,246,0.08)', color: '#7c3aed',
+                                cursor: 'pointer', fontSize: '1rem', fontWeight: 700,
+                                flexShrink: 0,
+                              }}
+                            >📅</button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -544,7 +579,181 @@ const MentorMatchingPage = () => {
           )}
 
           {/* ══════════════════════════════════
-              TAB 3 — Become a Mentor
+              TAB 3 — Schedule
+              ══════════════════════════════════ */}
+          {tab === 'schedule' && (
+            <>
+              {sessionsLoading && (
+                <div className="mm-loading">
+                  <div className="mm-spinner" />
+                  <span>Đang tải lịch hẹn...</span>
+                </div>
+              )}
+
+              {!sessionsLoading && sessions.length === 0 && (
+                <div className="mm-empty">
+                  <div className="mm-empty-icon">📅</div>
+                  <h3>Chưa có lịch hẹn nào</h3>
+                  <p>Nhấn nút 📅 trong cửa sổ chat để đặt lịch hẹn với mentor.</p>
+                </div>
+              )}
+
+              {!sessionsLoading && sessions.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  {sessions.map(s => {
+                    const dt = new Date(s.scheduled_at);
+                    const isMentor = s.role === 'mentor';
+                    const statusColor: Record<string, string> = {
+                      pending: '#f59e0b',
+                      confirmed: '#10b981',
+                      cancelled: '#ef4444',
+                      completed: '#6b7280',
+                    };
+                    const statusLabel: Record<string, string> = {
+                      pending: 'Chờ xác nhận',
+                      confirmed: 'Đã xác nhận',
+                      cancelled: 'Đã huỷ',
+                      completed: 'Hoàn thành',
+                    };
+                    return (
+                      <div key={s.id} style={{
+                        background: 'var(--neu-bg-card)',
+                        borderRadius: 14,
+                        boxShadow: 'var(--neu-raised-sm)',
+                        padding: '1rem 1.25rem',
+                        display: 'flex', gap: '1rem', alignItems: 'flex-start',
+                      }}>
+                        {/* Date block */}
+                        <div style={{
+                          minWidth: 56, textAlign: 'center',
+                          background: 'var(--neu-bg)', borderRadius: 10,
+                          padding: '0.5rem 0.25rem',
+                          boxShadow: 'var(--neu-pressed-sm)',
+                        }}>
+                          <div style={{ fontSize: '1.4rem', fontWeight: 800, lineHeight: 1, color: '#8b5cf6' }}>
+                            {dt.getDate()}
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--neu-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+                            {dt.toLocaleString('vi-VN', { month: 'short' })}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--neu-text)', marginTop: 2 }}>
+                            {dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--neu-text)' }}>
+                              {isMentor ? s.mentee_name : s.mentor_name}
+                            </span>
+                            <span style={{
+                              fontSize: '0.72rem', fontWeight: 700, padding: '0.15rem 0.55rem',
+                              borderRadius: 20, background: statusColor[s.status] + '22',
+                              color: statusColor[s.status],
+                            }}>
+                              {statusLabel[s.status] || s.status}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--neu-text-muted)' }}>
+                              · {s.duration_minutes} phút · {isMentor ? 'Bạn là mentor' : 'Bạn là mentee'}
+                            </span>
+                          </div>
+                          {s.topic && (
+                            <div style={{ fontSize: '0.85rem', color: 'var(--neu-text)', marginBottom: '0.15rem' }}>
+                              📌 {s.topic}
+                            </div>
+                          )}
+                          {s.notes && (
+                            <div style={{ fontSize: '0.8rem', color: 'var(--neu-text-muted)' }}>
+                              {s.notes}
+                            </div>
+                          )}
+                          {s.mentor_note && (
+                            <div style={{ fontSize: '0.8rem', color: '#065f46', marginTop: '0.2rem' }}>
+                              💬 Phản hồi: {s.mentor_note}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flexShrink: 0 }}>
+                          {/* Mentor: confirm/cancel pending sessions */}
+                          {isMentor && s.status === 'pending' && (
+                            <>
+                              <button
+                                disabled={respondingId === s.id}
+                                onClick={async () => {
+                                  setRespondingId(s.id);
+                                  try {
+                                    await scheduleService.respond(s.id, 'confirmed');
+                                    await loadSessions();
+                                  } catch { /* ignore */ } finally { setRespondingId(null); }
+                                }}
+                                style={{
+                                  padding: '0.4rem 0.9rem', borderRadius: 8, border: 'none',
+                                  background: '#10b981', color: '#fff', fontWeight: 600,
+                                  fontSize: '0.8rem', cursor: 'pointer',
+                                }}
+                              >✓ Xác nhận</button>
+                              <button
+                                disabled={respondingId === s.id}
+                                onClick={async () => {
+                                  setRespondingId(s.id);
+                                  try {
+                                    await scheduleService.respond(s.id, 'cancelled');
+                                    await loadSessions();
+                                  } catch { /* ignore */ } finally { setRespondingId(null); }
+                                }}
+                                style={{
+                                  padding: '0.4rem 0.9rem', borderRadius: 8, border: 'none',
+                                  background: '#ef4444', color: '#fff', fontWeight: 600,
+                                  fontSize: '0.8rem', cursor: 'pointer',
+                                }}
+                              >✕ Từ chối</button>
+                            </>
+                          )}
+                          {/* Both sides: cancel active sessions */}
+                          {s.status === 'pending' && !isMentor && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await scheduleService.cancel(s.id);
+                                  await loadSessions();
+                                } catch { /* ignore */ }
+                              }}
+                              style={{
+                                padding: '0.4rem 0.9rem', borderRadius: 8, border: 'none',
+                                background: '#f3f4f6', color: '#374151', fontWeight: 600,
+                                fontSize: '0.8rem', cursor: 'pointer',
+                              }}
+                            >Huỷ</button>
+                          )}
+                          {s.status === 'confirmed' && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await scheduleService.cancel(s.id);
+                                  await loadSessions();
+                                } catch { /* ignore */ }
+                              }}
+                              style={{
+                                padding: '0.4rem 0.9rem', borderRadius: 8, border: 'none',
+                                background: '#f3f4f6', color: '#374151', fontWeight: 600,
+                                fontSize: '0.8rem', cursor: 'pointer',
+                              }}
+                            >Huỷ lịch</button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ══════════════════════════════════
+              TAB 4 — Become a Mentor
               ══════════════════════════════════ */}
           {tab === 'become' && (
             <div className="mm-mentor-section">
@@ -687,6 +896,16 @@ const MentorMatchingPage = () => {
           )}
         </div>
       </div>
+
+      {/* ── Booking Modal ── */}
+      {bookingTarget && (
+        <BookingModal
+          mentorUserId={bookingTarget.userId}
+          mentorName={bookingTarget.name}
+          onClose={() => setBookingTarget(null)}
+          onBooked={() => { setBookingTarget(null); if (tab === 'schedule') loadSessions(); }}
+        />
+      )}
 
       {/* ── Send Request Modal ── */}
       {modalMentor && (

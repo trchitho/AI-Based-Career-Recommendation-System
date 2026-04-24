@@ -115,6 +115,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
   const [easterEggCount, setEasterEggCount] = useState(0); // Track how many times earned (max 2)
   const [nextEasterEggCombo, setNextEasterEggCombo] = useState(3); // First at 3, then 4
   const [showEasterEggNotif, setShowEasterEggNotif] = useState(false); // Notification
+  const [usedPieceIndex, setUsedPieceIndex] = useState<number | null>(null); // Track which piece was used
   const [draggedPiece, setDraggedPiece] = useState<{
     text: string;
     emoji?: string | undefined;
@@ -545,8 +546,28 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
           shape: shape,
         };
       });
-    } else if (currentQuestion.options) {
-      return currentQuestion.options.map((option, index) => {
+    } else if (currentQuestion.options && currentQuestion.options.length > 0) {
+      console.log('Original options:', currentQuestion.options);
+      
+      // Remove duplicates from options using both text and value
+      const seen = new Set<string>();
+      const uniqueOptions = currentQuestion.options.filter(option => {
+        if (!option || typeof option !== 'string') return false;
+        const key = option.toLowerCase().trim();
+        if (seen.has(key)) {
+          console.log('Duplicate found:', option);
+          return false;
+        }
+        seen.add(key);
+        return true;
+      });
+      
+      console.log('Unique options:', uniqueOptions);
+      
+      // Limit to maximum 6 options to prevent UI overflow
+      const limitedOptions = uniqueOptions.slice(0, 6);
+      
+      return limitedOptions.map((option, index) => {
         const shape = shuffledShapes[index % shuffledShapes.length] || 'O';
         return {
           text: option,
