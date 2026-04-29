@@ -27,3 +27,13 @@ boto3==1.34.0
 
 PyMuPDF>=1.23.0
 pdfplumber>=0.10.0
+
+# Binary Serialization
+orjson>=3.9.0      # 10x faster JSON via C extension, handles datetime/UUID natively
+msgpack>=1.0.7     # Compact binary format for cache storage (~30% smaller than JSON)
+
+# Company scheduler & scraper
+apscheduler>=3.10.0    # Cron + interval scheduler for daily company updates
+httpx>=0.24.0          # Async HTTP client for job board scraping
+beautifulsoup4>=4.12.0 # HTML parser
+lxml>=4.9.0            # Fast lxml parser backend

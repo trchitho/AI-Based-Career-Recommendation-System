@@ -75,10 +75,10 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
         return {
           levels: [1, 2, 3, 4, 5],
           description: 'All Levels Unlocked',
-          color: 'text-green-600',
-          bgColor: 'bg-green-100',
-          darkBgColor: 'dark:bg-green-900',
-          darkColor: 'dark:text-green-300'
+          color: 'text-indigo-800',
+          bgColor: 'bg-indigo-50',
+          darkBgColor: 'dark:bg-indigo-950',
+          darkColor: 'dark:text-indigo-300'
         };
       default:
         return {

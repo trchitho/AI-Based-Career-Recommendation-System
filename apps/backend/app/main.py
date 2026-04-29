@@ -77,7 +77,49 @@ async def lifespan(_: FastAPI):
     except Exception as e:
         print("Skip email verification auto-migration:", repr(e))
 
+    # Start company update scheduler
+    try:
+        from app.modules.companies.scheduler import start_scheduler, stop_scheduler
+        start_scheduler()
+        print("✅ Company update scheduler started")
+    except Exception as e:
+        print(f"⚠️  Company scheduler failed to start: {e}")
+
+    # Session reminder job — chay moi 5 phut, gui WS truoc 30 phut
+    try:
+        from app.modules.companies.scheduler import _scheduler
+        import asyncio as _asyncio
+
+        def _reminder_sync():
+            loop = _asyncio.new_event_loop()
+            _asyncio.set_event_loop(loop)
+            try:
+                from app.modules.chat.schedule_routes import _send_session_reminders
+                loop.run_until_complete(_send_session_reminders())
+            finally:
+                loop.close()
+
+        if _scheduler and _scheduler.running:
+            from apscheduler.triggers.interval import IntervalTrigger as _IT
+            _scheduler.add_job(
+                _reminder_sync,
+                trigger=_IT(minutes=5),
+                id="session_reminder",
+                name="Session reminders (30min before)",
+                replace_existing=True,
+            )
+            print("✅ Session reminder job registered (every 5min)")
+    except Exception as e:
+        print(f"⚠️  Session reminder job failed: {e}")
+
     yield
+
+    # Shutdown scheduler on app stop
+    try:
+        from app.modules.companies.scheduler import stop_scheduler
+        stop_scheduler()
+    except Exception:
+        pass
 
 
 def create_app() -> FastAPI:
@@ -87,12 +129,14 @@ def create_app() -> FastAPI:
     except Exception as e:
         print(f"⚠️ Error tracking initialization failed: {e}")
 
+    from app.core.serialization import ORJSONResponse
     app = FastAPI(
         title="NCKH API",
         version=os.getenv("API_VERSION", "0.1.0"),
         docs_url=os.getenv("DOCS_URL", "/docs"),
         redoc_url=os.getenv("REDOC_URL", "/redoc"),
         lifespan=lifespan,
+        default_response_class=ORJSONResponse,   # orjson for all JSON responses
     )
 
     # CORS - Fix for payment issues
@@ -397,11 +441,26 @@ def create_app() -> FastAPI:
     # Skill Gap Analysis
     try:
         from .modules.skill_gap import routes as skill_gap_router
-
         app.include_router(skill_gap_router.router, prefix="/api/skill-gap", tags=["skill-gap"])
         print("✅ Skill Gap Analysis router registered")
     except Exception as e:
         print("??  Skip skill gap router:", repr(e))
+
+    # Skill Gap SSE (streaming AI responses)
+    try:
+        from .modules.skill_gap.sse_routes import router as sse_router
+        app.include_router(sse_router)
+        print("✅ Skill Gap SSE router registered")
+    except Exception as e:
+        print("??  Skip skill gap SSE router:", repr(e))
+
+    # Companies (job listings by career group)
+    try:
+        from .modules.companies.routes import router as companies_router
+        app.include_router(companies_router)
+        print("✅ Companies router registered")
+    except Exception as e:
+        print("??  Skip companies router:", repr(e))
 
     # Mentor Matching
     try:

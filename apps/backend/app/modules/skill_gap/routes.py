@@ -3,6 +3,7 @@ API Routes for Skill Gap Analysis
 """
 from typing import Any, List
 
+from app.core.serialization import dumps_str as _to_json, loads as _from_json
 from app.core.db import get_db
 from app.modules.graph.neo4j_client import get_driver
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -618,14 +619,11 @@ Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
         try:
             from sqlalchemy.orm.attributes import flag_modified
             from sqlalchemy import text as _text
-            # Dùng raw SQL để chắc chắn commit thành công
-            import json as _json
             db.execute(
                 _text("UPDATE core.skill_gap_analyses SET learning_plan_cache = :plan WHERE id = :id"),
-                {"plan": _json.dumps(plan), "id": analysis_id}
+                {"plan": _to_json(plan), "id": analysis_id}   # orjson — faster
             )
             db.commit()
-            # Cập nhật object trong memory để cache hit ngay trong session này
             analysis.learning_plan_cache = plan
             flag_modified(analysis, "learning_plan_cache")
             print(f"[learning-plan] Cache saved for analysis {analysis_id}")
@@ -635,17 +633,16 @@ Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
 
     try:
         from app.core.gemini_manager import multi_stream_manager
+        import re
         stream = multi_stream_manager.get_cv_stream()
         raw = stream.generate_content_with_retry(prompt, max_output_tokens=3000, temperature=0.4)
 
         if raw:
-            import json as _json
-            import re
             cleaned = raw.strip()
             cleaned = re.sub(r'^```(?:json)?', '', cleaned).rstrip('`').strip()
             m = re.search(r'\{.*\}', cleaned, re.DOTALL)
             if m:
-                plan = _json.loads(m.group())
+                plan = _from_json(m.group())   # orjson parse
                 _save_cache(plan)
                 return {'success': True, 'analysis_id': analysis_id, 'career_id': analysis.career_id, 'plan': plan}
     except Exception as e:

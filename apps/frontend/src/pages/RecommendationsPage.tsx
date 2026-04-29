@@ -1,6 +1,7 @@
 // apps/frontend/src/pages/RecommendationsPage.tsx
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { ThumbsUp, ThumbsDown, ChevronRight, ChevronLeft, Lock, Briefcase, ArrowRight } from "lucide-react";
 import MainLayout from "../components/layout/MainLayout";
 import {
   recommendationService,
@@ -26,7 +27,7 @@ const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
 const CIRC = 2 * Math.PI * 20; // r=20
 
 const GRADIENTS = [
-  "from-green-500 to-teal-600",
+  "from-indigo-700 to-teal-600",
   "from-blue-500 to-indigo-600",
   "from-orange-400 to-pink-500",
   "from-purple-500 to-violet-600",
@@ -167,16 +168,8 @@ const RecommendationsPage = () => {
               </h2>
             </div>
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button onClick={() => scrollStrip(-1)} style={arrowBtnStyle}>
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button onClick={() => scrollStrip(1)} style={arrowBtnStyle}>
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+              <button onClick={() => scrollStrip(-1)} style={arrowBtnStyle}><ChevronLeft size={16} /></button>
+              <button onClick={() => scrollStrip(1)}  style={arrowBtnStyle}><ChevronRight size={16} /></button>
             </div>
           </div>
 
@@ -263,14 +256,14 @@ const RecommendationsPage = () => {
                       <div style={{ display: "flex", gap: "0.4rem" }}>
                         <button
                           className={`feedback-btn${fb === "up" ? " active-up" : ""}`}
-                          style={{ padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}
+                          style={{ padding: "0.2rem 0.5rem", fontSize: "0.72rem", display: "flex", alignItems: "center" }}
                           onClick={() => handleFeedback(it.career_id, "up")}
-                        >👍</button>
+                        ><ThumbsUp size={13} /></button>
                         <button
                           className={`feedback-btn${fb === "down" ? " active-down" : ""}`}
-                          style={{ padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}
+                          style={{ padding: "0.2rem 0.5rem", fontSize: "0.72rem", display: "flex", alignItems: "center" }}
                           onClick={() => handleFeedback(it.career_id, "down")}
-                        >👎</button>
+                        ><ThumbsDown size={13} /></button>
                       </div>
                       <button
                         className="view-btn"
@@ -312,9 +305,7 @@ const RecommendationsPage = () => {
                 padding: "0.5rem 0.75rem",
                 gap: "0.6rem",
               }}>
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--neu-text-muted)", flexShrink: 0 }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--neu-text-muted)", flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}/></svg>
                 <input
                   value={q}
                   onChange={(e) => { setPage(1); setQ(e.target.value); }}
@@ -325,10 +316,8 @@ const RecommendationsPage = () => {
                   }}
                 />
                 {q && (
-                  <button onClick={() => { setQ(""); setPage(1); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--neu-text-muted)", padding: 2 }}>
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                  <button onClick={() => { setQ(""); setPage(1); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--neu-text-muted)", padding: 2, display:"flex", alignItems:"center" }}>
+                    <ArrowRight size={14} style={{ transform:"rotate(45deg)" }} />
                   </button>
                 )}
               </div>
@@ -365,12 +354,12 @@ const RecommendationsPage = () => {
                       <div style={{ position: "absolute", top: 12, right: 12, zIndex: 5 }}>
                         <span style={{
                           padding: "0.2rem 0.6rem",
-                          background: "linear-gradient(to right,#a855f7,#ec4899)",
-                          color: "#fff", borderRadius: 999,
+                          background: "linear-gradient(to right,a855f7,ec4899)",
+                          color: "fff", borderRadius: 999,
                           fontSize: "0.68rem", fontWeight: 700,
                           display: "flex", alignItems: "center", gap: 4,
                         }}>
-                          🔒 {requiredPlanInfo?.name || "PRO"}
+                           {requiredPlanInfo?.name || "PRO"}
                         </span>
                       </div>
                     )}
@@ -379,18 +368,18 @@ const RecommendationsPage = () => {
                     <div style={{
                       height: 120,
                       background: `linear-gradient(135deg, var(--tw-gradient-stops))`,
-                      backgroundImage: `linear-gradient(135deg,${grad.includes("green") ? "#10b981,#14b8a6" : grad.includes("blue") ? "#3b82f6,#6366f1" : grad.includes("orange") ? "#f97316,#ec4899" : grad.includes("purple") ? "#a855f7,#7c3aed" : grad.includes("emerald") ? "#34d399,#06b6d4" : "#fb7185,#ef4444"})`,
+                      backgroundImage: `linear-gradient(135deg,${grad.includes("green") ? "10b981,14b8a6" : grad.includes("blue") ? "3b82f6,6366f1" : grad.includes("orange") ? "f97316,ec4899" : grad.includes("purple") ? "a855f7,7c3aed" : grad.includes("emerald") ? "34d399,06b6d4" : "fb7185,ef4444"})`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
                       <div style={{
                         width: 48, height: 48, borderRadius: 14,
                         background: "rgba(255,255,255,0.2)", backdropFilter: "blur(4px)",
                         border: "1px solid rgba(255,255,255,0.3)",
-                        display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
+                        display: "flex", alignItems: "center", justifyContent: "center", color: "fff",
                       }}>
                         {isLocked
-                          ? <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" /></svg>
-                          : <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                          ? <Lock size={22} />
+                          : <Briefcase size={22} />
                         }
                       </div>
                     </div>
@@ -427,7 +416,7 @@ const RecommendationsPage = () => {
             </div>
           ) : (
             <div className="rec-empty">
-              <div className="rec-empty-icon">🔍</div>
+              <div className="rec-empty-icon"><Briefcase size={32} /></div>
               <h3>Không tìm thấy nghề nghiệp</h3>
               <p>Thử tìm với từ khóa khác.</p>
               <button
@@ -448,7 +437,7 @@ const RecommendationsPage = () => {
                 disabled={page <= 1}
                 onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               >
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                <ChevronLeft size={18} />
               </button>
               <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--neu-text)", padding: "0.5rem 1.25rem", background: "var(--neu-bg-card)", borderRadius: 999, boxShadow: "var(--neu-raised-sm)" }}>
                 {page} / {totalPages}
@@ -458,7 +447,7 @@ const RecommendationsPage = () => {
                 disabled={page >= totalPages}
                 onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               >
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                <ChevronRight size={18} />
               </button>
             </div>
           )}

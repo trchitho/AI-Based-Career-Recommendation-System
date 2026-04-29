@@ -104,7 +104,7 @@ const SubscriptionRefresh = ({ onUpgradeDetected }: SubscriptionRefreshProps) =>
 
   return (
     <div className="fixed top-4 right-4 z-50 animate-fade-in-up">
-      <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl p-6 shadow-2xl border border-green-400 max-w-sm">
+      <div className="bg-gradient-to-r from-indigo-700 to-emerald-500 text-white rounded-2xl p-6 shadow-2xl border border-green-400 max-w-sm">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

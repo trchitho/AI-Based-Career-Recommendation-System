@@ -271,7 +271,7 @@ const InterviewSelectionPage: React.FC = () => {
 
                             {/* Tips */}
                             <div className="bg-blue-50 rounded-lg border border-blue-200 p-6">
-                                <h3 className="font-semibold text-blue-900 mb-4">💡 Lời khuyên</h3>
+                                <h3 className="font-semibold text-blue-900 mb-4"> Lời khuyên</h3>
                                 <ul className="text-sm text-blue-800 space-y-2">
                                     <li>• Chuẩn bị sẵn 2-3 câu chuyện thành công</li>
                                     <li>• Nói chậm, rõ ràng và tự tin</li>

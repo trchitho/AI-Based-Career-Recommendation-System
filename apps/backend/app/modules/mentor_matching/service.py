@@ -358,6 +358,7 @@ class MentorMatchingService:
                 mentor_name=mentor.full_name if mentor else None,
                 mentor_position=mentor.current_position if mentor else None,
                 mentor_company=mentor.company if mentor else None,
+                mentor_user_id=mentor.user_id if mentor else None,
             ))
         return results
 
@@ -387,6 +388,7 @@ class MentorMatchingService:
                 requested_at=r.requested_at,
                 responded_at=r.responded_at,
                 mentee_name=mentee.full_name if mentee else None,
+                mentee_user_id=mentee.user_id if mentee else None,
             ))
         return results
 

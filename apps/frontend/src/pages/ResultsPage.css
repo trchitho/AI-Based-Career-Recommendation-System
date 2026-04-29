@@ -334,7 +334,7 @@
   transition: width 0.7s ease;
 }
 .res-score-fill.c0 { background: linear-gradient(to right, #3b82f6, #2563eb); }
-.res-score-fill.c1 { background: linear-gradient(to right, #10b981, #059669); }
+.res-score-fill.c1 { background: linear-gradient(to right, var(--color-success), #059669); }
 .res-score-fill.c2 { background: linear-gradient(to right, #8b5cf6, #7c3aed); }
 .res-score-fill.c3 { background: linear-gradient(to right, #f59e0b, #d97706); }
 .res-score-fill.c4 { background: linear-gradient(to right, #ec4899, #db2777); }

@@ -26,7 +26,7 @@ const PaymentReturn = () => {
         // Poll payment status with enhanced settings
         const result = await paymentService.pollPaymentStatus(orderId, 60, 2000); // 60 attempts, 2 seconds each = 2 minutes total
 
-        console.log('🎯 [PaymentReturn] Final poll result:', result);
+        console.log(' [PaymentReturn] Final poll result:', result);
 
         if (result.success && result.payment.status === 'success') {
           setStatus('success');
@@ -72,8 +72,8 @@ const PaymentReturn = () => {
         );
       case 'success':
         return (
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -102,7 +102,7 @@ const PaymentReturn = () => {
       case 'checking':
         return 'text-blue-600';
       case 'success':
-        return 'text-green-600';
+        return 'text-indigo-800';
       case 'failed':
         return 'text-red-600';
       case 'cancelled':

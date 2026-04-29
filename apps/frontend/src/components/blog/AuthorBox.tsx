@@ -20,7 +20,7 @@ const AuthorBox = ({
                             className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-gray-600 shadow-lg"
                         />
                     ) : (
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg border-4 border-white dark:border-gray-600">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-700 to-emerald-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg border-4 border-white dark:border-gray-600">
                             {authorName.charAt(0).toUpperCase()}
                         </div>
                     )}
@@ -28,7 +28,7 @@ const AuthorBox = ({
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white">{authorName}</h3>
-                        <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-5 h-5 text-indigo-800" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
                     </div>
@@ -37,15 +37,15 @@ const AuthorBox = ({
                     </p>
                     <div className="flex gap-3">
                         <a
-                            href="#"
-                            className="w-9 h-9 rounded-full bg-white dark:bg-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-green-600 hover:text-white transition-all shadow-sm"
+                            href=""
+                            className="w-9 h-9 rounded-full bg-white dark:bg-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-indigo-800 hover:text-white transition-all shadow-sm"
                         >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
                             </svg>
                         </a>
                         <a
-                            href="#"
+                            href=""
                             className="w-9 h-9 rounded-full bg-white dark:bg-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                         >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -53,7 +53,7 @@ const AuthorBox = ({
                             </svg>
                         </a>
                         <a
-                            href="#"
+                            href=""
                             className="w-9 h-9 rounded-full bg-white dark:bg-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-800 hover:text-white transition-all shadow-sm"
                         >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

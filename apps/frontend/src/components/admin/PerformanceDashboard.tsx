@@ -14,7 +14,7 @@ interface MetricCardProps {
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, status = 'good', icon }) => {
     const statusColors = {
-        good: 'bg-green-50 border-green-200 text-green-800',
+        good: 'bg-indigo-50 border-indigo-200 text-green-800',
         warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
         error: 'bg-red-50 border-red-200 text-red-800'
     };
@@ -63,7 +63,7 @@ const PerformanceDashboard: React.FC = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'healthy': return 'text-green-600';
+            case 'healthy': return 'text-indigo-800';
             case 'degraded': return 'text-yellow-600';
             case 'unhealthy': return 'text-red-600';
             default: return 'text-gray-600';
@@ -88,7 +88,7 @@ const PerformanceDashboard: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-4">
                     <div className={`flex items-center space-x-2 ${getStatusColor(systemStatus)}`}>
-                        <div className={`w-3 h-3 rounded-full ${systemStatus === 'healthy' ? 'bg-green-500' :
+                        <div className={`w-3 h-3 rounded-full ${systemStatus === 'healthy' ? 'bg-indigo-700' :
                                 systemStatus === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'
                             }`}></div>
                         <span className="font-medium capitalize">{systemStatus}</span>
@@ -144,25 +144,25 @@ const PerformanceDashboard: React.FC = () => {
                         <MetricCard
                             title="Total Requests"
                             value={metrics?.performance.total_requests || 0}
-                            icon="📊"
+                            icon=""
                         />
                         <MetricCard
                             title="Error Rate"
                             value={`${((metrics?.performance.total_errors || 0) / (metrics?.performance.total_requests || 1) * 100).toFixed(2)}%`}
                             status={((metrics?.performance.total_errors || 0) / (metrics?.performance.total_requests || 1) * 100) > 5 ? 'error' : 'good'}
-                            icon="⚠️"
+                            icon=""
                         />
                         <MetricCard
                             title="Cache Hit Rate"
                             value={`${metrics?.cache.hit_rate || 0}%`}
                             status={(metrics?.cache.hit_rate || 0) < 70 ? 'warning' : 'good'}
-                            icon="💾"
+                            icon=""
                         />
                         <MetricCard
                             title="DB Queries"
                             value={metrics?.database.total_queries || 0}
                             subtitle={`Avg: ${metrics?.database.average_time || 0}ms`}
-                            icon="🗄️"
+                            icon=""
                         />
                     </div>
                 )}
@@ -189,7 +189,7 @@ const PerformanceDashboard: React.FC = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stats.error_rate > 5 ? 'bg-red-100 text-red-800' :
                                                         stats.error_rate > 1 ? 'bg-yellow-100 text-yellow-800' :
-                                                            'bg-green-100 text-green-800'
+                                                            'bg-indigo-50 text-green-800'
                                                     }`}>
                                                     {stats.error_rate.toFixed(2)}%
                                                 </span>
@@ -210,25 +210,25 @@ const PerformanceDashboard: React.FC = () => {
                                 <MetricCard
                                     title="Total Queries"
                                     value={metrics.database.total_queries}
-                                    icon="🔍"
+                                    icon=""
                                 />
                                 <MetricCard
                                     title="Avg Query Time"
                                     value={`${metrics.database.average_time}ms`}
                                     status={metrics.database.average_time > 100 ? 'warning' : 'good'}
-                                    icon="⏱️"
+                                    icon="⏱"
                                 />
                                 <MetricCard
                                     title="Slow Queries"
                                     value={metrics.database.slow_queries_count}
                                     status={metrics.database.slow_queries_count > 10 ? 'error' : 'good'}
-                                    icon="🐌"
+                                    icon=""
                                 />
                                 <MetricCard
                                     title="DB Error Rate"
                                     value={`${metrics.database.error_rate}%`}
                                     status={metrics.database.error_rate > 1 ? 'error' : 'good'}
-                                    icon="❌"
+                                    icon=""
                                 />
                             </div>
                         </div>
@@ -255,23 +255,23 @@ const PerformanceDashboard: React.FC = () => {
                                     title="Cache Status"
                                     value={metrics.cache.available ? 'Available' : 'Unavailable'}
                                     status={metrics.cache.available ? 'good' : 'error'}
-                                    icon="💾"
+                                    icon=""
                                 />
                                 <MetricCard
                                     title="Hit Rate"
                                     value={`${metrics.cache.hit_rate}%`}
                                     status={metrics.cache.hit_rate < 70 ? 'warning' : 'good'}
-                                    icon="🎯"
+                                    icon=""
                                 />
                                 <MetricCard
                                     title="Total Requests"
                                     value={metrics.cache.total_requests}
-                                    icon="📊"
+                                    icon=""
                                 />
                                 <MetricCard
                                     title="Cache Misses"
                                     value={metrics.cache.misses}
-                                    icon="❌"
+                                    icon=""
                                 />
                             </div>
                         </div>
@@ -280,7 +280,7 @@ const PerformanceDashboard: React.FC = () => {
                             <div className="space-y-3">
                                 <div className="flex justify-between">
                                     <span>Hits:</span>
-                                    <span className="font-medium text-green-600">{metrics.cache.hits}</span>
+                                    <span className="font-medium text-indigo-800">{metrics.cache.hits}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Misses:</span>
@@ -302,19 +302,19 @@ const PerformanceDashboard: React.FC = () => {
                                 title="Total Errors"
                                 value={metrics.errors.total_errors}
                                 status={metrics.errors.total_errors > 50 ? 'error' : 'good'}
-                                icon="🚨"
+                                icon=""
                             />
                             <MetricCard
                                 title="Critical Errors"
                                 value={metrics.errors.critical_errors}
                                 status={metrics.errors.critical_errors > 0 ? 'error' : 'good'}
-                                icon="💥"
+                                icon=""
                             />
                             <MetricCard
                                 title="Sentry Status"
                                 value={metrics.errors.sentry_enabled ? 'Enabled' : 'Disabled'}
                                 status={metrics.errors.sentry_enabled ? 'good' : 'warning'}
-                                icon="📡"
+                                icon=""
                             />
                         </div>
 

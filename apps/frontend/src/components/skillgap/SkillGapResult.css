@@ -138,7 +138,7 @@
 
 .strengths-section {
   background: var(--neu-bg-card);
-  border-left: 4px solid #10b981;
+  border-left: 4px solid var(--color-success);
 }
 
 .section-title {
@@ -217,7 +217,7 @@
 }
 .skill-badge:hover { box-shadow: var(--neu-raised); transform: translateY(-2px); }
 
-.skill-badge.matched  { border-color: #10b981; }
+.skill-badge.matched  { border-color: var(--color-success); }
 .skill-badge.critical { border-color: #ef4444; }
 .skill-badge.important { border-color: #f59e0b; }
 .skill-badge.nice-to-have { border-color: #eab308; }
@@ -272,7 +272,7 @@
 .strengths-weaknesses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
 
 .sw-card { padding: 1.25rem; border-radius: 14px; box-shadow: var(--neu-raised-sm); }
-.strengths-card { background: rgba(16,185,129,0.08); border-left: 3px solid #10b981; }
+.strengths-card { background: rgba(16,185,129,0.08); border-left: 3px solid var(--color-success); }
 .weaknesses-card { background: rgba(239,68,68,0.08); border-left: 3px solid #ef4444; }
 
 .sw-title { margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 700; color: var(--neu-text); }

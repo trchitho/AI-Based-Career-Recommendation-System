@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Bot, AlertTriangle, FileText, ChevronRight, History } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import CVUploadForm from '../components/skillgap/CVUploadForm';
 import SkillGapResult from '../components/skillgap/SkillGapResult';
 import SkillHeatmapGrid from '../components/skillgap/SkillHeatmapGrid';
 import LearningPlan from '../components/skillgap/LearningPlan';
+import StreamingLearningPlan from '../components/skillgap/StreamingLearningPlan';
 import WhyUseAIScanner from '../components/skillgap/WhyUseAIScanner';
 import { skillGapService } from '../services/skillGapService';
 import { careerService } from '../services/careerService';
@@ -14,22 +16,22 @@ import './SkillGapPage.css';
 
 /* ── mini helpers ── */
 function matchBarColor(pct: number) {
-  if (pct >= 80) return '#10b981';
-  if (pct >= 60) return '#f59e0b';
-  if (pct >= 40) return '#ef4444';
-  return '#9ca3af';
+  if (pct >= 80) return '10b981';
+  if (pct >= 60) return 'f59e0b';
+  if (pct >= 40) return 'ef4444';
+  return '9ca3af';
 }
 function matchBg(pct: number) {
-  if (pct >= 80) return '#d1fae5';
-  if (pct >= 60) return '#fef3c7';
-  if (pct >= 40) return '#fee2e2';
-  return '#f3f4f6';
+  if (pct >= 80) return 'd1fae5';
+  if (pct >= 60) return 'fef3c7';
+  if (pct >= 40) return 'fee2e2';
+  return 'f3f4f6';
 }
 function matchText(pct: number) {
-  if (pct >= 80) return '#065f46';
-  if (pct >= 60) return '#92400e';
-  if (pct >= 40) return '#991b1b';
-  return '#374151';
+  if (pct >= 80) return '065f46';
+  if (pct >= 60) return '92400e';
+  if (pct >= 40) return '991b1b';
+  return '374151';
 }
 
 const SkillGapPage: React.FC = () => {
@@ -238,14 +240,14 @@ const SkillGapPage: React.FC = () => {
           <div>
             {/* Paywall Screen */}
             <div style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, 667eea 0%, 764ba2 100%)',
               borderRadius: '20px',
               padding: '3rem 2rem',
               textAlign: 'center',
               color: 'white',
               boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4)',
             }}>
-              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔒</div>
+              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}></div>
               <h1 style={{ fontSize: '2rem', marginBottom: '1rem', fontWeight: 'bold' }}>
                 Skill Gap Analysis
               </h1>
@@ -262,23 +264,23 @@ const SkillGapPage: React.FC = () => {
                 textAlign: 'left',
               }}>
                 <h3 style={{ fontSize: '1.3rem', marginBottom: '1rem', fontWeight: '600' }}>
-                  ✨ Tính năng bạn sẽ nhận được:
+                   Tính năng bạn sẽ nhận được:
                 </h3>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   <li style={{ padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}>🤖</span>
+                    <Bot size={22} className="mr-3 text-indigo-800 flex-shrink-0" />
                     <strong>AI phân tích CV</strong> - Trích xuất kỹ năng tự động
                   </li>
                   <li style={{ padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}>📊</span>
+                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}></span>
                     <strong>So sánh với yêu cầu công việc</strong> - Xác định lỗ hổng kỹ năng
                   </li>
                   <li style={{ padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}>🎯</span>
+                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}></span>
                     <strong>Lộ trình học tập cá nhân hóa</strong> - AI tạo kế hoạch chi tiết
                   </li>
                   <li style={{ padding: '0.75rem 0' }}>
-                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}>📈</span>
+                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}></span>
                     <strong>Theo dõi tiến độ</strong> - Lưu lịch sử phân tích
                   </li>
                 </ul>
@@ -321,7 +323,7 @@ const SkillGapPage: React.FC = () => {
                   e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
                 }}
               >
-                💳 Nâng cấp ngay - Chỉ từ 99,000đ/năm
+                 Nâng cấp ngay - Chỉ từ 99,000đ/năm
               </button>
 
               <p style={{ marginTop: '1.5rem', fontSize: '0.9rem', opacity: 0.8 }}>
@@ -348,19 +350,19 @@ const SkillGapPage: React.FC = () => {
                     99,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/năm</span>
                   </p>
                   <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: 'var(--neu-text-muted)' }}>
-                    <li style={{ padding: '0.5rem 0' }}>✅ 20 phân tích/tháng</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ AI phân tích CV</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Lộ trình học tập cơ bản</li>
+                    <li style={{ padding: '0.5rem 0' }}> 20 phân tích/tháng</li>
+                    <li style={{ padding: '0.5rem 0' }}> AI phân tích CV</li>
+                    <li style={{ padding: '0.5rem 0' }}> Lộ trình học tập cơ bản</li>
                   </ul>
                 </div>
 
                 {/* Premium Plan */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, 667eea 0%, 764ba2 100%)',
                   borderRadius: '16px',
                   padding: '2rem',
                   boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
-                  border: '2px solid #667eea',
+                  border: '2px solid 667eea',
                   position: 'relative',
                   transform: 'scale(1.05)',
                 }}>
@@ -382,10 +384,10 @@ const SkillGapPage: React.FC = () => {
                     199,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/năm</span>
                   </p>
                   <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: 'rgba(255,255,255,0.95)' }}>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Không giới hạn phân tích</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ AI phân tích nâng cao</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Lộ trình học tập chi tiết</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Theo dõi tiến độ</li>
+                    <li style={{ padding: '0.5rem 0' }}> Không giới hạn phân tích</li>
+                    <li style={{ padding: '0.5rem 0' }}> AI phân tích nâng cao</li>
+                    <li style={{ padding: '0.5rem 0' }}> Lộ trình học tập chi tiết</li>
+                    <li style={{ padding: '0.5rem 0' }}> Theo dõi tiến độ</li>
                   </ul>
                 </div>
 
@@ -402,10 +404,10 @@ const SkillGapPage: React.FC = () => {
                     299,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/năm</span>
                   </p>
                   <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: 'var(--neu-text-muted)' }}>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Tất cả tính năng Premium</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Xuất PDF báo cáo</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ AI Assistant 24/7</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Ưu tiên hỗ trợ</li>
+                    <li style={{ padding: '0.5rem 0' }}> Tất cả tính năng Premium</li>
+                    <li style={{ padding: '0.5rem 0' }}> Xuất PDF báo cáo</li>
+                    <li style={{ padding: '0.5rem 0' }}> AI Assistant 24/7</li>
+                    <li style={{ padding: '0.5rem 0' }}> Ưu tiên hỗ trợ</li>
                   </ul>
                 </div>
               </div>
@@ -422,7 +424,7 @@ const SkillGapPage: React.FC = () => {
         <div className="skill-gap-page" style={{}}>
           <div>
             <div className="error-container">
-              <span className="error-icon">⚠️</span>
+              <AlertTriangle size={48} className="text-red-500 mb-3" />
               <h2>Error Loading Analysis</h2>
               <p>{error}</p>
               <button onClick={handleNewAnalysis} className="retry-button">
@@ -455,21 +457,21 @@ const SkillGapPage: React.FC = () => {
                 <div style={{ marginTop: '2rem', marginBottom: '1.5rem' }}>
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
-                    <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1rem', color: 'var(--neu-text, #111)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1rem', color: 'var(--neu-text, 111)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <FileText size={16} />
                       CV History
                     </h3>
                     {history.length > 0 && (
-                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b7280', background: 'var(--neu-bg, #f3f4f6)', padding: '3px 10px', borderRadius: 99, border: '1px solid var(--neu-border, #e5e7eb)' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b7280', background: 'var(--neu-bg, f3f4f6)', padding: '3px 10px', borderRadius: 99, border: '1px solid var(--neu-border, e5e7eb)' }}>
                         {history.length} PREVIOUS UPLOAD{history.length !== 1 ? 'S' : ''}
                       </span>
                     )}
                   </div>
 
                   {/* Table */}
-                  <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 14, border: '1px solid var(--neu-border, #e5e7eb)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                  <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 14, border: '1px solid var(--neu-border, e5e7eb)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                     {/* Table head */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.65rem 1.25rem', background: 'var(--neu-bg, #f9fafb)', borderBottom: '1px solid var(--neu-border, #e5e7eb)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.65rem 1.25rem', background: 'var(--neu-bg, f9fafb)', borderBottom: '1px solid var(--neu-border, e5e7eb)' }}>
                       {['FILENAME & TARGET ROLE', 'DATE UPLOADED', 'MATCH SCORE', 'ACTIONS'].map(h => (
                         <span key={h} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</span>
                       ))}
@@ -477,7 +479,7 @@ const SkillGapPage: React.FC = () => {
 
                     {historyLoading ? (
                       <div style={{ padding: '1.5rem', textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                        <div style={{ width: 16, height: 16, border: '2px solid #e5e7eb', borderTopColor: 'var(--neu-accent,#22c55e)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <div style={{ width: 16, height: 16, border: '2px solid e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
                         Đang tải...
                       </div>
@@ -488,18 +490,18 @@ const SkillGapPage: React.FC = () => {
                         const date = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         const isLast = idx === history.length - 1;
                         return (
-                          <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.9rem 1.25rem', alignItems: 'center', borderBottom: isLast ? 'none' : '1px solid var(--neu-border, #f3f4f6)', transition: 'background 0.15s' }}
-                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--neu-bg, #f9fafb)'}
+                          <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.9rem 1.25rem', alignItems: 'center', borderBottom: isLast ? 'none' : '1px solid var(--neu-border, f3f4f6)', transition: 'background 0.15s' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--neu-bg, f9fafb)'}
                             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                           >
                             {/* Col 1: Filename + role */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
                               <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--neu-accent,#22c55e)" strokeWidth="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                <FileText size={16} style={{ color:'var(--neu-accent)' }} />
                               </div>
                               <div style={{ minWidth: 0 }}>
-                                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--neu-text, #111)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {item.cv_filename || `CV #${item.id}`}
+                                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--neu-text, 111)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {item.cv_filename || `CV ${item.id}`}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {cName}
@@ -522,9 +524,9 @@ const SkillGapPage: React.FC = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <button
                                 onClick={() => navigate(`/skill-gap/${item.id}`)}
-                                style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--neu-accent,#22c55e)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
+                                style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--neu-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
                                 View Analysis
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
+                                <ChevronRight size={11} />
                               </button>
                             </div>
                           </div>
@@ -554,8 +556,8 @@ const SkillGapPage: React.FC = () => {
                   </span>
                   <button
                     onClick={() => navigate('/cv-history')}
-                    style={{ marginLeft: '0.75rem', padding: '0.3rem 0.85rem', borderRadius: 8, border: '1.5px solid var(--neu-accent,#22c55e)', background: 'transparent', color: 'var(--neu-accent,#22c55e)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    style={{ marginLeft: '0.75rem', padding: '0.3rem 0.85rem', borderRadius: 8, border: '1.5px solid var(--neu-accent)', background: 'transparent', color: 'var(--neu-accent)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <FileText size={12} />
                     Lịch sử
                   </button>
                 </div>
@@ -572,49 +574,13 @@ const SkillGapPage: React.FC = () => {
                 <SkillHeatmapGrid analysis={analysis} />
               </div>
 
-              {/* PB15: AI Learning Plan — lazy load */}
+              {/* PB15: AI Learning Plan — SSE Streaming */}
               <div style={{ marginTop: '1.5rem' }}>
-                {learningPlan ? (
-                  <LearningPlan plan={learningPlan.plan} careerName={learningPlan.career_id} />
-                ) : planLoading ? (
-                  <div style={{ background: 'var(--neu-bg-card)', borderRadius: 16, padding: '2rem', textAlign: 'center', boxShadow: 'var(--neu-raised)' }}>
-                    <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🤖</div>
-                    <p style={{ color: 'var(--neu-text-muted)' }}>Đang tải lộ trình học tập...</p>
-                  </div>
-                ) : (
-                  <div style={{
-                    background: 'var(--neu-bg-card)', borderRadius: 16,
-                    padding: '1.5rem 2rem', boxShadow: 'var(--neu-raised-sm)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    border: '1px solid var(--neu-border, #e5e7eb)',
-                    flexWrap: 'wrap', gap: '1rem',
-                  }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--neu-text)', marginBottom: '0.2rem' }}>
-                        🗺️ Lộ trình học tập AI
-                      </div>
-                      <div style={{ fontSize: '0.82rem', color: '#9ca3af' }}>
-                        Lộ trình học tập cá nhân hóa dựa trên kỹ năng còn thiếu của bạn
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleLoadLearningPlan}
-                      style={{
-                        padding: '0.6rem 1.4rem',
-                        background: 'var(--neu-accent, #22c55e)',
-                        color: '#fff', border: 'none', borderRadius: 10,
-                        fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: '0.4rem',
-                        transition: 'opacity 0.15s',
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
-                      onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
-                      Xem lộ trình học tập
-                    </button>
-                  </div>
-                )}
+                <StreamingLearningPlan
+                  analysisId={analysis.id}
+                  careerId={careerName || analysis.career_id}
+                  autoStart={false}
+                />
               </div>
             </>
           )}

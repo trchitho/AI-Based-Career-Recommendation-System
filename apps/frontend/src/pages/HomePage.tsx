@@ -73,7 +73,7 @@ const CounterItem = ({ value, label, suffix = '' }: { value: string, label: stri
 
     return (
         <div ref={countRef} className="text-white group hover:-translate-y-1 transition-transform duration-300">
-            <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-green-100">
+            <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-indigo-50">
                 {value.includes('<') ? '< ' : ''}{count.toLocaleString()}{suf}
             </div>
             <div className="text-green-100 font-medium group-hover:text-white transition-colors">{label}</div>
@@ -87,10 +87,10 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
         <div className="border-b border-gray-200 dark:border-gray-800 last:border-0">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex w-full items-center justify-between py-5 text-left text-lg font-semibold text-gray-900 dark:text-white hover:text-green-500 transition-colors group"
+                className="flex w-full items-center justify-between py-5 text-left text-lg font-semibold text-gray-900 dark:text-white hover:text-indigo-700 transition-colors group"
             >
                 <span className="group-hover:translate-x-1 transition-transform">{question}</span>
-                <span className={`transform transition-transform duration-300 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-green-100 dark:group-hover:bg-green-900/30 text-gray-500 group-hover:text-green-600 ${isOpen ? 'rotate-180' : ''}`}>
+                <span className={`transform transition-transform duration-300 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-indigo-50 dark:group-hover:bg-green-900/30 text-gray-500 group-hover:text-indigo-800 ${isOpen ? 'rotate-180' : ''}`}>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -157,7 +157,7 @@ const HomePage = () => {
 
     const testimonials = [
         { name: 'Sarah Nguyen', role: 'Software Engineer', text: "The insights were incredibly accurate. I finally understand why certain careers appeal to me.", initial: 'S', color: 'bg-indigo-500' },
-        { name: 'Michael Chen', role: 'Product Manager', text: "A game-changer for my career planning. The roadmap gave me clear direction.", initial: 'M', color: 'bg-emerald-500' },
+        { name: 'Michael Chen', role: 'Product Manager', text: "A game-changer for my career planning. The roadmap gave me clear direction.", initial: 'M', color: 'bg-indigo-700' },
         { name: 'Emily Patel', role: 'UX Designer', text: "Highly recommended for anyone feeling stuck in their current role.", initial: 'E', color: 'bg-purple-500' },
         { name: 'David Kim', role: 'Data Scientist', text: "The AI analysis is spot on. It helped me pivot my career successfully.", initial: 'D', color: 'bg-blue-500' },
         { name: 'Lisa Wang', role: 'Marketing Lead', text: "Simple, intuitive, and effective. Best career tool I've used.", initial: 'L', color: 'bg-pink-500' },
@@ -173,7 +173,7 @@ const HomePage = () => {
     ];
 
     return (
-        <div className="selection:bg-green-100 selection:text-green-900 overflow-x-hidden">
+        <div className="selection:bg-indigo-50 selection:text-indigo-900 overflow-x-hidden">
 
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -206,7 +206,7 @@ const HomePage = () => {
                 }
 
                 .text-shimmer {
-                    background: linear-gradient(to right, #166534 20%, #4ade80 40%, #4ade80 60%, #166534 80%);
+                    background: linear-gradient(to right, 166534 20%, 4ade80 40%, 4ade80 60%, 166534 80%);
                     background-size: 200% auto;
                     color: transparent;
                     -webkit-background-clip: text;
@@ -214,7 +214,7 @@ const HomePage = () => {
                     animation: shimmer 5s linear infinite;
                 }
                 .dark .text-shimmer {
-                    background: linear-gradient(to right, #4ade80 20%, #ffffff 40%, #ffffff 60%, #4ade80 80%);
+                    background: linear-gradient(to right, 4ade80 20%, ffffff 40%, ffffff 60%, 4ade80 80%);
                     background-size: 200% auto;
                     color: transparent;
                     -webkit-background-clip: text;
@@ -248,7 +248,7 @@ const HomePage = () => {
                         <div className="bg-grid-pattern absolute w-full h-full opacity-[0.6]"></div>
                         <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob"></div>
                         <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 dark:bg-yellow-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-                        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-green-300 dark:bg-green-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+                        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-green-300 dark:bg-indigo-950 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
                     </div>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -256,7 +256,7 @@ const HomePage = () => {
 
                             {/* LEFT — text */}
                             <div className="flex-1 animate-fade-in-up">
-                                <span className="relative px-4 py-1.5 rounded-full bg-white/50 dark:bg-gray-800/50 border border-green-200 dark:border-green-800 backdrop-blur-sm text-sm font-bold inline-block mb-6 shadow-sm hover:scale-105 transition-transform cursor-default">
+                                <span className="relative px-4 py-1.5 rounded-full bg-white/50 dark:bg-gray-800/50 border border-indigo-200 dark:border-indigo-800 backdrop-blur-sm text-sm font-bold inline-block mb-6 shadow-sm hover:scale-105 transition-transform cursor-default">
                                     <span className="text-shimmer">{t('home.badge')}</span>
                                 </span>
 
@@ -285,11 +285,11 @@ const HomePage = () => {
 
                             {/* RIGHT — dashboard mockup */}
                             <div className="flex-1 w-full max-w-lg lg:max-w-none animate-fade-in-up relative" style={{ animationDelay: '0.2s' }}>
-                                <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e2d4a 100%)' }}>
+                                <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(135deg,0f172a 0%,1e2d4a 100%)' }}>
                                     <div className="flex items-center gap-2 px-5 py-3 border-b border-white/10">
                                         <span className="w-2.5 h-2.5 rounded-full bg-red-400 opacity-80"></span>
                                         <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 opacity-80"></span>
-                                        <span className="w-2.5 h-2.5 rounded-full bg-green-400 opacity-80"></span>
+                                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 opacity-80"></span>
                                         <span className="ml-3 text-xs text-white/40 font-mono tracking-widest">• CAREER AI</span>
                                     </div>
                                     <div className="p-6">
@@ -308,7 +308,7 @@ const HomePage = () => {
 
                                 <div className="absolute -bottom-5 -right-4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl border border-gray-100 dark:border-gray-700 min-w-[180px]">
                                     <div className="flex items-center gap-1.5 mb-1.5">
-                                        <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                        <svg className="w-3.5 h-3.5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Market Pulse</span>
                                     </div>
                                     <div className="text-2xl font-extrabold text-gray-900 dark:text-white">+12.4%</div>
@@ -328,7 +328,7 @@ const HomePage = () => {
                                 },
                                 {
                                     icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
-                                    color: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+                                    color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 dark:text-indigo-400',
                                     title: t('home.features.skillGap.title'),
                                     desc: t('home.features.skillGap.shortDesc', 'Real-time data scraping from global sectors to identify emerging talent vacuums.'),
                                 },
@@ -359,7 +359,7 @@ const HomePage = () => {
                         {[...Array(2)].map((_, i) => (
                             <div key={i} className="flex gap-20 px-12 items-center">
                                 {['RIASEC Assessment','Big Five Analysis','AI Career Matching','Learning Roadmaps','900+ Careers','Skill Gap Analysis','AI Assistant','PDF Reports'].map((text, idx) => (
-                                    <span key={idx} className="text-xl font-bold tracking-wide text-gray-400 hover:text-green-600 dark:text-gray-500 dark:hover:text-green-400 select-none transition-colors duration-300 whitespace-nowrap uppercase">
+                                    <span key={idx} className="text-xl font-bold tracking-wide text-gray-400 hover:text-indigo-800 dark:text-gray-500 dark:hover:text-indigo-400 select-none transition-colors duration-300 whitespace-nowrap uppercase">
                                         {text}
                                     </span>
                                 ))}
@@ -370,13 +370,13 @@ const HomePage = () => {
 
                 {/* --- BENTO GRID FEATURES --- */}
                 <section className="py-24 bg-gray-50 dark:bg-gray-800/50 relative overflow-hidden">
-                    <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-green-200/20 dark:bg-green-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+                    <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-green-200/20 dark:bg-indigo-950/20 rounded-full blur-[120px] pointer-events-none"></div>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
                             <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
                                 {t('home.features.sectionTitle')} <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700">{t('home.features.sectionHighlight')}</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-emerald-700">{t('home.features.sectionHighlight')}</span>
                             </h2>
                             <p className="text-lg text-gray-500 dark:text-gray-400">{t('home.features.sectionSubtitle')}</p>
                         </div>
@@ -384,28 +384,28 @@ const HomePage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-2 gap-6 h-auto md:h-[650px]">
                             {/* Feature 1: Large */}
                             <div className="md:col-span-4 md:row-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
-                                <div className="absolute top-0 right-0 w-96 h-96 bg-green-500/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-green-500/20 transition-colors duration-500"></div>
+                                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-700/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-indigo-700/20 transition-colors duration-500"></div>
                                 <div className="relative z-10 h-full flex flex-col">
-                                    <div className="w-14 h-14 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                                         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">{t('home.features.assessment.title')}</h3>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors">{t('home.features.assessment.title')}</h3>
                                     <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">{t('home.features.assessment.desc')}</p>
 
                                     <div className="mt-auto relative w-full h-64 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-inner transform group-hover:scale-[1.02] transition-transform duration-500 flex flex-col gap-4 overflow-hidden">
                                         <div className="flex items-center gap-4 mb-2">
                                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold">R</div>
                                             <div className="flex flex-col gap-2">
-                                                <div className="w-32 h-3 bg-green-300 dark:bg-green-600 rounded-full"></div>
+                                                <div className="w-32 h-3 bg-green-300 dark:bg-indigo-800 rounded-full"></div>
                                                 <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                                             </div>
-                                            <div className="ml-auto w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
-                                                <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                                            <div className="ml-auto w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center">
+                                                <div className="w-4 h-4 bg-indigo-700 rounded-full animate-pulse"></div>
                                             </div>
                                         </div>
                                         <div className="w-full h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
                                         <div className="space-y-2">
-                                            {[{ l: 'Realistic', w: '75%', c: 'bg-red-400' }, { l: 'Investigative', w: '85%', c: 'bg-yellow-400' }, { l: 'Artistic', w: '60%', c: 'bg-green-400' }, { l: 'Social', w: '90%', c: 'bg-blue-400' }].map((item, i) => (
+                                            {[{ l: 'Realistic', w: '75%', c: 'bg-red-400' }, { l: 'Investigative', w: '85%', c: 'bg-yellow-400' }, { l: 'Artistic', w: '60%', c: 'bg-indigo-400' }, { l: 'Social', w: '90%', c: 'bg-blue-400' }].map((item, i) => (
                                                 <div key={i} className="flex items-center gap-2">
                                                     <span className="text-xs text-gray-500 w-20">{item.l}</span>
                                                     <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -415,7 +415,7 @@ const HomePage = () => {
                                             ))}
                                         </div>
                                         <div className="absolute bottom-6 right-6 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 flex items-center gap-2 animate-bounce">
-                                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                            <span className="w-2 h-2 bg-indigo-700 rounded-full"></span>
                                             <span className="text-xs font-bold text-gray-700 dark:text-gray-200">Match: 95%</span>
                                         </div>
                                     </div>
@@ -465,7 +465,7 @@ const HomePage = () => {
                     <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-gray-50 dark:from-gray-800/50 to-transparent"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="mb-20 text-center">
-                            <span className="text-green-500 font-bold tracking-wider uppercase text-sm bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full">{t('home.howItWorks.label')}</span>
+                            <span className="text-indigo-700 font-bold tracking-wider uppercase text-sm bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full">{t('home.howItWorks.label')}</span>
                             <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mt-4">{t('home.howItWorks.title')}</h2>
                             <p className="text-lg text-gray-500 dark:text-gray-400 mt-4 max-w-2xl mx-auto">{t('home.howItWorks.subtitle')}</p>
                         </div>
@@ -480,12 +480,12 @@ const HomePage = () => {
                             ].map((step, idx) => (
                                 <div key={idx} className={`relative flex items-center justify-between mb-16 ${step.align === 'right' ? 'flex-row-reverse' : ''} group`}>
                                     <div className="hidden md:block w-5/12"></div>
-                                    <div className="absolute left-0 md:left-1/2 top-0 md:-translate-x-1/2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold border-4 border-white dark:border-gray-900 z-10 shadow-lg group-hover:scale-110 group-hover:bg-green-400 transition-all duration-300">
+                                    <div className="absolute left-0 md:left-1/2 top-0 md:-translate-x-1/2 w-10 h-10 bg-indigo-700 rounded-full flex items-center justify-center text-white font-bold border-4 border-white dark:border-gray-900 z-10 shadow-lg group-hover:scale-110 group-hover:bg-indigo-400 transition-all duration-300">
                                         {step.icon}
                                     </div>
                                     <div className={`w-full md:w-5/12 pl-16 md:pl-0 ${step.align === 'left' ? 'md:pr-10 md:text-right' : 'md:pl-10'}`}>
                                         <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-                                            <div className={`absolute top-0 w-1 h-full bg-green-500 ${step.align === 'left' ? 'right-0' : 'left-0'} transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom`}></div>
+                                            <div className={`absolute top-0 w-1 h-full bg-indigo-700 ${step.align === 'left' ? 'right-0' : 'left-0'} transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom`}></div>
                                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{step.title}</h3>
                                             <p className="text-gray-500 dark:text-gray-400">{step.desc}</p>
                                         </div>
@@ -497,7 +497,7 @@ const HomePage = () => {
                 </section>
 
                 {/* --- STATISTICS --- */}
-                <section className="py-20 bg-green-600 relative overflow-hidden">
+                <section className="py-20 bg-indigo-800 relative overflow-hidden">
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                     <div className="absolute -top-40 -right-40 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
                     <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
@@ -527,7 +527,7 @@ const HomePage = () => {
                                             <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
-                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>
+                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}></span>)}</div>
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300 italic text-sm leading-relaxed">"{item.text}"</p>
                                 </div>
@@ -542,7 +542,7 @@ const HomePage = () => {
                                             <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
-                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>
+                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}></span>)}</div>
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300 italic text-sm leading-relaxed">"{item.text}"</p>
                                 </div>
@@ -573,13 +573,13 @@ const HomePage = () => {
                     <div className="absolute inset-0" style={{ background: 'var(--neu-bg)' }}></div>
                     <div className="max-w-5xl mx-auto px-4 relative z-10">
                         {/* CTA Card */}
-                        <div className="bg-gradient-to-br from-green-600 to-teal-800 rounded-[2.5rem] p-12 md:p-20 shadow-2xl relative overflow-hidden group mb-16">
+                        <div className="bg-gradient-to-br from-indigo-800 to-indigo-900 rounded-[2.5rem] p-12 md:p-20 shadow-2xl relative overflow-hidden group mb-16">
                             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-black opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 relative z-10 text-center">{t('home.cta.title')}</h2>
                             <p className="text-green-100 text-lg mb-10 max-w-2xl mx-auto relative z-10 text-center">{t('home.cta.subtitle')}</p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
-                                <Link to="/assessment" className="px-8 py-4 bg-white text-green-700 rounded-full font-bold hover:bg-gray-100 hover:scale-105 transition-all shadow-lg text-center">
+                                <Link to="/assessment" className="px-8 py-4 bg-white text-indigo-900 rounded-full font-bold hover:bg-gray-100 hover:scale-105 transition-all shadow-lg text-center">
                                     {t('home.cta.btn')}
                                 </Link>
                             </div>
@@ -594,7 +594,7 @@ const HomePage = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-6">
                                     {[
-                                        { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, bg: 'bg-green-100 dark:bg-green-900/30 text-green-600', label: 'Email', val: 'careersystemai@gmail.com', href: 'mailto:careersystemai@gmail.com' },
+                                        { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, bg: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800', label: 'Email', val: 'careersystemai@gmail.com', href: 'mailto:careersystemai@gmail.com' },
                                         { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />, bg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600', label: t('home.contact.responseTime'), val: t('home.contact.responseTimeValue') },
                                         { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />, bg: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600', label: t('home.contact.support'), val: t('home.contact.supportValue') },
                                     ].map((r, i) => (
@@ -604,19 +604,19 @@ const HomePage = () => {
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">{r.label}</p>
-                                                {r.href ? <a href={r.href} className="text-gray-900 dark:text-white font-semibold hover:text-green-600 transition-colors">{r.val}</a> : <p className="text-gray-900 dark:text-white font-semibold">{r.val}</p>}
+                                                {r.href ? <a href={r.href} className="text-gray-900 dark:text-white font-semibold hover:text-indigo-800 transition-colors">{r.val}</a> : <p className="text-gray-900 dark:text-white font-semibold">{r.val}</p>}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-100 dark:border-green-800">
+                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-100 dark:border-indigo-800">
                                     {!showContactForm ? (
                                         <div className="flex flex-col justify-center items-center h-full">
-                                            <div className="text-6xl mb-4">💬</div>
+                                            <div className="text-6xl mb-4"></div>
                                             <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.contact.sendTitle')}</h4>
                                             <p className="text-gray-600 dark:text-gray-400 text-center mb-6">{t('home.contact.sendDesc')}</p>
-                                            <button onClick={() => setShowContactForm(true)} className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg">
+                                            <button onClick={() => setShowContactForm(true)} className="px-8 py-4 bg-gradient-to-r from-indigo-800 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg">
                                                 {t('home.contact.btn')}
                                             </button>
                                         </div>
@@ -629,19 +629,19 @@ const HomePage = () => {
                                             ].map(f => (
                                                 <div key={f.key}>
                                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{f.label}</label>
-                                                    <input type={f.type} value={(contactForm as any)[f.key]} onChange={e => setContactForm({ ...contactForm, [f.key]: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder={f.ph} />
+                                                    <input type={f.type} value={(contactForm as any)[f.key]} onChange={e => setContactForm({ ...contactForm, [f.key]: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-600 focus:border-transparent" placeholder={f.ph} />
                                                 </div>
                                             ))}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.messageLabel')}</label>
-                                                <textarea required rows={3} value={contactForm.message} onChange={e => setContactForm({ ...contactForm, message: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none" placeholder={t('home.contact.messagePlaceholder')} />
+                                                <textarea required rows={3} value={contactForm.message} onChange={e => setContactForm({ ...contactForm, message: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-600 focus:border-transparent resize-none" placeholder={t('home.contact.messagePlaceholder')} />
                                             </div>
                                             {contactResult && (
-                                                <div className={`p-3 rounded-lg text-sm ${contactResult.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{contactResult.message}</div>
+                                                <div className={`p-3 rounded-lg text-sm ${contactResult.success ? 'bg-indigo-50 text-indigo-900' : 'bg-red-100 text-red-700'}`}>{contactResult.message}</div>
                                             )}
                                             <div className="flex gap-3">
                                                 <button type="button" onClick={() => { setShowContactForm(false); setContactResult(null); }} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">{t('common.cancel')}</button>
-                                                <button type="submit" disabled={contactLoading} className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                                                <button type="submit" disabled={contactLoading} className="flex-1 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                                                     {contactLoading ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>{t('home.contact.sending')}</> : t('home.contact.sendBtn')}
                                                 </button>
                                             </div>

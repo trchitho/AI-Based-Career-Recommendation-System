@@ -30,32 +30,32 @@ const TRAIT_COLORS: Record<string, { text: string; border: string; bg: string }>
     // Problem-Solving facet labels
     innovator: { text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-300 dark:border-purple-700', bg: 'bg-purple-50 dark:bg-purple-900/20' },
     humanitarian: { text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-300 dark:border-blue-700', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    caretaker: { text: 'text-green-600 dark:text-green-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-green-50 dark:bg-green-900/20' },
+    caretaker: { text: 'text-indigo-800 dark:text-indigo-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-indigo-50 dark:bg-indigo-950/20' },
     pragmatist: { text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-700', bg: 'bg-amber-50 dark:bg-amber-900/20' },
     // Motivation facet labels
     ambitious: { text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-300 dark:border-purple-700', bg: 'bg-purple-50 dark:bg-purple-900/20' },
     excitable: { text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-300 dark:border-blue-700', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    dutiful: { text: 'text-green-600 dark:text-green-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-green-50 dark:bg-green-900/20' },
+    dutiful: { text: 'text-indigo-800 dark:text-indigo-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-indigo-50 dark:bg-indigo-950/20' },
     casual: { text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-700', bg: 'bg-amber-50 dark:bg-amber-900/20' },
     // Interaction facet labels
     gregarious: { text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-300 dark:border-purple-700', bg: 'bg-purple-50 dark:bg-purple-900/20' },
     dominant: { text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-300 dark:border-blue-700', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    supportive: { text: 'text-green-600 dark:text-green-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-green-50 dark:bg-green-900/20' },
+    supportive: { text: 'text-indigo-800 dark:text-indigo-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-indigo-50 dark:bg-indigo-950/20' },
     independent: { text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-700', bg: 'bg-amber-50 dark:bg-amber-900/20' },
     // Communication facet labels
     inspiring: { text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-300 dark:border-purple-700', bg: 'bg-purple-50 dark:bg-purple-900/20' },
     informative: { text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-300 dark:border-blue-700', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    insightful: { text: 'text-green-600 dark:text-green-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-green-50 dark:bg-green-900/20' },
+    insightful: { text: 'text-indigo-800 dark:text-indigo-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-indigo-50 dark:bg-indigo-950/20' },
     concise: { text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-700', bg: 'bg-amber-50 dark:bg-amber-900/20' },
     // Teamwork facet labels
     taskmaster: { text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-300 dark:border-purple-700', bg: 'bg-purple-50 dark:bg-purple-900/20' },
     empath: { text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-300 dark:border-blue-700', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    improviser: { text: 'text-green-600 dark:text-green-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-green-50 dark:bg-green-900/20' },
+    improviser: { text: 'text-indigo-800 dark:text-indigo-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-indigo-50 dark:bg-indigo-950/20' },
     cooperator: { text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-700', bg: 'bg-amber-50 dark:bg-amber-900/20' },
     // Task Management facet labels
     director: { text: 'text-purple-600 dark:text-purple-400', border: 'border-purple-300 dark:border-purple-700', bg: 'bg-purple-50 dark:bg-purple-900/20' },
     visionary: { text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-300 dark:border-blue-700', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    inspector: { text: 'text-green-600 dark:text-green-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-green-50 dark:bg-green-900/20' },
+    inspector: { text: 'text-indigo-800 dark:text-indigo-400', border: 'border-green-300 dark:border-green-700', bg: 'bg-indigo-50 dark:bg-indigo-950/20' },
     responder: { text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-300 dark:border-amber-700', bg: 'bg-amber-50 dark:bg-amber-900/20' },
 };
 

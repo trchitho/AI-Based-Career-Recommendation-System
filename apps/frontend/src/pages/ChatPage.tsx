@@ -131,17 +131,17 @@ const ChatPage = () => {
   // ── UI ──────────────────────────────────────────────────────────────────
   return (
     <MainLayout>
-      <div className="min-h-[calc(100vh-64px)] bg-[#F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-hidden flex flex-col">
+      <div className="min-h-[calc(100vh-64px)] bg-[F8F9FA] dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-hidden flex flex-col">
 
         {/* CSS Injection */}
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           .bg-dot-pattern {
-            background-image: radial-gradient(#E5E7EB 1px, transparent 1px);
+            background-image: radial-gradient(E5E7EB 1px, transparent 1px);
             background-size: 24px 24px;
           }
           .dark .bg-dot-pattern {
-            background-image: radial-gradient(#374151 1px, transparent 1px);
+            background-image: radial-gradient(374151 1px, transparent 1px);
           }
           .scrollbar-hide::-webkit-scrollbar { display: none; }
           .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
@@ -159,7 +159,7 @@ const ChatPage = () => {
 
         {/* Background Layers */}
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
-        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-green-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-indigo-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
         <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-blue-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
         <div className="relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col h-full">
@@ -167,11 +167,11 @@ const ChatPage = () => {
           {/* HEADER */}
           <div className="flex items-center justify-between mb-6 flex-shrink-0">
             <div className="text-center flex-1">
-              <span className="inline-block py-1 px-3 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold tracking-widest uppercase mb-2 border border-green-200 dark:border-green-800">
+              <span className="inline-block py-1 px-3 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold tracking-widest uppercase mb-2 border border-indigo-200 dark:border-indigo-800">
                 AI Assistant
               </span>
               <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                Career<span className="text-green-600 dark:text-green-500">Chat</span>
+                Career<span className="text-indigo-800 dark:text-indigo-700">Chat</span>
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Ask me anything about your career path, skills, or goals.
@@ -182,7 +182,7 @@ const ChatPage = () => {
             <button
               onClick={() => setHistoryOpen(true)}
               title="Lịch sử trò chuyện"
-              className="absolute right-4 sm:right-6 lg:right-8 top-6 flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-green-400 hover:text-green-600 transition-all shadow-sm text-sm font-medium"
+              className="absolute right-4 sm:right-6 lg:right-8 top-6 flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-green-400 hover:text-indigo-800 transition-all shadow-sm text-sm font-medium"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -207,7 +207,7 @@ const ChatPage = () => {
             <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
               {messages.filter(m => m.role !== 'system').length === 0 && !summary ? (
                 <div className="h-full flex flex-col items-center justify-center text-center opacity-60 p-8">
-                  <div className="w-20 h-20 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-4 text-green-600 dark:text-green-400">
+                  <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-950/20 rounded-full flex items-center justify-center mb-4 text-indigo-800 dark:text-indigo-400">
                     <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Bạn muốn hỏi gì hôm nay?</h3>
@@ -224,7 +224,7 @@ const ChatPage = () => {
                       <button
                         key={prompt}
                         onClick={() => { setInput(prompt); }}
-                        className="px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 text-xs font-medium hover:bg-green-100 transition-colors"
+                        className="px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/20 text-indigo-900 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-xs font-medium hover:bg-indigo-50 transition-colors"
                       >
                         {prompt}
                       </button>
@@ -250,7 +250,7 @@ const ChatPage = () => {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 ${
                           m.role === 'user'
                             ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                            : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
+                            : 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-400'
                         }`}>
                           {m.role === 'user' ? (
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -275,7 +275,7 @@ const ChatPage = () => {
                   {isTyping && (
                     <div className="flex justify-start">
                       <div className="flex max-w-[80%] gap-3">
-                        <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-400 flex items-center justify-center flex-shrink-0">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         </div>
                         <div className="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-2xl rounded-tl-none border border-gray-200 dark:border-gray-700 flex items-center gap-1 h-12">
@@ -295,7 +295,7 @@ const ChatPage = () => {
             <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
               <form onSubmit={send} className="relative flex items-center gap-2">
                 <input
-                  className="flex-1 pl-5 pr-4 py-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium shadow-inner"
+                  className="flex-1 pl-5 pr-4 py-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium shadow-inner"
                   placeholder="Nhập câu hỏi của bạn..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -304,7 +304,7 @@ const ChatPage = () => {
                 <button
                   type="submit"
                   disabled={!input.trim() || isTyping}
-                  className="w-14 h-14 bg-green-600 hover:bg-green-700 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex-shrink-0"
+                  className="w-14 h-14 bg-indigo-800 hover:bg-indigo-900 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex-shrink-0"
                 >
                   <svg className="w-6 h-6 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                 </button>

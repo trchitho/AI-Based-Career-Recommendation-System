@@ -146,7 +146,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                                 <textarea
                                     value={editContent}
                                     onChange={(e) => setEditContent(e.target.value)}
-                                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-600"
                                     rows={3}
                                     disabled={isSubmitting}
                                 />
@@ -154,7 +154,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                                     <button
                                         onClick={handleEdit}
                                         disabled={isSubmitting || !editContent.trim()}
-                                        className="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-all disabled:cursor-not-allowed"
+                                        className="px-3 py-1.5 bg-indigo-800 hover:bg-indigo-900 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-all disabled:cursor-not-allowed"
                                     >
                                         {isSubmitting ? 'Saving...' : 'Save'}
                                     </button>

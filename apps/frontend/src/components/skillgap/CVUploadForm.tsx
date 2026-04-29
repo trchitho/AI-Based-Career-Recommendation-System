@@ -235,7 +235,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: #ef4444;
+            background: ef4444;
             color: white;
             padding: 12px 24px;
             border-radius: 8px;
@@ -408,7 +408,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: #ef4444;
+                background: ef4444;
                 color: white;
                 padding: 12px 20px;
                 border-radius: 8px;
@@ -421,7 +421,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
               document.body.appendChild(warning);
 
               // Add animation keyframes
-              if (!document.querySelector('#analysis-warning-styles')) {
+              if (!document.querySelector('analysis-warning-styles')) {
                 const style = document.createElement('style');
                 style.id = 'analysis-warning-styles';
                 style.textContent = `
@@ -462,7 +462,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                 animation: 'pulse 2s infinite'
               }}
             >
-              🤖
+              
             </div>
 
             <h2 style={{
@@ -498,7 +498,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             {/* Warning Message */}
             <div style={{ background:'rgba(245,158,11,0.12)', border:'1px solid rgba(245,158,11,0.35)', borderRadius:'10px', padding:'10px 14px', marginBottom:'1.5rem' }}>
               <p style={{ fontSize:'0.85rem', color:'#92400e', margin:0, fontWeight:'500' }}>
-                ⚠️ Không được tắt trang này khi đang phân tích, có thể gây lỗi hệ thống!
+                 Không được tắt trang này khi đang phân tích, có thể gây lỗi hệ thống!
               </p>
             </div>
 
@@ -512,31 +512,31 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                   opacity: progress >= 20 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  ✓ Tải lên CV
+                   Tải lên CV
                 </div>
                 <div style={{
                   opacity: progress >= 40 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  {progress >= 40 ? '✓' : '⏳'} Trích xuất văn bản từ CV
+                  {progress >= 40 ? '' : '⏳'} Trích xuất văn bản từ CV
                 </div>
                 <div style={{
                   opacity: progress >= 60 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  {progress >= 60 ? '✓' : '⏳'} AI phân tích kỹ năng
+                  {progress >= 60 ? '' : '⏳'} AI phân tích kỹ năng
                 </div>
                 <div style={{
                   opacity: progress >= 80 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  {progress >= 80 ? '✓' : '⏳'} So sánh với yêu cầu công việc
+                  {progress >= 80 ? '' : '⏳'} So sánh với yêu cầu công việc
                 </div>
                 <div style={{
                   opacity: progress >= 100 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  {progress >= 100 ? '✓' : '⏳'} Tạo báo cáo kết quả
+                  {progress >= 100 ? '' : '⏳'} Tạo báo cáo kết quả
                 </div>
               </div>
             </div>
@@ -616,19 +616,19 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             >
               {cvFile ? (
                 <div className="file-info">
-                  <span className="file-icon">📄</span>
+                  <span className="file-icon"></span>
                   <span className="file-name">{cvFile.name}</span>
                   <button
                     type="button"
                     className="remove-file"
                     onClick={() => setCvFile(null)}
                   >
-                    ✕
+                    
                   </button>
                 </div>
               ) : (
                 <>
-                  <span className="upload-icon">📤</span>
+                  <span className="upload-icon"></span>
                   <p>Kéo và thả CV của bạn vào đây</p>
                   <p className="text-sm text-gray-500">Hỗ trợ: PDF, JPG, PNG</p>
                   <p className="or-text">hoặc</p>
@@ -650,18 +650,18 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
           {error && (
             <div className="error-message" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ whiteSpace: 'pre-line' }}>⚠️ {error}</span>
+                <span style={{ whiteSpace: 'pre-line' }}> {error}</span>
                 <button
                   onClick={() => setError(null)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, color: 'inherit', flexShrink: 0, padding: '0 2px' }}
                   aria-label="Đóng thông báo lỗi"
                 >
-                  ✕
+                  
                 </button>
               </div>
 
               {/* Show upgrade button if payment required */}
-              {error.includes('🔒') && (
+              {error.includes('') && (
                 <button
                   type="button"
                   onClick={() => window.location.href = '/pricing'}
@@ -720,7 +720,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
               className="preview-button"
               onClick={handlePreviewClick}
             >
-              👁️ Xem trước CV
+               Xem trước CV
             </button>
           )}
         </form>

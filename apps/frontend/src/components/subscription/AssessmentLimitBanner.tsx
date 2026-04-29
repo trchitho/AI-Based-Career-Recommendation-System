@@ -21,13 +21,13 @@ export const AssessmentLimitBanner: React.FC<AssessmentLimitBannerProps> = ({
 
     // Màu sắc dựa trên số lượt còn lại
     const getColorClass = () => {
-        if (percentage > 50) return 'bg-green-50 border-green-200 text-green-800';
+        if (percentage > 50) return 'bg-indigo-50 border-indigo-200 text-green-800';
         if (percentage > 20) return 'bg-yellow-50 border-yellow-200 text-yellow-800';
         return 'bg-red-50 border-red-200 text-red-800';
     };
 
     const getIconColor = () => {
-        if (percentage > 50) return 'text-green-600';
+        if (percentage > 50) return 'text-indigo-800';
         if (percentage > 20) return 'text-yellow-600';
         return 'text-red-600';
     };
@@ -67,7 +67,7 @@ export const AssessmentLimitBanner: React.FC<AssessmentLimitBannerProps> = ({
             {/* Progress bar */}
             <div className="mt-3 bg-white/50 rounded-full h-2 overflow-hidden">
                 <div
-                    className={`h-full transition-all duration-300 ${percentage > 50 ? 'bg-green-600' : percentage > 20 ? 'bg-yellow-600' : 'bg-red-600'
+                    className={`h-full transition-all duration-300 ${percentage > 50 ? 'bg-indigo-800' : percentage > 20 ? 'bg-yellow-600' : 'bg-red-600'
                         }`}
                     style={{ width: `${percentage}%` }}
                 />

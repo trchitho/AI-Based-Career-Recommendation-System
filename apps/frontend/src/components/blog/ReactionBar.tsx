@@ -148,7 +148,7 @@ const ReactionBar = ({ postId, initialLikes = 0, initialDislikes = 0, initialUse
                 {/* Share Button */}
                 <button
                     onClick={handleShare}
-                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-2 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all font-semibold"
+                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/20 text-indigo-800 dark:text-indigo-400 border-2 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-green-900/30 transition-all font-semibold"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path

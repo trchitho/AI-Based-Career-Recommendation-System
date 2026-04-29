@@ -1,7 +1,7 @@
 """
 Mentor Session Scheduling API — /api/schedule/...
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -22,6 +22,52 @@ try:
     print("✅ MentorSession table ready")
 except Exception as e:
     print(f"⚠️  MentorSession table init: {e}")
+
+
+async def _send_session_reminders():
+    """Gửi WS reminder cho sessions sắp diễn ra trong 30 phút."""
+    from datetime import timedelta
+    from sqlalchemy.orm import Session as DBSession
+    from app.modules.auth.models import User as UserModel
+
+    now = datetime.now(timezone(timedelta(hours=7)))
+    window_start = now + timedelta(minutes=25)
+    window_end   = now + timedelta(minutes=35)
+
+    with DBSession(engine) as db:
+        sessions = (
+            db.query(MentorSession)
+            .filter(
+                MentorSession.status == "confirmed",
+                MentorSession.scheduled_at >= window_start,
+                MentorSession.scheduled_at <= window_end,
+            )
+            .all()
+        )
+        if not sessions:
+            return
+
+        from app.modules.realtime.ws_notifications import manager as nm
+        for s in sessions:
+            mentor = db.query(UserModel).filter(UserModel.id == s.mentor_id).first()
+            mentee = db.query(UserModel).filter(UserModel.id == s.mentee_id).first()
+            mins = int((s.scheduled_at - now).total_seconds() // 60)
+            payload = {
+                "type": "session_reminder",
+                "session_id": s.id,
+                "minutes_until": mins,
+                "topic": s.topic or "",
+                "scheduled_at": s.scheduled_at.isoformat(),
+            }
+            # Notify both parties
+            for uid, other_name in [
+                (s.mentee_id, mentor.full_name if mentor else "Mentor"),
+                (s.mentor_id, mentee.full_name if mentee else "Mentee"),
+            ]:
+                try:
+                    await nm.send(uid, {**payload, "other_name": other_name})
+                except Exception:
+                    pass
 
 
 # ── Schemas ────────────────────────────────────────────────────
@@ -71,10 +117,15 @@ async def book_session(
 ):
     try:
         dt = datetime.fromisoformat(body.scheduled_at)
+        # Make timezone-aware (treat naive as UTC+7 Vietnam time)
+        if dt.tzinfo is None:
+            from datetime import timedelta
+            dt = dt.replace(tzinfo=timezone(timedelta(hours=7)))
     except ValueError:
         raise HTTPException(400, "scheduled_at must be ISO 8601 format")
 
-    if dt <= datetime.utcnow():
+    now_vn = datetime.now(timezone(timedelta(hours=7)))
+    if dt <= now_vn:
         raise HTTPException(400, "Thời gian hẹn phải trong tương lai")
 
     session = MentorSession(

@@ -51,7 +51,7 @@ const DashboardPage = () => {
   // ==========================================
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 relative overflow-x-hidden">
+      <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-indigo-50 selection:text-indigo-900 relative overflow-x-hidden">
 
         {/* CSS Injection: Patterns & Animations */}
         <style>{`
@@ -69,8 +69,8 @@ const DashboardPage = () => {
 
         {/* --- BACKGROUND LAYERS --- */}
         <div className="fixed inset-0 bg-grid-pattern pointer-events-none z-0"></div>
-        <div className="fixed top-[-10%] right-[-5%] w-[600px] h-[600px] bg-green-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
-        <div className="fixed bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-teal-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div className="fixed top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        <div className="fixed bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
         <div className="relative z-10 max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
 
@@ -79,7 +79,7 @@ const DashboardPage = () => {
             <div>
               <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight flex items-center gap-3">
                 {t('dashboard.title')}
-                <span className="text-sm font-medium px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
+                <span className="text-sm font-medium px-3 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800">
                   {t('dashboard.overview')}
                 </span>
               </h2>
@@ -101,7 +101,7 @@ const DashboardPage = () => {
             <div className="flex flex-col items-center justify-center py-32 animate-pulse">
               <div className="relative">
                 <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
-                <div className="absolute top-0 left-0 w-16 h-16 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
+                <div className="absolute top-0 left-0 w-16 h-16 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
               </div>
               <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium tracking-wide">{t('dashboard.loading')}</p>
             </div>
@@ -130,17 +130,17 @@ const DashboardPage = () => {
           {!loading && !error && dashboardData && (
             <div className="space-y-10 animate-fade-in-up">
               {/* Debug logging */}
-              {void console.log('🎯 [DashboardPage] dashboardData:', dashboardData)}
-              {void console.log('🎯 [DashboardPage] hasCompletedAssessment:', dashboardData.hasCompletedAssessment)}
-              {void console.log('🎯 [DashboardPage] topCareerSuggestions:', dashboardData.topCareerSuggestions)}
-              {void console.log('🎯 [DashboardPage] topCareerSuggestions.length:', dashboardData.topCareerSuggestions.length)}
+              {void console.log(' [DashboardPage] dashboardData:', dashboardData)}
+              {void console.log(' [DashboardPage] hasCompletedAssessment:', dashboardData.hasCompletedAssessment)}
+              {void console.log(' [DashboardPage] topCareerSuggestions:', dashboardData.topCareerSuggestions)}
+              {void console.log(' [DashboardPage] topCareerSuggestions.length:', dashboardData.topCareerSuggestions.length)}
 
               {/* TOP ROW: Profile & Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                 {/* Profile Summary - Main Card */}
                 <div className="lg:col-span-2 flex flex-col h-full">
                   <div className="h-full bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 overflow-hidden relative group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-500/10 to-transparent rounded-bl-[100px] pointer-events-none group-hover:from-green-500/20 transition-all"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-indigo-700/10 to-transparent rounded-bl-[100px] pointer-events-none group-hover:from-indigo-700/20 transition-all"></div>
                     <ProfileSummaryCard profile={dashboardData.profileSummary} />
                   </div>
                 </div>
@@ -159,8 +159,8 @@ const DashboardPage = () => {
               {dashboardData.hasCompletedAssessment && dashboardData.topCareerSuggestions.length > 0 && (
                 <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-base font-bold text-gray-700 dark:text-gray-200">🎯 Nghề phù hợp nhất với bạn</span>
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                    <span className="text-base font-bold text-gray-700 dark:text-gray-200"> Nghề phù hợp nhất với bạn</span>
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400">
                       {dashboardData.topCareerSuggestions[0].matchPercentage}% match
                     </span>
                   </div>
@@ -176,8 +176,8 @@ const DashboardPage = () => {
                     <div>
                       <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                         <span className="flex h-3 w-3 relative">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-700"></span>
                         </span>
                         {t('dashboard.careerSuggestions.title')}
                       </h3>
@@ -189,9 +189,9 @@ const DashboardPage = () => {
                       {dashboardData.latestAssessmentId && (
                         <button
                           onClick={handleViewResults}
-                          className="group px-5 py-2.5 rounded-full font-bold text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all shadow-sm flex items-center gap-2"
+                          className="group px-5 py-2.5 rounded-full font-bold text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400 transition-all shadow-sm flex items-center gap-2"
                         >
-                          <svg className="w-4 h-4 text-gray-400 group-hover:text-green-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                          <svg className="w-4 h-4 text-gray-400 group-hover:text-indigo-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                           {t('dashboard.careerSuggestions.viewAll')}
                         </button>
                       )}
@@ -199,7 +199,7 @@ const DashboardPage = () => {
                       {/* Retake Button */}
                       <button
                         onClick={() => navigate('/assessment')}
-                        className="px-5 py-2.5 rounded-full font-bold text-sm bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+                        className="px-5 py-2.5 rounded-full font-bold text-sm bg-indigo-800 hover:bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                         {t("assessment.retake")}

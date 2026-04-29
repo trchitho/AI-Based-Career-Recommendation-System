@@ -64,6 +64,8 @@ export interface MentorshipRequest {
   mentor_position?: string;
   mentor_company?: string;
   mentee_name?: string;
+  mentor_user_id?: number;
+  mentee_user_id?: number;
 }
 
 export interface MenteeProfileCreate {

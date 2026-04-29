@@ -3,22 +3,22 @@ import React from "react";
 const HomeWhy: React.FC = () => {
     const items = [
         {
-            icon: "📊",
+            icon: "",
             title: "Bài test RIASEC + Big Five",
             desc: "Bài test dựa trên khoa học giúp phân tích tính cách & gợi ý nghề nghiệp phù hợp nhất."
         },
         {
-            icon: "📚",
+            icon: "",
             title: "Thông tin ngành nghề chi tiết",
             desc: "Kho dữ liệu ngành nghề cập nhật liên tục giúp bạn ra quyết định chính xác."
         },
         {
-            icon: "🚀",
+            icon: "",
             title: "Lộ trình phát triển rõ ràng",
             desc: "Cung cấp các bước phát triển kỹ năng theo từng nghề cụ thể."
         },
         {
-            icon: "🎯",
+            icon: "",
             title: "Hỗ trợ quyết định tự tin",
             desc: "Phân tích dữ liệu & AI giúp bạn chọn nghề chính xác, giảm rủi ro."
         }

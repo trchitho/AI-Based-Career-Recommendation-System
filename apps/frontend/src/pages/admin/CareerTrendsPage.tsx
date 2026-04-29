@@ -47,13 +47,13 @@ const CareerTrendsPage = () => {
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
       "Technology": "bg-blue-500",
-      "Healthcare": "bg-green-500",
+      "Healthcare": "bg-indigo-700",
       "Finance": "bg-yellow-500",
       "Education": "bg-purple-500",
       "Engineering": "bg-red-500",
       "Arts": "bg-pink-500",
       "Business": "bg-indigo-500",
-      "Science": "bg-teal-500",
+      "Science": "bg-indigo-600",
     };
     return colors[category] || "bg-gray-500";
   };
@@ -61,7 +61,7 @@ const CareerTrendsPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50/30 to-teal-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-6 space-y-6">
       {/* Modern Header with Gradient */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-600 via-teal-600 to-blue-600 p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-800 via-teal-600 to-blue-600 p-8 shadow-2xl">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -86,7 +86,7 @@ const CareerTrendsPage = () => {
                 key={p.value}
                 onClick={() => setPeriod(p.value as typeof period)}
                 className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${period === p.value
-                    ? "bg-white text-green-600 shadow-lg scale-105"
+                    ? "bg-white text-indigo-800 shadow-lg scale-105"
                     : "bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white hover:scale-105"
                   }`}
               >
@@ -99,7 +99,7 @@ const CareerTrendsPage = () => {
 
       {loading ? (
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-12 flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
-          <div className="w-8 h-8 border-3 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
           <span className="text-lg font-medium">Loading trends...</span>
         </div>
       ) : !data ? (
@@ -129,7 +129,7 @@ const CareerTrendsPage = () => {
               </div>
             </div>
 
-            <div className="group relative bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+            <div className="group relative bg-gradient-to-br from-indigo-700 to-emerald-600 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
               <div className="relative z-10">
                 <p className="text-sm font-semibold text-green-100 mb-2">Top Careers</p>

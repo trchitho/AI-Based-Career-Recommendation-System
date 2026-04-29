@@ -26,15 +26,15 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
 
   // Group assessments by session/time (within 5 minutes = same session)
   const groupedSessions = useMemo(() => {
-    console.log('🔍 [AssessmentHistory] Raw assessmentHistory:', assessmentHistory);
-    console.log('🔍 [AssessmentHistory] First item test_mode:', assessmentHistory[0]?.test_mode);
+    console.log(' [AssessmentHistory] Raw assessmentHistory:', assessmentHistory);
+    console.log(' [AssessmentHistory] First item test_mode:', assessmentHistory[0]?.test_mode);
     const sessions: GroupedSession[] = [];
     const sortedHistory = [...assessmentHistory].sort(
       (a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
     );
 
     for (const assessment of sortedHistory) {
-      console.log('🔍 [AssessmentHistory] Processing assessment:', {
+      console.log(' [AssessmentHistory] Processing assessment:', {
         id: assessment.id,
         test_mode: assessment.test_mode,
         test_types: assessment.test_types,
@@ -87,7 +87,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
       }
     }
 
-    console.log('🔍 [AssessmentHistory] Grouped sessions:', sessions);
+    console.log(' [AssessmentHistory] Grouped sessions:', sessions);
     return sessions;
   }, [assessmentHistory]);
 
@@ -162,7 +162,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-card-hero overflow-hidden">
 
       {/* Header with gradient */}
-      <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[4A7C59] to-[3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden">
         {/* Abstract pattern overlay */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/5 skew-x-12 transform translate-x-10 pointer-events-none"></div>
@@ -209,7 +209,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
             </p>
             <button
               onClick={() => navigate('/assessment')}
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-lg"
+              className="px-6 py-3 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-xl transition-colors shadow-lg"
             >
               Start Assessment
             </button>
@@ -251,24 +251,24 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                         <span className="text-sm font-bold text-gray-900 dark:text-white">
                           {formatDate(session.created_at)}
                         </span>
-                        <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">
+                        <span className="px-2 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold rounded-full">
                           {getSessionTestTypes(session)}
                         </span>
                         {/* Test Mode Badge */}
                         {(() => {
                           const testMode = session.riasec_assessment?.test_mode || session.bigfive_assessment?.test_mode;
-                          console.log('🔍 [Badge] Session:', session.session_id, 'test_mode:', testMode);
+                          console.log(' [Badge] Session:', session.session_id, 'test_mode:', testMode);
                           
                           if (testMode === 'story') {
                             return (
                               <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-semibold rounded-full">
-                                📖 Story Mode
+                                 Story Mode
                               </span>
                             );
                           } else if (testMode === 'traditional') {
                             return (
                               <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full">
-                                📝 Traditional
+                                 Traditional
                               </span>
                             );
                           }
@@ -316,7 +316,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                           const assessmentId = session.riasec_assessment?.id || session.bigfive_assessment?.id;
                           if (assessmentId) navigate(`/results/${assessmentId}`);
                         }}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg transition-colors"
+                        className="px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-bold rounded-lg transition-colors"
                       >
                         View Results
                       </button>
@@ -334,12 +334,12 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                             <div className="space-y-3">
                               {(() => {
                                 const riasecColors: Record<string, string> = {
-                                  realistic: '#EF4444',
-                                  investigative: '#F59E0B',
-                                  artistic: '#10B981',
-                                  social: '#3B82F6',
-                                  enterprising: '#8B5CF6',
-                                  conventional: '#EC4899'
+                                  realistic: 'EF4444',
+                                  investigative: 'F59E0B',
+                                  artistic: '10B981',
+                                  social: '3B82F6',
+                                  enterprising: '8B5CF6',
+                                  conventional: 'EC4899'
                                 };
                                 const riasecNames: Record<string, string> = {
                                   realistic: 'Realistic',
@@ -385,11 +385,11 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                             <div className="space-y-3">
                               {(() => {
                                 const traitColors: Record<string, string> = {
-                                  openness: '#8B5CF6',
-                                  conscientiousness: '#3B82F6',
-                                  extraversion: '#10B981',
-                                  agreeableness: '#F59E0B',
-                                  neuroticism: '#EF4444'
+                                  openness: '8B5CF6',
+                                  conscientiousness: '3B82F6',
+                                  extraversion: '10B981',
+                                  agreeableness: 'F59E0B',
+                                  neuroticism: 'EF4444'
                                 };
                                 return Object.entries(session.big_five_scores)
                                   .sort((a: any, b: any) => b[1] - a[1])

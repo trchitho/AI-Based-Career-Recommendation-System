@@ -206,7 +206,7 @@ const BlogPage = () => {
         {/* ── Compact Hero ── */}
         <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
           <div className="absolute inset-0 opacity-5 pointer-events-none">
-            <div className="absolute top-0 left-1/4 w-72 h-72 bg-green-500 rounded-full blur-3xl"></div>
+            <div className="absolute top-0 left-1/4 w-72 h-72 bg-indigo-700 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-blue-500 rounded-full blur-3xl"></div>
           </div>
 
@@ -216,24 +216,24 @@ const BlogPage = () => {
               {/* Left: title + search */}
               <div className="flex-1 max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700 mb-4">
-                  <Sparkles className="w-3.5 h-3.5 text-green-600" />
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-800" />
                   <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Career Insights & Expert Advice</span>
                 </div>
 
                 <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
                   Latest News &{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">Articles</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-800 to-blue-600">Articles</span>
                 </h1>
 
                 {/* Search */}
                 <div className="relative group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-indigo-800 transition-colors" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="Search career advice, interview tips, resume strategies..."
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-green-500 shadow-sm hover:shadow-md transition-all text-sm"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-600 shadow-sm hover:shadow-md transition-all text-sm"
                   />
                 </div>
 
@@ -247,7 +247,7 @@ const BlogPage = () => {
                     <button
                       key={topic}
                       onClick={() => handleSearchChange(topic)}
-                      className="px-3 py-1 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-green-500 hover:text-green-600 transition-all"
+                      className="px-3 py-1 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-indigo-600 hover:text-indigo-800 transition-all"
                     >
                       {topic}
                     </button>
@@ -259,7 +259,7 @@ const BlogPage = () => {
               <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={() => navigate(isAdmin ? '/admin/blog/create' : '/blog/create')}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-800 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm"
                 >
                   <Edit3 className="w-4 h-4" />
                   Write Article
@@ -267,7 +267,7 @@ const BlogPage = () => {
                 {isAdmin && (
                   <button
                     onClick={() => navigate('/admin/blog/manage')}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-green-500 hover:text-green-600 transition-all text-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-indigo-600 hover:text-indigo-800 transition-all text-sm"
                   >
                     <Settings className="w-4 h-4" />
                     Manage
@@ -287,7 +287,7 @@ const BlogPage = () => {
                   key={category}
                   onClick={() => handleCategoryChange(category)}
                   className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap text-sm transition-all duration-200 ${selectedCategory === category
-                    ? 'bg-green-600 text-white shadow-sm'
+                    ? 'bg-indigo-800 text-white shadow-sm'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
@@ -306,7 +306,7 @@ const BlogPage = () => {
               <div className="flex items-center justify-center py-32">
                 <div className="relative">
                   <div className="w-20 h-20 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
-                  <div className="absolute top-0 left-0 w-20 h-20 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
+                  <div className="absolute top-0 left-0 w-20 h-20 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
                 </div>
               </div>
             )}
@@ -349,21 +349,21 @@ const BlogPage = () => {
 
                     <div className="absolute inset-0 p-8 flex flex-col justify-end">
                       <div className="flex items-center gap-3 mb-3">
-                        <span className="px-2.5 py-1 rounded-md bg-green-500 text-white text-xs font-bold uppercase tracking-wide">
+                        <span className="px-2.5 py-1 rounded-md bg-indigo-700 text-white text-xs font-bold uppercase tracking-wide">
                           Featured
                         </span>
                         <span className="px-2.5 py-1 rounded-md bg-white/20 text-white text-xs font-semibold backdrop-blur-sm">
                           {getCategoryDisplayName(featuredPost.category)}
                         </span>
                       </div>
-                      <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 line-clamp-2 leading-tight group-hover:text-green-300 transition-colors">
+                      <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 line-clamp-2 leading-tight group-hover:text-indigo-300 transition-colors">
                         {featuredPost.title}
                       </h2>
                       <p className="text-white/70 text-sm line-clamp-2 mb-4 max-w-2xl">
                         {featuredPost.excerpt || featuredPost.content_md?.substring(0, 120) + '...'}
                       </p>
                       <div className="flex items-center gap-4">
-                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-900 font-semibold rounded-lg text-sm hover:bg-green-50 transition-colors">
+                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-900 font-semibold rounded-lg text-sm hover:bg-indigo-50 transition-colors">
                           Read Full Report
                           <ArrowRight className="w-4 h-4" />
                         </button>
@@ -408,7 +408,7 @@ const BlogPage = () => {
                           {/* Content */}
                           <div className="p-5 flex flex-col flex-grow">
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wide">
+                              <span className="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wide">
                                 {getCategoryDisplayName(post.category)}
                               </span>
                               <span className="text-gray-300 dark:text-gray-600">·</span>
@@ -417,7 +417,7 @@ const BlogPage = () => {
                               </span>
                             </div>
 
-                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 leading-snug group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 leading-snug group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors">
                               {post.title}
                             </h3>
 
@@ -435,7 +435,7 @@ const BlogPage = () => {
                                   {post.author_name || 'Author'}
                                 </span>
                               </div>
-                              <span className="text-xs text-green-600 dark:text-green-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                              <span className="text-xs text-indigo-800 dark:text-indigo-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
                                 Read More <ArrowRight className="w-3 h-3" />
                               </span>
                             </div>
@@ -473,14 +473,14 @@ const BlogPage = () => {
                 {searchQuery ? (
                   <button
                     onClick={() => handleSearchChange('')}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-xl transition-all"
                   >
                     Clear Search
                   </button>
                 ) : (
                   <button
                     onClick={() => navigate('/blog/create')}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-xl transition-all"
                   >
                     <Edit3 className="w-5 h-5" />
                     Write First Article
@@ -500,7 +500,7 @@ const BlogPage = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
+                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
                 >
                   Previous
                 </button>
@@ -524,8 +524,8 @@ const BlogPage = () => {
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
                         className={`w-12 h-12 rounded-xl font-semibold transition-all ${currentPage === pageNum
-                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-500/30'
-                          : 'border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400'
+                          ? 'bg-gradient-to-r from-indigo-800 to-green-700 text-white shadow-lg shadow-green-500/30'
+                          : 'border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400'
                           }`}
                       >
                         {pageNum}
@@ -543,7 +543,7 @@ const BlogPage = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
+                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
                 >
                   Next
                 </button>

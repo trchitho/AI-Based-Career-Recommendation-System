@@ -15,9 +15,9 @@ interface ReportSummaryProps {
 
 const ReportSummary = ({ summaryStatement, riasecPattern, bigFivePattern }: ReportSummaryProps) => {
     return (
-        <div className="bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-2xl p-8 border border-green-100 dark:border-green-800/30">
+        <div className="bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-2xl p-8 border border-green-100 dark:border-indigo-800/30">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <span className="w-2 h-6 bg-green-500 rounded-full" />
+                <span className="w-2 h-6 bg-indigo-700 rounded-full" />
                 Summary
             </h2>
 
@@ -31,7 +31,7 @@ const ReportSummary = ({ summaryStatement, riasecPattern, bigFivePattern }: Repo
                     <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Interest Type
                     </span>
-                    <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                    <span className="text-sm font-bold text-indigo-800 dark:text-indigo-400">
                         {riasecPattern.shortPattern}
                     </span>
                 </div>

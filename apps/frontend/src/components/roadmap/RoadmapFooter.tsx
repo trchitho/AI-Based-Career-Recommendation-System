@@ -44,8 +44,8 @@ const RoadmapFooter = ({ milestones, userProgress }: RoadmapFooterProps) => {
       <div className="absolute left-6 -top-2 w-4 h-4 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 shadow-lg pulse-glow"></div>
       
       {/* Sparkle decorations */}
-      <div className="absolute left-4 top-4 text-yellow-400 text-xs animate-pulse">✨</div>
-      <div className="absolute right-8 top-8 text-purple-400 text-sm animate-bounce">💫</div>
+      <div className="absolute left-4 top-4 text-yellow-400 text-xs animate-pulse"></div>
+      <div className="absolute right-8 top-8 text-purple-400 text-sm animate-bounce"></div>
       <div className="absolute right-16 bottom-16 text-pink-400 text-xs animate-pulse" style={{animationDelay: '1s'}}>⭐</div>
       
       {/* Completion Summary Card */}
@@ -69,7 +69,7 @@ const RoadmapFooter = ({ milestones, userProgress }: RoadmapFooterProps) => {
                 cx="50"
                 cy="50"
                 r="40"
-                stroke="url(#gradient)"
+                stroke="url(gradient)"
                 strokeWidth="8"
                 fill="transparent"
                 strokeDasharray={`${2 * Math.PI * 40}`}
@@ -80,9 +80,9 @@ const RoadmapFooter = ({ milestones, userProgress }: RoadmapFooterProps) => {
               {/* Gradient definition */}
               <defs>
                 <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#8B5CF6" />
-                  <stop offset="50%" stopColor="#EC4899" />
-                  <stop offset="100%" stopColor="#F59E0B" />
+                  <stop offset="0%" stopColor="8B5CF6" />
+                  <stop offset="50%" stopColor="EC4899" />
+                  <stop offset="100%" stopColor="F59E0B" />
                 </linearGradient>
               </defs>
             </svg>
@@ -101,10 +101,10 @@ const RoadmapFooter = ({ milestones, userProgress }: RoadmapFooterProps) => {
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
               {userProgress?.completed_milestones?.length === milestones.length 
-                ? "🎉 Congratulations! You've completed this learning path!"
+                ? " Congratulations! You've completed this learning path!"
                 : userProgress?.completed_milestones?.length === 0
-                ? "🚀 Ready to start your learning journey?"
-                : `💪 Keep going! You're ${Math.round(((userProgress?.completed_milestones?.length || 0) / milestones.length) * 100)}% there!`
+                ? " Ready to start your learning journey?"
+                : ` Keep going! You're ${Math.round(((userProgress?.completed_milestones?.length || 0) / milestones.length) * 100)}% there!`
               }
             </p>
           </div>
@@ -113,7 +113,7 @@ const RoadmapFooter = ({ milestones, userProgress }: RoadmapFooterProps) => {
           <div className="flex justify-center gap-4 mb-6 flex-wrap">
             {userProgress?.completed_milestones?.length === milestones.length && (
               <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full font-semibold shadow-lg badge-bounce">
-                <span className="text-lg">🏆</span>
+                <span className="text-lg"></span>
                 <span>Path Master</span>
               </div>
             )}
@@ -125,7 +125,7 @@ const RoadmapFooter = ({ milestones, userProgress }: RoadmapFooterProps) => {
             )}
             {(userProgress?.completed_milestones?.length || 0) >= 1 && (
               <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-full font-semibold shadow-lg badge-bounce" style={{animationDelay: '1s'}}>
-                <span className="text-lg">🎯</span>
+                <span className="text-lg"></span>
                 <span>Getting Started</span>
               </div>
             )}
@@ -147,7 +147,7 @@ const RoadmapFooter = ({ milestones, userProgress }: RoadmapFooterProps) => {
           {userProgress?.completed_milestones?.length !== milestones.length && (
             <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
               <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                🎯 Next Milestone
+                 Next Milestone
               </h4>
               <p className="text-blue-700 dark:text-blue-300 text-sm">
                 {(() => {

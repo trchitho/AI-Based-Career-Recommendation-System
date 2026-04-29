@@ -43,7 +43,7 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
   const getStatusColor = () => {
     if (isExpired) return 'from-red-500 to-red-600';
     if (isExpiringSoon) return 'from-orange-500 to-orange-600';
-    return 'from-green-500 to-green-600';
+    return 'from-indigo-700 to-green-600';
   };
 
   const getStatusText = () => {
@@ -107,7 +107,7 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
-              className={`h-2 rounded-full transition-all duration-300 ${isExpired ? 'bg-red-500' : isExpiringSoon ? 'bg-orange-500' : 'bg-green-500'
+              className={`h-2 rounded-full transition-all duration-300 ${isExpired ? 'bg-red-500' : isExpiringSoon ? 'bg-orange-500' : 'bg-indigo-700'
                 }`}
               style={{ width: `${usagePercentage}%` }}
             />
@@ -119,20 +119,20 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
           ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
           : isExpiringSoon
             ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800'
-            : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+            : 'bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800'
           }`}>
           <div className="flex items-start gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isExpired
               ? 'bg-red-100 dark:bg-red-900/30'
               : isExpiringSoon
                 ? 'bg-orange-100 dark:bg-orange-900/30'
-                : 'bg-green-100 dark:bg-green-900/30'
+                : 'bg-indigo-50 dark:bg-indigo-950/30'
               }`}>
               <svg className={`w-4 h-4 ${isExpired
                 ? 'text-red-600 dark:text-red-400'
                 : isExpiringSoon
                   ? 'text-orange-600 dark:text-orange-400'
-                  : 'text-green-600 dark:text-green-400'
+                  : 'text-indigo-800 dark:text-indigo-400'
                 }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isExpired ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -161,7 +161,7 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
                 ? 'text-red-700 dark:text-red-300'
                 : isExpiringSoon
                   ? 'text-orange-700 dark:text-orange-300'
-                  : 'text-green-700 dark:text-green-300'
+                  : 'text-indigo-900 dark:text-indigo-300'
                 }`}>
                 {isExpired
                   ? 'Renew now to continue using all Premium features'

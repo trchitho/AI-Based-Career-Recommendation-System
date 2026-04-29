@@ -50,7 +50,7 @@ const AssessmentHistoryPage = () => {
 
   const getSessionBadgeColor = (types: string) => {
     if (types.includes('RIASEC') && types.includes('BigFive')) {
-      return 'bg-green-100 text-green-800';
+      return 'bg-indigo-50 text-green-800';
     } else if (types.includes('RIASEC')) {
       return 'bg-blue-100 text-blue-800';
     } else if (types.includes('BigFive')) {
@@ -110,7 +110,7 @@ const AssessmentHistoryPage = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">
-                          Session #{session.session_id}
+                          Session {session.session_id}
                         </h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${getSessionBadgeColor(
@@ -133,7 +133,7 @@ const AssessmentHistoryPage = () => {
                     <div className="flex gap-2">
                       <Link
                         to={`/session-results/${session.session_id}`}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        className="px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 transition-colors text-sm font-medium"
                       >
                         Xem kết quả
                       </Link>
@@ -185,7 +185,7 @@ const AssessmentHistoryPage = () => {
               </p>
               <Link
                 to="/assessment"
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                className="inline-flex items-center px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 transition-colors font-medium"
               >
                 Bắt đầu đánh giá
               </Link>

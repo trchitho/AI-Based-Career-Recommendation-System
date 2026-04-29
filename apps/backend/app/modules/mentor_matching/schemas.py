@@ -101,6 +101,9 @@ class MentorshipRequestOut(BaseModel):
     mentor_position: Optional[str] = None
     mentor_company: Optional[str] = None
     mentee_name: Optional[str] = None
+    # user_id (for chat)
+    mentor_user_id: Optional[int] = None
+    mentee_user_id: Optional[int] = None
 
     class Config:
         from_attributes = True

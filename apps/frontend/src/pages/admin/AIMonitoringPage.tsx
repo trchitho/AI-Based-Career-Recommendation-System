@@ -65,7 +65,7 @@ const baseInput =
   "border-gray-200 dark:border-gray-700 " +
   "text-gray-900 dark:text-gray-100 " +
   "placeholder-gray-400 dark:placeholder-gray-500 " +
-  "focus:outline-none focus:ring-2 focus:ring-green-500";
+  "focus:outline-none focus:ring-2 focus:ring-indigo-600";
 
 const cardClass =
   "bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 " +
@@ -211,8 +211,8 @@ const AIMonitoringPage = () => {
 
   if (loading) {
     return (
-      <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
-        <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+      <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
         Đang tải...
       </div>
     );
@@ -220,7 +220,7 @@ const AIMonitoringPage = () => {
 
   if (!metrics) {
     return (
-      <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen">
+      <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen">
         <div className={`${cardClass} text-red-500`}>Failed to load metrics</div>
       </div>
     );
@@ -260,9 +260,9 @@ const AIMonitoringPage = () => {
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-2xl">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className={`relative w-4 h-4 rounded-full ${geminiStatus?.streams_initialized ? 'bg-green-500' : 'bg-red-500'}`}>
+              <div className={`relative w-4 h-4 rounded-full ${geminiStatus?.streams_initialized ? 'bg-indigo-700' : 'bg-red-500'}`}>
                 {geminiStatus?.streams_initialized && (
-                  <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></span>
+                  <span className="absolute inset-0 rounded-full bg-indigo-700 animate-ping opacity-75"></span>
                 )}
               </div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Gemini AI Status</h2>
@@ -293,10 +293,10 @@ const AIMonitoringPage = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Overall Status', value: geminiStatus.streams_initialized ? '✅ Online' : '❌ Offline', ok: geminiStatus.streams_initialized, gradient: 'from-green-500 to-emerald-600' },
-                  { label: 'Assessment AI', value: geminiStatus.streams?.assessment?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.assessment?.initialized, gradient: 'from-blue-500 to-cyan-600' },
-                  { label: 'Chatbot AI', value: geminiStatus.streams?.chatbot?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.chatbot?.initialized, gradient: 'from-purple-500 to-pink-600' },
-                  { label: 'CV Parser AI', value: geminiStatus.streams?.cv?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.cv?.initialized, gradient: 'from-orange-500 to-red-600' },
+                  { label: 'Overall Status', value: geminiStatus.streams_initialized ? ' Online' : ' Offline', ok: geminiStatus.streams_initialized, gradient: 'from-indigo-700 to-emerald-600' },
+                  { label: 'Assessment AI', value: geminiStatus.streams?.assessment?.initialized ? ' Ready' : ' Error', ok: geminiStatus.streams?.assessment?.initialized, gradient: 'from-blue-500 to-cyan-600' },
+                  { label: 'Chatbot AI', value: geminiStatus.streams?.chatbot?.initialized ? ' Ready' : ' Error', ok: geminiStatus.streams?.chatbot?.initialized, gradient: 'from-purple-500 to-pink-600' },
+                  { label: 'CV Parser AI', value: geminiStatus.streams?.cv?.initialized ? ' Ready' : ' Error', ok: geminiStatus.streams?.cv?.initialized, gradient: 'from-orange-500 to-red-600' },
                 ].map(({ label, value, ok, gradient }) => (
                   <div key={label} className={`relative overflow-hidden rounded-xl p-4 ${ok ? 'bg-gradient-to-br ' + gradient : 'bg-gradient-to-br from-gray-400 to-gray-500'} shadow-lg transition-all duration-300 hover:scale-105`}>
                     <div className="absolute inset-0 bg-white/10"></div>
@@ -386,7 +386,7 @@ const AIMonitoringPage = () => {
 
           <MetricCard
             title="Avg Feedback Rating"
-            value={metrics.avgFeedbackRating > 0 ? `${metrics.avgFeedbackRating} ★` : 'N/A'}
+            value={metrics.avgFeedbackRating > 0 ? `${metrics.avgFeedbackRating} ` : 'N/A'}
             subtitle={`${metrics.totalFeedback} total reviews`}
             status={metrics.avgFeedbackRating >= 4 ? 'good' : metrics.avgFeedbackRating >= 3 ? 'warning' : 'error'}
           />
@@ -439,7 +439,7 @@ const AIMonitoringPage = () => {
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full">
                   <div
-                    className="bg-green-600 h-2 rounded-full"
+                    className="bg-indigo-800 h-2 rounded-full"
                     style={{ width: value }}
                   />
                 </div>
@@ -527,9 +527,9 @@ const AIMonitoringPage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-[#0F172A]">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-[0F172A]">
                 {feedback.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-[#1E293B]">
+                  <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-[1E293B]">
                     <td className="px-6 py-4 text-gray-900 dark:text-white">
                       {item.userName}
                     </td>
@@ -540,7 +540,7 @@ const AIMonitoringPage = () => {
                             key={i}
                             className={i < item.rating ? "text-yellow-400" : "text-gray-400"}
                           >
-                            ★
+                            
                           </span>
                         ))}
                       </div>
@@ -597,7 +597,7 @@ const AIMonitoringPage = () => {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-full ${anomalyStats && anomalyStats.critical > 0 ? 'bg-red-500 animate-pulse' : anomalyStats && anomalyStats.unresolved > 0 ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
+            <span className={`w-2.5 h-2.5 rounded-full ${anomalyStats && anomalyStats.critical > 0 ? 'bg-red-500 animate-pulse' : anomalyStats && anomalyStats.unresolved > 0 ? 'bg-yellow-500 animate-pulse' : 'bg-indigo-700'}`} />
             Anomaly Detection
             {anomalyStats && anomalyStats.unresolved > 0 && (
               <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
@@ -639,7 +639,7 @@ const AIMonitoringPage = () => {
           <div className="text-center py-8 text-gray-500">Loading anomalies...</div>
         ) : anomalies.length === 0 ? (
           <div className={`${cardClass} text-center py-8`}>
-            <p className="text-green-600 dark:text-green-400 font-semibold">No anomalies detected</p>
+            <p className="text-indigo-800 dark:text-indigo-400 font-semibold">No anomalies detected</p>
             <p className="text-sm text-gray-500 mt-1">Click "Run Detection" to scan for issues in real data.</p>
           </div>
         ) : (
@@ -664,7 +664,7 @@ const AIMonitoringPage = () => {
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className={`px-2 py-0.5 text-xs font-bold rounded uppercase ${badgeColors[a.severity] || "bg-gray-400 text-white"}`}>{a.severity}</span>
                         <span className="text-xs text-gray-500 font-mono">{a.type}</span>
-                        {a.resolved && <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">Resolved</span>}
+                        {a.resolved && <span className="px-2 py-0.5 text-xs bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-400 rounded">Resolved</span>}
                       </div>
                       <p className="font-semibold text-gray-900 dark:text-white">{a.title}</p>
                       {a.description && <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{a.description}</p>}
@@ -673,7 +673,7 @@ const AIMonitoringPage = () => {
                     {!a.resolved && (
                       <button
                         onClick={() => resolveAnomaly(a.id)}
-                        className="flex-shrink-0 px-3 py-1.5 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                        className="flex-shrink-0 px-3 py-1.5 text-xs font-semibold bg-indigo-800 hover:bg-indigo-900 text-white rounded-lg transition-colors"
                       >
                         Resolve
                       </button>
@@ -702,20 +702,20 @@ interface MetricProps {
 const MetricCard: React.FC<MetricProps> = ({ title, value, subtitle, status }) => {
   const statusConfig = {
     good: {
-      gradient: 'from-green-500 to-emerald-600',
-      icon: '✓',
-      iconBg: 'bg-green-500/20',
-      iconColor: 'text-green-600 dark:text-green-400'
+      gradient: 'from-indigo-700 to-emerald-600',
+      icon: '',
+      iconBg: 'bg-indigo-700/20',
+      iconColor: 'text-indigo-800 dark:text-indigo-400'
     },
     warning: {
       gradient: 'from-yellow-500 to-orange-600',
-      icon: '⚠',
+      icon: '',
       iconBg: 'bg-yellow-500/20',
       iconColor: 'text-yellow-600 dark:text-yellow-400'
     },
     error: {
       gradient: 'from-red-500 to-pink-600',
-      icon: '✕',
+      icon: '',
       iconBg: 'bg-red-500/20',
       iconColor: 'text-red-600 dark:text-red-400'
     },
@@ -760,8 +760,8 @@ interface HealthProps {
 
 const HealthIndicator: React.FC<HealthProps> = ({ title, status, message }) => {
   const statusColors: Record<string, string> = {
-    operational: "bg-green-500",
-    good: "bg-green-500",
+    operational: "bg-indigo-700",
+    good: "bg-indigo-700",
     warning: "bg-yellow-500",
     error: "bg-red-500",
   };

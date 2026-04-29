@@ -13,9 +13,9 @@ interface SkillGapResultProps {
 
 const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterview }) => {
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 80) return '#10b981';
-    if (percentage >= 60) return '#f59e0b';
-    return '#ef4444';
+    if (percentage >= 80) return '10b981';
+    if (percentage >= 60) return 'f59e0b';
+    return 'ef4444';
   };
 
   const getMatchLabel = (percentage: number) => {

@@ -59,7 +59,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-card-hero overflow-hidden h-full flex flex-col">
 
       {/* Header with gradient */}
-      <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden shrink-0">
+      <div className="bg-gradient-to-r from-[4A7C59] to-[3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden shrink-0">
         {/* Abstract pattern overlay */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/5 skew-x-12 transform translate-x-10 pointer-events-none"></div>
@@ -134,7 +134,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                  className="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
                 />
               </div>
 
@@ -146,7 +146,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  className="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                  className="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
                 />
               </div>
             </div>
@@ -159,7 +159,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
                 type="date"
                 value={formData.dateOfBirth}
                 onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                className="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                className="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
               />
             </div>
 
@@ -176,7 +176,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-3 rounded-xl bg-indigo-800 hover:bg-indigo-900 text-white font-bold shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
               >
                 {saving ? (
                   <>
@@ -196,9 +196,9 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full content-start">
 
             {/* Email Card */}
-            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-green-200 dark:hover:border-green-800 transition-colors group">
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors group">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-green-600 shadow-sm group-hover:text-green-500 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-indigo-800 shadow-sm group-hover:text-indigo-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 </div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email Address</p>
@@ -207,9 +207,9 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
             </div>
 
             {/* Member Since Card */}
-            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-green-200 dark:hover:border-green-800 transition-colors group">
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors group">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-green-600 shadow-sm group-hover:text-green-500 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-indigo-800 shadow-sm group-hover:text-indigo-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Member Since</p>
@@ -218,9 +218,9 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
             </div>
 
             {/* First Name */}
-            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-green-200 dark:hover:border-green-800 transition-colors group">
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors group">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-green-600 shadow-sm group-hover:text-green-500 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-indigo-800 shadow-sm group-hover:text-indigo-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">First Name</p>
@@ -229,9 +229,9 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
             </div>
 
             {/* Last Name */}
-            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-green-200 dark:hover:border-green-800 transition-colors group">
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors group">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-green-600 shadow-sm group-hover:text-green-500 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-indigo-800 shadow-sm group-hover:text-indigo-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Last Name</p>
@@ -240,9 +240,9 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
             </div>
 
             {/* DOB */}
-            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-green-200 dark:hover:border-green-800 transition-colors group">
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors group">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-green-600 shadow-sm group-hover:text-green-500 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-indigo-800 shadow-sm group-hover:text-indigo-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Date of Birth</p>
@@ -251,9 +251,9 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
             </div>
 
             {/* Language Setting */}
-            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-green-200 dark:hover:border-green-800 transition-colors group">
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-5 border border-gray-100 dark:border-gray-700/50 hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors group">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-green-600 shadow-sm group-hover:text-green-500 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-indigo-800 shadow-sm group-hover:text-indigo-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
                 </div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Language / Ngôn ngữ</p>
@@ -263,7 +263,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
                 <button
                   onClick={() => setLanguage('en')}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${language === 'en'
-                      ? 'bg-green-600 text-white shadow-lg shadow-green-600/20'
+                      ? 'bg-indigo-800 text-white shadow-lg shadow-indigo-900/20'
                       : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                 >
@@ -274,7 +274,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
                 <button
                   onClick={() => setLanguage('vi')}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${language === 'vi'
-                      ? 'bg-green-600 text-white shadow-lg shadow-green-600/20'
+                      ? 'bg-indigo-800 text-white shadow-lg shadow-indigo-900/20'
                       : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                 >

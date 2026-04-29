@@ -22,7 +22,7 @@ const PaidUserStatus = () => {
         <div className="max-w-2xl w-full">
           {/* Success Header */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-700 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -38,7 +38,7 @@ const PaidUserStatus = () => {
           {/* Subscription Details Card */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-6 text-white">
+            <div className="bg-gradient-to-r from-indigo-700 to-emerald-500 p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold mb-1">{planName} Plan</h2>
@@ -68,7 +68,7 @@ const PaidUserStatus = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-700 dark:text-gray-300">Status:</span>
-                      <span className="text-green-600 font-semibold">Paid</span>
+                      <span className="text-indigo-800 font-semibold">Paid</span>
                     </div>
                     {expiryDate && (
                       <div className="flex justify-between">
@@ -94,7 +94,7 @@ const PaidUserStatus = () => {
                       'Priority support'
                     ].map((benefit, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4 text-indigo-700 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
                         <span className="text-gray-700 dark:text-gray-300 text-sm">{benefit}</span>
@@ -108,7 +108,7 @@ const PaidUserStatus = () => {
               <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={() => window.location.href = '/dashboard'}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-700 to-emerald-500 hover:from-indigo-800 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
                 >
                   Continue to Dashboard
                 </button>
@@ -160,7 +160,7 @@ const PaidUserStatus = () => {
 
             <p className="text-gray-500 dark:text-gray-400 text-sm">
               Need help? Contact us via email:
-              <a href="mailto:careersystemai@gmail.com" className="text-green-600 hover:text-green-700 ml-1">
+              <a href="mailto:careersystemai@gmail.com" className="text-indigo-800 hover:text-indigo-900 ml-1">
                 careersystemai@gmail.com
               </a>
             </p>

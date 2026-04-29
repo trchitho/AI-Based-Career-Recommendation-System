@@ -150,11 +150,12 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.match-badge.excellent { background: rgba(16,185,129,0.15); color: #065f46; }
-.match-badge.great     { background: rgba(59,130,246,0.15); color: #1e40af; }
-.match-badge.good      { background: rgba(245,158,11,0.15); color: #92400e; }
+/* Match badges — dùng CSS variables */
+.match-badge.excellent { background: var(--neu-accent-muted, var(--color-primary-muted)); color: var(--neu-accent-dark, var(--color-primary-dark)); }
+.match-badge.great     { background: rgba(2,132,199,0.12);  color: #0369a1; }
+.match-badge.good      { background: rgba(217,119,6,0.12);  color: #92400e; }
 
-/* Score donut */
+/* Score donut — thống nhất với CSS variables */
 .score-donut {
   position: relative;
   width: 56px; height: 56px;
@@ -162,9 +163,9 @@
 }
 .score-donut svg { transform: rotate(-90deg); }
 .score-donut-track { color: var(--neu-shadow-dark); }
-.score-donut-fill-excellent { color: #10b981; }
-.score-donut-fill-great     { color: #3b82f6; }
-.score-donut-fill-good      { color: #f59e0b; }
+.score-donut-fill-excellent { color: var(--neu-accent, var(--color-primary)); }
+.score-donut-fill-great     { color: var(--color-info, var(--color-info)); }
+.score-donut-fill-good      { color: var(--color-warning, #d97706); }
 .score-donut-label {
   position: absolute;
   inset: 0;
@@ -304,9 +305,9 @@
 }
 .feedback-btn:hover { border-color: var(--neu-accent); color: var(--neu-accent); }
 .feedback-btn.active-up {
-  background: #10b981;
+  background: var(--color-success);
   color: #fff;
-  border-color: #10b981;
+  border-color: var(--color-success);
   box-shadow: 2px 2px 6px rgba(16,185,129,0.35);
 }
 .feedback-btn.active-down {
@@ -384,7 +385,7 @@
 
 /* ── View button on strip cards ──────────────────────────────── */
 html body button.view-btn {
-  background: #16a34a !important;
+  background: var(--color-primary) !important;
   color: #ffffff !important;
   border: none !important;
   box-shadow: 3px 3px 10px rgba(22,163,74,0.35) !important;

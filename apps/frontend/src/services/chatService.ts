@@ -47,6 +47,31 @@ class ChatService {
     };
     return ws;
   }
+
+  /** WebSocket kênh thông báo hệ thống — nhận khi có tin nhắn mới */
+  openNotificationSocket(onEvent: (type: string, data: any) => void): WebSocket | null {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return null;
+    try {
+      const wsBase = window.location.origin.replace(/^http/, 'ws');
+      const ws = new WebSocket(`${wsBase}/ws/notifications?token=${token}`);
+      ws.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          onEvent(data.type || 'unknown', data);
+        } catch { /* ignore */ }
+      };
+      return ws;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Tổng số unread từ tất cả rooms */
+  async getTotalUnread(): Promise<number> {
+    const rooms = await this.getRooms();
+    return rooms.reduce((s, r) => s + (r.unread || 0), 0);
+  }
 }
 
 export const chatService = new ChatService();

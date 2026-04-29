@@ -107,7 +107,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const displayInitial = displayName.charAt(0).toUpperCase();
 
   return (
-    <div className="min-h-screen flex flex-col font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
+    <div className="min-h-screen flex flex-col font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, f0f2f5)' }}>
 
       {/* CSS Injection */}
       <style>{`
@@ -122,7 +122,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           style={{
             background: 'var(--neu-bg)',
             borderRadius: '20px',
-            boxShadow: '6px 6px 16px var(--neu-shadow-dark, #c8cdd6), -6px -6px 16px var(--neu-shadow-light, #fff)',
+            boxShadow: '6px 6px 16px var(--neu-shadow-dark, c8cdd6), -6px -6px 16px var(--neu-shadow-light, fff)',
           }}
         >
 
@@ -146,7 +146,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 className={({ isActive }) =>
                   `text-[14px] font-medium px-3.5 py-2 rounded-xl transition-all duration-200 select-none whitespace-nowrap ${
                     isActive
-                      ? "text-green-600 dark:text-green-400 font-semibold"
+                      ? "text-indigo-800 dark:text-indigo-400 font-semibold"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                   }`
                 }
@@ -197,7 +197,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               {isAdmin && (
                 <NavLink
                   to="/admin"
-                  className="hidden lg:inline-flex px-3 py-1 text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-full dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
+                  className="hidden lg:inline-flex px-3 py-1 text-xs font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 rounded-full dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-800"
                 >
                   Admin
                 </NavLink>
@@ -210,7 +210,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center gap-2 cursor-pointer group p-1 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
-                    <div className="w-9 h-9 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-sm border border-transparent group-hover:border-green-200 transition-all">
+                    <div className="w-9 h-9 bg-indigo-50 dark:bg-indigo-950 rounded-full flex items-center justify-center text-indigo-900 dark:text-indigo-300 font-bold text-sm border border-transparent group-hover:border-indigo-200 transition-all">
                       {displayInitial}
                     </div>
                     <div className="hidden lg:block text-left">
@@ -233,7 +233,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                       <Link
                         to="/profile"
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-800 dark:hover:text-indigo-400 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                         Hồ sơ
@@ -243,7 +243,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                       <Link
                         to="/settings"
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-800 dark:hover:text-indigo-400 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         Cài đặt
@@ -269,7 +269,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   <NavLink to="/login" className="hidden sm:block text-[15px] font-bold text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-4 py-2 transition-colors">
                     {t('auth.signIn')}
                   </NavLink>
-                  <NavLink to="/assessment" className="text-[15px] font-bold bg-green-600 text-white px-6 py-2.5 rounded-full hover:bg-green-700 shadow-lg shadow-green-600/20 hover:-translate-y-0.5 transition-all duration-200">
+                  <NavLink to="/assessment" className="text-[15px] font-bold bg-indigo-800 text-white px-6 py-2.5 rounded-full hover:bg-indigo-900 shadow-lg shadow-indigo-900/20 hover:-translate-y-0.5 transition-all duration-200">
                     {t('nav.getStarted')}
                   </NavLink>
                 </div>
@@ -296,7 +296,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={({ isActive }) =>
                     `px-4 py-3 rounded-xl text-[15px] font-semibold transition-all ${
-                      isActive ? "text-green-600 dark:text-green-400" : "text-gray-700 dark:text-gray-200"
+                      isActive ? "text-indigo-800 dark:text-indigo-400" : "text-gray-700 dark:text-gray-200"
                     }`
                   }
                   style={({ isActive }) => ({
@@ -313,7 +313,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 <NavLink
                   to="/admin"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-indigo-900 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-green-900/20 transition-colors"
                 >
                   Admin Panel
                 </NavLink>
@@ -352,7 +352,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 <NavLink
                   to="/assessment"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full px-4 py-3 rounded-full text-[15px] font-bold bg-green-600 text-white hover:bg-green-700 transition-colors text-center"
+                  className="w-full px-4 py-3 rounded-full text-[15px] font-bold bg-indigo-800 text-white hover:bg-indigo-900 transition-colors text-center"
                 >
                   {t('nav.getStarted')}
                 </NavLink>
@@ -401,11 +401,23 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 <button
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                   style={{
-                    width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer',
+                    width: 28, height: 28, borderRadius: 8, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'var(--neu-bg)',
-                    boxShadow: '3px 3px 7px var(--neu-shadow-dark), -3px -3px 7px var(--neu-shadow-light)',
-                    color: 'var(--neu-text-muted)',
+                    background: 'var(--neu-bg-card)',
+                    border: '1.5px solid var(--neu-shadow-dark)',
+                    boxShadow: 'none',
+                    color: 'var(--neu-accent)',
+                    transition: 'background 0.15s, border-color 0.15s',
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.background = 'var(--neu-accent)';
+                    (e.currentTarget as HTMLElement).style.color = 'fff';
+                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--neu-accent)';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.background = 'var(--neu-bg-card)';
+                    (e.currentTarget as HTMLElement).style.color = 'var(--neu-accent)';
+                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--neu-shadow-dark)';
                   }}
                   title={sidebarCollapsed ? 'Mở rộng' : 'Thu gọn'}
                 >
@@ -461,7 +473,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%',
-                    background: 'var(--neu-accent)', color: 'var(--neu-btn-text, #fff)',
+                    background: 'var(--neu-accent)', color: 'var(--neu-btn-text, fff)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontWeight: 700, fontSize: '0.85rem', flexShrink: 0,
                   }}>
@@ -540,7 +552,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               style={{
                 position: 'fixed', bottom: 24, left: 16, zIndex: 50,
                 width: 44, height: 44, borderRadius: '50%',
-                background: 'var(--neu-accent)', color: 'var(--neu-btn-text, #fff)',
+                background: 'var(--neu-accent)', color: 'var(--neu-btn-text, fff)',
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '4px 4px 12px rgba(0,0,0,0.25)',

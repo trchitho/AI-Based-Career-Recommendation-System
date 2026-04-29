@@ -115,7 +115,7 @@ const DataSyncPage = () => {
     const styles: Record<string, string> = {
       pending: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
       running: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-      completed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      completed: "bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-indigo-300",
       failed: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
     };
     return styles[status] || styles["pending"];
@@ -177,7 +177,7 @@ const DataSyncPage = () => {
 
       {/* Message */}
       {message && (
-        <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}`}>
+        <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}`}>
           {message.text}
         </div>
       )}
@@ -193,7 +193,7 @@ const DataSyncPage = () => {
             </div>
           </div>
 
-          <div className="group relative bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+          <div className="group relative bg-gradient-to-br from-indigo-700 to-emerald-600 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
             <div className="relative z-10">
               <p className="text-sm font-semibold text-green-100 mb-1">Total Skills</p>
@@ -268,14 +268,14 @@ const DataSyncPage = () => {
               <button
                 onClick={() => startSync("esco", "careers")}
                 disabled={syncing !== null}
-                className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="px-3 py-1.5 text-sm bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 disabled:opacity-50 transition-colors"
               >
                 {syncing === "esco-careers" ? "Syncing..." : "Careers"}
               </button>
               <button
                 onClick={() => startSync("esco", "skills")}
                 disabled={syncing !== null}
-                className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="px-3 py-1.5 text-sm bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 disabled:opacity-50 transition-colors"
               >
                 {syncing === "esco-skills" ? "Syncing..." : "Skills"}
               </button>
@@ -290,7 +290,7 @@ const DataSyncPage = () => {
             <button
               onClick={() => startSync("all", "all")}
               disabled={syncing !== null}
-              className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+              className="px-3 py-1.5 text-sm bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 disabled:opacity-50 transition-colors"
             >
               {syncing === "all-all" ? "Syncing..." : "Start Full Sync"}
             </button>
@@ -314,7 +314,7 @@ const DataSyncPage = () => {
           <button
             onClick={() => exportData("users")}
             disabled={exporting !== null}
-            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-800 hover:bg-indigo-900 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             {exporting === "users" ? "Exporting..." : "Export Users CSV"}
@@ -329,7 +329,7 @@ const DataSyncPage = () => {
         </div>
         {loading ? (
           <div className="p-8 flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
-            <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
             Loading...
           </div>
         ) : jobs.length === 0 ? (
@@ -371,7 +371,7 @@ const DataSyncPage = () => {
                     </td>
                     <td className="px-4 py-3 text-sm">
                       {job.status === "completed" ? (
-                        <span className="text-green-600 dark:text-green-400">
+                        <span className="text-indigo-800 dark:text-indigo-400">
                           +{job.created_items} new, ~{job.updated_items} updated
                         </span>
                       ) : job.status === "failed" ? (

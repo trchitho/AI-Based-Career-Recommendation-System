@@ -53,6 +53,7 @@ import InterviewSelectionPage from './pages/InterviewSelectionPage';
 import InterviewHistoryPage from './pages/InterviewHistoryPage';
 import InterviewListPage from './pages/InterviewListPage';
 import InterviewResultsPage from './pages/InterviewResultsPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -370,8 +371,8 @@ function App() {
                     }
                   />
 
-                  {/* Fallback */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  {/* Fallback — 404 catch-all */}
+                  <Route path="*" element={<NotFoundPage />} />
                 </Routes>
 
                 {/* Global Chatbot - chỉ hiện khi đã đăng nhập */}

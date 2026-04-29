@@ -468,7 +468,7 @@ const ReportPage = () => {
                                         onClick={() => handleTabSwitch('riasec')}
                                         disabled={!data.riasec}
                                         className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'riasec'
-                                            ? 'bg-green-600 text-white shadow-sm'
+                                            ? 'bg-indigo-800 text-white shadow-sm'
                                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                                             } ${!data.riasec ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
@@ -590,7 +590,7 @@ const ReportPage = () => {
                                     <div className="max-w-[1400px] mx-auto px-12 py-8 no-print">
                                         <button
                                             onClick={() => setShowMoreCareers(!showMoreCareers)}
-                                            className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-3"
+                                            className="w-full py-4 bg-gradient-to-r from-indigo-700 to-emerald-600 hover:from-indigo-800 hover:to-emerald-700 text-white rounded-xl font-semibold text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-3"
                                         >
                                             <svg className={`w-6 h-6 transition-transform ${showMoreCareers ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -685,7 +685,7 @@ const ReportPage = () => {
                                                 <button
                                                     onClick={handleSendToMyEmail}
                                                     disabled={sendingEmail}
-                                                    className="w-full mb-3 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-xl font-medium transition-colors"
+                                                    className="w-full mb-3 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-800 hover:bg-indigo-900 disabled:bg-indigo-400 text-white rounded-xl font-medium transition-colors"
                                                 >
                                                     {sendingEmail ? (
                                                         <>
@@ -731,7 +731,7 @@ const ReportPage = () => {
                                             {/* Result message */}
                                             {emailResult && (
                                                 <div className={`mt-3 p-3 rounded-lg text-sm ${emailResult.success
-                                                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
+                                                    ? 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-900 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800'
                                                     : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
                                                     }`}>
                                                     {emailResult.message}
@@ -757,19 +757,19 @@ const ReportPage = () => {
                                             </p>
                                             <div className="space-y-3 mb-6 text-sm text-gray-600 dark:text-gray-400">
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg className="w-4 h-4 text-indigo-700" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
                                                     <span>High-quality PDF reports</span>
                                                 </div>
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg className="w-4 h-4 text-indigo-700" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
                                                     <span>RIASEC & Big Five radar charts</span>
                                                 </div>
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg className="w-4 h-4 text-indigo-700" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
                                                     <span>Perfect for personal portfolio</span>
@@ -783,7 +783,7 @@ const ReportPage = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                                 </svg>
                                                 Upgrade to Pro (499k)
-                                                <span>✨</span>
+                                                <span></span>
                                             </Link>
                                         </div>
                                     </div>

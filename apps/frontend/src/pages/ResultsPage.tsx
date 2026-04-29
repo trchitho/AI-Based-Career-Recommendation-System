@@ -97,7 +97,7 @@ const ResultsPage = () => {
       setResults(resultsData);
     } catch (err: any) {
       if (err?.response?.status === 404) {
-        setErrorResults(`Assessment #${id} not found.`);
+        setErrorResults(`Assessment ${id} not found.`);
       } else if (err?.response?.status === 403) {
         setErrorResults('You do not have permission to view this assessment.');
       } else {

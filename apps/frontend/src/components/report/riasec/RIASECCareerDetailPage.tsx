@@ -72,7 +72,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
             )}
 
             {/* Career Header */}
-            <div className="flex justify-between items-start mb-3 print:mb-2 pb-2 border-b border-green-500 dark:border-green-400 flex-shrink-0">
+            <div className="flex justify-between items-start mb-3 print:mb-2 pb-2 border-b border-indigo-600 dark:border-green-400 flex-shrink-0">
                 <div className="flex-1">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white print:text-base leading-tight">
                         {rank}. {career.title}
@@ -83,7 +83,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                         </p>
                     )}
                 </div>
-                <span className="text-xs bg-green-500 text-white px-3 py-1 rounded-full font-semibold shadow-sm print:text-[10px]">
+                <span className="text-xs bg-indigo-700 text-white px-3 py-1 rounded-full font-semibold shadow-sm print:text-[10px]">
                     {Math.round(career.match_score)}% Match
                 </span>
             </div>
@@ -116,9 +116,9 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium uppercase tracking-wide print:text-[9px]">Average Salary</p>
                     <p className="text-base font-bold text-blue-700 dark:text-blue-300 print:text-sm">{formatSalary(career.salary_avg)}</p>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 rounded-lg p-2 print:p-1.5">
-                    <p className="text-[10px] text-green-600 dark:text-green-400 font-medium uppercase tracking-wide print:text-[9px]">Job Growth</p>
-                    <p className="text-base font-bold text-green-700 dark:text-green-300 print:text-sm">{career.growth_label || 'N/A'}</p>
+                <div className="bg-gradient-to-br from-green-50 to-indigo-50 dark:from-green-900/30 dark:to-green-800/20 rounded-lg p-2 print:p-1.5">
+                    <p className="text-[10px] text-indigo-800 dark:text-indigo-400 font-medium uppercase tracking-wide print:text-[9px]">Job Growth</p>
+                    <p className="text-base font-bold text-indigo-900 dark:text-indigo-300 print:text-sm">{career.growth_label || 'N/A'}</p>
                 </div>
                 <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 rounded-lg p-2 print:p-1.5">
                     <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium uppercase tracking-wide print:text-[9px]">Education</p>
@@ -133,14 +133,14 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     {/* Tasks */}
                     <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 flex items-center gap-1.5 print:text-xs print:mb-1">
-                            <span className="w-1 h-3 bg-green-500 rounded"></span>
+                            <span className="w-1 h-3 bg-indigo-700 rounded"></span>
                             Typical Tasks
                         </h3>
                         {career.tasks && career.tasks.length > 0 ? (
                             <ul className="text-xs text-gray-700 dark:text-gray-300 space-y-1 print:text-[10px] print:space-y-0.5">
                                 {career.tasks.slice(0, 4).map((task, i) => (
                                     <li key={i} className="flex items-start gap-1.5 leading-snug">
-                                        <span className="text-green-500 mt-0.5 text-xs">•</span>
+                                        <span className="text-indigo-700 mt-0.5 text-xs">•</span>
                                         <span className="line-clamp-2">{truncateText(task, 100)}</span>
                                     </li>
                                 ))}
@@ -190,7 +190,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                                             }`}
                                     >
                                         {tech.name}
-                                        {tech.hot_flag && ' 🔥'}
+                                        {tech.hot_flag && ' '}
                                     </span>
                                 ))}
                             </div>
@@ -202,7 +202,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     {/* Outlook */}
                     <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 flex items-center gap-1.5 print:text-xs print:mb-1">
-                            <span className="w-1 h-3 bg-teal-500 rounded"></span>
+                            <span className="w-1 h-3 bg-indigo-600 rounded"></span>
                             Career Outlook
                         </h3>
                         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2 print:p-1.5">

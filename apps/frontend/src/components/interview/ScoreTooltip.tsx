@@ -11,8 +11,8 @@ const ScoreTooltip: React.FC<ScoreTooltipProps> = ({ score, skillName, className
     const [isOpen, setIsOpen] = useState(false);
 
     const getScoreLevel = (score: number) => {
-        if (score >= 9) return { level: 'Xuất sắc', color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-200' };
-        if (score >= 8) return { level: 'Tốt', color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-200' };
+        if (score >= 9) return { level: 'Xuất sắc', color: 'text-indigo-800', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-200' };
+        if (score >= 8) return { level: 'Tốt', color: 'text-indigo-800', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-200' };
         if (score >= 7) return { level: 'Khá', color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' };
         if (score >= 6) return { level: 'Trung bình khá', color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' };
         if (score >= 5) return { level: 'Trung bình', color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' };
@@ -71,7 +71,7 @@ const ScoreTooltip: React.FC<ScoreTooltipProps> = ({ score, skillName, className
                                 <span className={`text-sm font-medium ${scoreInfo.color}`}>{scoreInfo.level}</span>
                                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                                     <div
-                                        className={`h-2 rounded-full ${score >= 8 ? 'bg-green-500' : score >= 6 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                        className={`h-2 rounded-full ${score >= 8 ? 'bg-indigo-700' : score >= 6 ? 'bg-yellow-500' : 'bg-red-500'}`}
                                         style={{ width: `${score * 10}%` }}
                                     />
                                 </div>
@@ -91,7 +91,7 @@ const ScoreTooltip: React.FC<ScoreTooltipProps> = ({ score, skillName, className
                                 >
                                     <div className="flex items-center justify-between mb-1">
                                         <span className="font-medium">{item.range} điểm</span>
-                                        <span className={`font-medium ${item.level === 'Xuất sắc' || item.level === 'Tốt' ? 'text-green-600' :
+                                        <span className={`font-medium ${item.level === 'Xuất sắc' || item.level === 'Tốt' ? 'text-indigo-800' :
                                                 item.level === 'Khá' ? 'text-blue-600' :
                                                     item.level.includes('Trung bình') ? 'text-yellow-600' :
                                                         'text-red-600'

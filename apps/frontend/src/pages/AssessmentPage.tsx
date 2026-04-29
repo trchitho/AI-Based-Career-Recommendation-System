@@ -390,8 +390,8 @@ const AssessmentPage = () => {
 
         {/* --- BACKGROUND LAYERS --- */}
         <div className="absolute inset-0 bg-grid-pattern pointer-events-none z-0"></div>
-        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-green-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
-        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-teal-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
         {/* --- LIMIT EXCEEDED MODAL --- */}
         <LimitExceededModal
@@ -421,12 +421,12 @@ const AssessmentPage = () => {
               {/* Content */}
               <div className="relative w-full p-8 md:p-12 flex flex-col justify-center z-10">
                 <div className="mb-8">
-                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-400 text-xs font-bold uppercase tracking-wider mb-6 border border-green-200 dark:border-green-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-6 border border-indigo-200 dark:border-indigo-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-700"></span>
                     </span>
-                    ✨ {t('assessment.aiPowered')}
+                     {t('assessment.aiPowered')}
                   </span>
                   <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-gray-900 via-green-800 to-emerald-800 dark:from-white dark:via-green-400 dark:to-emerald-400 bg-clip-text text-transparent mb-6 leading-tight">
                     {t('assessment.discoverCareer')}
@@ -536,7 +536,7 @@ const AssessmentPage = () => {
 
                 {/* Time indicator */}
                 <div className="flex items-center gap-2 mt-4 text-sm font-medium opacity-60" style={{ color: 'var(--neu-text)' }}>
-                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <svg className="w-4 h-4 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <span>Hoàn thành trong ~10 phút</span>
                 </div>
               </div>
@@ -549,16 +549,16 @@ const AssessmentPage = () => {
         {!upgradeRequired && step === 'intro' && (
           <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 pb-8">
             <div className={`border rounded-2xl p-6 shadow-lg ${getAssessmentLimit() === -1 // Unlimited
-              ? 'bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border-green-200 dark:border-green-800'
+              ? 'bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border-indigo-200 dark:border-indigo-800'
               : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800'
               }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${getAssessmentLimit() === -1 // Unlimited
-                    ? 'bg-gradient-to-br from-green-500 to-emerald-500'
+                    ? 'bg-gradient-to-br from-indigo-700 to-emerald-500'
                     : 'bg-gradient-to-br from-blue-500 to-indigo-500'
                     }`}>
-                    <span className="text-2xl">{getAssessmentLimit() === -1 ? '⭐' : '📊'}</span>
+                    <span className="text-2xl">{getAssessmentLimit() === -1 ? '⭐' : ''}</span>
                   </div>
                   <div>
                     <h3 className={`text-lg font-bold mb-1 ${getAssessmentLimit() === -1 // Unlimited
@@ -569,7 +569,7 @@ const AssessmentPage = () => {
                         detectedPlan === 'Basic' ? t('assessment.planBasicActive') : t('assessment.smartUsage')}
                     </h3>
                     <p className={`text-sm ${getAssessmentLimit() === -1 // Unlimited
-                      ? 'text-green-700 dark:text-green-300'
+                      ? 'text-indigo-900 dark:text-indigo-300'
                       : 'text-blue-700 dark:text-blue-300'
                       }`}>
                       {getAssessmentLimit() === -1
@@ -591,7 +591,7 @@ const AssessmentPage = () => {
                   </button>
                 )}
                 {getAssessmentLimit() === -1 && (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-xl font-semibold">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 rounded-xl font-semibold">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
@@ -616,8 +616,8 @@ const AssessmentPage = () => {
             <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 w-full max-w-[95vw] p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
               <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-6 px-4">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {quizMode === 'game' ? '🎮 Game Mode Assessment' :
-                    quizMode === 'standard' ? '📋 Standard Assessment' :
+                  {quizMode === 'game' ? ' Game Mode Assessment' :
+                    quizMode === 'standard' ? ' Standard Assessment' :
                       t('assessment.title')}
                 </h2>
                 <button onClick={handleCancel} className="text-sm font-semibold text-gray-500 hover:text-red-500 transition-colors">
@@ -679,8 +679,8 @@ const AssessmentPage = () => {
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-[32px] shadow-2xl p-16 w-full max-w-2xl text-center animate-fade-in-up border border-white/50 dark:border-gray-700">
               <div className="relative mb-8 flex justify-center">
                 <div className="w-24 h-24 border-4 border-gray-100 dark:border-gray-700 rounded-full"></div>
-                <div className="absolute w-24 h-24 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center text-green-600 dark:text-green-400">
+                <div className="absolute w-24 h-24 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center text-indigo-800 dark:text-indigo-400">
                   <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                 </div>
               </div>

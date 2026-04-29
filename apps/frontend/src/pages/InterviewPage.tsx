@@ -55,13 +55,13 @@ const ToastContainer: React.FC<{ toasts: ToastItem[]; onRemove: (id: number) => 
         {toasts.map(t => (
             <div key={t.id}
                 className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium pointer-events-auto transition-all
-                    ${t.type === 'success' ? 'bg-green-600 text-white' : t.type === 'error' ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'}`}
+                    ${t.type === 'success' ? 'bg-indigo-800 text-white' : t.type === 'error' ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'}`}
             >
                 {t.type === 'success' ? <CheckCircle className="h-4 w-4 shrink-0" /> :
                     t.type === 'error' ? <XCircle className="h-4 w-4 shrink-0" /> :
                         <AlertCircle className="h-4 w-4 shrink-0" />}
                 <span>{t.message}</span>
-                <button onClick={() => onRemove(t.id)} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+                <button onClick={() => onRemove(t.id)} className="ml-2 opacity-70 hover:opacity-100"></button>
             </div>
         ))}
     </div>
@@ -376,19 +376,19 @@ const InterviewPage: React.FC = () => {
     const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
     const remaining = Math.max(0, timeLimit - questionTime);
     const timerPct = (remaining / timeLimit) * 100;
-    const timerColor = remaining <= 30 ? 'bg-red-500' : remaining <= 60 ? 'bg-yellow-500' : 'bg-green-500';
+    const timerColor = remaining <= 30 ? 'bg-red-500' : remaining <= 60 ? 'bg-yellow-500' : 'bg-indigo-700';
 
     const qTypeLabel: Record<string, string> = {
         greeting: 'Chào hỏi', warm_up: 'Làm quen', technical: 'Kỹ thuật',
         behavioral: 'Hành vi', situational: 'Tình huống', closing: 'Kết thúc',
     };
     const qTypeColor: Record<string, string> = {
-        greeting: 'bg-blue-100 text-blue-800', warm_up: 'bg-green-100 text-green-800',
+        greeting: 'bg-blue-100 text-blue-800', warm_up: 'bg-indigo-50 text-green-800',
         technical: 'bg-red-100 text-red-800', behavioral: 'bg-purple-100 text-purple-800',
         situational: 'bg-orange-100 text-orange-800', closing: 'bg-gray-100 text-gray-800',
     };
 
-    const scoreColor = (s?: number) => !s ? 'text-gray-400' : s >= 8 ? 'text-green-600' : s >= 6 ? 'text-yellow-600' : 'text-red-600';
+    const scoreColor = (s?: number) => !s ? 'text-gray-400' : s >= 8 ? 'text-indigo-800' : s >= 6 ? 'text-yellow-600' : 'text-red-600';
 
     if (isLoading && !session) return (
         <div className="min-h-screen flex items-center justify-center">
@@ -413,7 +413,7 @@ const InterviewPage: React.FC = () => {
                                     <Badge className={`text-xs font-medium ${session.questionType === 'technical' ? 'bg-red-100 text-red-800' :
                                         session.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800' :
                                             session.questionType === 'situational' ? 'bg-orange-100 text-orange-800' :
-                                                session.questionType === 'warm_up' ? 'bg-green-100 text-green-800' :
+                                                session.questionType === 'warm_up' ? 'bg-indigo-50 text-green-800' :
                                                     'bg-blue-100 text-blue-800'
                                         }`}>
                                         {qTypeLabel[session.questionType] || 'Khác'}
@@ -425,7 +425,7 @@ const InterviewPage: React.FC = () => {
                             <div className="flex items-center gap-1 text-sm text-gray-600">
                                 <Clock className="h-4 w-4" /><span>{fmt(elapsedTime)}</span>
                             </div>
-                            <Badge className={session?.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}>
+                            <Badge className={session?.status === 'active' ? 'bg-indigo-50 text-green-800' : 'bg-gray-100 text-gray-700'}>
                                 {session?.status === 'active' ? 'Đang diễn ra' : 'Hoàn thành'}
                             </Badge>
                         </div>
@@ -461,20 +461,20 @@ const InterviewPage: React.FC = () => {
                                                             <div className={`px-4 py-3 rounded-t-xl border-b ${msg.questionType === 'technical' ? 'bg-red-50 border-red-100' :
                                                                 msg.questionType === 'behavioral' ? 'bg-purple-50 border-purple-100' :
                                                                     msg.questionType === 'situational' ? 'bg-orange-50 border-orange-100' :
-                                                                        msg.questionType === 'warm_up' ? 'bg-green-50 border-green-100' :
+                                                                        msg.questionType === 'warm_up' ? 'bg-indigo-50 border-green-100' :
                                                                             'bg-blue-50 border-blue-100'
                                                                 }`}>
                                                                 <div className="flex items-center gap-3">
                                                                     <div className={`p-2 rounded-lg ${msg.questionType === 'technical' ? 'bg-red-100' :
                                                                         msg.questionType === 'behavioral' ? 'bg-purple-100' :
                                                                             msg.questionType === 'situational' ? 'bg-orange-100' :
-                                                                                msg.questionType === 'warm_up' ? 'bg-green-100' :
+                                                                                msg.questionType === 'warm_up' ? 'bg-indigo-50' :
                                                                                     'bg-blue-100'
                                                                         }`}>
                                                                         <Bot className={`h-4 w-4 ${msg.questionType === 'technical' ? 'text-red-600' :
                                                                             msg.questionType === 'behavioral' ? 'text-purple-600' :
                                                                                 msg.questionType === 'situational' ? 'text-orange-600' :
-                                                                                    msg.questionType === 'warm_up' ? 'text-green-600' :
+                                                                                    msg.questionType === 'warm_up' ? 'text-indigo-800' :
                                                                                         'text-blue-600'
                                                                             }`} />
                                                                     </div>
@@ -485,7 +485,7 @@ const InterviewPage: React.FC = () => {
                                                                                 <Badge className={`text-xs font-medium ${msg.questionType === 'technical' ? 'bg-red-100 text-red-800' :
                                                                                     msg.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800' :
                                                                                         msg.questionType === 'situational' ? 'bg-orange-100 text-orange-800' :
-                                                                                            msg.questionType === 'warm_up' ? 'bg-green-100 text-green-800' :
+                                                                                            msg.questionType === 'warm_up' ? 'bg-indigo-50 text-green-800' :
                                                                                                 'bg-blue-100 text-blue-800'
                                                                                     }`}>
                                                                                     {qTypeLabel[msg.questionType] || msg.questionType}
@@ -514,7 +514,7 @@ const InterviewPage: React.FC = () => {
                                                                                             <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-lg font-medium text-xs ${msg.questionType === 'technical' ? 'bg-red-100 text-red-800 border border-red-200' :
                                                                                                 msg.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
                                                                                                     msg.questionType === 'situational' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
-                                                                                                        msg.questionType === 'warm_up' ? 'bg-green-100 text-green-800 border border-green-200' :
+                                                                                                        msg.questionType === 'warm_up' ? 'bg-indigo-50 text-green-800 border border-indigo-200' :
                                                                                                             'bg-blue-100 text-blue-800 border border-blue-200'
                                                                                                 }`}>
                                                                                                 {/* Question type icon */}
@@ -589,7 +589,7 @@ const InterviewPage: React.FC = () => {
                                                                                 </div>
                                                                             </div>
                                                                             <div className="w-full bg-gray-200 rounded-full h-1 mb-1">
-                                                                                <div className={`h-1 rounded-full ${(s ?? 0) >= 8 ? 'bg-green-500' : (s ?? 0) >= 6 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                                                                <div className={`h-1 rounded-full ${(s ?? 0) >= 8 ? 'bg-indigo-700' : (s ?? 0) >= 6 ? 'bg-yellow-500' : 'bg-red-500'}`}
                                                                                     style={{ width: `${(s ?? 0) * 10}%` }} />
                                                                             </div>
                                                                             {reason && <p className="text-xs text-gray-500 leading-relaxed">{reason}</p>}
@@ -608,14 +608,14 @@ const InterviewPage: React.FC = () => {
 
                                                         <div className="grid grid-cols-2 gap-2 mb-2">
                                                             {msg.strengths && msg.strengths.length > 0 && (
-                                                                <div className="bg-green-50 rounded-lg p-2">
-                                                                    <p className="text-xs font-medium text-green-800 mb-1">✓ Điểm mạnh</p>
-                                                                    {msg.strengths.map((s, i) => <p key={i} className="text-xs text-green-700">• {s}</p>)}
+                                                                <div className="bg-indigo-50 rounded-lg p-2">
+                                                                    <p className="text-xs font-medium text-green-800 mb-1"> Điểm mạnh</p>
+                                                                    {msg.strengths.map((s, i) => <p key={i} className="text-xs text-indigo-900">• {s}</p>)}
                                                                 </div>
                                                             )}
                                                             {msg.weaknesses && msg.weaknesses.length > 0 && (
                                                                 <div className="bg-red-50 rounded-lg p-2">
-                                                                    <p className="text-xs font-medium text-red-800 mb-1">✗ Cần cải thiện</p>
+                                                                    <p className="text-xs font-medium text-red-800 mb-1"> Cần cải thiện</p>
                                                                     {msg.weaknesses.map((w, i) => <p key={i} className="text-xs text-red-700">• {w}</p>)}
                                                                 </div>
                                                             )}
@@ -623,7 +623,7 @@ const InterviewPage: React.FC = () => {
 
                                                         {msg.suggestion && (
                                                             <div className="bg-yellow-50 rounded-lg p-2">
-                                                                <p className="text-xs font-medium text-yellow-800 mb-0.5">💡 Gợi ý</p>
+                                                                <p className="text-xs font-medium text-yellow-800 mb-0.5"> Gợi ý</p>
                                                                 <p className="text-xs text-yellow-700">{msg.suggestion}</p>
                                                             </div>
                                                         )}
@@ -633,7 +633,7 @@ const InterviewPage: React.FC = () => {
                                                 {/* Suggestion-only card for skipped questions */}
                                                 {msg.role === 'candidate' && (msg.score === undefined || msg.score === null) && msg.suggestion && (
                                                     <div className="w-full bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm">
-                                                        <p className="text-xs font-medium text-yellow-800 mb-0.5">💡 Gợi ý cho câu hỏi này</p>
+                                                        <p className="text-xs font-medium text-yellow-800 mb-0.5"> Gợi ý cho câu hỏi này</p>
                                                         <p className="text-xs text-yellow-700">{msg.suggestion}</p>
                                                     </div>
                                                 )}
@@ -668,7 +668,7 @@ const InterviewPage: React.FC = () => {
                                                         {isRecording ? <><MicOff className="h-3.5 w-3.5 mr-1" />Dừng ghi âm</> : <><Mic className="h-3.5 w-3.5 mr-1" />Ghi âm</>}
                                                     </Btn>
                                                     {isRecording && <span className="text-xs text-red-600 animate-pulse">● Đang ghi...</span>}
-                                                    {audioDuration && !isRecording && <span className="text-xs text-green-600">✓ {audioDuration.toFixed(1)}s</span>}
+                                                    {audioDuration && !isRecording && <span className="text-xs text-indigo-800"> {audioDuration.toFixed(1)}s</span>}
                                                     <span className="text-xs text-gray-400">{currentAnswer.length} ký tự</span>
                                                 </div>
                                                 <Btn onClick={() => handleSubmit()} disabled={isLoading}>
@@ -693,8 +693,8 @@ const InterviewPage: React.FC = () => {
                                     <p className="text-xs text-gray-500">AI Interviewer</p>
                                     {session?.status === 'active' && (
                                         <div className="mt-2 flex items-center justify-center gap-1">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                            <span className="text-xs text-green-600">Đang hoạt động</span>
+                                            <div className="w-2 h-2 bg-indigo-700 rounded-full animate-pulse" />
+                                            <span className="text-xs text-indigo-800">Đang hoạt động</span>
                                         </div>
                                     )}
                                 </CardContent>
@@ -771,7 +771,7 @@ const InterviewPage: React.FC = () => {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-sm flex items-center">
-                                            <div className="h-4 w-4 mr-2 text-orange-600">🔧</div>
+                                            <div className="h-4 w-4 mr-2 text-orange-600"></div>
                                             Kỹ năng chuyên ngành
                                         </CardTitle>
                                     </CardHeader>

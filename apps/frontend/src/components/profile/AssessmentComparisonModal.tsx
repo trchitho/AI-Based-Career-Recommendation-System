@@ -50,7 +50,7 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
         <div className="col-span-3 flex justify-center">
           {change && change.direction !== 'same' ? (
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${change.direction === 'increase'
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-400'
               : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
               }`}>
               {change.direction === 'increase' ? '↑' : '↓'} {change.value.toFixed(0)}
@@ -98,7 +98,7 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
               {formatDate(assessment1.completed_at)}
             </div>
             <div className="col-span-3 text-center">Change</div>
-            <div className="col-span-2 text-center text-green-600 dark:text-green-500">
+            <div className="col-span-2 text-center text-indigo-800 dark:text-indigo-700">
               {formatDate(assessment2.completed_at)}
             </div>
           </div>

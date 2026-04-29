@@ -19,17 +19,17 @@ const SubscriptionStatusBanner = ({ className = "" }: SubscriptionStatusBannerPr
   return (
     <div className={`rounded-lg p-4 border ${
       isPremium 
-        ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800'
+        ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-indigo-200 dark:border-indigo-800'
         : 'bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-orange-200 dark:border-orange-800'
     } ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
             isPremium 
-              ? 'bg-green-500 text-white'
+              ? 'bg-indigo-700 text-white'
               : 'bg-orange-500 text-white'
           }`}>
-            {isPremium ? '⭐' : '⚠️'}
+            {isPremium ? '⭐' : ''}
           </div>
           
           <div>
@@ -43,7 +43,7 @@ const SubscriptionStatusBanner = ({ className = "" }: SubscriptionStatusBannerPr
             
             <p className={`text-xs ${
               isPremium 
-                ? 'text-green-700 dark:text-green-300'
+                ? 'text-indigo-900 dark:text-indigo-300'
                 : 'text-orange-700 dark:text-orange-300'
             }`}>
               {isPremium 
@@ -66,7 +66,7 @@ const SubscriptionStatusBanner = ({ className = "" }: SubscriptionStatusBannerPr
             className="px-2 py-1 bg-white/50 hover:bg-white/70 dark:bg-gray-800/50 dark:hover:bg-gray-800/70 rounded text-xs transition-colors"
             title="Refresh subscription status"
           >
-            🔄
+            
           </button>
         </div>
       </div>

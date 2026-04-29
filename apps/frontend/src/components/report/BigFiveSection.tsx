@@ -16,7 +16,7 @@ const TRAIT_COLORS: Record<string, { bar: string; bg: string }> = {
     openness: { bar: 'bg-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
     conscientiousness: { bar: 'bg-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
     extraversion: { bar: 'bg-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20' },
-    agreeableness: { bar: 'bg-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
+    agreeableness: { bar: 'bg-indigo-700', bg: 'bg-indigo-50 dark:bg-indigo-950/20' },
     neuroticism: { bar: 'bg-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
 };
 
@@ -62,7 +62,7 @@ const BigFiveSection = ({ scores }: BigFiveSectionProps) => {
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${label === 'High'
-                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                        ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400'
                                         : label === 'Low'
                                             ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
                                             : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'

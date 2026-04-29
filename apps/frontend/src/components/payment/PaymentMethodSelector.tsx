@@ -124,7 +124,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                             <p className="text-sm text-gray-500 dark:text-gray-400">Visa, Mastercard, ATM nội địa</p>
                         </div>
                         {selectedMethod === 'vnpay' && (
-                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                            <div className="w-6 h-6 rounded-full bg-indigo-700 flex items-center justify-center">
                                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
@@ -149,7 +149,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                             <p className="text-sm text-gray-500 dark:text-gray-400">Quét QR, Visa, Mastercard</p>
                         </div>
                         {selectedMethod === 'zalopay' && (
-                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                            <div className="w-6 h-6 rounded-full bg-indigo-700 flex items-center justify-center">
                                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>

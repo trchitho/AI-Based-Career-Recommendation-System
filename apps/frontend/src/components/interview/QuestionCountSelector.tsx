@@ -137,7 +137,7 @@ const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
             </div>
 
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">💡 Gợi ý chọn lựa:</h4>
+                <h4 className="font-medium text-blue-900 mb-2"> Gợi ý chọn lựa:</h4>
                 <ul className="text-sm text-blue-800 space-y-1">
                     <li>• <strong>5 câu:</strong> Phù hợp cho đánh giá nhanh, sinh viên mới ra trường</li>
                     <li>• <strong>7 câu:</strong> Cân bằng tốt giữa thời gian và độ chi tiết (đề xuất)</li>

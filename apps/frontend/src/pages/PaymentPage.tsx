@@ -57,7 +57,7 @@ export const PaymentPage: React.FC = () => {
                 'Full learning roadmap',
                 'Detailed Knowledge, Skills, and Abilities analysis'
             ],
-            gradient: 'from-green-500 to-emerald-500',
+            gradient: 'from-indigo-700 to-emerald-500',
             popular: true,
         },
         {
@@ -170,7 +170,7 @@ export const PaymentPage: React.FC = () => {
     const getStatusBadge = (status: string) => {
         const badges: Record<string, string> = {
             pending: 'bg-yellow-100 text-yellow-800',
-            success: 'bg-green-100 text-green-800',
+            success: 'bg-indigo-50 text-green-800',
             failed: 'bg-red-100 text-red-800',
             cancelled: 'bg-gray-100 text-gray-800',
         };
@@ -206,13 +206,13 @@ export const PaymentPage: React.FC = () => {
                     {/* Notification Banner */}
                     {notification && (
                         <div className={`mb-8 p-4 rounded-xl flex items-center justify-between ${
-                            notification.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+                            notification.type === 'success' ? 'bg-indigo-50 text-green-800 border border-indigo-200' :
                             notification.type === 'warning' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
                             'bg-red-100 text-red-800 border border-red-200'
                         }`}>
                             <div className="flex items-center gap-3">
                                 <span className="text-xl">
-                                    {notification.type === 'success' ? '✅' : notification.type === 'warning' ? '⚠️' : '❌'}
+                                    {notification.type === 'success' ? '' : notification.type === 'warning' ? '' : ''}
                                 </span>
                                 <span className="font-medium">{notification.message}</span>
                             </div>
@@ -220,7 +220,7 @@ export const PaymentPage: React.FC = () => {
                                 onClick={() => setNotification(null)}
                                 className="text-gray-500 hover:text-gray-700"
                             >
-                                ✕
+                                
                             </button>
                         </div>
                     )}
@@ -304,14 +304,14 @@ export const PaymentPage: React.FC = () => {
                                 </div>
                             ) : availablePlans.length === 0 ? (
                                 <div className="text-center py-16">
-                                    <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <svg className="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-950/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <svg className="w-10 h-10 text-indigo-800" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                         </svg>
                                     </div>
                                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">You have the highest plan!</h3>
                                     <p className="text-gray-600 dark:text-gray-400 mb-8">You are using the {userPlan} plan.</p>
-                                    <button onClick={() => window.location.href = '/dashboard'} className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl">
+                                    <button onClick={() => window.location.href = '/dashboard'} className="px-8 py-3 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-xl">
                                         Back to Dashboard
                                     </button>
                                 </div>
@@ -320,11 +320,11 @@ export const PaymentPage: React.FC = () => {
                                     {availablePlans.map((plan) => (
                                         <div
                                             key={plan.id}
-                                            className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border transition-all duration-300 ${plan.popular ? 'border-green-500 ring-2 ring-green-500/20 scale-105' : 'border-gray-200 dark:border-gray-700 hover:shadow-xl'}`}
+                                            className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border transition-all duration-300 ${plan.popular ? 'border-indigo-600 ring-2 ring-indigo-600/20 scale-105' : 'border-gray-200 dark:border-gray-700 hover:shadow-xl'}`}
                                         >
                                             {plan.popular && (
                                                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                                                    <span className="bg-green-600 text-white px-4 py-1 rounded-full text-xs font-bold">Most Popular</span>
+                                                    <span className="bg-indigo-800 text-white px-4 py-1 rounded-full text-xs font-bold">Most Popular</span>
                                                 </div>
                                             )}
 
@@ -402,7 +402,7 @@ export const PaymentPage: React.FC = () => {
                                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                             {history.map((payment) => (
                                                 <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                    <td className="px-6 py-4 text-sm font-mono text-gray-600">#{(payment.order_id ?? '').slice(-8)}</td>
+                                                    <td className="px-6 py-4 text-sm font-mono text-gray-600">{(payment.order_id ?? '').slice(-8)}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{payment.description}</td>
                                                     <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(payment.amount)}</td>
                                                     <td className="px-6 py-4">{getStatusBadge(payment.status)}</td>

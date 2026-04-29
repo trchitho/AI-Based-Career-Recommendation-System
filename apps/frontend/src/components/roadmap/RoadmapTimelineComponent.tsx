@@ -57,15 +57,15 @@ const RoadmapTimelineComponent = ({
   const getResourceIcon = (type: string) => {
     switch (type) {
       case 'course':
-        return '📚';
+        return '';
       case 'article':
-        return '📄';
+        return '';
       case 'video':
-        return '🎥';
+        return '';
       case 'book':
-        return '📖';
+        return '';
       default:
-        return '🔗';
+        return '';
     }
   };
 
@@ -123,7 +123,7 @@ const RoadmapTimelineComponent = ({
                 className={`absolute left-5 top-2 w-6 h-6 rounded-full border-4 transition-all duration-300 ${isLocked
                   ? 'bg-gradient-to-br from-purple-400 to-pink-400 border-purple-200 dark:border-purple-600 shadow-lg'
                   : isCompleted
-                    ? 'bg-primary-cta dark:bg-green-600 border-primary-50 dark:border-green-300'
+                    ? 'bg-primary-cta dark:bg-indigo-800 border-primary-50 dark:border-green-300'
                     : isCurrent
                       ? 'bg-orange-500 dark:bg-orange-600 border-orange-100 dark:border-orange-900 animate-pulse'
                       : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
@@ -163,7 +163,7 @@ const RoadmapTimelineComponent = ({
                   : isCurrent
                     ? 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-300 dark:border-orange-600 shadow-orange-200/50 dark:shadow-orange-900/20'
                     : isCompleted
-                      ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-300 dark:border-green-600'
+                      ? 'bg-gradient-to-br from-green-50 to-indigo-50 dark:from-green-900/20 dark:to-green-800/20 border-green-300 dark:border-indigo-700'
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                   }`}
               >
@@ -191,7 +191,7 @@ const RoadmapTimelineComponent = ({
                           </span>
                         )}
                         {!isLocked && isCompleted && (
-                          <span className="px-2 py-1 bg-primary-50 dark:bg-green-900/30 text-primary-cta dark:text-green-400 text-xs font-semibold rounded-full border border-primary-cta/30 dark:border-green-600/30">
+                          <span className="px-2 py-1 bg-primary-50 dark:bg-indigo-950/30 text-primary-cta dark:text-indigo-400 text-xs font-semibold rounded-full border border-primary-cta/30 dark:border-indigo-700/30">
                             Completed
                           </span>
                         )}
@@ -266,7 +266,7 @@ const RoadmapTimelineComponent = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                               </svg>
                               Unlock Now
-                              <span>✨</span>
+                              <span></span>
                             </button>
                           </div>
                         </div>
@@ -317,15 +317,15 @@ const RoadmapTimelineComponent = ({
                           onCompleteMilestone(milestone.order.toString());
                         }}
                         disabled={isCompleting}
-                        className="w-full px-4 py-2 bg-primary-cta dark:bg-green-600 text-white rounded-lg hover:bg-primary-dark dark:hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-all shadow-sm"
+                        className="w-full px-4 py-2 bg-primary-cta dark:bg-indigo-800 text-white rounded-lg hover:bg-primary-dark dark:hover:bg-indigo-900 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-all shadow-sm"
                       >
                         {isCompleting ? 'Marking Complete...' : 'Mark as Complete'}
                       </button>
                     )}
 
                     {isCompleted && userProgress && (
-                      <div className="bg-primary-50 dark:bg-green-900/20 border border-primary-cta/30 dark:border-green-600/30 rounded-lg p-3">
-                        <p className="text-sm text-primary-cta dark:text-green-400 flex items-center gap-2">
+                      <div className="bg-primary-50 dark:bg-indigo-950/20 border border-primary-cta/30 dark:border-indigo-700/30 rounded-lg p-3">
+                        <p className="text-sm text-primary-cta dark:text-indigo-400 flex items-center gap-2">
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>

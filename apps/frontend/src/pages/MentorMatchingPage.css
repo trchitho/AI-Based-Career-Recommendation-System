@@ -1,12 +1,7 @@
-/* ── Mentor Matching Page — Neumorphic ──────────────────────── */
+/* MentorMatchingPage.css — condensed, only neumorphic-var-dependent styles */
 
-.mm-page {
-  min-height: 100vh;
-  background-color: var(--neu-bg);
-  background-image: radial-gradient(var(--neu-shadow-dark) 1px, transparent 1px);
-  background-size: 24px 24px;
-  padding-bottom: 4rem;
-}
+.mm-page { min-height:100vh; background:var(--neu-bg); padding-bottom:4rem; }
+.mm-content { max-width:1200px; margin:0 auto; padding:0 1.5rem; }
 
 /* ── Hero ─────────────────────────────────────────────────── */
 .mm-hero {
@@ -234,7 +229,7 @@ html body button.mm-request-btn {
 }
 html body button.mm-request-btn:hover:not(:disabled) { filter: brightness(1.08) !important; transform: translateY(-2px) !important; }
 html body button.mm-request-btn:disabled { background: var(--neu-bg) !important; color: var(--neu-text-muted) !important; box-shadow: var(--neu-pressed-sm) !important; cursor: not-allowed !important; }
-html body button.mm-request-btn.sent { background: #10b981 !important; }
+html body button.mm-request-btn.sent { background: var(--color-success) !important; }
 
 /* ── Mentor card grid ─────────────────────────────────────── */
 .mm-grid {

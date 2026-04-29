@@ -1,28 +1,95 @@
 /* ═══════════════════════════════════════════════════════════════
-   Neumorphic Design System — Safe Edition
-   Rule: only add shadow/depth. Never change text colors.
-         Never touch elements that have their own bg color (gradient, green, blue…).
+   Design System — Color Palette v2
+   Primary  #1A237E  · Secondary #7C4DFF  · Tertiary #00B0FF
+   Neutral  #F8FAFC
+   Fonts: Manrope (headline) · Inter (body/label)
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Global text color driven by theme ────────────────────────── */
+/* ── Fonts ────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+/* ── Global ────────────────────────────────────────────────────── */
 body {
-  color: var(--neu-text, #1f2937);
-  background-color: var(--neu-bg, #e8eaf0);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--neu-text, #1e293b);
+  background-color: var(--neu-bg, #f1f5f9);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-weight: 700;
 }
 
 /* ── CSS Variables ─────────────────────────────────────────────── */
 :root {
-  --neu-bg:           #e8eaf0;
-  --neu-bg-card:      #eceef4;
-  --neu-shadow-dark:  #c5c8d2;
+  /* ── Backgrounds (Neutral #F8FAFC) ── */
+  --neu-bg:           #f1f5f9;   /* slate-100 */
+  --neu-bg-card:      #f8fafc;   /* neutral — card surface */
+
+  /* Shadows (tuned for lighter background) */
+  --neu-shadow-dark:  #cbd5e1;   /* slate-300 */
   --neu-shadow-light: #ffffff;
+
+  /* Border radius */
   --neu-radius:       14px;
   --neu-radius-sm:    12px;
   --neu-radius-lg:    20px;
-  --neu-accent:       #16a34a;
-  --neu-text:         #1f2937;
-  --neu-text-muted:   #6b7280;
 
+  /* ══════════════════════════════════════════
+     COLOR PALETTE
+     Primary   #1A237E  (dark navy indigo)
+     Secondary #7C4DFF  (vivid purple)
+     Tertiary  #00B0FF  (cyan/sky)
+     Neutral   #F8FAFC
+  ══════════════════════════════════════════ */
+
+  /* Primary — Dark Navy Indigo */
+  --color-primary:        #1A237E;
+  --color-primary-hover:  #151c6b;
+  --color-primary-light:  #e8eaf6;
+  --color-primary-muted:  rgba(26,35,126,0.10);
+  --color-primary-dark:   #0d1442;
+
+  /* Secondary — Vivid Purple */
+  --color-secondary:       #7C4DFF;
+  --color-secondary-hover: #651fff;
+  --color-secondary-light: #ede7f6;
+  --color-secondary-muted: rgba(124,77,255,0.12);
+
+  /* Tertiary — Cyan / Sky */
+  --color-tertiary:       #00B0FF;
+  --color-tertiary-hover: #0091ea;
+  --color-tertiary-light: #e1f5fe;
+  --color-tertiary-muted: rgba(0,176,255,0.12);
+
+  /* ── Main accent (used throughout) → Primary ── */
+  --neu-accent:        var(--color-primary);
+  --neu-accent-hover:  var(--color-primary-hover);
+  --neu-accent-dark:   var(--color-primary-dark);
+  --neu-accent-light:  var(--color-primary-light);
+  --neu-accent-muted:  var(--color-primary-muted);
+
+  /* ── Semantic ── */
+  --color-success:  #00897b;   /* teal-600 */
+  --color-warning:  #f57c00;   /* orange-700 */
+  --color-error:    #d32f2f;   /* red-700 */
+  --color-info:     var(--color-tertiary);
+
+  /* ── Score badges ── */
+  --score-excellent: var(--color-primary);
+  --score-good:      var(--color-secondary);
+  --score-ok:        var(--color-tertiary);
+  --score-low:       #94a3b8;
+
+  /* ── Text ── */
+  --neu-text:       #1e293b;   /* slate-800 */
+  --neu-text-muted: #64748b;   /* slate-500 */
+  --neu-btn-text:   #ffffff;
+
+  /* ── Border ── */
+  --neu-border: #e2e8f0;   /* slate-200 */
+
+  /* ── Shadows ── */
   --neu-raised:     5px 5px 12px var(--neu-shadow-dark), -5px -5px 12px var(--neu-shadow-light);
   --neu-raised-sm:  4px 4px 9px  var(--neu-shadow-dark), -4px -4px 9px  var(--neu-shadow-light);
   --neu-raised-lg:  8px 8px 20px var(--neu-shadow-dark), -8px -8px 20px var(--neu-shadow-light);
@@ -31,10 +98,13 @@ body {
 }
 
 .dark {
-  --neu-bg:           #1e2028;
-  --neu-bg-card:      #22252f;
-  --neu-shadow-dark:  #13151b;
-  --neu-shadow-light: #2a2e3a;
+  --neu-bg:           #0f172a;   /* slate-900 */
+  --neu-bg-card:      #1e293b;   /* slate-800 */
+  --neu-shadow-dark:  #0a0f1e;
+  --neu-shadow-light: #1e3a5f;
+  --neu-text:       #f1f5f9;
+  --neu-text-muted: #94a3b8;
+  --neu-border:     #334155;
 }
 
 /* ── 1. Page backgrounds ──────────────────────────────────────── */
@@ -123,6 +193,14 @@ select:focus {
               0 0 0 2px var(--neu-accent) !important;
 }
 
+/* ── Always ensure buttons are visible & clickable ───────────── */
+button, [role="button"] {
+  cursor: pointer !important;
+  position: relative;
+  z-index: 1;   /* ensure above overlay siblings */
+}
+button:disabled { cursor: not-allowed !important; }
+
 /* ── 5. Plain buttons (no color class) — neu raised ──────────── */
 
 button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]) {
@@ -140,82 +218,104 @@ button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):
   transform: scale(0.97) !important;
 }
 
-/* ── Colored buttons — keep their own bg, only clean shadow ───── */
-/* KHÔNG override background-color — giữ màu gốc của từng button */
+/* ═══════════════════════════════════════════════
+   BUTTON SYSTEM — 4 variants (ảnh tham khảo)
+   Primary  · Secondary · Inverted · Outlined
+   ═══════════════════════════════════════════════ */
+
+/* ── PRIMARY button (solid navy) ── */
+.btn-primary,
+button[class*="bg-indigo"],
 button[class*="bg-green"],
 button[class*="bg-blue"],
-button[class*="bg-red"],
-button[class*="bg-purple"],
-button[class*="bg-indigo"],
-button[class*="bg-orange"],
-button[class*="bg-teal"],
-button[class*="bg-cyan"],
-button[class*="bg-emerald"],
-button[class*="bg-pink"],
-button[class*="bg-amber"],
-button[class*="bg-violet"],
-button[class*="bg-sky"],
-button[class*="bg-rose"],
-a[class*="bg-green"],
-a[class*="bg-blue"],
-a[class*="bg-red"],
-a[class*="bg-purple"],
 a[class*="bg-indigo"],
-a[class*="bg-orange"],
-a[class*="bg-teal"],
-a[class*="bg-emerald"],
-a[class*="bg-violet"] {
-  /* Giữ background gốc — chỉ thêm shadow tối nhẹ, KHÔNG dùng white shadow */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.20) !important;
-  border: none !important;
+a[class*="bg-green"] {
+  background-color: var(--color-primary) !important;
   color: #ffffff !important;
-  transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(26,35,126,0.30) !important;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s !important;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
 }
+.btn-primary:hover,
+button[class*="bg-indigo"]:hover,
 button[class*="bg-green"]:hover,
 button[class*="bg-blue"]:hover,
-button[class*="bg-red"]:hover,
-button[class*="bg-purple"]:hover,
-button[class*="bg-indigo"]:hover,
-button[class*="bg-orange"]:hover,
-button[class*="bg-teal"]:hover,
-button[class*="bg-emerald"]:hover,
-button[class*="bg-violet"]:hover,
-a[class*="bg-green"]:hover,
-a[class*="bg-blue"]:hover,
 a[class*="bg-indigo"]:hover,
-a[class*="bg-teal"]:hover,
-a[class*="bg-emerald"]:hover {
-  filter: brightness(1.07);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important;
+a[class*="bg-green"]:hover {
+  background-color: var(--color-primary-hover) !important;
+  box-shadow: 0 5px 18px rgba(26,35,126,0.40) !important;
   transform: translateY(-1px);
 }
-button[class*="bg-green"]:active,
-button[class*="bg-blue"]:active,
-button[class*="bg-red"]:active,
-button[class*="bg-purple"]:active,
+.btn-primary:active,
 button[class*="bg-indigo"]:active,
-button[class*="bg-teal"]:active,
-button[class*="bg-emerald"]:active {
-  box-shadow: 0 1px 4px rgba(0,0,0,0.18) !important;
-  transform: scale(0.97) translateY(0) !important;
-  filter: brightness(0.97);
+button[class*="bg-green"]:active {
+  transform: scale(0.97) !important;
+  box-shadow: 0 2px 6px rgba(26,35,126,0.20) !important;
 }
 
-/* Text bên trong colored button luôn trắng */
-button[class*="bg-green"] *,
-button[class*="bg-blue"] *,
-button[class*="bg-red"] *,
-button[class*="bg-purple"] *,
-button[class*="bg-indigo"] *,
-button[class*="bg-orange"] *,
-button[class*="bg-teal"] *,
-button[class*="bg-emerald"] *,
-button[class*="bg-violet"] *,
-a[class*="bg-green"] *,
-a[class*="bg-blue"] *,
-a[class*="bg-indigo"] * {
+/* ── SECONDARY button (purple) ── */
+.btn-secondary-purple,
+button[class*="bg-purple"],
+button[class*="bg-violet"],
+a[class*="bg-purple"] {
+  background-color: var(--color-secondary) !important;
   color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(124,77,255,0.30) !important;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s !important;
+  font-weight: 600;
 }
+button[class*="bg-purple"]:hover,
+button[class*="bg-violet"]:hover { background-color: var(--color-secondary-hover) !important; transform: translateY(-1px); }
+
+/* ── TERTIARY / INVERTED (cyan) ── */
+button[class*="bg-cyan"],
+button[class*="bg-sky"],
+button[class*="bg-teal"],
+a[class*="bg-teal"] {
+  background-color: var(--color-tertiary) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(0,176,255,0.30) !important;
+  font-weight: 600;
+}
+
+/* ── OUTLINED button style ── */
+.btn-outlined {
+  background: transparent !important;
+  color: var(--color-primary) !important;
+  border: 1.5px solid var(--color-primary) !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+.btn-outlined:hover {
+  background: var(--color-primary-muted) !important;
+}
+
+/* ── Other colored (error/warning/etc) ── */
+button[class*="bg-red"], button[class*="bg-rose"] {
+  background-color: var(--color-error) !important;
+  color: #fff !important; border: none !important;
+  box-shadow: 0 3px 10px rgba(211,47,47,0.30) !important;
+}
+button[class*="bg-orange"], button[class*="bg-amber"] {
+  background-color: var(--color-warning) !important;
+  color: #fff !important; border: none !important;
+}
+button[class*="bg-emerald"] {
+  background-color: var(--color-success) !important;
+  color: #fff !important; border: none !important;
+}
+button[class*="bg-pink"] { color: #fff !important; }
+
+/* White text inside all colored buttons */
+button[class*="bg-indigo"] *, button[class*="bg-green"] *,
+button[class*="bg-blue"] *, button[class*="bg-purple"] *,
+button[class*="bg-violet"] *, button[class*="bg-red"] *,
+button[class*="bg-cyan"] *, button[class*="bg-teal"] *,
+a[class*="bg-indigo"] *, a[class*="bg-green"] * { color: #ffffff !important; }
 
 button:disabled {
   opacity: 0.5 !important;
@@ -322,14 +422,33 @@ html body button.retry-button,
 html body label.browse-button {
   background: var(--neu-accent) !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.20) !important;
+  box-shadow: 0 2px 8px rgba(22,163,74,0.25) !important;
   border: none !important;
 }
 html body button.submit-button:hover,
 html body button.retry-button:hover {
-  filter: brightness(1.07);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important;
+  background: var(--neu-accent-hover, var(--color-primary-hover)) !important;
+  box-shadow: 0 4px 14px rgba(22,163,74,0.35) !important;
   transform: translateY(-1px);
+}
+
+/* ── 18. Consistent green for Tailwind green buttons ─────────── */
+button.bg-green-600, a.bg-green-600 {
+  background-color: var(--neu-accent) !important;
+  color: #ffffff !important;
+}
+button.bg-green-600:hover, button.hover\:bg-green-700:hover,
+a.bg-green-600:hover { background-color: var(--neu-accent-hover, var(--color-primary-hover)) !important; }
+
+/* ── 19. Muted secondary button style ───────────────────────── */
+.btn-outline-green {
+  background: transparent !important;
+  color: var(--neu-accent) !important;
+  border: 1.5px solid var(--neu-accent) !important;
+  box-shadow: none !important;
+}
+.btn-outline-green:hover {
+  background: var(--neu-accent-muted, rgba(22,163,74,0.1)) !important;
 }
 
 /* ── 15. Ghost buttons — transparent, no shadow ───────────────── */

@@ -51,7 +51,7 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
       {!hasRealData && (
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
-            <span className="text-lg">📊</span>
+            <span className="text-lg"></span>
             Đây là dữ liệu mẫu. Hoàn thành assessment để xem kết quả thực tế của bạn.
           </p>
         </div>
@@ -87,9 +87,9 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
               <Radar
                 name="Score"
                 dataKey="score"
-                stroke="#16a34a"
+                stroke="var(--color-primary)"
                 strokeWidth={3}
-                fill="#16a34a"
+                fill="var(--color-primary)"
                 fillOpacity={0.35}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ strokeWidth: 2 }} />

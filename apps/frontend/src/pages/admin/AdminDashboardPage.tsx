@@ -66,12 +66,12 @@ const AdminDashboardPage = () => {
     location.pathname.startsWith(path + "/");
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 dark:text-white transition-colors">
+    <div className="min-h-screen bg-[F8F9FA] dark:bg-gray-900 dark:text-white transition-colors">
       {/* NAVBAR */}
       <nav className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-14 items-center">
-            <Link to="/admin" className="text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap hover:text-green-600 dark:hover:text-green-400 transition-colors">
+            <Link to="/admin" className="text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap hover:text-indigo-800 dark:hover:text-indigo-400 transition-colors">
               Admin Panel
             </Link>
             <div className="flex items-center gap-2">
@@ -196,14 +196,14 @@ const NavItem = ({ to, label, active }: { to: string; label: string; active: boo
     className={`
       relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap
       ${active
-        ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30"
+        ? "text-indigo-800 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30"
         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
       }
     `}
   >
     {label}
     {active && (
-      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-green-500 rounded-full" />
+      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-indigo-700 rounded-full" />
     )}
   </Link>
 );
@@ -233,7 +233,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
   // Color configs for cards
   const userMetricCards = [
     { title: "Total Users", value: metrics.totalUsers, subtitle: `${metrics.activeUsers} active`, gradient: "from-blue-500 to-cyan-500" },
-    { title: "Completed Assessments", value: metrics.completedAssessments, subtitle: `${metrics.completionRate}% rate`, gradient: "from-green-500 to-emerald-500" },
+    { title: "Completed Assessments", value: metrics.completedAssessments, subtitle: `${metrics.completionRate}% rate`, gradient: "from-indigo-700 to-emerald-500" },
     { title: "Users with Roadmaps", value: metrics.usersWithRoadmaps, subtitle: `${metrics.avgRoadmapProgress.toFixed(1)}% progress`, gradient: "from-purple-500 to-pink-500" },
     { title: "Recent Activity", value: metrics.recentAssessments, subtitle: "Last 7 days", gradient: "from-orange-500 to-amber-500" },
   ];
@@ -247,7 +247,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
   const riasecColors: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
     realistic: { bg: "bg-red-500/10", text: "text-red-400", border: "border-red-500/50", gradient: "from-red-500 to-rose-500" },
     investigative: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/50", gradient: "from-amber-500 to-yellow-500" },
-    artistic: { bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/50", gradient: "from-emerald-500 to-green-500" },
+    artistic: { bg: "bg-indigo-700/10", text: "text-emerald-400", border: "border-emerald-500/50", gradient: "from-emerald-500 to-green-500" },
     social: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/50", gradient: "from-blue-500 to-cyan-500" },
     enterprising: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/50", gradient: "from-purple-500 to-violet-500" },
     conventional: { bg: "bg-pink-500/10", text: "text-pink-400", border: "border-pink-500/50", gradient: "from-pink-500 to-rose-500" },
@@ -256,7 +256,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
   const bigFiveColors: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
     openness: { bg: "bg-violet-500/10", text: "text-violet-400", border: "border-violet-500/50", gradient: "from-violet-500 to-purple-500" },
     conscientiousness: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/50", gradient: "from-blue-500 to-indigo-500" },
-    extraversion: { bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/50", gradient: "from-emerald-500 to-teal-500" },
+    extraversion: { bg: "bg-indigo-700/10", text: "text-emerald-400", border: "border-emerald-500/50", gradient: "from-emerald-500 to-indigo-600" },
     agreeableness: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/50", gradient: "from-amber-500 to-orange-500" },
     neuroticism: { bg: "bg-rose-500/10", text: "text-rose-400", border: "border-rose-500/50", gradient: "from-rose-500 to-red-500" },
   };
@@ -266,7 +266,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
       {/* USER METRICS */}
       <section>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <span className="w-1 h-5 bg-green-500 rounded-full"></span>
+          <span className="w-1 h-5 bg-indigo-700 rounded-full"></span>
           User Metrics
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -302,7 +302,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
       {/* RIASEC Distribution */}
       <section>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <span className="w-1 h-5 bg-emerald-500 rounded-full"></span>
+          <span className="w-1 h-5 bg-indigo-700 rounded-full"></span>
           RIASEC Distribution
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -386,7 +386,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
       {/* System Health */}
       <section>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <span className="w-1 h-5 bg-teal-500 rounded-full"></span>
+          <span className="w-1 h-5 bg-indigo-600 rounded-full"></span>
           System Health
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -395,14 +395,14 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
               label: "Assessment Completion Rate",
               value: metrics.completionRate,
               ok: metrics.completionRate >= 50,
-              color: "from-green-500 to-emerald-500",
+              color: "from-indigo-700 to-emerald-500",
               hint: `${metrics.completedAssessments} / ${metrics.totalAssessments} completed`,
             },
             {
               label: "AI Error Rate",
               value: aiMetrics.errorRate,
               ok: aiMetrics.errorRate < 10,
-              color: aiMetrics.errorRate < 5 ? "from-green-500 to-emerald-500" : "from-orange-500 to-red-500",
+              color: aiMetrics.errorRate < 5 ? "from-indigo-700 to-emerald-500" : "from-orange-500 to-red-500",
               hint: `${aiMetrics.errorCount} errors / ${aiMetrics.successCount} successes`,
             },
             {
@@ -410,13 +410,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
               value: aiMetrics.avgFeedbackRating > 0 ? (aiMetrics.avgFeedbackRating / 5) * 100 : 0,
               ok: aiMetrics.avgFeedbackRating >= 3.5,
               color: "from-blue-500 to-indigo-500",
-              hint: `${aiMetrics.avgFeedbackRating > 0 ? aiMetrics.avgFeedbackRating.toFixed(1) : 'N/A'} ★ from ${aiMetrics.totalFeedback} reviews`,
+              hint: `${aiMetrics.avgFeedbackRating > 0 ? aiMetrics.avgFeedbackRating.toFixed(1) : 'N/A'}  from ${aiMetrics.totalFeedback} reviews`,
             },
           ].map(({ label, value, ok, color, hint }) => (
             <div key={label} className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{label}</p>
-                <span className={`w-2 h-2 rounded-full ${ok ? 'bg-green-500' : 'bg-orange-500'}`} />
+                <span className={`w-2 h-2 rounded-full ${ok ? 'bg-indigo-700' : 'bg-orange-500'}`} />
               </div>
               <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{value.toFixed(1)}%</p>
               <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-2">

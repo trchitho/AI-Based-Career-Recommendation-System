@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Calendar, X, CheckCircle, AlertCircle, Clock, FileText, StickyNote } from 'lucide-react';
 import { scheduleService } from '../../services/scheduleService';
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
 
 function toLocalISOString(date: Date) {
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
 }
 
 function minDateTimeLocal() {
@@ -21,213 +22,140 @@ function minDateTimeLocal() {
 
 const BookingModal: React.FC<Props> = ({ mentorUserId, mentorName, onClose, onBooked }) => {
   const [scheduledAt, setScheduledAt] = useState('');
-  const [duration, setDuration] = useState(60);
-  const [topic, setTopic] = useState('');
-  const [notes, setNotes] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [duration, setDuration]       = useState(60);
+  const [topic, setTopic]             = useState('');
+  const [notes, setNotes]             = useState('');
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState('');
+  const [success, setSuccess]         = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!scheduledAt) { setError('Vui lòng chọn ngày và giờ.'); return; }
-    setSaving(true);
-    setError('');
+    setSaving(true); setError('');
     try {
       await scheduleService.book(mentorUserId, scheduledAt, topic, duration, notes);
-      setSuccess(true);
-      onBooked?.();
+      setSuccess(true); onBooked?.();
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Đặt lịch thất bại, vui lòng thử lại.');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '0.6rem 0.8rem',
+    border: '1px solid var(--neu-border, d1d5db)', borderRadius: 10,
+    fontSize: '0.9rem', color: 'var(--neu-text, 111)',
+    background: 'var(--neu-bg, f9fafb)', boxSizing: 'border-box',
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1100,
-        background: 'rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '1rem',
-      }}
-      onClick={e => e.target === e.currentTarget && onClose()}
-    >
-      <div style={{
-        background: 'var(--neu-bg-card, #fff)',
-        borderRadius: 16,
-        width: '100%', maxWidth: 460,
-        boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
-        overflow: 'hidden',
-      }}>
+    <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/45"
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="w-full max-w-[460px] rounded-2xl overflow-hidden shadow-2xl"
+        style={{ background: 'var(--neu-bg-card, fff)' }}>
+
         {/* Header */}
-        <div style={{
-          padding: '1rem 1.25rem',
-          borderBottom: '1px solid var(--neu-border, #e5e7eb)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b"
+          style={{ borderColor: 'var(--neu-border, e5e7eb)' }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--neu-text, #111)' }}>
-              📅 Đặt lịch hẹn
+            <div className="flex items-center gap-2 font-bold text-base" style={{ color: 'var(--neu-text, 111)' }}>
+              <Calendar size={18} className="text-violet-600" />
+              Đặt lịch hẹn
             </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--neu-text-muted, #666)', marginTop: 2 }}>
-              Với {mentorName}
-            </div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--neu-text-muted, 666)' }}>Với {mentorName}</div>
           </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: '1.1rem', color: 'var(--neu-text-muted, #888)',
-              padding: '0.25rem 0.5rem', borderRadius: 8,
-            }}
-          >✕</button>
+          <button onClick={onClose}
+            className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors border-none bg-transparent cursor-pointer"
+            style={{ color: 'var(--neu-text-muted, 888)' }}>
+            <X size={18} />
+          </button>
         </div>
 
         {/* Body */}
-        <div style={{ padding: '1.25rem' }}>
+        <div className="p-5">
           {success ? (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>✅</div>
-              <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--neu-text, #111)', marginBottom: '0.5rem' }}>
+            <div className="text-center py-8">
+              <CheckCircle size={52} className="mx-auto mb-3 text-indigo-700" />
+              <div className="font-bold text-lg mb-2" style={{ color: 'var(--neu-text, 111)' }}>
                 Đã gửi yêu cầu đặt lịch!
               </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--neu-text-muted, #666)', marginBottom: '1.5rem' }}>
+              <div className="text-sm mb-6" style={{ color: 'var(--neu-text-muted, 666)' }}>
                 {mentorName} sẽ xác nhận lịch hẹn sớm. Bạn có thể theo dõi trong tab "Lịch hẹn".
               </div>
-              <button
-                onClick={onClose}
-                style={{
-                  background: '#8b5cf6', color: '#fff', border: 'none',
-                  borderRadius: 10, padding: '0.6rem 1.5rem',
-                  fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem',
-                }}
-              >Đóng</button>
+              <button onClick={onClose}
+                className="px-6 py-2.5 bg-violet-600 text-white rounded-xl font-semibold text-sm hover:bg-violet-700 transition-colors border-none cursor-pointer">
+                Đóng
+              </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div style={{
-                  background: '#fef2f2', border: '1px solid #fecaca',
-                  borderRadius: 8, padding: '0.6rem 0.9rem',
-                  color: '#dc2626', fontSize: '0.84rem', marginBottom: '1rem',
-                }}>
+                <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
                   {error}
                 </div>
               )}
 
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.84rem', color: 'var(--neu-text, #111)', marginBottom: '0.4rem' }}>
-                  Ngày & Giờ *
+              {/* Date & Time */}
+              <div>
+                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, 111)' }}>
+                  <Calendar size={14} /> Ngày &amp; Giờ *
                 </label>
-                <input
-                  type="datetime-local"
-                  value={scheduledAt}
-                  min={minDateTimeLocal()}
-                  onChange={e => setScheduledAt(e.target.value)}
-                  style={{
-                    width: '100%', padding: '0.6rem 0.8rem',
-                    border: '1px solid var(--neu-border, #d1d5db)',
-                    borderRadius: 10, fontSize: '0.9rem',
-                    color: 'var(--neu-text, #111)',
-                    background: 'var(--neu-bg, #f9fafb)',
-                    boxSizing: 'border-box',
-                  }}
-                  required
-                />
+                <input type="datetime-local" value={scheduledAt} min={minDateTimeLocal()}
+                  onChange={e => setScheduledAt(e.target.value)} style={inputStyle} required />
               </div>
 
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.84rem', color: 'var(--neu-text, #111)', marginBottom: '0.4rem' }}>
-                  Thời lượng
+              {/* Duration */}
+              <div>
+                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, 111)' }}>
+                  <Clock size={14} /> Thời lượng
                 </label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="flex gap-2">
                   {[30, 60, 90].map(d => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => setDuration(d)}
+                    <button key={d} type="button" onClick={() => setDuration(d)}
+                      className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all border-2 cursor-pointer"
                       style={{
-                        flex: 1, padding: '0.5rem',
-                        border: `2px solid ${duration === d ? '#8b5cf6' : 'var(--neu-border, #d1d5db)'}`,
-                        borderRadius: 10, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600,
-                        background: duration === d ? '#ede9fe' : 'var(--neu-bg, #f9fafb)',
-                        color: duration === d ? '#7c3aed' : 'var(--neu-text, #374151)',
-                        transition: 'all 0.15s',
-                      }}
-                    >
+                        borderColor: duration===d ? '#8b5cf6' : 'var(--neu-border, d1d5db)',
+                        background:  duration===d ? '#ede9fe'  : 'var(--neu-bg, f9fafb)',
+                        color:       duration===d ? '#7c3aed'  : 'var(--neu-text, 374151)',
+                      }}>
                       {d} phút
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.84rem', color: 'var(--neu-text, #111)', marginBottom: '0.4rem' }}>
-                  Chủ đề
+              {/* Topic */}
+              <div>
+                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, 111)' }}>
+                  <FileText size={14} /> Chủ đề
                 </label>
-                <input
-                  type="text"
-                  value={topic}
-                  onChange={e => setTopic(e.target.value)}
-                  placeholder="VD: Hỏi về lộ trình học React, Review CV..."
-                  style={{
-                    width: '100%', padding: '0.6rem 0.8rem',
-                    border: '1px solid var(--neu-border, #d1d5db)',
-                    borderRadius: 10, fontSize: '0.9rem',
-                    color: 'var(--neu-text, #111)',
-                    background: 'var(--neu-bg, #f9fafb)',
-                    boxSizing: 'border-box',
-                  }}
-                />
+                <input type="text" value={topic} onChange={e => setTopic(e.target.value)}
+                  placeholder="VD: Hỏi về lộ trình học React, Review CV..." style={inputStyle} />
               </div>
 
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.84rem', color: 'var(--neu-text, #111)', marginBottom: '0.4rem' }}>
-                  Ghi chú
+              {/* Notes */}
+              <div>
+                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, 111)' }}>
+                  <StickyNote size={14} /> Ghi chú
                 </label>
-                <textarea
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  placeholder="Thêm thông tin bổ sung cho mentor..."
-                  rows={3}
-                  style={{
-                    width: '100%', padding: '0.6rem 0.8rem',
-                    border: '1px solid var(--neu-border, #d1d5db)',
-                    borderRadius: 10, fontSize: '0.9rem',
-                    color: 'var(--neu-text, #111)',
-                    background: 'var(--neu-bg, #f9fafb)',
-                    resize: 'vertical', boxSizing: 'border-box',
-                    fontFamily: 'inherit',
-                  }}
-                />
+                <textarea value={notes} onChange={e => setNotes(e.target.value)}
+                  placeholder="Thêm thông tin bổ sung cho mentor..." rows={3}
+                  style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  style={{
-                    flex: 1, padding: '0.65rem', border: '1.5px solid var(--neu-border, #d1d5db)',
-                    borderRadius: 10, background: 'none', cursor: 'pointer',
-                    fontSize: '0.9rem', fontWeight: 600, color: 'var(--neu-text, #374151)',
-                  }}
-                >
+              {/* Actions */}
+              <div className="flex gap-3 pt-1">
+                <button type="button" onClick={onClose}
+                  className="flex-1 py-2.5 rounded-xl border font-semibold text-sm transition-colors hover:bg-gray-50 cursor-pointer bg-transparent"
+                  style={{ borderColor: 'var(--neu-border, d1d5db)', color: 'var(--neu-text, 374151)' }}>
                   Huỷ
                 </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  style={{
-                    flex: 2, padding: '0.65rem',
-                    background: saving ? '#c4b5fd' : '#8b5cf6',
-                    border: 'none', borderRadius: 10, cursor: saving ? 'not-allowed' : 'pointer',
-                    fontSize: '0.9rem', fontWeight: 700, color: '#fff',
-                    transition: 'background 0.15s',
-                  }}
-                >
-                  {saving ? 'Đang gửi...' : '📅 Gửi yêu cầu đặt lịch'}
+                <button type="submit" disabled={saving}
+                  className="flex-[2] py-2.5 rounded-xl font-bold text-sm text-white transition-colors border-none cursor-pointer flex items-center justify-center gap-2"
+                  style={{ background: saving ? '#c4b5fd' : '8b5cf6', cursor: saving ? 'not-allowed' : 'pointer' }}>
+                  <Calendar size={15} />
+                  {saving ? 'Đang gửi...' : 'Gửi yêu cầu đặt lịch'}
                 </button>
               </div>
             </form>

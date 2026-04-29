@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import { careerService, CareerDetailDTO } from '../services/careerService';
+import { companyService, CompanyItem, bestUrl, allUrls } from '../services/companyService';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -13,6 +14,7 @@ const CareerDetailPage = () => {
   const location = useLocation();
   const { language } = useLanguage();
   const [detail, setDetail] = useState<CareerDetailDTO | null>(null);
+  const [companies, setCompanies] = useState<CompanyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'knowledge' | 'skills' | 'abilities'>('knowledge');
 
@@ -35,6 +37,10 @@ const CareerDetailPage = () => {
           incrementUsage('career_view');
           hasTrackedUsageRef.current = true;
         }
+        // Load companies hiring for this career (background)
+        companyService.getForCareer(idOrSlug)
+          .then(list => setCompanies(list.slice(0, 8)))
+          .catch(() => {});
       } catch (err: any) { console.error(err); } finally { setLoading(false); }
     };
     run();
@@ -52,9 +58,9 @@ const CareerDetailPage = () => {
   return (
     <MainLayout>
       <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');.bg-dot-pattern{background-image:radial-gradient(#E5E7EB 1px,transparent 1px);background-size:24px 24px}.dark .bg-dot-pattern{background-image:radial-gradient(#374151 1px,transparent 1px)}@keyframes fade-in-up{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}.animate-fade-in-up{animation:fade-in-up 0.6s ease-out forwards}`}</style>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');.bg-dot-pattern{background-image:radial-gradient(E5E7EB 1px,transparent 1px);background-size:24px 24px}.dark .bg-dot-pattern{background-image:radial-gradient(374151 1px,transparent 1px)}@keyframes fade-in-up{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}.animate-fade-in-up{animation:fade-in-up 0.6s ease-out forwards}`}</style>
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60"></div>
-        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-green-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-indigo-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-blue-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {loading && (<div className="flex flex-col items-center justify-center py-32 animate-pulse"><div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-green-600 mb-4 animate-spin"></div><p className="text-gray-500 font-medium">Loading career details...</p></div>)}
@@ -65,13 +71,13 @@ const CareerDetailPage = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }}></div>
                 <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none" style={{ background: 'rgba(0,0,0,0.08)' }}></div>
                 <div className="relative z-10">
-                  <button onClick={() => navigate(-1)} className="btn-ghost mb-6 flex items-center transition-colors text-sm font-bold uppercase tracking-wide opacity-80 hover:opacity-100" style={{ color: 'var(--neu-btn-text, #ffffff)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
+                  <button onClick={() => navigate(-1)} className="btn-ghost mb-6 flex items-center transition-colors text-sm font-bold uppercase tracking-wide opacity-80 hover:opacity-100" style={{ color: 'var(--neu-btn-text, ffffff)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>Quay lại
                   </button>
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
                     <div>
-                      <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4" style={{ color: 'var(--neu-btn-text, #ffffff)' }}>{detail.title}</h1>
-                      <p className="text-sm font-mono" style={{ color: 'var(--neu-btn-text, #ffffff)', opacity: 0.7 }}>O*NET Code: {detail.onet_code}</p>
+                      <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4" style={{ color: 'var(--neu-btn-text, ffffff)' }}>{detail.title}</h1>
+                      <p className="text-sm font-mono" style={{ color: 'var(--neu-btn-text, ffffff)', opacity: 0.7 }}>O*NET Code: {detail.onet_code}</p>
                     </div>
                     <div className="flex-shrink-0">
                       <Link to={`/careers/${idOrSlug}/roadmap`} className="group inline-flex items-center px-6 py-3 rounded-xl font-bold text-base transition-all hover:-translate-y-1" style={{ background: 'rgba(255,255,255,0.18)', color: '#ffffff', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(8px)' }}>
@@ -91,7 +97,7 @@ const CareerDetailPage = () => {
                 <div className="space-y-8">
                   {/* Block A: About */}
                   <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                    <h2 className="text-xl font-bold text-black dark:text-white mb-4 flex items-center gap-3"><span className="w-2 h-6 bg-green-500 rounded-full"></span>About the Role</h2>
+                    <h2 className="text-xl font-bold text-black dark:text-white mb-4 flex items-center gap-3"><span className="w-2 h-6 bg-indigo-700 rounded-full"></span>About the Role</h2>
                     <p className="text-black dark:text-white leading-relaxed text-base">{detail.short_desc || detail.sections.outlook?.summary_md || "Explore this career path to discover opportunities and requirements."}</p>
                   </div>
                   {/* Block B: Key Responsibilities */}
@@ -105,27 +111,27 @@ const CareerDetailPage = () => {
                   <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
                     <h2 className="text-xl font-bold text-black dark:text-white mb-4 flex items-center gap-3"><span className="w-2 h-6 bg-purple-500 rounded-full"></span>Technology Stack</h2>
                     {detail.sections.technology.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">{detail.sections.technology.map((tech, i) => (<span key={i} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${tech.hot_flag ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600'}`}>{tech.name} {tech.hot_flag && '🔥'}</span>))}</div>
+                      <div className="flex flex-wrap gap-2">{detail.sections.technology.map((tech, i) => (<span key={i} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${tech.hot_flag ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600'}`}>{tech.name} {tech.hot_flag && ''}</span>))}</div>
                     ) : (<p className="text-gray-400 italic">No technology data available.</p>)}
                   </div>
                   {/* Block D: Competencies Profile (Locked for Free/Basic) */}
                   {isSectionLocked('competencies') ? (
                     <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
                       <div className="absolute inset-0 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-                        <div className="text-4xl mb-4">🔒</div>
+                        <div className="text-4xl mb-4"></div>
                         <h3 className="text-lg font-bold text-black dark:text-white mb-2">Competencies Profile Locked</h3>
                         <p className="text-black dark:text-white text-center mb-4 max-w-md">Upgrade to {nextPlanInfo?.name || 'Premium'} to unlock detailed Knowledge, Skills, and Abilities analysis.</p>
-                        <button onClick={() => navigate('/pricing')} className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors">Upgrade Now</button>
+                        <button onClick={() => navigate('/pricing')} className="px-6 py-2 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-lg transition-colors">Upgrade Now</button>
                       </div>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3"><span className="w-2 h-6 bg-teal-500 rounded-full"></span>Competencies Profile</h2>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3"><span className="w-2 h-6 bg-indigo-600 rounded-full"></span>Competencies Profile</h2>
                       <div className="h-48 bg-gray-50 dark:bg-gray-700 rounded-xl"></div>
                     </div>
                   ) : (
                     <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <h2 className="text-xl font-bold text-black dark:text-white mb-4 flex items-center gap-3"><span className="w-2 h-6 bg-teal-500 rounded-full"></span>Competencies Profile</h2>
+                      <h2 className="text-xl font-bold text-black dark:text-white mb-4 flex items-center gap-3"><span className="w-2 h-6 bg-indigo-600 rounded-full"></span>Competencies Profile</h2>
                       {/* Tabs */}
                       <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
-                        {(['knowledge', 'skills', 'abilities'] as const).map(tab => (<button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 font-semibold text-sm transition-colors ${activeTab === tab ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}>{tab.charAt(0).toUpperCase() + tab.slice(1)}</button>))}
+                        {(['knowledge', 'skills', 'abilities'] as const).map(tab => (<button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 font-semibold text-sm transition-colors ${activeTab === tab ? 'text-indigo-800 border-b-2 border-indigo-700' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}>{tab.charAt(0).toUpperCase() + tab.slice(1)}</button>))}
                       </div>
                       {/* Tab Content */}
                       <div className="space-y-3">
@@ -147,7 +153,7 @@ const CareerDetailPage = () => {
                                   <span className="text-xs text-gray-400 dark:text-gray-500 w-8">Level</span>
                                   <div className="w-20 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden flex">
                                     {[1, 2, 3, 4, 5].map(seg => (
-                                      <div key={seg} className={`flex-1 ${seg <= Math.round(levelValue) ? 'bg-teal-500' : ''}`} style={{ borderRight: seg < 5 ? '1px solid rgba(156,163,175,0.3)' : 'none' }}></div>
+                                      <div key={seg} className={`flex-1 ${seg <= Math.round(levelValue) ? 'bg-indigo-600' : ''}`} style={{ borderRight: seg < 5 ? '1px solid rgba(156,163,175,0.3)' : 'none' }}></div>
                                     ))}
                                   </div>
                                   <span className="text-xs text-gray-500 dark:text-gray-400 w-6 text-right">{levelValue.toFixed(1)}</span>
@@ -225,7 +231,7 @@ const CareerDetailPage = () => {
                             <div key={i} className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-800">
                               <div className="flex items-center gap-3 flex-1 min-w-0">
                                 <div className="flex items-center justify-center w-8 h-8 bg-amber-500 text-white rounded-full text-sm font-bold flex-shrink-0">
-                                  #{activityRank}
+                                  {activityRank}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-gray-700 dark:text-gray-300 font-medium text-sm leading-relaxed">
@@ -303,7 +309,7 @@ const CareerDetailPage = () => {
                       {/* Locked Requirements */}
                       <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
                         <div className="absolute inset-0 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-4">
-                          <div className="text-3xl mb-2">🔒</div>
+                          <div className="text-3xl mb-2"></div>
                           <p className="text-sm text-gray-600 dark:text-gray-400 text-center">Upgrade to Pro to unlock</p>
                         </div>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Requirements</h3>
@@ -312,7 +318,7 @@ const CareerDetailPage = () => {
                       {/* Locked Salary */}
                       <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
                         <div className="absolute inset-0 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-4">
-                          <div className="text-3xl mb-2">🔒</div>
+                          <div className="text-3xl mb-2"></div>
                           <p className="text-sm text-gray-600 dark:text-gray-400 text-center">Upgrade to Pro to unlock</p>
                         </div>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Salary Information</h3>
@@ -321,7 +327,7 @@ const CareerDetailPage = () => {
                       {/* Locked Outlook */}
                       <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
                         <div className="absolute inset-0 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-4">
-                          <div className="text-3xl mb-2">🔒</div>
+                          <div className="text-3xl mb-2"></div>
                           <p className="text-sm text-gray-600 dark:text-gray-400 text-center">Upgrade to Pro to unlock</p>
                         </div>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Job Outlook</h3>
@@ -338,7 +344,7 @@ const CareerDetailPage = () => {
                     <>
                       {/* Requirements */}
                       <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-                        <h3 className="text-lg font-bold text-black dark:text-white mb-4 flex items-center gap-2">📋 Requirements</h3>
+                        <h3 className="text-lg font-bold text-black dark:text-white mb-4 flex items-center gap-2"> Requirements</h3>
                         <div className="space-y-4">
                           <div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Experience</div><div className="text-base font-semibold text-black dark:text-white">{detail.sections.overview?.experience_text || detail.sections.preparation?.experience_summary || 'Varies by position'}</div></div>
                           <div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Education</div><div className="text-base font-semibold text-black dark:text-white">{detail.sections.overview?.degree_text || detail.sections.preparation?.education_summary || 'Varies by position'}</div></div>
@@ -351,7 +357,7 @@ const CareerDetailPage = () => {
                       {/* Education Requirements Breakdown */}
                       {detail.sections.education_requirements && detail.sections.education_requirements.length > 0 && (
                         <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-                          <h3 className="text-lg font-bold text-black dark:text-white mb-4 flex items-center gap-2">🎓 Education Breakdown</h3>
+                          <h3 className="text-lg font-bold text-black dark:text-white mb-4 flex items-center gap-2"> Education Breakdown</h3>
                           <div className="space-y-3">
                             {detail.sections.education_requirements.slice(0, 5).map((edu, i) => (
                               <div key={i} className="flex items-center justify-between">
@@ -364,7 +370,7 @@ const CareerDetailPage = () => {
                                   </p>
                                 </div>
                                 <div className="flex-shrink-0 ml-3">
-                                  <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                                  <span className="text-sm font-bold text-indigo-800 dark:text-indigo-400">
                                     {Number(edu.data_value || 0).toFixed(1)}%
                                   </span>
                                 </div>
@@ -376,7 +382,7 @@ const CareerDetailPage = () => {
 
                       {/* Enhanced Salary */}
                       <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-                        <h3 className="text-lg font-bold text-black dark:text-white mb-4 flex items-center gap-2">💰 Salary Information</h3>
+                        <h3 className="text-lg font-bold text-black dark:text-white mb-4 flex items-center gap-2"> Salary Information</h3>
                         <div className="space-y-4">
                           {/* Primary salary display */}
                           {detail.sections.wages ? (
@@ -385,9 +391,9 @@ const CareerDetailPage = () => {
                                 // Vietnamese wages
                                 <>
                                   {detail.sections.wages.monthly_median_vnd && (
-                                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl mb-3">
-                                      <div className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">Monthly Median (VN)</div>
-                                      <div className="text-2xl font-extrabold text-green-700 dark:text-green-300">{formatSalary(detail.sections.wages.monthly_median_vnd, 'VND')}</div>
+                                    <div className="text-center p-4 bg-indigo-50 dark:bg-indigo-950/20 rounded-xl mb-3">
+                                      <div className="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wider mb-1">Monthly Median (VN)</div>
+                                      <div className="text-2xl font-extrabold text-indigo-900 dark:text-indigo-300">{formatSalary(detail.sections.wages.monthly_median_vnd, 'VND')}</div>
                                     </div>
                                   )}
                                   {detail.sections.wages.annual_median_vnd && (
@@ -425,9 +431,9 @@ const CareerDetailPage = () => {
                                 // US wages
                                 <>
                                   {detail.sections.wages.annual_median && (
-                                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl mb-3">
-                                      <div className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">Annual Median (US)</div>
-                                      <div className="text-2xl font-extrabold text-green-700 dark:text-green-300">{formatSalary(detail.sections.wages.annual_median, 'USD')}</div>
+                                    <div className="text-center p-4 bg-indigo-50 dark:bg-indigo-950/20 rounded-xl mb-3">
+                                      <div className="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wider mb-1">Annual Median (US)</div>
+                                      <div className="text-2xl font-extrabold text-indigo-900 dark:text-indigo-300">{formatSalary(detail.sections.wages.annual_median, 'USD')}</div>
                                     </div>
                                   )}
                                   {detail.sections.wages.hourly_median && (
@@ -461,9 +467,9 @@ const CareerDetailPage = () => {
                             // Fallback to overview data
                             <div className="space-y-3">
                               {detail.sections.overview?.salary_avg && (
-                                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                                  <div className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">Average Salary</div>
-                                  <div className="text-2xl font-extrabold text-green-700 dark:text-green-300">{formatSalary(detail.sections.overview.salary_avg, detail.sections.overview.salary_currency || 'USD')}</div>
+                                <div className="text-center p-4 bg-indigo-50 dark:bg-indigo-950/20 rounded-xl">
+                                  <div className="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wider mb-1">Average Salary</div>
+                                  <div className="text-2xl font-extrabold text-indigo-900 dark:text-indigo-300">{formatSalary(detail.sections.overview.salary_avg, detail.sections.overview.salary_currency || 'USD')}</div>
                                 </div>
                               )}
                               <div className="flex justify-between text-sm"><span className="text-gray-500">Min:</span><span className="font-semibold text-black dark:text-white">{formatSalary(detail.sections.overview?.salary_min, detail.sections.overview?.salary_currency || 'USD')}</span></div>
@@ -474,14 +480,47 @@ const CareerDetailPage = () => {
                       </div>
                       {/* Job Outlook */}
                       <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-                        <h3 className="text-lg font-bold text-black dark:text-white mb-4 flex items-center gap-2">📈 Job Outlook</h3>
+                        <h3 className="text-lg font-bold text-black dark:text-white mb-4 flex items-center gap-2"> Job Outlook</h3>
                         <div className="space-y-3">
-                          {detail.sections.outlook?.growth_label && (<div className="flex items-center gap-2"><span className={`px-3 py-1 rounded-full text-sm font-bold ${detail.sections.outlook.growth_label.toLowerCase().includes('faster') || detail.sections.outlook.growth_label.toLowerCase().includes('much faster') ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : detail.sections.outlook.growth_label.toLowerCase().includes('decline') ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>{detail.sections.outlook.growth_label}</span></div>)}
+                          {detail.sections.outlook?.growth_label && (<div className="flex items-center gap-2"><span className={`px-3 py-1 rounded-full text-sm font-bold ${detail.sections.outlook.growth_label.toLowerCase().includes('faster') || detail.sections.outlook.growth_label.toLowerCase().includes('much faster') ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-300' : detail.sections.outlook.growth_label.toLowerCase().includes('decline') ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>{detail.sections.outlook.growth_label}</span></div>)}
                           {detail.sections.outlook?.openings_est && (<div><div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Projected Openings</div><div className="text-lg font-bold text-black dark:text-white">{Number(detail.sections.outlook.openings_est || 0).toLocaleString()} / year</div></div>)}
                           {detail.sections.outlook?.summary_md && (<p className="text-sm text-black dark:text-white leading-relaxed">{detail.sections.outlook.summary_md}</p>)}
                         </div>
                       </div>
                     </>
+                  )}
+
+                  {/* ── Companies Hiring — cuoi cot phai ── */}
+                  {companies.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                         Công ty đang tuyển dụng
+                      </h3>
+                      <div className="space-y-2">
+                        {companies.map(co => {
+                          const links = allUrls(co);
+                          return (
+                            <div key={co.id} className="p-3 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700 transition-colors" style={{ background: 'var(--neu-bg, f9fafb)' }}>
+                              <div className="font-semibold text-sm text-blue-900 dark:text-blue-200 mb-1">{co.name}</div>
+                              <div className="flex gap-1 flex-wrap mb-2">
+                                {co.industry && <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">{co.industry}</span>}
+                                {co.location && <span className="text-xs text-gray-400"> {co.location.split('/')[0].trim()}</span>}
+                              </div>
+                              <div className="flex gap-1.5 flex-wrap">
+                                {links.slice(0, 3).map(l => (
+                                  <a key={l.label} href={l.url} target="_blank" rel="noopener noreferrer"
+                                    className="text-xs font-semibold px-2.5 py-1 rounded-full border transition-opacity hover:opacity-75"
+                                    style={{ background: l.label === 'Trang tuyển dụng' ? '2563eb' : 'fff', color: l.label === 'Trang tuyển dụng' ? 'fff' : '2563eb', borderColor: '#bfdbfe', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                                    {l.label}
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-3">Bấm vào nút để xem trang tuyển dụng.</p>
+                    </div>
                   )}
                 </div>
               </div>

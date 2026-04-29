@@ -135,14 +135,14 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
       const percentage = (usage / 25) * 100; // Calculate based on total limit, not monthly
       if (percentage >= 90) return 'bg-orange-500'; // Less alarming than red
       if (percentage >= 70) return 'bg-blue-500';   // Informational blue
-      return 'bg-green-500';
+      return 'bg-indigo-700';
     }
 
     // Default logic for other features
     const percentage = (usage / limit) * 100;
     if (percentage >= 90) return 'bg-red-500';
     if (percentage >= 70) return 'bg-orange-500';
-    return 'bg-green-500';
+    return 'bg-indigo-700';
   };
 
   if (loading) {
@@ -170,7 +170,7 @@ const UsageStatus = ({ className = "" }: UsageStatusProps) => {
         <span className={`plan-badge px-3 py-1 rounded-full text-xs font-semibold ${
           detectedPlan === 'Pro' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' :
           detectedPlan === 'Premium' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
-          detectedPlan === 'Basic' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+          detectedPlan === 'Basic' ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-300' :
           'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
         }`}>
           {detectedPlan} Plan

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BookOpen, BookMarked, Gamepad2, Puzzle, FileText } from 'lucide-react';
 import { profileService } from '../services/profileService';
 import { ProfileData, AssessmentHistoryItem } from '../types/profile';
 import MainLayout from '../components/layout/MainLayout';
@@ -26,9 +27,12 @@ const RIASEC_LABELS: Record<string, string> = {
 };
 
 const RIASEC_COLORS: Record<string, string> = {
-  realistic: '#6366f1', investigative: '#3b82f6',
-  artistic: '#8b5cf6', social: '#10b981',
-  enterprising: '#f59e0b', conventional: '#64748b',
+  realistic:    '#6366f1',
+  investigative:'#3b82f6',
+  artistic:     '#8b5cf6',
+  social:       'var(--color-primary)',  /* use primary green for Social */
+  enterprising: '#d97706',
+  conventional: '#64748b',
 };
 
 const BIG5_LABELS: Record<string, string> = {
@@ -45,10 +49,10 @@ function big5Level(score: number) {
 }
 
 function big5Color(score: number) {
-  if (score >= 75) return '#10b981';
-  if (score >= 55) return '#3b82f6';
-  if (score >= 40) return '#f59e0b';
-  return '#ef4444';
+  if (score >= 75) return 'var(--color-primary)';   /* green-600 — primary */
+  if (score >= 55) return '#0284c7';   /* sky-600 */
+  if (score >= 40) return '#d97706';   /* amber-600 */
+  return '#ef4444';                    /* red-500 */
 }
 
 /* ── Assessment card mini ─────────────────────────────── */
@@ -65,17 +69,21 @@ function AssessmentCard({ item }: { item: AssessmentHistoryItem }) {
     ? Math.round(Math.max(...Object.values(item.big_five_scores)))
     : 0;
 
-  const icons: Record<string, string> = {
-    traditional: '📊', story: '📖', enhanced: '🎮', puzzle: '🧩',
+  const iconMap: Record<string, React.ReactNode> = {
+    traditional: <BookOpen size={20} />,
+    story:       <BookMarked size={20} />,
+    enhanced:    <FileText size={20} />,
+    puzzle:      <Puzzle size={20} />,
+    game:        <Gamepad2 size={20} />,
   };
-  const icon = icons[mode.toLowerCase()] || '📋';
+  const icon = iconMap[mode.toLowerCase()] ?? <FileText size={20} />;
 
   return (
     <div
       onClick={() => navigate(`/results/${item.id}`)}
       style={{
-        background: 'var(--neu-bg-card, #fff)',
-        border: '1px solid var(--neu-border, #e5e7eb)',
+        background: 'var(--neu-bg-card, fff)',
+        border: '1px solid var(--neu-border, e5e7eb)',
         borderRadius: 14, padding: '1rem 1.1rem',
         cursor: 'pointer', transition: 'box-shadow 0.15s, transform 0.15s',
         minWidth: 160, flex: '1 0 160px',
@@ -92,17 +100,17 @@ function AssessmentCard({ item }: { item: AssessmentHistoryItem }) {
       <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
         {date}
       </div>
-      <div style={{ fontSize: '1.4rem', marginBottom: 4 }}>{icon}</div>
-      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--neu-text, #111)', marginBottom: 2 }}>
+      <div style={{ marginBottom: 6, color: 'var(--neu-accent)' }}>{icon}</div>
+      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--neu-text, 111)', marginBottom: 2 }}>
         {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode
       </div>
       {topType && (
         <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: 8 }}>
-          Top: <strong style={{ color: 'var(--neu-text, #111)' }}>{RIASEC_LABELS[topType] || topType}</strong>
+          Top: <strong style={{ color: 'var(--neu-text, 111)' }}>{RIASEC_LABELS[topType] || topType}</strong>
         </div>
       )}
       <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 2 }}>Score</div>
-      <div style={{ fontWeight: 900, fontSize: '1.3rem', color: '#4f46e5' }}>{topScore}/100</div>
+      <div style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--neu-accent)' }}>{topScore}/100</div>
     </div>
   );
 }
@@ -137,10 +145,10 @@ const ProfilePage = () => {
 
   return (
     <MainLayout>
-      <div style={{ minHeight: '100vh', background: 'var(--neu-bg, #f1f5f1)', paddingBottom: '3rem' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--neu-bg, f1f5f1)', paddingBottom: '3rem' }}>
         {loading && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: '0.75rem', color: '#9ca3af' }}>
-            <div style={{ width: 20, height: 20, border: '3px solid #e5e7eb', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <div style={{ width: 20, height: 20, border: '3px solid e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             <span>Đang tải profile...</span>
           </div>
@@ -157,21 +165,21 @@ const ProfilePage = () => {
 
             {/* ── HEADER CARD ── */}
             <div style={{
-              background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%)',
+              background: 'linear-gradient(135deg, var(--neu-accent) 0%, var(--color-primary-hover) 60%, #0f766e 100%)',
               borderRadius: 20, padding: '2rem 2.5rem',
               display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
               gap: '1.5rem', flexWrap: 'wrap',
               marginBottom: '1.5rem',
-              boxShadow: '0 8px 32px rgba(79,70,229,0.25)',
+              boxShadow: '0 8px 32px rgba(26,35,126,0.3)',
             }}>
               {/* Left: avatar + name */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                 <div style={{
                   width: 72, height: 72, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #a78bfa, #60a5fa)',
+                  background: 'rgba(255,255,255,0.2)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '1.75rem', fontWeight: 900, color: '#fff',
-                  border: '3px solid rgba(255,255,255,0.3)',
+                  border: '3px solid rgba(255,255,255,0.4)',
                   flexShrink: 0,
                 }}>
                   {initials(profileData.profile)}
@@ -180,20 +188,20 @@ const ProfilePage = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
                     <span style={{
                       fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em',
-                      textTransform: 'uppercase', color: '#a5f3fc',
+                      textTransform: 'uppercase', color: 'rgba(255,255,255,0.9)',
                       background: 'rgba(165,243,252,0.15)', padding: '0.2rem 0.6rem',
                       borderRadius: 99, border: '1px solid rgba(165,243,252,0.3)',
                     }}>
-                      ✦ Verified Career DNA
+                       Verified Career DNA
                     </span>
                   </div>
-                  <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.1 }}>
+                  <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: 'fff', margin: 0, lineHeight: 1.1 }}>
                     {displayName(profileData.profile)}
                   </h1>
                   <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', marginTop: '0.3rem' }}>
                     {profileData.profile.email}
                     {latestAssessment?.top_interest && (
-                      <span> · Top interest: <strong style={{ color: '#a5f3fc' }}>{RIASEC_LABELS[latestAssessment.top_interest] || latestAssessment.top_interest}</strong></span>
+                      <span> · Top interest: <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{RIASEC_LABELS[latestAssessment.top_interest] || latestAssessment.top_interest}</strong></span>
                     )}
                   </div>
                 </div>
@@ -207,12 +215,12 @@ const ProfilePage = () => {
                     <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tests</div>
                   </div>
                   <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.5rem 0.9rem' }}>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff' }}>{completedRoadmaps}</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'fff' }}>{completedRoadmaps}</div>
                     <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Roadmaps</div>
                   </div>
                   {topRiasecCode && (
                     <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.5rem 0.9rem' }}>
-                      <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#a5f3fc' }}>{topRiasecCode}</div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#bbf7d0' }}>{topRiasecCode}</div>
                       <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</div>
                     </div>
                   )}
@@ -224,9 +232,9 @@ const ProfilePage = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px,100%), 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
 
               {/* Career DNA (RIASEC) */}
-              <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)' }}>Career DNA (RIASEC)</div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, 111)' }}>Career DNA (RIASEC)</div>
                   {latestAssessment && (
                     <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
                       Last updated {new Date(latestAssessment.completed_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
@@ -244,7 +252,7 @@ const ProfilePage = () => {
                             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: RIASEC_COLORS[key], textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                               {RIASEC_LABELS[key]}
                             </span>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 900, color: 'var(--neu-text, #111)' }}>{pct}%</span>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 900, color: 'var(--neu-text, 111)' }}>{pct}%</span>
                           </div>
                           <div style={{ height: 6, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${pct}%`, background: RIASEC_COLORS[key], borderRadius: 99, transition: 'width 1s ease' }} />
@@ -259,14 +267,14 @@ const ProfilePage = () => {
                 ) : (
                   <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af', fontSize: '0.85rem' }}>
                     Chưa có kết quả assessment.<br />
-                    <a href="/assessment" style={{ color: '#4f46e5', fontWeight: 600 }}>Làm bài test ngay →</a>
+                    <a href="/assessment" style={{ color: 'var(--neu-accent)', fontWeight: 600 }}>Làm bài test ngay →</a>
                   </div>
                 )}
               </div>
 
               {/* Big Five Personality */}
-              <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
+              <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, 111)', marginBottom: '1.1rem' }}>
                   Big Five Personality
                 </div>
 
@@ -278,7 +286,7 @@ const ProfilePage = () => {
                       const color = big5Color(val);
                       return (
                         <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ width: 120, fontSize: '0.78rem', fontWeight: 600, color: 'var(--neu-text, #374151)', flexShrink: 0 }}>
+                          <div style={{ width: 120, fontSize: '0.78rem', fontWeight: 600, color: 'var(--neu-text, 374151)', flexShrink: 0 }}>
                             {BIG5_LABELS[key]}
                           </div>
                           <div style={{ flex: 1, height: 7, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden' }}>
@@ -303,8 +311,8 @@ const ProfilePage = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px,100%), 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
 
               {/* Account Info */}
-              <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
+              <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, 111)', marginBottom: '1.1rem' }}>
                   Thông tin tài khoản
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -314,35 +322,35 @@ const ProfilePage = () => {
                     { label: 'Ngày sinh', value: profileData.profile.date_of_birth ? new Date(profileData.profile.date_of_birth).toLocaleDateString('vi-VN') : 'Chưa cập nhật' },
                     { label: 'Tham gia', value: new Date(profileData.profile.created_at).toLocaleDateString('vi-VN') },
                   ].map(({ label, value }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, f3f4f6)' }}>
                       <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>{label}</span>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>{value}</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, 111)' }}>{value}</span>
                     </div>
                   ))}
                 </div>
                 <a href="/assessment" style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                   marginTop: '1.25rem', padding: '0.6rem',
-                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                  color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem',
+                  background: 'linear-gradient(135deg, var(--neu-accent), var(--color-primary-hover))',
+                  color: 'fff', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem',
                   textDecoration: 'none', transition: 'opacity 0.15s',
                 }}
                   onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
                   onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
                 >
-                  🎯 Làm bài assessment mới
+                   Làm bài assessment mới
                 </a>
               </div>
 
               {/* Chat Inbox */}
-              <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', overflow: 'hidden', minHeight: 280 }}>
+              <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', overflow: 'hidden', minHeight: 280 }}>
                 <ChatInboxPanel />
               </div>
             </div>
 
             {/* ── ROW 3: Assessment History ── */}
-            <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', marginBottom: '1.25rem' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
+            <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', marginBottom: '1.25rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, 111)', marginBottom: '1.1rem' }}>
                 Assessment History
               </div>
               {profileData.assessmentHistory.length > 0 ? (
@@ -355,13 +363,13 @@ const ProfilePage = () => {
               ) : (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af', fontSize: '0.85rem' }}>
                   Chưa có lịch sử assessment.{' '}
-                  <a href="/assessment" style={{ color: '#4f46e5', fontWeight: 600 }}>Làm bài ngay →</a>
+                  <a href="/assessment" style={{ color: 'var(--neu-accent)', fontWeight: 600 }}>Làm bài ngay →</a>
                 </div>
               )}
             </div>
 
             {/* ── ROW 4: Full Assessment Detail ── */}
-            <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <AssessmentHistorySection assessmentHistory={profileData.assessmentHistory} />
             </div>
 

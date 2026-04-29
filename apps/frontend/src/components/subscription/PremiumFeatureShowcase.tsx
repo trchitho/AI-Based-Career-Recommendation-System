@@ -12,22 +12,22 @@ const PremiumFeatureShowcase = ({ className = "", compact = false }: PremiumFeat
 
   if (isPremium) {
     return (
-      <div className={`bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-6 ${className}`}>
+      <div className={`bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl p-6 ${className}`}>
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg">
+          <div className="w-12 h-12 bg-gradient-to-br from-indigo-700 to-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-green-900 dark:text-green-100 mb-1">
-              🎉 {planName} Active
+               {planName} Active
             </h3>
-            <p className="text-green-700 dark:text-green-300 text-sm">
+            <p className="text-indigo-900 dark:text-indigo-300 text-sm">
               Bạn đang tận hưởng tất cả tính năng Premium. Cảm ơn bạn đã tin tưởng!
             </p>
           </div>
-          <div className="text-green-600 dark:text-green-400">
+          <div className="text-indigo-800 dark:text-indigo-400">
             <span className="text-2xl">⭐</span>
           </div>
         </div>
@@ -37,25 +37,25 @@ const PremiumFeatureShowcase = ({ className = "", compact = false }: PremiumFeat
 
   const features = [
     {
-      icon: '🔓',
+      icon: '',
       title: 'Xem tất cả nghề nghiệp',
       description: 'Truy cập không giới hạn hàng trăm nghề nghiệp và lộ trình chi tiết',
       color: 'text-blue-600'
     },
     {
-      icon: '📝',
+      icon: '',
       title: 'Test không giới hạn',
       description: 'Làm bài đánh giá tính cách và năng lực bao nhiêu lần cũng được',
-      color: 'text-green-600'
+      color: 'text-indigo-800'
     },
     {
-      icon: '🗺️',
+      icon: '',
       title: 'Roadmap đầy đủ 6 levels',
       description: 'Học từ cơ bản đến chuyên gia với tài liệu và bài tập thực hành',
       color: 'text-purple-600'
     },
     {
-      icon: '🎯',
+      icon: '',
       title: 'Phân tích AI chuyên sâu',
       description: 'Nhận insights cá nhân hóa và gợi ý phát triển sự nghiệp',
       color: 'text-orange-600'
@@ -68,7 +68,7 @@ const PremiumFeatureShowcase = ({ className = "", compact = false }: PremiumFeat
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white">
-              <span className="text-lg">✨</span>
+              <span className="text-lg"></span>
             </div>
             <div>
               <h4 className="font-bold text-purple-900 dark:text-purple-100">
@@ -95,7 +95,7 @@ const PremiumFeatureShowcase = ({ className = "", compact = false }: PremiumFeat
       {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-sm font-bold mb-4">
-          <span className="text-lg">✨</span>
+          <span className="text-lg"></span>
           PREMIUM FEATURES
         </div>
         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -135,11 +135,11 @@ const PremiumFeatureShowcase = ({ className = "", compact = false }: PremiumFeat
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
           <span>Nâng cấp Premium ngay</span>
-          <span className="text-lg">🚀</span>
+          <span className="text-lg"></span>
         </button>
         
         <p className="text-purple-600 dark:text-purple-400 text-sm mt-4 font-medium">
-          💝 Chỉ từ 299,000đ/tháng - Hủy bất cứ lúc nào
+           Chỉ từ 299,000đ/tháng - Hủy bất cứ lúc nào
         </p>
       </div>
     </div>

@@ -13,7 +13,7 @@ const CategoryPosts = ({ posts, category }: CategoryPostsProps) => {
     return (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-7 h-7 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -30,7 +30,7 @@ const CategoryPosts = ({ posts, category }: CategoryPostsProps) => {
                         <Link
                             key={post.id}
                             to={`/blog/${post.slug}`}
-                            className="group bg-gray-50 dark:bg-gray-700/50 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 hover:border-green-500 dark:hover:border-green-500 transition-all hover:-translate-y-1 hover:shadow-lg"
+                            className="group bg-gray-50 dark:bg-gray-700/50 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 hover:border-indigo-600 dark:hover:border-indigo-600 transition-all hover:-translate-y-1 hover:shadow-lg"
                         >
                             {/* Featured Image */}
                             <div className={`h-32 bg-gradient-to-br ${getBlogGradient(post.category)} relative overflow-hidden`}>
@@ -56,7 +56,7 @@ const CategoryPosts = ({ posts, category }: CategoryPostsProps) => {
                             {/* Content */}
                             <div className="p-4">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">
+                                    <span className="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wider">
                                         {post.category || 'Article'}
                                     </span>
                                     <span className="text-xs text-gray-400">•</span>
@@ -70,7 +70,7 @@ const CategoryPosts = ({ posts, category }: CategoryPostsProps) => {
                                             : 'Draft'}
                                     </span>
                                 </div>
-                                <h4 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                                <h4 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors">
                                     {post.title}
                                 </h4>
                                 <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -86,7 +86,7 @@ const CategoryPosts = ({ posts, category }: CategoryPostsProps) => {
             <div className="mt-6 text-center">
                 <Link
                     to={`/blog?category=${encodeURIComponent(category)}`}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/20 text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-semibold rounded-xl transition-all border border-gray-200 dark:border-gray-600 hover:border-green-500"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-green-900/20 text-gray-700 dark:text-gray-300 hover:text-indigo-800 dark:hover:text-indigo-400 font-semibold rounded-xl transition-all border border-gray-200 dark:border-gray-600 hover:border-indigo-600"
                 >
                     View All {category} Articles
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

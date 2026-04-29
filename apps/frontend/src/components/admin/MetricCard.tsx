@@ -43,7 +43,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, icon, t
             <div className="mt-2 flex items-center">
               <span
                 className={`text-sm font-medium ${trend.isPositive
-                  ? "text-green-600"
+                  ? "text-indigo-800"
                   : "text-red-500"
                   }`}
               >

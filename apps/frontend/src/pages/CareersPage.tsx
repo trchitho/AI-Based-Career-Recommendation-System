@@ -46,15 +46,15 @@ const CareersPage = () => {
     // This prevents double tracking
   };
 
-  // 🟢 Lấy dữ liệu
+  //  Lấy dữ liệu
   const fetchData = useCallback(async () => {
     // Reset hasLoadedRef when search query or page changes
     if (hasLoadedRef.current && page === 1 && q === '') {
-      console.log('⚠️ [CareersPage] Duplicate load attempt prevented');
+      console.log(' [CareersPage] Duplicate load attempt prevented');
       return;
     }
 
-    console.log(`🔄 [CareersPage] Loading careers (page: ${page}, query: "${q}")...`);
+    console.log(` [CareersPage] Loading careers (page: ${page}, query: "${q}")...`);
 
     setLoading(true);
     try {
@@ -69,13 +69,13 @@ const CareersPage = () => {
       setTotal(resp.total);
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      console.log(`✅ [CareersPage] Loaded ${resp.items.length} careers (total: ${resp.total})`);
+      console.log(` [CareersPage] Loaded ${resp.items.length} careers (total: ${resp.total})`);
 
       if (page === 1 && q === '') {
         hasLoadedRef.current = true;
       }
     } catch (err) {
-      console.error('❌ [CareersPage] Error loading careers:', err);
+      console.error(' [CareersPage] Error loading careers:', err);
     } finally {
       setLoading(false);
     }
@@ -99,37 +99,37 @@ const CareersPage = () => {
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           .bg-dot-pattern {
-            background-image: radial-gradient(#D1D5DB 1px, transparent 1px);
+            background-image: radial-gradient(D1D5DB 1px, transparent 1px);
             background-size: 24px 24px;
           }
           .dark .bg-dot-pattern {
-            background-image: radial-gradient(#374151 1px, transparent 1px);
+            background-image: radial-gradient(374151 1px, transparent 1px);
           }
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
           
           /* Force black text color */
           .force-black-text {
-            color: #000000 !important;
+            color: 000000 !important;
           }
           .force-black-text h1, .force-black-text h2, .force-black-text h3, .force-black-text p {
-            color: #000000 !important;
+            color: 000000 !important;
           }
         `}</style>
 
         {/* Background Layers */}
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-40"></div>
-        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-green-500/5 dark:bg-green-500/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-indigo-700/5 dark:bg-indigo-700/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
           {/* --- HEADER & SEARCH --- */}
           <div className="text-center mb-16 animate-fade-in-up force-black-text">
-            <span className="inline-block py-1.5 px-4 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold tracking-widest uppercase mb-6 border border-green-200 dark:border-green-800">
+            <span className="inline-block py-1.5 px-4 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold tracking-widest uppercase mb-6 border border-indigo-200 dark:border-indigo-800">
               Discover Opportunities
             </span>
             <h1 className="text-4xl md:text-6xl font-extrabold text-black dark:text-white mb-6 tracking-tight leading-tight" style={{ color: '#000000' }}>
-              Explore <span className="text-green-600 dark:text-green-400">Career Paths</span>
+              Explore <span className="text-indigo-800 dark:text-indigo-400">Career Paths</span>
             </h1>
             <p className="text-xl text-black dark:text-white max-w-2xl mx-auto font-medium leading-relaxed mb-10" style={{ color: '#000000' }}>
               Find the perfect career that aligns with your personality, strengths, and interests.
@@ -137,7 +137,7 @@ const CareersPage = () => {
 
             {/* Search Bar - Modern & Big */}
             <div className="max-w-2xl mx-auto relative group">
-              <div className="absolute inset-0 bg-green-500/20 rounded-2xl blur-lg group-hover:bg-green-500/30 transition-all duration-300"></div>
+              <div className="absolute inset-0 bg-indigo-700/20 rounded-2xl blur-lg group-hover:bg-indigo-700/30 transition-all duration-300"></div>
               <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl flex items-center p-2 border border-gray-100 dark:border-gray-700">
                 <div className="pl-4 text-gray-400">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -207,7 +207,7 @@ const CareersPage = () => {
 
                 // Gradient backgrounds for placeholders
                 const gradients = [
-                  'from-green-500 to-teal-600',
+                  'from-indigo-700 to-teal-600',
                   'from-blue-500 to-indigo-600',
                   'from-orange-400 to-pink-500',
                   'from-purple-500 to-violet-600',
@@ -224,7 +224,7 @@ const CareersPage = () => {
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none z-10">
                         <div className="absolute top-4 right-4">
                           <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
-                            requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                            requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-indigo-700 to-emerald-500' :
                               'bg-gradient-to-r from-purple-500 to-pink-500'
                             }`}>
                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -259,13 +259,13 @@ const CareersPage = () => {
                       <div className="mb-4">
                         <h3 className={`text-xl font-bold mb-2 line-clamp-2 h-14 transition-colors ${isLocked
                           ? 'text-gray-500 dark:text-gray-400'
-                          : 'text-black dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400'
+                          : 'text-black dark:text-white group-hover:text-indigo-800 dark:group-hover:text-indigo-400'
                           }`}>
                           {c.title}
                         </h3>
                         <div className={`w-12 h-1 rounded-full transition-colors ${isLocked
                           ? 'bg-gray-200 dark:bg-gray-600'
-                          : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-green-500'
+                          : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-indigo-700'
                           }`}></div>
                       </div>
 
@@ -299,7 +299,7 @@ const CareersPage = () => {
                         </span>
                         <div className={`flex items-center text-sm font-bold transition-transform ${isLocked
                           ? 'text-purple-600 dark:text-purple-400'
-                          : 'text-green-600 dark:text-green-400 group-hover:translate-x-1'
+                          : 'text-indigo-800 dark:text-indigo-400 group-hover:translate-x-1'
                           }`}>
                           {isLocked ? (
                             <>
