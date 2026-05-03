@@ -372,7 +372,7 @@ async def search_jobs(
                             print(f"📊 Neo4j fallback: Retrieved {len(neo4j_jobs)} jobs")
                             return {"jobs": neo4j_jobs}
                 except Exception as e:
-                    print(f"⚠️ Neo4j search failed: {e}")
+                    print(f"[WARN] Neo4j search failed: {e}")
 
         return {"jobs": []}
 

@@ -282,7 +282,7 @@ const CareerRecommendationsDisplay = ({
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none">
                     <div className="absolute top-3 right-3">
                       <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
-                        requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-indigo-700 to-emerald-500' :
+                        requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-indigo-700 to-indigo-700' :
                           'bg-gradient-to-r from-purple-500 to-pink-500'
                         }`}>
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
@@ -353,7 +353,7 @@ const CareerRecommendationsDisplay = ({
                     }
                     className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${isLocked
                       ? `bg-gradient-to-r ${requiredPlanInfo?.color === 'blue' ? 'from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600' :
-                        requiredPlanInfo?.color === 'green' ? 'from-indigo-700 to-emerald-500 hover:from-indigo-800 hover:to-emerald-600' :
+                        requiredPlanInfo?.color === 'green' ? 'from-indigo-700 to-indigo-700 hover:from-indigo-800 hover:to-indigo-800' :
                           'from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
                       } text-white`
                       : 'bg-primary-cta dark:bg-indigo-800 text-white hover:bg-primary-dark dark:hover:bg-indigo-900'

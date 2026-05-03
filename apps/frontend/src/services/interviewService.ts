@@ -261,7 +261,7 @@ class InterviewService {
     getRecommendationColor(recommendation?: string): string {
         switch (recommendation) {
             case 'PASS':
-                return 'text-green-600 bg-green-100';
+                return 'text-indigo-800 bg-indigo-100';
             case 'CONDITIONAL_PASS':
                 return 'text-yellow-600 bg-yellow-100';
             case 'FAIL':
@@ -291,7 +291,7 @@ class InterviewService {
             case 'MEDIUM':
                 return 'text-yellow-600 bg-yellow-100';
             case 'LOW':
-                return 'text-green-600 bg-green-100';
+                return 'text-indigo-800 bg-indigo-100';
             default:
                 return 'text-gray-600 bg-gray-100';
         }
@@ -317,7 +317,7 @@ class InterviewService {
 
     getScoreColor(score?: number): string {
         if (!score) return 'text-gray-600';
-        if (score >= 8) return 'text-green-600';
+        if (score >= 8) return 'text-indigo-800';
         if (score >= 6) return 'text-yellow-600';
         return 'text-red-600';
     }

@@ -508,7 +508,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-300"></div> Strongly Disagree</div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-300"></div> Disagree</div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-gray-300"></div> Neutral</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-300"></div> Agree</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-300"></div> Agree</div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-700"></div> Strongly Agree</div>
         </div>
       </div>
@@ -535,7 +535,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
             'R': { name: 'Realistic', description: 'Hands-on, practical, mechanical work', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700' },
             'I': { name: 'Investigative', description: 'Research, analysis, problem-solving', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' },
             'A': { name: 'Artistic', description: 'Creative, expressive, innovative work', color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-700' },
-            'S': { name: 'Social', description: 'Helping, teaching, caring for others', color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-green-300 dark:border-green-700' },
+            'S': { name: 'Social', description: 'Helping, teaching, caring for others', color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800' },
             'E': { name: 'Enterprising', description: 'Leadership, persuasion, business', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
             'C': { name: 'Conventional', description: 'Organization, detail-oriented, structured', color: 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' },
             'O': { name: 'Openness', description: 'Curiosity, imagination, creativity', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700' },
@@ -586,7 +586,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
                       { value: 2, color: 'bg-orange-100', active: 'bg-orange-400', ring: 'ring-orange-200' },
                       { value: 3, color: 'bg-gray-100', active: 'bg-gray-400', ring: 'ring-gray-200' },
                       { value: 4, color: 'bg-indigo-50', active: 'bg-indigo-700', ring: 'ring-green-200' },
-                      { value: 5, color: 'bg-emerald-100', active: 'bg-emerald-600', ring: 'ring-emerald-200' }
+                      { value: 5, color: 'bg-emerald-100', active: 'bg-indigo-800', ring: 'ring-emerald-200' }
                     ].map(({ value, color, active, ring }) => (
                       <button
                         key={value}
@@ -639,7 +639,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         ) : (
           <button
             onClick={handleSubmit}
-            className="px-10 py-3 bg-indigo-800 hover:bg-indigo-900 text-white rounded-xl font-bold shadow-xl shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+            className="px-10 py-3 bg-indigo-800 hover:bg-indigo-900 text-white rounded-xl font-bold shadow-xl shadow-indigo-800/30 hover:shadow-indigo-800/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
           >
             Complete Assessment
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>

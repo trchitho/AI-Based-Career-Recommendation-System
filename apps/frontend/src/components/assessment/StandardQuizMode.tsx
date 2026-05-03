@@ -92,7 +92,7 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
           <button
             onClick={handleSubmit}
             disabled={responses.size === 0}
-            className="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-800 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed"
+            className="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-800 to-indigo-800 hover:from-indigo-900 hover:to-violet-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed"
           >
             Submit Assessment
           </button>

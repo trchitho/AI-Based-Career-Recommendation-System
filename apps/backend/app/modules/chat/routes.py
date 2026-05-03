@@ -23,9 +23,9 @@ router = APIRouter()
 # ── auto-create table ──────────────────────────────────────────
 try:
     Base.metadata.create_all(bind=engine, tables=[ChatMessage.__table__])
-    print("✅ Chat table ready")
+    print("[OK] Chat table ready")
 except Exception as e:
-    print(f"⚠️  Chat table init: {e}")
+    print(f"[WARN]  Chat table init: {e}")
 
 
 # ── WebSocket connection manager ───────────────────────────────

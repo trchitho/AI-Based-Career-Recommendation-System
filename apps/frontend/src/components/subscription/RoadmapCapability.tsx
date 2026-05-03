@@ -110,7 +110,7 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
           <div
             key={level}
             className={`roadmap-level flex-1 h-2.5 rounded-full transition-all duration-300 ${capability.levels.includes(level)
-              ? 'active bg-gradient-to-r from-green-400 to-green-500 shadow-sm'
+              ? 'active bg-gradient-to-r from-indigo-600 to-indigo-700 shadow-sm'
               : 'locked bg-gray-200 dark:bg-gray-700'
               }`}
           />

@@ -49,7 +49,7 @@ async def lifespan(_: FastAPI):
     try:
         test_connection()
     except Exception as e:
-        print("⚠️  DB connection check failed:", repr(e))
+        print("[WARN]  DB connection check failed:", repr(e))
 
     # Best-effort lightweight migration for email verification columns
     try:
@@ -81,9 +81,9 @@ async def lifespan(_: FastAPI):
     try:
         from app.modules.companies.scheduler import start_scheduler, stop_scheduler
         start_scheduler()
-        print("✅ Company update scheduler started")
+        print("[OK] Company update scheduler started")
     except Exception as e:
-        print(f"⚠️  Company scheduler failed to start: {e}")
+        print(f"[WARN]  Company scheduler failed to start: {e}")
 
     # Session reminder job — chay moi 5 phut, gui WS truoc 30 phut
     try:
@@ -108,9 +108,9 @@ async def lifespan(_: FastAPI):
                 name="Session reminders (30min before)",
                 replace_existing=True,
             )
-            print("✅ Session reminder job registered (every 5min)")
+            print("[OK] Session reminder job registered (every 5min)")
     except Exception as e:
-        print(f"⚠️  Session reminder job failed: {e}")
+        print(f"[WARN]  Session reminder job failed: {e}")
 
     yield
 
@@ -123,11 +123,16 @@ async def lifespan(_: FastAPI):
 
 
 def create_app() -> FastAPI:
-    # Initialize error tracking first
+    import sys
+    if hasattr(sys.stdout, 'reconfigure'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except Exception:
+            pass
     try:
-        print("✅ Error tracking initialized")
+        print("OK Error tracking initialized")
     except Exception as e:
-        print(f"⚠️ Error tracking initialization failed: {e}")
+        print(f"WARN Error tracking initialization failed: {e}")
 
     from app.core.serialization import ORJSONResponse
     app = FastAPI(
@@ -160,18 +165,18 @@ def create_app() -> FastAPI:
                 set_performance_monitor(self)
 
         app.add_middleware(RegisteredPerformanceMonitoringMiddleware)
-        print("✅ Performance monitoring enabled")
+        print("[OK] Performance monitoring enabled")
     except Exception as e:
-        print(f"⚠️ Performance monitoring disabled: {e}")
+        print(f"[WARN] Performance monitoring disabled: {e}")
 
     # Rate limiting middleware
     try:
         from .core.rate_limiter import RateLimitMiddleware
 
         app.add_middleware(RateLimitMiddleware, default_limit=100, default_window=60)
-        print("✅ Rate limiting enabled")
+        print("[OK] Rate limiting enabled")
     except Exception as e:
-        print(f"⚠️ Rate limiting disabled: {e}")
+        print(f"[WARN] Rate limiting disabled: {e}")
 
     # DB session per-request
     @app.middleware("http")
@@ -249,16 +254,16 @@ def create_app() -> FastAPI:
 
         app.include_router(bff_router.router)
     except Exception as e:
-        print("ℹ️  Skip BFF router:", repr(e))
+        print("[INFO]  Skip BFF router:", repr(e))
 
     # BFF Career API (career details from 5 tables)
     try:
         from .api import bff_career
 
         app.include_router(bff_career.router)
-        print("✅ BFF Career API")
+        print("[OK] BFF Career API")
     except Exception as e:
-        print("❌ BFF Career API:", str(e)[:50])
+        print("[ERR] BFF Career API:", str(e)[:50])
 
     # Auth / Users
     from .modules.users.router_auth import router as auth_router
@@ -284,17 +289,17 @@ def create_app() -> FastAPI:
     try:
         from .modules.assessments import routes_assessments as assess_router
         app.include_router(assess_router.router, prefix="/api/assessments", tags=["assessments"])
-        print("✅ Assessments router registered")
+        print("[OK] Assessments router registered")
     except Exception as e:
-        print("ℹ️  Skip assessments router:", repr(e))
+        print("[INFO]  Skip assessments router:", repr(e))
     
     # Gamification (optional - can be enabled after assessments work)
     try:
         from .modules.assessments import routes_gamification as gamification_router
         app.include_router(gamification_router.router, prefix="/api/assessments", tags=["gamification"])
-        print("✅ Gamification router registered")
+        print("[OK] Gamification router registered")
     except Exception as e:
-        print("ℹ️  Skip gamification router:", repr(e))
+        print("[INFO]  Skip gamification router:", repr(e))
 
     # Admin (dashboard, careers, questions, skills)
     try:
@@ -442,7 +447,7 @@ def create_app() -> FastAPI:
     try:
         from .modules.skill_gap import routes as skill_gap_router
         app.include_router(skill_gap_router.router, prefix="/api/skill-gap", tags=["skill-gap"])
-        print("✅ Skill Gap Analysis router registered")
+        print("[OK] Skill Gap Analysis router registered")
     except Exception as e:
         print("??  Skip skill gap router:", repr(e))
 
@@ -450,7 +455,7 @@ def create_app() -> FastAPI:
     try:
         from .modules.skill_gap.sse_routes import router as sse_router
         app.include_router(sse_router)
-        print("✅ Skill Gap SSE router registered")
+        print("[OK] Skill Gap SSE router registered")
     except Exception as e:
         print("??  Skip skill gap SSE router:", repr(e))
 
@@ -458,7 +463,7 @@ def create_app() -> FastAPI:
     try:
         from .modules.companies.routes import router as companies_router
         app.include_router(companies_router)
-        print("✅ Companies router registered")
+        print("[OK] Companies router registered")
     except Exception as e:
         print("??  Skip companies router:", repr(e))
 
@@ -467,7 +472,7 @@ def create_app() -> FastAPI:
         from .modules.mentor_matching import routes as mentor_matching_router
 
         app.include_router(mentor_matching_router.router)
-        print("✅ Mentor Matching router registered")
+        print("[OK] Mentor Matching router registered")
     except Exception as e:
         print("??  Skip mentor matching router:", repr(e))
 
@@ -476,7 +481,7 @@ def create_app() -> FastAPI:
         from .modules.chat import routes as chat_router
 
         app.include_router(chat_router.router)
-        print("✅ Chat router registered")
+        print("[OK] Chat router registered")
     except Exception as e:
         print("??  Skip chat router:", repr(e))
 
@@ -485,7 +490,7 @@ def create_app() -> FastAPI:
         from .modules.chat import schedule_routes as schedule_router
 
         app.include_router(schedule_router.router)
-        print("✅ Schedule router registered")
+        print("[OK] Schedule router registered")
     except Exception as e:
         print("??  Skip schedule router:", repr(e))
     
@@ -510,16 +515,16 @@ def create_app() -> FastAPI:
         from .modules.interview import routes as interview_router
 
         app.include_router(interview_router.router, prefix="/api/interview", tags=["interview"])
-        print("✅ AI Mock Interview API")
+        print("[OK] AI Mock Interview API")
     except Exception as e:
-        print("❌ AI Mock Interview API:", str(e)[:50])
+        print("[ERR] AI Mock Interview API:", str(e)[:50])
 
     # NLP — PB32 essay analysis, PB33 career embeddings, PB34 pgvector search
     try:
         from .modules.nlp import routes_nlp as nlp_router
 
         app.include_router(nlp_router.router, prefix="/api/nlp", tags=["nlp"])
-        print("✅ NLP router registered at /api/nlp")
+        print("[OK] NLP router registered at /api/nlp")
     except Exception as e:
         print("??  Skip NLP router:", repr(e))
 

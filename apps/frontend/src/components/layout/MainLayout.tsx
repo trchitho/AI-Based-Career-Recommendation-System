@@ -313,7 +313,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 <NavLink
                   to="/admin"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-indigo-900 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-green-900/20 transition-colors"
+                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-indigo-900 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-colors"
                 >
                   Admin Panel
                 </NavLink>

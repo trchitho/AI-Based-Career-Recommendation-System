@@ -234,12 +234,12 @@ async def analyze_cv_skill_gap(
             )
         
         # Log usage cho paid plans
-        print(f"✅ User {user_id} ({plan_name}) accessing Skill Gap Analysis")
+        print(f"[OK] User {user_id} ({plan_name}) accessing Skill Gap Analysis")
         
     except HTTPException:
         raise  # Re-raise HTTP exceptions
     except Exception as e:
-        print(f"⚠️ Subscription check error: {e}")
+        print(f"[WARN] Subscription check error: {e}")
         # Nếu có lỗi kiểm tra subscription, vẫn cho phép (fallback)
         pass
     # TC-CV-01: Validate file type

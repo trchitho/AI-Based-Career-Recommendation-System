@@ -52,11 +52,30 @@ class SkillGraphAnalyzer:
             return result
             
         except Exception as e:
-            print(f"  ⚠️ AI semantic matching failed: {e}")
+            print(f"  [WARN] AI semantic matching failed: {e}")
             import traceback
             traceback.print_exc()
             return None
     
+    def get_job_required_skills_from_graph(self, career_id: str) -> List[Dict]:
+        """
+        Lay ky nang yeu cau tu Neo4j graph (nhanh hon, co relationship weights).
+        Fallback ve get_job_required_skills_from_db neu Neo4j khong kha dung.
+
+        @param career_id: Career ID (PostgreSQL)
+        @returns: List[{name, category, importance, level}]
+        """
+        if self.driver:
+            try:
+                from app.modules.graph.graph_queries import get_career_required_skills_from_graph
+                results = get_career_required_skills_from_graph(self.driver, career_id)
+                if results:
+                    print(f"[graph] Got {len(results)} skills from Neo4j for career {career_id}")
+                    return results
+            except Exception as e:
+                print(f"[graph] Neo4j skill query failed, falling back to DB: {e}")
+        return []
+
     def get_job_required_skills_from_db(self, onet_code: str) -> List[Dict]:
         """
         Lấy danh sách kỹ năng yêu cầu cho một nghề nghiệp từ PostgreSQL
@@ -100,7 +119,7 @@ class SkillGraphAnalyzer:
             
             if career:
                 actual_onet_code = career.onet_code
-                print(f"  ✅ Found career: {career.title_en} (ONET: {actual_onet_code})")
+                print(f"  [OK] Found career: {career.title_en} (ONET: {actual_onet_code})")
             else:
                 # Try fuzzy search by title
                 career_stmt = select(Career).where(
@@ -111,10 +130,10 @@ class SkillGraphAnalyzer:
                 
                 if career:
                     actual_onet_code = career.onet_code
-                    print(f"  ✅ Found career by fuzzy search: {career.title_en} (ONET: {actual_onet_code})")
+                    print(f"  [OK] Found career by fuzzy search: {career.title_en} (ONET: {actual_onet_code})")
                 else:
                     actual_onet_code = onet_code
-                    print(f"  ⚠️ Career not found, using provided code: {actual_onet_code}")
+                    print(f"  [WARN] Career not found, using provided code: {actual_onet_code}")
             
             # Query skills from database
             stmt = select(CareerKSA).where(
@@ -138,11 +157,11 @@ class SkillGraphAnalyzer:
                     'source': 'onet_database'
                 })
             
-            print(f"  ✅ Loaded {len(skills)} ONET skills from database")
+            print(f"  [OK] Loaded {len(skills)} ONET skills from database")
             return skills
             
         except Exception as e:
-            print(f"  ⚠️ Error querying database for skills: {e}")
+            print(f"  [WARN] Error querying database for skills: {e}")
             import traceback
             traceback.print_exc()
             return []
@@ -164,7 +183,7 @@ class SkillGraphAnalyzer:
         if self.db:
             skills = self.get_job_required_skills_from_db(career_id)
             if skills:
-                print(f"✅ Using skills from PostgreSQL database for {career_id}")
+                print(f"[OK] Using skills from PostgreSQL database for {career_id}")
                 return skills
         
         # Try 2: Get from Neo4j (if available)
@@ -190,13 +209,13 @@ class SkillGraphAnalyzer:
                 })
             
             if skills:
-                print(f"✅ Using skills from Neo4j for {career_id}")
+                print(f"[OK] Using skills from Neo4j for {career_id}")
                 return skills
         except Exception as e:
             print(f"Neo4j query failed: {e}")
         
         # Try 3: Fallback to mock data
-        print(f"⚠️ No database/Neo4j data for {career_id}, using fallback mock data")
+        print(f"[WARN] No database/Neo4j data for {career_id}, using fallback mock data")
         return self._get_fallback_skills(career_id)
     
     def _get_fallback_skills(self, career_id: str) -> List[Dict]:
@@ -474,7 +493,7 @@ class SkillGraphAnalyzer:
         matched_cv_skills = {detail['name'].lower() for detail in matched_details}
         extra_skills = cv_skill_names - matched_cv_skills
         
-        print("  ✅ [Gap Analysis] Complete:")
+        print("  [OK] [Gap Analysis] Complete:")
         print(f"     - Match percentage: {match_percentage:.1f}%")
         print(f"     - Critical gaps: {len(critical_gaps)}")
         print(f"     - Important gaps: {len(important_gaps)}")
@@ -555,7 +574,7 @@ class SkillGraphAnalyzer:
                 if career:
                     career_name = career.title_en
             except Exception as e:
-                print(f"  ⚠️ Could not get career name: {e}")
+                print(f"  [WARN] Could not get career name: {e}")
         
         ai_result = self.ai_semantic_skill_matching(cv_skills, job_skills, career_name)
         
@@ -566,7 +585,7 @@ class SkillGraphAnalyzer:
             analysis = self._build_analysis_from_ai(ai_result, cv_skills, job_skills)
         else:
             # Fallback to traditional matching
-            print("  ⚠️ AI matching unavailable, using traditional matching")
+            print("  [WARN] AI matching unavailable, using traditional matching")
             analysis = self.calculate_skill_match(cv_skills, job_skills)
         
         analysis['career_id'] = career_id
@@ -576,7 +595,7 @@ class SkillGraphAnalyzer:
         insights = self._generate_insights(analysis)
         analysis['insights'] = insights
         
-        print("✅ [Gap Analysis Pipeline] Complete!\n")
+        print("[OK] [Gap Analysis Pipeline] Complete!\n")
         
         return analysis
     
@@ -679,7 +698,7 @@ class SkillGraphAnalyzer:
                     'source': cv_skill.get('source', 'unknown')
                 })
         
-        print("  ✅ AI Analysis built:")
+        print("  [OK] AI Analysis built:")
         print(f"     - Match percentage: {match_percentage:.1f}%")
         print(f"     - Matched skills: {len(matched_skills)}")
         print(f"     - Critical gaps: {len(critical_gaps)}")

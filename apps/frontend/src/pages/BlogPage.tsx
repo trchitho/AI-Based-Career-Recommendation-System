@@ -204,7 +204,7 @@ const BlogPage = () => {
       <div className="min-h-screen bg-gray-50 dark:from-gray-900 dark:to-gray-800">
 
         {/* ── Compact Hero ── */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
           <div className="absolute inset-0 opacity-5 pointer-events-none">
             <div className="absolute top-0 left-1/4 w-72 h-72 bg-indigo-700 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-blue-500 rounded-full blur-3xl"></div>
@@ -259,7 +259,7 @@ const BlogPage = () => {
               <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={() => navigate(isAdmin ? '/admin/blog/create' : '/blog/create')}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-800 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-800 to-indigo-900 hover:from-indigo-900 hover:to-indigo-950 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm"
                 >
                   <Edit3 className="w-4 h-4" />
                   Write Article
@@ -428,7 +428,7 @@ const BlogPage = () => {
                             {/* Footer */}
                             <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100 dark:border-gray-700">
                               <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
                                   {authorInitial}
                                 </div>
                                 <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -524,7 +524,7 @@ const BlogPage = () => {
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
                         className={`w-12 h-12 rounded-xl font-semibold transition-all ${currentPage === pageNum
-                          ? 'bg-gradient-to-r from-indigo-800 to-green-700 text-white shadow-lg shadow-green-500/30'
+                          ? 'bg-gradient-to-r from-indigo-800 to-indigo-900 text-white shadow-lg shadow-indigo-700/30'
                           : 'border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400'
                           }`}
                       >

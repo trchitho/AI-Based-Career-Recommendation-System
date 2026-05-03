@@ -251,7 +251,7 @@ class RecService:
                 result.append(job)
 
         # Logging chi tiết (chỉ khi DEBUG)
-        logger.debug(f"✅ Final {len(result)} careers after L1/L2 filter:")
+        logger.debug(f"[OK] Final {len(result)} careers after L1/L2 filter:")
         if logger.level <= logging.DEBUG:
             for i, job in enumerate(result[:top_k], 1):
                 title = job.get("title_en") or job.get("title_vi") or "Unknown"
@@ -280,7 +280,7 @@ class RecService:
             l2_in_result = sum(1 for j in result if L2 in set(get_primary_dim(t) for t in (j.get("tags") or []) if t))
             others_in_result = len(result) - len(bucket_L1) - l2_in_result
             logger.warning(
-                f"⚠️  Only {len(bucket_L1)}/{top_k} careers match L1={L1}. "
+                f"[WARN]  Only {len(bucket_L1)}/{top_k} careers match L1={L1}. "
                 f"Filled with L2={L2} ({l2_in_result}) and others ({others_in_result})"
             )
 

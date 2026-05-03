@@ -48,7 +48,7 @@ const ProfileStatsCard = ({ assessmentCount = 0 }: ProfileStatsCardProps) => {
       description: 'Upgraded to Premium plan',
       icon: '',
       unlocked: isPremium,
-      color: 'from-green-400 to-emerald-500'
+      color: 'from-indigo-600 to-indigo-700'
     }
   ];
 
@@ -84,7 +84,7 @@ const ProfileStatsCard = ({ assessmentCount = 0 }: ProfileStatsCardProps) => {
             key={index} 
             className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
               achievement.unlocked 
-                ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-indigo-200 dark:border-indigo-800' 
+                ? 'bg-gradient-to-r from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20 border border-indigo-200 dark:border-indigo-800' 
                 : 'bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 opacity-60'
             }`}
           >

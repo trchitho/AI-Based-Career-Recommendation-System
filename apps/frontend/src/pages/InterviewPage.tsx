@@ -383,7 +383,7 @@ const InterviewPage: React.FC = () => {
         behavioral: 'Hành vi', situational: 'Tình huống', closing: 'Kết thúc',
     };
     const qTypeColor: Record<string, string> = {
-        greeting: 'bg-blue-100 text-blue-800', warm_up: 'bg-indigo-50 text-green-800',
+        greeting: 'bg-blue-100 text-blue-800', warm_up: 'bg-indigo-50 text-indigo-950',
         technical: 'bg-red-100 text-red-800', behavioral: 'bg-purple-100 text-purple-800',
         situational: 'bg-orange-100 text-orange-800', closing: 'bg-gray-100 text-gray-800',
     };
@@ -413,7 +413,7 @@ const InterviewPage: React.FC = () => {
                                     <Badge className={`text-xs font-medium ${session.questionType === 'technical' ? 'bg-red-100 text-red-800' :
                                         session.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800' :
                                             session.questionType === 'situational' ? 'bg-orange-100 text-orange-800' :
-                                                session.questionType === 'warm_up' ? 'bg-indigo-50 text-green-800' :
+                                                session.questionType === 'warm_up' ? 'bg-indigo-50 text-indigo-950' :
                                                     'bg-blue-100 text-blue-800'
                                         }`}>
                                         {qTypeLabel[session.questionType] || 'Khác'}
@@ -425,7 +425,7 @@ const InterviewPage: React.FC = () => {
                             <div className="flex items-center gap-1 text-sm text-gray-600">
                                 <Clock className="h-4 w-4" /><span>{fmt(elapsedTime)}</span>
                             </div>
-                            <Badge className={session?.status === 'active' ? 'bg-indigo-50 text-green-800' : 'bg-gray-100 text-gray-700'}>
+                            <Badge className={session?.status === 'active' ? 'bg-indigo-50 text-indigo-950' : 'bg-gray-100 text-gray-700'}>
                                 {session?.status === 'active' ? 'Đang diễn ra' : 'Hoàn thành'}
                             </Badge>
                         </div>
@@ -461,7 +461,7 @@ const InterviewPage: React.FC = () => {
                                                             <div className={`px-4 py-3 rounded-t-xl border-b ${msg.questionType === 'technical' ? 'bg-red-50 border-red-100' :
                                                                 msg.questionType === 'behavioral' ? 'bg-purple-50 border-purple-100' :
                                                                     msg.questionType === 'situational' ? 'bg-orange-50 border-orange-100' :
-                                                                        msg.questionType === 'warm_up' ? 'bg-indigo-50 border-green-100' :
+                                                                        msg.questionType === 'warm_up' ? 'bg-indigo-50 border-indigo-100' :
                                                                             'bg-blue-50 border-blue-100'
                                                                 }`}>
                                                                 <div className="flex items-center gap-3">
@@ -485,7 +485,7 @@ const InterviewPage: React.FC = () => {
                                                                                 <Badge className={`text-xs font-medium ${msg.questionType === 'technical' ? 'bg-red-100 text-red-800' :
                                                                                     msg.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800' :
                                                                                         msg.questionType === 'situational' ? 'bg-orange-100 text-orange-800' :
-                                                                                            msg.questionType === 'warm_up' ? 'bg-indigo-50 text-green-800' :
+                                                                                            msg.questionType === 'warm_up' ? 'bg-indigo-50 text-indigo-950' :
                                                                                                 'bg-blue-100 text-blue-800'
                                                                                     }`}>
                                                                                     {qTypeLabel[msg.questionType] || msg.questionType}
@@ -514,7 +514,7 @@ const InterviewPage: React.FC = () => {
                                                                                             <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-lg font-medium text-xs ${msg.questionType === 'technical' ? 'bg-red-100 text-red-800 border border-red-200' :
                                                                                                 msg.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
                                                                                                     msg.questionType === 'situational' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
-                                                                                                        msg.questionType === 'warm_up' ? 'bg-indigo-50 text-green-800 border border-indigo-200' :
+                                                                                                        msg.questionType === 'warm_up' ? 'bg-indigo-50 text-indigo-950 border border-indigo-200' :
                                                                                                             'bg-blue-100 text-blue-800 border border-blue-200'
                                                                                                 }`}>
                                                                                                 {/* Question type icon */}
@@ -609,7 +609,7 @@ const InterviewPage: React.FC = () => {
                                                         <div className="grid grid-cols-2 gap-2 mb-2">
                                                             {msg.strengths && msg.strengths.length > 0 && (
                                                                 <div className="bg-indigo-50 rounded-lg p-2">
-                                                                    <p className="text-xs font-medium text-green-800 mb-1"> Điểm mạnh</p>
+                                                                    <p className="text-xs font-medium text-indigo-950 mb-1"> Điểm mạnh</p>
                                                                     {msg.strengths.map((s, i) => <p key={i} className="text-xs text-indigo-900">• {s}</p>)}
                                                                 </div>
                                                             )}

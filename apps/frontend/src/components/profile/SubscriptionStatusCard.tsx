@@ -24,9 +24,9 @@ const SubscriptionStatusCard = () => {
     if (plan.includes('premium')) {
       return {
         name: 'Premium',
-        color: 'from-indigo-700 to-emerald-500',
-        bgColor: 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20',
-        borderColor: 'border-indigo-200 dark:border-green-700',
+        color: 'from-indigo-700 to-indigo-700',
+        bgColor: 'from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20',
+        borderColor: 'border-indigo-200 dark:border-indigo-800',
         icon: '⭐',
         badge: 'PREMIUM'
       };

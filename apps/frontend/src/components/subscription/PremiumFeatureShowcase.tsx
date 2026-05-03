@@ -12,15 +12,15 @@ const PremiumFeatureShowcase = ({ className = "", compact = false }: PremiumFeat
 
   if (isPremium) {
     return (
-      <div className={`bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl p-6 ${className}`}>
+      <div className={`bg-gradient-to-r from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl p-6 ${className}`}>
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-700 to-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg">
+          <div className="w-12 h-12 bg-gradient-to-br from-indigo-700 to-indigo-700 rounded-full flex items-center justify-center text-white shadow-lg">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-green-900 dark:text-green-100 mb-1">
+            <h3 className="text-lg font-bold text-indigo-950 dark:text-indigo-100 mb-1">
                {planName} Active
             </h3>
             <p className="text-indigo-900 dark:text-indigo-300 text-sm">

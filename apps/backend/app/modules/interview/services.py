@@ -58,9 +58,9 @@ class Neo4jService:
             # Test connection
             with self.driver.session() as s:
                 s.run("RETURN 1").consume()
-            print("✅ Neo4j connection successful")
+            print("[OK] Neo4j connection successful")
         except Exception as e:
-            print(f"⚠️ Neo4j connection failed: {e}")
+            print(f"[WARN] Neo4j connection failed: {e}")
             self.driver = None
 
     def _get_session(self):
@@ -77,7 +77,7 @@ class Neo4jService:
             return self.driver.session()
 
         except Exception as e:
-            print(f"⚠️ Neo4j session error: {e}")
+            print(f"[WARN] Neo4j session error: {e}")
             # Mark driver as invalid and try to reconnect
             self.driver = None
             self._connect()
@@ -92,13 +92,13 @@ class Neo4jService:
     def get_job_skills(self, job_id: str, limit: int = 8, use_fallback: bool = True) -> List[Dict]:
         """Lấy top skills quan trọng nhất cho một nghề nghiệp từ Work Activities"""
         if not self.driver:
-            print("⚠️ Neo4j driver not available")
+            print("[WARN] Neo4j driver not available")
             return self._get_fallback_skills(job_id, limit) if use_fallback else []
 
         try:
             neo4j_session = self._get_session()
             if not neo4j_session:
-                print("⚠️ Neo4j session not available")
+                print("[WARN] Neo4j session not available")
                 return self._get_fallback_skills(job_id, limit) if use_fallback else []
 
             with neo4j_session as session:
@@ -133,16 +133,16 @@ class Neo4jService:
                         }
                     )
 
-                print(f"✅ Neo4j returned {len(skills)} skills for job {job_id}")
+                print(f"[OK] Neo4j returned {len(skills)} skills for job {job_id}")
 
                 if skills:
                     return skills[:limit]
 
         except Exception as e:
-            print(f"⚠️ Neo4j skills query failed: {e}")
+            print(f"[WARN] Neo4j skills query failed: {e}")
             return self._get_fallback_skills(job_id, limit) if use_fallback else []
 
-        print(f"⚠️ Neo4j returned no skills for job {job_id}")
+        print(f"[WARN] Neo4j returned no skills for job {job_id}")
         return self._get_fallback_skills(job_id, limit) if use_fallback else []
 
     def _get_fallback_skills(self, job_id: str, limit: int = 8) -> List[Dict]:
@@ -262,7 +262,7 @@ class Neo4jService:
                     skills = [dict(record) for record in result]
                 return skills
         except Exception as e:
-            print(f"⚠️ Neo4j query failed: {e}")
+            print(f"[WARN] Neo4j query failed: {e}")
             return self._get_fallback_skills(job_id, 20)
 
     def get_job_info(self, job_id: str) -> Optional[Dict]:
@@ -278,7 +278,7 @@ class Neo4jService:
                 record = result.single()
                 return dict(record) if record else self._get_fallback_job_info(job_id)
         except Exception as e:
-            print(f"⚠️ Neo4j query failed: {e}")
+            print(f"[WARN] Neo4j query failed: {e}")
             return self._get_fallback_job_info(job_id)
 
     def _get_fallback_job_info(self, job_id: str) -> Dict:
@@ -305,7 +305,7 @@ class GeminiService:
 
     def __init__(self):
         self.stream_manager = multi_stream_manager.get_interview_stream()
-        print(f"✅ Interview Gemini service initialized with stream: {self.stream_manager.stream_type.value}")
+        print(f"[OK] Interview Gemini service initialized with stream: {self.stream_manager.stream_type.value}")
 
     def generate_interview_start(self, job_title: str, skills_context: List[Dict]) -> Dict:
         """Tạo lời chào và câu hỏi đầu tiên với prompt cải tiến - dài hơn và chuyên nghiệp hơn"""
@@ -334,7 +334,7 @@ Trả về JSON chính xác:
                 if match:
                     return json.loads(match.group())
         except Exception as e:
-            print(f"⚠️ Interview Gemini API failed: {e}")
+            print(f"[WARN] Interview Gemini API failed: {e}")
 
         return {
             "greeting": f"Xin chào và chào mừng bạn đến với buổi phỏng vấn hôm nay! Tôi là HR Manager và rất vui được gặp gỡ bạn. Chúng ta sẽ có một cuộc trò chuyện thú vị và thoải mái khoảng 15-20 phút về vị trí {job_title}. Tôi hy vọng bạn sẽ cảm thấy thoải mái để chia sẻ những kinh nghiệm và suy nghĩ của mình một cách tự nhiên nhất. Hãy coi đây như một cuộc trò chuyện giữa hai người bạn về nghề nghiệp nhé!",
@@ -378,7 +378,7 @@ Chỉ trả về câu hỏi, không cần giải thích thêm."""
             if response_text:
                 return response_text.strip()
         except Exception as e:
-            print(f"⚠️ Interview Gemini API failed: {e}")
+            print(f"[WARN] Interview Gemini API failed: {e}")
 
         # Fallback questions cải tiến - dài hơn và chuyên nghiệp hơn
         session_skills = skills_context[0]["skill_name"] if skills_context else "kỹ năng chuyên môn"
@@ -446,7 +446,7 @@ JSON:
                     return self._normalize_evaluation_result(result)
                 return result
         except Exception as e:
-            print(f"⚠️ Interview Gemini API failed: {e}")
+            print(f"[WARN] Interview Gemini API failed: {e}")
 
         # Fallback evaluation
         answer_len = len(user_answer.strip())
@@ -524,7 +524,7 @@ Trả về JSON (chỉ JSON, không có text khác):
                     result["overall_score"] = avg_score
                     return result
         except Exception as e:
-            print(f"⚠️ Interview Gemini API failed: {e}")
+            print(f"[WARN] Interview Gemini API failed: {e}")
 
         # Fallback summary
         if avg_score >= 7.5:
@@ -742,7 +742,7 @@ class InterviewService:
                     for r in rows
                 ]
         except Exception as e:
-            print(f"⚠️ Postgres skills query failed: {e}")
+            print(f"[WARN] Postgres skills query failed: {e}")
         return []
 
     def _get_ksas_from_postgres(self, job_id: str, limit: int = 5) -> List[Dict]:
@@ -771,7 +771,7 @@ class InterviewService:
 
             rows = self.db.execute(text(sql), {"onet_code": job_id, "limit": limit}).fetchall()
             if rows:
-                print(f"✅ PostgreSQL KSAs returned {len(rows)} abilities/knowledge for job {job_id}")
+                print(f"[OK] PostgreSQL KSAs returned {len(rows)} abilities/knowledge for job {job_id}")
                 return [
                     {
                         "skill_name": r.skill_name,
@@ -785,9 +785,9 @@ class InterviewService:
                     for i, r in enumerate(rows)
                 ]
             else:
-                print(f"⚠️ PostgreSQL KSAs returned 0 abilities/knowledge for job {job_id}")
+                print(f"[WARN] PostgreSQL KSAs returned 0 abilities/knowledge for job {job_id}")
         except Exception as e:
-            print(f"⚠️ Postgres KSAs query failed: {e}")
+            print(f"[WARN] Postgres KSAs query failed: {e}")
         return []
 
     def _get_job_title_from_postgres(self, job_id: str) -> Optional[str]:
@@ -801,7 +801,7 @@ class InterviewService:
             if row:
                 return row.title_vi
         except Exception as e:
-            print(f"⚠️ Postgres job title query failed: {e}")
+            print(f"[WARN] Postgres job title query failed: {e}")
         return None
 
     def _get_hard_skills_fast(self, job_id: str) -> tuple:
@@ -863,7 +863,7 @@ class InterviewService:
             _task_selection_cache[job_id] = top5
             return top5, all_tasks
         except Exception as e:
-            print(f"⚠️ _get_hard_skills_fast failed: {e}")
+            print(f"[WARN] _get_hard_skills_fast failed: {e}")
             return [], []
 
     def _gemini_select_top_tasks(self, tasks: List[Dict], job_id: str) -> List[Dict]:

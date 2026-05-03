@@ -123,7 +123,7 @@ const AnalysisCard = ({ item, careerName, onView }: {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
         {matchedSkills.length > 0 && (
           <div>
-            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4, display:'flex', alignItems:'center', gap:3 }}><CheckCircle2 size={10} />Đã có</div>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--color-success)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4, display:'flex', alignItems:'center', gap:3 }}><CheckCircle2 size={10} />Đã có</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
               {matchedSkills.map(s => (
                 <span key={s.name} style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: 99, background: '#d1fae5', color: '#065f46', fontWeight: 500 }}>{s.name}</span>

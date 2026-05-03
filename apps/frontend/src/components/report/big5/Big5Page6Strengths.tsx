@@ -40,7 +40,7 @@ const Big5Page6Strengths = ({ strengths, challenges }: Big5Page6StrengthsProps) 
                         Your Personal Strengths
                     </h3>
 
-                    <div className="bg-indigo-50 dark:bg-indigo-950/20 rounded-lg p-4 border border-green-100 dark:border-indigo-800/30 print:p-3">
+                    <div className="bg-indigo-50 dark:bg-indigo-950/20 rounded-lg p-4 border border-indigo-100 dark:border-indigo-800/30 print:p-3">
                         <div className="space-y-3 text-gray-700 dark:text-gray-300 leading-relaxed text-base print:text-sm print:space-y-2">
                             {strengths.map((strength, index) => (
                                 <p key={index}>

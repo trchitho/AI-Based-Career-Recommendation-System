@@ -8,6 +8,11 @@ from typing import List
 from app.core.db import get_db, engine
 from app.core.auth_deps import get_current_user_from_token
 from app.modules.auth.models import User
+from app.modules.graph.neo4j_client import get_driver as _get_neo4j
+from app.modules.graph.graph_queries import (
+    find_mentors_by_skill_overlap,
+    find_users_completed_similar_career,
+)
 
 from .models import Base, MentorProfile, MenteeProfile
 from .schemas import (
@@ -31,9 +36,9 @@ try:
         MenteeProfile.__table__,
         __import__('app.modules.mentor_matching.models', fromlist=['MentorshipRequest']).MentorshipRequest.__table__,
     ])
-    print("✅ Mentor Matching tables ready")
+    print("[OK] Mentor Matching tables ready")
 except Exception as _e:
-    print(f"⚠️  Mentor Matching table init: {_e}")
+    print(f"[WARN]  Mentor Matching table init: {_e}")
 
 
 # ── Mentor endpoints ─────────────────────────────────────────────
@@ -116,8 +121,49 @@ def find_mentors(
     current_user: User = Depends(get_current_user_from_token),
     db: Session = Depends(get_db),
 ):
+    """
+    Tim mentor phu hop: ket hop Neo4j graph traversal + PostgreSQL matching.
+    - Neo4j: Skill overlap qua HAS_SKILL / WANTS_SKILL graph paths
+    - PostgreSQL: Algorithm (Skill 50% + Career 30% + Personality 20%)
+    - Merge + dedup + sort by score
+    """
     svc = MentorMatchingService(db)
-    return svc.find_mentors_for_mentee(current_user.id)
+
+    # 1. PostgreSQL-based matching (existing)
+    pg_results = svc.find_mentors_for_mentee(current_user.id)
+
+    # 2. Neo4j-based matching (graph traversal) — enrich results
+    try:
+        neo4j_driver = _get_neo4j()
+        if neo4j_driver:
+            mentee = svc.get_mentee_profile(current_user.id)
+            if mentee:
+                graph_results = find_mentors_by_skill_overlap(
+                    neo4j_driver,
+                    desired_skills=mentee.desired_skills or [],
+                    target_career=mentee.target_career or "",
+                    limit=20,
+                )
+                # Map graph user_ids to existing results for score boost
+                graph_score_map = {
+                    r["user_id"]: r["score"]
+                    for r in graph_results if r.get("user_id")
+                }
+                for match in pg_results:
+                    graph_bonus = graph_score_map.get(match.user_id, 0)
+                    if graph_bonus > 0:
+                        # Boost PG score by up to 5% from graph confirmation
+                        match.compatibility_score = min(
+                            match.compatibility_score + graph_bonus * 0.05,
+                            99.9,
+                        )
+                # Re-sort after boost
+                pg_results.sort(key=lambda x: x.compatibility_score, reverse=True)
+                print(f"[mentor-matching] Graph boosted {len(graph_score_map)} results")
+    except Exception as e:
+        print(f"[mentor-matching] Neo4j boost skipped: {e}")
+
+    return pg_results
 
 
 @router.post("/mentee/send-request", summary="Gửi yêu cầu mentorship")

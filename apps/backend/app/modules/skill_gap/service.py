@@ -80,7 +80,7 @@ class SkillGapService:
         
         # If AI didn't find skills, fallback to hybrid method
         if not cv_skills or len(cv_skills) == 0:
-            print("  ⚠️ AI found no skills, using hybrid fallback...")
+            print("  [WARN] AI found no skills, using hybrid fallback...")
             text = cv_data.get('text', '')
             if file_type == 'image':
                 text = self.cv_parser.extract_text_from_image(file_content)

@@ -162,7 +162,7 @@ const AnomalyDetectionPage = () => {
       </div>
 
       {detectMsg && (
-        <div className={`p-4 rounded-lg text-sm font-medium ${detectMsg.type === "success" ? "bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-green-200" : detectMsg.type === "error" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"}`}>
+        <div className={`p-4 rounded-lg text-sm font-medium ${detectMsg.type === "success" ? "bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200" : detectMsg.type === "error" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"}`}>
           {detectMsg.text}
         </div>
       )}
@@ -261,7 +261,7 @@ const AnomalyDetectionPage = () => {
                         {getTypeLabel(anomaly.type)}
                       </span>
                       {anomaly.resolved && (
-                        <span className="px-2 py-0.5 text-xs font-medium rounded bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-indigo-300">
+                        <span className="px-2 py-0.5 text-xs font-medium rounded bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-300">
                           Resolved
                         </span>
                       )}

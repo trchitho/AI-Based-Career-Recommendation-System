@@ -115,7 +115,7 @@ const DataSyncPage = () => {
     const styles: Record<string, string> = {
       pending: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
       running: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-      completed: "bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-indigo-300",
+      completed: "bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-300",
       failed: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
     };
     return styles[status] || styles["pending"];
@@ -177,7 +177,7 @@ const DataSyncPage = () => {
 
       {/* Message */}
       {message && (
-        <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}`}>
+        <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}`}>
           {message.text}
         </div>
       )}
@@ -193,10 +193,10 @@ const DataSyncPage = () => {
             </div>
           </div>
 
-          <div className="group relative bg-gradient-to-br from-indigo-700 to-emerald-600 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+          <div className="group relative bg-gradient-to-br from-indigo-700 to-indigo-800 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-500"></div>
             <div className="relative z-10">
-              <p className="text-sm font-semibold text-green-100 mb-1">Total Skills</p>
+              <p className="text-sm font-semibold text-indigo-100 mb-1">Total Skills</p>
               <p className="text-3xl font-bold text-white">{stats.totalSkills.toLocaleString()}</p>
             </div>
           </div>

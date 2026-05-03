@@ -172,7 +172,7 @@ const AdminNotificationsPage = () => {
 
   const getSeverityStyle = (severity: string) => {
     const styles: Record<string, string> = {
-      success: "bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-indigo-300",
+      success: "bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-300",
       warning: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
       error: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
       info: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",

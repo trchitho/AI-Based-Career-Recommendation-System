@@ -27,11 +27,11 @@ const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
 const CIRC = 2 * Math.PI * 20; // r=20
 
 const GRADIENTS = [
-  "from-indigo-700 to-teal-600",
+  "from-indigo-700 to-violet-600",
   "from-blue-500 to-indigo-600",
   "from-orange-400 to-pink-500",
   "from-purple-500 to-violet-600",
-  "from-emerald-400 to-cyan-500",
+  "from-violet-500 to-cyan-500",
   "from-rose-400 to-red-500",
 ];
 

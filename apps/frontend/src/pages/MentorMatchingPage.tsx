@@ -460,7 +460,7 @@ const MentorMatchingPage = () => {
                               {r.status === 'pending' && (
                                 <>
                                   <button onClick={() => { setRespondModal({ req: r, action: 'accepted' }); setRespondMsg(''); }}
-                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: 'none', background: '#10b981', color: 'fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: 'none', background: 'var(--color-success)', color: 'fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
                                     <Check size={12} className="inline mr-1" />Chấp nhận
                                   </button>
                                   <button onClick={() => { setRespondModal({ req: r, action: 'rejected' }); setRespondMsg(''); }}
@@ -625,7 +625,7 @@ const MentorMatchingPage = () => {
                           {isMentorRole && s.status === 'pending' && (
                             <>
                               <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'confirmed'); await loadSessions(); } catch {} finally { setSessionRespondingId(null); } }}
-                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: '#10b981', color: 'fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display:'flex', alignItems:'center', gap:4 }}><Check size={12} />Xác nhận</button>
+                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: 'var(--color-success)', color: 'fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display:'flex', alignItems:'center', gap:4 }}><Check size={12} />Xác nhận</button>
                               <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'cancelled'); await loadSessions(); } catch {} finally { setSessionRespondingId(null); } }}
                                 style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: '#ef4444', color: 'fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display:'flex', alignItems:'center', gap:4 }}><X size={12} />Từ chối</button>
                             </>

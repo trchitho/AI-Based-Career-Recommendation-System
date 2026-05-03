@@ -106,8 +106,8 @@ const STARMethodGuide: React.FC<STARMethodGuideProps> = ({ className = "" }) => 
                     </div>
 
                     <div className="mt-4 p-4 bg-indigo-50 rounded-lg">
-                        <h4 className="font-medium text-green-900 mb-2"> Mẹo áp dụng hiệu quả:</h4>
-                        <ul className="text-sm text-green-800 space-y-1">
+                        <h4 className="font-medium text-indigo-950 mb-2"> Mẹo áp dụng hiệu quả:</h4>
+                        <ul className="text-sm text-indigo-950 space-y-1">
                             <li>• Chuẩn bị trước 3-5 câu chuyện STAR cho các tình huống khác nhau</li>
                             <li>• Sử dụng số liệu cụ thể trong phần Result (tăng 30%, giảm 50%...)</li>
                             <li>• Tập trung vào vai trò của bạn, không nói chung chung về team</li>

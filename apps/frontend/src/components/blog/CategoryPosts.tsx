@@ -86,7 +86,7 @@ const CategoryPosts = ({ posts, category }: CategoryPostsProps) => {
             <div className="mt-6 text-center">
                 <Link
                     to={`/blog?category=${encodeURIComponent(category)}`}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-green-900/20 text-gray-700 dark:text-gray-300 hover:text-indigo-800 dark:hover:text-indigo-400 font-semibold rounded-xl transition-all border border-gray-200 dark:border-gray-600 hover:border-indigo-600"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 text-gray-700 dark:text-gray-300 hover:text-indigo-800 dark:hover:text-indigo-400 font-semibold rounded-xl transition-all border border-gray-200 dark:border-gray-600 hover:border-indigo-600"
                 >
                     View All {category} Articles
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

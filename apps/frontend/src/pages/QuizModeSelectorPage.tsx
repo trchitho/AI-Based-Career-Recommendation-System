@@ -224,7 +224,7 @@ const QuizModeSelectorPage = () => {
                 disabled={!selectedMode}
                 className={`group relative px-12 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${
                   selectedMode
-                    ? 'bg-gradient-to-r from-indigo-800 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-2 cursor-pointer'
+                    ? 'bg-gradient-to-r from-indigo-800 via-emerald-600 to-violet-600 hover:from-indigo-900 hover:via-emerald-700 hover:to-violet-700 text-white shadow-indigo-800/30 hover:shadow-indigo-800/50 hover:-translate-y-2 cursor-pointer'
                     : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                 }`}
               >

@@ -72,8 +72,8 @@ def test_validation_logic():
             reason = result.get('reason', 'unknown')
             guidance = result.get('guidance')
             
-            status = "✅ RELEVANT" if is_relevant else "❌ IRRELEVANT"
-            expected_status = "✅ RELEVANT" if case['expected'] else "❌ IRRELEVANT"
+            status = "[OK] RELEVANT" if is_relevant else "[ERR] IRRELEVANT"
+            expected_status = "[OK] RELEVANT" if case['expected'] else "[ERR] IRRELEVANT"
             
             print(f"📊 Result: {status} (Expected: {expected_status})")
             print(f"🔍 Reason: {reason}")
@@ -83,12 +83,12 @@ def test_validation_logic():
             
             # Check if result matches expectation
             if is_relevant == case['expected']:
-                print("✅ TEST PASSED")
+                print("[OK] TEST PASSED")
             else:
-                print("❌ TEST FAILED")
+                print("[ERR] TEST FAILED")
                 
         except Exception as e:
-            print(f"❌ ERROR: {e}")
+            print(f"[ERR] ERROR: {e}")
     
     print(f"\n🎯 TESTING GUIDANCE GENERATION")
     print("=" * 60)
@@ -99,9 +99,9 @@ def test_validation_logic():
             "warm_up", 
             "Software Developer"
         )
-        print(f"✅ Guidance generated: {guidance}")
+        print(f"[OK] Guidance generated: {guidance}")
     except Exception as e:
-        print(f"❌ Guidance generation failed: {e}")
+        print(f"[ERR] Guidance generation failed: {e}")
 
 def test_question_distribution():
     """Test question distribution logic"""
@@ -126,14 +126,14 @@ def test_question_distribution():
             if count > 0:
                 expected_total = count
                 if total == expected_total:
-                    print("   ✅ Distribution correct")
+                    print("   [OK] Distribution correct")
                 else:
-                    print(f"   ❌ Distribution incorrect - expected {expected_total}, got {total}")
+                    print(f"   [ERR] Distribution incorrect - expected {expected_total}, got {total}")
             else:
-                print("   ✅ Handled edge case")
+                print("   [OK] Handled edge case")
                 
         except Exception as e:
-            print(f"   ❌ Error for count {count}: {e}")
+            print(f"   [ERR] Error for count {count}: {e}")
 
 if __name__ == "__main__":
     print("🚀 INTERVIEW LOGIC VALIDATION TEST")
@@ -142,5 +142,5 @@ if __name__ == "__main__":
     test_validation_logic()
     test_question_distribution()
     
-    print(f"\n✅ VALIDATION COMPLETED")
+    print(f"\n[OK] VALIDATION COMPLETED")
     print("=" * 80)

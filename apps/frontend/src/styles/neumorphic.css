@@ -193,135 +193,142 @@ select:focus {
               0 0 0 2px var(--neu-accent) !important;
 }
 
-/* ── Always ensure buttons are visible & clickable ───────────── */
-button, [role="button"] {
-  cursor: pointer !important;
-  position: relative;
-  z-index: 1;   /* ensure above overlay siblings */
-}
-button:disabled { cursor: not-allowed !important; }
+/* ════════════════════════════════════════════════════════════════
+   BUTTON SYSTEM — Clean, no conflicts
+   ════════════════════════════════════════════════════════════════ */
 
-/* ── 5. Plain buttons (no color class) — neu raised ──────────── */
+/* Base */
+button, [role="button"] { cursor: pointer !important; position: relative; z-index: 1; }
+button:disabled, [role="button"]:disabled { cursor: not-allowed !important; opacity: 0.5 !important; }
 
-button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]) {
+/* ── Plain buttons (no bg class, no inline style) → neumorphic ── */
+button:not([class*="bg-"]):not([style*="background"]):not([style*="gradient"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost) {
   background: var(--neu-bg-card) !important;
   border: none !important;
   border-radius: var(--neu-radius-sm) !important;
   box-shadow: var(--neu-raised-sm) !important;
-  transition: box-shadow 0.2s ease, transform 0.15s ease !important;
+  color: var(--neu-text) !important;
+  transition: box-shadow 0.2s, transform 0.15s !important;
 }
-button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]):hover {
-  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light) !important;
+button:not([class*="bg-"]):not([style*="background"]):not([style*="gradient"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):hover {
+  box-shadow: var(--neu-raised) !important;
+  transform: translateY(-1px) !important;
 }
-button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.browse-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]):active {
+button:not([class*="bg-"]):not([style*="background"]):not([style*="gradient"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):active {
   box-shadow: var(--neu-pressed-sm) !important;
   transform: scale(0.97) !important;
 }
 
-/* ═══════════════════════════════════════════════
-   BUTTON SYSTEM — 4 variants (ảnh tham khảo)
-   Primary  · Secondary · Inverted · Outlined
-   ═══════════════════════════════════════════════ */
-
-/* ── PRIMARY button (solid navy) ── */
-.btn-primary,
-button[class*="bg-indigo"],
-button[class*="bg-green"],
-button[class*="bg-blue"],
-a[class*="bg-indigo"],
-a[class*="bg-green"] {
+/* ── PRIMARY (navy indigo #1A237E) ── */
+html body button[class*="bg-indigo"],
+html body button[class*="bg-blue"],
+html body button[class*="bg-green"],
+html body a[class*="bg-indigo"],
+html body a[class*="bg-green"],
+html body .mm-btn-primary,
+html body button.submit-button,
+html body button.retry-button {
   background-color: var(--color-primary) !important;
+  background-image: none !important;
   color: #ffffff !important;
   border: none !important;
-  box-shadow: 0 3px 12px rgba(26,35,126,0.30) !important;
-  transition: background 0.15s, transform 0.15s, box-shadow 0.15s !important;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(26,35,126,0.35) !important;
+  font-weight: 600 !important;
+  transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s !important;
 }
-.btn-primary:hover,
-button[class*="bg-indigo"]:hover,
-button[class*="bg-green"]:hover,
-button[class*="bg-blue"]:hover,
-a[class*="bg-indigo"]:hover,
-a[class*="bg-green"]:hover {
+html body button[class*="bg-indigo"]:hover,
+html body button[class*="bg-blue"]:hover,
+html body button[class*="bg-green"]:hover,
+html body a[class*="bg-indigo"]:hover,
+html body button.submit-button:hover {
   background-color: var(--color-primary-hover) !important;
-  box-shadow: 0 5px 18px rgba(26,35,126,0.40) !important;
-  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(26,35,126,0.45) !important;
+  transform: translateY(-1px) !important;
 }
-.btn-primary:active,
-button[class*="bg-indigo"]:active,
-button[class*="bg-green"]:active {
+html body button[class*="bg-indigo"]:active,
+html body button[class*="bg-green"]:active {
   transform: scale(0.97) !important;
-  box-shadow: 0 2px 6px rgba(26,35,126,0.20) !important;
+  box-shadow: 0 1px 6px rgba(26,35,126,0.20) !important;
 }
+html body button[class*="bg-indigo"] *,
+html body button[class*="bg-green"] *,
+html body button[class*="bg-blue"] *,
+html body a[class*="bg-indigo"] * { color: #ffffff !important; }
 
-/* ── SECONDARY button (purple) ── */
-.btn-secondary-purple,
-button[class*="bg-purple"],
-button[class*="bg-violet"],
-a[class*="bg-purple"] {
+/* ── SECONDARY (purple #7C4DFF) ── */
+html body button[class*="bg-purple"],
+html body button[class*="bg-violet"],
+html body a[class*="bg-purple"] {
   background-color: var(--color-secondary) !important;
+  background-image: none !important;
   color: #ffffff !important;
   border: none !important;
-  box-shadow: 0 3px 12px rgba(124,77,255,0.30) !important;
-  transition: background 0.15s, transform 0.15s, box-shadow 0.15s !important;
-  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(124,77,255,0.35) !important;
+  font-weight: 600 !important;
 }
-button[class*="bg-purple"]:hover,
-button[class*="bg-violet"]:hover { background-color: var(--color-secondary-hover) !important; transform: translateY(-1px); }
+html body button[class*="bg-purple"]:hover,
+html body button[class*="bg-violet"]:hover {
+  background-color: var(--color-secondary-hover) !important;
+  transform: translateY(-1px) !important;
+}
 
-/* ── TERTIARY / INVERTED (cyan) ── */
-button[class*="bg-cyan"],
-button[class*="bg-sky"],
-button[class*="bg-teal"],
-a[class*="bg-teal"] {
+/* ── TERTIARY (cyan #00B0FF) ── */
+html body button[class*="bg-cyan"],
+html body button[class*="bg-sky"],
+html body button[class*="bg-teal"],
+html body a[class*="bg-teal"] {
   background-color: var(--color-tertiary) !important;
-  color: #fff !important;
+  background-image: none !important;
+  color: #ffffff !important;
   border: none !important;
-  box-shadow: 0 3px 12px rgba(0,176,255,0.30) !important;
-  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(0,176,255,0.35) !important;
+  font-weight: 600 !important;
 }
+html body button[class*="bg-teal"]:hover,
+html body button[class*="bg-cyan"]:hover { background-color: var(--color-tertiary-hover) !important; }
 
-/* ── OUTLINED button style ── */
-.btn-outlined {
-  background: transparent !important;
-  color: var(--color-primary) !important;
-  border: 1.5px solid var(--color-primary) !important;
-  box-shadow: none !important;
-  font-weight: 600;
-}
-.btn-outlined:hover {
-  background: var(--color-primary-muted) !important;
-}
-
-/* ── Other colored (error/warning/etc) ── */
-button[class*="bg-red"], button[class*="bg-rose"] {
-  background-color: var(--color-error) !important;
+/* ── Error / Warning ── */
+html body button[class*="bg-red"], html body button[class*="bg-rose"] {
+  background-color: var(--color-error) !important; background-image: none !important;
   color: #fff !important; border: none !important;
   box-shadow: 0 3px 10px rgba(211,47,47,0.30) !important;
 }
-button[class*="bg-orange"], button[class*="bg-amber"] {
-  background-color: var(--color-warning) !important;
+html body button[class*="bg-orange"], html body button[class*="bg-amber"] {
+  background-color: var(--color-warning) !important; background-image: none !important;
   color: #fff !important; border: none !important;
 }
-button[class*="bg-emerald"] {
-  background-color: var(--color-success) !important;
+html body button[class*="bg-emerald"] {
+  background-color: var(--color-success) !important; background-image: none !important;
   color: #fff !important; border: none !important;
 }
-button[class*="bg-pink"] { color: #fff !important; }
 
-/* White text inside all colored buttons */
-button[class*="bg-indigo"] *, button[class*="bg-green"] *,
-button[class*="bg-blue"] *, button[class*="bg-purple"] *,
-button[class*="bg-violet"] *, button[class*="bg-red"] *,
-button[class*="bg-cyan"] *, button[class*="bg-teal"] *,
-a[class*="bg-indigo"] *, a[class*="bg-green"] * { color: #ffffff !important; }
-
-button:disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-  box-shadow: none !important;
+/* ── Inline-styled buttons: don't override their background ── */
+/* Only override box-shadow to remove neumorphic white glow */
+button[style*="background"],
+button[style*="linear-gradient"],
+a[style*="background"] {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
 }
+button[style*="background"]:hover,
+a[style*="background"]:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.22) !important; }
+
+/* ── Ghost / transparent ── */
+html body button.btn-ghost { background: transparent !important; box-shadow: none !important; border: none !important; }
+
+/* ── Game/interactive special ── */
+html body button.btn-game {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(59,130,246,0.35) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+html body button.btn-interactive {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7, #ec4899) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(139,92,246,0.35) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+html body button.btn-game *, html body button.btn-interactive * { color: #fff !important; }
 
 /* ── 6. Modals ────────────────────────────────────────────────── */
 
@@ -416,64 +423,12 @@ html body button.btn-interactive * {
   color: #ffffff !important;
 }
 
-/* ── 14. Accent-class buttons — always use theme accent ───────── */
-html body button.submit-button,
-html body button.retry-button,
+/* ── label.browse-button (file upload) ── */
 html body label.browse-button {
-  background: var(--neu-accent) !important;
-  color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(22,163,74,0.25) !important;
-  border: none !important;
-}
-html body button.submit-button:hover,
-html body button.retry-button:hover {
-  background: var(--neu-accent-hover, var(--color-primary-hover)) !important;
-  box-shadow: 0 4px 14px rgba(22,163,74,0.35) !important;
-  transform: translateY(-1px);
-}
-
-/* ── 18. Consistent green for Tailwind green buttons ─────────── */
-button.bg-green-600, a.bg-green-600 {
-  background-color: var(--neu-accent) !important;
-  color: #ffffff !important;
-}
-button.bg-green-600:hover, button.hover\:bg-green-700:hover,
-a.bg-green-600:hover { background-color: var(--neu-accent-hover, var(--color-primary-hover)) !important; }
-
-/* ── 19. Muted secondary button style ───────────────────────── */
-.btn-outline-green {
-  background: transparent !important;
-  color: var(--neu-accent) !important;
-  border: 1.5px solid var(--neu-accent) !important;
-  box-shadow: none !important;
-}
-.btn-outline-green:hover {
-  background: var(--neu-accent-muted, rgba(22,163,74,0.1)) !important;
-}
-
-/* ── 15. Ghost buttons — transparent, no shadow ───────────────── */
-html body button.btn-ghost {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
-/* ── 16. Protect inline-style buttons from neumorphic override ── */
-/* Buttons with explicit background in style attr keep their own look */
-button[style*="background"],
-button[style*="linear-gradient"],
-a[style*="background"],
-a[style*="linear-gradient"] {
-  background: revert !important;
-}
-/* But still allow color property & box-shadow from inline */
-button[style*="background"]:not([style*="linear"]) {
-  background: unset !important;
-}
-
-/* ── 17. Ensure action buttons are always visible ───────────── */
-.ap-btn-blue, .ap-btn-dark, .pill-blue, .pill-dark {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
+  background: var(--color-primary) !important;
+  color: #fff !important; border: none !important;
+  box-shadow: 0 2px 8px rgba(26,35,126,0.25) !important;
+  cursor: pointer !important;
 }
 
 /* ── Print ────────────────────────────────────────────────────── */

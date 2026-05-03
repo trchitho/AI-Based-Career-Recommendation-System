@@ -313,7 +313,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
       {/* Success Animation */}
       {showSuccess && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="bg-gradient-to-r from-indigo-700 to-emerald-500 text-white px-8 py-4 rounded-2xl shadow-2xl animate-bounce">
+          <div className="bg-gradient-to-r from-indigo-700 to-indigo-700 text-white px-8 py-4 rounded-2xl shadow-2xl animate-bounce">
             <div className="flex items-center gap-3">
               <span className="text-3xl"></span>
               <div>

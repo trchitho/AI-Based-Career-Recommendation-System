@@ -207,11 +207,11 @@ const CareersPage = () => {
 
                 // Gradient backgrounds for placeholders
                 const gradients = [
-                  'from-indigo-700 to-teal-600',
+                  'from-indigo-700 to-violet-600',
                   'from-blue-500 to-indigo-600',
                   'from-orange-400 to-pink-500',
                   'from-purple-500 to-violet-600',
-                  'from-emerald-400 to-cyan-500',
+                  'from-violet-500 to-cyan-500',
                   'from-rose-400 to-red-500',
                 ];
                 const bgGradient = gradients[index % gradients.length];
@@ -224,7 +224,7 @@ const CareersPage = () => {
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none z-10">
                         <div className="absolute top-4 right-4">
                           <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
-                            requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-indigo-700 to-emerald-500' :
+                            requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-indigo-700 to-indigo-700' :
                               'bg-gradient-to-r from-purple-500 to-pink-500'
                             }`}>
                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">

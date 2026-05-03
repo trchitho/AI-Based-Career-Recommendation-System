@@ -81,13 +81,13 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 rounded-2xl p-6 mb-8 border border-indigo-200 dark:border-green-700 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-indigo-50 via-indigo-50 to-teal-50 dark:from-indigo-950/20 dark:via-emerald-900/20 dark:to-teal-900/20 rounded-2xl p-6 mb-8 border border-indigo-200 dark:border-indigo-800 relative overflow-hidden">
             <div className="absolute top-2 right-2">
               <Sparkles className="text-indigo-700 animate-pulse" size={20} />
             </div>
             <div className="flex items-center gap-3 mb-4">
               <Crown className="text-indigo-800 dark:text-indigo-400" size={24} />
-              <h4 className="font-bold text-green-800 dark:text-green-200 text-lg">
+              <h4 className="font-bold text-indigo-950 dark:text-indigo-200 text-lg">
                 Upgrade to Premium
               </h4>
             </div>
@@ -120,7 +120,7 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
             </button>
             <button
               onClick={handleUpgrade}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-800 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white rounded-xl transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-800 via-emerald-600 to-violet-600 hover:from-indigo-900 hover:via-emerald-700 hover:to-violet-700 text-white rounded-xl transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
             >
               <span>Upgrade Now</span>
               <ArrowRight size={18} />

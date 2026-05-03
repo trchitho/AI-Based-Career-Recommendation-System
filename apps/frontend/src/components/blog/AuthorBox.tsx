@@ -10,7 +10,7 @@ const AuthorBox = ({
     authorAvatar
 }: AuthorBoxProps) => {
     return (
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-8 border border-green-100 dark:border-gray-600">
+        <div className="bg-gradient-to-br from-indigo-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-8 border border-indigo-100 dark:border-gray-600">
             <div className="flex items-start gap-6">
                 <div className="flex-shrink-0">
                     {authorAvatar ? (
@@ -20,7 +20,7 @@ const AuthorBox = ({
                             className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-gray-600 shadow-lg"
                         />
                     ) : (
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-700 to-emerald-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg border-4 border-white dark:border-gray-600">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-700 to-indigo-800 flex items-center justify-center text-white text-2xl font-bold shadow-lg border-4 border-white dark:border-gray-600">
                             {authorName.charAt(0).toUpperCase()}
                         </div>
                     )}

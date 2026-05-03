@@ -153,7 +153,7 @@ const InterviewListPage: React.FC = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'completed':
-                return 'bg-indigo-50 text-green-800';
+                return 'bg-indigo-50 text-indigo-950';
             case 'active':
                 return 'bg-blue-100 text-blue-800';
             case 'abandoned':
@@ -381,7 +381,7 @@ const InterviewListPage: React.FC = () => {
                         <div className="space-y-6">
                             {/* Recent Interviews */}
                             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <div className="bg-gradient-to-r from-green-50 to-blue-50 px-6 py-5 border-b border-gray-200">
+                                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-5 border-b border-gray-200">
                                     <h3 className="text-xl font-bold text-gray-900 flex items-center gap-3">
                                         <div className="p-2 bg-white rounded-lg shadow-sm">
                                             <Clock className="h-5 w-5 text-indigo-800" />
@@ -526,18 +526,18 @@ const InterviewListPage: React.FC = () => {
                                         </div>
 
                                         {/* Completed Interviews */}
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-indigo-50 rounded-xl">
+                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-indigo-50 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-indigo-700 rounded-full flex items-center justify-center">
                                                     <Clock className="h-5 w-5 text-white" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-green-900">Hoàn thành</p>
+                                                    <p className="text-sm font-medium text-indigo-950">Hoàn thành</p>
                                                     <p className="text-xs text-indigo-900">Phỏng vấn thành công</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-2xl font-bold text-green-900">{interviewStats.completed_interviews}</p>
+                                                <p className="text-2xl font-bold text-indigo-950">{interviewStats.completed_interviews}</p>
                                                 <p className="text-xs text-indigo-900">
                                                     {interviewStats.total_interviews > 0
                                                         ? `${((interviewStats.completed_interviews / interviewStats.total_interviews) * 100).toFixed(0)}%`

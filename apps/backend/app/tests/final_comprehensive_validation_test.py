@@ -67,10 +67,10 @@ def test_pattern_validation():
                     break
         
         if is_irrelevant == case["expected"]:
-            print(f"✅ '{case['answer']}' → {case['reason']}: CORRECT")
+            print(f"[OK] '{case['answer']}' → {case['reason']}: CORRECT")
             passed += 1
         else:
-            print(f"❌ '{case['answer']}' → {case['reason']}: FAILED")
+            print(f"[ERR] '{case['answer']}' → {case['reason']}: FAILED")
             print(f"   Expected irrelevant: {case['expected']}, Got: {is_irrelevant}")
             failed += 1
     
@@ -108,9 +108,9 @@ def test_guidance_generation():
         
         # Validate guidance
         if len(guidance) > 50 and any(keyword in guidance.lower() for keyword in ["hãy", "câu hỏi", "trả lời"]):
-            print(f"✅ {qtype}: Generated {len(guidance)} chars - VALID")
+            print(f"[OK] {qtype}: Generated {len(guidance)} chars - VALID")
         else:
-            print(f"❌ {qtype}: Generated {len(guidance)} chars - INVALID")
+            print(f"[ERR] {qtype}: Generated {len(guidance)} chars - INVALID")
             print(f"   Content: {guidance[:100]}...")
             all_passed = False
     
@@ -144,10 +144,10 @@ def test_skip_detection():
         result = is_skipped_answer(case["answer"], case["is_skipped"])
         
         if result == case["expected"]:
-            print(f"✅ '{case['answer']}' (forced: {case['is_skipped']}) → {case['reason']}: CORRECT")
+            print(f"[OK] '{case['answer']}' (forced: {case['is_skipped']}) → {case['reason']}: CORRECT")
             passed += 1
         else:
-            print(f"❌ '{case['answer']}' (forced: {case['is_skipped']}) → {case['reason']}: FAILED")
+            print(f"[ERR] '{case['answer']}' (forced: {case['is_skipped']}) → {case['reason']}: FAILED")
             failed += 1
     
     success_rate = (passed / (passed + failed)) * 100
@@ -216,17 +216,17 @@ def test_response_structure():
                 missing_fields.append(field)
         
         if missing_fields:
-            print(f"❌ Missing fields: {missing_fields}")
+            print(f"[ERR] Missing fields: {missing_fields}")
             all_valid = False
         else:
-            print(f"✅ All required fields present: {len(required)} fields")
+            print(f"[OK] All required fields present: {len(required)} fields")
         
         # Validate JSON serializable
         try:
             json.dumps(response)
-            print(f"✅ JSON serializable")
+            print(f"[OK] JSON serializable")
         except Exception as e:
-            print(f"❌ JSON serialization failed: {e}")
+            print(f"[ERR] JSON serialization failed: {e}")
             all_valid = False
     
     return all_valid
@@ -252,11 +252,11 @@ def run_final_comprehensive_test():
             result = test_func()
             results.append((test_name, result))
             if result:
-                print(f"✅ {test_name}: PASSED")
+                print(f"[OK] {test_name}: PASSED")
             else:
-                print(f"❌ {test_name}: FAILED")
+                print(f"[ERR] {test_name}: FAILED")
         except Exception as e:
-            print(f"❌ {test_name}: ERROR - {e}")
+            print(f"[ERR] {test_name}: ERROR - {e}")
             results.append((test_name, False))
     
     # Final summary
@@ -269,7 +269,7 @@ def run_final_comprehensive_test():
     success_rate = (passed_tests / total_tests) * 100
     
     for test_name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[ERR] FAIL"
         print(f"   {test_name}: {status}")
     
     print(f"\n📊 OVERALL RESULTS:")
@@ -278,11 +278,11 @@ def run_final_comprehensive_test():
     
     if success_rate == 100:
         print(f"\n🎉 PERFECT SCORE: 100% SUCCESS!")
-        print(f"✅ Intelligent validation system is COMPLETELY READY")
-        print(f"✅ All patterns, guidance, and responses working correctly")
-        print(f"✅ Production deployment approved")
+        print(f"[OK] Intelligent validation system is COMPLETELY READY")
+        print(f"[OK] All patterns, guidance, and responses working correctly")
+        print(f"[OK] Production deployment approved")
     else:
-        print(f"\n⚠️ ISSUES DETECTED: {100-success_rate:.1f}% failure rate")
+        print(f"\n[WARN] ISSUES DETECTED: {100-success_rate:.1f}% failure rate")
         print(f"🔧 Please fix failing tests before production")
     
     return success_rate == 100

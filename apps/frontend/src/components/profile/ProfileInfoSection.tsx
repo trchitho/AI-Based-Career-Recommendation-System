@@ -59,7 +59,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-card-hero overflow-hidden h-full flex flex-col">
 
       {/* Header with gradient */}
-      <div className="bg-gradient-to-r from-[4A7C59] to-[3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden shrink-0">
+      <div className="bg-gradient-to-r from-[#1A237E] to-[#151c6b] dark:from-indigo-900 dark:to-indigo-950 px-8 py-6 relative overflow-hidden shrink-0">
         {/* Abstract pattern overlay */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/5 skew-x-12 transform translate-x-10 pointer-events-none"></div>
@@ -79,7 +79,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
                   : 'Your Profile'
                 }
               </h3>
-              <p className="text-green-100 font-medium text-sm">
+              <p className="text-indigo-100 font-medium text-sm">
                 {profile.email}
               </p>
             </div>
@@ -91,7 +91,7 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
               <h4 className="text-lg font-bold text-white mb-1">
                 Personal Information
               </h4>
-              <p className="text-green-100 font-medium text-sm">
+              <p className="text-indigo-100 font-medium text-sm">
                 Manage your account details
               </p>
             </div>

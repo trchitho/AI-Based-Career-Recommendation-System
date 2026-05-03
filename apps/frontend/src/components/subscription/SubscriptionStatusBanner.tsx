@@ -19,7 +19,7 @@ const SubscriptionStatusBanner = ({ className = "" }: SubscriptionStatusBannerPr
   return (
     <div className={`rounded-lg p-4 border ${
       isPremium 
-        ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-indigo-200 dark:border-indigo-800'
+        ? 'bg-gradient-to-r from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20 border-indigo-200 dark:border-indigo-800'
         : 'bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-orange-200 dark:border-orange-800'
     } ${className}`}>
       <div className="flex items-center justify-between">
@@ -35,7 +35,7 @@ const SubscriptionStatusBanner = ({ className = "" }: SubscriptionStatusBannerPr
           <div>
             <h4 className={`font-bold text-sm ${
               isPremium 
-                ? 'text-green-900 dark:text-green-100'
+                ? 'text-indigo-950 dark:text-indigo-100'
                 : 'text-orange-900 dark:text-orange-100'
             }`}>
               {isPremium ? `${planName} Plan Active` : 'Free Plan'}

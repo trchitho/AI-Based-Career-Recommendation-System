@@ -220,7 +220,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
   if (loading)
     return (
       <div className="h-64 flex flex-col justify-center items-center">
-        <div className="w-12 h-12 border-4 border-green-100 border-t-green-600 rounded-full animate-spin mb-4"></div>
+        <div className="w-12 h-12 border-4 border-indigo-100 border-t-green-600 rounded-full animate-spin mb-4"></div>
         <p className="text-gray-400">Loading metrics...</p>
       </div>
     );
@@ -233,21 +233,21 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
   // Color configs for cards
   const userMetricCards = [
     { title: "Total Users", value: metrics.totalUsers, subtitle: `${metrics.activeUsers} active`, gradient: "from-blue-500 to-cyan-500" },
-    { title: "Completed Assessments", value: metrics.completedAssessments, subtitle: `${metrics.completionRate}% rate`, gradient: "from-indigo-700 to-emerald-500" },
+    { title: "Completed Assessments", value: metrics.completedAssessments, subtitle: `${metrics.completionRate}% rate`, gradient: "from-indigo-700 to-indigo-700" },
     { title: "Users with Roadmaps", value: metrics.usersWithRoadmaps, subtitle: `${metrics.avgRoadmapProgress.toFixed(1)}% progress`, gradient: "from-purple-500 to-pink-500" },
     { title: "Recent Activity", value: metrics.recentAssessments, subtitle: "Last 7 days", gradient: "from-orange-500 to-amber-500" },
   ];
 
   const aiMetricCards = [
     { title: "Total Recommendations", value: aiMetrics.totalRecommendations, subtitle: `${aiMetrics.avgRecommendationsPerAssessment.toFixed(1)} per assessment`, gradient: "from-indigo-500 to-blue-500" },
-    { title: "Essay Analysis", value: aiMetrics.assessmentsWithEssay, subtitle: "Assessments with essay", gradient: "from-teal-500 to-green-500" },
+    { title: "Essay Analysis", value: aiMetrics.assessmentsWithEssay, subtitle: "Assessments with essay", gradient: "from-teal-500 to-indigo-700" },
     { title: "Avg Processing Time", value: `${aiMetrics.avgProcessingTime}s`, subtitle: "Per assessment", gradient: "from-rose-500 to-pink-500" },
   ];
 
   const riasecColors: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
     realistic: { bg: "bg-red-500/10", text: "text-red-400", border: "border-red-500/50", gradient: "from-red-500 to-rose-500" },
     investigative: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/50", gradient: "from-amber-500 to-yellow-500" },
-    artistic: { bg: "bg-indigo-700/10", text: "text-emerald-400", border: "border-emerald-500/50", gradient: "from-emerald-500 to-green-500" },
+    artistic: { bg: "bg-indigo-700/10", text: "text-emerald-400", border: "border-indigo-600/50", gradient: "from-indigo-500 to-indigo-700" },
     social: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/50", gradient: "from-blue-500 to-cyan-500" },
     enterprising: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/50", gradient: "from-purple-500 to-violet-500" },
     conventional: { bg: "bg-pink-500/10", text: "text-pink-400", border: "border-pink-500/50", gradient: "from-pink-500 to-rose-500" },
@@ -256,7 +256,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
   const bigFiveColors: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
     openness: { bg: "bg-violet-500/10", text: "text-violet-400", border: "border-violet-500/50", gradient: "from-violet-500 to-purple-500" },
     conscientiousness: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/50", gradient: "from-blue-500 to-indigo-500" },
-    extraversion: { bg: "bg-indigo-700/10", text: "text-emerald-400", border: "border-emerald-500/50", gradient: "from-emerald-500 to-indigo-600" },
+    extraversion: { bg: "bg-indigo-700/10", text: "text-emerald-400", border: "border-indigo-600/50", gradient: "from-indigo-500 to-indigo-600" },
     agreeableness: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/50", gradient: "from-amber-500 to-orange-500" },
     neuroticism: { bg: "bg-rose-500/10", text: "text-rose-400", border: "border-rose-500/50", gradient: "from-rose-500 to-red-500" },
   };
@@ -395,14 +395,14 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
               label: "Assessment Completion Rate",
               value: metrics.completionRate,
               ok: metrics.completionRate >= 50,
-              color: "from-indigo-700 to-emerald-500",
+              color: "from-indigo-700 to-indigo-700",
               hint: `${metrics.completedAssessments} / ${metrics.totalAssessments} completed`,
             },
             {
               label: "AI Error Rate",
               value: aiMetrics.errorRate,
               ok: aiMetrics.errorRate < 10,
-              color: aiMetrics.errorRate < 5 ? "from-indigo-700 to-emerald-500" : "from-orange-500 to-red-500",
+              color: aiMetrics.errorRate < 5 ? "from-indigo-700 to-indigo-700" : "from-orange-500 to-red-500",
               hint: `${aiMetrics.errorCount} errors / ${aiMetrics.successCount} successes`,
             },
             {

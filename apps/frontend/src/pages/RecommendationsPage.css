@@ -308,7 +308,7 @@
   background: var(--color-success);
   color: #fff;
   border-color: var(--color-success);
-  box-shadow: 2px 2px 6px rgba(16,185,129,0.35);
+  box-shadow: 2px 2px 6px rgba(26,35,126,0.35);
 }
 .feedback-btn.active-down {
   background: #ef4444;
@@ -388,7 +388,7 @@ html body button.view-btn {
   background: var(--color-primary) !important;
   color: #ffffff !important;
   border: none !important;
-  box-shadow: 3px 3px 10px rgba(22,163,74,0.35) !important;
+  box-shadow: 3px 3px 10px rgba(26,35,126,0.35) !important;
   padding: 0.4rem 1.1rem !important;
   font-size: 0.8rem !important;
   font-weight: 700 !important;
@@ -400,7 +400,7 @@ html body button.view-btn {
 html body button.view-btn:hover {
   opacity: 0.85 !important;
   transform: translateY(-1px) !important;
-  box-shadow: 4px 4px 14px rgba(22,163,74,0.45) !important;
+  box-shadow: 4px 4px 14px rgba(26,35,126,0.45) !important;
 }
 
 /* ── Strip card hover ────────────────────────────────────────── */

@@ -400,7 +400,7 @@ const InterviewResultsPage: React.FC = () => {
                                     </div>
                                     <div className="text-right">
                                         <div className={`inline-flex items-center px-6 py-3 rounded-full text-lg font-semibold ${history.session.recommendation === 'PASS'
-                                            ? 'bg-indigo-50 text-green-800 border border-indigo-200'
+                                            ? 'bg-indigo-50 text-indigo-950 border border-indigo-200'
                                             : history.session.recommendation === 'CONDITIONAL_PASS'
                                                 ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
                                                 : 'bg-red-100 text-red-800 border border-red-200'
@@ -470,7 +470,7 @@ const InterviewResultsPage: React.FC = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     {/* Strengths */}
                                     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-5 border-b border-gray-200">
+                                        <div className="bg-gradient-to-r from-indigo-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
                                             <h3 className="text-xl font-bold text-gray-900 flex items-center">
                                                 <TrendingUp className="h-5 w-5 mr-2 text-indigo-800" />
                                                 Điểm mạnh
@@ -543,7 +543,7 @@ const InterviewResultsPage: React.FC = () => {
                                                                 ? 'bg-red-100 text-red-800'
                                                                 : rec.priority === 'MEDIUM'
                                                                     ? 'bg-yellow-100 text-yellow-800'
-                                                                    : 'bg-indigo-50 text-green-800'
+                                                                    : 'bg-indigo-50 text-indigo-950'
                                                                 }`}>
                                                                 {interviewService.getPriorityLabel(rec.priority)}
                                                             </span>
@@ -599,14 +599,14 @@ const InterviewResultsPage: React.FC = () => {
                                             </div>
 
                                             {history.session.completed_at && (
-                                                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-indigo-50 rounded-lg">
+                                                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-indigo-50 to-indigo-50 rounded-lg">
                                                     <div className="flex items-center space-x-3">
                                                         <div className="w-8 h-8 bg-indigo-700 rounded-full flex items-center justify-center">
                                                             <CheckCircle className="h-4 w-4 text-white" />
                                                         </div>
-                                                        <span className="text-sm font-medium text-green-900">Kết thúc</span>
+                                                        <span className="text-sm font-medium text-indigo-950">Kết thúc</span>
                                                     </div>
-                                                    <span className="text-sm text-green-800 font-medium">
+                                                    <span className="text-sm text-indigo-950 font-medium">
                                                         {new Date(history.session.completed_at).toLocaleString('vi-VN')}
                                                     </span>
                                                 </div>
@@ -632,7 +632,7 @@ const InterviewResultsPage: React.FC = () => {
                                                     <span className="text-sm font-medium text-orange-900">Trạng thái</span>
                                                 </div>
                                                 <div className={`px-3 py-1 rounded-full text-xs font-semibold ${history.session.status === 'completed'
-                                                    ? 'bg-indigo-50 text-green-800 border border-indigo-200'
+                                                    ? 'bg-indigo-50 text-indigo-950 border border-indigo-200'
                                                     : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
                                                     }`}>
                                                     {history.session.status === 'completed' ? 'Hoàn thành' : 'Chưa hoàn thành'}
@@ -842,7 +842,7 @@ const InterviewResultsPage: React.FC = () => {
                                             <div className="flex space-x-3">
                                                 <button
                                                     onClick={submitFeedback}
-                                                    className="flex-1 bg-gradient-to-r from-indigo-800 to-green-700 text-white px-4 py-3 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all duration-200"
+                                                    className="flex-1 bg-gradient-to-r from-indigo-800 to-indigo-900 text-white px-4 py-3 rounded-xl font-semibold hover:from-indigo-900 hover:to-indigo-950 transition-all duration-200"
                                                 >
                                                     Gửi đánh giá
                                                 </button>

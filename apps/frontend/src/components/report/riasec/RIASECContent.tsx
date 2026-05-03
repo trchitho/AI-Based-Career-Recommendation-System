@@ -59,7 +59,7 @@ const RIASECContent = ({ scores }: RIASECContentProps) => {
                 <h2 className="text-xl font-extrabold text-gray-900 dark:text-white mb-3 print:text-lg print:mb-2">
                     Your Interest Pattern
                 </h2>
-                <div className="bg-indigo-50 dark:bg-indigo-950/20 rounded-lg p-4 border border-green-100 dark:border-indigo-800/30 print:p-3">
+                <div className="bg-indigo-50 dark:bg-indigo-950/20 rounded-lg p-4 border border-indigo-100 dark:border-indigo-800/30 print:p-3">
                     <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 print:text-xs print:mb-2">
                         Your top career interests are:
                     </p>

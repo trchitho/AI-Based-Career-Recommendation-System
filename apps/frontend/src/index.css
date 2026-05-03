@@ -27,18 +27,21 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Manrope', 'Inter', sans-serif;
 }
 
-/* Tailwind color override — map green → primary */
-.bg-green-600 { background-color: var(--color-primary) !important; }
-.bg-green-700 { background-color: var(--color-primary-hover) !important; }
-.text-green-600, .dark\:text-green-400 { color: var(--color-primary) !important; }
-.text-green-700 { color: var(--color-primary-dark) !important; }
-.border-green-500, .hover\:border-green-500:hover { border-color: var(--color-primary) !important; }
-.bg-green-100 { background-color: var(--color-primary-light) !important; }
-.text-green-800 { color: var(--color-primary-dark) !important; }
-.from-green-500, .from-green-600 { --tw-gradient-from: var(--color-primary) !important; }
-.to-teal-500 { --tw-gradient-to: var(--color-secondary) !important; }
-.ring-green-500 { --tw-ring-color: var(--color-primary) !important; }
-.focus\:ring-green-500:focus { --tw-ring-color: var(--color-primary) !important; }
+/* Tailwind indigo → CSS variable mapping */
+/* These ensure indigo classes use the exact brand colors */
+.bg-indigo-50  { background-color: var(--color-primary-light) !important; }
+.bg-indigo-800 { background-color: var(--color-primary) !important; }
+.bg-indigo-900 { background-color: var(--color-primary-hover) !important; }
+.text-indigo-800 { color: var(--color-primary) !important; }
+.text-indigo-900 { color: var(--color-primary-dark) !important; }
+.text-indigo-600 { color: var(--color-primary) !important; }
+.border-indigo-600 { border-color: var(--color-primary) !important; }
+.bg-indigo-100 { background-color: var(--color-primary-light) !important; }
+/* Purple/violet = secondary */
+.bg-violet-600  { background-color: var(--color-secondary) !important; }
+.text-violet-600 { color: var(--color-secondary) !important; }
+/* Cyan = tertiary */
+.bg-cyan-500 { background-color: var(--color-tertiary) !important; }
 
 /* Selection color */
 ::selection {

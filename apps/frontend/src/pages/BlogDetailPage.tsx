@@ -128,7 +128,7 @@ const BlogDetailPage = () => {
             {/* Author and Published Date */}
             <div className="flex items-center gap-4 mb-8">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-700 to-emerald-600 flex items-center justify-center text-white text-lg font-bold shadow-lg">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-700 to-indigo-800 flex items-center justify-center text-white text-lg font-bold shadow-lg">
                   A
                 </div>
                 <div>
@@ -227,7 +227,7 @@ const BlogDetailPage = () => {
                     {(typeof post.tags === 'string' ? JSON.parse(post.tags) : post.tags).map((tag: string) => (
                       <span
                         key={tag}
-                        className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm font-semibold hover:bg-indigo-50 hover:text-indigo-800 dark:hover:bg-green-900/20 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                        className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm font-semibold hover:bg-indigo-50 hover:text-indigo-800 dark:hover:bg-indigo-950/20 dark:hover:text-indigo-400 transition-colors cursor-pointer"
                       >
                         {tag}
                       </span>

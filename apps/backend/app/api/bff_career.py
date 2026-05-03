@@ -51,10 +51,10 @@ router = APIRouter(prefix="/bff/catalog", tags=["catalog"])
 try:
     from ..core.cache import cache_manager
 
-    print("✅ Enhanced caching available")
+    print("[OK] Enhanced caching available")
 except ImportError:
     cache_manager = None
-    print("⚠️ Enhanced caching not available, using basic Redis")
+    print("[WARN] Enhanced caching not available, using basic Redis")
 
 # Fallback to basic Redis if enhanced caching not available
 _redis = None
@@ -78,9 +78,9 @@ async def _get_redis():
             _redis = redis_async.from_url(REDIS_URL, decode_responses=True)
             # Test connection
             await _redis.ping()
-            print("✅ Basic Redis cache connected")
+            print("[OK] Basic Redis cache connected")
         except Exception as e:
-            print(f"⚠️ Redis not available, caching disabled: {e}")
+            print(f"[WARN] Redis not available, caching disabled: {e}")
             _redis_available = False
             _redis = None
             return None

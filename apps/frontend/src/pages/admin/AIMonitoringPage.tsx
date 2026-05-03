@@ -293,7 +293,7 @@ const AIMonitoringPage = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Overall Status', value: geminiStatus.streams_initialized ? ' Online' : ' Offline', ok: geminiStatus.streams_initialized, gradient: 'from-indigo-700 to-emerald-600' },
+                  { label: 'Overall Status', value: geminiStatus.streams_initialized ? ' Online' : ' Offline', ok: geminiStatus.streams_initialized, gradient: 'from-indigo-700 to-indigo-800' },
                   { label: 'Assessment AI', value: geminiStatus.streams?.assessment?.initialized ? ' Ready' : ' Error', ok: geminiStatus.streams?.assessment?.initialized, gradient: 'from-blue-500 to-cyan-600' },
                   { label: 'Chatbot AI', value: geminiStatus.streams?.chatbot?.initialized ? ' Ready' : ' Error', ok: geminiStatus.streams?.chatbot?.initialized, gradient: 'from-purple-500 to-pink-600' },
                   { label: 'CV Parser AI', value: geminiStatus.streams?.cv?.initialized ? ' Ready' : ' Error', ok: geminiStatus.streams?.cv?.initialized, gradient: 'from-orange-500 to-red-600' },
@@ -702,7 +702,7 @@ interface MetricProps {
 const MetricCard: React.FC<MetricProps> = ({ title, value, subtitle, status }) => {
   const statusConfig = {
     good: {
-      gradient: 'from-indigo-700 to-emerald-600',
+      gradient: 'from-indigo-700 to-indigo-800',
       icon: '',
       iconBg: 'bg-indigo-700/20',
       iconColor: 'text-indigo-800 dark:text-indigo-400'

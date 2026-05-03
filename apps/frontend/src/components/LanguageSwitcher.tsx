@@ -23,7 +23,7 @@ const LanguageSwitcher = () => {
         border border-gray-200 dark:border-gray-700
         text-gray-700 dark:text-gray-200
         hover:bg-gray-100 dark:hover:bg-gray-700
-        hover:border-green-400 dark:hover:border-indigo-600
+        hover:border-indigo-400 dark:hover:border-indigo-600
         hover:text-indigo-900 dark:hover:text-indigo-400
         transition-all duration-150
         select-none

@@ -43,7 +43,7 @@ const UpgradeOptions = ({ currentPlan, onClose }: UpgradeOptionsProps) => {
           'Phân tích AI chi tiết tính cách & tiềm năng',
           'Ưu tiên hỗ trợ kỹ thuật và tư vấn'
         ],
-        gradient: 'from-indigo-700 to-emerald-500',
+        gradient: 'from-indigo-700 to-indigo-700',
         available: true,
       },
       {

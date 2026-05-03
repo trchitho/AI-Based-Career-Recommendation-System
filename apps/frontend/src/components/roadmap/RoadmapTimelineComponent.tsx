@@ -123,7 +123,7 @@ const RoadmapTimelineComponent = ({
                 className={`absolute left-5 top-2 w-6 h-6 rounded-full border-4 transition-all duration-300 ${isLocked
                   ? 'bg-gradient-to-br from-purple-400 to-pink-400 border-purple-200 dark:border-purple-600 shadow-lg'
                   : isCompleted
-                    ? 'bg-primary-cta dark:bg-indigo-800 border-primary-50 dark:border-green-300'
+                    ? 'bg-primary-cta dark:bg-indigo-800 border-primary-50 dark:border-indigo-300'
                     : isCurrent
                       ? 'bg-orange-500 dark:bg-orange-600 border-orange-100 dark:border-orange-900 animate-pulse'
                       : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
@@ -163,7 +163,7 @@ const RoadmapTimelineComponent = ({
                   : isCurrent
                     ? 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-300 dark:border-orange-600 shadow-orange-200/50 dark:shadow-orange-900/20'
                     : isCompleted
-                      ? 'bg-gradient-to-br from-green-50 to-indigo-50 dark:from-green-900/20 dark:to-green-800/20 border-green-300 dark:border-indigo-700'
+                      ? 'bg-gradient-to-br from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-900/20 border-indigo-300 dark:border-indigo-700'
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                   }`}
               >

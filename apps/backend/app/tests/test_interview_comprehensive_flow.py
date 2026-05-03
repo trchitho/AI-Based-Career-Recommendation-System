@@ -37,9 +37,9 @@ def test_comprehensive_interview_flow():
             response = requests.get(f"{base_url}/api/interview/jobs/{job_id}")
             if response.status_code == 200:
                 job_info = response.json()
-                print(f"   ✅ Job: {job_info['title']}")
-                print(f"   ✅ Soft skills: {len(job_info['soft_skills'])}")
-                print(f"   ✅ Hard skills: {len(job_info['hard_skills'])}")
+                print(f"   [OK] Job: {job_info['title']}")
+                print(f"   [OK] Soft skills: {len(job_info['soft_skills'])}")
+                print(f"   [OK] Hard skills: {len(job_info['hard_skills'])}")
                 
                 # Hiển thị skills chi tiết
                 print(f"\n   📊 Soft Skills (Top 5):")
@@ -51,10 +51,10 @@ def test_comprehensive_interview_flow():
                     print(f"      {i+1}. {skill['skill_name']} ({skill['importance']:.1f}/5)")
                     
             else:
-                print(f"   ❌ Failed to get job info: {response.status_code}")
+                print(f"   [ERR] Failed to get job info: {response.status_code}")
                 continue
         except Exception as e:
-            print(f"   ❌ Error: {e}")
+            print(f"   [ERR] Error: {e}")
             continue
         
         # Step 2: Test question distribution logic
@@ -78,9 +78,9 @@ def test_comprehensive_interview_flow():
         print(f"      Tổng: {total_expected}")
         
         if total_expected == count:
-            print(f"   ✅ Distribution logic CORRECT")
+            print(f"   [OK] Distribution logic CORRECT")
         else:
-            print(f"   ❌ Distribution logic ERROR: Expected {count}, got {total_expected}")
+            print(f"   [ERR] Distribution logic ERROR: Expected {count}, got {total_expected}")
         
         # Step 3: Simulate question type progression
         print(f"\n🔄 Step 3: Simulate question type progression...")
@@ -114,13 +114,13 @@ def test_comprehensive_interview_flow():
         for qtype, expected_count in expected.items():
             actual_count = type_counts.get(qtype, 0)
             if actual_count != expected_count:
-                print(f"   ❌ {qtype}: Expected {expected_count}, got {actual_count}")
+                print(f"   [ERR] {qtype}: Expected {expected_count}, got {actual_count}")
                 match = False
         
         if match:
-            print(f"   ✅ Question progression CORRECT")
+            print(f"   [OK] Question progression CORRECT")
         else:
-            print(f"   ❌ Question progression ERROR")
+            print(f"   [ERR] Question progression ERROR")
         
         # Step 4: Verify question type to skill mapping
         print(f"\n🎯 Step 4: Verify question type to skill mapping...")
@@ -159,14 +159,14 @@ def test_comprehensive_interview_flow():
         
         # Check if we have enough skills for questions
         if technical_questions <= total_hard_skills:
-            print(f"   ✅ Hard skills coverage: OK ({technical_questions} questions, {total_hard_skills} skills)")
+            print(f"   [OK] Hard skills coverage: OK ({technical_questions} questions, {total_hard_skills} skills)")
         else:
-            print(f"   ⚠️ Hard skills coverage: May repeat ({technical_questions} questions, {total_hard_skills} skills)")
+            print(f"   [WARN] Hard skills coverage: May repeat ({technical_questions} questions, {total_hard_skills} skills)")
         
         if soft_skill_questions <= total_soft_skills:
-            print(f"   ✅ Soft skills coverage: OK ({soft_skill_questions} questions, {total_soft_skills} skills)")
+            print(f"   [OK] Soft skills coverage: OK ({soft_skill_questions} questions, {total_soft_skills} skills)")
         else:
-            print(f"   ⚠️ Soft skills coverage: May repeat ({soft_skill_questions} questions, {total_soft_skills} skills)")
+            print(f"   [WARN] Soft skills coverage: May repeat ({soft_skill_questions} questions, {total_soft_skills} skills)")
         
         print(f"\n{'='*20} {count} QUESTIONS TEST COMPLETE {'='*20}")
     
@@ -174,11 +174,11 @@ def test_comprehensive_interview_flow():
     print(f"\n🎉 COMPREHENSIVE TEST SUMMARY")
     print("=" * 80)
     
-    print(f"✅ Tested question counts: {question_counts}")
-    print(f"✅ Question distribution logic: Verified for all counts")
-    print(f"✅ Question type progression: Verified for all counts")
-    print(f"✅ Skill mapping: Technical → Hard skills, Behavioral/Situational → Soft skills")
-    print(f"✅ Skills coverage: Analyzed for sufficient skill pool")
+    print(f"[OK] Tested question counts: {question_counts}")
+    print(f"[OK] Question distribution logic: Verified for all counts")
+    print(f"[OK] Question type progression: Verified for all counts")
+    print(f"[OK] Skill mapping: Technical → Hard skills, Behavioral/Situational → Soft skills")
+    print(f"[OK] Skills coverage: Analyzed for sufficient skill pool")
     
     print(f"\n💡 Recommendations:")
     print(f"   1. Start interview với job có nhiều skills để test đầy đủ")

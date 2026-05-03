@@ -66,15 +66,15 @@ const PremiumBenefitsCard = () => {
   ];
 
   return (
-    <div className={`bg-gradient-to-br ${isPro ? 'from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20' : 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20'} rounded-[24px] p-6 shadow-lg border-2 ${isPro ? 'border-purple-200 dark:border-purple-700' : 'border-indigo-200 dark:border-green-700'} relative overflow-hidden`}>
+    <div className={`bg-gradient-to-br ${isPro ? 'from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20' : 'from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20'} rounded-[24px] p-6 shadow-lg border-2 ${isPro ? 'border-purple-200 dark:border-purple-700' : 'border-indigo-200 dark:border-indigo-800'} relative overflow-hidden`}>
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
-        <div className={`w-full h-full bg-gradient-to-br ${isPro ? 'from-purple-400 to-pink-500' : 'from-green-400 to-emerald-500'} rounded-full blur-2xl`}></div>
+        <div className={`w-full h-full bg-gradient-to-br ${isPro ? 'from-purple-400 to-pink-500' : 'from-indigo-600 to-indigo-700'} rounded-full blur-2xl`}></div>
       </div>
 
       {/* Premium badge */}
       <div className="absolute -top-2 -right-2">
-        <div className={`px-3 py-1 bg-gradient-to-r ${isPro ? 'from-purple-500 to-pink-500' : 'from-indigo-700 to-emerald-500'} text-white text-xs font-bold rounded-full shadow-lg transform rotate-12`}>
+        <div className={`px-3 py-1 bg-gradient-to-r ${isPro ? 'from-purple-500 to-pink-500' : 'from-indigo-700 to-indigo-700'} text-white text-xs font-bold rounded-full shadow-lg transform rotate-12`}>
           {isPro ? 'PRO' : 'PREMIUM'}
         </div>
       </div>
@@ -82,7 +82,7 @@ const PremiumBenefitsCard = () => {
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className={`w-12 h-12 bg-gradient-to-r ${isPro ? 'from-purple-500 to-pink-500' : 'from-indigo-700 to-emerald-500'} rounded-full flex items-center justify-center shadow-lg`}>
+          <div className={`w-12 h-12 bg-gradient-to-r ${isPro ? 'from-purple-500 to-pink-500' : 'from-indigo-700 to-indigo-700'} rounded-full flex items-center justify-center shadow-lg`}>
             <span className="text-2xl">{isPro ? '' : ''}</span>
           </div>
           <div>
@@ -101,12 +101,12 @@ const PremiumBenefitsCard = () => {
             <div
               key={index}
               className={`flex items-start gap-3 p-3 rounded-xl transition-all ${benefit.active
-                  ? `bg-white/70 dark:bg-gray-800/70 border ${isPro ? 'border-purple-200 dark:border-purple-700' : 'border-indigo-200 dark:border-green-700'}`
+                  ? `bg-white/70 dark:bg-gray-800/70 border ${isPro ? 'border-purple-200 dark:border-purple-700' : 'border-indigo-200 dark:border-indigo-800'}`
                   : 'bg-gray-100/50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 opacity-60'
                 }`}
             >
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${benefit.active
-                  ? `bg-gradient-to-r ${isPro ? 'from-purple-500 to-pink-500' : 'from-indigo-700 to-emerald-500'} shadow-lg`
+                  ? `bg-gradient-to-r ${isPro ? 'from-purple-500 to-pink-500' : 'from-indigo-700 to-indigo-700'} shadow-lg`
                   : 'bg-gray-300 dark:bg-gray-600'
                 }`}>
                 <span className={`text-lg ${benefit.active ? 'text-white' : 'text-gray-500'}`}>

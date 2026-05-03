@@ -46,9 +46,9 @@ const ProfileAvatar = ({ name = '', email = '', size = 'lg' }: ProfileAvatarProp
     
     if (plan.includes('premium')) {
       return {
-        gradient: 'from-indigo-700 via-emerald-500 to-green-600',
+        gradient: 'from-indigo-700 via-indigo-500 to-indigo-800',
         ringColor: 'ring-indigo-600/50',
-        badgeColor: 'from-indigo-700 to-emerald-500',
+        badgeColor: 'from-indigo-700 to-indigo-700',
         icon: '⭐',
         glow: 'shadow-green-500/25'
       };

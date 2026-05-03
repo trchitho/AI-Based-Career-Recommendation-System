@@ -24,10 +24,10 @@ def test_software_developer_vs_civil_engineer():
             job_record = result.single()
 
             if not job_record:
-                print(f"   ❌ Job {job_id} không tồn tại trong Neo4j")
+                print(f"   [ERR] Job {job_id} không tồn tại trong Neo4j")
                 continue
 
-            print(f"   ✅ Job title: {job_record['j.title']}")
+            print(f"   [OK] Job title: {job_record['j.title']}")
 
             # Get top work activities
             result = session.run(
@@ -122,7 +122,7 @@ def test_specific_job_skills():
 
             jobs = list(result)
             if not jobs:
-                print(f"   ❌ Không tìm thấy job nào với từ khóa '{job_keyword}'")
+                print(f"   [ERR] Không tìm thấy job nào với từ khóa '{job_keyword}'")
                 continue
 
             for job in jobs:
@@ -165,9 +165,9 @@ def compare_old_vs_new_data():
     print("   • Cải thiện: Job-specific activities")
 
     print("\n💡 KẾT LUẬN:")
-    print("   ✅ Ít skills hơn nhưng job-specific hơn")
-    print("   ✅ Không còn universal skills (shared by all jobs)")
-    print("   ✅ Mỗi job có work activities riêng biệt")
+    print("   [OK] Ít skills hơn nhưng job-specific hơn")
+    print("   [OK] Không còn universal skills (shared by all jobs)")
+    print("   [OK] Mỗi job có work activities riêng biệt")
 
 
 if __name__ == "__main__":

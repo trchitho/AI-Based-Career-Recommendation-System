@@ -174,7 +174,7 @@ const InterviewHistoryPage: React.FC = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'completed':
-                return 'bg-indigo-50 text-green-800 border-indigo-200';
+                return 'bg-indigo-50 text-indigo-950 border-indigo-200';
             case 'active':
                 return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'abandoned':
@@ -368,7 +368,7 @@ const InterviewHistoryPage: React.FC = () => {
                                     </span>
                                 )}
                                 {scoreFilter !== 'all' && (
-                                    <span className="px-3 py-1 bg-indigo-50 text-green-800 rounded-full text-xs font-medium">
+                                    <span className="px-3 py-1 bg-indigo-50 text-indigo-950 rounded-full text-xs font-medium">
                                         Điểm: {scoreFilter === 'excellent' ? 'Xuất sắc' : scoreFilter === 'good' ? 'Tốt' : scoreFilter === 'average' ? 'Trung bình' : scoreFilter === 'poor' ? 'Cần cải thiện' : 'Chưa có điểm'}
                                     </span>
                                 )}

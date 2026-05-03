@@ -191,7 +191,7 @@ const TopCareerWidget: React.FC<Props> = ({ career }) => {
             {(monthlyMedian || monthlyMin) && (
               <div style={{ marginBottom: '1rem' }}>
                 <div style={{ fontSize: '0.67rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.3rem' }}>Lương TB / tháng (VN)</div>
-                <div style={{ fontWeight: 900, fontSize: '1.6rem', color: '#10b981', lineHeight: 1 }}>{fmtVnd(monthlyMedian)}</div>
+                <div style={{ fontWeight: 900, fontSize: '1.6rem', color: 'var(--color-success)', lineHeight: 1 }}>{fmtVnd(monthlyMedian)}</div>
                 {(monthlyMin || monthlyMax) && (
                   <div style={{ fontSize: '0.78rem', color: '#6b7280', marginTop: '0.25rem' }}>
                     {monthlyMin && monthlyMax ? `${fmtVnd(monthlyMin)} – ${fmtVnd(monthlyMax)}` : monthlyMin ? `Từ ${fmtVnd(monthlyMin)}` : `Đến ${fmtVnd(monthlyMax)}`}

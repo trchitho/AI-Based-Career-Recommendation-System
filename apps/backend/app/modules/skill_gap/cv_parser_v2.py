@@ -42,7 +42,7 @@ class CVParserV2:
             cv_stream = multi_stream_manager.get_cv_stream()
             
             if not cv_stream.is_available():
-                print("  ⚠️ CV analysis stream not available")
+                print("  [WARN] CV analysis stream not available")
                 return ''
             
             print(f"Using CV analysis stream: {cv_stream.model_name}")
@@ -80,11 +80,11 @@ Use clear formatting with line breaks between sections.
                         if response_text:
                             full_text += response_text + "\n\n"
                     
-                    print(f"  ✅ AI Vision extracted {len(full_text)} characters from PDF")
+                    print(f"  [OK] AI Vision extracted {len(full_text)} characters from PDF")
                     return full_text
                     
                 except ImportError:
-                    print("  ⚠️ pdf2image not installed")
+                    print("  [WARN] pdf2image not installed")
                     return ''
             else:
                 # Direct image processing
@@ -101,21 +101,21 @@ Use clear formatting with line breaks between sections.
                 response_text = cv_stream.generate_content_with_retry([prompt, img])
                 
                 if response_text:
-                    print(f"  ✅ AI Vision extracted {len(response_text)} characters from image")
+                    print(f"  [OK] AI Vision extracted {len(response_text)} characters from image")
                     return response_text
                 else:
-                    print("  ⚠️ AI Vision returned no text")
+                    print("  [WARN] AI Vision returned no text")
                     return ""
             
         except Exception as e:
             error_msg = str(e)
-            print(f"  ❌ AI Vision extraction failed: {error_msg}")
+            print(f"  [ERR] AI Vision extraction failed: {error_msg}")
             
             # Check for fast fail conditions
             if any(keyword in error_msg.lower() for keyword in ['quota', '429', 'rate limit', 'api key', 'expired', 'invalid']):
                 print("  ⚡ FAST FAIL - API quota/key issue detected")
             else:
-                print("  ⚠️ Unexpected vision error")
+                print("  [WARN] Unexpected vision error")
                 import traceback
                 traceback.print_exc()
             
@@ -140,7 +140,7 @@ Use clear formatting with line breaks between sections.
             return text
         
         # Method 4: AI Vision (last resort)
-        print("  ⚠️ All PDF extraction methods failed, trying AI Vision...")
+        print("  [WARN] All PDF extraction methods failed, trying AI Vision...")
         text = self.extract_text_with_ai_vision(file_content, is_pdf=True)
         
         return text
@@ -230,16 +230,16 @@ Use clear formatting with line breaks between sections.
             # 2 tín hiệu chính để phân biệt CV vs ảnh không phải CV:
             #
             #  A) edge_mean ≥ 5  → ảnh có nhiều đường nét sắc nét (chữ viết)
-            #     - CV thật:      edge 15-40  ✅
-            #     - Ảnh trắng:    edge ~2     ❌
-            #     - Meme it chữ:  edge ~3     ❌
+            #     - CV thật:      edge 15-40  [OK]
+            #     - Ảnh trắng:    edge ~2     [ERR]
+            #     - Meme it chữ:  edge ~3     [ERR]
             #     - Cartoon phức tạp: edge 8+ nhưng thiếu nền trắng → bị chặn bởi B
             #
             #  B) light_ratio ≥ 0.40 → >40% pixel sáng (nền giấy trắng)
-            #     - CV thật:      light 0.90+ ✅
-            #     - Meme nền be:  light ~0    ❌
-            #     - Cartoon màu:  light ~0    ❌
-            #     - Phong cảnh:   light 0.1-0.3 ❌
+            #     - CV thật:      light 0.90+ [OK]
+            #     - Meme nền be:  light ~0    [ERR]
+            #     - Cartoon màu:  light ~0    [ERR]
+            #     - Phong cảnh:   light 0.1-0.3 [ERR]
 
             reasons = []
             if edge_mean < 5.0:
@@ -386,11 +386,11 @@ Use clear formatting with line breaks between sections.
                 result = buf.getvalue()
                 print(f"  🗜️ [TC-IMG-11] Compressed to {len(result)/1024:.0f}KB at quality={quality}")
 
-            print(f"  ✅ [TC-IMG-11] Final image size: {len(result)/1024:.0f}KB")
+            print(f"  [OK] [TC-IMG-11] Final image size: {len(result)/1024:.0f}KB")
             return result
 
         except Exception as e:
-            print(f"  ⚠️ [TC-IMG-11] Compression failed, using original: {e}")
+            print(f"  [WARN] [TC-IMG-11] Compression failed, using original: {e}")
             return file_content
 
     def extract_text_from_image(self, file_content: bytes) -> str:
@@ -455,18 +455,18 @@ Use clear formatting with line breaks between sections.
                 page_text = self.extract_text_with_ai_vision(compressed, is_pdf=False)
                 if page_text and page_text.strip():
                     merged_parts.append(page_text.strip())
-                    print(f"  ✅ [TC-IMG-12] Page {i + 1}: {len(page_text)} chars extracted")
+                    print(f"  [OK] [TC-IMG-12] Page {i + 1}: {len(page_text)} chars extracted")
                 else:
-                    print(f"  ⚠️ [TC-IMG-12] Page {i + 1}: no text found, skipping")
+                    print(f"  [WARN] [TC-IMG-12] Page {i + 1}: no text found, skipping")
             except Exception as e:
-                print(f"  ⚠️ [TC-IMG-12] Page {i + 1} failed: {e}")
+                print(f"  [WARN] [TC-IMG-12] Page {i + 1} failed: {e}")
 
         if not merged_parts:
             raise ValueError("Không tìm thấy nội dung văn bản trong ảnh")
 
         # Merge with clear page separator
         merged = "\n\n--- Trang tiếp theo ---\n\n".join(merged_parts)
-        print(f"  ✅ [TC-IMG-12] Merged {len(merged_parts)} pages → {len(merged)} chars total")
+        print(f"  [OK] [TC-IMG-12] Merged {len(merged_parts)} pages → {len(merged)} chars total")
         return merged
     
     def _extract_with_pymupdf(self, file_content: bytes) -> str:
@@ -503,17 +503,17 @@ Use clear formatting with line breaks between sections.
             text = re.sub(r'[ \t]+', ' ', text)  # Multiple spaces/tabs to single space
             text = re.sub(r'\n\n\n+', '\n\n', text)  # Multiple newlines to double newline
             
-            print(f"  ✅ [PyMuPDF] After cleanup: {len(text)} characters")
+            print(f"  [OK] [PyMuPDF] After cleanup: {len(text)} characters")
             return text
             
         except ImportError:
-            print("  ⚠️ PyMuPDF not installed (pip install PyMuPDF)")
+            print("  [WARN] PyMuPDF not installed (pip install PyMuPDF)")
             return ""
         except ValueError:
             # Re-raise ValueError for page count check
             raise
         except Exception as e:
-            print(f"  ⚠️ PyMuPDF failed: {e}")
+            print(f"  [WARN] PyMuPDF failed: {e}")
             import traceback
             traceback.print_exc()
             return ""
@@ -545,14 +545,14 @@ Use clear formatting with line breaks between sections.
                 text = re.sub(r'[ \t]+', ' ', text)
                 text = re.sub(r'\n\n\n+', '\n\n', text)
                 
-                print(f"  ✅ [pdfplumber] After cleanup: {len(text)} characters")
+                print(f"  [OK] [pdfplumber] After cleanup: {len(text)} characters")
                 return text
                 
         except ImportError:
-            print("  ⚠️ pdfplumber not installed (pip install pdfplumber)")
+            print("  [WARN] pdfplumber not installed (pip install pdfplumber)")
             return ""
         except Exception as e:
-            print(f"  ⚠️ pdfplumber failed: {e}")
+            print(f"  [WARN] pdfplumber failed: {e}")
             import traceback
             traceback.print_exc()
             return ""
@@ -591,11 +591,11 @@ Use clear formatting with line breaks between sections.
             text = re.sub(r'[ \t]+', ' ', text)
             text = re.sub(r'\n\n\n+', '\n\n', text)
             
-            print(f"  ✅ [PyPDF2] After cleanup: {len(text)} characters")
+            print(f"  [OK] [PyPDF2] After cleanup: {len(text)} characters")
             return text
             
         except Exception as e:
-            print(f"  ⚠️ PyPDF2 failed: {e}")
+            print(f"  [WARN] PyPDF2 failed: {e}")
             import traceback
             traceback.print_exc()
             return ""
@@ -620,12 +620,12 @@ Use clear formatting with line breaks between sections.
             # Check if Gemini is enabled
             gemini_enabled = os.getenv('GEMINI_ENABLED', 'true').lower() == 'true'
             if not gemini_enabled:
-                print("  ⚠️ Gemini AI is disabled (GEMINI_ENABLED=false)")
+                print("  [WARN] Gemini AI is disabled (GEMINI_ENABLED=false)")
                 return self._get_fallback_data()
             
             api_key = os.getenv('GEMINI_API_KEY')
             if not api_key:
-                print("  ⚠️ GEMINI_API_KEY not found")
+                print("  [WARN] GEMINI_API_KEY not found")
                 return self._get_fallback_data()
             
             genai.configure(api_key=api_key)
@@ -700,13 +700,13 @@ CRITICAL RULES:
             cv_stream = multi_stream_manager.get_cv_stream()
             
             if not cv_stream.is_available():
-                print("  ⚠️ CV analysis stream not available")
+                print("  [WARN] CV analysis stream not available")
                 return {}
             
             response_text = cv_stream.generate_content_with_retry(prompt)
             
             if not response_text:
-                print("  ⚠️ AI complete extraction failed")
+                print("  [WARN] AI complete extraction failed")
                 return {}
             
             print("\n📥 AI RESPONSE RECEIVED:")
@@ -719,17 +719,17 @@ CRITICAL RULES:
             # Parse JSON
             if '```json' in response_text:
                 response_text = response_text.split('```json')[1].split('```')[0].strip()
-                print("   ✅ Extracted JSON from markdown code block")
+                print("   [OK] Extracted JSON from markdown code block")
             elif '```' in response_text:
                 response_text = response_text.split('```')[1].split('```')[0].strip()
-                print("   ✅ Extracted JSON from code block")
+                print("   [OK] Extracted JSON from code block")
             
             print("\n🔍 PARSING JSON:")
             print(f"   JSON length: {len(response_text)} chars")
             
             data = json.loads(response_text)
             
-            print("   ✅ JSON parsed successfully")
+            print("   [OK] JSON parsed successfully")
             print(f"   Keys: {list(data.keys())}")
             
             # Validate and clean data
@@ -750,17 +750,17 @@ CRITICAL RULES:
                 words = name.split()
                 print(f"   Word count: {len(words)}")
                 if len(words) < 2 or len(words) > 4:
-                    print("   ⚠️ Invalid name format (need 2-4 words)")
+                    print("   [WARN] Invalid name format (need 2-4 words)")
                     name = ''
                 else:
                     # Check not a job title
                     invalid_keywords = ['engineer', 'developer', 'designer', 'manager', 
                                        'laravel', 'php', 'python', 'backend', 'frontend']
                     if any(kw in name.lower() for kw in invalid_keywords):
-                        print("   ⚠️ Name looks like job title")
+                        print("   [WARN] Name looks like job title")
                         name = ''
                     else:
-                        print("   ✅ Name validated successfully")
+                        print("   [OK] Name validated successfully")
             
             personal_info['name'] = name
             
@@ -768,7 +768,7 @@ CRITICAL RULES:
             for skill in skills:
                 skill['source'] = 'ai'
             
-            print("\n✅ AI EXTRACTION COMPLETE:")
+            print("\n[OK] AI EXTRACTION COMPLETE:")
             print(f"   - Name: {personal_info.get('name') or 'Not found'}")
             print(f"   - Email: {personal_info.get('email') or 'Not found'}")
             print(f"   - Phone: {personal_info.get('phone') or 'Not found'}")
@@ -781,13 +781,13 @@ CRITICAL RULES:
             
         except Exception as e:
             error_msg = str(e)
-            print(f"  ⚠️ AI complete extraction failed: {error_msg}")
+            print(f"  [WARN] AI complete extraction failed: {error_msg}")
             
             # Check for fast fail conditions
             if any(keyword in error_msg.lower() for keyword in ['quota', '429', 'rate limit', 'api key', 'expired', 'invalid']):
                 print("  ⚡ FAST FAIL - API quota/key issue detected, using fallback immediately")
             else:
-                print("  ⚠️ Unexpected AI error, using fallback")
+                print("  [WARN] Unexpected AI error, using fallback")
                 import traceback
                 traceback.print_exc()
             
@@ -1017,10 +1017,10 @@ RULES:
                 response_text = response_text.split('```')[1].split('```')[0].strip()
 
             data = json.loads(response_text)
-            print(f"  ✅ [COMBINED] is_cv={data.get('is_cv')}, skills={len(data.get('skills', []))}")
+            print(f"  [OK] [COMBINED] is_cv={data.get('is_cv')}, skills={len(data.get('skills', []))}")
             return data
         except Exception as e:
-            print(f"  ❌ [COMBINED] Error: {e}")
+            print(f"  [ERR] [COMBINED] Error: {e}")
             return {"is_cv": False, "reason": str(e)}
 
     def _ask_gemini_is_cv(self, text: str) -> bool:
@@ -1082,14 +1082,14 @@ Return ONLY valid JSON, no markdown, no explanations.
             cv_stream = multi_stream_manager.get_cv_stream()
             
             if not cv_stream.is_available():
-                print("  ⚠️ CV analysis stream not available, assuming NOT a CV (safe default)")
+                print("  [WARN] CV analysis stream not available, assuming NOT a CV (safe default)")
                 return False
             
             print(f"  📤 Sending {len(text_preview)} chars to Gemini for CV validation...")
             response_text = cv_stream.generate_content_with_retry(prompt)
             
             if not response_text:
-                print("  ⚠️ No response from Gemini, assuming NOT a CV (safe default)")
+                print("  [WARN] No response from Gemini, assuming NOT a CV (safe default)")
                 return False
             
             # Parse JSON response
@@ -1118,12 +1118,12 @@ Return ONLY valid JSON, no markdown, no explanations.
                 return False
                 
         except json.JSONDecodeError as e:
-            print(f"  ❌ Failed to parse Gemini response: {e}")
+            print(f"  [ERR] Failed to parse Gemini response: {e}")
             print(f"  Raw response: {response_text[:200]}")
             # Safe default: assume NOT a CV if we can't parse response
             return False
         except Exception as e:
-            print(f"  ❌ Error calling Gemini: {e}")
+            print(f"  [ERR] Error calling Gemini: {e}")
             import traceback
             traceback.print_exc()
             # Safe default: assume NOT a CV on error
@@ -1215,10 +1215,10 @@ Return ONLY valid JSON, no markdown, no explanations.
         # CRITICAL: Validate content BEFORE calling Gemini (saves tokens!)
         is_cv, reason = self._is_cv_content(text)
         if not is_cv:
-            print(f"\n❌ ERROR: File does not appear to be a CV — {reason}")
+            print(f"\n[ERR] ERROR: File does not appear to be a CV — {reason}")
             raise ValueError(f"File tải lên không phải là CV. {reason}")
 
-        print("\n✅ TEXT EXTRACTION SUCCESSFUL")
+        print("\n[OK] TEXT EXTRACTION SUCCESSFUL")
         print(f"   Extracted: {len(text)} characters")
         
         # Show preview
@@ -1239,13 +1239,13 @@ Return ONLY valid JSON, no markdown, no explanations.
         result = self._validate_and_extract(text, target_career)
         if not result.get('is_cv', False):
             reason = result.get('reason', '')
-            print(f"❌ AI confirmed: NOT a CV — {reason}")
+            print(f"[ERR] AI confirmed: NOT a CV — {reason}")
             raise ValueError(f"File tải lên không phải là CV/Resume. {reason}")
         
         result['text'] = text[:500]  # Preview
         
         print("\n" + "="*80)
-        print("✅ [CV Parser V2] EXTRACTION COMPLETE")
+        print("[OK] [CV Parser V2] EXTRACTION COMPLETE")
         print("="*80)
         
         return result

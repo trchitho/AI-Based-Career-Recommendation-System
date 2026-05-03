@@ -240,7 +240,7 @@ const RoadmapPage = () => {
 
                           return (
                             <div key={idx} className="flex-shrink-0 flex flex-col items-center snap-center group cursor-default">
-                              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-indigo-900 border-white' : isCurrent ? 'bg-indigo-800 text-white border-white ring-4 ring-white/30' : 'bg-green-800/50 text-indigo-300 border-green-700/50'}`}>
+                              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-indigo-900 border-white' : isCurrent ? 'bg-indigo-800 text-white border-white ring-4 ring-white/30' : 'bg-indigo-950/50 text-indigo-300 border-indigo-800/50'}`}>
                                 {isCompleted ? (
                                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -248,7 +248,7 @@ const RoadmapPage = () => {
                                 ) : (
                                   <span className="text-lg font-bold">{idx + 1}</span>
                                 )}
-                                {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-green-800'}`} />}
+                                {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-indigo-950'}`} />}
                               </div>
                               <span className="mt-2 text-xs font-bold uppercase tracking-wide" style={{ color: isCompleted || isCurrent ? 'var(--neu-btn-text, ffffff)' : 'rgba(255,255,255,0.45)' }}>{label}</span>
                             </div>
@@ -371,17 +371,17 @@ const RoadmapPage = () => {
 
                   <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="text-white text-center md:text-left">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-700/20 border border-green-400/30 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-4">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-700/20 border border-indigo-400/30 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-4">
                         <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />Live Roadmap
                       </div>
                       <h2 className="text-2xl md:text-3xl font-extrabold mb-2 tracking-tight">Your Learning Journey</h2>
-                      <p className="text-green-100/80 max-w-lg">Master skills one step at a time. Track your progress and reach your career goals.</p>
+                      <p className="text-indigo-100/80 max-w-lg">Master skills one step at a time. Track your progress and reach your career goals.</p>
                     </div>
 
                     <div className="flex items-center gap-4 bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
                       <div className="relative w-16 h-16 flex-shrink-0">
                         <svg className="w-full h-full transform -rotate-90">
-                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-green-900/50" />
+                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-indigo-950/50" />
                           <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={176} strokeDashoffset={176 - 176 * completionRatio} className="text-indigo-400 transition-all duration-1000 ease-out" strokeLinecap="round" />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center flex-col text-white">

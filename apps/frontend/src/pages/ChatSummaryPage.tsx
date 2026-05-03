@@ -144,7 +144,7 @@ const ChatSummaryPage = () => {
                   <div className="relative">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-transparent to-white/10 pointer-events-none"></div>
                     <textarea
-                      className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-5 py-4 h-80 bg-white dark:bg-gray-950 text-gray-800 dark:text-green-100/80 font-['JetBrains_Mono'] text-sm leading-relaxed focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none resize-none shadow-inner"
+                      className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-5 py-4 h-80 bg-white dark:bg-gray-950 text-gray-800 dark:text-indigo-100/80 font-['JetBrains_Mono'] text-sm leading-relaxed focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none resize-none shadow-inner"
                       value={summary}
                       onChange={(e) => setSummary(e.target.value)}
                       spellCheck={false}

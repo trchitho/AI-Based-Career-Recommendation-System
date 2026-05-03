@@ -220,7 +220,7 @@ const QuestionManagementPage = () => {
                     <button
                       onClick={() => handleToggleActive(question)}
                       className={question.is_active
-                        ? "px-2 py-1 text-xs font-medium rounded-full bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-green-200"
+                        ? "px-2 py-1 text-xs font-medium rounded-full bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200"
                         : "px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                       }
                     >

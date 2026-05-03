@@ -83,16 +83,16 @@ def test_answer_validation():
             is_relevant = result["is_relevant"]
             
             if is_relevant == case["expected"]:
-                print(f"✅ Test {i}: PASS - {case['reason']}")
+                print(f"[OK] Test {i}: PASS - {case['reason']}")
                 passed += 1
             else:
-                print(f"❌ Test {i}: FAIL - Expected {case['expected']}, got {is_relevant}")
+                print(f"[ERR] Test {i}: FAIL - Expected {case['expected']}, got {is_relevant}")
                 print(f"   Question: {case['question']}")
                 print(f"   Answer: '{case['answer']}'")
                 failed += 1
                 
         except Exception as e:
-            print(f"❌ Test {i}: ERROR - {e}")
+            print(f"[ERR] Test {i}: ERROR - {e}")
             failed += 1
     
     print(f"\n📊 VALIDATION TEST RESULTS:")
@@ -125,11 +125,11 @@ def test_guidance_generation():
                 "Software Developer"
             )
             
-            print(f"✅ {qtype}: Generated guidance ({len(guidance)} chars)")
+            print(f"[OK] {qtype}: Generated guidance ({len(guidance)} chars)")
             print(f"   Preview: {guidance[:100]}...")
             
         except Exception as e:
-            print(f"❌ {qtype}: Failed to generate guidance - {e}")
+            print(f"[ERR] {qtype}: Failed to generate guidance - {e}")
 
 def test_skip_handling():
     """Test skip detection and handling"""
@@ -147,7 +147,7 @@ def test_skip_handling():
     
     for pattern in skip_patterns:
         is_skipped = pattern.strip() == "" or pattern.strip().lower() in ["skip", "bỏ qua", "next"]
-        print(f"✅ '{pattern}' → Skip: {is_skipped}")
+        print(f"[OK] '{pattern}' → Skip: {is_skipped}")
 
 def test_performance():
     """Test validation performance"""
@@ -184,13 +184,13 @@ def test_performance():
     end_time = time.time()
     duration = end_time - start_time
     
-    print(f"✅ 10 validations completed in {duration:.3f}s")
-    print(f"✅ Average: {(duration/10)*1000:.1f}ms per validation")
+    print(f"[OK] 10 validations completed in {duration:.3f}s")
+    print(f"[OK] Average: {(duration/10)*1000:.1f}ms per validation")
     
     if duration < 2.0:  # Should complete in under 2 seconds
-        print(f"✅ Performance: GOOD")
+        print(f"[OK] Performance: GOOD")
     else:
-        print(f"⚠️ Performance: SLOW")
+        print(f"[WARN] Performance: SLOW")
 
 if __name__ == "__main__":
     print("🚀 INTELLIGENT INTERVIEW VALIDATION TEST SUITE")
@@ -207,11 +207,11 @@ if __name__ == "__main__":
         print("=" * 80)
         
         if failed == 0:
-            print("✅ ALL TESTS PASSED - Intelligent validation system working correctly!")
+            print("[OK] ALL TESTS PASSED - Intelligent validation system working correctly!")
         else:
-            print(f"⚠️ {failed} tests failed - Need to fix validation logic")
+            print(f"[WARN] {failed} tests failed - Need to fix validation logic")
             
     except Exception as e:
-        print(f"❌ Test suite failed: {e}")
+        print(f"[ERR] Test suite failed: {e}")
         import traceback
         traceback.print_exc()

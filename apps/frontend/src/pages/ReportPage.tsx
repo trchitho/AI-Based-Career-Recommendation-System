@@ -590,7 +590,7 @@ const ReportPage = () => {
                                     <div className="max-w-[1400px] mx-auto px-12 py-8 no-print">
                                         <button
                                             onClick={() => setShowMoreCareers(!showMoreCareers)}
-                                            className="w-full py-4 bg-gradient-to-r from-indigo-700 to-emerald-600 hover:from-indigo-800 hover:to-emerald-700 text-white rounded-xl font-semibold text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-3"
+                                            className="w-full py-4 bg-gradient-to-r from-indigo-700 to-indigo-800 hover:from-indigo-800 hover:to-violet-700 text-white rounded-xl font-semibold text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-3"
                                         >
                                             <svg className={`w-6 h-6 transition-transform ${showMoreCareers ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

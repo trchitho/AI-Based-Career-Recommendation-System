@@ -100,7 +100,7 @@ const PaymentManagementPageMock = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-green-200';
+        return 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'failed':

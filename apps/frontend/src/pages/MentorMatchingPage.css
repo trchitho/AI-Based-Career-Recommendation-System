@@ -323,13 +323,13 @@ html body button.mm-request-btn.sent { background: var(--color-success) !importa
 .mm-req-msg { font-size: 0.75rem; color: var(--neu-text-muted); margin-top: 0.25rem; font-style: italic; }
 .mm-status-badge { padding: 0.28rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
 .mm-status-badge.pending  { background: rgba(245,158,11,0.15); color: #92400e; }
-.mm-status-badge.accepted { background: rgba(16,185,129,0.15); color: #065f46; }
+.mm-status-badge.accepted { background: rgba(26,35,126,0.15); color: #065f46; }
 .mm-status-badge.rejected { background: rgba(239,68,68,0.12);  color: #991b1b; }
 
 /* ── Banner ───────────────────────────────────────────────── */
 .mm-success-banner {
-  padding: 0.8rem 1.1rem; background: rgba(16,185,129,0.1);
-  border: 1px solid rgba(16,185,129,0.3); border-radius: 10px;
+  padding: 0.8rem 1.1rem; background: rgba(26,35,126,0.1);
+  border: 1px solid rgba(26,35,126,0.3); border-radius: 10px;
   color: #065f46; font-size: 0.88rem; font-weight: 600; margin-bottom: 1.25rem;
 }
 .mm-error-banner {
