@@ -183,15 +183,22 @@ const BlogEditPage = () => {
                 <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Danh mục
                 </label>
-                <input
-                  type="text"
+                <select
                   id="category"
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Ví dụ: Công nghệ"
-                />
+                >
+                  <option value="">Chọn danh mục</option>
+                  <option value="career">Tư vấn nghề nghiệp</option>
+                  <option value="interview">Mẹo phỏng vấn</option>
+                  <option value="resume">Viết CV</option>
+                  <option value="culture">Văn hóa công sở</option>
+                  <option value="skills">Phát triển kỹ năng</option>
+                  <option value="jobs">Tìm việc làm</option>
+                  <option value="industry">Góc nhìn ngành</option>
+                </select>
               </div>
 
               <div>

@@ -9,9 +9,10 @@ import CommentItem from './CommentItem';
 interface CommentsSectionProps {
     postId: number;
     postSlug?: string;
+    onCommentUpdate?: () => void;
 }
 
-const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
+const CommentsSection: React.FC<CommentsSectionProps> = ({ postId, onCommentUpdate }) => {
     const { user } = useAuth();
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(true);
@@ -57,12 +58,30 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
 
     // WebSocket event handlers
     const handleCommentCreated = useCallback((newComment: Comment) => {
-        if (newComment.parent_id) {
-            // Handle reply - find parent and add to its replies
-            setComments(prev => {
+        // Check if comment already exists to prevent duplicates
+        const commentExists = (comments: Comment[], id: number): boolean => {
+            for (const comment of comments) {
+                if (comment.id === id) return true;
+                if (comment.replies.length > 0 && commentExists(comment.replies, id)) return true;
+            }
+            return false;
+        };
+
+        setComments(prev => {
+            // Prevent duplicate comments
+            if (commentExists(prev, newComment.id)) {
+                return prev;
+            }
+
+            if (newComment.parent_id) {
+                // Handle reply - find parent and add to its replies
                 const updateCommentReplies = (comments: Comment[]): Comment[] => {
                     return comments.map(comment => {
                         if (comment.id === newComment.parent_id) {
+                            // Check if reply already exists
+                            if (comment.replies.some(r => r.id === newComment.id)) {
+                                return comment;
+                            }
                             return {
                                 ...comment,
                                 replies: [...comment.replies, newComment]
@@ -77,13 +96,16 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
                     });
                 };
                 return updateCommentReplies(prev);
-            });
-        } else {
-            // Handle top-level comment
-            setComments(prev => [newComment, ...prev]);
-            setTotalComments(prev => prev + 1);
-        }
-    }, []);
+            } else {
+                // Handle top-level comment
+                setTotalComments(prevTotal => prevTotal + 1);
+                return [newComment, ...prev];
+            }
+        });
+
+        // Notify parent to refresh data
+        onCommentUpdate?.();
+    }, [onCommentUpdate]);
 
     const handleCommentUpdated = useCallback((updatedComment: Comment) => {
         setComments(prev => {
@@ -176,9 +198,18 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
                 content
             });
 
-            // Add optimistically (will be updated by WebSocket)
-            setComments(prev => [newComment, ...prev]);
+            // Add comment from API response (WebSocket will also broadcast)
+            setComments(prev => {
+                // Check if already exists (from WebSocket)
+                if (prev.some(c => c.id === newComment.id)) {
+                    return prev;
+                }
+                return [newComment, ...prev];
+            });
             setTotalComments(prev => prev + 1);
+
+            // Notify parent to refresh data
+            onCommentUpdate?.();
         } catch (error: any) {
             throw error; // Let the form handle the error
         }
@@ -306,14 +337,14 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
     };
 
     return (
-        <section className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-lg">
+        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                    <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2.5">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                         Comments ({totalComments})
                     </h3>
                 </div>
@@ -322,13 +353,13 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
                 <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {isConnected ? 'Live updates' : 'Offline'}
+                        {isConnected ? 'Live' : 'Offline'}
                     </span>
                 </div>
             </div>
 
             {/* Comment Form */}
-            <div className="mb-8">
+            <div className="mb-6">
                 <CommentForm
                     postId={postId}
                     onSubmit={handleCreateComment}
@@ -338,12 +369,12 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
 
             {/* Error State */}
             {error && (
-                <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                     <div className="flex items-center gap-2">
                         <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
+                        <p className="text-red-600 dark:text-red-400 font-medium text-sm">{error}</p>
                     </div>
                     <button
                         onClick={() => loadComments(1, false)}
@@ -356,10 +387,10 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
 
             {/* Loading State */}
             {loading && (
-                <div className="flex items-center justify-center py-12">
+                <div className="flex items-center justify-center py-10">
                     <div className="relative">
-                        <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
-                        <div className="absolute top-0 left-0 w-12 h-12 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
+                        <div className="w-10 h-10 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
+                        <div className="absolute top-0 left-0 w-10 h-10 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
                     </div>
                 </div>
             )}
@@ -368,21 +399,21 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
             {!loading && (
                 <>
                     {comments.length === 0 ? (
-                        <div className="text-center py-12">
-                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="text-center py-10">
+                            <div className="w-14 h-14 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center mx-auto mb-3">
+                                <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                 </svg>
                             </div>
-                            <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                                 No comments yet
                             </h4>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                Be the first to share your thoughts on this article!
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Be the first to share your thoughts!
                             </p>
                         </div>
                     ) : (
-                        <div className="space-y-6">
+                        <div className="space-y-5">
                             {comments.map((comment) => (
                                 <CommentItem
                                     key={comment.id}
@@ -398,23 +429,23 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId }) => {
 
                     {/* Load More Button */}
                     {hasNextPage && (
-                        <div className="mt-8 text-center">
+                        <div className="mt-6 text-center">
                             <button
                                 onClick={handleLoadMore}
                                 disabled={loadingMore}
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             >
                                 {loadingMore ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                                        Loading more comments...
+                                        Loading...
                                     </>
                                 ) : (
                                     <>
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                         </svg>
-                                        Load more comments
+                                        Load more
                                     </>
                                 )}
                             </button>

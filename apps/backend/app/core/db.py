@@ -23,8 +23,15 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL environment variable is not set. Please set it in your environment or .env file.")
 
-# Engine dùng chung
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+# Engine dùng chung with explicit UTF-8 encoding
+engine = create_engine(
+    DATABASE_URL, 
+    pool_pre_ping=True,
+    connect_args={
+        "client_encoding": "utf8",
+        "options": "-c client_encoding=utf8"
+    }
+)
 
 # Base dùng chung cho tất cả models (cái bạn đang thiếu)
 Base = declarative_base()
