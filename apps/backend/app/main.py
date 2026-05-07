@@ -215,6 +215,18 @@ def create_app() -> FastAPI:
     except Exception as e:
         print(f"[WARN] Rate limiting disabled: {e}")
 
+    # Ensure UTF-8 charset in responses (fix Vietnamese encoding)
+    @app.middleware("http")
+    async def ensure_utf8_response(request: Request, call_next):
+        response = await call_next(request)
+        
+        # Ensure UTF-8 charset for JSON responses
+        content_type = response.headers.get("content-type", "")
+        if content_type.startswith("application/json") and "charset" not in content_type:
+            response.headers["content-type"] = "application/json; charset=utf-8"
+        
+        return response
+
     # DB session per-request
     @app.middleware("http")
     async def db_session_middleware(request: Request, call_next):
