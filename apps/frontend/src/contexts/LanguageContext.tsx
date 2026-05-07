@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type Language = 'en' | 'vi';
 
@@ -16,20 +17,32 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
+    const { i18n } = useTranslation();
     const [language, setLanguageState] = useState<Language>('en'); // Default to English
 
-    // Load language from localStorage on mount
+    // Sync with i18next language changes
     useEffect(() => {
-        const savedLanguage = localStorage.getItem('careerbridge_language') as Language;
-        if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'vi')) {
-            setLanguageState(savedLanguage);
-        }
-    }, []);
+        const handleLanguageChange = (lng: string) => {
+            const newLang = lng.startsWith('vi') ? 'vi' : 'en';
+            setLanguageState(newLang);
+        };
 
-    // Save language to localStorage when changed
+        // Set initial language from i18next
+        handleLanguageChange(i18n.language);
+
+        // Listen for i18next language changes
+        i18n.on('languageChanged', handleLanguageChange);
+
+        return () => {
+            i18n.off('languageChanged', handleLanguageChange);
+        };
+    }, [i18n]);
+
+    // Save language to localStorage when changed and sync with i18next
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
-        localStorage.setItem('careerbridge_language', lang);
+        i18n.changeLanguage(lang);
+        localStorage.setItem('i18nextLng', lang);
     };
 
     const value: LanguageContextType = {

@@ -222,8 +222,9 @@ class HealthChecker:
             response_time = time.time() - start_time
 
             return {"status": "healthy", "response_time": round(response_time, 3), "message": "Database connection successful"}
-        except Exception as e:
-            return {"status": "unhealthy", "error": str(e), "message": "Database connection failed"}
+        except Exception:
+            logger.exception("Database health check failed")
+            return {"status": "unhealthy", "error": "Internal database health check error", "message": "Database connection failed"}
 
     async def check_neo4j_health(self) -> Dict[str, Any]:
         """Check Neo4j database health"""
@@ -245,8 +246,9 @@ class HealthChecker:
             response_time = time.time() - start_time
 
             return {"status": "healthy", "response_time": round(response_time, 3), "message": "Neo4j connection successful"}
-        except Exception as e:
-            return {"status": "unhealthy", "error": str(e), "message": "Neo4j connection failed"}
+        except Exception:
+            logger.exception("Neo4j health check failed")
+            return {"status": "unhealthy", "error": "Internal Neo4j health check error", "message": "Neo4j connection failed"}
 
     async def check_redis_health(self) -> Dict[str, Any]:
         """Check Redis health"""
@@ -263,8 +265,9 @@ class HealthChecker:
             response_time = time.time() - start_time
 
             return {"status": "healthy", "response_time": round(response_time, 3), "message": "Redis connection successful"}
-        except Exception as e:
-            return {"status": "unhealthy", "error": str(e), "message": "Redis connection failed"}
+        except Exception:
+            logger.exception("Redis health check failed")
+            return {"status": "unhealthy", "error": "Internal Redis health check error", "message": "Redis connection failed"}
 
     async def get_system_health(self) -> Dict[str, Any]:
         """Get comprehensive system health check"""

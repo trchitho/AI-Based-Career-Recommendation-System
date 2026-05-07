@@ -3,6 +3,7 @@ Enhanced caching layer with Redis
 """
 
 import hashlib
+import inspect
 import json
 import logging
 import os
@@ -124,12 +125,21 @@ class CacheManager:
             return 0
 
         try:
-            keys = await redis_client.keys(pattern)
-            if keys:
-                deleted = await redis_client.delete(*keys)
+            deleted = 0
+            batch = []
+
+            async for key in redis_client.scan_iter(match=pattern):
+                batch.append(key)
+                if len(batch) >= 100:
+                    deleted += await redis_client.delete(*batch)
+                    batch = []
+
+            if batch:
+                deleted += await redis_client.delete(*batch)
+
+            if deleted:
                 logger.info(f"Cache CLEAR: {deleted} keys matching {pattern}")
-                return deleted
-            return 0
+            return deleted
         except Exception as e:
             self.stats["errors"] += 1
             logger.error(f"Cache CLEAR error for pattern {pattern}: {e}")
@@ -167,11 +177,20 @@ def cached(prefix: str, ttl: int = 3600, key_params: list = None):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            # Bind all arguments (positional and keyword) to parameter names
+            try:
+                sig = inspect.signature(func)
+                bound = sig.bind(*args, **kwargs)
+                bound.apply_defaults()
+                all_kwargs = dict(bound.arguments)
+            except TypeError:
+                all_kwargs = kwargs
+
             # Generate cache key from specified parameters
             if key_params:
-                cache_kwargs = {k: kwargs.get(k) for k in key_params if k in kwargs}
+                cache_kwargs = {k: all_kwargs.get(k) for k in key_params if k in all_kwargs}
             else:
-                cache_kwargs = kwargs
+                cache_kwargs = all_kwargs
 
             cache_key = cache_manager._generate_cache_key(prefix, **cache_kwargs)
 

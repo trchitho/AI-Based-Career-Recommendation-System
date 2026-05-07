@@ -107,7 +107,7 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
                   </div>
 
                   <button
-                    onClick={() => navigate(`/roadmap/${progress.career_id}`)}
+                    onClick={() => navigate(`/careers/${progress.career_id}/roadmap`)}
                     className="px-5 py-2.5 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-white rounded-xl font-semibold hover:bg-green-600 hover:text-white dark:hover:bg-green-600 transition-all shadow-sm flex items-center gap-2 whitespace-nowrap"
                   >
                     View Roadmap

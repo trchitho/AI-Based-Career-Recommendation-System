@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, Mic, MicOff, Send, Clock, User, Bot, CheckCircle, XCircle, AlertCircle, Timer, Users, Brain, Code, MessageSquare, Target, Lightbulb } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Loader2, Mic, MicOff, Send, Clock, User, Bot, CheckCircle, XCircle, AlertCircle, Timer, Users, Brain, Code, MessageSquare, Target, Lightbulb, FileText, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { interviewService } from '../services/interviewService';
 import ScoreTooltip from '../components/interview/ScoreTooltip';
@@ -101,6 +101,7 @@ const Badge: React.FC<{ children: React.ReactNode; className?: string }> = ({ ch
 const InterviewPage: React.FC = () => {
     const { jobId } = useParams<{ jobId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
 
     const [session, setSession] = useState<SessionState | null>(null);
@@ -113,8 +114,9 @@ const InterviewPage: React.FC = () => {
     const [questionTime, setQuestionTime] = useState(0);     // time spent on current question
     const [timeLimit, setTimeLimit] = useState(90);          // per-question limit
     const [toasts, setToasts] = useState<ToastItem[]>([]);
+    const [showAbandonModal, setShowAbandonModal] = useState(false);
+    const pendingAbandonRef = useRef<(() => void) | null>(null);
 
-    const messagesEndRef = useRef<HTMLDivElement>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const recordingStartRef = useRef<number>(0);
@@ -123,9 +125,21 @@ const InterviewPage: React.FC = () => {
     const questionStartRef = useRef<Date>(new Date());
     const autoSubmitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const autoSubmittedRef = useRef(false);
+    const currentAnswerRef = useRef(''); // Add ref to track current answer
     const isLoadingRef = useRef(false);
     const timeLimitRef = useRef(90);
     const handleSubmitRef = useRef<(auto?: boolean) => void>(() => { });
+    const sessionRef = useRef<SessionState | null>(null); // Track session for event handlers
+
+    // Keep currentAnswerRef in sync with currentAnswer for timer access
+    useEffect(() => {
+        currentAnswerRef.current = currentAnswer;
+    }, [currentAnswer]);
+
+    // Keep sessionRef in sync for event handlers (avoid stale closure)
+    useEffect(() => {
+        sessionRef.current = session;
+    }, [session]);
 
     // ── Toast helpers ──────────────────────────────────────────────────────────
     const addToast = useCallback((type: ToastItem['type'], message: string) => {
@@ -144,10 +158,29 @@ const InterviewPage: React.FC = () => {
                 setElapsedTime(Math.floor((Date.now() - sessionStartRef.current.getTime()) / 1000));
             const qt = Math.floor((Date.now() - questionStartRef.current.getTime()) / 1000);
             setQuestionTime(qt);
+
+            const remaining = timeLimitRef.current - qt;
+
+            // Warning notifications at specific intervals
+            if (remaining === 60 && !autoSubmittedRef.current) {
+                addToast('info', '⏰ Còn 1 phút! Hãy hoàn thiện câu trả lời của bạn.');
+            } else if (remaining === 30 && !autoSubmittedRef.current) {
+                addToast('info', '⚠️ Còn 30 giây! Chuẩn bị gửi câu trả lời.');
+            } else if (remaining === 10 && !autoSubmittedRef.current) {
+                addToast('info', '🚨 Còn 10 giây! Hệ thống sẽ tự động gửi.');
+            }
+
             // Auto-submit check inside interval to avoid stale closure issues
             if (qt >= timeLimitRef.current && !autoSubmittedRef.current && !isLoadingRef.current) {
                 autoSubmittedRef.current = true;
-                addToast('info', 'Hết thời gian! Tự động chuyển câu hỏi tiếp theo.');
+                const hasTypedAnswer = currentAnswerRef.current.trim().length > 0;
+
+                if (hasTypedAnswer) {
+                    addToast('info', `⏰ Hết thời gian! Đã tự động gửi câu trả lời của bạn (${currentAnswerRef.current.trim().length} ký tự).`);
+                } else {
+                    addToast('info', '⏰ Hết thời gian! Tự động chuyển sang câu hỏi tiếp theo.');
+                }
+
                 handleSubmitRef.current(true);
             }
         }, 1000);
@@ -156,24 +189,234 @@ const InterviewPage: React.FC = () => {
     }, [session?.status, session?.questionNumber]);
 
     // ── Scroll ─────────────────────────────────────────────────────────────────
-    useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+    const [showScrollButton, setShowScrollButton] = useState(false);
+
+    // Check if user is near bottom of chat
+    const checkScrollPosition = useCallback(() => {
+        if (chatContainerRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+            const isNearBottom = scrollHeight - scrollTop - clientHeight < 50; // Within 50px of bottom
+            setShowScrollButton(!isNearBottom);
+        }
+    }, []);
+
+    // COMPLETELY DISABLE auto-scroll - only manual scroll
+    // NO automatic scrolling when messages change - user has full control
+
+    // Manual scroll to bottom function
+    const scrollToBottom = useCallback(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, []);
 
     // ── Init ───────────────────────────────────────────────────────────────────
     useEffect(() => {
+        // Scroll to top when component mounts - ONLY ONCE
+        if (!startedRef.current) {
+            window.scrollTo(0, 0);
+        }
+
         if (jobId && user && !startedRef.current) {
             startedRef.current = true;
-            startInterview();
+
+            // Kiểm tra xem có session data từ InterviewSelectionPage không
+            const sessionData = location.state?.sessionData;
+            if (sessionData) {
+                loadSessionFromData(sessionData);
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                const existingSessionId = urlParams.get('session');
+                if (existingSessionId) {
+                    loadExistingSession(parseInt(existingSessionId));
+                } else {
+                    startInterview();
+                }
+            }
         } else if (jobId && !user) {
             navigate('/login', { state: { from: `/interview/${jobId}`, message: 'Vui lòng đăng nhập để bắt đầu phỏng vấn' } });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jobId, user]);
 
+    // ── Back/Unload handlers (dùng sessionRef để tránh stale closure) ──────────
+    useEffect(() => {
+        // Push state để bắt popstate khi user nhấn back
+        window.history.pushState(null, '', window.location.href);
+
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (sessionRef.current?.status === 'active') {
+                e.preventDefault();
+                e.returnValue = 'Bạn có chắc chắn muốn thoát? Buổi phỏng vấn sẽ bị hủy.';
+                // Gọi abandon với keepalive để đảm bảo gửi được khi tab đóng
+                if (sessionRef.current?.sessionId) {
+                    const token = localStorage.getItem('accessToken') || '';
+                    fetch(`/api/interview/abandon/${sessionRef.current.sessionId}`, {
+                        method: 'POST',
+                        keepalive: true,
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).catch(() => { /* ignore */ });
+                }
+                return e.returnValue;
+            }
+        };
+
+        const handlePopState = () => {
+            if (sessionRef.current?.status === 'active') {
+                // Đẩy lại state để giữ user ở trang hiện tại
+                window.history.pushState(null, '', window.location.href);
+                // Show custom modal instead of window.confirm
+                pendingAbandonRef.current = () => {
+                    const sid = sessionRef.current?.sessionId;
+                    if (sid) {
+                        interviewService.abandonInterview(sid)
+                            .catch(() => { /* ignore */ })
+                            .finally(() => navigate('/interview'));
+                    } else {
+                        navigate('/interview');
+                    }
+                };
+                setShowAbandonModal(true);
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('popstate', handlePopState);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Mount once — dùng sessionRef nên không cần deps
+
+    // ── Load existing session (từ InterviewSelectionPage navigate) ─────────────
+    const loadExistingSession = async (sessionId: number) => {
+        if (!jobId) return;
+        setIsLoading(true);
+        try {
+            const history = await interviewService.getInterviewHistory(sessionId);
+            const sess = history.session;
+
+            // Load hard skills
+            let hardSkills: Array<{ skill_name: string; importance: number }> = [];
+            try {
+                const jobInfo = await interviewService.getJobInfo(jobId);
+                hardSkills = jobInfo.hard_skills.map(s => ({ skill_name: s.skill_name, importance: s.importance }));
+            } catch { /* ignore */ }
+
+            // Lấy câu hỏi hiện tại (câu hỏi cuối cùng của interviewer chưa có câu trả lời)
+            const messages = history.messages;
+            const lastInterviewerMsg = [...messages].reverse().find(m => m.role === 'interviewer' && m.question_type !== 'greeting');
+            const currentQuestion = lastInterviewerMsg?.content || '';
+            const questionNumber = lastInterviewerMsg?.question_number || 1;
+            const questionType = lastInterviewerMsg?.question_type || 'warm_up';
+
+            const limit = getTimeLimit(questionType, currentQuestion.length);
+            setTimeLimit(limit);
+            timeLimitRef.current = limit;
+            questionStartRef.current = new Date();
+            sessionStartRef.current = new Date();
+
+            setSession({
+                sessionId: sess.id,
+                jobTitle: sess.job_title,
+                status: sess.status as 'active' | 'completed',
+                currentQuestion,
+                questionNumber,
+                questionType,
+                // Lấy question_count từ session (backend trả về), fallback về URL params, rồi mới dùng default
+                questionCount: sess.question_count ?? parseInt(new URLSearchParams(window.location.search).get('questions') || '5'),
+                skillsContext: (sess as any).skills_context || [],
+                hardSkills,
+            });
+
+            // Map messages từ history
+            setMessages(messages.map((m, idx) => ({
+                id: m.id || idx + 1,
+                role: m.role as 'interviewer' | 'candidate',
+                content: m.content,
+                timestamp: m.timestamp,
+                score: m.score,
+                detailedScores: m.detailed_scores as any,
+                feedback: m.feedback,
+                strengths: m.strengths,
+                weaknesses: m.weaknesses,
+                suggestion: m.suggestion,
+                questionType: m.question_type,
+                questionNumber: m.question_number,
+            })));
+
+        } catch (err: any) {
+            console.error('Failed to load existing session:', err);
+            // Fallback: gọi startInterview() nếu không load được session
+            addToast('error', 'Không thể tải phiên phỏng vấn. Đang tạo phiên mới...');
+            startInterview();
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // ── Load session from data (từ InterviewSelectionPage state) ─────────────────
+    const loadSessionFromData = async (sessionData: any) => {
+        if (!jobId) return;
+        setIsLoading(true);
+        try {
+            // Load job details for hard skills
+            let hardSkills: Array<{ skill_name: string; importance: number }> = [];
+            try {
+                const jobInfo = await interviewService.getJobInfo(jobId);
+                hardSkills = jobInfo.hard_skills.map(s => ({ skill_name: s.skill_name, importance: s.importance }));
+            } catch { /* ignore */ }
+
+            const limit = getTimeLimit('warm_up', sessionData.first_question.length);
+            setTimeLimit(limit);
+            questionStartRef.current = new Date();
+            sessionStartRef.current = new Date();
+
+            setSession({
+                sessionId: sessionData.session_id,
+                jobTitle: sessionData.job_title,
+                status: 'active',
+                currentQuestion: sessionData.first_question,
+                questionNumber: 1,
+                questionType: 'warm_up',
+                questionCount: sessionData.question_count,
+                skillsContext: sessionData.skills_context,
+                hardSkills,
+            });
+            setMessages([
+                { id: 1, role: 'interviewer', content: sessionData.greeting, timestamp: new Date().toISOString(), questionType: 'greeting', questionNumber: 0 },
+                { id: 2, role: 'interviewer', content: sessionData.first_question, timestamp: new Date().toISOString(), questionType: 'warm_up', questionNumber: 1 },
+            ]);
+        } catch (err: any) {
+            console.error('Failed to load session from data:', err);
+            addToast('error', 'Không thể tải phiên phỏng vấn. Đang tạo phiên mới...');
+            startInterview();
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // ── Start interview ────────────────────────────────────────────────────────
     const startInterview = async () => {
         if (!jobId) return;
         setIsLoading(true);
         try {
+            // Check if URL has invalid ONET code format
+            // Valid format: XX-XXXX.XX (e.g., 27-2099.00)
+            const validOnetPattern = /^\d{2}-\d{4}\.\d{2}$/;
+            if (!validOnetPattern.test(jobId)) {
+                console.log(`Invalid ONET code format in URL: ${jobId} (expected format: XX-XXXX.XX)`);
+                throw new Error('Invalid ONET code format');
+            }
+
+            console.log(`Starting interview for job ID: ${jobId}`);
+
             // Get question count from URL params or use default
             const urlParams = new URLSearchParams(window.location.search);
             const questionCount = parseInt(urlParams.get('questions') || '7');
@@ -218,22 +461,40 @@ const InterviewPage: React.FC = () => {
         }
     };
 
-    // ── Submit answer ──────────────────────────────────────────────────────────
+    // ── Abandon interview (called via modal confirm) ───────────────────────────
+    // Triggered by pendingAbandonRef in the custom modal — not called directly
+
     const handleSubmit = async (auto = false) => {
         if (!session) return;
-        const answer = auto ? '' : currentAnswer.trim();
-        // Cho phép gửi empty answer (không return early)
-        if (isLoadingRef.current) return; // prevent double submit
+
+        // If auto-submit, use the current typed answer (even if empty)
+        const answer = currentAnswer.trim();
+
+        // Prevent double submit
+        if (isLoadingRef.current) return;
 
         if (autoSubmitRef.current) clearTimeout(autoSubmitRef.current);
         isLoadingRef.current = true;
         setIsLoading(true);
 
         const userMsgId = Date.now();
+
+        // Better message content for auto-submit
+        let displayContent = answer;
+        if (auto) {
+            if (answer.length > 0) {
+                displayContent = `${answer} (Tự động gửi do hết thời gian)`;
+            } else {
+                displayContent = '(Hết thời gian - Chưa nhập câu trả lời)';
+            }
+        } else if (!answer) {
+            displayContent = '(Không trả lời)';
+        }
+
         const userMsg: Message = {
             id: userMsgId,
             role: 'candidate',
-            content: answer || '(Không trả lời)', // Hiển thị placeholder nếu empty
+            content: displayContent,
             timestamp: new Date().toISOString(),
         };
         setMessages(prev => [...prev, userMsg]);
@@ -242,15 +503,15 @@ const InterviewPage: React.FC = () => {
         try {
             const res = await interviewService.submitAnswer({
                 session_id: session.sessionId,
-                answer: answer || '', // Gửi empty string thay vì undefined
+                answer: answer || '', // Send the actual answer (can be empty)
                 has_audio: audioDuration !== null,
                 audio_duration: audioDuration,
-                is_skipped: false, // KHÔNG bao giờ set is_skipped = true từ frontend
+                is_skipped: false, // Never set is_skipped = true from frontend
             });
             setAudioDuration(null);
 
             // Update the candidate message with evaluation data (correct position)
-            if (res.evaluation) {
+            if (res.evaluation && res.evaluation.score !== null && res.evaluation.score !== undefined) {
                 setMessages(prev => prev.map(m => m.id === userMsgId ? {
                     ...m,
                     score: res.evaluation!.score,
@@ -263,6 +524,18 @@ const InterviewPage: React.FC = () => {
                 } : m));
             }
 
+            // Hiển thị HR acknowledgment như HR message riêng (cho jd_qualification và closing)
+            if (res.hr_acknowledgment) {
+                setMessages(prev => [...prev, {
+                    id: Date.now() + 1,
+                    role: 'interviewer',
+                    content: res.hr_acknowledgment!,
+                    timestamp: new Date().toISOString(),
+                    questionType: 'closing_response',  // Luôn dùng closing_response → tag "Câu trả lời"
+                    questionNumber: res.question_number,
+                }]);
+            }
+
             if (res.status === 'continue') {
                 const nextLimit = getTimeLimit(res.question_type || 'technical', (res.next_question || '').length);
                 timeLimitRef.current = nextLimit;
@@ -271,15 +544,21 @@ const InterviewPage: React.FC = () => {
                 questionStartRef.current = new Date();
                 autoSubmittedRef.current = false;
 
-                setMessages(prev => [...prev, {
-                    id: Date.now() + 2,
-                    role: 'interviewer',
-                    content: res.next_question!,
-                    timestamp: new Date().toISOString(),
-                    questionType: res.question_type || 'technical',
-                    questionNumber: res.question_number || 2,
-                }]);
+                // Chỉ thêm next_question nếu khác với hr_acknowledgment (tránh duplicate)
+                if (res.next_question && res.next_question !== res.hr_acknowledgment) {
+                    setMessages(prev => [...prev, {
+                        id: Date.now() + 2,
+                        role: 'interviewer',
+                        content: res.next_question!,
+                        timestamp: new Date().toISOString(),
+                        questionType: res.question_type || 'technical',
+                        questionNumber: res.question_number || 2,
+                    }]);
+                }
                 setSession(prev => prev ? { ...prev, currentQuestion: res.next_question!, questionNumber: res.question_number!, questionType: res.question_type! } : null);
+            } else if (!res.next_question && res.status !== 'completed') {
+                // Backend failed to generate next question — retry once
+                addToast('error', 'Không thể tạo câu hỏi tiếp theo. Vui lòng thử lại.');
             } else {
                 setSession(prev => prev ? { ...prev, status: 'completed' } : null);
                 setMessages(prev => [...prev, {
@@ -381,19 +660,47 @@ const InterviewPage: React.FC = () => {
     const qTypeLabel: Record<string, string> = {
         greeting: 'Chào hỏi', warm_up: 'Làm quen', technical: 'Kỹ thuật',
         behavioral: 'Hành vi', situational: 'Tình huống', closing: 'Kết thúc',
+        jd_specific: 'Từ JD',
+        jd_qualification: 'Bằng cấp & Ngôn ngữ',
+        closing_response: 'Câu trả lời',
     };
     const qTypeColor: Record<string, string> = {
         greeting: 'bg-blue-100 text-blue-800', warm_up: 'bg-green-100 text-green-800',
         technical: 'bg-red-100 text-red-800', behavioral: 'bg-purple-100 text-purple-800',
         situational: 'bg-orange-100 text-orange-800', closing: 'bg-gray-100 text-gray-800',
+        jd_specific: 'bg-yellow-100 text-yellow-800',
+        jd_qualification: 'bg-teal-100 text-teal-800',
+        closing_response: 'bg-gray-100 text-gray-600',
     };
+    // Helper: trả về màu bg/border/text cho từng loại câu hỏi
+    const qBg: Record<string, string> = {
+        technical: 'bg-red-50 border-red-100', behavioral: 'bg-purple-50 border-purple-100',
+        situational: 'bg-orange-50 border-orange-100', warm_up: 'bg-green-50 border-green-100',
+        jd_specific: 'bg-yellow-50 border-yellow-100',
+        jd_qualification: 'bg-teal-50 border-teal-100',
+        closing_response: 'bg-gray-50 border-gray-100',
+        default: 'bg-blue-50 border-blue-100',
+    };
+    const qIcon: Record<string, string> = {
+        technical: 'bg-red-100 text-red-600', behavioral: 'bg-purple-100 text-purple-600',
+        situational: 'bg-orange-100 text-orange-600', warm_up: 'bg-green-100 text-green-600',
+        jd_specific: 'bg-yellow-100 text-yellow-600',
+        jd_qualification: 'bg-teal-100 text-teal-600',
+        closing_response: 'bg-gray-100 text-gray-600',
+        default: 'bg-blue-100 text-blue-600',
+    };
+    const getQBg = (t?: string) => qBg[t || ''] || qBg.default;
+    const getQIcon = (t?: string) => qIcon[t || ''] || qIcon.default;
+    const getQBadge = (t?: string) => qTypeColor[t || ''] || 'bg-blue-100 text-blue-800';
 
     const scoreColor = (s?: number) => !s ? 'text-gray-400' : s >= 8 ? 'text-green-600' : s >= 6 ? 'text-yellow-600' : 'text-red-600';
 
     if (isLoading && !session) return (
-        <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-blue-600" /><p className="text-gray-600">Đang chuẩn bị phỏng vấn...</p></div>
-        </div>
+        <MainLayout>
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-blue-600" /><p className="text-gray-600">Đang chuẩn bị phỏng vấn...</p></div>
+            </div>
+        </MainLayout>
     );
 
     return (
@@ -410,12 +717,7 @@ const InterviewPage: React.FC = () => {
                                 <span className="text-sm text-gray-500">Câu {session?.questionNumber}</span>
                                 <span className="text-gray-300">•</span>
                                 {session?.questionType && (
-                                    <Badge className={`text-xs font-medium ${session.questionType === 'technical' ? 'bg-red-100 text-red-800' :
-                                        session.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800' :
-                                            session.questionType === 'situational' ? 'bg-orange-100 text-orange-800' :
-                                                session.questionType === 'warm_up' ? 'bg-green-100 text-green-800' :
-                                                    'bg-blue-100 text-blue-800'
-                                        }`}>
+                                    <Badge className={`text-xs font-medium ${getQBadge(session.questionType)}`}>
                                         {qTypeLabel[session.questionType] || 'Khác'}
                                     </Badge>
                                 )}
@@ -433,14 +735,34 @@ const InterviewPage: React.FC = () => {
 
                     {/* Per-question countdown bar */}
                     {session?.status === 'active' && (
-                        <div className="mb-4">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                <span className="flex items-center gap-1"><Timer className="h-3 w-3" /> Thời gian câu hỏi</span>
-                                <span className={remaining <= 30 ? 'text-red-600 font-semibold' : ''}>{fmt(remaining)}</span>
+                        <div className={`mb-4 p-3 rounded-lg border-2 transition-all duration-500 ${remaining <= 30 ? 'border-red-500 bg-red-50 dark:bg-red-900/20' :
+                            remaining <= 60 ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' :
+                                'border-gray-200 bg-gray-50 dark:bg-gray-800'
+                            }`}>
+                            <div className="flex items-center justify-between text-sm mb-2">
+                                <span className="flex items-center gap-2">
+                                    <Timer className={`h-4 w-4 ${remaining <= 30 ? 'text-red-600 animate-pulse' : remaining <= 60 ? 'text-yellow-600' : 'text-gray-600'}`} />
+                                    <span className={remaining <= 30 ? 'text-red-700 font-semibold' : remaining <= 60 ? 'text-yellow-700 font-medium' : 'text-gray-700'}>
+                                        Thời gian câu hỏi
+                                    </span>
+                                </span>
+                                <span className={`font-mono text-lg ${remaining <= 10 ? 'text-red-600 font-bold animate-pulse' :
+                                    remaining <= 30 ? 'text-red-600 font-semibold' :
+                                        remaining <= 60 ? 'text-yellow-600 font-medium' : 'text-gray-600'
+                                    }`}>
+                                    {fmt(remaining)}
+                                </span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div className={`h-2 rounded-full transition-all duration-1000 ${timerColor}`} style={{ width: `${timerPct}%` }} />
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                <div className={`h-3 rounded-full transition-all duration-1000 ${timerColor} ${remaining <= 10 ? 'animate-pulse' : ''
+                                    }`} style={{ width: `${timerPct}%` }} />
                             </div>
+                            {remaining <= 30 && (
+                                <div className="mt-2 text-xs text-red-600 dark:text-red-400 font-medium">
+                                    {remaining <= 10 ? '🚨 Hệ thống sẽ tự động gửi câu trả lời!' :
+                                        remaining <= 30 ? '⚠️ Thời gian sắp hết, hãy hoàn thiện câu trả lời!' : ''}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -449,8 +771,13 @@ const InterviewPage: React.FC = () => {
                         <div className="lg:col-span-2">
                             <Card className="flex flex-col" style={{ height: 'min(900px, 88vh)' }}>
                                 <CardHeader><CardTitle className="text-base">Cuộc trò chuyện</CardTitle></CardHeader>
-                                <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
-                                    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+                                <CardContent className="flex-1 flex flex-col overflow-hidden p-0 relative">
+                                    <div
+                                        ref={chatContainerRef}
+                                        className="flex-1 overflow-y-auto px-4 py-3 space-y-3"
+                                        onScroll={checkScrollPosition}
+                                        style={{ scrollBehavior: 'auto' }}
+                                    >
                                         {messages.map(msg => (
                                             <React.Fragment key={msg.id}>
                                                 <div className={`flex ${msg.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
@@ -458,36 +785,16 @@ const InterviewPage: React.FC = () => {
                                                         /* HR Manager Message - Enhanced styling */
                                                         <div className="max-w-[85%] bg-white border border-gray-200 rounded-xl shadow-sm">
                                                             {/* Header with role and question type */}
-                                                            <div className={`px-4 py-3 rounded-t-xl border-b ${msg.questionType === 'technical' ? 'bg-red-50 border-red-100' :
-                                                                msg.questionType === 'behavioral' ? 'bg-purple-50 border-purple-100' :
-                                                                    msg.questionType === 'situational' ? 'bg-orange-50 border-orange-100' :
-                                                                        msg.questionType === 'warm_up' ? 'bg-green-50 border-green-100' :
-                                                                            'bg-blue-50 border-blue-100'
-                                                                }`}>
+                                                            <div className={`px-4 py-3 rounded-t-xl border-b ${getQBg(msg.questionType)}`}>
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className={`p-2 rounded-lg ${msg.questionType === 'technical' ? 'bg-red-100' :
-                                                                        msg.questionType === 'behavioral' ? 'bg-purple-100' :
-                                                                            msg.questionType === 'situational' ? 'bg-orange-100' :
-                                                                                msg.questionType === 'warm_up' ? 'bg-green-100' :
-                                                                                    'bg-blue-100'
-                                                                        }`}>
-                                                                        <Bot className={`h-4 w-4 ${msg.questionType === 'technical' ? 'text-red-600' :
-                                                                            msg.questionType === 'behavioral' ? 'text-purple-600' :
-                                                                                msg.questionType === 'situational' ? 'text-orange-600' :
-                                                                                    msg.questionType === 'warm_up' ? 'text-green-600' :
-                                                                                        'text-blue-600'
-                                                                            }`} />
+                                                                    <div className={`p-2 rounded-lg ${getQIcon(msg.questionType)}`}>
+                                                                        <Bot className="h-4 w-4" />
                                                                     </div>
                                                                     <div className="flex-1">
                                                                         <div className="flex items-center gap-2">
                                                                             <span className="font-semibold text-gray-900">HR Manager</span>
                                                                             {msg.questionType && (
-                                                                                <Badge className={`text-xs font-medium ${msg.questionType === 'technical' ? 'bg-red-100 text-red-800' :
-                                                                                    msg.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800' :
-                                                                                        msg.questionType === 'situational' ? 'bg-orange-100 text-orange-800' :
-                                                                                            msg.questionType === 'warm_up' ? 'bg-green-100 text-green-800' :
-                                                                                                'bg-blue-100 text-blue-800'
-                                                                                    }`}>
+                                                                                <Badge className={`text-xs font-medium ${getQBadge(msg.questionType)}`}>
                                                                                     {qTypeLabel[msg.questionType] || msg.questionType}
                                                                                 </Badge>
                                                                             )}
@@ -511,19 +818,13 @@ const InterviewPage: React.FC = () => {
                                                                                     {isQuestionTypeLabel ? (
                                                                                         // Special formatting for question type labels
                                                                                         <div className="mb-3">
-                                                                                            <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-lg font-medium text-xs ${msg.questionType === 'technical' ? 'bg-red-100 text-red-800 border border-red-200' :
-                                                                                                msg.questionType === 'behavioral' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
-                                                                                                    msg.questionType === 'situational' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
-                                                                                                        msg.questionType === 'warm_up' ? 'bg-green-100 text-green-800 border border-green-200' :
-                                                                                                            'bg-blue-100 text-blue-800 border border-blue-200'
-                                                                                                }`}>
-                                                                                                {/* Question type icon */}
+                                                                                            <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-lg font-medium text-xs ${getQBadge(msg.questionType)} border`}>
                                                                                                 {msg.questionType === 'technical' && <Code className="h-4 w-4" />}
                                                                                                 {msg.questionType === 'behavioral' && <MessageSquare className="h-4 w-4" />}
                                                                                                 {msg.questionType === 'situational' && <Target className="h-4 w-4" />}
                                                                                                 {msg.questionType === 'warm_up' && <Lightbulb className="h-4 w-4" />}
+                                                                                                {msg.questionType === 'jd_specific' && <FileText className="h-4 w-4" />}
                                                                                                 {!msg.questionType && <MessageSquare className="h-4 w-4" />}
-
                                                                                                 <span>{paragraph.replace(/\*\*/g, '')}</span>
                                                                                             </div>
                                                                                         </div>
@@ -639,8 +940,20 @@ const InterviewPage: React.FC = () => {
                                                 )}
                                             </React.Fragment>
                                         ))}
-                                        <div ref={messagesEndRef} />
                                     </div>
+
+                                    {/* Scroll to bottom button */}
+                                    {showScrollButton && (
+                                        <div className="absolute bottom-20 right-6 z-10">
+                                            <button
+                                                onClick={scrollToBottom}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-105 animate-bounce"
+                                                title="Cuộn xuống tin nhắn mới nhất"
+                                            >
+                                                <ChevronDown className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    )}
 
                                     {/* Input */}
                                     {session?.status === 'active' && (
@@ -704,9 +1017,12 @@ const InterviewPage: React.FC = () => {
                             <Card>
                                 <CardHeader><CardTitle className="text-sm">Tiến độ</CardTitle></CardHeader>
                                 <CardContent className="space-y-2">
-                                    <div className="flex justify-between text-sm"><span>Câu hỏi</span><span>{session?.questionNumber || 0}/{session?.questionCount || 5}</span></div>
+                                    <div className="flex justify-between text-sm">
+                                        <span>Câu hỏi</span>
+                                        <span>{Math.min(session?.questionNumber || 0, session?.questionCount || 5)}/{session?.questionCount || 5}</span>
+                                    </div>
                                     <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                        <div className="bg-blue-600 h-1.5 rounded-full transition-all" style={{ width: `${((session?.questionNumber || 0) / (session?.questionCount || 5)) * 100}%` }} />
+                                        <div className="bg-blue-600 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(((session?.questionNumber || 0) / (session?.questionCount || 5)) * 100, 100)}%` }} />
                                     </div>
                                     <div className="text-xs text-gray-500">Tổng thời gian: {fmt(elapsedTime)}</div>
                                 </CardContent>
@@ -722,92 +1038,81 @@ const InterviewPage: React.FC = () => {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        {/* Soft Skills */}
-                                        <div>
-                                            <h4 className="text-xs font-semibold text-gray-900 mb-2 flex items-center">
-                                                <Users className="h-3 w-3 mr-1 text-blue-600" />
-                                                Kỹ năng mềm
-                                            </h4>
-                                            <div className="space-y-1">
-                                                {session.skillsContext.slice(0, 5).map((skill, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                                                        title={`${skill.skill_name} - Mức độ quan trọng: ${skill.importance.toFixed(1)}/5`}
-                                                    >
-                                                        <span className="text-gray-700 group-hover:text-blue-700 transition-colors flex-1 mr-2 truncate">
-                                                            {skill.skill_name}
-                                                        </span>
-                                                        <span className="text-blue-600 font-medium group-hover:text-blue-700 transition-colors shrink-0">
-                                                            {skill.importance.toFixed(1)}/5
-                                                        </span>
-
-                                                        {/* Enhanced Hover Tooltip */}
-                                                        <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
-                                                            <div className="font-medium mb-1">{skill.skill_name}</div>
-                                                            <div className="text-gray-300">
-                                                                Mức độ quan trọng: <span className="text-blue-300 font-medium">{skill.importance.toFixed(1)}/5</span>
+                                        {/* Soft Skills - filter is_hard_skill === false */}
+                                        {(() => {
+                                            const softSkills = (session.skillsContext as any[]).filter((s: any) => s.is_hard_skill === false);
+                                            const hardSkills = (session.skillsContext as any[]).filter((s: any) => s.is_hard_skill === true);
+                                            return (
+                                                <>
+                                                    {softSkills.length > 0 && (
+                                                        <div>
+                                                            <h4 className="text-xs font-semibold text-gray-900 mb-2 flex items-center">
+                                                                <Users className="h-3 w-3 mr-1 text-blue-600" />
+                                                                Kỹ năng mềm
+                                                            </h4>
+                                                            <div className="space-y-1">
+                                                                {softSkills.slice(0, 5).map((skill: any, index: number) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                                                                        title={`${skill.skill_name} - Mức độ quan trọng: ${(skill.importance || 0).toFixed(1)}/5`}
+                                                                    >
+                                                                        <span className="text-gray-700 group-hover:text-blue-700 transition-colors flex-1 mr-2 truncate">
+                                                                            {skill.skill_name}
+                                                                        </span>
+                                                                        <span className="text-blue-600 font-medium group-hover:text-blue-700 transition-colors shrink-0">
+                                                                            {(skill.importance || 0).toFixed(1)}/5
+                                                                        </span>
+                                                                        <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
+                                                                            <div className="font-medium mb-1">{skill.skill_name}</div>
+                                                                            <div className="text-gray-300">Mức độ quan trọng: <span className="text-blue-300 font-medium">{(skill.importance || 0).toFixed(1)}/5</span></div>
+                                                                            <div className="text-gray-300">Loại: <span className="text-blue-300 font-medium">{skill.skill_type}</span></div>
+                                                                            <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                                {softSkills.length > 5 && (
+                                                                    <p className="text-xs text-gray-500 mt-2 text-center">+{softSkills.length - 5} kỹ năng khác</p>
+                                                                )}
                                                             </div>
-                                                            <div className="text-gray-300">
-                                                                Loại: <span className="text-blue-300 font-medium">{skill.skill_type}</span>
-                                                            </div>
-                                                            {/* Arrow */}
-                                                            <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                                                         </div>
-                                                    </div>
-                                                ))}
-                                                {session.skillsContext.length > 5 && (
-                                                    <p className="text-xs text-gray-500 mt-2 text-center">
-                                                        +{session.skillsContext.length - 5} kỹ năng khác
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
-
-                            {session?.hardSkills && session.hardSkills.length > 0 && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-sm flex items-center">
-                                            <div className="h-4 w-4 mr-2 text-orange-600">🔧</div>
-                                            Kỹ năng chuyên ngành
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-1">
-                                        {session.hardSkills.slice(0, 5).map((skill, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-orange-50 transition-colors"
-                                                title={`${skill.skill_name} - Mức độ quan trọng: ${skill.importance.toFixed(1)}/5`}
-                                            >
-                                                <span className="text-gray-700 group-hover:text-orange-700 transition-colors flex-1 mr-2 truncate">
-                                                    {skill.skill_name}
-                                                </span>
-                                                <span className="text-orange-600 font-medium group-hover:text-orange-700 transition-colors shrink-0">
-                                                    {skill.importance.toFixed(1)}/5
-                                                </span>
-
-                                                {/* Enhanced Hover Tooltip */}
-                                                <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
-                                                    <div className="font-medium mb-1">{skill.skill_name}</div>
-                                                    <div className="text-gray-300">
-                                                        Mức độ quan trọng: <span className="text-orange-300 font-medium">{skill.importance.toFixed(1)}/5</span>
-                                                    </div>
-                                                    <div className="text-gray-300">
-                                                        Loại: <span className="text-orange-300 font-medium">Kỹ năng chuyên ngành</span>
-                                                    </div>
-                                                    {/* Arrow */}
-                                                    <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {session.hardSkills.length > 5 && (
-                                            <p className="text-xs text-gray-500 mt-2 text-center">
-                                                +{session.hardSkills.length - 5} kỹ năng khác
-                                            </p>
-                                        )}
+                                                    )}
+                                                    {hardSkills.length > 0 && (
+                                                        <div>
+                                                            <h4 className="text-xs font-semibold text-gray-900 mb-2 flex items-center">
+                                                                <div className="h-3 w-3 mr-1 text-orange-600">🔧</div>
+                                                                Kỹ năng chuyên ngành
+                                                            </h4>
+                                                            <div className="space-y-1">
+                                                                {hardSkills.slice(0, 5).map((skill: any, index: number) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-orange-50 transition-colors"
+                                                                        title={`${skill.skill_name} - Mức độ quan trọng: ${(skill.importance || 0).toFixed(1)}/5`}
+                                                                    >
+                                                                        <span className="text-gray-700 group-hover:text-orange-700 transition-colors flex-1 mr-2 truncate">
+                                                                            {skill.skill_name}
+                                                                        </span>
+                                                                        <span className="text-orange-600 font-medium group-hover:text-orange-700 transition-colors shrink-0">
+                                                                            {(skill.importance || 0).toFixed(1)}/5
+                                                                        </span>
+                                                                        <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
+                                                                            <div className="font-medium mb-1">{skill.skill_name}</div>
+                                                                            <div className="text-gray-300">Mức độ quan trọng: <span className="text-orange-300 font-medium">{(skill.importance || 0).toFixed(1)}/5</span></div>
+                                                                            <div className="text-gray-300">Loại: <span className="text-orange-300 font-medium">Kỹ năng chuyên ngành</span></div>
+                                                                            <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                                {hardSkills.length > 5 && (
+                                                                    <p className="text-xs text-gray-500 mt-2 text-center">+{hardSkills.length - 5} kỹ năng khác</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     </CardContent>
                                 </Card>
                             )}
@@ -842,6 +1147,40 @@ const InterviewPage: React.FC = () => {
                     </div>
                 </div >
             </div >
+
+            {/* ── Abandon Confirmation Modal ─────────────────────────────────── */}
+            {showAbandonModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                                <XCircle className="h-5 w-5 text-red-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Hủy buổi phỏng vấn?</h2>
+                                <p className="text-sm text-gray-500">Hành động này không thể hoàn tác</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                            Buổi phỏng vấn sẽ được đánh dấu là <span className="font-semibold text-red-600">"Đã hủy"</span> và bạn sẽ được chuyển về trang danh sách phỏng vấn.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => { setShowAbandonModal(false); pendingAbandonRef.current = null; }}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Tiếp tục phỏng vấn
+                            </button>
+                            <button
+                                onClick={() => { setShowAbandonModal(false); pendingAbandonRef.current?.(); pendingAbandonRef.current = null; }}
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                                Xác nhận hủy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </MainLayout >
     );
 };

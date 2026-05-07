@@ -66,12 +66,12 @@ const AdminDashboardPage = () => {
     location.pathname.startsWith(path + "/");
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-white transition-colors">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 dark:text-white transition-colors">
       {/* NAVBAR */}
       <nav className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-14 items-center">
-            <Link to="/admin" className="text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <Link to="/admin" className="text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap hover:text-green-600 dark:hover:text-green-400 transition-colors">
               Admin Panel
             </Link>
             <div className="flex items-center gap-2">
@@ -196,14 +196,14 @@ const NavItem = ({ to, label, active }: { to: string; label: string; active: boo
     className={`
       relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap
       ${active
-        ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40"
+        ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30"
         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
       }
     `}
   >
     {label}
     {active && (
-      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full" />
+      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-green-500 rounded-full" />
     )}
   </Link>
 );
@@ -220,7 +220,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
   if (loading)
     return (
       <div className="h-64 flex flex-col justify-center items-center">
-        <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+        <div className="w-12 h-12 border-4 border-green-100 border-t-green-600 rounded-full animate-spin mb-4"></div>
         <p className="text-gray-400">Loading metrics...</p>
       </div>
     );
@@ -265,21 +265,17 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
     <div className="space-y-8">
       {/* USER METRICS */}
       <section>
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <span className="w-2 h-6 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full"></span>
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+          <span className="w-1 h-5 bg-green-500 rounded-full"></span>
           User Metrics
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {userMetricCards.map((card, idx) => (
-            <div key={idx} className="relative group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-              {/* Gradient border effect on hover */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl`}></div>
-              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient} rounded-t-2xl`}></div>
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">{card.title}</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{card.value}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">{card.subtitle}</p>
-              </div>
+            <div key={idx} className="relative bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient}`}></div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{card.title}</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{card.value}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{card.subtitle}</p>
             </div>
           ))}
         </div>
@@ -287,51 +283,43 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
 
       {/* AI METRICS */}
       <section>
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <span className="w-2 h-6 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></span>
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+          <span className="w-1 h-5 bg-purple-500 rounded-full"></span>
           AI Performance
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {aiMetricCards.map((card, idx) => (
-            <div key={idx} className="relative group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-              {/* Gradient border effect on hover */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl`}></div>
-              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient} rounded-t-2xl`}></div>
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">{card.title}</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{card.value}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">{card.subtitle}</p>
-              </div>
+            <div key={idx} className="relative bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient}`}></div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{card.title}</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{card.value}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{card.subtitle}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* PB29: RIASEC Distribution with bar chart */}
+      {/* RIASEC Distribution */}
       <section>
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <span className="w-2 h-6 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full"></span>
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+          <span className="w-1 h-5 bg-emerald-500 rounded-full"></span>
           RIASEC Distribution
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Badge cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="grid grid-cols-3 gap-3">
             {Object.entries(aiMetrics.riasecDistribution).map(([key, value]) => {
-              const colors = riasecColors[key.toLowerCase()] || { bg: "bg-gray-500/10", text: "text-gray-400", border: "border-gray-500/50", gradient: "from-gray-500 to-gray-600" };
+              const colors = riasecColors[key.toLowerCase()] || { bg: "bg-gray-500/10", text: "text-gray-400", border: "border-gray-500/30", gradient: "from-gray-500 to-gray-600" };
               return (
-                <div key={key} className={`relative group ${colors.bg} border-2 ${colors.border} rounded-2xl p-4 text-center hover:scale-105 transition-all duration-300 overflow-hidden`}>
-                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${colors.gradient} rounded-t-xl`}></div>
-                  <div className="relative z-10">
-                    <p className="text-xs font-semibold text-gray-400 capitalize mb-1">{key}</p>
-                    <p className={`text-2xl font-bold ${colors.text}`}>{value}%</p>
-                  </div>
+                <div key={key} className={`relative ${colors.bg} border ${colors.border} rounded-xl p-4 text-center overflow-hidden`}>
+                  <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${colors.gradient}`}></div>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 capitalize mb-1">{key}</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>{value}%</p>
                 </div>
               );
             })}
           </div>
-          {/* Horizontal bar chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border-2 border-gray-200 dark:border-gray-600">
-            <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-4">Distribution Chart</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-4">Distribution Chart</p>
             <div className="space-y-3">
               {Object.entries(aiMetrics.riasecDistribution).map(([key, value]) => {
                 const pct = parseFloat(String(value)) || 0;
@@ -339,11 +327,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
                 return (
                   <div key={key}>
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 capitalize">{key.charAt(0).toUpperCase()}</span>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-300 capitalize">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
                       <span className={`text-xs font-bold ${colors.text}`}>{value}%</span>
                     </div>
-                    <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className={`h-full bg-gradient-to-r ${colors.gradient} rounded-full transition-all duration-700`} style={{ width: `${Math.min(pct, 100)}%` }} />
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className={`h-full bg-gradient-to-r ${colors.gradient} rounded-full`} style={{ width: `${Math.min(pct, 100)}%` }} />
                     </div>
                   </div>
                 );
@@ -353,29 +341,27 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
         </div>
       </section>
 
-      {/* PB29: Big Five Distribution with bar chart */}
+      {/* Big Five Distribution */}
       <section>
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <span className="w-2 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></span>
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+          <span className="w-1 h-5 bg-violet-500 rounded-full"></span>
           Big Five Distribution
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="grid grid-cols-3 gap-3">
             {Object.entries(aiMetrics.bigFiveDistribution).map(([key, value]) => {
-              const colors = bigFiveColors[key.toLowerCase()] || { bg: "bg-gray-500/10", text: "text-gray-400", border: "border-gray-500/50", gradient: "from-gray-500 to-gray-600" };
+              const colors = bigFiveColors[key.toLowerCase()] || { bg: "bg-gray-500/10", text: "text-gray-400", border: "border-gray-500/30", gradient: "from-gray-500 to-gray-600" };
               return (
-                <div key={key} className={`relative group ${colors.bg} border-2 ${colors.border} rounded-2xl p-4 text-center hover:scale-105 transition-all duration-300 overflow-hidden`}>
-                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${colors.gradient} rounded-t-xl`}></div>
-                  <div className="relative z-10">
-                    <p className="text-xs font-semibold text-gray-400 capitalize mb-1">{key.slice(0, 5)}</p>
-                    <p className={`text-2xl font-bold ${colors.text}`}>{value}%</p>
-                  </div>
+                <div key={key} className={`relative ${colors.bg} border ${colors.border} rounded-xl p-4 text-center overflow-hidden`}>
+                  <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${colors.gradient}`}></div>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 capitalize mb-1">{key.slice(0, 5)}</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>{value}%</p>
                 </div>
               );
             })}
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border-2 border-gray-200 dark:border-gray-600">
-            <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-4">Distribution Chart</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-4">Distribution Chart</p>
             <div className="space-y-3">
               {Object.entries(aiMetrics.bigFiveDistribution).map(([key, value]) => {
                 const pct = parseFloat(String(value)) || 0;
@@ -383,11 +369,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
                 return (
                   <div key={key}>
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 capitalize">{key.slice(0, 7)}</span>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-300 capitalize">{key.slice(0, 7)}</span>
                       <span className={`text-xs font-bold ${colors.text}`}>{value}%</span>
                     </div>
-                    <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className={`h-full bg-gradient-to-r ${colors.gradient} rounded-full transition-all duration-700`} style={{ width: `${Math.min(pct, 100)}%` }} />
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className={`h-full bg-gradient-to-r ${colors.gradient} rounded-full`} style={{ width: `${Math.min(pct, 100)}%` }} />
                     </div>
                   </div>
                 );
@@ -397,13 +383,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
         </div>
       </section>
 
-      {/* PB29: System Health Summary */}
+      {/* System Health */}
       <section>
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <span className="w-2 h-6 bg-gradient-to-b from-teal-500 to-cyan-500 rounded-full"></span>
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+          <span className="w-1 h-5 bg-teal-500 rounded-full"></span>
           System Health
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
               label: "Assessment Completion Rate",
@@ -427,10 +413,10 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
               hint: `${aiMetrics.avgFeedbackRating > 0 ? aiMetrics.avgFeedbackRating.toFixed(1) : 'N/A'} ★ from ${aiMetrics.totalFeedback} reviews`,
             },
           ].map(({ label, value, ok, color, hint }) => (
-            <div key={label} className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border-2 border-gray-200 dark:border-gray-600">
+            <div key={label} className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{label}</p>
-                <span className={`w-2.5 h-2.5 rounded-full ${ok ? 'bg-green-500' : 'bg-orange-500'}`} />
+                <span className={`w-2 h-2 rounded-full ${ok ? 'bg-green-500' : 'bg-orange-500'}`} />
               </div>
               <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{value.toFixed(1)}%</p>
               <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-2">

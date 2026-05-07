@@ -11,7 +11,7 @@ from .db import get_db
 from .jwt import JWT_ALG, JWT_SECRET
 
 
-async def get_current_user_from_token(request: Request, db: Session = Depends(get_db)) -> User:
+def get_current_user_from_token(request: Request, db: Session = Depends(get_db)) -> User:
     """
     Extract user from JWT token in Authorization header
     Direct dependency injection approach for reliable authentication

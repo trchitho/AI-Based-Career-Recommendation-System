@@ -16,19 +16,20 @@ export default defineConfig({
     port: 3000, // 🌐 Chạy server dev tại http://localhost:3000
     proxy: {
       '/api': {
-        target: 'http://localhost:8000', // 🔄 Proxy API backend
+        target: 'http://127.0.0.1:8000', // 🔄 Proxy API backend (fixed DNS issue)
         changeOrigin: true,
       },
       '/bff': {
-        target: 'http://localhost:8000', // 🔄 Proxy BFF endpoints
+        target: 'http://127.0.0.1:8000', // 🔄 Proxy BFF endpoints (fixed DNS issue)
         changeOrigin: true,
       },
     },
   },
   test: {
     globals: true,
-    environment: 'node',
+    environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
+    setupFiles: ['src/test-setup.ts'],
   },
 })
 

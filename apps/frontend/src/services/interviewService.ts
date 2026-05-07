@@ -3,6 +3,29 @@ import api from '../lib/api';
 export interface StartInterviewRequest {
     job_id: string;
     question_count?: number;
+    jd_id?: number;
+    level_slug?: string;
+}
+
+export interface JDResponse {
+    jd_id: number;
+    career_id: string | null;
+    extracted_data: {
+        required_skills: string[];
+        tools: string[];
+        responsibilities: string[];
+        training_program: string[];
+        qualifications: string[];
+        experience_level: string;
+        domain: string;
+        company_name: string;
+        location: string;
+        company_culture: string;
+        benefits: string[];
+    };
+    jd_questions_count: number;
+    source: string;
+    created_at: string;
 }
 
 export interface StartInterviewResponse {
@@ -74,6 +97,7 @@ export interface SubmitAnswerResponse {
             estimated_time: string;
         }>;
     };
+    hr_acknowledgment?: string; // HR phản hồi cho jd_qualification hoặc trả lời câu hỏi closing
 }
 
 export interface InterviewSession {
@@ -84,6 +108,7 @@ export interface InterviewSession {
     completed_at?: string;
     overall_score?: number;
     recommendation?: 'PASS' | 'CONDITIONAL_PASS' | 'FAIL';
+    question_count?: number;
 }
 
 export interface InterviewMessage {
@@ -133,6 +158,8 @@ export interface InterviewHistory {
             level: number;
             is_hard_skill?: boolean;
         }>;
+        question_count?: number;
+        question_distribution?: Record<string, number>;
     };
     messages: InterviewMessage[];
 }
@@ -151,6 +178,7 @@ export interface JobInfo {
     soft_skills: SkillItem[];
     hard_skills: SkillItem[];
     hard_skills_total: number;
+    soft_skills_total: number;
 }
 
 export interface AllSkillsResponse {
@@ -166,6 +194,26 @@ export interface AllSkillsResponse {
         is_hard_skill?: boolean;
     }>;
     total_skills: number;
+}
+
+export interface CareerLevel {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    seniority_level: number;
+    group_name?: string;
+    group_slug?: string;
+}
+
+export interface CareerLevelsResponse {
+    job_id: string;
+    group: {
+        name: string;
+        slug: string;
+    };
+    levels: CareerLevel[];
+    total: number;
 }
 
 export interface InterviewFeedback {
@@ -191,10 +239,33 @@ export interface InterviewStats {
 class InterviewService {
     private baseUrl = '/api/interview';
 
-    async startInterview(jobId: string, questionCount: number = 7): Promise<StartInterviewResponse> {
+    async startInterview(jobId: string, questionCount: number = 7, jdId?: number, levelSlug?: string): Promise<StartInterviewResponse> {
         const response = await api.post<StartInterviewResponse>(`${this.baseUrl}/start`, {
             job_id: jobId,
-            question_count: questionCount
+            question_count: questionCount,
+            ...(jdId ? { jd_id: jdId } : {}),
+            ...(levelSlug ? { level_slug: levelSlug } : {})
+        }, { timeout: 30000 });
+        return response.data;
+    }
+
+    async submitJDManual(careerId: string | null, content: string): Promise<JDResponse> {
+        const response = await api.post<JDResponse>(`${this.baseUrl}/jd/manual`, {
+            career_id: careerId,
+            content
+        }, { timeout: 60000 });
+        return response.data;
+    }
+
+    async uploadJDFile(file: File, careerId?: string): Promise<JDResponse> {
+        const formData = new FormData();
+        formData.append('file', file);
+        const url = careerId
+            ? `${this.baseUrl}/jd/upload?career_id=${careerId}`
+            : `${this.baseUrl}/jd/upload`;
+        const response = await api.post<JDResponse>(url, formData, {
+            headers: { 'Content-Type': undefined }, // Xóa default JSON header để browser tự set multipart/form-data với boundary
+            timeout: 60000
         });
         return response.data;
     }
@@ -209,10 +280,15 @@ class InterviewService {
         return response.data;
     }
 
-    async getMyInterviews(limit: number = 10): Promise<{ interviews: InterviewSession[]; total: number }> {
-        const response = await api.get<{ interviews: InterviewSession[]; total: number }>(
-            `${this.baseUrl}/my-interviews?limit=${limit}`
+    async getMyInterviews(limit: number = 20, offset: number = 0): Promise<{ interviews: InterviewSession[]; total: number; limit: number; offset: number; has_more: boolean }> {
+        const response = await api.get<{ interviews: InterviewSession[]; total: number; limit: number; offset: number; has_more: boolean }>(
+            `${this.baseUrl}/my-interviews?limit=${limit}&offset=${offset}`
         );
+        return response.data;
+    }
+
+    async abandonInterview(sessionId: number): Promise<{ message: string }> {
+        const response = await api.post<{ message: string }>(`${this.baseUrl}/abandon/${sessionId}`);
         return response.data;
     }
 
@@ -235,7 +311,10 @@ class InterviewService {
     }
 
     async getJobInfo(jobId: string): Promise<JobInfo> {
-        const response = await api.get<JobInfo>(`${this.baseUrl}/jobs/${jobId}`);
+        // Tăng timeout cho interview API vì backend có thể chậm
+        const response = await api.get<JobInfo>(`${this.baseUrl}/jobs/${jobId}`, {
+            timeout: 30000 // 30 giây
+        });
         return response.data;
     }
 
@@ -248,6 +327,15 @@ class InterviewService {
 
     async getAllJobSkills(jobId: string): Promise<AllSkillsResponse> {
         const response = await api.get<AllSkillsResponse>(`${this.baseUrl}/jobs/${jobId}/skills/all`);
+        return response.data;
+    }
+
+    async getCareerLevels(jobId: string): Promise<CareerLevelsResponse> {
+        console.log(`🔗 API call: GET /api/interview/jobs/${jobId}/levels`);
+        const response = await api.get<CareerLevelsResponse>(`${this.baseUrl}/jobs/${jobId}/levels`, {
+            timeout: 10000 // 10 second timeout
+        });
+        console.log(`📊 API response:`, response.data);
         return response.data;
     }
 
@@ -316,7 +404,7 @@ class InterviewService {
     }
 
     getScoreColor(score?: number): string {
-        if (!score) return 'text-gray-600';
+        if (score === undefined || score === null) return 'text-gray-600';
         if (score >= 8) return 'text-green-600';
         if (score >= 6) return 'text-yellow-600';
         return 'text-red-600';

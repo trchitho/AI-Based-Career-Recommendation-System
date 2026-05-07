@@ -486,6 +486,222 @@
   margin-top: 0.5rem;
 }
 
+/* ===== BLOCKING OVERLAY STYLES ===== */
+.analysis-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: not-allowed;
+}
+
+.analysis-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  max-width: 500px;
+  margin: 0 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  cursor: default;
+}
+
+.analysis-ai-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  animation: pulse 2s infinite;
+}
+
+.analysis-title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+  font-weight: bold;
+}
+
+.analysis-description {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.analysis-progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.analysis-progress-fill {
+  height: 100%;
+  background-color: #3b82f6;
+  border-radius: 4px;
+  transition: width 0.3s ease-out;
+}
+
+.analysis-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.analysis-progress-message {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.analysis-progress-percent {
+  font-size: 0.9rem;
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.analysis-warning-box {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.analysis-warning-text {
+  font-size: 0.85rem;
+  color: #92400e;
+  margin: 0;
+  font-weight: 500;
+}
+
+.analysis-steps {
+  text-align: left;
+  margin-top: 1.5rem;
+}
+
+.analysis-steps-title {
+  font-size: 1rem;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.analysis-steps-list {
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.8;
+}
+
+.analysis-step {
+  transition: opacity 0.3s;
+}
+
+.analysis-step.completed {
+  opacity: 1;
+}
+
+.analysis-step.pending {
+  opacity: 0.5;
+}
+
+/* Warning notifications */
+.analysis-warning,
+.navigation-warning {
+  position: fixed;
+  background: #ef4444;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: slideInRight 0.3s ease-out;
+}
+
+.analysis-warning {
+  top: 20px;
+  right: 20px;
+}
+
+.navigation-warning {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Dark mode for overlay */
+.dark .analysis-modal {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+.dark .analysis-title {
+  color: #f1f5f9;
+}
+
+.dark .analysis-description {
+  color: #94a3b8;
+}
+
+.dark .analysis-progress-bar {
+  background-color: #334155;
+}
+
+.dark .analysis-progress-message {
+  color: #94a3b8;
+}
+
+.dark .analysis-steps-title {
+  color: #cbd5e1;
+}
+
+.dark .analysis-steps-list {
+  color: #94a3b8;
+}
+
+.dark .analysis-warning-box {
+  background: #451a03;
+  border-color: #92400e;
+}
+
+.dark .analysis-warning-text {
+  color: #fbbf24;
+}
+
 /* ===== DARK MODE ===== */
 .dark .cv-upload-form {
   background: #1e293b;

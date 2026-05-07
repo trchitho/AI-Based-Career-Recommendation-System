@@ -1,16 +1,20 @@
 """
 Cloudflare R2 Storage Service (S3-compatible)
 """
+import logging
 import os
 import uuid
 from datetime import datetime
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     import boto3
     from botocore.exceptions import ClientError
     BOTO3_AVAILABLE = True
 except ImportError:
+    ClientError = Exception  # Fallback so except clauses remain valid
     BOTO3_AVAILABLE = False
 
 
@@ -69,7 +73,7 @@ class R2StorageService:
             Public URL của file hoặc None nếu upload thất bại
         """
         if not self.is_configured:
-            print("[R2] Not configured — skipping upload")
+            logger.debug("[R2] Not configured — skipping upload")
             return None
 
         try:
@@ -107,11 +111,14 @@ class R2StorageService:
             else:
                 file_url = f"https://{self.account_id}.r2.cloudflarestorage.com/{self.bucket_name}/{object_key}"
 
-            print(f"[R2] Uploaded: {object_key}")
+            logger.info(f"[R2] Uploaded: {object_key}")
             return file_url
 
+        except ClientError as e:
+            logger.error(f"[R2] S3 client error during upload: {e}")
+            return None
         except Exception as e:
-            print(f"[R2] Upload failed: {e}")
+            logger.error(f"[R2] Upload failed: {e}")
             return None
 
 

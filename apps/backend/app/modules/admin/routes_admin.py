@@ -881,7 +881,7 @@ def _career_to_client(c: Career, session: Session) -> dict:
 
     # Use English data (title_en, short_desc_en)
     title = c.title_en or c.title_vi or c.slug.replace("-", " ").title()
-    description = c.short_desc_en or c.short_desc_vn or ""
+    description = c.short_desc_en or c.short_desc_vi or ""
 
     return {
         "id": str(c.id),
@@ -1140,7 +1140,7 @@ def create_skill(request: Request, payload: dict):
                 onet_code="GENERIC",
                 title_vi="Kỹ năng chung",
                 title_en="Generic Skills",
-                short_desc_vn="Nhóm kỹ năng tổng quát",
+                short_desc_vi="Nhóm kỹ năng tổng quát",
                 short_desc_en="Generic skill bucket",
             )
             session.add(c)

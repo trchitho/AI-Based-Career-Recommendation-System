@@ -3,8 +3,13 @@ FastAPI routes for AI Mock Interview feature
 """
 
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
+import time
+from functools import lru_cache
+import json
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from ...core.auth_deps import get_current_user_from_token
@@ -15,6 +20,8 @@ from .schemas import (
     InterviewFeedbackRequest,
     InterviewHistoryResponse,
     InterviewStats,
+    JDManualRequest,
+    JDResponse,
     JobInfo,
     SkillContext,
     StartInterviewRequest,
@@ -24,6 +31,8 @@ from .schemas import (
     UserInterviewsResponse,
 )
 from .services import InterviewService
+from .ai_pipeline_service import AIPipelineService
+from .jd_service import JDService
 
 router = APIRouter()
 _executor = ThreadPoolExecutor(max_workers=4)
@@ -33,41 +42,400 @@ def get_interview_service(db: Session = Depends(get_db)) -> InterviewService:
     return InterviewService(db)
 
 
+def get_ai_pipeline_service(db: Session = Depends(get_db)) -> AIPipelineService:
+    return AIPipelineService(db)
+
+
+def get_jd_service(db: Session = Depends(get_db)) -> JDService:
+    return JDService(db)
+
+
+def _get_skills_info_for_question(session: InterviewSession, question_type: str, question_number: int = 1, db=None) -> dict:
+    """Helper function để lấy thông tin skills cho câu hỏi - sử dụng logic chính xác từ services"""
+    if not session or not session.skills_context:
+        return {"skills_tested": [], "skills_type": None, "skills_details": []}
+    
+    # Sử dụng logic selection chính xác như trong services
+    def is_hard_skill_safe(skill):
+        is_hard = skill.get("is_hard_skill", False)
+        if isinstance(is_hard, bool):
+            return is_hard
+        if isinstance(is_hard, str):
+            return is_hard.lower() in ['true', 'yes', '1']
+        if isinstance(is_hard, (int, float)):
+            return bool(is_hard)
+        return False
+    
+    def safe_importance(skill):
+        importance = skill.get("importance")
+        if importance is None:
+            return 0
+        try:
+            value = float(importance)
+            if value == float('inf') or value == float('-inf') or value != value:  # NaN check
+                return 0
+            return value
+        except (ValueError, TypeError):
+            return 0
+    
+    skills_context = session.skills_context
+    soft_skills = [s for s in skills_context if not is_hard_skill_safe(s)]
+    # technical dùng career hard skills (không phải JD), jd_specific dùng JD skills riêng
+    hard_skills = [s for s in skills_context if is_hard_skill_safe(s) and s.get("source") != "jd"]
+    
+    # Sort theo importance DESC
+    soft_skills.sort(key=safe_importance, reverse=True)
+    hard_skills.sort(key=safe_importance, reverse=True)
+    
+    selected_skills = []
+    skills_type = None
+    
+    if question_type == "technical":
+        # Technical: 1 kỹ năng chuyên ngành cho mỗi câu hỏi
+        # Đếm số câu technical đã hỏi từ DB nếu có, fallback heuristic
+        if db is not None:
+            technical_index = db.query(InterviewMessage).filter(
+                InterviewMessage.session_id == session.id,
+                InterviewMessage.role == "interviewer",
+                InterviewMessage.question_type == "technical"
+            ).count()
+        else:
+            # Fallback heuristic khi không có DB
+            technical_index = 0 if question_number <= 2 else 1
+        
+        if technical_index < len(hard_skills):
+            selected_skills = [hard_skills[technical_index]]
+        else:
+            selected_skills = [hard_skills[technical_index % len(hard_skills)]] if hard_skills else []
+        skills_type = "hard"
+        
+    elif question_type == "behavioral":
+        if soft_skills:
+            if db is not None:
+                behavioral_index = db.query(InterviewMessage).filter(
+                    InterviewMessage.session_id == session.id,
+                    InterviewMessage.role == "interviewer",
+                    InterviewMessage.question_type == "behavioral"
+                ).count()
+            else:
+                behavioral_index = 0
+            selected_skills = [soft_skills[behavioral_index % len(soft_skills)]]
+        else:
+            selected_skills = []
+        skills_type = "soft"
+        
+    elif question_type == "situational":
+        if soft_skills:
+            if db is not None:
+                situational_index = db.query(InterviewMessage).filter(
+                    InterviewMessage.session_id == session.id,
+                    InterviewMessage.role == "interviewer",
+                    InterviewMessage.question_type == "situational"
+                ).count()
+            else:
+                situational_index = 0
+            offset = 1 if len(soft_skills) >= 2 else 0
+            idx = (situational_index + offset) % len(soft_skills)
+            selected_skills = [soft_skills[idx]]
+        else:
+            selected_skills = []
+        skills_type = "soft"
+        
+    elif question_type == "jd_specific":
+        jd_skills = [s for s in skills_context if s.get("source") == "jd"]
+        jd_skills.sort(key=safe_importance, reverse=True)
+        if not jd_skills:
+            selected_skills = []
+        else:
+            # Đếm số câu jd_specific đã hỏi từ DB nếu có
+            if db is not None:
+                jd_index = db.query(InterviewMessage).filter(
+                    InterviewMessage.session_id == session.id,
+                    InterviewMessage.role == "interviewer",
+                    InterviewMessage.question_type == "jd_specific"
+                ).count()
+            else:
+                jd_index = 0
+            idx = jd_index % len(jd_skills)
+            selected_skills = [jd_skills[idx]]
+        skills_type = "mixed"  # JD có thể có cả soft và hard skills
+        
+    elif question_type == "closing":
+        # Closing questions don't test any skills
+        selected_skills = []
+        skills_type = None
+        
+    else:  # warm_up
+        selected_skills = (soft_skills[:1] if soft_skills else hard_skills[:1])  # 1 skill only
+        skills_type = "mixed"
+    
+    skills_tested = [s.get("skill_name", "") for s in selected_skills if s.get("skill_name")]
+    
+    return {
+        "skills_tested": skills_tested,
+        "skills_type": skills_type,
+        "skills_details": selected_skills
+    }
+
+
+@router.post("/jd/manual", response_model=JDResponse)
+async def submit_jd_manual(
+    request: JDManualRequest,
+    current_user: User = Depends(get_current_user_from_token),
+    jd_service: JDService = Depends(get_jd_service),
+):
+    """Nhập JD thủ công (text)"""
+    try:
+        jd, jd_questions_count = jd_service.save_jd(current_user.id, request.career_id, request.content, "manual")
+        
+        # Build skills_context: soft skills từ nghề + hard skills từ JD
+        skills_context = []
+        if request.career_id:
+            try:
+                # Get career context để lấy soft skills
+                from .ai_pipeline_service import AIPipelineService
+                ai_service = AIPipelineService(jd_service.db)
+                career_context = ai_service._get_career_context(request.career_id)
+                
+                if career_context:
+                    # Lấy soft skills từ nghề (cho behavioral/situational)
+                    soft_skills = [s for s in career_context.get('skills', []) if not s.get('is_hard_skill', False)]
+                    skills_context.extend(soft_skills)
+                    
+                    # Build JD skills từ extracted_data (thay thế hard skills)
+                    from .context_builder import build_interview_context
+                    merged_context = build_interview_context(career_context, jd.extracted_data)
+                    jd_skills = [s for s in merged_context.get('skills', []) if s.get('source') == 'jd']
+                    skills_context.extend(jd_skills)
+                else:
+                    print(f"⚠️ Career context not found for career_id: {request.career_id}")
+                    
+            except Exception as e:
+                print(f"⚠️ Failed to build skills_context for JD manual: {e}")
+        else:
+            # Fallback: Chỉ có JD skills khi không có career_id
+            print("⚠️ No career_id provided, skills_context will only contain JD skills")
+            try:
+                from .context_builder import build_interview_context
+                # Tạo empty career context
+                empty_career_context = {"onet_code": "", "title": "Unknown Job", "skills": []}
+                merged_context = build_interview_context(empty_career_context, jd.extracted_data)
+                jd_skills = [s for s in merged_context.get('skills', []) if s.get('source') == 'jd']
+                skills_context.extend(jd_skills)
+            except Exception as e:
+                print(f"⚠️ Failed to build JD-only skills_context: {e}")
+        
+        # CRITICAL FIX: Persist skills_context vào jd.extracted_data để start_interview có thể đọc
+        if skills_context:
+            try:
+                updated_extracted = dict(jd.extracted_data or {})
+                updated_extracted["skills_context"] = skills_context
+                jd.extracted_data = updated_extracted
+                jd_service.db.commit()
+                print(f"✅ Persisted {len(skills_context)} skills_context to JD {jd.id}")
+            except Exception as e:
+                print(f"⚠️ Failed to persist skills_context: {e}")
+        
+        return JDResponse(
+            jd_id=jd.id,
+            career_id=jd.career_id,
+            extracted_data=jd.extracted_data or {},
+            jd_questions_count=jd_questions_count,
+            source=jd.source,
+            created_at=jd.created_at,
+            skills_context=skills_context
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/jd/upload", response_model=JDResponse)
+async def upload_jd_file(
+    file: UploadFile = File(...),
+    career_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user_from_token),
+    jd_service: JDService = Depends(get_jd_service),
+):
+    """Upload file JD (PDF hoặc DOCX)"""
+    try:
+        content = await file.read()
+        filename = file.filename or ""
+
+        if filename.lower().endswith(".pdf"):
+            raw_text = jd_service.extract_pdf_text(content)
+            source = "pdf"
+        elif filename.lower().endswith((".docx", ".doc")):
+            raw_text = jd_service.extract_docx_text(content)
+            source = "docx"
+        else:
+            raise HTTPException(status_code=400, detail="Chỉ hỗ trợ file PDF hoặc DOCX")
+
+        if not raw_text.strip():
+            raise HTTPException(status_code=400, detail="Không thể đọc nội dung file")
+
+        jd, jd_questions_count = jd_service.save_jd(current_user.id, career_id, raw_text, source)
+        
+        # Build skills_context: soft skills từ nghề + hard skills từ JD
+        skills_context = []
+        if career_id:
+            try:
+                # Get career context để lấy soft skills
+                from .ai_pipeline_service import AIPipelineService
+                ai_service = AIPipelineService(jd_service.db)
+                career_context = ai_service._get_career_context(career_id)
+                
+                if career_context:
+                    # Lấy soft skills từ nghề (cho behavioral/situational)
+                    soft_skills = [s for s in career_context.get('skills', []) if not s.get('is_hard_skill', False)]
+                    skills_context.extend(soft_skills)
+                    
+                    # Build JD skills từ extracted_data (thay thế hard skills)
+                    from .context_builder import build_interview_context
+                    merged_context = build_interview_context(career_context, jd.extracted_data)
+                    jd_skills = [s for s in merged_context.get('skills', []) if s.get('source') == 'jd']
+                    skills_context.extend(jd_skills)
+                else:
+                    print(f"⚠️ Career context not found for career_id: {career_id}")
+                    
+            except Exception as e:
+                print(f"⚠️ Failed to build skills_context for JD upload: {e}")
+        else:
+            # Fallback: Chỉ có JD skills khi không có career_id
+            print("⚠️ No career_id provided, skills_context will only contain JD skills")
+            try:
+                from .context_builder import build_interview_context
+                # Tạo empty career context
+                empty_career_context = {"onet_code": "", "title": "Unknown Job", "skills": []}
+                merged_context = build_interview_context(empty_career_context, jd.extracted_data)
+                jd_skills = [s for s in merged_context.get('skills', []) if s.get('source') == 'jd']
+                skills_context.extend(jd_skills)
+            except Exception as e:
+                print(f"⚠️ Failed to build JD-only skills_context: {e}")
+        
+        # CRITICAL FIX: Persist skills_context vào jd.extracted_data để start_interview có thể đọc
+        if skills_context:
+            try:
+                updated_extracted = dict(jd.extracted_data or {})
+                updated_extracted["skills_context"] = skills_context
+                jd.extracted_data = updated_extracted
+                jd_service.db.commit()
+                print(f"✅ Persisted {len(skills_context)} skills_context to JD {jd.id}")
+            except Exception as e:
+                print(f"⚠️ Failed to persist skills_context: {e}")
+        
+        return JDResponse(
+            jd_id=jd.id,
+            career_id=jd.career_id,
+            extracted_data=jd.extracted_data or {},
+            jd_questions_count=jd_questions_count,
+            source=jd.source,
+            created_at=jd.created_at,
+            skills_context=skills_context
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/start", response_model=StartInterviewResponse)
 async def start_interview(
     request: StartInterviewRequest,
     current_user: User = Depends(get_current_user_from_token),
-    service: InterviewService = Depends(get_interview_service),
+    ai_service: AIPipelineService = Depends(get_ai_pipeline_service),
 ):
     """
-    Bắt đầu phiên phỏng vấn AI mới
+    Bắt đầu phiên phỏng vấn AI mới với Pipeline mới
 
     - **job_id**: O*NET code của nghề nghiệp (VD: "15-1252.00")
     - **question_count**: Số lượng câu hỏi (5, 7, 8, 10, 12)
     - Trả về session_id, lời chào và câu hỏi đầu tiên
     """
     try:
-        session = service.start_interview(current_user.id, request.job_id, request.question_count)
-
-        # Lấy messages đầu tiên (greeting + first question)
-        messages = (
-            service.db.query(InterviewMessage)
-            .filter(InterviewMessage.session_id == session.id)
-            .order_by(InterviewMessage.timestamp)
-            .all()
+        print(f"🔧 Starting interview: job_id={request.job_id}, question_count={request.question_count}, jd_id={request.jd_id}, level_slug={request.level_slug}")
+        
+        # IDEMPOTENCY CHECK: Prevent duplicate sessions within 30 seconds
+        # Filter theo đúng job_id + jd_id + level_slug để tránh trả về session sai
+        from datetime import datetime, timedelta
+        recent_cutoff = datetime.utcnow() - timedelta(seconds=30)
+        
+        # Build market_context filter để match đúng session
+        existing_session = (
+            ai_service.db.query(InterviewSession)
+            .filter(
+                InterviewSession.user_id == current_user.id,
+                InterviewSession.job_id == request.job_id,
+                InterviewSession.status == "active",
+                InterviewSession.started_at >= recent_cutoff
+            )
+            .order_by(InterviewSession.started_at.desc())
+            .first()
         )
-
-        greeting = messages[0].content if len(messages) > 0 else "Xin chào!"
-        first_question = messages[1].content if len(messages) > 1 else "Hãy giới thiệu về bản thân."
-
+        
+        # Validate: session phải match đúng jd_id và level_slug
+        if existing_session:
+            mc = existing_session.market_context or {}
+            session_jd_count = mc.get("jd_questions_count", 0)
+            session_level = mc.get("effective_level", "junior")
+            
+            # Nếu request có jd_id nhưng session không có JD (hoặc ngược lại) -> tạo mới
+            request_has_jd = request.jd_id is not None
+            session_has_jd = mc.get("has_jd", False)
+            
+            # Nếu request có level khác session -> tạo mới
+            request_level = (request.level_slug or "junior").lower()
+            
+            if request_has_jd != session_has_jd or request_level != session_level:
+                print(f"🔄 Parameters changed (jd:{request_has_jd}!={session_has_jd} or level:{request_level}!={session_level}), creating new session")
+                existing_session = None
+        
+        if existing_session:
+            print(f"🔄 Returning existing session: session_id={existing_session.id} (started {existing_session.started_at})")
+            
+            # Get first question from existing session
+            first_question_msg = (
+                ai_service.db.query(InterviewMessage)
+                .filter(
+                    InterviewMessage.session_id == existing_session.id,
+                    InterviewMessage.role == "interviewer",
+                    InterviewMessage.question_type != "greeting"
+                )
+                .order_by(InterviewMessage.timestamp.asc())
+                .first()
+            )
+            
+            greeting_msg = (
+                ai_service.db.query(InterviewMessage)
+                .filter(
+                    InterviewMessage.session_id == existing_session.id,
+                    InterviewMessage.role == "interviewer",
+                    InterviewMessage.question_type == "greeting"
+                )
+                .first()
+            )
+            
+            return StartInterviewResponse(
+                session_id=existing_session.id,
+                job_title=existing_session.job_title,
+                greeting=greeting_msg.content if greeting_msg else "Xin chào! Chào mừng bạn đến với buổi phỏng vấn.",
+                first_question=first_question_msg.content if first_question_msg else "Hãy giới thiệu về bản thân bạn.",
+                skills_context=existing_session.skills_context or [],
+                question_count=existing_session.question_count or request.question_count,
+                question_distribution=existing_session.question_distribution or {},
+            )
+        
+        # CRITICAL FIX: Chỉ sử dụng AI Pipeline Service, không có fallback để tránh double initialization
+        result = await ai_service.start_interview(current_user.id, request.job_id, request.question_count, request.jd_id, request.level_slug)
+        print(f"🔧 Interview started successfully: session_id={result['session_id']}, question_count={result['question_count']}")
+        
         return StartInterviewResponse(
-            session_id=session.id,
-            job_title=session.job_title,
-            greeting=greeting,
-            first_question=first_question,
-            skills_context=session.skills_context or [],
-            question_count=session.question_count,
-            question_distribution=session.question_distribution or {},
+            session_id=result["session_id"],
+            job_title=result["job_title"],
+            greeting=result["greeting"],
+            first_question=result["first_question"],
+            skills_context=result.get("skills_context", []),
+            question_count=result["question_count"],
+            question_distribution=result.get("question_distribution", {}),
         )
 
     except ValueError as e:
@@ -80,10 +448,10 @@ async def start_interview(
 async def submit_answer(
     request: SubmitAnswerRequest,
     current_user: User = Depends(get_current_user_from_token),
-    service: InterviewService = Depends(get_interview_service),
+    ai_service: AIPipelineService = Depends(get_ai_pipeline_service),
 ):
     """
-    Gửi câu trả lời và nhận câu hỏi tiếp theo hoặc kết quả cuối
+    Gửi câu trả lời và nhận câu hỏi tiếp theo hoặc kết quả cuối với Pipeline mới
 
     - **session_id**: ID của phiên phỏng vấn
     - **answer**: Câu trả lời của ứng viên (tối thiểu 10 ký tự)
@@ -93,7 +461,7 @@ async def submit_answer(
     try:
         # Kiểm tra quyền truy cập session
         session = (
-            service.db.query(InterviewSession)
+            ai_service.db.query(InterviewSession)
             .filter(InterviewSession.id == request.session_id, InterviewSession.user_id == current_user.id)
             .first()
         )
@@ -101,7 +469,8 @@ async def submit_answer(
         if not session:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bạn không có quyền truy cập phiên phỏng vấn này")
 
-        result = service.submit_answer(
+        # CRITICAL FIX: Chỉ sử dụng AI Pipeline Service, không có fallback
+        result = await ai_service.submit_answer(
             request.session_id, request.answer, request.has_audio, request.audio_duration, request.is_skipped
         )
 
@@ -127,13 +496,49 @@ async def submit_answer(
                 skip_count=result["skip_count"]
             )
         elif result["status"] == "continue":
-            return SubmitAnswerResponse(
-                status="continue",
-                evaluation=result.get("evaluation"),
-                next_question=result["question"],
-                question_number=result["question_number"],
-                question_type=result["question_type"],
-            )
+            # Skills info đã được tính đúng trong ai_pipeline_service (trước khi commit)
+            # Dùng trực tiếp từ result thay vì tính lại để tránh off-by-one với DB count
+            skills_tested = result.get("skills_tested", [])
+            skills_details = result.get("skills_details", [])
+            
+            # Xác định skills_type từ skills_details
+            if skills_details:
+                has_hard = any(s.get("is_hard_skill") for s in skills_details)
+                has_soft = any(not s.get("is_hard_skill") for s in skills_details)
+                if has_hard and has_soft:
+                    skills_type = "mixed"
+                elif has_hard:
+                    skills_type = "hard"
+                else:
+                    skills_type = "soft"
+            else:
+                skills_type = None
+            
+            # For closing questions, include empty skills fields for consistent response structure
+            if result.get("question_type") == "closing":
+                return SubmitAnswerResponse(
+                    status="continue",
+                    evaluation=result.get("evaluation"),
+                    next_question=result["next_question"],
+                    question_number=result["question_number"],
+                    question_type=result["question_type"],
+                    hr_acknowledgment=result.get("hr_acknowledgment"),
+                    skills_tested=[],
+                    skills_type=None,
+                    skills_details=[]
+                )
+            else:
+                return SubmitAnswerResponse(
+                    status="continue",
+                    evaluation=result.get("evaluation"),
+                    next_question=result["next_question"],
+                    question_number=result["question_number"],
+                    question_type=result["question_type"],
+                    hr_acknowledgment=result.get("hr_acknowledgment"),
+                    skills_tested=skills_tested,
+                    skills_type=skills_type,
+                    skills_details=skills_details
+                )
         else:
             return SubmitAnswerResponse(status="completed", evaluation=result.get("evaluation"), final_summary=result["summary"])
 
@@ -168,12 +573,23 @@ async def force_skip_question(
         result = service.force_skip_question(session_id)
 
         if result["status"] == "continue":
+            skills_tested = result.get("skills_tested", [])
+            skills_details = result.get("skills_details", [])
+            if skills_details:
+                has_hard = any(s.get("is_hard_skill") for s in skills_details)
+                has_soft = any(not s.get("is_hard_skill") for s in skills_details)
+                skills_type = "mixed" if (has_hard and has_soft) else ("hard" if has_hard else "soft")
+            else:
+                skills_type = None
             return SubmitAnswerResponse(
                 status="continue",
                 evaluation=result.get("evaluation"),
                 next_question=result["question"],
                 question_number=result["question_number"],
                 question_type=result["question_type"],
+                skills_tested=skills_tested,
+                skills_type=skills_type,
+                skills_details=skills_details,
             )
         else:
             return SubmitAnswerResponse(status="completed", evaluation=result.get("evaluation"), final_summary=result["summary"])
@@ -216,20 +632,56 @@ async def get_interview_history(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Lỗi khi lấy lịch sử phỏng vấn: {str(e)}")
 
 
-@router.get("/my-interviews", response_model=UserInterviewsResponse)
-async def get_my_interviews(
-    limit: int = 10,
+@router.post("/abandon/{session_id}")
+async def abandon_interview(
+    session_id: int,
     current_user: User = Depends(get_current_user_from_token),
     service: InterviewService = Depends(get_interview_service),
 ):
     """
-    Lấy danh sách phỏng vấn của user hiện tại
-
-    - **limit**: Số lượng phỏng vấn tối đa trả về (mặc định 10)
+    Hủy buổi phỏng vấn đang diễn ra
     """
     try:
-        interviews = service.get_user_interviews(current_user.id, limit)
-        return UserInterviewsResponse(interviews=interviews, total=len(interviews))
+        success = service.abandon_interview(session_id, current_user.id)
+        if success:
+            return {"message": "Buổi phỏng vấn đã được hủy thành công"}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Không tìm thấy buổi phỏng vấn hoặc bạn không có quyền hủy"
+            )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi khi hủy phỏng vấn: {str(e)}"
+        )
+
+
+@router.get("/my-interviews", response_model=UserInterviewsResponse)
+async def get_my_interviews(
+    limit: int = 20,
+    offset: int = 0,
+    current_user: User = Depends(get_current_user_from_token),
+    service: InterviewService = Depends(get_interview_service),
+):
+    """
+    Lấy danh sách phỏng vấn của user hiện tại với pagination
+
+    - **limit**: Số lượng phỏng vấn tối đa trả về (mặc định 20, tối đa 20)
+    - **offset**: Vị trí bắt đầu (mặc định 0)
+    """
+    try:
+        # Limit maximum to 20 items per page
+        limit = min(limit, 20)
+        
+        result = service.get_user_interviews(current_user.id, limit, offset)
+        return UserInterviewsResponse(
+            interviews=result["interviews"], 
+            total=result["total"],
+            limit=result["limit"],
+            offset=result["offset"],
+            has_more=result["has_more"]
+        )
 
     except Exception as e:
         raise HTTPException(
@@ -363,7 +815,7 @@ async def search_jobs(
                         MATCH (j:Job)
                         WHERE toLower(j.title) CONTAINS toLower($query)
                         RETURN j.id as id, j.title as title, 
-                               COALESCE(j.description, 'Tìm hiểu về nghề ' + j.title + ' và các cơ hội phát triển sự nghiệp.') as description_vi
+                               'Tìm hiểu về nghề ' + j.title + ' và các cơ hội phát triển sự nghiệp.' as description_vi
                         ORDER BY j.title LIMIT $limit
                         """
                         result = session.run(search_query, {"query": query, "limit": limit})
@@ -395,27 +847,43 @@ async def get_job_info(job_id: str, service: InterviewService = Depends(get_inte
 
         # IMPLEMENT 4-STEP FLOW FOR SOFT SKILLS (same as start_interview)
         soft_skills_raw = []
+        soft_skills_source = None  # Track nguồn data để tính total đúng
 
         # Step 1: PostgreSQL work activities
         soft_skills_raw = service._get_skills_from_postgres(job_id, 5)
+        if soft_skills_raw:
+            soft_skills_source = "postgres_activities"
 
         if not soft_skills_raw:
             # Step 2: Neo4j (without fallback)
             try:
                 soft_skills_raw = service.neo4j.get_job_skills(job_id, 5, use_fallback=False)
+                if soft_skills_raw:
+                    soft_skills_source = "neo4j"
             except Exception:
                 soft_skills_raw = []
 
             if not soft_skills_raw:
                 # Step 3: PostgreSQL career_ksas (abilities + knowledge)
                 soft_skills_raw = service._get_ksas_from_postgres(job_id, 5)
+                if soft_skills_raw:
+                    soft_skills_source = "postgres_ksas"
 
                 if not soft_skills_raw:
                     # Step 4: Fallback
                     try:
                         soft_skills_raw = service.neo4j._get_fallback_skills(job_id, 5)
+                        if soft_skills_raw:
+                            soft_skills_source = "fallback"
                     except Exception:
                         soft_skills_raw = []
+
+        # Lấy tổng số soft skills dựa trên nguồn data thực tế
+        if soft_skills_source in ["postgres_activities", "postgres_ksas"]:
+            soft_skills_total = service._get_soft_skills_total_count(job_id)
+        else:
+            # Nếu dùng fallback hoặc Neo4j, total = số skills hiện tại
+            soft_skills_total = len(soft_skills_raw)
 
         hard_skills_top5 = hard_result[0] if isinstance(hard_result, tuple) else []
         all_hard_tasks = hard_result[1] if isinstance(hard_result, tuple) else []
@@ -434,7 +902,7 @@ async def get_job_info(job_id: str, service: InterviewService = Depends(get_inte
         hard_skills = [
             SkillContext(
                 skill_name=str(s.get("skill_name", "")),
-                skill_type="Kỹ năng chuyên ngành",
+                skill_type=str(s.get("skill_type", "Kỹ năng chuyên ngành")),
                 importance=float(s.get("importance", 0) or 0),
                 level=float(s.get("level", 0) or 0),
                 is_hard_skill=True,
@@ -448,6 +916,7 @@ async def get_job_info(job_id: str, service: InterviewService = Depends(get_inte
             soft_skills=soft_skills,
             hard_skills=hard_skills,
             hard_skills_total=len(all_hard_tasks),
+            soft_skills_total=soft_skills_total,
         )
     except HTTPException:
         raise
@@ -462,10 +931,10 @@ async def get_more_hard_skills(job_id: str, limit: int = 10, service: InterviewS
         from sqlalchemy import text
 
         sql = """
-            SELECT task_en, task_vi, importance, task_type
+            SELECT task_en, task_vi, importance, task_type, incumbents_responding, task_id
             FROM core.career_tasks
             WHERE onet_code = :onet_code
-            ORDER BY importance DESC
+            ORDER BY importance DESC, incumbents_responding DESC, task_id ASC
             LIMIT :limit
         """
         rows = service.db.execute(text(sql), {"onet_code": job_id, "limit": limit}).fetchall()
@@ -527,10 +996,10 @@ async def get_all_job_skills(job_id: str, service: InterviewService = Depends(ge
             from sqlalchemy import text as text2
 
             sql2 = """
-                SELECT task_id, task_en, task_vi, importance, task_type
+                SELECT task_id, task_en, task_vi, importance, task_type, incumbents_responding
                 FROM core.career_tasks
                 WHERE onet_code = :onet_code
-                ORDER BY importance DESC
+                ORDER BY importance DESC, incumbents_responding DESC, task_id ASC
             """
             rows2 = service.db.execute(text2(sql2), {"onet_code": job_id}).fetchall()
             hard_skills = [
@@ -607,8 +1076,11 @@ async def get_interview_stats(
 
 
 @router.get("/health")
-async def health_check(service: InterviewService = Depends(get_interview_service)):
-    """Health check endpoint for interview service"""
+async def health_check(
+    service: InterviewService = Depends(get_interview_service),
+    ai_service: AIPipelineService = Depends(get_ai_pipeline_service)
+):
+    """Health check endpoint for interview service with AI Pipeline status"""
     try:
         # Test PostgreSQL connection
         from sqlalchemy import text
@@ -639,7 +1111,241 @@ async def health_check(service: InterviewService = Depends(get_interview_service
     except Exception as e:
         gemini_status = f"error: {str(e)}"
 
-    return {"status": "ok", "services": {"postgres": postgres_status, "neo4j": neo4j_status, "interview_gemini": gemini_status}}
+    # Test AI Pipeline status
+    pipeline_status = ai_service.get_pipeline_status()
+
+    return {
+        "status": "ok", 
+        "services": {
+            "postgres": postgres_status, 
+            "neo4j": neo4j_status, 
+            "interview_gemini": gemini_status
+        },
+        "ai_pipeline": pipeline_status
+    }
+
+
+# Simple in-memory cache for career levels
+_career_levels_cache = {}
+_cache_ttl = {}
+
+def _get_cached_levels(job_id: str):
+    """Get cached career levels if still valid"""
+    if job_id in _career_levels_cache:
+        if time.time() - _cache_ttl.get(job_id, 0) < 3600:  # 1 hour TTL
+            return _career_levels_cache[job_id]
+        else:
+            # Expired, remove from cache
+            _career_levels_cache.pop(job_id, None)
+            _cache_ttl.pop(job_id, None)
+    return None
+
+def _set_cached_levels(job_id: str, data):
+    """Cache career levels data"""
+    _career_levels_cache[job_id] = data
+    _cache_ttl[job_id] = time.time()
+
+
+@router.get("/jobs/{job_id}/debug")
+async def debug_career_info(job_id: str, service: InterviewService = Depends(get_interview_service)):
+    """Debug endpoint để kiểm tra career info"""
+    try:
+        from sqlalchemy import text
+        
+        # Check career exists
+        career_query = text("""
+            SELECT c.id, c.title_vi, c.title_en, c.onet_code, c.slug
+            FROM core.careers c 
+            WHERE c.onet_code = :onet_code OR c.slug = :job_id 
+            LIMIT 1
+        """)
+        career_result = service.db.execute(career_query, {"onet_code": job_id, "job_id": job_id}).fetchone()
+        
+        if not career_result:
+            return {"error": f"Career not found for {job_id}"}
+        
+        # Check mappings
+        mapping_query = text("""
+            SELECT cgm.career_id, cgm.group_id, cg.name as group_name
+            FROM core.career_group_mapping cgm
+            JOIN core.career_groups cg ON cgm.group_id = cg.id
+            WHERE cgm.career_id = :career_id
+        """)
+        mapping_result = service.db.execute(mapping_query, {"career_id": career_result.id}).fetchall()
+        
+        # Check levels
+        levels_query = text("""
+            SELECT cgl.id, cgl.level_name_vi, cgl.level_slug, cgl.level_order, cg.name as group_name
+            FROM core.career_group_levels cgl
+            JOIN core.career_groups cg ON cgl.group_id = cg.id
+            JOIN core.career_group_mapping cgm ON cg.id = cgm.group_id
+            WHERE cgm.career_id = :career_id
+            ORDER BY cgl.level_order
+        """)
+        levels_result = service.db.execute(levels_query, {"career_id": career_result.id}).fetchall()
+        
+        return {
+            "career": {
+                "id": career_result.id,
+                "title_vi": career_result.title_vi,
+                "title_en": career_result.title_en,
+                "onet_code": career_result.onet_code,
+                "slug": career_result.slug
+            },
+            "mappings": [{"career_id": r.career_id, "group_id": r.group_id, "group_name": r.group_name} for r in mapping_result],
+            "levels": [{"id": r.id, "name": r.level_name_vi, "slug": r.level_slug, "order": r.level_order, "group": r.group_name} for r in levels_result],
+            "cache_status": {
+                "cached": job_id in _career_levels_cache,
+                "cache_size": len(_career_levels_cache)
+            }
+        }
+        
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.get("/jobs/{job_id}/levels")
+async def get_career_levels(job_id: str, service: InterviewService = Depends(get_interview_service)):
+    """Lấy danh sách levels cho một career dựa trên ONET code với caching"""
+    
+    # Check cache first
+    cached_result = _get_cached_levels(job_id)
+    if cached_result:
+        print(f"✅ Cache hit for career levels: {job_id}")
+        return cached_result  # Return directly, no need for JSONResponse wrapper
+    
+    start_time = time.time()
+    print(f"🔍 Loading career levels for: {job_id}")
+    
+    try:
+        from sqlalchemy import text
+        
+        # Tối ưu query với explicit joins và limit
+        query = text("""
+            SELECT DISTINCT
+                cgl.id,
+                cgl.level_name_vi as name,
+                cgl.level_slug as slug,
+                cgl.description_vi as description,
+                cgl.level_order as seniority_level,
+                cg.name as group_name,
+                cg.slug as group_slug
+            FROM core.careers c
+            INNER JOIN core.career_group_mapping cgm ON c.id = cgm.career_id
+            INNER JOIN core.career_groups cg ON cgm.group_id = cg.id
+            INNER JOIN core.career_group_levels cgl ON cg.id = cgl.group_id
+            WHERE (c.onet_code = :onet_code OR c.slug = :job_id)
+            ORDER BY cgl.level_order ASC
+            LIMIT 20
+        """)
+        
+        result = service.db.execute(query, {"onet_code": job_id, "job_id": job_id}).fetchall()
+        
+        if not result:
+            print(f"⚠️ No levels found for {job_id}, using defaults")
+            # Fallback: try to find career first, then get default levels
+            career_query = text("""
+                SELECT c.id, c.title_vi, c.title_en, c.onet_code 
+                FROM core.careers c 
+                WHERE c.onet_code = :onet_code OR c.slug = :job_id 
+                LIMIT 1
+            """)
+            career_result = service.db.execute(career_query, {"onet_code": job_id, "job_id": job_id}).fetchone()
+            
+            if not career_result:
+                raise HTTPException(status_code=404, detail=f"Không tìm thấy nghề nghiệp với ID: {job_id}")
+            
+            # Return default levels if no specific mapping exists
+            default_levels = [
+                {"id": 1, "name": "Fresher", "slug": "fresher", "description": "Mới ra trường, 0-1 năm kinh nghiệm", "seniority_level": 1},
+                {"id": 2, "name": "Junior", "slug": "junior", "description": "1-3 năm kinh nghiệm", "seniority_level": 2},
+                {"id": 3, "name": "Middle", "slug": "middle", "description": "3-5 năm kinh nghiệm", "seniority_level": 3},
+                {"id": 4, "name": "Senior", "slug": "senior", "description": "5+ năm kinh nghiệm", "seniority_level": 4},
+                {"id": 5, "name": "Lead", "slug": "lead", "description": "Vị trí lãnh đạo, 7+ năm kinh nghiệm", "seniority_level": 5}
+            ]
+            
+            response_data = {
+                "job_id": job_id,
+                "group": {"name": "General", "slug": "general"},
+                "levels": default_levels,
+                "total": len(default_levels),
+                "is_default": True
+            }
+            
+            # Cache default levels
+            _set_cached_levels(job_id, response_data)
+            
+            elapsed = time.time() - start_time
+            print(f"✅ Career levels (default) for {job_id}: {elapsed:.3f}s")
+            
+            return response_data
+        
+        levels = []
+        group_info = None
+        
+        for row in result:
+            if not group_info:
+                group_info = {
+                    "name": row.group_name,
+                    "slug": row.group_slug
+                }
+            
+            # Fix encoding issues
+            name = row.name
+            description = row.description or ""
+            
+            # Try to fix double-encoded UTF-8
+            try:
+                if isinstance(name, str):
+                    # If it's already properly decoded, keep it
+                    if 'Ã' in name or 'á»' in name:
+                        # This looks like double-encoded UTF-8, try to fix
+                        name = name.encode('latin1').decode('utf-8')
+                if isinstance(description, str):
+                    if 'Ã' in description or 'á»' in description:
+                        description = description.encode('latin1').decode('utf-8')
+            except (UnicodeDecodeError, UnicodeEncodeError):
+                # If fixing fails, keep original
+                pass
+            
+            levels.append({
+                "id": row.id,
+                "name": name,
+                "slug": row.slug,
+                "description": description,
+                "seniority_level": row.seniority_level
+            })
+        
+        # Fix group name encoding too
+        group_name = group_info["name"] if group_info else ""
+        try:
+            if isinstance(group_name, str) and ('Ã' in group_name or 'á»' in group_name):
+                group_info["name"] = group_name.encode('latin1').decode('utf-8')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            pass
+        
+        response_data = {
+            "job_id": job_id,
+            "group": group_info,
+            "levels": levels,
+            "total": len(levels),
+            "is_default": False
+        }
+        
+        # Cache the result
+        _set_cached_levels(job_id, response_data)
+        
+        elapsed = time.time() - start_time
+        print(f"✅ Career levels for {job_id}: {elapsed:.3f}s, {len(levels)} levels")
+        
+        return response_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        elapsed = time.time() - start_time
+        print(f"❌ Error in get_career_levels ({elapsed:.3f}s): {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi khi lấy career levels: {str(e)}")
 
 
 # Import models để tránh circular import
