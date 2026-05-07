@@ -198,8 +198,12 @@ git --version
 ```bash
 cd AI-Based-Career-Recommendation-System
 
-# Dừng và xóa tất cả containers cũ (bao gồm cả Redis và Neo4j)
-docker compose down -v
+# Dừng và xóa các containers cũ, nhưng GIỮ nguyên volumes để không mất dữ liệu
+docker compose down
+
+# CẢNH BÁO: Lệnh dưới đây sẽ xóa toàn bộ Docker volumes và làm mất dữ liệu
+# PostgreSQL / Redis / Neo4j. Chỉ chạy khi bạn muốn reset dữ liệu từ đầu.
+# docker compose down -v
 
 # Khởi động lại tất cả 3 services: PostgreSQL, Redis, Neo4j
 docker compose --env-file apps/backend/.env up -d
