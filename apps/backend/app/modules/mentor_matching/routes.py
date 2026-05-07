@@ -122,48 +122,16 @@ def find_mentors(
     db: Session = Depends(get_db),
 ):
     """
-    Tim mentor phu hop: ket hop Neo4j graph traversal + PostgreSQL matching.
-    - Neo4j: Skill overlap qua HAS_SKILL / WANTS_SKILL graph paths
-    - PostgreSQL: Algorithm (Skill 50% + Career 30% + Personality 20%)
-    - Merge + dedup + sort by score
+    Tim mentor phu hop — full 5-signal pipeline:
+    1. Keyword Skill Match     (30%)
+    2. vi-SBERT Semantic Skill (20%)
+    3. Career Match            (20%)
+    4. Personality Cosine      (15%) — RIASEC + Big5
+    5. Neo4j GDS Graph         (15%) — Jaccard + Path Traversal + PageRank
     """
-    svc = MentorMatchingService(db)
-
-    # 1. PostgreSQL-based matching (existing)
-    pg_results = svc.find_mentors_for_mentee(current_user.id)
-
-    # 2. Neo4j-based matching (graph traversal) — enrich results
-    try:
-        neo4j_driver = _get_neo4j()
-        if neo4j_driver:
-            mentee = svc.get_mentee_profile(current_user.id)
-            if mentee:
-                graph_results = find_mentors_by_skill_overlap(
-                    neo4j_driver,
-                    desired_skills=mentee.desired_skills or [],
-                    target_career=mentee.target_career or "",
-                    limit=20,
-                )
-                # Map graph user_ids to existing results for score boost
-                graph_score_map = {
-                    r["user_id"]: r["score"]
-                    for r in graph_results if r.get("user_id")
-                }
-                for match in pg_results:
-                    graph_bonus = graph_score_map.get(match.user_id, 0)
-                    if graph_bonus > 0:
-                        # Boost PG score by up to 5% from graph confirmation
-                        match.compatibility_score = min(
-                            match.compatibility_score + graph_bonus * 0.05,
-                            99.9,
-                        )
-                # Re-sort after boost
-                pg_results.sort(key=lambda x: x.compatibility_score, reverse=True)
-                print(f"[mentor-matching] Graph boosted {len(graph_score_map)} results")
-    except Exception as e:
-        print(f"[mentor-matching] Neo4j boost skipped: {e}")
-
-    return pg_results
+    neo4j_driver = _get_neo4j()
+    svc = MentorMatchingService(db, neo4j_driver=neo4j_driver)
+    return svc.find_mentors_for_mentee(current_user.id)
 
 
 @router.post("/mentee/send-request", summary="Gửi yêu cầu mentorship")
@@ -394,3 +362,16 @@ def find_mentors_for_career(
 
     results.sort(key=lambda x: x.compatibility_score, reverse=True)
     return results[:limit]
+
+
+# ── Graph sync endpoint ───────────────────────────────────────────
+
+@router.post("/graph/sync-personality", summary="Dong bo RIASEC + Big5 len Neo4j Mentor/Mentee nodes")
+def sync_personality_to_graph(db: Session = Depends(get_db)):
+    """Dong bo diem RIASEC va Big5 tu PostgreSQL len Mentor/Mentee nodes trong Neo4j."""
+    neo4j_driver = _get_neo4j()
+    if not neo4j_driver:
+        raise HTTPException(503, "Neo4j not available")
+    from .graph_gds import sync_personality_to_graph as _sync
+    result = _sync(neo4j_driver, db)
+    return {"status": "ok", **result}

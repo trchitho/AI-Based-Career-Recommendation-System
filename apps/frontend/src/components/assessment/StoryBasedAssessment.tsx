@@ -510,7 +510,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               <div style={{
                 width: `${storyProgress}%`,
                 height: '100%',
-                background: 'linear-gradient(90deg, 16a34a 0%, 0d9488 100%)',
+                background: 'linear-gradient(90deg, #16a34a 0%, #0d9488 100%)',
                 transition: 'width 0.3s ease',
                 borderRadius: '10px'
               }}></div>
@@ -727,7 +727,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                           key={option.value}
                           className={`response-btn ${selected ? 'selected' : ''}`}
                           style={{
-                            borderColor: selected ? option.color : 'ddd',
+                            borderColor: selected ? option.color : '#ddd',
                             backgroundColor: selected ? `${option.color}15` : 'white',
                           }}
                           onClick={() => handleAnswer(String(question.id), option.value)}
@@ -796,7 +796,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                     padding: '0.9rem 1.5rem',
                     background: 'white',
                     color: '#0d9488',
-                    border: '2px solid 0d9488',
+                    border: '2px solid #0d9488',
                     borderRadius: '12px',
                     fontSize: '1rem',
                     fontWeight: '600',
@@ -816,7 +816,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                     onClick={startVoiceRecording}
                     style={{
                       padding: '0.9rem 1.5rem',
-                      background: 'linear-gradient(135deg, e74c3c, c0392b)',
+                      background: 'linear-gradient(135deg, #e74c3c, #c0392b)',
                       color: 'white',
                       border: 'none',
                       borderRadius: '12px',
@@ -841,7 +841,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                       gap: '0.75rem',
                       padding: '0.9rem 1.5rem',
                       background: '#ffeaea',
-                      border: '2px solid e74c3c',
+                      border: '2px solid #e74c3c',
                       borderRadius: '12px',
                       width: '100%',
                       justifyContent: 'center',
@@ -871,7 +871,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                     <div style={{
                       padding: '0.9rem 1.5rem',
                       background: '#eafaf1',
-                      border: '2px solid 27ae60',
+                      border: '2px solid #27ae60',
                       borderRadius: '12px',
                       color: '#27ae60',
                       fontWeight: 600,
@@ -885,7 +885,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                       style={{
                         padding: '0.4rem 1rem',
                         background: 'transparent',
-                        color: '888',
+                        color: '#888',
                         border: '1px solid ccc',
                         borderRadius: '8px',
                         cursor: 'pointer',
@@ -1044,7 +1044,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               resize: 'vertical',
               minHeight: '200px',
               background: 'white',
-              color: '333',
+              color: '#333',
               pointerEvents: 'auto',
               userSelect: 'text',
               cursor: 'text'

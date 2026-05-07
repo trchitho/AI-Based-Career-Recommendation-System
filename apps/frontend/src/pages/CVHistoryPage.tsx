@@ -50,8 +50,8 @@ const AnalysisCard = ({ item, careerName, onView }: {
     <div
       onClick={onView}
       style={{
-        background: 'var(--neu-bg-card, fff)',
-        border: '1px solid var(--neu-border, e5e7eb)',
+        background: 'var(--neu-bg-card, #fff)',
+        border: '1px solid var(--neu-border, #e5e7eb)',
         borderRadius: 16,
         padding: '1.5rem',
         cursor: 'pointer',
@@ -76,18 +76,18 @@ const AnalysisCard = ({ item, careerName, onView }: {
             <span style={{
               width: 36, height: 36, borderRadius: '50%', background: 'var(--neu-accent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '0.8rem', fontWeight: 700, color: 'fff', flexShrink: 0,
+              fontSize: '0.8rem', fontWeight: 700, color: '#fff', flexShrink: 0,
             }}>
               {(item.cv_name || 'U').charAt(0).toUpperCase()}
             </span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--neu-text, 111)', lineHeight: 1.2 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--neu-text, #111)', lineHeight: 1.2 }}>
                 {item.cv_name || 'CV không có tên'}
               </div>
               <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{fmtDate(item.created_at)}</div>
             </div>
           </div>
-          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--neu-text, 374151)', padding: '4px 10px', background: 'var(--neu-bg, f9fafb)', borderRadius: 8, display: 'inline-block', border: '1px solid var(--neu-border, e5e7eb)', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--neu-text, #374151)', padding: '4px 10px', background: 'var(--neu-bg, #f9fafb)', borderRadius: 8, display: 'inline-block', border: '1px solid var(--neu-border, #e5e7eb)', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             <Target size={12} className="inline mr-1" />{careerName || item.career_id}
           </div>
         </div>
@@ -96,11 +96,11 @@ const AnalysisCard = ({ item, careerName, onView }: {
         <div style={{ textAlign: 'center', flexShrink: 0 }}>
           <div style={{
             width: 60, height: 60, borderRadius: '50%',
-            background: `conic-gradient(${col.bar} ${pct * 3.6}deg, f3f4f6 0deg)`,
+            background: `conic-gradient(${col.bar} ${pct * 3.6}deg, #f3f4f6 0deg)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: `0 0 0 3px fff, 0 0 0 4px ${col.bar}22`,
           }}>
-            <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--neu-bg-card, fff)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--neu-bg-card, #fff)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 900, color: col.bar, lineHeight: 1 }}>{pct}%</span>
             </div>
           </div>
@@ -147,7 +147,7 @@ const AnalysisCard = ({ item, careerName, onView }: {
       </div>
 
       {/* Footer */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--neu-border, f3f4f6)', paddingTop: '0.75rem', marginTop: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--neu-border, #f3f4f6)', paddingTop: '0.75rem', marginTop: 'auto' }}>
         <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>
           {item.cv_filename && <span className="flex items-center gap-1"><FileText size={11} />{item.cv_filename}</span>}
         </div>
@@ -212,7 +212,7 @@ const CVHistoryPage = () => {
 
         {/* ── Header banner ── */}
         <div style={{
-          background: 'linear-gradient(135deg, var(--neu-accent, 16a34a) 0%, 0d9488 100%)',
+          background: 'linear-gradient(135deg, var(--neu-accent, #16a34a) 0%, 0d9488 100%)',
           padding: '2.5rem 2rem 2rem',
           position: 'relative', overflow: 'hidden',
         }}>
@@ -220,7 +220,7 @@ const CVHistoryPage = () => {
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'fff', margin: '0 0 0.3rem', letterSpacing: '-0.02em' }}>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#fff', margin: '0 0 0.3rem', letterSpacing: '-0.02em' }}>
                   <History size={22} className="inline mr-2 mb-1" />Lịch sử phân tích CV
                 </h1>
                 <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.75)', margin: 0 }}>
@@ -230,7 +230,7 @@ const CVHistoryPage = () => {
               <button
                 onClick={() => navigate('/skill-gap')}
                 style={{
-                  background: 'rgba(255,255,255,0.18)', color: 'fff', border: '1.5px solid rgba(255,255,255,0.35)',
+                  background: 'rgba(255,255,255,0.18)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.35)',
                   borderRadius: 10, padding: '0.55rem 1.25rem', fontWeight: 700, fontSize: '0.88rem',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
                   backdropFilter: 'blur(8px)',
@@ -250,7 +250,7 @@ const CVHistoryPage = () => {
                   { label: 'Match cao nhất', value: Math.round(best?.match_percentage ?? 0), suffix: '%' },
                 ].map((s, i) => (
                   <div key={i} style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', borderRadius: 12, padding: '0.85rem 1rem' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'fff', lineHeight: 1 }}>{s.value}{s.suffix}</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', lineHeight: 1 }}>{s.value}{s.suffix}</div>
                     <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.65)', marginTop: 3, fontWeight: 500 }}>{s.label}</div>
                   </div>
                 ))}
@@ -264,8 +264,8 @@ const CVHistoryPage = () => {
           {/* ── Filters ── */}
           {!loading && analyses.length > 0 && (
             <div style={{
-              background: 'var(--neu-bg-card, fff)',
-              border: '1px solid var(--neu-border, e5e7eb)',
+              background: 'var(--neu-bg-card, #fff)',
+              border: '1px solid var(--neu-border, #e5e7eb)',
               borderRadius: 14, padding: '1rem 1.25rem',
               display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
               marginBottom: '1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
@@ -277,7 +277,7 @@ const CVHistoryPage = () => {
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Tìm theo tên CV hoặc nghề..."
-                  style={{ width: '100%', padding: '0.5rem 0.75rem 0.5rem 2rem', border: '1px solid var(--neu-border, e5e7eb)', borderRadius: 8, fontSize: '0.875rem', color: 'var(--neu-text, 111)', background: 'var(--neu-bg, f9fafb)', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '0.5rem 0.75rem 0.5rem 2rem', border: '1px solid var(--neu-border, #e5e7eb)', borderRadius: 8, fontSize: '0.875rem', color: 'var(--neu-text, #111)', background: 'var(--neu-bg, #f9fafb)', boxSizing: 'border-box' }}
                 />
               </div>
 
@@ -286,7 +286,7 @@ const CVHistoryPage = () => {
                 <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: 600 }}>Sắp xếp:</span>
                 {[{ k: 'date', l: 'Mới nhất' }, { k: 'match', l: 'Điểm cao nhất' }].map(o => (
                   <button key={o.k} onClick={() => setSortBy(o.k as any)}
-                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: `1.5px solid ${sortBy === o.k ? 'var(--neu-accent)' : 'var(--neu-border,e5e7eb)'}`, background: sortBy === o.k ? 'rgba(34,197,94,0.08)' : 'transparent', color: sortBy === o.k ? 'var(--neu-accent)' : '6b7280', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>
+                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: `1.5px solid ${sortBy === o.k ? 'var(--neu-accent)' : 'var(--neu-border,#e5e7eb)'}`, background: sortBy === o.k ? 'rgba(34,197,94,0.08)' : 'transparent', color: sortBy === o.k ? 'var(--neu-accent)' : '#6b7280', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>
                     {o.l}
                   </button>
                 ))}
@@ -297,7 +297,7 @@ const CVHistoryPage = () => {
                 <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: 600 }}>Match ≥</span>
                 {[0, 40, 60, 80].map(v => (
                   <button key={v} onClick={() => setFilterMin(v)}
-                    style={{ padding: '0.35rem 0.7rem', borderRadius: 8, border: `1.5px solid ${filterMin === v ? 'var(--neu-accent)' : 'var(--neu-border,e5e7eb)'}`, background: filterMin === v ? 'rgba(34,197,94,0.08)' : 'transparent', color: filterMin === v ? 'var(--neu-accent)' : '6b7280', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>
+                    style={{ padding: '0.35rem 0.7rem', borderRadius: 8, border: `1.5px solid ${filterMin === v ? 'var(--neu-accent)' : 'var(--neu-border,#e5e7eb)'}`, background: filterMin === v ? 'rgba(34,197,94,0.08)' : 'transparent', color: filterMin === v ? 'var(--neu-accent)' : '#6b7280', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>
                     {v === 0 ? 'Tất cả' : `${v}%`}
                   </button>
                 ))}
@@ -312,7 +312,7 @@ const CVHistoryPage = () => {
           {/* ── Loading ── */}
           {loading && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 1rem', gap: '1rem', color: '#9ca3af' }}>
-              <div style={{ width: 36, height: 36, border: '3px solid e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
               <span style={{ fontSize: '0.9rem' }}>Đang tải lịch sử phân tích...</span>
             </div>
@@ -323,7 +323,7 @@ const CVHistoryPage = () => {
             <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
               <AlertTriangle size={44} className="mx-auto mb-3 text-red-500" />
               <div style={{ fontWeight: 700, color: '#dc2626', marginBottom: '0.5rem' }}>{error}</div>
-              <button onClick={() => navigate('/skill-gap')} style={{ marginTop: '1rem', padding: '0.6rem 1.5rem', background: 'var(--neu-accent)', color: 'fff', border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => navigate('/skill-gap')} style={{ marginTop: '1rem', padding: '0.6rem 1.5rem', background: 'var(--neu-accent)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer' }}>
                 Phân tích CV ngay
               </button>
             </div>
@@ -333,10 +333,10 @@ const CVHistoryPage = () => {
           {!loading && !error && analyses.length === 0 && (
             <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>
               <FolderOpen size={56} className="mx-auto mb-4 text-gray-300" />
-              <h3 style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--neu-text,111)', margin: '0 0 0.5rem' }}>Chưa có lịch sử phân tích</h3>
+              <h3 style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--neu-text,#111)', margin: '0 0 0.5rem' }}>Chưa có lịch sử phân tích</h3>
               <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Upload CV và chọn nghề nghiệp mục tiêu để bắt đầu phân tích khoảng cách kỹ năng.</p>
               <button onClick={() => navigate('/skill-gap')}
-                style={{ padding: '0.75rem 2rem', background: 'linear-gradient(135deg, var(--neu-accent), 0d9488)', color: 'fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(34,197,94,0.3)' }}>
+                style={{ padding: '0.75rem 2rem', background: 'linear-gradient(135deg, var(--neu-accent), 0d9488)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(34,197,94,0.3)' }}>
                 + Phân tích CV đầu tiên
               </button>
             </div>
@@ -370,10 +370,10 @@ const CVHistoryPage = () => {
           {/* ── Timeline view (most recent 5) ── */}
           {!loading && !error && analyses.length > 0 && search === '' && filterMin === 0 && (
             <div style={{ marginTop: '2.5rem' }}>
-              <h2 style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--neu-text,111)', marginBottom: '1rem' }}>
+              <h2 style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--neu-text,#111)', marginBottom: '1rem' }}>
                 <TrendingUp size={16} className="inline mr-2" />Tiến trình cải thiện
               </h2>
-              <div style={{ background: 'var(--neu-bg-card,fff)', border: '1px solid var(--neu-border,e5e7eb)', borderRadius: 14, padding: '1.25rem 1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <div style={{ background: 'var(--neu-bg-card,#fff)', border: '1px solid var(--neu-border,#e5e7eb)', borderRadius: 14, padding: '1.25rem 1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                 {/* bar chart of last 8 */}
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 80 }}>
                   {[...analyses].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()).slice(-8).map((a, i) => {

@@ -137,11 +137,11 @@ const ChatPage = () => {
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           .bg-dot-pattern {
-            background-image: radial-gradient(E5E7EB 1px, transparent 1px);
+            background-image: radial-gradient(#E5E7EB 1px, transparent 1px);
             background-size: 24px 24px;
           }
           .dark .bg-dot-pattern {
-            background-image: radial-gradient(374151 1px, transparent 1px);
+            background-image: radial-gradient(#374151 1px, transparent 1px);
           }
           .scrollbar-hide::-webkit-scrollbar { display: none; }
           .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

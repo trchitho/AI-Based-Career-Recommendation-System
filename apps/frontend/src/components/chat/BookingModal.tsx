@@ -43,30 +43,30 @@ const BookingModal: React.FC<Props> = ({ mentorUserId, mentorName, onClose, onBo
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.6rem 0.8rem',
-    border: '1px solid var(--neu-border, d1d5db)', borderRadius: 10,
-    fontSize: '0.9rem', color: 'var(--neu-text, 111)',
-    background: 'var(--neu-bg, f9fafb)', boxSizing: 'border-box',
+    border: '1px solid var(--neu-border, #d1d5db)', borderRadius: 10,
+    fontSize: '0.9rem', color: 'var(--neu-text, #111)',
+    background: 'var(--neu-bg, #f9fafb)', boxSizing: 'border-box',
   };
 
   return (
     <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/45"
       onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="w-full max-w-[460px] rounded-2xl overflow-hidden shadow-2xl"
-        style={{ background: 'var(--neu-bg-card, fff)' }}>
+        style={{ background: 'var(--neu-bg-card, #fff)' }}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b"
-          style={{ borderColor: 'var(--neu-border, e5e7eb)' }}>
+          style={{ borderColor: 'var(--neu-border, #e5e7eb)' }}>
           <div>
-            <div className="flex items-center gap-2 font-bold text-base" style={{ color: 'var(--neu-text, 111)' }}>
+            <div className="flex items-center gap-2 font-bold text-base" style={{ color: 'var(--neu-text, #111)' }}>
               <Calendar size={18} className="text-violet-600" />
               Đặt lịch hẹn
             </div>
-            <div className="text-xs mt-0.5" style={{ color: 'var(--neu-text-muted, 666)' }}>Với {mentorName}</div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--neu-text-muted, #666)' }}>Với {mentorName}</div>
           </div>
           <button onClick={onClose}
             className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors border-none bg-transparent cursor-pointer"
-            style={{ color: 'var(--neu-text-muted, 888)' }}>
+            style={{ color: 'var(--neu-text-muted, #888)' }}>
             <X size={18} />
           </button>
         </div>
@@ -76,10 +76,10 @@ const BookingModal: React.FC<Props> = ({ mentorUserId, mentorName, onClose, onBo
           {success ? (
             <div className="text-center py-8">
               <CheckCircle size={52} className="mx-auto mb-3 text-indigo-700" />
-              <div className="font-bold text-lg mb-2" style={{ color: 'var(--neu-text, 111)' }}>
+              <div className="font-bold text-lg mb-2" style={{ color: 'var(--neu-text, #111)' }}>
                 Đã gửi yêu cầu đặt lịch!
               </div>
-              <div className="text-sm mb-6" style={{ color: 'var(--neu-text-muted, 666)' }}>
+              <div className="text-sm mb-6" style={{ color: 'var(--neu-text-muted, #666)' }}>
                 {mentorName} sẽ xác nhận lịch hẹn sớm. Bạn có thể theo dõi trong tab "Lịch hẹn".
               </div>
               <button onClick={onClose}
@@ -98,7 +98,7 @@ const BookingModal: React.FC<Props> = ({ mentorUserId, mentorName, onClose, onBo
 
               {/* Date & Time */}
               <div>
-                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, 111)' }}>
+                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, #111)' }}>
                   <Calendar size={14} /> Ngày &amp; Giờ *
                 </label>
                 <input type="datetime-local" value={scheduledAt} min={minDateTimeLocal()}
@@ -107,7 +107,7 @@ const BookingModal: React.FC<Props> = ({ mentorUserId, mentorName, onClose, onBo
 
               {/* Duration */}
               <div>
-                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, 111)' }}>
+                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, #111)' }}>
                   <Clock size={14} /> Thời lượng
                 </label>
                 <div className="flex gap-2">
@@ -115,9 +115,9 @@ const BookingModal: React.FC<Props> = ({ mentorUserId, mentorName, onClose, onBo
                     <button key={d} type="button" onClick={() => setDuration(d)}
                       className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all border-2 cursor-pointer"
                       style={{
-                        borderColor: duration===d ? '#8b5cf6' : 'var(--neu-border, d1d5db)',
-                        background:  duration===d ? '#ede9fe'  : 'var(--neu-bg, f9fafb)',
-                        color:       duration===d ? '#7c3aed'  : 'var(--neu-text, 374151)',
+                        borderColor: duration===d ? '#8b5cf6' : 'var(--neu-border, #d1d5db)',
+                        background:  duration===d ? '#ede9fe'  : 'var(--neu-bg, #f9fafb)',
+                        color:       duration===d ? '#7c3aed'  : 'var(--neu-text, #374151)',
                       }}>
                       {d} phút
                     </button>
@@ -127,7 +127,7 @@ const BookingModal: React.FC<Props> = ({ mentorUserId, mentorName, onClose, onBo
 
               {/* Topic */}
               <div>
-                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, 111)' }}>
+                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, #111)' }}>
                   <FileText size={14} /> Chủ đề
                 </label>
                 <input type="text" value={topic} onChange={e => setTopic(e.target.value)}
@@ -136,7 +136,7 @@ const BookingModal: React.FC<Props> = ({ mentorUserId, mentorName, onClose, onBo
 
               {/* Notes */}
               <div>
-                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, 111)' }}>
+                <label className="flex items-center gap-1.5 font-semibold text-sm mb-1.5" style={{ color: 'var(--neu-text, #111)' }}>
                   <StickyNote size={14} /> Ghi chú
                 </label>
                 <textarea value={notes} onChange={e => setNotes(e.target.value)}
@@ -148,12 +148,12 @@ const BookingModal: React.FC<Props> = ({ mentorUserId, mentorName, onClose, onBo
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={onClose}
                   className="flex-1 py-2.5 rounded-xl border font-semibold text-sm transition-colors hover:bg-gray-50 cursor-pointer bg-transparent"
-                  style={{ borderColor: 'var(--neu-border, d1d5db)', color: 'var(--neu-text, 374151)' }}>
+                  style={{ borderColor: 'var(--neu-border, #d1d5db)', color: 'var(--neu-text, #374151)' }}>
                   Huỷ
                 </button>
                 <button type="submit" disabled={saving}
                   className="flex-[2] py-2.5 rounded-xl font-bold text-sm text-white transition-colors border-none cursor-pointer flex items-center justify-center gap-2"
-                  style={{ background: saving ? '#c4b5fd' : '8b5cf6', cursor: saving ? 'not-allowed' : 'pointer' }}>
+                  style={{ background: saving ? '#c4b5fd' : '#8b5cf6', cursor: saving ? 'not-allowed' : 'pointer' }}>
                   <Calendar size={15} />
                   {saving ? 'Đang gửi...' : 'Gửi yêu cầu đặt lịch'}
                 </button>

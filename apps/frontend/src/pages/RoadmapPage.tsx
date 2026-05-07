@@ -212,9 +212,9 @@ const RoadmapPage = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.2)', color: 'var(--neu-btn-text, ffffff)', border: '1px solid rgba(255,255,255,0.3)' }}>Lộ Trình Nghề Nghiệp</span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.2)', color: 'var(--neu-btn-text, #ffffff)', border: '1px solid rgba(255,255,255,0.3)' }}>Lộ Trình Nghề Nghiệp</span>
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8" style={{ color: 'var(--neu-btn-text, ffffff)' }}>{roadmap.careerTitle}</h1>
+                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8" style={{ color: 'var(--neu-btn-text, #ffffff)' }}>{roadmap.careerTitle}</h1>
 
                   {/* Dynamic career stages based on milestones count */}
                   {(() => {
@@ -250,7 +250,7 @@ const RoadmapPage = () => {
                                 )}
                                 {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-indigo-950'}`} />}
                               </div>
-                              <span className="mt-2 text-xs font-bold uppercase tracking-wide" style={{ color: isCompleted || isCurrent ? 'var(--neu-btn-text, ffffff)' : 'rgba(255,255,255,0.45)' }}>{label}</span>
+                              <span className="mt-2 text-xs font-bold uppercase tracking-wide" style={{ color: isCompleted || isCurrent ? 'var(--neu-btn-text, #ffffff)' : 'rgba(255,255,255,0.45)' }}>{label}</span>
                             </div>
                           );
                         })}

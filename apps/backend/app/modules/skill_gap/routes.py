@@ -686,3 +686,104 @@ Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
         'career_id': analysis.career_id,
         'plan': fallback_plan,
     }
+
+
+# ── Feedback endpoints (Thompson Sampling) ───────────────────────
+
+from pydantic import BaseModel
+
+class FeedbackPayload(BaseModel):
+    item_type: str   # 'skill' | 'career' | 'job'
+    item_name: str
+    event_type: str  # 'click' | 'like' | 'dislike'
+    analysis_id: int | None = None
+
+
+@router.post("/feedback", summary="Ghi nhận click/like để điều chỉnh gợi ý (Thompson Sampling)")
+def record_feedback(
+    payload: FeedbackPayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Người dùng click hoặc like một kỹ năng/nghề nghiệp được gợi ý.
+    Thompson Sampling dùng signal này để cá nhân hoá gợi ý tiếp theo.
+    """
+    from app.core.auth_deps import get_current_user_from_token
+    from app.modules.auth.models import User
+
+    token = request.headers.get("authorization", "").replace("Bearer ", "")
+    try:
+        from app.core.jwt import decode_access_token
+        payload_jwt = decode_access_token(token)
+        user_id = int(payload_jwt.get("sub", 0))
+    except Exception:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    if payload.event_type not in ("click", "like", "dislike"):
+        raise HTTPException(400, "event_type must be click | like | dislike")
+
+    from .thompson_sampling import record_event, ensure_feedback_table
+    ensure_feedback_table(db)
+    record_event(
+        db, user_id,
+        payload.item_type,
+        payload.item_name,
+        payload.event_type,
+        payload.analysis_id,
+    )
+    return {"recorded": True, "item": payload.item_name, "event": payload.event_type}
+
+
+@router.get("/priority-skills/{analysis_id}", summary="Top kỹ năng ưu tiên sau NeuMF + Thompson Sampling")
+def get_priority_skills(
+    analysis_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Trả về danh sách kỹ năng ưu tiên được xếp hạng bởi NeuMF và
+    điều chỉnh theo Thompson Sampling dựa trên feedback cá nhân.
+    """
+    from app.core.jwt import decode_access_token
+    token = request.headers.get("authorization", "").replace("Bearer ", "")
+    try:
+        payload_jwt = decode_access_token(token)
+        user_id = int(payload_jwt.get("sub", 0))
+    except Exception:
+        raise HTTPException(401, "Unauthorized")
+
+    from .models import SkillGapAnalysis
+    from sqlalchemy import text as _text
+
+    analysis = db.query(SkillGapAnalysis).filter(
+        SkillGapAnalysis.id == analysis_id,
+        SkillGapAnalysis.user_id == user_id,
+    ).first()
+    if not analysis:
+        raise HTTPException(404, "Analysis not found")
+
+    # Check if NeuMF already ran (stored in skill_gaps JSONB)
+    gaps = analysis.skill_gaps or {}
+    if isinstance(gaps, dict) and "neumf_priority" in gaps:
+        priority = gaps["neumf_priority"]
+        if isinstance(priority, str):
+            import json
+            priority = json.loads(priority)
+    else:
+        # Fallback: build from critical gaps
+        critical = gaps.get("critical", []) if isinstance(gaps, dict) else []
+        priority = [{"name": s.get("name", s) if isinstance(s, dict) else s, "score": 0.7} for s in critical[:10]]
+
+    # Apply Thompson Sampling adjustment
+    names = [p.get("name", "") for p in priority if p.get("name")]
+    if names and user_id:
+        from .thompson_sampling import rerank_with_thompson, ensure_feedback_table
+        ensure_feedback_table(db)
+        priority = rerank_with_thompson(db, user_id, "skill", priority, score_key="score", name_key="name")
+
+    return {
+        "analysis_id": analysis_id,
+        "priority_skills": priority[:15],
+        "ranking_method": "NeuMF + Thompson Sampling",
+    }

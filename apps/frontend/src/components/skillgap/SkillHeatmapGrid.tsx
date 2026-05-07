@@ -15,10 +15,10 @@ interface SkillCell {
 }
 
 const STATUS_CONFIG: Record<Status, { label: string; bg: string; border: string; text: string; dot: string }> = {
-  matched:     { label: ' Đã có',         bg: 'dcfce7', border: 'var(--color-primary)', text: '15803d', dot: '16a34a' },
-  critical:    { label: ' Thiếu nghiêm trọng', bg: 'fee2e2', border: '#dc2626', text: '991b1b', dot: 'dc2626' },
-  important:   { label: ' Quan trọng',    bg: 'ffedd5', border: '#ea580c', text: '9a3412', dot: 'ea580c' },
-  nice_to_have:{ label: ' Nên có',        bg: 'fef9c3', border: '#ca8a04', text: '854d0e', dot: 'ca8a04' },
+  matched:     { label: ' Đã có',         bg: '#dcfce7', border: 'var(--color-primary)', text: '#15803d', dot: '#16a34a' },
+  critical:    { label: ' Thiếu nghiêm trọng', bg: '#fee2e2', border: '#dc2626', text: '#991b1b', dot: '#dc2626' },
+  important:   { label: ' Quan trọng',    bg: '#ffedd5', border: '#ea580c', text: '#9a3412', dot: '#ea580c' },
+  nice_to_have:{ label: ' Nên có',        bg: '#fef9c3', border: '#ca8a04', text: '#854d0e', dot: '#ca8a04' },
 };
 
 const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
@@ -55,10 +55,10 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
 
   return (
     <div style={{ background: isDark ? '#1e293b' : 'white', borderRadius: 16, padding: '1.5rem', boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.08)' }}>
-      <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.25rem', color: isDark ? '#f1f5f9' : '1e293b' }}>
+      <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.25rem', color: isDark ? '#f1f5f9' : '#1e293b' }}>
          Bản đồ kỹ năng
       </h2>
-      <p style={{ color: isDark ? '#94a3b8' : '64748b', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+      <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
         Tổng quan {allSkills.length} kỹ năng — mức độ phù hợp {analysis.match_percentage?.toFixed(0)}%
       </p>
 
@@ -71,9 +71,9 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
             style={{
               padding: '0.35rem 0.85rem',
               borderRadius: 20,
-              border: `2px solid ${activeFilter === key ? 'var(--color-primary)' : 'e2e8f0'}`,
+              border: `2px solid ${activeFilter === key ? 'var(--color-primary)' : '#e2e8f0'}`,
               background: activeFilter === key ? 'var(--color-primary)' : 'white',
-              color: activeFilter === key ? 'white' : '64748b',
+              color: activeFilter === key ? 'white' : '#64748b',
               fontWeight: 600,
               fontSize: '0.82rem',
               cursor: 'pointer',
@@ -131,7 +131,7 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
       </div>
 
       {/* Legend */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid e2e8f0' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
         {(Object.entries(STATUS_CONFIG) as [Status, typeof STATUS_CONFIG[Status]][]).map(([key, cfg]) => (
           <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: '#475569' }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: cfg.bg, border: `1.5px solid ${cfg.border}`, display: 'inline-block' }} />

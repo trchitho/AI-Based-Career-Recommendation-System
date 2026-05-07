@@ -240,7 +240,7 @@ const SkillGapPage: React.FC = () => {
           <div>
             {/* Paywall Screen */}
             <div style={{
-              background: 'linear-gradient(135deg, 667eea 0%, 764ba2 100%)',
+              background: 'linear-gradient(135deg, #667eea 0%, 764ba2 100%)',
               borderRadius: '20px',
               padding: '3rem 2rem',
               textAlign: 'center',
@@ -358,11 +358,11 @@ const SkillGapPage: React.FC = () => {
 
                 {/* Premium Plan */}
                 <div style={{
-                  background: 'linear-gradient(135deg, 667eea 0%, 764ba2 100%)',
+                  background: 'linear-gradient(135deg, #667eea 0%, 764ba2 100%)',
                   borderRadius: '16px',
                   padding: '2rem',
                   boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
-                  border: '2px solid 667eea',
+                  border: '2px solid #667eea',
                   position: 'relative',
                   transform: 'scale(1.05)',
                 }}>
@@ -457,21 +457,21 @@ const SkillGapPage: React.FC = () => {
                 <div style={{ marginTop: '2rem', marginBottom: '1.5rem' }}>
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
-                    <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1rem', color: 'var(--neu-text, 111)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1rem', color: 'var(--neu-text, #111)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <FileText size={16} />
                       CV History
                     </h3>
                     {history.length > 0 && (
-                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b7280', background: 'var(--neu-bg, f3f4f6)', padding: '3px 10px', borderRadius: 99, border: '1px solid var(--neu-border, e5e7eb)' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b7280', background: 'var(--neu-bg, #f3f4f6)', padding: '3px 10px', borderRadius: 99, border: '1px solid var(--neu-border, #e5e7eb)' }}>
                         {history.length} PREVIOUS UPLOAD{history.length !== 1 ? 'S' : ''}
                       </span>
                     )}
                   </div>
 
                   {/* Table */}
-                  <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 14, border: '1px solid var(--neu-border, e5e7eb)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                  <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 14, border: '1px solid var(--neu-border, #e5e7eb)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                     {/* Table head */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.65rem 1.25rem', background: 'var(--neu-bg, f9fafb)', borderBottom: '1px solid var(--neu-border, e5e7eb)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.65rem 1.25rem', background: 'var(--neu-bg, #f9fafb)', borderBottom: '1px solid var(--neu-border, #e5e7eb)' }}>
                       {['FILENAME & TARGET ROLE', 'DATE UPLOADED', 'MATCH SCORE', 'ACTIONS'].map(h => (
                         <span key={h} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</span>
                       ))}
@@ -479,7 +479,7 @@ const SkillGapPage: React.FC = () => {
 
                     {historyLoading ? (
                       <div style={{ padding: '1.5rem', textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                        <div style={{ width: 16, height: 16, border: '2px solid e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <div style={{ width: 16, height: 16, border: '2px solid #e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
                         Đang tải...
                       </div>
@@ -490,8 +490,8 @@ const SkillGapPage: React.FC = () => {
                         const date = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         const isLast = idx === history.length - 1;
                         return (
-                          <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.9rem 1.25rem', alignItems: 'center', borderBottom: isLast ? 'none' : '1px solid var(--neu-border, f3f4f6)', transition: 'background 0.15s' }}
-                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--neu-bg, f9fafb)'}
+                          <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.9rem 1.25rem', alignItems: 'center', borderBottom: isLast ? 'none' : '1px solid var(--neu-border, #f3f4f6)', transition: 'background 0.15s' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--neu-bg, #f9fafb)'}
                             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                           >
                             {/* Col 1: Filename + role */}
@@ -500,7 +500,7 @@ const SkillGapPage: React.FC = () => {
                                 <FileText size={16} style={{ color:'var(--neu-accent)' }} />
                               </div>
                               <div style={{ minWidth: 0 }}>
-                                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--neu-text, 111)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--neu-text, #111)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {item.cv_filename || `CV ${item.id}`}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

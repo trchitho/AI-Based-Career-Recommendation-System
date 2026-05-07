@@ -82,14 +82,14 @@ const ChatModal: React.FC<Props> = ({ otherUserId, otherName, onClose }) => {
             pointerEvents: 'all',
             width: 'min(360px, calc(100vw - 24px))',
             height: 'min(520px, calc(100vh - 80px))',
-            background: 'var(--neu-bg-card, f0f0f3)',
+            background: 'var(--neu-bg-card, #f0f0f3)',
             animation: 'chatSlideIn .25s ease',
           }}
         >
           <style>{`@keyframes chatSlideIn{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:none}}`}</style>
 
           {/* ── Header ── */}
-          <div className="flex items-center gap-2.5 px-4 py-3.5 flex-shrink-0" style={{ background: 'var(--neu-accent, 16a34a)', color: 'fff' }}>
+          <div className="flex items-center gap-2.5 px-4 py-3.5 flex-shrink-0" style={{ background: 'var(--neu-accent, #16a34a)', color: '#fff' }}>
             <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0" style={{ background: 'rgba(255,255,255,0.25)' }}>
               {initials(otherName)}
             </div>
@@ -101,17 +101,17 @@ const ChatModal: React.FC<Props> = ({ otherUserId, otherName, onClose }) => {
               title="Đặt lịch hẹn"
               onClick={() => setShowBooking(true)}
               className="w-7 h-7 rounded-full flex items-center justify-center text-sm cursor-pointer mr-1 transition-colors hover:bg-white/30"
-              style={{ background: 'rgba(139,92,246,0.25)', color: 'fff', border: 'none' }}
+              style={{ background: 'rgba(139,92,246,0.25)', color: '#fff', border: 'none' }}
             ></button>
             <button
               onClick={onClose}
               className="w-7 h-7 rounded-full flex items-center justify-center text-sm cursor-pointer transition-colors hover:bg-white/30"
-              style={{ background: 'rgba(255,255,255,0.15)', color: 'fff', border: 'none', fontSize: 15 }}
+              style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none', fontSize: 15 }}
             ></button>
           </div>
 
           {/* ── Messages ── */}
-          <div className="flex-1 overflow-y-auto flex flex-col gap-1.5 p-3" style={{ background: 'var(--neu-bg, e8e8eb)' }}>
+          <div className="flex-1 overflow-y-auto flex flex-col gap-1.5 p-3" style={{ background: 'var(--neu-bg, #e8e8eb)' }}>
             {loading && (
               <div className="flex items-center justify-center h-14 gap-2 text-gray-400 text-sm">
                 <div className="w-4 h-4 border-2 border-gray-300 rounded-full animate-spin" style={{ borderTopColor: 'var(--neu-accent)' }} />
@@ -136,8 +136,8 @@ const ChatModal: React.FC<Props> = ({ otherUserId, otherName, onClose }) => {
                   <div
                     className="max-w-[70%] px-3 py-2 rounded-[18px] text-sm leading-snug break-words shadow-sm"
                     style={mine
-                      ? { background: 'var(--neu-accent)', color: 'fff', borderBottomRightRadius: 4 }
-                      : { background: 'fff', color: '#1f2937', borderBottomLeftRadius: 4 }
+                      ? { background: 'var(--neu-accent)', color: '#fff', borderBottomRightRadius: 4 }
+                      : { background: '#fff', color: '#1f2937', borderBottomLeftRadius: 4 }
                     }
                   >
                     {msg.content}
@@ -164,7 +164,7 @@ const ChatModal: React.FC<Props> = ({ otherUserId, otherName, onClose }) => {
               onClick={send}
               disabled={!input.trim() || sending}
               className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-40"
-              style={{ background: 'var(--neu-accent)', border: 'none', color: 'fff', cursor: 'pointer' }}
+              style={{ background: 'var(--neu-accent)', border: 'none', color: '#fff', cursor: 'pointer' }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="22" y1="2" x2="11" y2="13" />

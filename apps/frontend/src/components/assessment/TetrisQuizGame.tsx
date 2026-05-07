@@ -871,7 +871,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
               style={{
                 width: `${GRID_COLS * CELL_SIZE}px`,
                 height: `${GRID_ROWS * CELL_SIZE}px`,
-                border: '4px solid 2a2a2a',
+                border: '4px solid #2a2a2a',
                 boxShadow: 'inset 0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.5)',
               }}
             >
@@ -1237,7 +1237,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, 10b981, 059669);
+          background: linear-gradient(to bottom, #10b981, #059669);
           border-radius: 10px;
         }
       `}</style>

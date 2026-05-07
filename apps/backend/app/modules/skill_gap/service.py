@@ -151,10 +151,19 @@ class SkillGapService:
         self.db.commit()
         self.db.refresh(skill_gap_record)
         print(f"  Saved in {time.time() - db_start:.2f}s")
-        
+
+        # ── Stage 4/5: NeuMF + Thompson Sampling (background, non-blocking) ──
+        job_skills_raw = self.graph_analyzer.get_job_required_skills(career_id)
+        import asyncio as _aio
+        _aio.ensure_future(
+            self._run_ai_ranking_pipeline(
+                skill_gap_record.id, cv_skills, job_skills_raw, user_id
+            )
+        )
+
         total_time = time.time() - start_time
         print(f"Total analysis time: {total_time:.2f}s")
-        
+
         return {
             'analysis_id': skill_gap_record.id,
             'career_id': career_id,
@@ -164,6 +173,28 @@ class SkillGapService:
             'processing_time': round(total_time, 2),
             **analysis_result
         }
+
+    async def _run_ai_ranking_pipeline(
+        self,
+        analysis_id: int,
+        cv_skills: list,
+        job_skills: list,
+        user_id: int,
+    ) -> None:
+        """Background: NeuMF rank + Thompson Sampling adjustment."""
+        try:
+            from .cv_worker import run_cv_pipeline
+            await run_cv_pipeline(
+                db=self.db,
+                analysis_id=analysis_id,
+                cv_text="",
+                cv_skills=cv_skills,
+                job_skills=job_skills,
+                user_id=user_id,
+            )
+            print(f"[cv-worker] Pipeline done for analysis_id={analysis_id}")
+        except Exception as e:
+            print(f"[cv-worker] Pipeline error: {e}")
     
     def get_user_analyses(self, user_id: int, limit: int = 10) -> List[SkillGapAnalysis]:
         """

@@ -334,12 +334,12 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                             <div className="space-y-3">
                               {(() => {
                                 const riasecColors: Record<string, string> = {
-                                  realistic: 'EF4444',
-                                  investigative: 'F59E0B',
-                                  artistic: '10B981',
-                                  social: '3B82F6',
-                                  enterprising: '8B5CF6',
-                                  conventional: 'EC4899'
+                                  realistic: '#EF4444',
+                                  investigative: '#F59E0B',
+                                  artistic: '#10B981',
+                                  social: '#3B82F6',
+                                  enterprising: '#8B5CF6',
+                                  conventional: '#EC4899'
                                 };
                                 const riasecNames: Record<string, string> = {
                                   realistic: 'Realistic',
@@ -385,11 +385,11 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                             <div className="space-y-3">
                               {(() => {
                                 const traitColors: Record<string, string> = {
-                                  openness: '8B5CF6',
-                                  conscientiousness: '3B82F6',
-                                  extraversion: '10B981',
-                                  agreeableness: 'F59E0B',
-                                  neuroticism: 'EF4444'
+                                  openness: '#8B5CF6',
+                                  conscientiousness: '#3B82F6',
+                                  extraversion: '#10B981',
+                                  agreeableness: '#F59E0B',
+                                  neuroticism: '#EF4444'
                                 };
                                 return Object.entries(session.big_five_scores)
                                   .sort((a: any, b: any) => b[1] - a[1])

@@ -272,11 +272,16 @@
 
 /* ── Chart box ───────────────────────────────────────────────── */
 .res-chart-box {
-  background: var(--neu-bg);
+  background: #f8fafc;
   border-radius: 16px;
-  box-shadow: var(--neu-pressed-sm);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   padding: 1.5rem;
   margin-bottom: 1.25rem;
+}
+.dark .res-chart-box {
+  background: #1e293b;
+  border-color: #334155;
 }
 .res-chart-box:last-child { margin-bottom: 0; }
 .res-chart-title {

@@ -354,8 +354,8 @@ const RecommendationsPage = () => {
                       <div style={{ position: "absolute", top: 12, right: 12, zIndex: 5 }}>
                         <span style={{
                           padding: "0.2rem 0.6rem",
-                          background: "linear-gradient(to right,a855f7,ec4899)",
-                          color: "fff", borderRadius: 999,
+                          background: "linear-gradient(to right,#a855f7,ec4899)",
+                          color: "#fff", borderRadius: 999,
                           fontSize: "0.68rem", fontWeight: 700,
                           display: "flex", alignItems: "center", gap: 4,
                         }}>
@@ -375,7 +375,7 @@ const RecommendationsPage = () => {
                         width: 48, height: 48, borderRadius: 14,
                         background: "rgba(255,255,255,0.2)", backdropFilter: "blur(4px)",
                         border: "1px solid rgba(255,255,255,0.3)",
-                        display: "flex", alignItems: "center", justifyContent: "center", color: "fff",
+                        display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
                       }}>
                         {isLocked
                           ? <Lock size={22} />

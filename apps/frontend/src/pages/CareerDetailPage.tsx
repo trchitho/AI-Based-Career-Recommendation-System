@@ -71,13 +71,13 @@ const CareerDetailPage = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }}></div>
                 <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none" style={{ background: 'rgba(0,0,0,0.08)' }}></div>
                 <div className="relative z-10">
-                  <button onClick={() => navigate(-1)} className="btn-ghost mb-6 flex items-center transition-colors text-sm font-bold uppercase tracking-wide opacity-80 hover:opacity-100" style={{ color: 'var(--neu-btn-text, ffffff)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
+                  <button onClick={() => navigate(-1)} className="btn-ghost mb-6 flex items-center transition-colors text-sm font-bold uppercase tracking-wide opacity-80 hover:opacity-100" style={{ color: 'var(--neu-btn-text, #ffffff)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>Quay lại
                   </button>
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
                     <div>
-                      <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4" style={{ color: 'var(--neu-btn-text, ffffff)' }}>{detail.title}</h1>
-                      <p className="text-sm font-mono" style={{ color: 'var(--neu-btn-text, ffffff)', opacity: 0.7 }}>O*NET Code: {detail.onet_code}</p>
+                      <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4" style={{ color: 'var(--neu-btn-text, #ffffff)' }}>{detail.title}</h1>
+                      <p className="text-sm font-mono" style={{ color: 'var(--neu-btn-text, #ffffff)', opacity: 0.7 }}>O*NET Code: {detail.onet_code}</p>
                     </div>
                     <div className="flex-shrink-0">
                       <Link to={`/careers/${idOrSlug}/roadmap`} className="group inline-flex items-center px-6 py-3 rounded-xl font-bold text-base transition-all hover:-translate-y-1" style={{ background: 'rgba(255,255,255,0.18)', color: '#ffffff', boxShadow: '0 2px 10px rgba(0,0,0,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(8px)' }}>
@@ -500,7 +500,7 @@ const CareerDetailPage = () => {
                         {companies.map(co => {
                           const links = allUrls(co);
                           return (
-                            <div key={co.id} className="p-3 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700 transition-colors" style={{ background: 'var(--neu-bg, f9fafb)' }}>
+                            <div key={co.id} className="p-3 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700 transition-colors" style={{ background: 'var(--neu-bg, #f9fafb)' }}>
                               <div className="font-semibold text-sm text-blue-900 dark:text-blue-200 mb-1">{co.name}</div>
                               <div className="flex gap-1 flex-wrap mb-2">
                                 {co.industry && <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">{co.industry}</span>}
@@ -510,7 +510,7 @@ const CareerDetailPage = () => {
                                 {links.slice(0, 3).map(l => (
                                   <a key={l.label} href={l.url} target="_blank" rel="noopener noreferrer"
                                     className="text-xs font-semibold px-2.5 py-1 rounded-full border transition-opacity hover:opacity-75"
-                                    style={{ background: l.label === 'Trang tuyển dụng' ? '2563eb' : 'fff', color: l.label === 'Trang tuyển dụng' ? 'fff' : '2563eb', borderColor: '#bfdbfe', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                                    style={{ background: l.label === 'Trang tuyển dụng' ? '#2563eb' : '#fff', color: l.label === 'Trang tuyển dụng' ? '#fff' : '#2563eb', borderColor: '#bfdbfe', textDecoration: 'none', whiteSpace: 'nowrap' }}>
                                     {l.label}
                                   </a>
                                 ))}

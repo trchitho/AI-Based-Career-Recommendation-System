@@ -206,7 +206,7 @@ const HomePage = () => {
                 }
 
                 .text-shimmer {
-                    background: linear-gradient(to right, 166534 20%, 4ade80 40%, 4ade80 60%, 166534 80%);
+                    background: linear-gradient(to right, #166534 20%, #4ade80 40%, #4ade80 60%, #166534 80%);
                     background-size: 200% auto;
                     color: transparent;
                     -webkit-background-clip: text;
@@ -214,7 +214,7 @@ const HomePage = () => {
                     animation: shimmer 5s linear infinite;
                 }
                 .dark .text-shimmer {
-                    background: linear-gradient(to right, 4ade80 20%, ffffff 40%, ffffff 60%, 4ade80 80%);
+                    background: linear-gradient(to right, #4ade80 20%, #ffffff 40%, #ffffff 60%, #4ade80 80%);
                     background-size: 200% auto;
                     color: transparent;
                     -webkit-background-clip: text;
@@ -285,7 +285,7 @@ const HomePage = () => {
 
                             {/* RIGHT — dashboard mockup */}
                             <div className="flex-1 w-full max-w-lg lg:max-w-none animate-fade-in-up relative" style={{ animationDelay: '0.2s' }}>
-                                <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(135deg,0f172a 0%,1e2d4a 100%)' }}>
+                                <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(135deg,#0f172a 0%, #1e2d4a 100%)' }}>
                                     <div className="flex items-center gap-2 px-5 py-3 border-b border-white/10">
                                         <span className="w-2.5 h-2.5 rounded-full bg-red-400 opacity-80"></span>
                                         <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 opacity-80"></span>

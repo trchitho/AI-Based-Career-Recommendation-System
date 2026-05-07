@@ -80,9 +80,9 @@ const RoadmapFooter = ({ milestones, userProgress }: RoadmapFooterProps) => {
               {/* Gradient definition */}
               <defs>
                 <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="8B5CF6" />
-                  <stop offset="50%" stopColor="EC4899" />
-                  <stop offset="100%" stopColor="F59E0B" />
+                  <stop offset="0%" stopColor="#8B5CF6" />
+                  <stop offset="50%" stopColor="#EC4899" />
+                  <stop offset="100%" stopColor="#F59E0B" />
                 </linearGradient>
               </defs>
             </svg>

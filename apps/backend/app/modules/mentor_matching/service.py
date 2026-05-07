@@ -11,10 +11,11 @@ from .schemas import (
 from .matching_algorithm import (
     calculate_career_match, calculate_overall_compatibility,
     calculate_personality_similarity, calculate_skill_match,
+    calculate_semantic_skill_similarity, calculate_graph_score,
     generate_matching_reasons,
 )
 
-MATCH_THRESHOLD = 0.10  # minimum overall score to include in results
+MATCH_THRESHOLD = 0.08  # minimum overall score to include in results
 
 
 def _extract_skill_names(skills_json) -> List[str]:
@@ -52,8 +53,39 @@ def _extract_career_title(career_recommendations) -> str:
 
 
 class MentorMatchingService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, neo4j_driver=None):
         self.db = db
+        self._neo4j = neo4j_driver
+
+    def _fallback_all_mentors(self, user_id: int) -> List[MatchingResult]:
+        """Return all active mentors sorted by experience when no mentee profile."""
+        mentors = self.get_active_mentors()
+        results = []
+        for mentor in [m for m in mentors if m.user_id != user_id]:
+            exp = mentor.experience_years or 0
+            score = round(min(0.20 + exp / 80, 0.60) * 100, 1)
+            results.append(MatchingResult(
+                mentor_id=mentor.id,
+                user_id=mentor.user_id,
+                mentor_name=mentor.full_name,
+                current_position=mentor.current_position or "",
+                company=mentor.company or "",
+                bio=mentor.bio or "",
+                expertise_areas=mentor.expertise_areas or [],
+                experience_years=exp,
+                available_hours_per_week=mentor.available_hours_per_week or 0,
+                preferred_communication=mentor.preferred_communication or [],
+                compatibility_score=score,
+                skill_match_score=0.0,
+                career_match_score=0.0,
+                personality_score=50.0,
+                matching_skills=[],
+                matching_reasons=["Cập nhật hồ sơ để xem mức độ phù hợp chính xác hơn"],
+                current_mentees_count=mentor.current_mentees_count or 0,
+                max_mentees=mentor.max_mentees or 5,
+            ))
+        results.sort(key=lambda x: x.compatibility_score, reverse=True)
+        return results[:10]
 
     # ── Mentor Profile ────────────────────────────────────────────
 
@@ -110,13 +142,55 @@ class MentorMatchingService:
     # ── Matching ──────────────────────────────────────────────────
 
     def find_mentors_for_mentee(self, user_id: int) -> List[MatchingResult]:
+        # Auto-create mentee profile from user data if not exists
         mentee = self.get_mentee_profile(user_id)
         if not mentee:
-            return []
+            try:
+                mentee = self.create_mentee_profile_from_user_data(user_id)
+            except Exception:
+                pass
+        if not mentee:
+            # Still no profile → return all active mentors with base score
+            return self._fallback_all_mentors(user_id)
 
         mentors = self.get_active_mentors()
-        # Exclude self in case user is also a mentor
         mentors = [m for m in mentors if m.user_id != user_id]
+
+        # Normalize target_career: skip ONET codes (e.g. "25-2012.00")
+        raw_career = (mentee.target_career or "").strip()
+        import re as _re
+        if _re.match(r'^[\d\-\.]+$', raw_career):
+            raw_career = ""  # ONET code, not useful for keyword matching
+
+        has_skills = bool(mentee.desired_skills)
+
+        # ── Pre-compute Neo4j GDS graph signals (batch, non-blocking) ──
+        graph_score_map: dict = {}
+        try:
+            from .graph_gds import build_graph_score_map
+            driver = self._neo4j
+            if driver and has_skills:
+                graph_score_map = build_graph_score_map(
+                    driver,
+                    mentee_user_id=user_id,
+                    target_career=raw_career,
+                    mentee_riasec=mentee.riasec_scores or {},
+                    mentee_big5=mentee.big_five_scores or {},
+                )
+        except Exception as _gds_err:
+            print(f"[matching] GDS signals skipped: {_gds_err}")
+
+        has_graph = bool(graph_score_map)
+
+        # SBERT model — load only when skills exist (avoids 30s cold start)
+        sbert_available = False
+        if has_skills:
+            try:
+                from app.modules.skill_gap.vector_service import _get_model
+                _get_model()  # warm up if already loaded
+                sbert_available = True
+            except Exception:
+                pass
 
         results = []
         for mentor in mentors:
@@ -124,8 +198,19 @@ class MentorMatchingService:
                 mentee.desired_skills or [],
                 mentor.expertise_areas or [],
             )
+            # vi-SBERT semantic skill similarity (skip if model not warm)
+            semantic_score = 0.0
+            if sbert_available and has_skills and mentor.expertise_areas:
+                try:
+                    semantic_score = calculate_semantic_skill_similarity(
+                        mentee.desired_skills or [],
+                        mentor.expertise_areas or [],
+                    )
+                except Exception:
+                    pass
+
             career_score = calculate_career_match(
-                mentee.target_career or "",
+                raw_career,
                 mentor.current_position or "",
                 mentor.expertise_areas or [],
             )
@@ -139,19 +224,33 @@ class MentorMatchingService:
                 mentor.riasec_scores or {},
                 mentor.big_five_scores or {},
             )
+            # Graph signals from GDS (Jaccard + Path + PageRank)
+            graph_signals = graph_score_map.get(mentor.user_id, {})
+            g_score = calculate_graph_score(graph_signals) if graph_signals else 0.0
+
+            # PageRank alone can qualify a mentor even without skill overlap
+            pagerank_bonus = float(graph_signals.get("pagerank", 0.0)) * 0.1
+
             overall = calculate_overall_compatibility(
-                skill_score, career_score, personality_score, has_personality
-            )
+                skill_score, career_score, personality_score, has_personality,
+                semantic_skill=semantic_score,
+                graph_score=g_score,
+                has_graph=has_graph and bool(graph_signals),
+            ) + pagerank_bonus
+
+            # If mentee has no skills/career → show all mentors (base score from experience)
+            if not has_skills and not raw_career:
+                exp = mentor.experience_years or 0
+                overall = max(overall, 0.15 + min(exp / 100, 0.30))
 
             if overall < MATCH_THRESHOLD:
                 continue
 
             reasons = generate_matching_reasons(
-                matching_skills,
-                career_score,
-                personality_score,
-                mentor.experience_years or 0,
-                has_personality,
+                matching_skills, career_score, personality_score,
+                mentor.experience_years or 0, has_personality,
+                semantic_skill=semantic_score,
+                graph_signals=graph_signals or None,
             )
 
             results.append(MatchingResult(

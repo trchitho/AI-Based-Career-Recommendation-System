@@ -78,11 +78,11 @@ const ChatSummaryPage = () => {
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
           .bg-dot-pattern {
-            background-image: radial-gradient(E5E7EB 1px, transparent 1px);
+            background-image: radial-gradient(#E5E7EB 1px, transparent 1px);
             background-size: 24px 24px;
           }
           .dark .bg-dot-pattern {
-            background-image: radial-gradient(374151 1px, transparent 1px);
+            background-image: radial-gradient(#374151 1px, transparent 1px);
           }
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }

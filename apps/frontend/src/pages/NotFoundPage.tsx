@@ -80,7 +80,7 @@ const NotFoundPage: React.FC = () => {
 
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, f8f7ff 0%, ede9fe 40%, f0f9ff 100%)',
+        background: 'linear-gradient(135deg, #f8f7ff 0%, #ede9fe 40%, #f0f9ff 100%)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: '2rem 1.5rem',
         fontFamily: "'Inter Tight', 'Plus Jakarta Sans', -apple-system, sans-serif",
@@ -103,9 +103,9 @@ const NotFoundPage: React.FC = () => {
                 width: 'clamp(4.5rem, 12vw, 7.5rem)',
                 height: 'clamp(4.5rem, 12vw, 7.5rem)',
                 borderRadius: '50%',
-                border: '3px solid e5e7eb',
+                border: '3px solid #e5e7eb',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'fff',
+                background: '#fff',
                 boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
               }}>
                 <HelpCircle size={40} strokeWidth={1.5} color="#9ca3af" />
@@ -140,8 +140,8 @@ const NotFoundPage: React.FC = () => {
                 onKeyDown={handleKeyDown}
                 style={{
                   width: '100%', padding: '0.75rem 1rem 0.75rem 2.5rem',
-                  border: '1.5px solid e5e7eb', borderRadius: 12,
-                  fontSize: '0.9rem', color: '#1f2937', background: 'fff',
+                  border: '1.5px solid #e5e7eb', borderRadius: 12,
+                  fontSize: '0.9rem', color: '#1f2937', background: '#fff',
                   boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s',
                 }}
               />
@@ -155,8 +155,8 @@ const NotFoundPage: React.FC = () => {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                 padding: '0.75rem 1.75rem',
-                background: 'linear-gradient(135deg, 4f46e5, 7c3aed)',
-                color: 'fff', border: 'none', borderRadius: 12,
+                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                color: '#fff', border: 'none', borderRadius: 12,
                 fontWeight: 700, fontSize: '0.9375rem', cursor: 'pointer',
                 boxShadow: '0 4px 14px rgba(79,70,229,0.35)',
                 transition: 'transform 0.15s, box-shadow 0.15s',
@@ -187,8 +187,8 @@ const NotFoundPage: React.FC = () => {
                 onClick={() => navigate(s.path)}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
-                  padding: '1rem 1.25rem', background: 'fff',
-                  border: '1.5px solid e5e7eb', borderRadius: 14,
+                  padding: '1rem 1.25rem', background: '#fff',
+                  border: '1.5px solid #e5e7eb', borderRadius: 14,
                   cursor: 'pointer', minWidth: 100, transition: 'all 0.2s',
                   boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                 }}

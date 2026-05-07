@@ -82,8 +82,8 @@ function AssessmentCard({ item }: { item: AssessmentHistoryItem }) {
     <div
       onClick={() => navigate(`/results/${item.id}`)}
       style={{
-        background: 'var(--neu-bg-card, fff)',
-        border: '1px solid var(--neu-border, e5e7eb)',
+        background: 'var(--neu-bg-card, #fff)',
+        border: '1px solid var(--neu-border, #e5e7eb)',
         borderRadius: 14, padding: '1rem 1.1rem',
         cursor: 'pointer', transition: 'box-shadow 0.15s, transform 0.15s',
         minWidth: 160, flex: '1 0 160px',
@@ -101,12 +101,12 @@ function AssessmentCard({ item }: { item: AssessmentHistoryItem }) {
         {date}
       </div>
       <div style={{ marginBottom: 6, color: 'var(--neu-accent)' }}>{icon}</div>
-      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--neu-text, 111)', marginBottom: 2 }}>
+      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--neu-text, #111)', marginBottom: 2 }}>
         {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode
       </div>
       {topType && (
         <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: 8 }}>
-          Top: <strong style={{ color: 'var(--neu-text, 111)' }}>{RIASEC_LABELS[topType] || topType}</strong>
+          Top: <strong style={{ color: 'var(--neu-text, #111)' }}>{RIASEC_LABELS[topType] || topType}</strong>
         </div>
       )}
       <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 2 }}>Score</div>
@@ -145,10 +145,10 @@ const ProfilePage = () => {
 
   return (
     <MainLayout>
-      <div style={{ minHeight: '100vh', background: 'var(--neu-bg, f1f5f1)', paddingBottom: '3rem' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--neu-bg, #f1f5f1)', paddingBottom: '3rem' }}>
         {loading && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: '0.75rem', color: '#9ca3af' }}>
-            <div style={{ width: 20, height: 20, border: '3px solid e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <div style={{ width: 20, height: 20, border: '3px solid #e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             <span>Đang tải profile...</span>
           </div>
@@ -195,7 +195,7 @@ const ProfilePage = () => {
                        Verified Career DNA
                     </span>
                   </div>
-                  <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: 'fff', margin: 0, lineHeight: 1.1 }}>
+                  <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.1 }}>
                     {displayName(profileData.profile)}
                   </h1>
                   <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', marginTop: '0.3rem' }}>
@@ -215,7 +215,7 @@ const ProfilePage = () => {
                     <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tests</div>
                   </div>
                   <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.5rem 0.9rem' }}>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'fff' }}>{completedRoadmaps}</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff' }}>{completedRoadmaps}</div>
                     <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Roadmaps</div>
                   </div>
                   {topRiasecCode && (
@@ -232,9 +232,9 @@ const ProfilePage = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px,100%), 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
 
               {/* Career DNA (RIASEC) */}
-              <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, 111)' }}>Career DNA (RIASEC)</div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)' }}>Career DNA (RIASEC)</div>
                   {latestAssessment && (
                     <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
                       Last updated {new Date(latestAssessment.completed_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
@@ -252,7 +252,7 @@ const ProfilePage = () => {
                             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: RIASEC_COLORS[key], textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                               {RIASEC_LABELS[key]}
                             </span>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 900, color: 'var(--neu-text, 111)' }}>{pct}%</span>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 900, color: 'var(--neu-text, #111)' }}>{pct}%</span>
                           </div>
                           <div style={{ height: 6, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${pct}%`, background: RIASEC_COLORS[key], borderRadius: 99, transition: 'width 1s ease' }} />
@@ -273,8 +273,8 @@ const ProfilePage = () => {
               </div>
 
               {/* Big Five Personality */}
-              <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, 111)', marginBottom: '1.1rem' }}>
+              <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
                   Big Five Personality
                 </div>
 
@@ -286,7 +286,7 @@ const ProfilePage = () => {
                       const color = big5Color(val);
                       return (
                         <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ width: 120, fontSize: '0.78rem', fontWeight: 600, color: 'var(--neu-text, 374151)', flexShrink: 0 }}>
+                          <div style={{ width: 120, fontSize: '0.78rem', fontWeight: 600, color: 'var(--neu-text, #374151)', flexShrink: 0 }}>
                             {BIG5_LABELS[key]}
                           </div>
                           <div style={{ flex: 1, height: 7, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden' }}>
@@ -311,8 +311,8 @@ const ProfilePage = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px,100%), 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
 
               {/* Account Info */}
-              <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, 111)', marginBottom: '1.1rem' }}>
+              <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
                   Thông tin tài khoản
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -322,9 +322,9 @@ const ProfilePage = () => {
                     { label: 'Ngày sinh', value: profileData.profile.date_of_birth ? new Date(profileData.profile.date_of_birth).toLocaleDateString('vi-VN') : 'Chưa cập nhật' },
                     { label: 'Tham gia', value: new Date(profileData.profile.created_at).toLocaleDateString('vi-VN') },
                   ].map(({ label, value }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, f3f4f6)' }}>
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
                       <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>{label}</span>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, 111)' }}>{value}</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>{value}</span>
                     </div>
                   ))}
                 </div>
@@ -332,7 +332,7 @@ const ProfilePage = () => {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                   marginTop: '1.25rem', padding: '0.6rem',
                   background: 'linear-gradient(135deg, var(--neu-accent), var(--color-primary-hover))',
-                  color: 'fff', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem',
+                  color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: '0.85rem',
                   textDecoration: 'none', transition: 'opacity 0.15s',
                 }}
                   onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
@@ -343,14 +343,14 @@ const ProfilePage = () => {
               </div>
 
               {/* Chat Inbox */}
-              <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', overflow: 'hidden', minHeight: 280 }}>
+              <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', overflow: 'hidden', minHeight: 280 }}>
                 <ChatInboxPanel />
               </div>
             </div>
 
             {/* ── ROW 3: Assessment History ── */}
-            <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', marginBottom: '1.25rem' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, 111)', marginBottom: '1.1rem' }}>
+            <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', marginBottom: '1.25rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
                 Assessment History
               </div>
               {profileData.assessmentHistory.length > 0 ? (
@@ -369,7 +369,7 @@ const ProfilePage = () => {
             </div>
 
             {/* ── ROW 4: Full Assessment Detail ── */}
-            <div style={{ background: 'var(--neu-bg-card, fff)', borderRadius: 16, border: '1px solid var(--neu-border, e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <AssessmentHistorySection assessmentHistory={profileData.assessmentHistory} />
             </div>
 
