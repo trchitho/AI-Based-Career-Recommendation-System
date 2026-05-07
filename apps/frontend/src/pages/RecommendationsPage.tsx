@@ -21,19 +21,10 @@ type MatchLevel = "excellent" | "great" | "good";
 const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
   const pct = Math.round(score * 100);
   if (pct >= 90) return { level: "excellent", label: "Excellent" };
-  if (pct >= 75) return { level: "great",     label: "Great" };
-  return            { level: "good",           label: "Good" };
+  if (pct >= 75) return { level: "great", label: "Great" };
+  return { level: "good", label: "Good" };
 };
 const CIRC = 2 * Math.PI * 20; // r=20
-
-const GRADIENTS = [
-  "from-indigo-700 to-teal-600",
-  "from-blue-500 to-indigo-600",
-  "from-orange-400 to-pink-500",
-  "from-purple-500 to-violet-600",
-  "from-emerald-400 to-cyan-500",
-  "from-rose-400 to-red-500",
-];
 
 const RecommendationsPage = () => {
   const navigate = useNavigate();
@@ -41,21 +32,21 @@ const RecommendationsPage = () => {
   const { canUseFeature } = useUsageTracking();
 
   /* ── AI recommendations (top strip) ── */
-  const [recData, setRecData]     = useState<RecommendationsResponse | null>(null);
+  const [recData, setRecData] = useState<RecommendationsResponse | null>(null);
   const [recLoading, setRecLoading] = useState(true);
-  const [recError, setRecError]   = useState<string | null>(null);
-  const [feedback, setFeedback]   = useState<Record<string, "up" | "down">>(() => {
+  const [recError, setRecError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Record<string, "up" | "down">>(() => {
     try { return JSON.parse(localStorage.getItem("career_feedback") || "{}"); } catch { return {}; }
   });
   const stripRef = useRef<HTMLDivElement>(null);
 
   /* ── Career browse (bottom grid) ── */
-  const [items, setItems]     = useState<CareerItem[]>([]);
+  const [items, setItems] = useState<CareerItem[]>([]);
   const [careerLoading, setCareerLoading] = useState(true);
-  const [page, setPage]       = useState(1);
-  const [pageSize]            = useState(9);
-  const [total, setTotal]     = useState(0);
-  const [q, setQ]             = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(9);
+  const [total, setTotal] = useState(0);
+  const [q, setQ] = useState("");
 
   const recItems = recData?.items ?? [];
   const requestId = recData?.request_id ?? null;
@@ -160,16 +151,72 @@ const RecommendationsPage = () => {
             SECTION 1 — AI Recommendations strip
             ════════════════════════════════════════ */}
         <div className="rec-content" style={{ paddingTop: "1.75rem", paddingBottom: "0" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
-            <div>
-              <span className="rec-hero-badge" style={{ display: "inline-block", marginBottom: "0.4rem" }}>AI-Powered</span>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--neu-text)", margin: 0 }}>
-                Nghề nghiệp gợi ý cho bạn
-              </h2>
+          <div className="rec-hero">
+            <div className="rec-hero-left">
+              <div className="section-badge" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                  <line x1="12" y1="22.08" x2="12" y2="12" />
+                </svg>
+                <span>AI-Powered Recommendations</span>
+              </div>
+              <h1 className="hero-title">
+                Khám phá nghề nghiệp <span className="hero-highlight">phù hợp với bạn</span>
+              </h1>
+              <p className="hero-sub">
+                Hoàn thành bài đánh giá để nhận gợi ý nghề nghiệp cá nhân hóa dựa trên kỹ năng, sở thích và mục tiêu của bạn.
+              </p>
+              <div className="hero-actions">
+                <Link to="/assessment" className="hero-btn-primary">
+                  Bắt đầu đánh giá →
+                </Link>
+                <span className="hero-btn-secondary">
+                  Tìm hiểu thêm
+                </span>
+              </div>
             </div>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
+            <div className="rec-hero-right">
+              <div className="hero-visual-wrapper">
+                <div className="hero-visual-glow"></div>
+                <div className="hero-visual">
+                  <div className="floating-card main">
+                    <div className="icon-wrapper">
+                      <Briefcase size={40} />
+                      <div className="sparkle">✦</div>
+                    </div>
+                  </div>
+                  <div className="floating-card small chart">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="12" y1="20" x2="12" y2="10" />
+                      <line x1="18" y1="20" x2="18" y2="4" />
+                      <line x1="6" y1="20" x2="6" y2="16" />
+                    </svg>
+                  </div>
+                  <div className="floating-card small user">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+                  <div className="floating-card small clock">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                  </div>
+                  <div className="floating-card small pie">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                      <path d="M22 12A10 10 0 0 0 12 2v10z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="hero-nav">
               <button onClick={() => scrollStrip(-1)} style={arrowBtnStyle}><ChevronLeft size={16} /></button>
-              <button onClick={() => scrollStrip(1)}  style={arrowBtnStyle}><ChevronRight size={16} /></button>
+              <button onClick={() => scrollStrip(1)} style={arrowBtnStyle}><ChevronRight size={16} /></button>
             </div>
           </div>
 
@@ -184,9 +231,7 @@ const RecommendationsPage = () => {
           {/* Error / no assessment */}
           {!recLoading && (recError || recItems.length === 0) && (
             <div style={{ padding: "1rem", textAlign: "center", color: "var(--neu-text-muted)", fontSize: "0.88rem" }}>
-              {recError ?? "Hoàn thành bài đánh giá để nhận gợi ý nghề nghiệp cá nhân."}
-              {" "}
-              <Link to="/assessment" style={{ color: "var(--neu-accent)", fontWeight: 600 }}>Làm ngay →</Link>
+              {recError ?? ""}
             </div>
           )}
 
@@ -305,7 +350,7 @@ const RecommendationsPage = () => {
                 padding: "0.5rem 0.75rem",
                 gap: "0.6rem",
               }}>
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--neu-text-muted)", flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}/></svg>
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--neu-text-muted)", flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} /></svg>
                 <input
                   value={q}
                   onChange={(e) => { setPage(1); setQ(e.target.value); }}
@@ -316,8 +361,8 @@ const RecommendationsPage = () => {
                   }}
                 />
                 {q && (
-                  <button onClick={() => { setQ(""); setPage(1); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--neu-text-muted)", padding: 2, display:"flex", alignItems:"center" }}>
-                    <ArrowRight size={14} style={{ transform:"rotate(45deg)" }} />
+                  <button onClick={() => { setQ(""); setPage(1); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--neu-text-muted)", padding: 2, display: "flex", alignItems: "center" }}>
+                    <ArrowRight size={14} style={{ transform: "rotate(45deg)" }} />
                   </button>
                 )}
               </div>
@@ -345,62 +390,67 @@ const RecommendationsPage = () => {
 
                 const requiredPlan = !isLocked ? null : currentPlan === "basic" ? "premium" : "basic";
                 const requiredPlanInfo = requiredPlan ? getPlanInfo(requiredPlan) : null;
-                const grad = GRADIENTS[index % GRADIENTS.length];
+                const gradientClass = `gradient-${index % 6}`;
 
                 const CardContent = (
-                  <div className="career-card" style={{ opacity: isLocked ? 0.75 : 1, position: "relative" }}>
-                    {/* lock badge */}
+                  <div className={`career-card${isLocked ? " locked" : ""}`}>
+                    {/* Blur overlay for locked cards */}
+                    {isLocked && <div className="card-blur-overlay" />}
+
+                    {/* Premium badge for locked cards */}
                     {isLocked && (
-                      <div style={{ position: "absolute", top: 12, right: 12, zIndex: 5 }}>
-                        <span style={{
-                          padding: "0.2rem 0.6rem",
-                          background: "linear-gradient(to right,a855f7,ec4899)",
-                          color: "fff", borderRadius: 999,
-                          fontSize: "0.68rem", fontWeight: 700,
-                          display: "flex", alignItems: "center", gap: 4,
-                        }}>
-                           {requiredPlanInfo?.name || "PRO"}
-                        </span>
+                      <div className="premium-badge">
+                        <Lock size={12} />
+                        <span>{requiredPlanInfo?.name || "Basic"}</span>
                       </div>
                     )}
 
                     {/* Card top — gradient banner */}
-                    <div style={{
-                      height: 120,
-                      background: `linear-gradient(135deg, var(--tw-gradient-stops))`,
-                      backgroundImage: `linear-gradient(135deg,${grad.includes("green") ? "10b981,14b8a6" : grad.includes("blue") ? "3b82f6,6366f1" : grad.includes("orange") ? "f97316,ec4899" : grad.includes("purple") ? "a855f7,7c3aed" : grad.includes("emerald") ? "34d399,06b6d4" : "fb7185,ef4444"})`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <div style={{
-                        width: 48, height: 48, borderRadius: 14,
-                        background: "rgba(255,255,255,0.2)", backdropFilter: "blur(4px)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                        display: "flex", alignItems: "center", justifyContent: "center", color: "fff",
-                      }}>
-                        {isLocked
-                          ? <Lock size={22} />
-                          : <Briefcase size={22} />
-                        }
-                      </div>
+                    <div className={`card-top ${gradientClass}`}>
+                      {isLocked ? (
+                        <div className="overlay-lock">
+                          <Lock size={24} />
+                        </div>
+                      ) : (
+                        <div className="icon-container">
+                          <Briefcase size={22} />
+                        </div>
+                      )}
                     </div>
 
                     {/* Card body */}
                     <div className="card-body">
-                      <h3 className="card-title" style={{ fontSize: "1rem", WebkitLineClamp: 2, display: "-webkit-box", WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      <h3 className="card-title">
                         {c.title}
                       </h3>
                       <p className="card-desc">
                         {isLocked
-                          ? "Nâng cấp gói để xem thông tin nghề nghiệp này."
+                          ? "You have used all free career views. Upgrade to Basic Plan (99k) to view more careers or Premium Plan (199k) for unlimited access."
                           : (c.short_desc || c.description || "Khám phá lộ trình nghề nghiệp này.")}
                       </p>
 
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: "0.75rem", borderTop: "1px solid var(--neu-shadow-dark)" }}>
-                        <span style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", color: isLocked ? "#a78bfa" : "var(--neu-text-muted)", letterSpacing: "0.05em" }}>
-                          {isLocked ? "Locked" : "Full Time"}
+                      <div className="card-bottom">
+                        <span style={{
+                          color: isLocked ? '#9ca3af' : undefined,
+                          textTransform: 'uppercase',
+                          fontSize: '0.75rem',
+                          fontWeight: 700
+                        }}>
+                          {isLocked ? "LOCKED" : "Full Time"}
                         </span>
-                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: isLocked ? "#a78bfa" : "var(--neu-accent)", display: "flex", alignItems: "center", gap: 4 }}>
-                          {isLocked ? "Upgrade →" : "Chi tiết →"}
+                        <span className={isLocked ? "upgrade-link" : "view-career-btn"} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          {isLocked ? (
+                            <>
+                              <span>Upgrade</span>
+                              <Lock size={14} />
+                            </>
+                          ) : (
+                            "Chi tiết →"
+                          )}
                         </span>
                       </div>
                     </div>
@@ -430,31 +480,33 @@ const RecommendationsPage = () => {
           )}
 
           {/* Pagination */}
-          {!careerLoading && total > pageSize && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginTop: "2rem" }}>
-              <button
-                style={pgBtnStyle(page <= 1)}
-                disabled={page <= 1}
-                onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--neu-text)", padding: "0.5rem 1.25rem", background: "var(--neu-bg-card)", borderRadius: 999, boxShadow: "var(--neu-raised-sm)" }}>
-                {page} / {totalPages}
-              </span>
-              <button
-                style={pgBtnStyle(page >= totalPages)}
-                disabled={page >= totalPages}
-                onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              >
-                <ChevronRight size={18} />
-              </button>
-            </div>
-          )}
+          {
+            !careerLoading && total > pageSize && (
+              <div className="pagination-container">
+                <button
+                  className="pagination-btn"
+                  disabled={page <= 1}
+                  onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <span className="pagination-info">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  className="pagination-btn"
+                  disabled={page >= totalPages}
+                  onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            )
+          }
 
-        </div>
-      </div>
-    </MainLayout>
+        </div >
+      </div >
+    </MainLayout >
   );
 };
 
@@ -467,15 +519,5 @@ const arrowBtnStyle: React.CSSProperties = {
   boxShadow: "3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light)",
   color: "var(--neu-text-muted)",
 };
-
-const pgBtnStyle = (disabled: boolean): React.CSSProperties => ({
-  width: 40, height: 40, borderRadius: "50%",
-  border: "none", cursor: disabled ? "not-allowed" : "pointer",
-  display: "flex", alignItems: "center", justifyContent: "center",
-  background: "var(--neu-bg-card)",
-  boxShadow: disabled ? "none" : "var(--neu-raised-sm)",
-  color: disabled ? "var(--neu-shadow-dark)" : "var(--neu-text-muted)",
-  opacity: disabled ? 0.4 : 1,
-});
 
 export default RecommendationsPage;

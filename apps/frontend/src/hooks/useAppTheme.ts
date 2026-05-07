@@ -1,19 +1,17 @@
 import { useEffect, useState } from 'react';
 
-export interface AppTheme {
-  id: string;
+type ThemeMode = 'light' | 'dark';
+
+interface ThemeConfig {
+  mode: ThemeMode;
   name: string;
-  emoji: string;
-  dark: boolean;
   vars: Record<string, string>;
 }
 
-export const APP_THEMES: AppTheme[] = [
-  {
-    id: 'default',
-    name: 'Default',
-    emoji: '⚪',
-    dark: false,
+const THEME_CONFIGS: Record<ThemeMode, ThemeConfig> = {
+  light: {
+    mode: 'light',
+    name: 'Light',
     vars: {
       '--neu-bg': '#e8eaf0',
       '--neu-bg-card': '#eceef4',
@@ -25,27 +23,9 @@ export const APP_THEMES: AppTheme[] = [
       '--neu-text-muted': '#6b7280',
     },
   },
-  {
-    id: 'cream',
-    name: 'Cream',
-    emoji: '☕',
-    dark: false,
-    vars: {
-      '--neu-bg': '#f0e8d8',
-      '--neu-bg-card': '#f5ede0',
-      '--neu-shadow-dark': '#c8bfaf',
-      '--neu-shadow-light': '#ffffff',
-      '--neu-accent': '#92650a',
-      '--neu-btn-text': '#ffffff',
-      '--neu-text': '#3d2b1f',
-      '--neu-text-muted': '#7a5c40',
-    },
-  },
-  {
-    id: 'midnight',
-    name: 'Midnight',
-    emoji: '🌙',
-    dark: true,
+  dark: {
+    mode: 'dark',
+    name: 'Dark',
     vars: {
       '--neu-bg': '#0f172a',
       '--neu-bg-card': '#1e293b',
@@ -57,137 +37,87 @@ export const APP_THEMES: AppTheme[] = [
       '--neu-text-muted': '#94a3b8',
     },
   },
-  {
-    id: 'sakura',
-    name: 'Sakura',
-    emoji: '🌸',
-    dark: false,
-    vars: {
-      '--neu-bg': '#fce7f3',
-      '--neu-bg-card': '#fdf2f8',
-      '--neu-shadow-dark': '#ddb8cc',
-      '--neu-shadow-light': '#ffffff',
-      '--neu-accent': '#db2777',
-      '--neu-btn-text': '#ffffff',
-      '--neu-text': '#831843',
-      '--neu-text-muted': '#be185d',
-    },
-  },
-  {
-    id: 'ocean',
-    name: 'Ocean',
-    emoji: '🌊',
-    dark: true,
-    vars: {
-      '--neu-bg': '#0c1929',
-      '--neu-bg-card': '#112236',
-      '--neu-shadow-dark': '#060f18',
-      '--neu-shadow-light': '#162a42',
-      '--neu-accent': '#22d3ee',
-      '--neu-btn-text': '#0c1929',
-      '--neu-text': '#cffafe',
-      '--neu-text-muted': '#67e8f9',
-    },
-  },
-  {
-    id: 'forest',
-    name: 'Forest',
-    emoji: '🌿',
-    dark: false,
-    vars: {
-      '--neu-bg': '#e8f5e8',
-      '--neu-bg-card': '#f0f9f0',
-      '--neu-shadow-dark': '#c2d9c2',
-      '--neu-shadow-light': '#ffffff',
-      '--neu-accent': '#15803d',
-      '--neu-btn-text': '#ffffff',
-      '--neu-text': '#14532d',
-      '--neu-text-muted': '#166534',
-    },
-  },
-  {
-    id: 'sunset',
-    name: 'Sunset',
-    emoji: '🌅',
-    dark: false,
-    vars: {
-      '--neu-bg': '#fdebd0',
-      '--neu-bg-card': '#fef3e2',
-      '--neu-shadow-dark': '#d4c0a0',
-      '--neu-shadow-light': '#ffffff',
-      '--neu-accent': '#ea580c',
-      '--neu-btn-text': '#ffffff',
-      '--neu-text': '#7c2d12',
-      '--neu-text-muted': '#9a3412',
-    },
-  },
-  {
-    id: 'neon',
-    name: 'Neon',
-    emoji: '💜',
-    dark: true,
-    vars: {
-      '--neu-bg': '#0d0d1a',
-      '--neu-bg-card': '#131328',
-      '--neu-shadow-dark': '#06060f',
-      '--neu-shadow-light': '#1a1a38',
-      '--neu-accent': '#a855f7',
-      '--neu-btn-text': '#ffffff',
-      '--neu-text': '#ede9fe',
-      '--neu-text-muted': '#c4b5fd',
-    },
-  },
-  {
-    id: 'arctic',
-    name: 'Arctic',
-    emoji: '❄️',
-    dark: false,
-    vars: {
-      '--neu-bg': '#e8f0f8',
-      '--neu-bg-card': '#f0f6fc',
-      '--neu-shadow-dark': '#bccedd',
-      '--neu-shadow-light': '#ffffff',
-      '--neu-accent': '#0284c7',
-      '--neu-btn-text': '#ffffff',
-      '--neu-text': '#0c4a6e',
-      '--neu-text-muted': '#0369a1',
-    },
-  },
-];
+};
 
 const STORAGE_KEY = 'app-theme';
 
-export function applyTheme(theme: AppTheme) {
+// Map old theme IDs to new modes for backward compatibility
+const LEGACY_THEME_MAP: Record<string, ThemeMode> = {
+  'default': 'light',
+  'cream': 'light',
+  'sakura': 'light',
+  'forest': 'light',
+  'sunset': 'light',
+  'arctic': 'light',
+  'midnight': 'dark',
+  'ocean': 'dark',
+  'neon': 'dark',
+};
+
+function applyTheme(config: ThemeConfig) {
   const root = document.documentElement;
-  Object.entries(theme.vars).forEach(([key, val]) => {
+
+  // Apply CSS variables
+  Object.entries(config.vars).forEach(([key, val]) => {
     root.style.setProperty(key, val);
   });
-  // Control dark mode class — drives all Tailwind dark: variants
-  if (theme.dark) {
+
+  // Set data-theme attribute for CSS targeting
+  root.setAttribute('data-theme', config.mode);
+
+  // Control dark mode class for Tailwind dark: variants
+  if (config.mode === 'dark') {
     root.classList.add('dark');
   } else {
     root.classList.remove('dark');
   }
-  // Apply base text + bg to body so non-Tailwind elements are also covered
-  document.body.style.background = theme.vars['--neu-bg'] ?? '';
-  document.body.style.color = theme.vars['--neu-text'] ?? '';
+
+  // Apply base styles to body
+  document.body.style.background = config.vars['--neu-bg'] ?? '';
+  document.body.style.color = config.vars['--neu-text'] ?? '';
+}
+
+function normalizeThemeValue(value: string | null): ThemeMode {
+  if (!value) return 'light';
+
+  // Check if it's already a valid mode
+  if (value === 'light' || value === 'dark') {
+    return value;
+  }
+
+  // Map legacy theme IDs to modes
+  return LEGACY_THEME_MAP[value] || 'light';
 }
 
 export function useAppTheme() {
-  const [themeId, setThemeId] = useState<string>(() => {
-    return localStorage.getItem(STORAGE_KEY) || 'default';
+  const [mode, setMode] = useState<ThemeMode>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return normalizeThemeValue(stored);
   });
 
-  const currentTheme = APP_THEMES.find(t => t.id === themeId) ?? APP_THEMES[0];
+  const currentTheme = THEME_CONFIGS[mode];
 
   useEffect(() => {
     applyTheme(currentTheme);
-  }, [currentTheme]);
+    // Update localStorage with normalized value
+    localStorage.setItem(STORAGE_KEY, mode);
+  }, [currentTheme, mode]);
 
-  const selectTheme = (id: string) => {
-    localStorage.setItem(STORAGE_KEY, id);
-    setThemeId(id);
+  const setThemeMode = (newMode: ThemeMode) => {
+    setMode(newMode);
+    localStorage.setItem(STORAGE_KEY, newMode);
   };
 
-  return { themeId, currentTheme, selectTheme, themes: APP_THEMES };
+  const toggleTheme = () => {
+    setThemeMode(mode === 'light' ? 'dark' : 'light');
+  };
+
+  return {
+    mode,
+    currentTheme,
+    setThemeMode,
+    toggleTheme,
+    isLight: mode === 'light',
+    isDark: mode === 'dark',
+  };
 }

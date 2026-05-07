@@ -108,12 +108,19 @@ const CareersPage = () => {
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
           
-          /* Force black text color */
-          .force-black-text {
-            color: 000000 !important;
+          /* Animated gradient text */
+          @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
           }
-          .force-black-text h1, .force-black-text h2, .force-black-text h3, .force-black-text p {
-            color: 000000 !important;
+          .gradient-text-animated {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed, #ec4899, #f59e0b, #10b981, #3b82f6, #4f46e5);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 3s ease infinite;
           }
         `}</style>
 
@@ -124,14 +131,14 @@ const CareersPage = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
           {/* --- HEADER & SEARCH --- */}
-          <div className="text-center mb-16 animate-fade-in-up force-black-text">
-            <span className="inline-block py-1.5 px-4 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold tracking-widest uppercase mb-6 border border-indigo-200 dark:border-indigo-800">
+          <div className="text-center mb-16 animate-fade-in-up">
+            <span className="inline-block py-1.5 px-4 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-xs font-bold tracking-widest uppercase mb-6 border border-indigo-200 dark:border-indigo-800 hover:shadow-lg hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-300 cursor-default gradient-text-animated">
               Discover Opportunities
             </span>
-            <h1 className="text-4xl md:text-6xl font-extrabold text-black dark:text-white mb-6 tracking-tight leading-tight" style={{ color: '#000000' }}>
-              Explore <span className="text-indigo-800 dark:text-indigo-400">Career Paths</span>
+            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight">
+              <span className="text-black dark:text-white">Explore</span> <span className="text-indigo-800 dark:text-indigo-400">Career Paths</span>
             </h1>
-            <p className="text-xl text-black dark:text-white max-w-2xl mx-auto font-medium leading-relaxed mb-10" style={{ color: '#000000' }}>
+            <p className="text-xl text-black dark:text-white max-w-2xl mx-auto font-medium leading-relaxed mb-10">
               Find the perfect career that aligns with your personality, strengths, and interests.
             </p>
 

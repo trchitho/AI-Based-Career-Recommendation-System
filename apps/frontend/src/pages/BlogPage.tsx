@@ -201,10 +201,10 @@ const BlogPage = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
         {/* ── Compact Hero ── */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-800 dark:via-gray-850 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="absolute inset-0 opacity-5 pointer-events-none">
             <div className="absolute top-0 left-1/4 w-72 h-72 bg-indigo-700 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-blue-500 rounded-full blur-3xl"></div>
@@ -279,7 +279,7 @@ const BlogPage = () => {
         </section>
 
         {/* ── Category Filter Bar ── */}
-        <section className="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <section className="sticky top-0 z-40 bg-white/90 dark:bg-gray-800/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               {categories.map((category) => (
@@ -345,7 +345,7 @@ const BlogPage = () => {
                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                     {/* Dark overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20" />
 
                     <div className="absolute inset-0 p-8 flex flex-col justify-end">
                       <div className="flex items-center gap-3 mb-3">
@@ -363,11 +363,11 @@ const BlogPage = () => {
                         {featuredPost.excerpt || featuredPost.content_md?.substring(0, 120) + '...'}
                       </p>
                       <div className="flex items-center gap-4">
-                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-900 font-semibold rounded-lg text-sm hover:bg-indigo-50 transition-colors">
+                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-sm transition-colors">
                           Read Full Report
                           <ArrowRight className="w-4 h-4" />
                         </button>
-                        <div className="flex items-center gap-1.5 text-white/60 text-xs">
+                        <div className="flex items-center gap-1.5 text-white/80 text-xs">
                           <Clock className="w-3.5 h-3.5" />
                           <span>{calculateReadingTime(featuredPost.content_md || '')}</span>
                         </div>
@@ -400,8 +400,9 @@ const BlogPage = () => {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent dark:from-black/50" />
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <span className="text-white/10 text-7xl font-black">{post.title.charAt(0)}</span>
+                              <span className="text-white/10 dark:text-white/5 text-7xl font-black">{post.title.charAt(0)}</span>
                             </div>
                           </div>
 
@@ -428,14 +429,14 @@ const BlogPage = () => {
                             {/* Footer */}
                             <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100 dark:border-gray-700">
                               <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
                                   {authorInitial}
                                 </div>
-                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
                                   {post.author_name || 'Author'}
                                 </span>
                               </div>
-                              <span className="text-xs text-indigo-800 dark:text-indigo-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
                                 Read More <ArrowRight className="w-3 h-3" />
                               </span>
                             </div>

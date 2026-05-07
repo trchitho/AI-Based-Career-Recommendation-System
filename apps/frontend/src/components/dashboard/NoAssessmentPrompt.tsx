@@ -28,20 +28,20 @@ const NoAssessmentPrompt: React.FC = () => {
 
         {/* Heading */}
         <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight">
-          Start Your <span className="text-indigo-800 dark:text-indigo-700">Career Journey</span>
+          Bắt đầu <span className="text-indigo-800 dark:text-indigo-700">Hành trình nghề nghiệp</span>
         </h2>
 
         <p className="text-gray-500 dark:text-gray-400 mb-10 text-lg leading-relaxed font-medium">
-          Take our comprehensive career assessment to discover personalized career recommendations
-          tailored to your personality, interests, and skills. Get started in just 15 minutes!
+          Thực hiện bài đánh giá nghề nghiệp toàn diện để khám phá các gợi ý nghề nghiệp được cá nhân hóa
+          phù hợp với tính cách, sở thích và kỹ năng của bạn. Bắt đầu chỉ trong 15 phút!
         </p>
 
         {/* Feature Badges */}
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           {[
-            { label: 'RIASEC Personality Test', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-            { label: 'Big Five Assessment', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-            { label: 'AI-Powered Analysis', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+            { label: 'Bài kiểm tra tính cách RIASEC', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+            { label: 'Đánh giá Big Five', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+            { label: 'Phân tích bằng AI', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
           ].map((item, idx) => (
             <div key={idx} className="flex items-center px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm">
               <svg className="w-4 h-4 text-indigo-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} /></svg>
@@ -55,7 +55,7 @@ const NoAssessmentPrompt: React.FC = () => {
           onClick={handleStartAssessment}
           className="group relative inline-flex items-center justify-center px-10 py-4 bg-indigo-800 hover:bg-indigo-900 text-white rounded-2xl font-bold text-lg shadow-xl shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-1 transition-all duration-300"
         >
-          <span>Take Career Assessment</span>
+          <span>Làm bài đánh giá nghề nghiệp</span>
           <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>

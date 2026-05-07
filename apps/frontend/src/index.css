@@ -23,22 +23,62 @@ body {
 }
 
 /* Headings dùng Manrope */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Manrope', 'Inter', sans-serif;
 }
 
 /* Tailwind color override — map green → primary */
-.bg-green-600 { background-color: var(--color-primary) !important; }
-.bg-green-700 { background-color: var(--color-primary-hover) !important; }
-.text-green-600, .dark\:text-green-400 { color: var(--color-primary) !important; }
-.text-green-700 { color: var(--color-primary-dark) !important; }
-.border-green-500, .hover\:border-green-500:hover { border-color: var(--color-primary) !important; }
-.bg-green-100 { background-color: var(--color-primary-light) !important; }
-.text-green-800 { color: var(--color-primary-dark) !important; }
-.from-green-500, .from-green-600 { --tw-gradient-from: var(--color-primary) !important; }
-.to-teal-500 { --tw-gradient-to: var(--color-secondary) !important; }
-.ring-green-500 { --tw-ring-color: var(--color-primary) !important; }
-.focus\:ring-green-500:focus { --tw-ring-color: var(--color-primary) !important; }
+.bg-green-600 {
+  background-color: var(--color-primary) !important;
+}
+
+.bg-green-700 {
+  background-color: var(--color-primary-hover) !important;
+}
+
+.text-green-600,
+.dark\:text-green-400 {
+  color: var(--color-primary) !important;
+}
+
+.text-green-700 {
+  color: var(--color-primary-dark) !important;
+}
+
+.border-green-500,
+.hover\:border-green-500:hover {
+  border-color: var(--color-primary) !important;
+}
+
+.bg-green-100 {
+  background-color: var(--color-primary-light) !important;
+}
+
+.text-green-800 {
+  color: var(--color-primary-dark) !important;
+}
+
+.from-green-500,
+.from-green-600 {
+  --tw-gradient-from: var(--color-primary) !important;
+}
+
+.to-teal-500 {
+  --tw-gradient-to: var(--color-secondary) !important;
+}
+
+.ring-green-500 {
+  --tw-ring-color: var(--color-primary) !important;
+}
+
+.focus\:ring-green-500:focus {
+  --tw-ring-color: var(--color-primary) !important;
+}
 
 /* Selection color */
 ::selection {
@@ -132,26 +172,44 @@ iframe {
 .animate-bounce-in {
   animation: bounce-in 0.4s ease-out;
 }
+
 /* ── Global Responsive Utilities ───────────────────────────── */
 @media (max-width: 768px) {
+
   /* Prevent horizontal overflow globally */
-  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+  .max-w-7xl,
+  .max-w-6xl,
+  .max-w-5xl,
+  .max-w-4xl {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }
+
   /* Sidebar: auto-collapse on mobile (handled by JS already) */
 }
 
 @media (max-width: 480px) {
+
   /* Tighter padding on very small screens */
-  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+  .max-w-7xl,
+  .max-w-6xl,
+  .max-w-5xl,
+  .max-w-4xl {
     padding-left: 0.75rem !important;
     padding-right: 0.75rem !important;
   }
+
   /* Stack flex rows on mobile */
-  .sm\:flex-row { flex-direction: column; }
+  .sm\:flex-row {
+    flex-direction: column;
+  }
+
   /* Table overflow */
-  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Prevent inline-style grids from overflowing */

@@ -1,0 +1,95 @@
+/* ============================================
+   HERO SECTION - FULL BLEED AI SAAS STYLE
+   ============================================ */
+
+/* Hero content - no card, transparent background */
+.mm-hero-content {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+}
+
+/* Hero badge styling */
+.mm-hero-content>span {
+    background: rgba(139, 92, 246, 0.1) !important;
+    border: 1px solid rgba(139, 92, 246, 0.3) !important;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.15) !important;
+    color: #8b5cf6 !important;
+}
+
+/* Hero title - enhance contrast */
+.mm-hero-content>h1 {
+    color: #0F172A !important;
+    text-shadow: 0 2px 20px rgba(124, 58, 237, 0.1);
+    font-weight: 800 !important;
+    letter-spacing: -0.02em !important;
+}
+
+/* Hero subtitle - soft gray */
+.mm-hero-content>p {
+    color: #475569 !important;
+    opacity: 1;
+    font-weight: 500 !important;
+    font-size: 1.125rem !important;
+}
+
+/* Gradient text for "Mentor" highlight */
+.mm-hero-content>h1>span {
+    background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    filter: drop-shadow(0 2px 10px rgba(124, 58, 237, 0.3));
+}
+
+/* ============================================
+   DARK MODE - HERO SECTION
+   ============================================ */
+
+html.dark .mm-page {
+    background: radial-gradient(1200px at 20% 10%, rgba(120, 119, 198, 0.18), transparent),
+        radial-gradient(1000px at 80% 90%, rgba(59, 130, 246, 0.15), transparent),
+        linear-gradient(135deg, #0a0f1e 0%, #1a1f35 50%, #0f1729 100%) !important;
+}
+
+/* Dark mode badge */
+html.dark .mm-hero-content>span {
+    background: rgba(139, 92, 246, 0.15) !important;
+    border: 1px solid rgba(139, 92, 246, 0.4) !important;
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.25) !important;
+    color: #c4b5fd !important;
+}
+
+/* Dark mode title */
+html.dark .mm-hero-content>h1 {
+    color: #F8FAFC !important;
+    text-shadow: 0 4px 40px rgba(139, 92, 246, 0.4), 0 2px 20px rgba(99, 102, 241, 0.3);
+    font-weight: 800 !important;
+}
+
+/* Dark mode subtitle */
+html.dark .mm-hero-content>p {
+    color: #CBD5E1 !important;
+    opacity: 0.95;
+    font-weight: 500 !important;
+}
+
+/* Dark mode gradient - brighter and more vibrant */
+html.dark .mm-hero-content>h1>span {
+    background: linear-gradient(135deg, #C4B5FD 0%, #A78BFA 50%, #818CF8 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    filter: drop-shadow(0 4px 30px rgba(167, 139, 250, 0.6)) drop-shadow(0 0 40px rgba(139, 92, 246, 0.4));
+}
+
+/* ============================================
+   SMOOTH TRANSITIONS
+   ============================================ */
+
+.mm-hero-content,
+.mm-hero-content>* {
+    transition: all 0.3s ease;
+}

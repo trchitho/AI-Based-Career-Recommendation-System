@@ -156,11 +156,11 @@ const HomePage = () => {
     };
 
     const testimonials = [
-        { name: 'Sarah Nguyen', role: 'Software Engineer', text: "The insights were incredibly accurate. I finally understand why certain careers appeal to me.", initial: 'S', color: 'bg-indigo-500' },
-        { name: 'Michael Chen', role: 'Product Manager', text: "A game-changer for my career planning. The roadmap gave me clear direction.", initial: 'M', color: 'bg-indigo-700' },
-        { name: 'Emily Patel', role: 'UX Designer', text: "Highly recommended for anyone feeling stuck in their current role.", initial: 'E', color: 'bg-purple-500' },
-        { name: 'David Kim', role: 'Data Scientist', text: "The AI analysis is spot on. It helped me pivot my career successfully.", initial: 'D', color: 'bg-blue-500' },
-        { name: 'Lisa Wang', role: 'Marketing Lead', text: "Simple, intuitive, and effective. Best career tool I've used.", initial: 'L', color: 'bg-pink-500' },
+        { name: 'Sarah Nguyen', role: 'Software Engineer', text: "The insights were incredibly accurate. I finally understand why certain careers appeal to me.", initial: 'S', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
+        { name: 'Michael Chen', role: 'Product Manager', text: "A game-changer for my career planning. The roadmap gave me clear direction.", initial: 'M', gradient: 'linear-gradient(135deg, #3b82f6, #06b6d4)' },
+        { name: 'Emily Patel', role: 'UX Designer', text: "Highly recommended for anyone feeling stuck in their current role.", initial: 'E', gradient: 'linear-gradient(135deg, #ec4899, #8b5cf6)' },
+        { name: 'David Kim', role: 'Data Scientist', text: "The AI analysis is spot on. It helped me pivot my career successfully.", initial: 'D', gradient: 'linear-gradient(135deg, #06b6d4, #22c55e)' },
+        { name: 'Lisa Wang', role: 'Marketing Lead', text: "Simple, intuitive, and effective. Best career tool I've used.", initial: 'L', gradient: 'linear-gradient(135deg, #f59e0b, #fb923c)' },
     ];
     const row1 = [...testimonials, ...testimonials];
     const row2 = [...testimonials].reverse().concat([...testimonials].reverse());
@@ -256,8 +256,8 @@ const HomePage = () => {
 
                             {/* LEFT — text */}
                             <div className="flex-1 animate-fade-in-up">
-                                <span className="relative px-4 py-1.5 rounded-full bg-white/50 dark:bg-gray-800/50 border border-indigo-200 dark:border-indigo-800 backdrop-blur-sm text-sm font-bold inline-block mb-6 shadow-sm hover:scale-105 transition-transform cursor-default">
-                                    <span className="text-shimmer">{t('home.badge')}</span>
+                                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "10px 18px", borderRadius: "999px", fontSize: "14px", fontWeight: 600, lineHeight: "20px", color: "#4f46e5", background: "rgba(255,255,255,0.92)", border: "1px solid rgba(99,102,241,0.35)", boxShadow: "0 8px 20px rgba(99,102,241,0.12)", position: "relative", zIndex: 20, opacity: 1, visibility: "visible", whiteSpace: "nowrap", marginBottom: "24px" }} className="hover:scale-105 transition-transform cursor-default">
+                                    {t('home.badge')}
                                 </span>
 
                                 <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1]">
@@ -294,13 +294,13 @@ const HomePage = () => {
                                     </div>
                                     <div className="p-6">
                                         <div className="flex items-end justify-between h-36 gap-1.5 mb-4">
-                                            {[35,55,42,70,58,85,65,90,72,80,60,95].map((h, i) => (
+                                            {[35, 55, 42, 70, 58, 85, 65, 90, 72, 80, 60, 95].map((h, i) => (
                                                 <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i >= 9 ? 'rgba(56,189,248,0.9)' : `rgba(56,189,248,${0.25 + i * 0.04})` }}></div>
                                             ))}
                                         </div>
                                         <div className="flex justify-between text-xs text-white/30 font-mono">
-                                            {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(m => (
-                                                <span key={m}>{m.slice(0,1)}</span>
+                                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
+                                                <span key={m}>{m.slice(0, 1)}</span>
                                             ))}
                                         </div>
                                     </div>
@@ -358,7 +358,7 @@ const HomePage = () => {
                     <div className="flex w-max animate-scroll">
                         {[...Array(2)].map((_, i) => (
                             <div key={i} className="flex gap-20 px-12 items-center">
-                                {['RIASEC Assessment','Big Five Analysis','AI Career Matching','Learning Roadmaps','900+ Careers','Skill Gap Analysis','AI Assistant','PDF Reports'].map((text, idx) => (
+                                {['Đánh Giá RIASEC', 'Phân Tích Big Five', 'Gợi Ý Nghề Nghiệp AI', 'Lộ Trình Học Tập', '900+ Nghề Nghiệp', 'Phân Tích Khoảng Cách Kỹ Năng', 'Trợ Lý AI', 'Báo Cáo PDF'].map((text, idx) => (
                                     <span key={idx} className="text-xl font-bold tracking-wide text-gray-400 hover:text-indigo-800 dark:text-gray-500 dark:hover:text-indigo-400 select-none transition-colors duration-300 whitespace-nowrap uppercase">
                                         {text}
                                     </span>
@@ -471,16 +471,16 @@ const HomePage = () => {
                         </div>
 
                         <div className="relative">
-                            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-100 dark:bg-gray-800 -translate-x-1/2"></div>
+                            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 -translate-x-1/2" style={{ width: "3px", borderRadius: "999px", background: "linear-gradient(to bottom, #8b5cf6 0%, #3b82f6 30%, #10b981 65%, #f59e0b 100%)", boxShadow: "0 0 12px rgba(139,92,246,.25)" }}></div>
                             {[
-                                { title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc'), icon: "1", align: "left" },
-                                { title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc'), icon: "2", align: "right" },
-                                { title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc'), icon: "3", align: "left" },
-                                { title: t('home.howItWorks.step4.title'), desc: t('home.howItWorks.step4.desc'), icon: "4", align: "right" }
+                                { title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc'), icon: "1", align: "left", gradient: "linear-gradient(135deg, #8b5cf6, #6366f1)" },
+                                { title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc'), icon: "2", align: "right", gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)" },
+                                { title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc'), icon: "3", align: "left", gradient: "linear-gradient(135deg, #10b981, #14b8a6)" },
+                                { title: t('home.howItWorks.step4.title'), desc: t('home.howItWorks.step4.desc'), icon: "4", align: "right", gradient: "linear-gradient(135deg, #fb923c, #f59e0b)" }
                             ].map((step, idx) => (
                                 <div key={idx} className={`relative flex items-center justify-between mb-16 ${step.align === 'right' ? 'flex-row-reverse' : ''} group`}>
                                     <div className="hidden md:block w-5/12"></div>
-                                    <div className="absolute left-0 md:left-1/2 top-0 md:-translate-x-1/2 w-10 h-10 bg-indigo-700 rounded-full flex items-center justify-center text-white font-bold border-4 border-white dark:border-gray-900 z-10 shadow-lg group-hover:scale-110 group-hover:bg-indigo-400 transition-all duration-300">
+                                    <div className="absolute left-0 md:left-1/2 top-0 md:-translate-x-1/2 z-10" style={{ width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontWeight: 700, fontSize: "16px", border: "3px solid rgba(255,255,255,0.95)", boxShadow: "0 0 24px rgba(0,0,0,0.15)", flexShrink: 0, background: step.gradient }}>
                                         {step.icon}
                                     </div>
                                     <div className={`w-full md:w-5/12 pl-16 md:pl-0 ${step.align === 'left' ? 'md:pr-10 md:text-right' : 'md:pl-10'}`}>
@@ -522,12 +522,12 @@ const HomePage = () => {
                             {row1.map((item, idx) => (
                                 <div key={`r1-${idx}`} className="w-[380px] bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg transition-all duration-300">
                                     <div className="flex items-center mb-4">
-                                        <div className={`w-10 h-10 ${item.color} rounded-full flex items-center justify-center text-white font-bold shadow-md`}>{item.initial}</div>
+                                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#ffffff", fontWeight: 700, fontSize: "16px", background: item.gradient, boxShadow: "0 8px 20px rgba(0,0,0,.18)" }}>{item.initial}</div>
                                         <div className="ml-3">
                                             <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
-                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}></span>)}</div>
+                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300 italic text-sm leading-relaxed">"{item.text}"</p>
                                 </div>
@@ -537,12 +537,12 @@ const HomePage = () => {
                             {row2.map((item, idx) => (
                                 <div key={`r2-${idx}`} className="w-[380px] bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg transition-all duration-300">
                                     <div className="flex items-center mb-4">
-                                        <div className={`w-10 h-10 ${item.color} rounded-full flex items-center justify-center text-white font-bold shadow-md`}>{item.initial}</div>
+                                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#ffffff", fontWeight: 700, fontSize: "16px", background: item.gradient, boxShadow: "0 8px 20px rgba(0,0,0,.18)" }}>{item.initial}</div>
                                         <div className="ml-3">
                                             <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
-                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}></span>)}</div>
+                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300 italic text-sm leading-relaxed">"{item.text}"</p>
                                 </div>

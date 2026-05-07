@@ -13,17 +13,12 @@ const NO_SIDEBAR_PATHS = ['/', '/login', '/register', '/forgot-password', '/veri
 
 const sidebarItems = [
   {
-    label: 'Tổng quan',
-    to: '/dashboard',
-    icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
-  },
-  {
     label: 'Phân tích kỹ năng',
     to: '/skill-gap',
     icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
   },
   {
-    label: 'Learning Roadmap',
+    label: 'Lộ trình học tập',
     to: '/careers',
     icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>,
   },
@@ -41,11 +36,6 @@ const sidebarItems = [
     label: 'Bài viết',
     to: '/blog',
     icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>,
-  },
-  {
-    label: 'Profile',
-    to: '/profile',
-    icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
   },
 ];
 
@@ -72,9 +62,20 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   // State cho Mobile Menu
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Sidebar collapse
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Sidebar collapse - Default to collapsed (true), persist state in localStorage
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebarCollapsed');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
+
+  // Calculate sidebar width for navbar positioning
+  const sidebarWidth = showSidebar ? (sidebarCollapsed ? 64 : 232) : 0;
+
+  // Save sidebar state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   // Xử lý click ra ngoài để đóng dropdown
   useEffect(() => {
@@ -90,11 +91,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   }, []);
 
   const navLinks = [
-    { to: "/dashboard",       label: "Dashboard" },
-    { to: "/assessment",      label: "Assessment" },
-    { to: "/careers",         label: "Market" },
-    { to: "/mentor-matching", label: "Mentors" },
-    { to: "/interview",       label: "Interviews" },
+    { to: "/dashboard", label: "Tổng quan" },
+    { to: "/assessment", label: "Đánh giá" },
+    { to: "/careers", label: "Xu hướng" },
+    { to: "/mentor-matching", label: "Cố vấn" },
+    { to: "/interview", label: "Phỏng vấn" },
   ];
 
   const handleLogout = () => {
@@ -106,6 +107,20 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const displayName = user?.email?.split('@')[0] || 'User';
   const displayInitial = displayName.charAt(0).toUpperCase();
 
+  // Scroll state for navbar animation - SIMPLE THRESHOLD (no complex interpolation)
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Simple threshold - clean toggle at 80px
+  const isScrolled = scrollY > 80;
+
   return (
     <div className="min-h-screen flex flex-col font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, f0f2f5)' }}>
 
@@ -114,17 +129,44 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
       `}</style>
 
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 w-full pt-3 pb-2 px-3 sm:px-6 transition-all duration-300"
-        style={{ background: 'transparent' }}
+      {/* HEADER - Positioned relative to content area (accounting for sidebar) */}
+      <header
+        className="fixed top-0 z-50 transition-[height] duration-200 ease-out"
+        style={{
+          left: `${sidebarWidth}px`,
+          width: `calc(100% - ${sidebarWidth}px)`,
+        }}
       >
-        <div className="mx-auto h-[76px] flex justify-between items-center gap-3 px-5 sm:px-7"
+        {/* Inner container with max-width and centering */}
+        <div
+          className="mx-auto flex justify-between items-center transition-all duration-200 ease-out"
           style={{
-            background: 'var(--neu-bg)',
-            borderRadius: '20px',
-            boxShadow: '6px 6px 16px var(--neu-shadow-dark, c8cdd6), -6px -6px 16px var(--neu-shadow-light, fff)',
+            height: isScrolled ? '56px' : '72px',
+            width: isScrolled ? '90%' : '95%',
+            maxWidth: isScrolled ? '1400px' : '1600px',
+            paddingLeft: isScrolled ? '24px' : '32px',
+            paddingRight: isScrolled ? '24px' : '32px',
+            background: isScrolled
+              ? 'rgba(255, 255, 255, 0.75)'
+              : 'transparent',
+            backdropFilter: isScrolled ? 'blur(12px)' : 'none',
+            WebkitBackdropFilter: isScrolled ? 'blur(12px)' : 'none',
+            borderRadius: isScrolled ? '999px' : '0',
+            boxShadow: isScrolled
+              ? '0 4px 20px rgba(0, 0, 0, 0.08)'
+              : 'none',
           }}
         >
+          <style>{`
+            .dark header > div {
+              background: ${isScrolled
+              ? 'rgba(16, 20, 30, 0.75) !important'
+              : 'transparent !important'};
+              box-shadow: ${isScrolled
+              ? '0 4px 20px rgba(0, 0, 0, 0.4) !important'
+              : 'none !important'};
+            }
+          `}</style>
 
           {/* Logo */}
           <div className="flex-shrink-0">
@@ -132,30 +174,109 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           </div>
 
           {/* Menu chính giữa (Desktop) */}
-          <nav
-            className="hidden md:flex items-center gap-0.5 px-1.5 py-1.5 rounded-2xl min-w-0 flex-shrink"
-            style={{
-              background: 'var(--neu-bg)',
-              boxShadow: 'inset 3px 3px 8px var(--neu-shadow-dark), inset -3px -3px 8px var(--neu-shadow-light)',
-            }}
-          >
+          <nav className="hidden md:flex items-center gap-2 px-2 py-2 rounded-2xl min-w-0 flex-1 justify-center header-nav">
+            <style>{`
+              /* Base nav item */
+              .header-nav-item {
+                position: relative;
+                overflow: visible;
+                transition: all 0.2s ease;
+                color: #6B7280;
+              }
+
+              .dark .header-nav-item {
+                color: #A1A7B3;
+              }
+
+              /* Pill background (subtle) */
+              .header-nav-item::before {
+                content: '';
+                position: absolute;
+                inset: -4px;
+                border-radius: 9999px;
+                background: rgba(37, 99, 235, 0.1);
+                opacity: 0;
+                transition: opacity 0.2s ease;
+                z-index: -1;
+              }
+
+              .dark .header-nav-item::before {
+                background: rgba(102, 191, 255, 0.1);
+              }
+
+              /* Underline glow */
+              .header-nav-item .underline-glow {
+                position: absolute;
+                left: 50%;
+                bottom: -2px;
+                transform: translateX(-50%);
+                width: 0%;
+                height: 2px;
+                border-radius: 999px;
+                background: linear-gradient(90deg, transparent, #2563EB, transparent);
+                opacity: 0;
+                transition: all 0.2s ease;
+              }
+
+              .dark .header-nav-item .underline-glow {
+                background: linear-gradient(90deg, transparent, #66BFFF, transparent);
+              }
+
+              /* HOVER STATE */
+              .header-nav-item:hover {
+                color: #2563EB;
+              }
+
+              .dark .header-nav-item:hover {
+                color: #66BFFF;
+              }
+
+              .header-nav-item:hover::before {
+                opacity: 1;
+              }
+
+              .header-nav-item:hover {
+                box-shadow: 0 0 12px rgba(37, 99, 235, 0.25);
+              }
+
+              .dark .header-nav-item:hover {
+                box-shadow: 0 0 12px rgba(102, 191, 255, 0.25);
+              }
+
+              /* ACTIVE STATE */
+              .header-nav-item[aria-current="page"] {
+                color: #2563EB;
+              }
+
+              .dark .header-nav-item[aria-current="page"] {
+                color: #66BFFF;
+              }
+
+              .header-nav-item[aria-current="page"]::before {
+                opacity: 1;
+              }
+
+              .header-nav-item[aria-current="page"] {
+                box-shadow: 0 0 16px rgba(37, 99, 235, 0.35);
+              }
+
+              .dark .header-nav-item[aria-current="page"] {
+                box-shadow: 0 0 16px rgba(102, 191, 255, 0.35);
+              }
+
+              .header-nav-item[aria-current="page"] .underline-glow {
+                opacity: 1;
+                width: 80%;
+              }
+            `}</style>
             {navLinks.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) =>
-                  `text-[14px] font-medium px-3.5 py-2 rounded-xl transition-all duration-200 select-none whitespace-nowrap ${
-                    isActive
-                      ? "text-indigo-800 dark:text-indigo-400 font-semibold"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                  }`
-                }
-                style={({ isActive }) => isActive ? ({
-                  background: 'var(--neu-bg-card)',
-                  boxShadow: '4px 4px 9px var(--neu-shadow-dark), -4px -4px 9px var(--neu-shadow-light)',
-                }) : ({})}
+                className="header-nav-item text-[14px] font-semibold px-5 py-2.5 rounded-full select-none whitespace-nowrap relative"
               >
                 {item.label}
+                <span className="underline-glow"></span>
               </NavLink>
             ))}
           </nav>
@@ -180,9 +301,32 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             </button>
 
             {/* Utilities Group (hidden on mobile — accessible via mobile menu) */}
-            <div className="hidden md:flex items-center gap-1 pr-3 border-r border-gray-200 dark:border-gray-700">
+            <div className="hidden md:flex items-center gap-2 pr-3 border-r border-gray-200/50 dark:border-gray-700/50">
               {user && (
-                <div className="ml-1">
+                <div className="notification-wrapper">
+                  <style>{`
+                    .notification-wrapper button {
+                      position: relative;
+                      padding: 0.5rem;
+                      border-radius: 12px;
+                      transition: all 0.2s ease;
+                      background: transparent;
+                      color: #6B7280;
+                    }
+                    .dark .notification-wrapper button {
+                      color: #A1A7B3;
+                    }
+                    .notification-wrapper button:hover {
+                      background: rgba(37, 99, 235, 0.08);
+                      color: #2563EB;
+                      box-shadow: 0 0 12px rgba(37, 99, 235, 0.25);
+                    }
+                    .dark .notification-wrapper button:hover {
+                      background: rgba(102, 191, 255, 0.08);
+                      color: #66BFFF;
+                      box-shadow: 0 0 12px rgba(102, 191, 255, 0.25);
+                    }
+                  `}</style>
                   <NotificationCenter />
                 </div>
               )}
@@ -205,18 +349,47 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
               {/* User Dropdown Menu */}
               {user ? (
-                <div className="relative" ref={dropdownRef}>
+                <div className="relative user-menu-wrapper" ref={dropdownRef}>
+                  <style>{`
+                    .user-menu-wrapper button {
+                      position: relative;
+                      padding: 0.5rem;
+                      border-radius: 999px;
+                      transition: all 0.2s ease;
+                    }
+                    .user-menu-wrapper button:hover {
+                      background: rgba(37, 99, 235, 0.08);
+                      box-shadow: 0 0 15px rgba(37, 99, 235, 0.25);
+                    }
+                    .dark .user-menu-wrapper button:hover {
+                      background: rgba(102, 191, 255, 0.08);
+                      box-shadow: 0 0 15px rgba(102, 191, 255, 0.25);
+                    }
+                    .user-avatar {
+                      transition: all 0.2s ease;
+                      border: 2px solid transparent;
+                    }
+                    .user-menu-wrapper button:hover .user-avatar {
+                      transform: scale(1.02);
+                      border-color: #2563EB;
+                      box-shadow: 0 0 12px rgba(37, 99, 235, 0.25);
+                    }
+                    .dark .user-menu-wrapper button:hover .user-avatar {
+                      border-color: #66BFFF;
+                      box-shadow: 0 0 12px rgba(102, 191, 255, 0.25);
+                    }
+                  `}</style>
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 cursor-pointer group p-1 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="flex items-center gap-2 cursor-pointer group"
                   >
-                    <div className="w-9 h-9 bg-indigo-50 dark:bg-indigo-950 rounded-full flex items-center justify-center text-indigo-900 dark:text-indigo-300 font-bold text-sm border border-transparent group-hover:border-indigo-200 transition-all">
+                    <div className="user-avatar w-9 h-9 bg-indigo-50 dark:bg-indigo-950/50 rounded-full flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold text-sm transition-all">
                       {displayInitial}
                     </div>
                     <div className="hidden lg:block text-left">
-                      <p className="text-sm font-bold max-w-[100px] truncate leading-none">{displayName}</p>
+                      <p className="text-sm font-bold max-w-[100px] truncate leading-none text-gray-700 dark:text-gray-300">{displayName}</p>
                     </div>
-                    <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    <svg className={`w-4 h-4 text-gray-400 transition-all duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                   </button>
 
                   {/* Dropdown Content */}
@@ -283,10 +456,22 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setIsMobileMenuOpen(false)}>
           <div
-            className="absolute top-[72px] left-0 right-0 py-4 px-4"
-            style={{ background: 'var(--neu-bg)', boxShadow: '0 8px 20px var(--neu-shadow-dark)' }}
+            className="absolute left-0 right-0 py-4 px-4 transition-all duration-200"
+            style={{
+              top: `${isScrolled ? 56 : 72}px`,
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
+            <style>{`
+              .dark .md\\:hidden > div > div {
+                background: rgba(16, 20, 30, 0.95) !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+              }
+            `}</style>
             {/* Nav Links */}
             <nav className="flex flex-col gap-1 mb-4">
               {navLinks.map((item) => (
@@ -295,16 +480,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   to={item.to}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `px-4 py-3 rounded-xl text-[15px] font-semibold transition-all ${
-                      isActive ? "text-indigo-800 dark:text-indigo-400" : "text-gray-700 dark:text-gray-200"
+                    `px-4 py-3 rounded-xl text-[15px] font-semibold transition-all ${isActive
+                      ? "text-indigo-800 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30"
+                      : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     }`
                   }
-                  style={({ isActive }) => ({
-                    background: 'var(--neu-bg)',
-                    boxShadow: isActive
-                      ? 'inset 3px 3px 7px var(--neu-shadow-dark), inset -3px -3px 7px var(--neu-shadow-light)'
-                      : '4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light)',
-                  })}
                 >
                   {item.label}
                 </NavLink>
@@ -313,7 +493,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 <NavLink
                   to="/admin"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-indigo-900 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-green-900/20 transition-colors"
+                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-indigo-900 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
                 >
                   Admin Panel
                 </NavLink>
@@ -363,7 +543,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       )}
 
       {/* PAGE CONTENT + SIDEBAR */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative', paddingTop: isScrolled ? '56px' : '72px' }}>
 
         {/* ── Sidebar (only for authenticated pages) ── */}
         {showSidebar && (
@@ -376,27 +556,41 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               />
             )}
 
-            {/* Desktop sidebar */}
+            {/* Desktop sidebar - Default collapsed (64px), can expand to 232px */}
             <aside
-              className="hidden md:flex"
+              className="hidden md:flex dark:bg-none"
               style={{
                 width: sidebarCollapsed ? 64 : 232,
                 minWidth: sidebarCollapsed ? 64 : 232,
                 flexDirection: 'column',
-                background: 'var(--neu-bg)',
-                boxShadow: '4px 0 14px var(--neu-shadow-dark)',
+                background: isScrolled
+                  ? 'rgba(255, 255, 255, 0.75)'
+                  : 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+                backdropFilter: isScrolled ? 'blur(12px)' : 'none',
+                WebkitBackdropFilter: isScrolled ? 'blur(12px)' : 'none',
                 padding: '1.1rem 0',
-                position: 'sticky',
-                top: 82,
-                height: 'calc(100vh - 82px)',
+                position: 'fixed',
+                left: 0,
+                top: isScrolled ? 0 : 72,
+                height: isScrolled ? '100vh' : 'calc(100vh - 72px)',
                 overflowY: 'auto',
                 overflowX: 'hidden',
                 zIndex: 30,
-                transition: 'width 0.25s ease, min-width 0.25s ease',
                 flexShrink: 0,
+                border: 'none',
+                boxShadow: 'none',
+                transition: 'width 0.25s ease, min-width 0.25s ease, top 0.2s ease, height 0.2s ease',
               }}
             >
-              {/* Collapse toggle */}
+              <style>{`
+                .dark aside.md\\:flex {
+                  background: ${isScrolled
+                  ? 'rgba(16, 20, 30, 0.75) !important'
+                  : 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.95) 100%) !important'};
+                  backdrop-filter: ${isScrolled ? 'blur(12px)' : 'blur(20px)'};
+                }
+              `}</style>
+              {/* Collapse toggle - KEPT as requested */}
               <div style={{ display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'flex-end', padding: '0 0.7rem 0.9rem' }}>
                 <button
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -428,48 +622,105 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 </button>
               </div>
 
-              {/* Nav items */}
+              {/* Nav items - Icon only when collapsed, with text when expanded */}
               <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, padding: '0 0.55rem' }}>
-                {sidebarItems.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.to === '/dashboard'}
-                    title={sidebarCollapsed ? item.label : undefined}
-                    style={({ isActive }) => ({
-                      display: 'flex', alignItems: 'center',
-                      gap: 10,
-                      padding: sidebarCollapsed ? '0.6rem' : '0.6rem 0.85rem',
-                      borderRadius: 11,
-                      textDecoration: 'none',
-                      fontWeight: isActive ? 700 : 500,
-                      fontSize: '0.865rem',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                      color: isActive ? 'var(--neu-accent)' : 'var(--neu-text-muted)',
-                      background: isActive ? 'var(--neu-bg-card)' : 'transparent',
-                      boxShadow: isActive
-                        ? 'inset 3px 3px 7px var(--neu-shadow-dark), inset -3px -3px 7px var(--neu-shadow-light)'
-                        : 'none',
-                      transition: 'all 0.18s ease',
-                    })}
-                  >
-                    <span style={{ flexShrink: 0 }}>{item.icon}</span>
-                    {!sidebarCollapsed && <span>{item.label}</span>}
-                  </NavLink>
-                ))}
+                {sidebarItems.map((item) => {
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.to === '/dashboard'}
+                      title={sidebarCollapsed ? item.label : undefined}
+                      className="group relative sidebar-nav-item"
+                      style={({ isActive }) => ({
+                        display: 'flex', alignItems: 'center',
+                        gap: 10,
+                        padding: sidebarCollapsed ? '0.6rem' : '0.6rem 0.85rem',
+                        borderRadius: 11,
+                        textDecoration: 'none',
+                        fontWeight: isActive ? 700 : 500,
+                        fontSize: '0.865rem',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                        color: isActive ? '#22c55e' : '#9ca3af',
+                        background: isActive ? 'rgba(34,197,94,0.15)' : 'transparent',
+                        boxShadow: isActive ? '0 0 10px rgba(34,197,94,0.35)' : 'none',
+                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transform: 'scale(1)',
+                      })}
+                      onMouseEnter={(e) => {
+                        const target = e.currentTarget as HTMLElement;
+                        const isActive = target.getAttribute('aria-current') === 'page';
+                        if (!isActive) {
+                          target.style.background = 'rgba(34,197,94,0.10)';
+                          target.style.color = '#22c55e';
+                          target.style.transform = 'scale(1.05)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        const target = e.currentTarget as HTMLElement;
+                        const isActive = target.getAttribute('aria-current') === 'page';
+                        if (!isActive) {
+                          target.style.background = 'transparent';
+                          target.style.color = '#9ca3af';
+                          target.style.transform = 'scale(1)';
+                        }
+                      }}
+                      onMouseDown={(e) => {
+                        (e.currentTarget as HTMLElement).style.transform = 'scale(0.96)';
+                      }}
+                      onMouseUp={(e) => {
+                        const target = e.currentTarget as HTMLElement;
+                        const isActive = target.getAttribute('aria-current') === 'page';
+                        target.style.transform = isActive ? 'scale(1)' : 'scale(1.05)';
+                      }}
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span style={{ flexShrink: 0 }}>{item.icon}</span>
+                          {!sidebarCollapsed && <span>{item.label}</span>}
+                          {isActive && (
+                            <div style={{
+                              position: 'absolute',
+                              right: -6,
+                              width: 3,
+                              height: '60%',
+                              borderRadius: 999,
+                              background: 'linear-gradient(180deg, #22c55e, #4ade80)',
+                              boxShadow: '0 0 8px #22c55e, 0 0 16px #22c55e',
+                            }} />
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </nav>
+              <style>{`
+                .dark .sidebar-nav-item[aria-current="page"] {
+                  color: rgb(124, 173, 233) !important;
+                  background: rgba(124, 173, 233, 0.20) !important;
+                  box-shadow: 0 0 12px rgba(124, 173, 233, 0.6), 0 0 24px rgba(124, 173, 233, 0.25) !important;
+                }
+                .dark .sidebar-nav-item:not([aria-current="page"]) {
+                  color: rgba(148,163,184,0.8) !important;
+                }
+                .dark .sidebar-nav-item:not([aria-current="page"]):hover {
+                  background: rgba(124, 173, 233, 0.15) !important;
+                  color: rgb(124, 173, 233) !important;
+                }
+              `}</style>
 
-              {/* User footer */}
-              {!sidebarCollapsed && user && (
+              {/* User footer - KEPT as requested, shows full info when expanded */}
+              {user && (
                 <div style={{
                   margin: '0.9rem 0.55rem 0',
                   padding: '0.8rem 0.85rem',
                   borderRadius: 13,
                   background: 'var(--neu-bg)',
                   boxShadow: '3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light)',
-                  display: 'flex', alignItems: 'center', gap: 9,
+                  display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', gap: 9,
                 }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%',
@@ -479,69 +730,142 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   }}>
                     {displayInitial}
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--neu-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {displayName}
-                    </p>
-                    <p style={{ fontSize: '0.68rem', color: 'var(--neu-text-muted)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {user.email}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    title="Đăng xuất"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--neu-text-muted)', padding: 3, flexShrink: 0 }}
-                  >
-                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                  </button>
+                  {!sidebarCollapsed && (
+                    <>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--neu-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {displayName}
+                        </p>
+                        <p style={{ fontSize: '0.68rem', color: 'var(--neu-text-muted)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {user.email}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleLogout}
+                        title="Đăng xuất"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--neu-text-muted)', padding: 3, flexShrink: 0 }}
+                      >
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </aside>
 
             {/* Mobile sidebar drawer */}
             <aside
-              className="md:hidden"
+              className="md:hidden sidebar-mobile"
               style={{
                 position: 'fixed',
-                top: 82,
+                top: isScrolled ? 0 : 72,
                 left: sidebarMobileOpen ? 0 : -248,
                 width: 232,
-                height: 'calc(100vh - 82px)',
-                background: 'var(--neu-bg)',
-                boxShadow: '4px 0 16px var(--neu-shadow-dark)',
+                height: isScrolled ? '100vh' : 'calc(100vh - 72px)',
+                background: isScrolled
+                  ? 'rgba(255, 255, 255, 0.75)'
+                  : 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+                backdropFilter: isScrolled ? 'blur(12px)' : 'blur(20px)',
+                WebkitBackdropFilter: isScrolled ? 'blur(12px)' : 'blur(20px)',
+                border: 'none',
+                boxShadow: 'none',
                 display: 'flex', flexDirection: 'column',
                 padding: '1rem 0.55rem',
                 zIndex: 41,
-                transition: 'left 0.25s ease',
+                transition: 'left 0.25s ease, top 0.2s ease, height 0.2s ease',
                 overflowY: 'auto',
               }}
             >
+              <style>{`
+                .dark .sidebar-mobile {
+                  background: ${isScrolled
+                  ? 'rgba(16, 20, 30, 0.75) !important'
+                  : 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.95) 100%) !important'};
+                  backdrop-filter: blur(${isScrolled ? '12px' : '20px'});
+                }
+                .dark .sidebar-mobile-item[aria-current="page"] {
+                  color: rgb(124, 173, 233) !important;
+                  background: rgba(124, 173, 233, 0.20) !important;
+                  box-shadow: 0 0 12px rgba(124, 173, 233, 0.6), 0 0 24px rgba(124, 173, 233, 0.25) !important;
+                }
+                .dark .sidebar-mobile-item:not([aria-current="page"]) {
+                  color: rgba(148,163,184,0.8) !important;
+                }
+                .dark .sidebar-mobile-item:not([aria-current="page"]):hover {
+                  background: rgba(124, 173, 233, 0.15) !important;
+                  color: rgb(124, 173, 233) !important;
+                }
+              `}</style>
               <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {sidebarItems.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.to === '/dashboard'}
-                    onClick={() => setSidebarMobileOpen(false)}
-                    style={({ isActive }) => ({
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '0.6rem 0.85rem', borderRadius: 11,
-                      textDecoration: 'none',
-                      fontWeight: isActive ? 700 : 500,
-                      fontSize: '0.865rem',
-                      color: isActive ? 'var(--neu-accent)' : 'var(--neu-text-muted)',
-                      background: isActive ? 'var(--neu-bg-card)' : 'transparent',
-                      boxShadow: isActive
-                        ? 'inset 3px 3px 7px var(--neu-shadow-dark), inset -3px -3px 7px var(--neu-shadow-light)'
-                        : 'none',
-                    })}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </NavLink>
-                ))}
+                {sidebarItems.map((item) => {
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.to === '/dashboard'}
+                      onClick={() => setSidebarMobileOpen(false)}
+                      className="group relative sidebar-mobile-item"
+                      style={({ isActive }) => ({
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '0.6rem 0.85rem', borderRadius: 11,
+                        textDecoration: 'none',
+                        fontWeight: isActive ? 700 : 500,
+                        fontSize: '0.865rem',
+                        color: isActive ? '#22c55e' : '#9ca3af',
+                        background: isActive ? 'rgba(34,197,94,0.15)' : 'transparent',
+                        boxShadow: isActive ? '0 0 10px rgba(34,197,94,0.35)' : 'none',
+                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transform: 'scale(1)',
+                      })}
+                      onMouseEnter={(e) => {
+                        const target = e.currentTarget as HTMLElement;
+                        const isActive = target.getAttribute('aria-current') === 'page';
+                        if (!isActive) {
+                          target.style.background = 'rgba(34,197,94,0.10)';
+                          target.style.color = '#22c55e';
+                          target.style.transform = 'scale(1.05)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        const target = e.currentTarget as HTMLElement;
+                        const isActive = target.getAttribute('aria-current') === 'page';
+                        if (!isActive) {
+                          target.style.background = 'transparent';
+                          target.style.color = '#9ca3af';
+                          target.style.transform = 'scale(1)';
+                        }
+                      }}
+                      onMouseDown={(e) => {
+                        (e.currentTarget as HTMLElement).style.transform = 'scale(0.96)';
+                      }}
+                      onMouseUp={(e) => {
+                        const target = e.currentTarget as HTMLElement;
+                        const isActive = target.getAttribute('aria-current') === 'page';
+                        target.style.transform = isActive ? 'scale(1)' : 'scale(1.05)';
+                      }}
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span>{item.icon}</span>
+                          <span>{item.label}</span>
+                          {isActive && (
+                            <div style={{
+                              position: 'absolute',
+                              right: -6,
+                              width: 3,
+                              height: '60%',
+                              borderRadius: 999,
+                              background: 'linear-gradient(180deg, #22c55e, #4ade80)',
+                              boxShadow: '0 0 8px #22c55e, 0 0 16px #22c55e',
+                            }} />
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </nav>
             </aside>
 
