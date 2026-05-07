@@ -198,12 +198,21 @@ git --version
 ```bash
 cd AI-Based-Career-Recommendation-System
 
-# Khởi động Docker services (3 containers: PostgreSQL, Redis, Neo4j)
-docker compose down -v ; docker compose up -d
+# Dừng và xóa tất cả containers cũ (bao gồm cả Redis và Neo4j)
+docker compose down -v
 
-# Nếu lỗi thiếu biến môi trường, chạy lệnh này:
-docker compose down -v ; docker-compose --env-file apps/backend/.env up -d
+# Khởi động lại tất cả 3 services: PostgreSQL, Redis, Neo4j
+docker compose --env-file apps/backend/.env up -d
+
+# Kiểm tra trạng thái các containers
+docker compose ps
+
+# Đợi các services khởi động hoàn tất (khoảng 10-15 giây)
+echo "Waiting for services to be ready..."
+sleep 15
 ```
+
+**Import Database:**
 
 ```bash
 # 1) Đá hết connection đang giữ DB
@@ -213,11 +222,17 @@ docker compose exec -T postgres psql -U postgres -d postgres -c "SELECT pg_termi
 docker compose exec -T postgres psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS career_ai;"
 docker compose exec -T postgres psql -U postgres -d postgres -c "CREATE DATABASE career_ai;"
 
-# 3) Copy file dump vào container (nếu file nằm trên host)
+# 3) Copy file dump vào container
 docker compose cp db/backup/dev_snapshot_utf8.sql postgres:/tmp/dev_snapshot_utf8.sql
 
 # 4) Import vào DB
 docker compose exec -T postgres psql -U postgres -d career_ai -v ON_ERROR_STOP=1 -f /tmp/dev_snapshot_utf8.sql
+
+# 5) Kiểm tra kết nối Redis
+docker compose exec redis redis-cli ping
+
+# 6) Kiểm tra kết nối Neo4j
+curl http://localhost:7474
 ```
 
 ### B2: Cài đặt thư viện và chạy dự án

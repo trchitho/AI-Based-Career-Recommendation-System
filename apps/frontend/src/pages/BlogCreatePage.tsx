@@ -166,12 +166,13 @@ const BlogCreatePage = () => {
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="">Chọn danh mục</option>
-                    <option value="Career Advice">Lời khuyên nghề nghiệp</option>
-                    <option value="Job Search">Tìm kiếm việc làm</option>
-                    <option value="Interview Tips">Mẹo phỏng vấn</option>
-                    <option value="Skill Development">Phát triển kỹ năng</option>
-                    <option value="Industry Insights">Thông tin ngành</option>
-                    <option value="Personal Experience">Kinh nghiệm cá nhân</option>
+                    <option value="career">Tư vấn nghề nghiệp</option>
+                    <option value="interview">Mẹo phỏng vấn</option>
+                    <option value="resume">Viết CV</option>
+                    <option value="culture">Văn hóa công sở</option>
+                    <option value="skills">Phát triển kỹ năng</option>
+                    <option value="jobs">Tìm việc làm</option>
+                    <option value="industry">Góc nhìn ngành</option>
                   </select>
                 </div>
 
