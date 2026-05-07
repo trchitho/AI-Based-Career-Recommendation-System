@@ -1,8 +1,8 @@
-fastapi==0.104.1
-uvicorn==0.23.2
+fastapi>=0.123.4
+uvicorn[standard]>=0.38.0
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
-pydantic[email]==2.5.3
+pydantic[email]>=2.12.5
 pydantic-settings==2.1.0
 python-dotenv==1.0.1
 passlib[bcrypt]==1.7.4
@@ -11,7 +11,7 @@ websockets==11.0.3
 
 loguru
 asyncpg
-httpx==0.24.1
+httpx>=0.24.1
 requests
 
 python-multipart==0.0.22

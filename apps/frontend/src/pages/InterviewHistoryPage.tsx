@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Eye, Briefcase, Calendar, TrendingUp, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,7 +9,7 @@ import MainLayout from '../components/layout/MainLayout';
 interface InterviewSession {
     id: number;
     job_title: string;
-    status: 'completed' | 'abandoned';
+    status: 'completed' | 'abandoned' | 'active';
     started_at: string;
     completed_at?: string;
     overall_score?: number;
@@ -20,6 +20,7 @@ interface InterviewSession {
 const InterviewHistoryPage: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const hasLoadedRef = useRef(false);
 
     const [interviews, setInterviews] = useState<InterviewSession[]>([]);
     const [filteredInterviews, setFilteredInterviews] = useState<InterviewSession[]>([]);
@@ -34,31 +35,20 @@ const InterviewHistoryPage: React.FC = () => {
     const [hasMore, setHasMore] = useState(false);
     const pageSize = 20;
 
-    useEffect(() => {
-        if (!user) {
-            navigate('/login');
-            return;
-        }
-        // Only load once when component mounts
-        loadAllInterviews();
-    }, [user, navigate]); // Remove loadAllInterviews from dependencies
-
-    useEffect(() => {
-        filterAndSortInterviews();
-    }, [interviews, searchQuery, statusFilter, sortBy, scoreFilter, dateRangeFilter]);
-
     const loadAllInterviews = useCallback(async () => {
         if (hasLoadedRef.current) return; // Prevent duplicate calls
         hasLoadedRef.current = true;
 
         try {
             setIsLoading(true);
-            console.log(' Loading interview history...');
+            console.log('📋 Loading interview history...');
             const response = await interviewService.getMyInterviews(1000);
             setInterviews(response.interviews);
-            console.log(` Loaded ${response.interviews.length} interviews`);
+            setTotalInterviews(response.total || response.interviews.length);
+            setHasMore(response.has_more || false);
+            console.log(`✅ Loaded ${response.interviews.length} interviews`);
         } catch (error) {
-            console.error(' Error loading interviews:', error);
+            console.error('❌ Error loading interviews:', error);
             toast.error('Không thể tải lịch sử phỏng vấn');
             hasLoadedRef.current = false; // Reset on error to allow retry
         } finally {
@@ -66,7 +56,7 @@ const InterviewHistoryPage: React.FC = () => {
         }
     }, []); // Empty dependency array
 
-    const filterAndSortInterviews = () => {
+    const filterAndSortInterviews = useCallback(() => {
         let filtered = interviews;
 
         // Filter by search query
@@ -164,26 +154,12 @@ const InterviewHistoryPage: React.FC = () => {
         setFilteredInterviews(filtered);
     }, [interviews, searchQuery, statusFilter, sortBy, scoreFilter, dateRangeFilter]);
 
-    const loadAllInterviews = useCallback(async () => {
-        try {
-            setIsLoading(true);
-            const response = await interviewService.getMyInterviews(pageSize, currentPage * pageSize);
-            setInterviews(response.interviews);
-            setTotalInterviews(response.total);
-            setHasMore(response.has_more);
-        } catch (error) {
-            console.error('❌ Error loading interviews:', error);
-            toast.error('Không thể tải lịch sử phỏng vấn');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [currentPage]);
-
     useEffect(() => {
         if (!user) {
             navigate('/login');
             return;
         }
+        // Only load once when component mounts
         loadAllInterviews();
     }, [user, navigate, loadAllInterviews]);
 
