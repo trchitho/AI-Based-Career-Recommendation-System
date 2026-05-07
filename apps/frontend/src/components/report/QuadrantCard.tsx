@@ -22,9 +22,9 @@ const QUADRANT_COLORS: Record<string, { primary: string; bg: string; border: str
         border: 'border-orange-200 dark:border-orange-800/30',
     },
     interaction: {
-        primary: 'text-green-600 dark:text-green-400',
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-200 dark:border-green-800/30',
+        primary: 'text-indigo-800 dark:text-indigo-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-200 dark:border-indigo-800/30',
     },
     communication: {
         primary: 'text-blue-600 dark:text-blue-400',

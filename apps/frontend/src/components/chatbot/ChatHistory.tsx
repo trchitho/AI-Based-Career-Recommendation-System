@@ -299,7 +299,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
                             {formatDate(safeSession.updated_at)}
                           </span>
                           {safeSession.is_active && (
-                            <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
+                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-900 rounded-full text-xs">
                               Đang hoạt động
                             </span>
                           )}

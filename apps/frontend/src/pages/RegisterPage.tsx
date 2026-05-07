@@ -44,7 +44,7 @@ const RegisterPage = () => {
     if (!/[A-Z]/.test(pwd)) return t('auth.passwordNeedsUppercase');
     if (!/[a-z]/.test(pwd)) return t('auth.passwordNeedsLowercase');
     if (!/[0-9]/.test(pwd)) return t('auth.passwordNeedsNumber');
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) return t('auth.passwordNeedsSpecial');
+    if (!/[!@$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) return t('auth.passwordNeedsSpecial');
     return null;
   };
 
@@ -159,13 +159,13 @@ const RegisterPage = () => {
   const ModernLogo = () => (
     <Link to="/home" className="flex items-center gap-2 group select-none">
       <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
-        career<span className="text-green-500">bridge</span><span className="text-green-500 text-3xl leading-none">.</span>
+        career<span className="text-indigo-700">bridge</span><span className="text-indigo-700 text-3xl leading-none">.</span>
       </span>
     </Link>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 transition-colors duration-base flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-indigo-50 selection:text-indigo-900 transition-colors duration-base flex flex-col overflow-hidden">
 
       {/* CSS Injection */}
       <style>{`
@@ -190,7 +190,7 @@ const RegisterPage = () => {
       <div className="flex-1 flex flex-col items-center justify-center relative px-4 sm:px-6 lg:px-8 pt-24 pb-12">
 
         {/* Background Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-green-500/5 rounded-full blur-[120px] pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '4s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-700/5 rounded-full blur-[120px] pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '4s' }}></div>
 
         <div className="w-full max-w-[500px] animate-fade-in-up">
 
@@ -210,18 +210,18 @@ const RegisterPage = () => {
 
               {/* Messages (Success/Info) */}
               {info && (
-                <div className="rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4 text-sm">
+                <div className="rounded-xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 p-4 text-sm">
                   <div className="flex gap-3">
-                    <svg className="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <svg className="w-5 h-5 text-indigo-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <div>
-                      <p className="text-green-800 dark:text-green-300 font-medium">{info}</p>
+                      <p className="text-indigo-950 dark:text-indigo-300 font-medium">{info}</p>
                       {alreadyRegistered && (
-                        <p className="mt-1 text-green-700 dark:text-green-400">
+                        <p className="mt-1 text-indigo-900 dark:text-indigo-400">
                           Go to <Link to="/login" className="font-bold underline hover:no-underline">Login</Link>
                         </p>
                       )}
                       {devToken && (
-                        <div className="mt-2 text-xs font-mono text-green-600 bg-white/60 dark:bg-black/20 p-1.5 rounded border border-green-200 dark:border-green-800">
+                        <div className="mt-2 text-xs font-mono text-indigo-800 bg-white/60 dark:bg-black/20 p-1.5 rounded border border-indigo-200 dark:border-indigo-800">
                           Token: {devToken}
                         </div>
                       )}
@@ -249,7 +249,7 @@ const RegisterPage = () => {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="John"
-                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -261,7 +261,7 @@ const RegisterPage = () => {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Doe"
-                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
                   />
                 </div>
               </div>
@@ -278,7 +278,7 @@ const RegisterPage = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
                   />
                   <button
                     type="button"
@@ -303,7 +303,7 @@ const RegisterPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
                   />
                   <button
                     type="button"
@@ -331,7 +331,7 @@ const RegisterPage = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
                   />
                   <button
                     type="button"
@@ -358,7 +358,7 @@ const RegisterPage = () => {
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                     placeholder={t('auth.verificationCodePlaceholder')}
-                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                    className="block w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
                     maxLength={6}
                     pattern="[0-9]*"
                   />
@@ -382,7 +382,7 @@ const RegisterPage = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3.5 px-4 bg-green-500 hover:bg-green-600 text-white rounded-full font-bold text-[16px] shadow-lg shadow-green-500/20 hover:shadow-green-500/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-4 bg-indigo-700 hover:bg-indigo-800 text-white rounded-full font-bold text-[16px] shadow-lg shadow-green-500/20 hover:shadow-indigo-700/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <>
@@ -400,7 +400,7 @@ const RegisterPage = () => {
               {/* Login Link */}
               <div className="text-center pt-2">
                 <span className="text-gray-500 dark:text-gray-400 font-medium">{t("auth.hasAccount")} </span>
-                <Link to="/login" className="font-bold text-green-500 hover:text-green-600 dark:text-green-400 hover:underline transition-colors">
+                <Link to="/login" className="font-bold text-indigo-700 hover:text-indigo-800 dark:text-indigo-400 hover:underline transition-colors">
                   {t("auth.signIn")}
                 </Link>
               </div>

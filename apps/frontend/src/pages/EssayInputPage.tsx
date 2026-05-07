@@ -51,7 +51,7 @@ const EssayInputPage = () => {
 
         {/* Background Layers */}
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60"></div>
-        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-green-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-indigo-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-blue-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -60,11 +60,11 @@ const EssayInputPage = () => {
 
             {/* --- HEADER --- */}
             <div className="text-center mb-10">
-              <span className="inline-block py-1.5 px-4 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold tracking-widest uppercase mb-6 border border-green-200 dark:border-green-800">
+              <span className="inline-block py-1.5 px-4 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold tracking-widest uppercase mb-6 border border-indigo-200 dark:border-indigo-800">
                 Personal Statement
               </span>
               <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight">
-                Tell us about <span className="text-green-600 dark:text-green-500">yourself</span>
+                Tell us about <span className="text-indigo-800 dark:text-indigo-700">yourself</span>
               </h1>
               <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto font-medium">
                 Share your goals, experiences, and aspirations. Our AI will analyze your writing to provide deeper career insights.
@@ -75,7 +75,7 @@ const EssayInputPage = () => {
             <div className="bg-white dark:bg-gray-800 rounded-card-hero p-8 md:p-10 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 relative overflow-hidden">
 
               {/* Decorative Top Line */}
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 to-teal-500"></div>
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-700 to-indigo-600"></div>
 
               <form onSubmit={submit} className="space-y-6">
 
@@ -87,7 +87,7 @@ const EssayInputPage = () => {
                   <div className="relative">
                     <textarea
                       id="essay"
-                      className="w-full border border-gray-200 dark:border-gray-600 rounded-2xl px-6 py-5 h-64 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all resize-none font-medium text-lg leading-relaxed"
+                      className="w-full border border-gray-200 dark:border-gray-600 rounded-2xl px-6 py-5 h-64 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all resize-none font-medium text-lg leading-relaxed"
                       placeholder="Start typing here... Write about your career goals, strengths, and what drives you."
                       value={text}
                       onChange={(e) => setText(e.target.value)}
@@ -101,11 +101,11 @@ const EssayInputPage = () => {
 
                 {/* Status Messages */}
                 {done && (
-                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center gap-3 animate-fade-in-up">
-                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center text-green-600 shrink-0">
+                  <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 flex items-center gap-3 animate-fade-in-up">
+                    <div className="w-8 h-8 bg-indigo-50 dark:bg-indigo-950/50 rounded-full flex items-center justify-center text-indigo-800 shrink-0">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                     </div>
-                    <p className="text-green-700 dark:text-green-300 font-medium">{done}</p>
+                    <p className="text-indigo-900 dark:text-indigo-300 font-medium">{done}</p>
                   </div>
                 )}
 
@@ -124,7 +124,7 @@ const EssayInputPage = () => {
                     <button
                       type="submit"
                       disabled={loading || text.length < 10}
-                      className="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-lg shadow-xl shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-indigo-800 hover:bg-indigo-900 text-white rounded-xl font-bold text-lg shadow-xl shadow-indigo-900/20 hover:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>

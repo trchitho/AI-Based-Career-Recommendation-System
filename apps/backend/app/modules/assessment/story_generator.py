@@ -46,9 +46,9 @@ class StoryGeneratorService:
     def __init__(self):
         self.stream = multi_stream_manager.get_assessment_stream()
         if self.stream.is_available():
-            logger.info(f"✅ Story generator ready: {self.stream.active_model_name}")
+            logger.info(f"[OK] Story generator ready: {self.stream.active_model_name}")
         else:
-            logger.warning("⚠️ Gemini unavailable — will use local fallback")
+            logger.warning("[WARN] Gemini unavailable — will use local fallback")
 
     # ------------------------------------------------------------------
     # Public API
@@ -87,10 +87,10 @@ class StoryGeneratorService:
         )
 
         if not raw:
-            print("❌ [StoryGen] Gemini returned None — using local fallback")
+            print("[ERR] [StoryGen] Gemini returned None — using local fallback")
             return [self._local_group(g, idx) for idx, g in enumerate(groups)]
 
-        print(f"✅ [StoryGen] Gemini response length: {len(raw)} chars")
+        print(f"[OK] [StoryGen] Gemini response length: {len(raw)} chars")
         print(f"   Preview: {raw[:300]}")
 
         try:
@@ -133,7 +133,7 @@ class StoryGeneratorService:
             return result
 
         except Exception as ex:
-            print(f"❌ [StoryGen] JSON parse error: {ex}")
+            print(f"[ERR] [StoryGen] JSON parse error: {ex}")
             print(f"   Raw (first 500): {raw[:500]}")
             return [self._local_group(g, idx) for idx, g in enumerate(groups)]
 

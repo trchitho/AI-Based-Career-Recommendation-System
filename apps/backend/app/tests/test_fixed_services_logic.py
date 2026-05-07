@@ -34,9 +34,9 @@ class TestNeo4jService:
             # Test connection
             with self.driver.session() as s:
                 s.run("RETURN 1").consume()
-            print("✅ Neo4j connection successful")
+            print("[OK] Neo4j connection successful")
         except Exception as e:
-            print(f"⚠️ Neo4j connection failed: {e}")
+            print(f"[WARN] Neo4j connection failed: {e}")
             self.driver = None
 
     def _get_session(self):
@@ -53,7 +53,7 @@ class TestNeo4jService:
             return self.driver.session()
 
         except Exception as e:
-            print(f"⚠️ Neo4j session error: {e}")
+            print(f"[WARN] Neo4j session error: {e}")
             self.driver = None
             self._connect()
 
@@ -67,13 +67,13 @@ class TestNeo4jService:
     def get_job_skills(self, job_id: str, limit: int = 8):
         """Fixed version of get_job_skills"""
         if not self.driver:
-            print("⚠️ Neo4j driver not available, using fallback")
+            print("[WARN] Neo4j driver not available, using fallback")
             return self._get_fallback_skills(job_id, limit)
 
         try:
             neo4j_session = self._get_session()
             if not neo4j_session:
-                print("⚠️ Neo4j session not available, using fallback")
+                print("[WARN] Neo4j session not available, using fallback")
                 return self._get_fallback_skills(job_id, limit)
 
             with neo4j_session as session:
@@ -108,16 +108,16 @@ class TestNeo4jService:
                         }
                     )
 
-                print(f"✅ Neo4j returned {len(skills)} skills for job {job_id}")
+                print(f"[OK] Neo4j returned {len(skills)} skills for job {job_id}")
 
                 if skills:
                     return skills[:limit]
 
         except Exception as e:
-            print(f"⚠️ Neo4j skills query failed: {e}")
+            print(f"[WARN] Neo4j skills query failed: {e}")
             return self._get_fallback_skills(job_id, limit)
 
-        print(f"⚠️ Neo4j returned no skills for job {job_id}, using fallback")
+        print(f"[WARN] Neo4j returned no skills for job {job_id}, using fallback")
         return self._get_fallback_skills(job_id, limit)
 
     def _get_fallback_skills(self, job_id: str, limit: int = 8):
@@ -191,10 +191,10 @@ def test_fixed_logic():
     is_neo4j_data = any(indicator in skill["skill_name"] for skill in skills for indicator in neo4j_indicators)
 
     if is_neo4j_data:
-        print("\n✅ SUCCESS: Got real Neo4j data!")
+        print("\n[OK] SUCCESS: Got real Neo4j data!")
         print("   This should fix the UI fallback issue")
     else:
-        print("\n❌ STILL USING FALLBACK:")
+        print("\n[ERR] STILL USING FALLBACK:")
         print("   Need to investigate further")
 
     service.close()

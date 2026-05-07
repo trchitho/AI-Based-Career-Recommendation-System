@@ -36,9 +36,9 @@ def test_question_distribution_logic():
         # Verify total equals count
         total = sum(distribution.values())
         if total == count:
-            print(f"   ✅ Total correct: {total} = {count}")
+            print(f"   [OK] Total correct: {total} = {count}")
         else:
-            print(f"   ❌ Total incorrect: {total} ≠ {count}")
+            print(f"   [ERR] Total incorrect: {total} ≠ {count}")
         
         # Verify expected distributions
         expected_distributions = {
@@ -54,13 +54,13 @@ def test_question_distribution_logic():
         for qtype, expected_count in expected.items():
             actual_count = distribution.get(qtype, 0)
             if actual_count != expected_count:
-                print(f"   ❌ {qtype}: Expected {expected_count}, got {actual_count}")
+                print(f"   [ERR] {qtype}: Expected {expected_count}, got {actual_count}")
                 match = False
         
         if match:
-            print(f"   ✅ Distribution matches expected pattern")
+            print(f"   [OK] Distribution matches expected pattern")
         else:
-            print(f"   ❌ Distribution does not match expected pattern")
+            print(f"   [ERR] Distribution does not match expected pattern")
 
 def test_skill_selection_logic():
     """Test logic chọn skills cho từng loại câu hỏi"""
@@ -101,21 +101,21 @@ def test_skill_selection_logic():
             soft_skills = [s for s in selected_skills if s.get("is_soft_skill", True)]
             print(f"   Hard skills: {len(hard_skills)}, Soft skills: {len(soft_skills)}")
             if len(hard_skills) > 0:
-                print(f"   ✅ Technical questions correctly select hard skills")
+                print(f"   [OK] Technical questions correctly select hard skills")
             else:
-                print(f"   ⚠️ Technical questions should prefer hard skills")
+                print(f"   [WARN] Technical questions should prefer hard skills")
                 
         elif qtype in ["behavioral", "situational"]:
             # Should select soft skills
             soft_skills = [s for s in selected_skills if s.get("is_soft_skill", True)]
             print(f"   Soft skills selected: {len(soft_skills)}")
             if len(soft_skills) > 0:
-                print(f"   ✅ {qtype} questions correctly select soft skills")
+                print(f"   [OK] {qtype} questions correctly select soft skills")
             else:
-                print(f"   ⚠️ {qtype} questions should prefer soft skills")
+                print(f"   [WARN] {qtype} questions should prefer soft skills")
         
         else:  # warm_up
-            print(f"   ✅ Warm-up questions can use any skills")
+            print(f"   [OK] Warm-up questions can use any skills")
 
 def test_question_type_progression():
     """Test logic xác định loại câu hỏi tiếp theo"""
@@ -185,13 +185,13 @@ def test_question_type_progression():
     for qtype, expected_count in distribution.items():
         actual_count = final_counts.get(qtype, 0)
         if actual_count != expected_count:
-            print(f"   ❌ {qtype}: Expected {expected_count}, got {actual_count}")
+            print(f"   [ERR] {qtype}: Expected {expected_count}, got {actual_count}")
             match = False
     
     if match:
-        print(f"   ✅ Question progression logic CORRECT")
+        print(f"   [OK] Question progression logic CORRECT")
     else:
-        print(f"   ❌ Question progression logic INCORRECT")
+        print(f"   [ERR] Question progression logic INCORRECT")
 
 if __name__ == "__main__":
     test_question_distribution_logic()
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     
     print(f"\n🎉 VERIFICATION COMPLETE")
     print("=" * 60)
-    print("✅ Question distribution logic verified")
-    print("✅ Skill selection logic verified") 
-    print("✅ Question progression logic verified")
+    print("[OK] Question distribution logic verified")
+    print("[OK] Skill selection logic verified") 
+    print("[OK] Question progression logic verified")
     print("\n💯 Interview flow is 100% accurate and synchronized!")

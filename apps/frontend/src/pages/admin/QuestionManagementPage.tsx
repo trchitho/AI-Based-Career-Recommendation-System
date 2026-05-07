@@ -12,7 +12,7 @@ const baseInput =
   "border-gray-200 dark:border-gray-700 " +
   "text-gray-900 dark:text-white " +
   "placeholder-gray-400 dark:placeholder-gray-500 " +
-  "focus:outline-none focus:ring-2 focus:ring-green-500";
+  "focus:outline-none focus:ring-2 focus:ring-indigo-600";
 
 const cardClass =
   "bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 " +
@@ -98,12 +98,12 @@ const QuestionManagementPage = () => {
   };
 
   return (
-    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
+    <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
       {/* HEADER */}
       <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Question Management
@@ -112,7 +112,7 @@ const QuestionManagementPage = () => {
         </div>
         <button
           onClick={handleCreate}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
+          className="flex items-center gap-2 bg-indigo-800 text-white px-4 py-2 rounded-lg hover:bg-indigo-900 text-sm font-medium transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -181,7 +181,7 @@ const QuestionManagementPage = () => {
       {/* TABLE */}
       {loading ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-center py-16 gap-3 text-gray-500 dark:text-gray-400">
-          <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
           Loading...
         </div>
       ) : (
@@ -220,7 +220,7 @@ const QuestionManagementPage = () => {
                     <button
                       onClick={() => handleToggleActive(question)}
                       className={question.is_active
-                        ? "px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        ? "px-2 py-1 text-xs font-medium rounded-full bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200"
                         : "px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                       }
                     >
@@ -336,7 +336,7 @@ const QuestionForm = ({ question, onClose, onSuccess }: QuestionFormProps) => {
     "border-gray-200 dark:border-gray-700 " +
     "text-gray-900 dark:text-white " +
     "placeholder-gray-400 dark:placeholder-gray-500 " +
-    "focus:outline-none focus:ring-2 focus:ring-green-500";
+    "focus:outline-none focus:ring-2 focus:ring-indigo-600";
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
@@ -435,7 +435,7 @@ const QuestionForm = ({ question, onClose, onSuccess }: QuestionFormProps) => {
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm font-medium"
+              className="px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 disabled:opacity-50 text-sm font-medium"
             >
               {saving ? 'Saving...' : question ? 'Update' : 'Create'}
             </button>

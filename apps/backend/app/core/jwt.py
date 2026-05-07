@@ -12,7 +12,9 @@ try:
 except ImportError:
     raise RuntimeError("Missing dependency: install with `pip install PyJWT`")
 
-JWT_SECRET = os.getenv("JWT_SECRET_KEY", "dev-secret-change-me")
+_raw_secret = os.getenv("JWT_SECRET_KEY", "dev-secret-key-change-me-in-production!")
+# HS256 requires at least 32 bytes — pad with '#' if needed
+JWT_SECRET = _raw_secret.ljust(32, "#")
 JWT_ALG = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_ACCESS_EXPIRES_MIN = int(os.getenv("JWT_ACCESS_EXPIRES_MIN", "60"))
 JWT_REFRESH_EXPIRES_DAYS = int(os.getenv("JWT_REFRESH_EXPIRES_DAYS", "30"))

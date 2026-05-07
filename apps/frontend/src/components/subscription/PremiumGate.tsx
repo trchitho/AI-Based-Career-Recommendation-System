@@ -81,7 +81,7 @@ const PremiumGate = ({
         return {
           title: 'Xem Chi Tiết Nghề Nghiệp',
           description: 'Truy cập thông tin đầy đủ về nghề nghiệp và lộ trình phát triển',
-          icon: '👔',
+          icon: '',
           benefits: [
             'Mô tả công việc chi tiết',
             'Yêu cầu kỹ năng cụ thể',
@@ -93,7 +93,7 @@ const PremiumGate = ({
         return {
           title: 'Test Đánh Giá Không Giới Hạn',
           description: 'Làm bài test tính cách và năng lực bao nhiêu lần cũng được',
-          icon: '📝',
+          icon: '',
           benefits: [
             'Test không giới hạn số lần',
             'Phân tích AI chuyên sâu',
@@ -105,7 +105,7 @@ const PremiumGate = ({
         return {
           title: 'Roadmap Học Tập Đầy Đủ',
           description: 'Truy cập tất cả 6 levels với tài liệu và bài tập chuyên sâu',
-          icon: '🗺️',
+          icon: '',
           benefits: [
             'Tất cả 6 levels học tập',
             'Tài liệu chuyên môn cao',
@@ -163,12 +163,12 @@ const PremiumGate = ({
       {/* Benefits */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700">
         <h4 className="font-semibold text-gray-900 dark:text-white mb-3 text-sm">
-          ✨ Với Premium bạn sẽ có:
+           Với Premium bạn sẽ có:
         </h4>
         <div className="space-y-2">
           {featureInfo.benefits.map((benefit, index) => (
             <div key={index} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 text-indigo-700 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span>{benefit}</span>
@@ -187,11 +187,11 @@ const PremiumGate = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
           <span>Nâng cấp Premium ngay</span>
-          <span>🚀</span>
+          <span></span>
         </button>
         
         <p className="text-purple-600 dark:text-purple-400 text-sm font-medium">
-          💝 Chỉ từ 299,000đ/tháng - Hủy bất cứ lúc nào
+           Chỉ từ 299,000đ/tháng - Hủy bất cứ lúc nào
         </p>
       </div>
     </div>

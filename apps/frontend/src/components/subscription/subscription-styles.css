@@ -1,0 +1,185 @@
+/* Enhanced Subscription Component Styles */
+
+/* Smooth animations for progress bars */
+@keyframes progressFill {
+  from {
+    width: 0;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
+
+.progress-bar-animated {
+  animation: progressFill 0.8s ease-out forwards;
+}
+
+/* Gradient backgrounds */
+.gradient-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.dark .gradient-card {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+}
+
+/* Hover effects for cards */
+.subscription-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.subscription-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Plan badge styles */
+.plan-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.plan-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.plan-badge:hover::before {
+  left: 100%;
+}
+
+/* Usage meter styles */
+.usage-meter {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+}
+
+.usage-meter-fill {
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.usage-meter-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Button hover effects */
+.upgrade-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.upgrade-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.upgrade-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Feature list animations */
+.feature-item {
+  opacity: 0;
+  transform: translateX(-10px);
+  animation: slideIn 0.4s ease forwards;
+}
+
+.feature-item:nth-child(1) { animation-delay: 0.1s; }
+.feature-item:nth-child(2) { animation-delay: 0.2s; }
+.feature-item:nth-child(3) { animation-delay: 0.3s; }
+.feature-item:nth-child(4) { animation-delay: 0.4s; }
+.feature-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Pulse animation for active status */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-pulse {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glass morphism effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass-card {
+  background: rgba(31, 41, 55, 0.7);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+/* Roadmap level indicators */
+.roadmap-level {
+  transition: all 0.3s ease;
+}
+
+.roadmap-level.active {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+.roadmap-level.locked {
+  opacity: 0.4;
+  filter: grayscale(100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .subscription-card {
+    padding: 1rem;
+  }
+  
+  .plan-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+}

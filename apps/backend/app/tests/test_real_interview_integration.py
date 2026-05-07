@@ -59,12 +59,12 @@ def test_real_interview_integration():
         # Check if server is running
         response = requests.get(f"{base_url}/docs", timeout=5)
         if response.status_code == 200:
-            print("✅ Backend server is running")
+            print("[OK] Backend server is running")
         else:
-            print("❌ Backend server not responding properly")
+            print("[ERR] Backend server not responding properly")
             return False
     except requests.exceptions.RequestException as e:
-        print(f"❌ Cannot connect to backend server: {e}")
+        print(f"[ERR] Cannot connect to backend server: {e}")
         print("💡 Please start the backend server first:")
         print("   cd apps/backend && python -m uvicorn app.main:app --reload --port 8000")
         return False
@@ -76,13 +76,13 @@ def test_real_interview_integration():
         job_response = requests.get(f"{base_url}/api/interview/jobs/25-9043.00")
         if job_response.status_code == 200:
             job_data = job_response.json()
-            print(f"✅ Job info endpoint working: {job_data['title']}")
+            print(f"[OK] Job info endpoint working: {job_data['title']}")
             print(f"   Soft skills: {len(job_data['soft_skills'])}")
             print(f"   Hard skills: {len(job_data['hard_skills'])}")
         else:
-            print(f"❌ Job info endpoint failed: {job_response.status_code}")
+            print(f"[ERR] Job info endpoint failed: {job_response.status_code}")
     except Exception as e:
-        print(f"❌ Job info test failed: {e}")
+        print(f"[ERR] Job info test failed: {e}")
     
     print(f"\n📝 Testing validation patterns locally...")
     
@@ -119,10 +119,10 @@ def test_real_interview_integration():
         expected_irrelevant = case["expected_status"] in ["guidance_needed", "skipped_guidance"]
         
         if is_irrelevant == expected_irrelevant:
-            print(f"✅ {case['name']}: Pattern detection CORRECT")
+            print(f"[OK] {case['name']}: Pattern detection CORRECT")
             validation_results.append(True)
         else:
-            print(f"❌ {case['name']}: Pattern detection FAILED")
+            print(f"[ERR] {case['name']}: Pattern detection FAILED")
             print(f"   Expected irrelevant: {expected_irrelevant}, Got: {is_irrelevant}")
             print(f"   Matched pattern: {matched_pattern}")
             validation_results.append(False)
@@ -137,15 +137,15 @@ def test_real_interview_integration():
     print(f"   Success Rate: {success_rate:.1f}%")
     
     if success_rate == 100:
-        print(f"✅ All validation patterns working correctly!")
+        print(f"[OK] All validation patterns working correctly!")
     else:
-        print(f"❌ Some validation patterns need fixing")
+        print(f"[ERR] Some validation patterns need fixing")
     
     print(f"\n💡 INTEGRATION STATUS:")
-    print(f"   ✅ Backend server: Available")
-    print(f"   ✅ Job info API: Working")
-    print(f"   ✅ Validation patterns: {success_rate:.1f}% accurate")
-    print(f"   ✅ Test suite: Complete")
+    print(f"   [OK] Backend server: Available")
+    print(f"   [OK] Job info API: Working")
+    print(f"   [OK] Validation patterns: {success_rate:.1f}% accurate")
+    print(f"   [OK] Test suite: Complete")
     
     return success_rate == 100
 
@@ -164,10 +164,10 @@ def test_guidance_templates():
     }
     
     for qtype, template in guidance_templates.items():
-        print(f"✅ {qtype}: {len(template)} chars")
+        print(f"[OK] {qtype}: {len(template)} chars")
         print(f"   Preview: {template[:80]}...")
     
-    print(f"\n✅ All guidance templates available and properly formatted")
+    print(f"\n[OK] All guidance templates available and properly formatted")
 
 if __name__ == "__main__":
     print("🚀 REAL INTERVIEW INTEGRATION TEST")
@@ -180,8 +180,8 @@ if __name__ == "__main__":
     print("=" * 80)
     
     if success:
-        print("✅ ALL INTEGRATION TESTS PASSED")
-        print("✅ Intelligent validation system ready for production")
+        print("[OK] ALL INTEGRATION TESTS PASSED")
+        print("[OK] Intelligent validation system ready for production")
     else:
-        print("⚠️ Some integration issues detected")
+        print("[WARN] Some integration issues detected")
         print("🔧 Please review and fix before production")

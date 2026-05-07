@@ -118,22 +118,30 @@ export default {
         'primary': '0 4px 6px -1px rgb(45 95 76 / 0.1), 0 2px 4px -2px rgb(45 95 76 / 0.1)',
         'primary-lg': '0 10px 15px -3px rgb(45 95 76 / 0.1), 0 4px 6px -4px rgb(45 95 76 / 0.1)',
 
-        // Colored shadows for buttons and interactive elements
+        // Colored shadows
         'success-sm': '0 4px 6px -1px rgb(34 197 94 / 0.2)',
         'success': '0 10px 15px -3px rgb(34 197 94 / 0.2)',
         'success-lg': '0 20px 25px -5px rgb(34 197 94 / 0.3)',
-
         'primary-cta-sm': '0 4px 6px -1px rgb(74 124 89 / 0.2)',
         'primary-cta': '0 10px 15px -3px rgb(74 124 89 / 0.2)',
         'primary-cta-lg': '0 20px 25px -5px rgb(74 124 89 / 0.3)',
-
         'purple-sm': '0 4px 6px -1px rgb(168 85 247 / 0.2)',
         'purple': '0 10px 15px -3px rgb(168 85 247 / 0.2)',
         'purple-lg': '0 20px 25px -5px rgb(168 85 247 / 0.3)',
-
-        // Dark mode strategy: subtle highlight instead of shadow
         'dark-highlight': '0 0 0 1px rgb(255 255 255 / 0.05)',
         'dark-highlight-lg': '0 0 0 1px rgb(255 255 255 / 0.1)',
+
+        // ── Neumorphic shadows (blue-tinted gray bg: #e8eaf0) ───────
+        'neu':          '5px 5px 12px #c5c8d2, -5px -5px 12px #ffffff',
+        'neu-sm':       '4px 4px 9px #c5c8d2,  -4px -4px 9px #ffffff',
+        'neu-lg':       '8px 8px 20px #c0c3ce, -8px -8px 20px #ffffff',
+        'neu-inset':    'inset 4px 4px 9px #c5c8d2,  inset -4px -4px 9px #ffffff',
+        'neu-inset-sm': 'inset 3px 3px 6px #c5c8d2,  inset -3px -3px 6px #ffffff',
+        // Dark mode (bg: #1e2028)
+        'neu-dark':       '5px 5px 12px #13151b, -5px -5px 12px #2a2e3a',
+        'neu-dark-sm':    '4px 4px 9px #13151b,  -4px -4px 9px #272b36',
+        'neu-dark-lg':    '8px 8px 20px #10121a, -8px -8px 20px #2c3040',
+        'neu-dark-inset': 'inset 4px 4px 9px #13151b, inset -4px -4px 9px #2a2e3a',
       },
 
       backgroundImage: {

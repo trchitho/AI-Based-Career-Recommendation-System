@@ -16,9 +16,9 @@ Section locking by plan:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
+from app.core.serialization import dumps_str as json_dumps, loads as json_loads  # orjson binary
 import re
 from pathlib import Path
 from typing import Any, Dict
@@ -51,10 +51,10 @@ router = APIRouter(prefix="/bff/catalog", tags=["catalog"])
 try:
     from ..core.cache import cache_manager
 
-    print("✅ Enhanced caching available")
+    print("[OK] Enhanced caching available")
 except ImportError:
     cache_manager = None
-    print("⚠️ Enhanced caching not available, using basic Redis")
+    print("[WARN] Enhanced caching not available, using basic Redis")
 
 # Fallback to basic Redis if enhanced caching not available
 _redis = None
@@ -78,9 +78,9 @@ async def _get_redis():
             _redis = redis_async.from_url(REDIS_URL, decode_responses=True)
             # Test connection
             await _redis.ping()
-            print("✅ Basic Redis cache connected")
+            print("[OK] Basic Redis cache connected")
         except Exception as e:
-            print(f"⚠️ Redis not available, caching disabled: {e}")
+            print(f"[WARN] Redis not available, caching disabled: {e}")
             _redis_available = False
             _redis = None
             return None
@@ -380,7 +380,7 @@ async def get_career(
             else:
                 # Use basic Redis
                 cached_data = await cache_client.get(cache_key)
-                cached = json.loads(cached_data) if cached_data else None
+                cached = json_loads(cached_data) if cached_data else None
 
             if cached:
                 return cached
@@ -419,7 +419,7 @@ async def get_career(
                 await cache_manager.set(cache_key, dto, ttl=1800)
             else:
                 # Use basic Redis
-                await cache_client.set(cache_key, json.dumps(dto, ensure_ascii=False, default=str), ex=1800)
+                await cache_client.set(cache_key, json_dumps(dto), ex=1800)
         except Exception as e:
             logger.warning(f"Cache set error: {e}")
 

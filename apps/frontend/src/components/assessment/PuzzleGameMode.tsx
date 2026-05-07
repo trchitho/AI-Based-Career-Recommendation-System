@@ -44,7 +44,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
 
     if (currentQuestion.question_type === 'SCALE') {
       const labels = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
-      const emojis = ['😟', '🙁', '😐', '🙂', '😊'];
+      const emojis = ['', '', '', '', ''];
       pieces = [1, 2, 3, 4, 5].map((value, index) => ({
         id: `piece-${value}`,
         text: labels[index],
@@ -193,7 +193,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
         </div>
         <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 transition-all duration-500 ease-out"
+            className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-600 transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -202,7 +202,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
       {/* Question Display */}
       <div className="bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-blue-900/20 dark:via-cyan-900/20 dark:to-teal-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-3xl p-6 relative overflow-hidden">
         <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold rounded-full mb-4 shadow-lg">
-          {currentQuestion.test_type === 'RIASEC' ? '🎯 Career Interest' : '🧠 Personality Trait'}
+          {currentQuestion.test_type === 'RIASEC' ? ' Career Interest' : ' Personality Trait'}
         </span>
         <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-relaxed">
           {currentQuestion.question_text}
@@ -277,7 +277,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
               disabled={!!fallingPiece || selectedAnswer === piece.value}
               className={`group relative bg-white dark:bg-gray-700 rounded-2xl p-4 border-2 transition-all duration-300 ${
                 selectedAnswer === piece.value
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20 opacity-50'
+                  ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 opacity-50'
                   : fallingPiece
                   ? 'border-gray-300 dark:border-gray-600 opacity-50 cursor-not-allowed'
                   : 'border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:scale-105 hover:shadow-xl cursor-pointer'
@@ -301,8 +301,8 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
               )}
               
               {selectedAnswer === piece.value && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
-                  ✓
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-indigo-700 rounded-full flex items-center justify-center text-white text-xs">
+                  
                 </div>
               )}
             </button>
@@ -313,9 +313,9 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
       {/* Success Animation */}
       {showSuccess && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-4 rounded-2xl shadow-2xl animate-bounce">
+          <div className="bg-gradient-to-r from-indigo-700 to-indigo-700 text-white px-8 py-4 rounded-2xl shadow-2xl animate-bounce">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">🎉</span>
+              <span className="text-3xl"></span>
               <div>
                 <div className="font-bold text-xl">Perfect Drop!</div>
                 <div className="text-sm opacity-90">+10 XP</div>

@@ -22,9 +22,9 @@ interface CVDocument {
 }
 
 const getMatchColor = (pct: number) => {
-  if (pct >= 80) return '#10b981';
-  if (pct >= 60) return '#f59e0b';
-  return '#ef4444';
+  if (pct >= 80) return '10b981';
+  if (pct >= 60) return 'f59e0b';
+  return 'ef4444';
 };
 
 const CVDocumentsPage = () => {
@@ -70,12 +70,12 @@ const CVDocumentsPage = () => {
   };
 
   return (
-    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen">
+    <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <FileText size={24} className="text-green-600" />
+            <FileText size={24} className="text-indigo-800" />
             CV Documents
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -84,7 +84,7 @@ const CVDocumentsPage = () => {
         </div>
         <button
           onClick={load}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors"
         >
           <RefreshCw size={15} /> Refresh
         </button>
@@ -100,12 +100,12 @@ const CVDocumentsPage = () => {
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Tìm theo tên, email, tên file..."
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600"
           />
         </div>
         <button
           onClick={handleSearch}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors"
+          className="px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors"
         >
           Tìm
         </button>
@@ -130,7 +130,7 @@ const CVDocumentsPage = () => {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
         {loading ? (
           <div className="flex items-center justify-center py-16 gap-3 text-gray-500 dark:text-gray-400">
-            <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
             Đang tải...
           </div>
         ) : documents.length === 0 ? (
@@ -143,7 +143,7 @@ const CVDocumentsPage = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 w-8">#</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 w-8"></th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Người dùng</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">File CV</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Nghề nghiệp</th>
@@ -183,7 +183,7 @@ const CVDocumentsPage = () => {
                           </span>
                         )}
                         {!doc.cv_name && !doc.cv_email && (
-                          <span className="text-xs text-gray-400">User #{doc.user_id}</span>
+                          <span className="text-xs text-gray-400">User {doc.user_id}</span>
                         )}
                       </div>
                     </td>
@@ -191,7 +191,7 @@ const CVDocumentsPage = () => {
                     {/* Filename */}
                     <td className="px-4 py-3">
                       <span className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
-                        <FileText size={14} className="text-green-500 flex-shrink-0" />
+                        <FileText size={14} className="text-indigo-700 flex-shrink-0" />
                         <span className="max-w-[160px] truncate" title={doc.cv_filename}>
                           {doc.cv_filename || '—'}
                         </span>
@@ -244,7 +244,7 @@ const CVDocumentsPage = () => {
                             })}
                           </span>
                           {Date.now() - new Date(doc.created_at).getTime() < 86400000 && (
-                            <span className="inline-block px-1.5 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 rounded">
+                            <span className="inline-block px-1.5 py-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-400 rounded">
                               MỚI
                             </span>
                           )}
@@ -259,7 +259,7 @@ const CVDocumentsPage = () => {
                           href={doc.cv_file_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-800 hover:bg-indigo-900 rounded-lg transition-colors"
                         >
                           <ExternalLink size={13} /> Xem tài liệu
                         </a>

@@ -12,6 +12,8 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { getRIASECFullName } from '../utils/riasec';
+import { mentorMatchingService, MentorMatch } from '../services/mentorMatchingService';
+import ChatModal from '../components/chat/ChatModal';
 
 const RoadmapPage = () => {
   const { groupSlug, careerIdOrSlug } = useParams<{ groupSlug: string; careerIdOrSlug: string }>();
@@ -37,6 +39,11 @@ const RoadmapPage = () => {
   const { currentPlan, hasFeature } = useFeatureAccess();
   const hasLoadedTraitEvidenceRef = useRef(false);
   const hasTrackedUsageRef = useRef(false);
+
+  // Completed-users mentor panel
+  const [completedMentors, setCompletedMentors] = useState<MentorMatch[]>([]);
+  const [mentorsLoaded, setMentorsLoaded] = useState(false);
+  const [chatTarget, setChatTarget] = useState<{ userId: number; name: string } | null>(null);
 
   useEffect(() => {
     const hasUnlimitedCareers = hasFeature('unlimited_careers');
@@ -177,6 +184,15 @@ const RoadmapPage = () => {
     loadTraitEvidence();
   }, [careerId]); // Remove fetchRoadmap and loadTraitEvidence from dependencies to prevent infinite loop
 
+  // Load users who completed this career's roadmap
+  useEffect(() => {
+    if (!roadmap?.careerTitle || mentorsLoaded) return;
+    setMentorsLoaded(true);
+    mentorMatchingService.findMentorsForCareer(roadmap.careerTitle, 5, careerId)
+      .then(setCompletedMentors)
+      .catch(() => setCompletedMentors([]));
+  }, [roadmap?.careerTitle, careerId, mentorsLoaded]);
+
   const handleCompleteMilestone = async (milestoneId: string) => {
     if (!careerId) return;
     try {
@@ -218,8 +234,8 @@ const RoadmapPage = () => {
       <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          .bg-dot-pattern { background-image: radial-gradient(#E5E7EB 1px, transparent 1px); background-size: 24px 24px; }
-          .dark .bg-dot-pattern { background-image: radial-gradient(#374151 1px, transparent 1px); }
+          .bg-dot-pattern { background-image: radial-gradient(E5E7EB 1px, transparent 1px); background-size: 24px 24px; }
+          .dark .bg-dot-pattern { background-image: radial-gradient(374151 1px, transparent 1px); }
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
           .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -227,7 +243,7 @@ const RoadmapPage = () => {
         `}</style>
 
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
-        <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-green-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-indigo-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
         <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-blue-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -252,13 +268,13 @@ const RoadmapPage = () => {
           {!loading && roadmap && (
             <div className="animate-fade-in-up space-y-8">
               {/* Hero Header - Career Title + Stages */}
-              <div className="bg-gradient-cta dark:from-green-800 dark:to-green-900 rounded-card-hero p-8 md:p-10 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+              <div className="rounded-card-hero p-8 md:p-10 relative overflow-hidden" style={{ background: 'var(--neu-accent)', boxShadow: '8px 8px 20px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light)' }}>
+                <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/30">Career Path</span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.2)', color: 'var(--neu-btn-text, #ffffff)', border: '1px solid rgba(255,255,255,0.3)' }}>Lộ Trình Nghề Nghiệp</span>
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8">{roadmap.careerTitle}</h1>
+                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8" style={{ color: 'var(--neu-btn-text, #ffffff)' }}>{roadmap.careerTitle}</h1>
 
                   {/* Dynamic career stages based on milestones count */}
                   {(() => {
@@ -284,7 +300,7 @@ const RoadmapPage = () => {
 
                           return (
                             <div key={idx} className="flex-shrink-0 flex flex-col items-center snap-center group cursor-default">
-                              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-green-700 border-white' : isCurrent ? 'bg-green-600 text-white border-white ring-4 ring-white/30' : 'bg-green-800/50 text-green-300 border-green-700/50'}`}>
+                              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-indigo-900 border-white' : isCurrent ? 'bg-indigo-800 text-white border-white ring-4 ring-white/30' : 'bg-indigo-950/50 text-indigo-300 border-indigo-800/50'}`}>
                                 {isCompleted ? (
                                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -292,9 +308,9 @@ const RoadmapPage = () => {
                                 ) : (
                                   <span className="text-lg font-bold">{idx + 1}</span>
                                 )}
-                                {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-green-800'}`} />}
+                                {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-indigo-950'}`} />}
                               </div>
-                              <span className={`mt-2 text-xs font-bold uppercase tracking-wide ${isCompleted || isCurrent ? 'text-white' : 'text-green-200/60'}`}>{label}</span>
+                              <span className="mt-2 text-xs font-bold uppercase tracking-wide" style={{ color: isCompleted || isCurrent ? 'var(--neu-btn-text, #ffffff)' : 'rgba(255,255,255,0.45)' }}>{label}</span>
                             </div>
                           );
                         })}
@@ -308,13 +324,13 @@ const RoadmapPage = () => {
               {(careerDesc || navState.description) && (
                 <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <span className="w-2 h-6 bg-green-500 rounded-full" />Overview
+                    <span className="w-2 h-6 bg-indigo-700 rounded-full" />Overview
                   </h3>
                   <div className={`prose prose-green dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed ${showFullDesc ? '' : 'line-clamp-3'}`}>
                     {navState.description || careerDesc}
                   </div>
                   {(navState.description || careerDesc).length > 250 && (
-                    <button onClick={() => setShowFullDesc(!showFullDesc)} className="mt-4 text-sm font-bold text-green-600 hover:text-green-700 dark:text-green-400 hover:underline focus:outline-none">
+                    <button onClick={() => setShowFullDesc(!showFullDesc)} className="mt-4 text-sm font-bold text-indigo-800 hover:text-indigo-900 dark:text-indigo-400 hover:underline focus:outline-none">
                       {showFullDesc ? 'Show Less' : 'Read More'}
                     </button>
                   )}
@@ -341,32 +357,99 @@ const RoadmapPage = () => {
                 </div>
               )}
 
+              {/* Người đã hoàn thành lộ trình */}
+              <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <span className="w-2 h-6 bg-purple-500 rounded-full" />
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Người đã hoàn thành lộ trình này</h3>
+                  </div>
+                  {completedMentors.length > 0 && (
+                    <span className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold border border-purple-200 dark:border-purple-800">
+                      {completedMentors.length} người
+                    </span>
+                  )}
+                </div>
+
+                {!mentorsLoaded && (
+                  <div className="flex items-center gap-3 py-6 text-gray-400 text-sm">
+                    <div className="w-5 h-5 border-2 border-gray-200 border-t-purple-500 rounded-full animate-spin" />
+                    Đang tìm kiếm...
+                  </div>
+                )}
+
+                {mentorsLoaded && completedMentors.length === 0 && (
+                  <div className="text-center py-8 text-gray-400">
+                    <div className="text-3xl mb-2"></div>
+                    <p className="text-sm">Chưa có ai hoàn thành lộ trình này.<br />Hãy là người đầu tiên!</p>
+                    <button onClick={() => navigate('/mentor-matching')} className="mt-4 px-4 py-2 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-semibold hover:bg-purple-200 transition-colors">
+                      Tìm Mentor khác →
+                    </button>
+                  </div>
+                )}
+
+                {mentorsLoaded && completedMentors.length > 0 && (
+                  <div className="space-y-3">
+                    {completedMentors.map((m, i) => (
+                      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700 transition-colors">
+                        {/* Avatar */}
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                          {m.mentor_name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()}
+                        </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-900 dark:text-white text-sm truncate">{m.mentor_name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{m.current_position}</div>
+                          {m.expertise_areas.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {m.expertise_areas.slice(0, 3).map((s: string) => (
+                                <span key={s} className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs rounded-full">{s}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {/* Score + Connect */}
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                          <span className="text-xs font-bold text-purple-600 dark:text-purple-400">{m.compatibility_score.toFixed(0)}%</span>
+                          <button
+                            onClick={() => setChatTarget({ userId: m.user_id, name: m.mentor_name })}
+                            className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold hover:opacity-90 transition-opacity shadow"
+                          >
+                             Kết nối
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Learning Journey Timeline */}
               <div className="relative bg-white dark:bg-gray-800 rounded-card-hero shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <div className="relative bg-primary-dark dark:bg-gray-900 p-8 md:p-10 overflow-hidden">
-                  <div className="absolute -right-10 -top-10 w-64 h-64 bg-green-500/20 rounded-full blur-3xl" />
+                  <div className="absolute -right-10 -top-10 w-64 h-64 bg-indigo-700/20 rounded-full blur-3xl" />
 
                   <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="text-white text-center md:text-left">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-400/30 text-green-300 text-xs font-bold uppercase tracking-wider mb-4">
-                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />Live Roadmap
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-700/20 border border-indigo-400/30 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-4">
+                        <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />Live Roadmap
                       </div>
                       <h2 className="text-2xl md:text-3xl font-extrabold mb-2 tracking-tight">Your Learning Journey</h2>
-                      <p className="text-green-100/80 max-w-lg">Master skills one step at a time. Track your progress and reach your career goals.</p>
+                      <p className="text-indigo-100/80 max-w-lg">Master skills one step at a time. Track your progress and reach your career goals.</p>
                     </div>
 
                     <div className="flex items-center gap-4 bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
                       <div className="relative w-16 h-16 flex-shrink-0">
                         <svg className="w-full h-full transform -rotate-90">
-                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-green-900/50" />
-                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={176} strokeDashoffset={176 - 176 * completionRatio} className="text-green-400 transition-all duration-1000 ease-out" strokeLinecap="round" />
+                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-indigo-950/50" />
+                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={176} strokeDashoffset={176 - 176 * completionRatio} className="text-indigo-400 transition-all duration-1000 ease-out" strokeLinecap="round" />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center flex-col text-white">
                           <span className="text-lg font-bold">{completionPercent}%</span>
                         </div>
                       </div>
                       <div className="text-white">
-                        <div className="text-xs text-green-300 font-bold uppercase tracking-wide">Milestones</div>
+                        <div className="text-xs text-indigo-300 font-bold uppercase tracking-wide">Milestones</div>
                         <div className="text-xl font-bold">{completedCount}<span className="text-white/50 text-base ml-1">/{totalMilestones || 0}</span></div>
                       </div>
                     </div>
@@ -379,7 +462,7 @@ const RoadmapPage = () => {
                       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div className="flex items-start gap-3 flex-1">
                           <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-xl">✨</span>
+                            <span className="text-xl"></span>
                           </div>
                           <div>
                             <h3 className="text-lg font-bold mb-1">
@@ -417,6 +500,15 @@ const RoadmapPage = () => {
           )}
         </div>
       </div>
+
+      {/* Real-time chat modal */}
+      {chatTarget && (
+        <ChatModal
+          otherUserId={chatTarget.userId}
+          otherName={chatTarget.name}
+          onClose={() => setChatTarget(null)}
+        />
+      )}
     </MainLayout>
   );
 };

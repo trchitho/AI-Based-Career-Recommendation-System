@@ -3,9 +3,11 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import MainLayout from '../components/layout/MainLayout';
 import { careerService, CareerDetailDTO } from '../services/careerService';
+import { companyService, CompanyItem, bestUrl, allUrls } from '../services/companyService';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useLanguage } from '../contexts/LanguageContext';
+import CareerMentorSection from '../components/mentor/CareerMentorSection';
 
 const CareerDetailPage = () => {
   const { idOrSlug, groupSlug, careerIdOrSlug } = useParams();
@@ -14,6 +16,7 @@ const CareerDetailPage = () => {
   const { language } = useLanguage();
   const { t } = useTranslation();
   const [detail, setDetail] = useState<CareerDetailDTO | null>(null);
+  const [companies, setCompanies] = useState<CompanyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'knowledge' | 'skills' | 'abilities'>('knowledge');
   const [showAllTasks, setShowAllTasks] = useState(false);
@@ -40,6 +43,10 @@ const CareerDetailPage = () => {
           incrementUsage('career_view');
           hasTrackedUsageRef.current = true;
         }
+        // Load companies hiring for this career (background)
+        companyService.getForCareer(idOrSlug)
+          .then(list => setCompanies(list.slice(0, 8)))
+          .catch(() => {});
       } catch (err: any) { console.error(err); } finally { setLoading(false); }
     };
     run();
@@ -97,18 +104,18 @@ const CareerDetailPage = () => {
   return (
     <MainLayout>
       <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');.bg-dot-pattern{background-image:radial-gradient(#E5E7EB 1px,transparent 1px);background-size:24px 24px}.dark .bg-dot-pattern{background-image:radial-gradient(#374151 1px,transparent 1px)}@keyframes fade-in-up{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}.animate-fade-in-up{animation:fade-in-up 0.6s ease-out forwards}`}</style>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');.bg-dot-pattern{background-image:radial-gradient(E5E7EB 1px,transparent 1px);background-size:24px 24px}.dark .bg-dot-pattern{background-image:radial-gradient(374151 1px,transparent 1px)}@keyframes fade-in-up{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}.animate-fade-in-up{animation:fade-in-up 0.6s ease-out forwards}`}</style>
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60"></div>
-        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-green-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-indigo-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-blue-400/5 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {loading && (<div className="flex flex-col items-center justify-center py-32 animate-pulse"><div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-green-600 mb-4 animate-spin"></div><p className="text-gray-500 font-medium">{t('careerDetail.loadingCareerDetails')}</p></div>)}
           {!loading && detail && (
             <div className="animate-fade-in-up space-y-8">
               {/* Header */}
-              <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 rounded-[32px] p-8 md:p-12 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none"></div>
+              <div className="rounded-[32px] p-8 md:p-12 relative overflow-hidden" style={{ background: 'var(--neu-accent)', boxShadow: '8px 8px 20px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light)' }}>
+                <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }}></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none" style={{ background: 'rgba(0,0,0,0.08)' }}></div>
                 <div className="relative z-10">
                   <button onClick={() => navigate(-1)} className="mb-6 flex items-center text-green-100 hover:text-white transition-colors text-sm font-bold uppercase tracking-wide">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>{t('careerDetail.back')}
@@ -119,6 +126,9 @@ const CareerDetailPage = () => {
                   </div>
                 </div>
               </div>
+              {/* Mentor Section */}
+              <CareerMentorSection careerTitle={detail.title} careerId={idOrSlug || ''} careerSlug={idOrSlug || ''} />
+
               {/* Main Grid 65/35 */}
               <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-8">
                 {/* Left Column */}
@@ -232,14 +242,14 @@ const CareerDetailPage = () => {
 
                           return (
                             <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg gap-4">
-                              <span className="text-gray-700 dark:text-gray-300 font-medium flex-1 min-w-0">{capitalizedName}</span>
+                              <span className="text-black dark:text-white font-medium flex-1 min-w-0">{capitalizedName}</span>
                               <div className="flex items-center gap-4 flex-shrink-0">
                                 {/* Level */}
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-400 dark:text-gray-500 w-8">{t('careerDetail.level')}</span>
                                   <div className="w-20 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden flex">
                                     {[1, 2, 3, 4, 5].map(seg => (
-                                      <div key={seg} className={`flex-1 ${seg <= Math.round(levelValue) ? 'bg-teal-500' : ''}`} style={{ borderRight: seg < 5 ? '1px solid rgba(156,163,175,0.3)' : 'none' }}></div>
+                                      <div key={seg} className={`flex-1 ${seg <= Math.round(levelValue) ? 'bg-indigo-600' : ''}`} style={{ borderRight: seg < 5 ? '1px solid rgba(156,163,175,0.3)' : 'none' }}></div>
                                     ))}
                                   </div>
                                   <span className="text-xs text-gray-500 dark:text-gray-400 w-6 text-right">{levelValue.toFixed(1)}</span>
@@ -317,7 +327,7 @@ const CareerDetailPage = () => {
                             <div key={i} className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-800">
                               <div className="flex items-center gap-3 flex-1 min-w-0">
                                 <div className="flex items-center justify-center w-8 h-8 bg-amber-500 text-white rounded-full text-sm font-bold flex-shrink-0">
-                                  #{activityRank}
+                                  {activityRank}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-gray-700 dark:text-gray-300 font-medium text-sm leading-relaxed">
@@ -448,7 +458,7 @@ const CareerDetailPage = () => {
                             {detail.sections.education_requirements.slice(0, 5).map((edu, i) => (
                               <div key={i} className="flex items-center justify-between">
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                                  <p className="text-sm font-medium text-black dark:text-white truncate">
                                     {edu.element_name}
                                   </p>
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -456,7 +466,7 @@ const CareerDetailPage = () => {
                                   </p>
                                 </div>
                                 <div className="flex-shrink-0 ml-3">
-                                  <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                                  <span className="text-sm font-bold text-indigo-800 dark:text-indigo-400">
                                     {Number(edu.data_value || 0).toFixed(1)}%
                                   </span>
                                 </div>
@@ -652,6 +662,39 @@ const CareerDetailPage = () => {
                         </div>
                       </div>
                     </>
+                  )}
+
+                  {/* ── Companies Hiring — cuoi cot phai ── */}
+                  {companies.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                         Công ty đang tuyển dụng
+                      </h3>
+                      <div className="space-y-2">
+                        {companies.map(co => {
+                          const links = allUrls(co);
+                          return (
+                            <div key={co.id} className="p-3 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700 transition-colors" style={{ background: 'var(--neu-bg, #f9fafb)' }}>
+                              <div className="font-semibold text-sm text-blue-900 dark:text-blue-200 mb-1">{co.name}</div>
+                              <div className="flex gap-1 flex-wrap mb-2">
+                                {co.industry && <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">{co.industry}</span>}
+                                {co.location && <span className="text-xs text-gray-400"> {co.location.split('/')[0].trim()}</span>}
+                              </div>
+                              <div className="flex gap-1.5 flex-wrap">
+                                {links.slice(0, 3).map(l => (
+                                  <a key={l.label} href={l.url} target="_blank" rel="noopener noreferrer"
+                                    className="text-xs font-semibold px-2.5 py-1 rounded-full border transition-opacity hover:opacity-75"
+                                    style={{ background: l.label === 'Trang tuyển dụng' ? '#2563eb' : '#fff', color: l.label === 'Trang tuyển dụng' ? '#fff' : '#2563eb', borderColor: '#bfdbfe', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                                    {l.label}
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-3">Bấm vào nút để xem trang tuyển dụng.</p>
+                    </div>
                   )}
                 </div>
               </div>

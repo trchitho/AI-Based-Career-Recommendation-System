@@ -1,0 +1,429 @@
+/* ── Recommendations Page — Neumorphic ──────────────────────────── */
+
+.rec-page {
+  min-height: 100vh;
+  background-color: var(--neu-bg);
+  background-image: radial-gradient(var(--neu-shadow-dark) 1px, transparent 1px);
+  background-size: 24px 24px;
+  padding-bottom: 4rem;
+}
+
+/* ── Hero header ─────────────────────────────────────────────── */
+.rec-hero {
+  background: var(--neu-accent);
+  padding: 3.5rem 2rem 3rem;
+  text-align: center;
+  box-shadow: 8px 8px 20px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light);
+  margin-bottom: 2.5rem;
+}
+.rec-hero-badge {
+  display: inline-block;
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  color: var(--neu-btn-text, #ffffff);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.rec-hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--neu-btn-text, #ffffff);
+  margin: 0 0 0.75rem;
+  text-shadow: 1px 1px 2px rgba(255,255,255,0.18), -1px -1px 3px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.3);
+  line-height: 1.2;
+}
+.rec-hero h1 span {
+  opacity: 0.85;
+  font-style: italic;
+}
+.rec-hero p {
+  color: var(--neu-btn-text, #ffffff);
+  opacity: 0.88;
+  font-size: 1.05rem;
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── Content wrapper ─────────────────────────────────────────── */
+.rec-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ── Loading ─────────────────────────────────────────────────── */
+.rec-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 0;
+  gap: 1rem;
+  color: var(--neu-text-muted);
+  font-size: 0.95rem;
+}
+.rec-spinner {
+  width: 48px; height: 48px;
+  border: 5px solid var(--neu-shadow-dark);
+  border-top-color: var(--neu-accent);
+  border-radius: 50%;
+  animation: rec-spin 0.8s linear infinite;
+}
+@keyframes rec-spin { to { transform: rotate(360deg); } }
+
+/* ── Error ───────────────────────────────────────────────────── */
+.rec-error {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #dc2626;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.rec-error-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(239,68,68,0.12);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Grid ────────────────────────────────────────────────────── */
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: 1.5rem;
+}
+
+/* ── Career Card ─────────────────────────────────────────────── */
+.career-card {
+  background: var(--neu-bg-card);
+  border-radius: 20px;
+  box-shadow: var(--neu-raised);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+  animation: rec-fade-up 0.5s ease-out both;
+}
+.career-card:hover {
+  box-shadow: 10px 10px 24px var(--neu-shadow-dark), -6px -6px 16px var(--neu-shadow-light);
+  transform: translateY(-4px);
+}
+@keyframes rec-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Card top section */
+.card-top {
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--neu-shadow-dark);
+}
+.card-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Match badge */
+.match-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+/* Match badges — dùng CSS variables */
+.match-badge.excellent { background: var(--neu-accent-muted, var(--color-primary-muted)); color: var(--neu-accent-dark, var(--color-primary-dark)); }
+.match-badge.great     { background: rgba(2,132,199,0.12);  color: #0369a1; }
+.match-badge.good      { background: rgba(217,119,6,0.12);  color: #92400e; }
+
+/* Score donut — thống nhất với CSS variables */
+.score-donut {
+  position: relative;
+  width: 56px; height: 56px;
+  flex-shrink: 0;
+}
+.score-donut svg { transform: rotate(-90deg); }
+.score-donut-track { color: var(--neu-shadow-dark); }
+.score-donut-fill-excellent { color: var(--neu-accent, var(--color-primary)); }
+.score-donut-fill-great     { color: var(--color-info, var(--color-info)); }
+.score-donut-fill-good      { color: var(--color-warning, #d97706); }
+.score-donut-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--neu-accent);
+}
+
+/* Card title */
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--neu-text);
+  margin: 0 0 0.75rem;
+  line-height: 1.3;
+  transition: color 0.2s;
+}
+.career-card:hover .card-title { color: var(--neu-accent); }
+
+/* Tags row */
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.card-tag {
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--neu-bg);
+  color: var(--neu-text-muted);
+  box-shadow: var(--neu-pressed-sm);
+}
+.card-tag.riasec {
+  background: rgba(139,92,246,0.1);
+  color: #6d28d9;
+  box-shadow: none;
+}
+
+/* Card body */
+.card-body {
+  padding: 1.25rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.9rem;
+}
+
+.card-desc {
+  font-size: 0.88rem;
+  color: var(--neu-text-muted);
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Explainability section */
+.why-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--neu-accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0;
+  box-shadow: none !important;
+  transition: opacity 0.15s;
+  align-self: flex-start;
+}
+.why-btn:hover { opacity: 0.75; }
+.why-btn svg { transition: transform 0.2s ease; }
+.why-btn.open svg { transform: rotate(90deg); }
+
+.why-panel {
+  padding: 0.9rem 1rem;
+  background: var(--neu-bg);
+  border-radius: 12px;
+  box-shadow: var(--neu-pressed-sm);
+  border-left: 3px solid var(--neu-accent);
+}
+.why-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--neu-text-muted);
+  line-height: 1.5;
+}
+.why-row:last-child { margin-bottom: 0; }
+.why-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--neu-accent);
+  color: var(--neu-btn-text, #fff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Feedback row */
+.feedback-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.feedback-label {
+  font-size: 0.8rem;
+  color: var(--neu-text-muted);
+}
+.feedback-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1.5px solid var(--neu-shadow-dark);
+  background: var(--neu-bg-card);
+  color: var(--neu-text-muted);
+  cursor: pointer;
+  box-shadow: var(--neu-raised-sm);
+  transition: all 0.15s ease;
+}
+.feedback-btn:hover { border-color: var(--neu-accent); color: var(--neu-accent); }
+.feedback-btn.active-up {
+  background: var(--color-success);
+  color: #fff;
+  border-color: var(--color-success);
+  box-shadow: 2px 2px 6px rgba(26,35,126,0.35);
+}
+.feedback-btn.active-down {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+  box-shadow: 2px 2px 6px rgba(239,68,68,0.35);
+}
+
+/* View career button */
+.view-career-btn {
+  width: 100%;
+  padding: 0.875rem;
+  background: var(--neu-accent);
+  color: var(--neu-btn-text, #ffffff);
+  border: none;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.18), -2px -2px 6px rgba(255,255,255,0.08);
+  transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+.view-career-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 16px rgba(0,0,0,0.22), -3px -3px 8px rgba(255,255,255,0.1);
+}
+.view-career-btn svg { transition: transform 0.2s; }
+.view-career-btn:hover svg { transform: translateX(4px); }
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.rec-empty {
+  text-align: center;
+  padding: 5rem 2rem;
+}
+.rec-empty-icon {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--neu-bg-card);
+  box-shadow: var(--neu-raised);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2.2rem;
+}
+.rec-empty h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--neu-text);
+  margin: 0 0 0.75rem;
+}
+.rec-empty p {
+  color: var(--neu-text-muted);
+  max-width: 400px;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+}
+.rec-empty-link {
+  display: inline-block;
+  padding: 0.875rem 2rem;
+  background: var(--neu-accent);
+  color: var(--neu-btn-text, #ffffff);
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.18);
+  transition: filter 0.2s, transform 0.15s;
+}
+.rec-empty-link:hover { filter: brightness(1.08); transform: translateY(-2px); }
+
+/* ── View button on strip cards ──────────────────────────────── */
+html body button.view-btn {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 3px 3px 10px rgba(26,35,126,0.35) !important;
+  padding: 0.4rem 1.1rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  transition: opacity 0.15s, transform 0.15s !important;
+}
+html body button.view-btn:hover {
+  opacity: 0.85 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 4px 4px 14px rgba(26,35,126,0.45) !important;
+}
+
+/* ── Strip card hover ────────────────────────────────────────── */
+.rec-strip-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 8px 8px 20px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light);
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .rec-hero h1 { font-size: 1.75rem; }
+  .rec-grid { grid-template-columns: 1fr; }
+  .rec-content { padding: 0 1rem; }
+}
+
+@media (max-width: 640px) {
+  .rec-hero { padding: 1.5rem 1rem; }
+  .rec-hero h1 { font-size: 1.4rem; }
+  .rec-grid { grid-template-columns: 1fr; }
+  .rec-content { padding: 0 0.5rem; }
+}
+
+@media (max-width: 480px) {
+  .rec-hero h1 { font-size: 1.25rem; }
+  .rec-hero p { font-size: 0.85rem; }
+}

@@ -329,6 +329,43 @@ class GeminiStreamManager:
         
         return None
     
+    def generate_content_stream(self, prompt: str, **kwargs):
+        """
+        Generate content with streaming — yields text chunks as they arrive.
+        Used for SSE (Server-Sent Events) endpoints.
+        Yields strings (partial text chunks).
+        """
+        self._ensure_initialized()
+        if not self.model:
+            return
+
+        config_params = {}
+        max_tokens = int(os.getenv('GEMINI_MAX_TOKENS', '2000'))
+        if max_tokens > 0:
+            config_params['max_output_tokens'] = max_tokens
+        config_params['temperature'] = float(os.getenv('GEMINI_TEMPERATURE', '0.7'))
+        for key, value in kwargs.items():
+            if key in ('max_output_tokens', 'maxOutputTokens'):
+                config_params['max_output_tokens'] = value
+            elif key != 'stream':
+                config_params[key] = value
+
+        try:
+            gen_config = genai.types.GenerationConfig(**config_params) if config_params else None
+            response = self.model.generate_content(
+                prompt,
+                generation_config=gen_config,
+                stream=True,
+            )
+            for chunk in response:
+                try:
+                    if chunk.text:
+                        yield chunk.text
+                except Exception:
+                    continue
+        except Exception as e:
+            print(f"[stream-err] {self.stream_type.value}: {e}")
+
     def _try_fallback_model(self) -> bool:
         """Try to switch to a fallback model"""
         current_index = -1

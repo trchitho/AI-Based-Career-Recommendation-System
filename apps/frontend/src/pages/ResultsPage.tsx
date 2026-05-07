@@ -19,11 +19,9 @@ import { trackCareerEvent, markDwellStart } from '../services/trackService';
 import { useAuth } from '../contexts/AuthContext';
 import { getRIASECFullName } from '../utils/riasec';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import './ResultsPage.css';
 
 const ResultsPage = () => {
-  // ==========================================
-  // 1. LOGIC BLOCK
-  // ==========================================
   const { assessmentId } = useParams<{ assessmentId: string }>();
   const { user } = useAuth();
   const { hasFeature, currentPlan } = useFeatureAccess();
@@ -32,11 +30,10 @@ const ResultsPage = () => {
   const [loadingResults, setLoadingResults] = useState(true);
   const [errorResults, setErrorResults] = useState<string | null>(null);
 
-  // BFF Recommendations - LAZY LOAD only when Career Matches tab is opened
   const [recData, setRecData] = useState<RecommendationsResponse | null>(null);
   const [recLoading, setRecLoading] = useState<boolean>(false);
   const [recError, setRecError] = useState<string | null>(null);
-  const [recFetched, setRecFetched] = useState<boolean>(false); // Guard: only fetch once
+  const [recFetched, setRecFetched] = useState<boolean>(false);
 
   const [activeTab, setActiveTab] =
     useState<'summary' | 'detailed' | 'recommendations'>('summary');
@@ -45,34 +42,21 @@ const ResultsPage = () => {
   const [fbComment, setFbComment] = useState('');
   const [fbDone, setFbDone] = useState(false);
 
-  // Guard: track if impressions have been logged for this assessment
   const impressionLoggedRef = useRef<string | null>(null);
-
-  // Bây giờ backend đã honor top_k, FE không cần slice thêm ở đây.
   const recItems: CareerRecommendationDTO[] = recData?.items ?? [];
   const recRequestId = recData?.request_id ?? null;
 
-  // Fetch assessment results on mount
   useEffect(() => {
     if (!assessmentId) return;
     fetchResults(assessmentId);
-    // Don't fetch recommendations here - let the lazy load useEffect handle it
-    // fetchRecommendations();
-
-
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId]);
 
-  // LAZY LOAD: Fetch recommendations ONLY when Career Matches tab is opened
   useEffect(() => {
     if (activeTab === 'recommendations' && !recFetched && assessmentId) {
       fetchRecommendations();
     }
   }, [activeTab, recFetched, assessmentId]);
 
-  // Log impressions ONLY ONCE when recommendations are loaded and tab is active
-  // Also mark dwell start time for click tracking
   useEffect(() => {
     if (
       activeTab === 'recommendations' &&
@@ -81,13 +65,8 @@ const ResultsPage = () => {
       recData.request_id &&
       impressionLoggedRef.current !== recData.request_id
     ) {
-      // Mark as logged to prevent double-count
       impressionLoggedRef.current = recData.request_id;
-
-      // Mark dwell start time for click tracking
       markDwellStart();
-
-      // Log impression for each career item
       const reqId = recData.request_id;
       recData.items.forEach((item, index) => {
         trackCareerEvent(
@@ -104,10 +83,8 @@ const ResultsPage = () => {
     }
   }, [activeTab, recData, user?.id]);
 
-  // Re-mark dwell start when switching back to recommendations tab
   useEffect(() => {
     if (activeTab === 'recommendations' && impressionLoggedRef.current) {
-      // Re-mark dwell start when returning to tab (after navigating away)
       markDwellStart();
     }
   }, [activeTab]);
@@ -116,15 +93,11 @@ const ResultsPage = () => {
     try {
       setLoadingResults(true);
       setErrorResults(null);
-
       const resultsData = await assessmentService.getResults(id);
-
       setResults(resultsData);
     } catch (err: any) {
-      console.error(err);
-      // Handle 404 - assessment not found
       if (err?.response?.status === 404) {
-        setErrorResults(`Assessment #${id} not found. It may have been deleted or the ID is incorrect.`);
+        setErrorResults(`Assessment ${id} not found.`);
       } else if (err?.response?.status === 403) {
         setErrorResults('You do not have permission to view this assessment.');
       } else {
@@ -136,549 +109,361 @@ const ResultsPage = () => {
   };
 
   const fetchRecommendations = useCallback(async () => {
-    if (recFetched) return; // Guard: don't fetch twice
-
+    if (recFetched) return;
     try {
       setRecLoading(true);
       setRecError(null);
-
-      if (!assessmentId) {
-        throw new Error("Missing assessmentId in URL");
-      }
-
+      if (!assessmentId) throw new Error('Missing assessmentId');
       const res = await recommendationService.getMain(assessmentId, 5);
       setRecData(res);
-      setRecFetched(true); // Mark as fetched
+      setRecFetched(true);
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.detail ||
-        err?.message ||
-        "Failed to load recommendations";
-      setRecError(msg);
+      setRecError(err?.response?.data?.detail || err?.message || 'Failed to load recommendations');
     } finally {
       setRecLoading(false);
     }
   }, [assessmentId, recFetched]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('vi-VN', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
     });
+
+  const getTopRIASEC = () => {
+    if (results?.top_interest) return getRIASECFullName(results.top_interest).toUpperCase();
+    const order = ['realistic','investigative','artistic','social','enterprising','conventional'];
+    const entries = Object.entries(results?.riasec_scores ?? {});
+    entries.sort((a, b) => {
+      const d = b[1] - a[1];
+      return d !== 0 ? d : order.indexOf(a[0].toLowerCase()) - order.indexOf(b[0].toLowerCase());
+    });
+    return getRIASECFullName(entries[0]?.[0] ?? '').toUpperCase();
   };
 
+  const getTopBigFive = () =>
+    Object.entries(results?.big_five_scores ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0]?.toUpperCase() ?? 'N/A';
 
-
-  // ==========================================
-  // 2. UI – NEW DESIGN
-  // ==========================================
   return (
     <MainLayout>
-      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
-        {/* CSS Injection */}
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          .bg-dot-pattern {
-            background-image: radial-gradient(#E5E7EB 1px, transparent 1px);
-            background-size: 24px 24px;
-          }
-          .dark .bg-dot-pattern {
-            background-image: radial-gradient(#374151 1px, transparent 1px);
-          }
-          @keyframes fade-in-up {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
-          }
-          .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
-        `}</style>
+      <div className="res-page">
+        <div className="res-content">
 
-        {/* Background Layers */}
-        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
-        <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-green-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
-        <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-blue-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          {/* LOADING STATE */}
+          {/* Loading */}
           {loadingResults && (
-            <div className="flex flex-col items-center justify-center py-32 animate-pulse">
-              <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-green-600 mb-4 animate-spin" />
-              <p className="text-gray-500 font-medium">
-                Analyzing your results...
-              </p>
+            <div className="res-loading">
+              <div className="res-spinner" />
+              <span>Đang phân tích kết quả của bạn...</span>
             </div>
           )}
 
-          {/* ERROR STATE */}
+          {/* Error */}
           {errorResults && !loadingResults && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 flex items-center gap-4 animate-fade-in-up">
-              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center text-red-600 shrink-0">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
+            <div className="res-error">
+              <div className="res-error-icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <p className="text-red-600 dark:text-red-300 font-medium">
-                {errorResults}
-              </p>
+              <span>{errorResults}</span>
             </div>
           )}
 
-
-
-          {/* RESULTS CONTENT */}
+          {/* Main content */}
           {!loadingResults && !errorResults && results && (
-            <div className="animate-fade-in-up space-y-8">
-              {/* 1. HERO BANNER */}
-              <div className="bg-gradient-cta dark:from-green-800 dark:to-green-900 rounded-card-hero p-8 md:p-10 shadow-xl shadow-green-900/20 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/30">
-                        Report Ready
-                      </span>
-                      <span className="text-green-100 text-sm font-medium opacity-80">
-                        {formatDate(results.completed_at)}
-                      </span>
-                    </div>
-                    <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
-                      Your Personal Analysis
-                    </h1>
-                    <p className="text-green-50 text-lg max-w-2xl font-medium">
-                      We&apos;ve analyzed your responses to uncover your unique
-                      personality traits and career potential.
-                    </p>
+            <>
+              {/* 1. Hero */}
+              <div className="res-hero">
+                <div className="res-hero-top">
+                  <div className="res-hero-meta">
+                    <span className="res-hero-badge">Report Ready</span>
+                    <span className="res-hero-date">{formatDate(results.completed_at)}</span>
                   </div>
+                  <h1>Your Personal Analysis</h1>
+                  <p>
+                    We've analyzed your responses to uncover your unique personality traits
+                    and career potential.
+                  </p>
+                </div>
 
-                  {/* View Full Report - Only for Premium and Pro plans */}
+                <div className="res-hero-actions">
                   {hasFeature('detailed_analysis') ? (
-                    <Link
-                      to={`/results/${assessmentId}/report`}
-                      className="flex-shrink-0 px-5 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30 transition-colors flex items-center gap-2"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
+                    <Link to={`/results/${assessmentId}/report`} className="res-hero-btn">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       View Full Report
                     </Link>
                   ) : (
-                    <Link
-                      to="/pricing"
-                      className="flex-shrink-0 px-5 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30 transition-colors flex items-center gap-2"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                        />
+                    <Link to="/pricing" className="res-hero-btn">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                       {currentPlan === 'free' ? 'Upgrade to Premium' : 'Upgrade to Premium'}
                     </Link>
                   )}
 
-                  {/* Progress Tracking - Only for Pro plan */}
                   {hasFeature('progress_tracking') ? (
-                    <Link
-                      to={`/progress-comparison`}
-                      className="flex-shrink-0 px-5 py-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-md border border-purple-300/30 rounded-xl text-white font-semibold hover:from-purple-500/30 hover:to-pink-500/30 transition-colors flex items-center gap-2"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                        />
+                    <Link to="/progress-comparison" className="res-hero-btn pro">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                       Compare Progress
                     </Link>
                   ) : currentPlan !== 'pro' && (
-                    <div className="flex-shrink-0 px-5 py-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-md border border-purple-300/20 rounded-xl text-white/70 font-semibold flex items-center gap-2 cursor-not-allowed">
-                      <svg
-                        className="w-5 h-5"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
+                    <span className="res-hero-btn locked pro">
+                      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" />
                       </svg>
                       Pro Feature
-                    </div>
+                    </span>
                   )}
                 </div>
               </div>
 
-              {/* 2. TABS NAVIGATION */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-1.5 flex overflow-x-auto scrollbar-hide">
+              {/* 2. Tabs */}
+              <div className="res-tabs">
                 {[
-                  { id: 'summary', label: 'Summary' },
-                  { id: 'detailed', label: 'Detailed Analysis' },
-                  { id: 'recommendations', label: 'Career Matches' },
+                  { id: 'summary',         label: 'Tóm tắt' },
+                  { id: 'detailed',        label: 'Phân tích chi tiết' },
+                  { id: 'recommendations', label: 'Nghề nghiệp phù hợp' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() =>
-                      setActiveTab(tab.id as 'summary' | 'detailed' | 'recommendations')
-                    }
-                    className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
-                      ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                      }`}
+                    className={`res-tab-btn${activeTab === tab.id ? ' active' : ''}`}
+                    onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   >
                     {tab.label}
                   </button>
                 ))}
               </div>
 
-              {/* 3. TAB CONTENT */}
-              <div className="min-h-[400px]">
-                {/* TAB: SUMMARY */}
+              {/* 3. Tab content */}
+              <div>
+                {/* SUMMARY */}
                 {activeTab === 'summary' && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in-up">
+                  <div className="res-summary-grid">
                     {/* Highlights */}
-                    <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                        <span className="w-2 h-6 bg-green-500 rounded-full" />
-                        Key Highlights
-                      </h3>
-
-                      <div className="grid gap-6">
-                        {/* Top Interest */}
-                        <div className="bg-green-50 dark:bg-green-900/10 rounded-2xl p-6 border border-green-100 dark:border-green-800/30 relative overflow-hidden">
-                          <div className="relative z-10">
-                            <p className="text-sm font-bold text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">
-                              Top Career Interest
-                            </p>
-                            <p className="text-4xl font-extrabold text-gray-900 dark:text-white">
-                              {(() => {
-                                // Ưu tiên top_interest từ API
-                                if (results.top_interest) {
-                                  return getRIASECFullName(results.top_interest).toUpperCase();
-                                }
-                                // Fallback: tính từ riasec_scores với tie-breaking theo thứ tự R,I,A,S,E,C
-                                const order = ['realistic', 'investigative', 'artistic', 'social', 'enterprising', 'conventional'];
-                                const entries = Object.entries(results.riasec_scores);
-                                entries.sort((a, b) => {
-                                  const scoreDiff = b[1] - a[1];
-                                  if (scoreDiff !== 0) return scoreDiff;
-                                  // Tie-breaker: theo thứ tự RIASEC
-                                  return order.indexOf(a[0].toLowerCase()) - order.indexOf(b[0].toLowerCase());
-                                });
-                                const topKey = entries[0]?.[0];
-                                return getRIASECFullName(topKey).toUpperCase();
-                              })()}
-                            </p>
-                          </div>
-                          <svg
-                            className="absolute right-0 bottom-0 w-32 h-32 text-green-500/10 transform translate-x-8 translate-y-8"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
+                    <div className="res-section">
+                      <div className="res-section-header">
+                        <span className="res-section-icon green">
+                          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                        </span>
+                        <div>
+                          <p className="res-section-title">Key Highlights</p>
+                        </div>
+                      </div>
+                      <div className="res-highlights">
+                        <div className="res-highlight-card green">
+                          <p className="res-highlight-label">Top Career Interest</p>
+                          <p className="res-highlight-value">{getTopRIASEC()}</p>
+                          <svg className="res-highlight-bg-icon" width="100" height="100" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
                         </div>
-
-                        {/* Dominant Trait */}
-                        <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl p-6 border border-blue-100 dark:border-blue-800/30 relative overflow-hidden">
-                          <div className="relative z-10">
-                            <p className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1">
-                              Dominant Trait
-                            </p>
-                            <p className="text-4xl font-extrabold text-gray-900 dark:text-white">
-                              {Object.entries(results.big_five_scores).sort(
-                                (a, b) => b[1] - a[1],
-                              )[0]?.[0]?.toUpperCase() || 'N/A'}
-                            </p>
-                          </div>
-                          <svg
-                            className="absolute right-0 bottom-0 w-32 h-32 text-blue-500/10 transform translate-x-8 translate-y-8"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <div className="res-highlight-card blue">
+                          <p className="res-highlight-label">Dominant Trait</p>
+                          <p className="res-highlight-value">{getTopBigFive()}</p>
+                          <svg className="res-highlight-bg-icon" width="100" height="100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </div>
                       </div>
                     </div>
 
-                    {/* Essay Insights */}
+                    {/* Essay insights */}
                     {results.essay_analysis && (
-                      <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text_white mb-6 flex items-center gap-2">
-                          <span className="w-2 h-6 bg-purple-500 rounded-full" />
-                          AI Analysis
-                        </h3>
-
-                        <div className="space-y-6 flex-1">
-                          {results.essay_analysis.key_insights?.length > 0 && (
-                            <div>
-                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-                                Key Insights
-                              </h4>
-                              <ul className="space-y-3">
-                                {results.essay_analysis.key_insights.map(
-                                  (ins, idx) => (
-                                    <li
-                                      key={idx}
-                                      className="flex items-start gap-3 text-gray-600 dark:text-gray-300 text-sm leading-relaxed"
-                                    >
-                                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
-                                      {ins}
-                                    </li>
-                                  ),
-                                )}
-                              </ul>
-                            </div>
-                          )}
-
-                          {results.essay_analysis.themes?.length > 0 && (
-                            <div>
-                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-                                Identified Themes
-                              </h4>
-                              <div className="flex flex-wrap gap-2">
-                                {results.essay_analysis.themes.map(
-                                  (theme, i) => (
-                                    <span
-                                      key={i}
-                                      className="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 text-xs font-bold rounded-lg"
-                                    >
-                                      {theme}
-                                    </span>
-                                  ),
-                                )}
-                              </div>
-                            </div>
-                          )}
+                      <div className="res-section">
+                        <div className="res-section-header">
+                          <span className="res-section-icon purple">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                          </span>
+                          <div>
+                            <p className="res-section-title">AI Analysis</p>
+                          </div>
                         </div>
+
+                        {results.essay_analysis.key_insights?.length > 0 && (
+                          <>
+                            <p className="res-section-label">Key Insights</p>
+                            <ul className="res-insights-list">
+                              {results.essay_analysis.key_insights.map((ins, idx) => (
+                                <li key={idx}>
+                                  <span className="res-insight-dot" />
+                                  {ins}
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+
+                        {results.essay_analysis.themes?.length > 0 && (
+                          <>
+                            <p className="res-section-label">Identified Themes</p>
+                            <div className="res-theme-tags">
+                              {results.essay_analysis.themes.map((theme, i) => (
+                                <span key={i} className="res-theme-tag">{theme}</span>
+                              ))}
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* TAB: DETAILED */}
+                {/* DETAILED */}
                 {activeTab === 'detailed' && (
-                  <div className="space-y-8 animate-fade-in-up">
-                    {/* RIASEC Section */}
-                    <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
-                          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {/* RIASEC */}
+                    <div className="res-section">
+                      <div className="res-section-header">
+                        <span className="res-section-icon blue">
+                          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                           </svg>
-                        </div>
+                        </span>
                         <div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                            RIASEC Interest Profile
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Your career interests based on the Holland model
-                          </p>
+                          <p className="res-section-title">RIASEC Interest Profile</p>
+                          <p className="res-section-sub">Your career interests based on the Holland model</p>
                         </div>
                       </div>
 
-                      <div className="space-y-6">
-                        {/* Spider Chart */}
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Radar Chart</h4>
-                          <div className="h-[350px] w-full flex items-center justify-center">
-                            <RIASECSpiderChart scores={results.riasec_scores} />
-                          </div>
+                      <div className="res-chart-box">
+                        <p className="res-chart-title">Radar Chart</p>
+                        <div className="res-chart-inner">
+                          <RIASECSpiderChart scores={results.riasec_scores} />
                         </div>
+                      </div>
 
-                        {/* Line Chart */}
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Line Chart</h4>
-                          <div className="h-[300px] w-full">
-                            <RIASECLineChart scores={results.riasec_scores} />
-                          </div>
+                      <div className="res-chart-box">
+                        <p className="res-chart-title">Line Chart</p>
+                        <div className="res-chart-inner sm">
+                          <RIASECLineChart scores={results.riasec_scores} />
                         </div>
+                      </div>
 
-                        {/* Progress bars with details */}
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Score Details</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {Object.entries(results.riasec_scores)
-                              .sort((a, b) => b[1] - a[1])
-                              .map(([key, value], index) => {
-                                const colors = [
-                                  'from-blue-500 to-blue-600',
-                                  'from-green-500 to-green-600',
-                                  'from-purple-500 to-purple-600',
-                                  'from-orange-500 to-orange-600',
-                                  'from-pink-500 to-pink-600',
-                                  'from-cyan-500 to-cyan-600',
-                                ];
-                                return (
-                                  <div key={key} className="space-y-1">
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                        {getRIASECFullName(key)}
-                                      </span>
-                                      <span className="text-sm font-bold text-gray-900 dark:text-white">
-                                        {value.toFixed(0)}/100
-                                      </span>
-                                    </div>
-                                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                      <div
-                                        className={`h-full bg-gradient-to-r ${colors[index % colors.length]} rounded-full transition-all duration-700`}
-                                        style={{ width: `${Math.min(value, 100)}%` }}
-                                      ></div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                          </div>
+                      <div className="res-chart-box">
+                        <p className="res-chart-title">Score Details</p>
+                        <div className="res-score-grid">
+                          {Object.entries(results.riasec_scores)
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([key, value], index) => (
+                              <div key={key} className="res-score-item">
+                                <div className="res-score-label-row">
+                                  <span className="res-score-name">{getRIASECFullName(key)}</span>
+                                  <span className="res-score-val">{value.toFixed(0)}/100</span>
+                                </div>
+                                <div className="res-score-track">
+                                  <div
+                                    className={`res-score-fill c${index % 6}`}
+                                    style={{ width: `${Math.min(value, 100)}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     </div>
 
-                    {/* Big Five Section */}
-                    <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-xl flex items-center justify-center">
-                          <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    {/* Big Five */}
+                    <div className="res-section">
+                      <div className="res-section-header">
+                        <span className="res-section-icon purple">
+                          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
-                        </div>
+                        </span>
                         <div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                            Big Five Personality Traits
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Your 5 core personality dimensions
-                          </p>
+                          <p className="res-section-title">Big Five Personality Traits</p>
+                          <p className="res-section-sub">Your 5 core personality dimensions</p>
                         </div>
                       </div>
 
-                      <div className="space-y-6">
-                        {/* Bar Chart */}
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Bar Chart</h4>
-                          <div className="h-[350px] w-full">
-                            <BigFiveBarChart scores={results.big_five_scores} />
-                          </div>
+                      <div className="res-chart-box">
+                        <p className="res-chart-title">Bar Chart</p>
+                        <div className="res-chart-inner">
+                          <BigFiveBarChart scores={results.big_five_scores} />
                         </div>
+                      </div>
 
-                        {/* Line Chart */}
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                          <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 text-center">Line Chart</h4>
-                          <div className="h-[300px] w-full">
-                            <BigFiveLineChart scores={results.big_five_scores} />
-                          </div>
+                      <div className="res-chart-box">
+                        <p className="res-chart-title">Line Chart</p>
+                        <div className="res-chart-inner sm">
+                          <BigFiveLineChart scores={results.big_five_scores} />
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* TAB: RECOMMENDATIONS */}
+                {/* RECOMMENDATIONS */}
                 {activeTab === 'recommendations' && (
-                  <div className="animate-fade-in-up">
-                    <CareerRecommendationsDisplay
-                      items={recItems}
-                      requestId={recRequestId}
-                      loading={recLoading}
-                      error={recError}
-                    />
-                  </div>
+                  <CareerRecommendationsDisplay
+                    items={recItems}
+                    requestId={recRequestId}
+                    loading={recLoading}
+                    error={recError}
+                  />
                 )}
               </div>
 
-              {/* 4. FEEDBACK SECTION */}
+              {/* 4. Feedback */}
               {!fbDone && (
-                <div className="mt-12 bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700 animate-fade-in-up relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-green-500 to-teal-500" />
-                  <div className="max-w-3xl mx-auto text-center">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                      Was this helpful?
-                    </h3>
-                    <p className="text-gray-500 dark:text-gray-400 mb-8">
-                      Help us improve our AI models by rating your results.
-                    </p>
+                <div className="res-feedback">
+                  <h3>Kết quả có hữu ích không?</h3>
+                  <p>Giúp chúng tôi cải thiện AI bằng cách đánh giá kết quả của bạn.</p>
 
-                    <div className="flex justify-center gap-4 mb-8">
-                      {[1, 2, 3, 4, 5].map((v) => (
-                        <button
-                          key={v}
-                          onClick={() => setFbRating(v)}
-                          className={`w-12 h-12 rounded-2xl font-bold text-lg transition-all flex items-center justify-center shadow-sm ${fbRating === v
-                            ? 'bg-green-600 text-white scale-110 shadow-green-600/30'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-gray-600 hover:text-green-600'
-                            }`}
-                        >
-                          {v}
-                        </button>
-                      ))}
-                    </div>
-
-                    <textarea
-                      className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 px-5 py-4 text-gray-900 dark:text-gray-100 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all resize-none"
-                      placeholder="Any additional feedback? (Optional)"
-                      rows={3}
-                      value={fbComment}
-                      onChange={(e) => setFbComment(e.target.value)}
-                    />
-
-                    <div className="mt-6 flex justify-center">
+                  <div className="res-rating-row">
+                    {[1,2,3,4,5].map((v) => (
                       <button
-                        disabled={!fbRating}
-                        onClick={async () => {
-                          if (!assessmentId || !fbRating) return;
-                          try {
-                            await feedbackService.submit(
-                              assessmentId,
-                              fbRating,
-                              fbComment,
-                            );
-                            setFbDone(true);
-                          } catch (e) {
-                            console.error(e);
-                          }
-                        }}
-                        className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold shadow-lg shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        key={v}
+                        className={`res-rating-btn${fbRating === v ? ' active' : ''}`}
+                        onClick={() => setFbRating(v)}
                       >
-                        Submit Feedback
+                        {v}
                       </button>
-                    </div>
+                    ))}
+                  </div>
+
+                  <textarea
+                    className="res-feedback-textarea"
+                    placeholder="Nhận xét thêm? (Không bắt buộc)"
+                    rows={3}
+                    value={fbComment}
+                    onChange={(e) => setFbComment(e.target.value)}
+                  />
+
+                  <div>
+                    <button
+                      className="res-submit-btn"
+                      disabled={!fbRating}
+                      onClick={async () => {
+                        if (!assessmentId || !fbRating) return;
+                        try {
+                          await feedbackService.submit(assessmentId, fbRating, fbComment);
+                          setFbDone(true);
+                        } catch (e) { console.error(e); }
+                      }}
+                    >
+                      Gửi phản hồi
+                    </button>
                   </div>
                 </div>
               )}
-            </div>
+            </>
           )}
+
         </div>
       </div>
     </MainLayout>

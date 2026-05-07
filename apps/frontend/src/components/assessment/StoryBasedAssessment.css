@@ -5,7 +5,7 @@
   align-items: center;
   min-height: 100vh;
   height: 100vh;
-  background: linear-gradient(135deg, rgba(22, 163, 74, 0.3) 0%, rgba(13, 148, 136, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(26,35,126, 0.3) 0%, rgba(13, 148, 136, 0.3) 100%);
   padding: 1rem 2rem;
   gap: 2rem;
   position: relative;
@@ -162,7 +162,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #16a34a 0%, #0d9488 100%);
+  background: linear-gradient(90deg, var(--color-primary) 0%, #0d9488 100%);
   transition: width 0.5s ease;
   border-radius: 10px;
 }
@@ -170,7 +170,7 @@
 .progress-text {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #16a34a;
+  color: var(--color-primary);
   display: block;
   text-align: center;
 }
@@ -317,7 +317,7 @@
 
 /* Cover Page */
 .story-cover {
-  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #0d9488 100%);
   color: white;
 }
 
@@ -392,7 +392,7 @@
   background: white;
   border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid #16a34a;
+  border-left: 4px solid var(--color-primary);
   transition: all 0.3s ease;
 }
 
@@ -409,13 +409,13 @@
 
 .welcome-note {
   font-size: 1.1rem;
-  color: #16a34a;
+  color: var(--color-primary);
   font-weight: 600;
   font-style: italic;
   margin: 0;
   text-align: center;
   padding: 1.25rem;
-  background: rgba(22, 163, 74, 0.1);
+  background: rgba(26,35,126, 0.1);
   border-radius: 15px;
 }
 
@@ -454,7 +454,7 @@
 .step-number {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #0d9488 100%);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -482,7 +482,7 @@
 .guide-title {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #16a34a;
+  color: var(--color-primary);
   margin: 0 0 1.25rem 0;
   text-align: left;
 }
@@ -532,7 +532,7 @@
 
 .scenario-number {
   font-size: 1.15rem;
-  color: #16a34a;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
@@ -584,10 +584,10 @@
 
 /* Story Context - AI Generated Scenario (TOP) */
 .scenario-context {
-  background: linear-gradient(135deg, #16a34a15 0%, #0d948815 100%);
+  background: linear-gradient(135deg, var(--color-primary)15 0%, #0d948815 100%);
   padding: 1.5rem;
   border-radius: 12px;
-  border-left: 4px solid #16a34a;
+  border-left: 4px solid var(--color-primary);
   margin-bottom: 1rem;
   flex-shrink: 0;
 }
@@ -614,7 +614,7 @@
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 2px solid #16a34a;
+  border: 2px solid var(--color-primary);
 }
 
 .situation-text {
@@ -788,7 +788,7 @@
   background: white;
   border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid #16a34a;
+  border-left: 4px solid var(--color-primary);
 }
 
 .stat-text {
@@ -803,14 +803,14 @@
   justify-content: center;
   gap: 1rem;
   padding: 1.35rem 2.75rem;
-  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #0d9488 100%);
   color: white;
   border: none;
   border-radius: 50px;
   font-size: 1.25rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 30px rgba(22, 163, 74, 0.4);
+  box-shadow: 0 8px 30px rgba(26,35,126, 0.4);
   transition: all 0.3s ease;
   font-family: 'Poppins', sans-serif;
   pointer-events: all;
@@ -818,7 +818,7 @@
 
 .submit-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(22, 163, 74, 0.5);
+  box-shadow: 0 12px 40px rgba(26,35,126, 0.5);
 }
 
 .submit-btn:active {
@@ -827,7 +827,7 @@
 
 /* Back Cover */
 .back-cover {
-  background: linear-gradient(135deg, #0d9488 0%, #16a34a 100%);
+  background: linear-gradient(135deg, #0d9488 0%, var(--color-primary) 100%);
 }
 
 .back-cover-content {
@@ -866,24 +866,24 @@
   align-items: center;
   gap: 0.75rem;
   background: white;
-  color: #16a34a;
-  border: 2px solid #16a34a;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
   padding: 1.25rem 2rem;
   border-radius: 50px;
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(22, 163, 74, 0.2);
+  box-shadow: 0 4px 15px rgba(26,35,126, 0.2);
   transition: all 0.3s ease;
   font-family: 'Poppins', sans-serif;
   white-space: nowrap;
 }
 
 .nav-btn:hover:not(:disabled) {
-  background: #16a34a;
+  background: var(--color-primary);
   color: white;
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.3);
+  box-shadow: 0 6px 20px rgba(26,35,126, 0.3);
 }
 
 .nav-btn:active:not(:disabled) {
@@ -896,7 +896,7 @@
 }
 
 .open-btn {
-  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #0d9488 100%);
   color: white;
   border: none;
   font-size: 1.15rem;
@@ -905,12 +905,12 @@
 
 .open-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(22, 163, 74, 0.4);
+  box-shadow: 0 8px 25px rgba(26,35,126, 0.4);
 }
 
 /* Submit Navigation Button */
 .submit-nav-btn {
-  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #0d9488 100%);
   color: white;
   border: none;
   font-size: 1.15rem;
@@ -920,15 +920,15 @@
 
 .submit-nav-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(22, 163, 74, 0.5);
+  box-shadow: 0 8px 30px rgba(26,35,126, 0.5);
 }
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+    box-shadow: 0 4px 15px rgba(26,35,126, 0.3);
   }
   50% {
-    box-shadow: 0 6px 25px rgba(22, 163, 74, 0.6);
+    box-shadow: 0 6px 25px rgba(26,35,126, 0.6);
   }
 }
 
@@ -1007,7 +1007,7 @@
 
 /* Essay Page Styles */
 .essay-page {
-  background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #0d9488 100%);
   touch-action: auto !important;
   user-select: text !important;
   pointer-events: auto !important;

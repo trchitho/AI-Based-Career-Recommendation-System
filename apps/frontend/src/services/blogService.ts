@@ -19,6 +19,8 @@ export interface BlogPost {
   published_at?: string;
   created_at?: string;
   updated_at?: string;
+  author_name?: string;
+  author_id?: string;
 }
 
 export interface CreateBlogData {

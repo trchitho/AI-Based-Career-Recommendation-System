@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getPaymentHistory, PaymentHistory } from '../../services/paymentService';
 import { getAccessToken } from '../../utils/auth';
+import './subscription-styles.css';
 
 interface RoadmapCapabilityProps {
   className?: string;
@@ -54,35 +55,39 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
       case 'free':
         return {
           levels: [1],
-          description: 'Access Level 1 (Foundation)',
+          description: 'Foundation Level',
           color: 'text-gray-600',
           bgColor: 'bg-gray-100',
-          icon: '🔒'
+          darkBgColor: 'dark:bg-gray-700',
+          darkColor: 'dark:text-gray-300'
         };
       case 'basic':
         return {
           levels: [1, 2],
-          description: 'Access Level 1-2 (Foundation & Basic)',
+          description: 'Foundation & Basic Levels',
           color: 'text-blue-600',
           bgColor: 'bg-blue-100',
-          icon: '📚'
+          darkBgColor: 'dark:bg-blue-900',
+          darkColor: 'dark:text-blue-300'
         };
       case 'premium':
       case 'pro':
         return {
           levels: [1, 2, 3, 4, 5],
-          description: 'Access All Levels (Full)',
-          color: 'text-green-600',
-          bgColor: 'bg-green-100',
-          icon: '🚀'
+          description: 'All Levels Unlocked',
+          color: 'text-indigo-800',
+          bgColor: 'bg-indigo-50',
+          darkBgColor: 'dark:bg-indigo-950',
+          darkColor: 'dark:text-indigo-300'
         };
       default:
         return {
           levels: [1],
-          description: 'Access Level 1',
+          description: 'Foundation Level',
           color: 'text-gray-600',
           bgColor: 'bg-gray-100',
-          icon: '🔒'
+          darkBgColor: 'dark:bg-gray-700',
+          darkColor: 'dark:text-gray-300'
         };
     }
   };
@@ -90,40 +95,37 @@ const RoadmapCapability: React.FC<RoadmapCapabilityProps> = ({ className = "" })
   const capability = getRoadmapCapability();
 
   return (
-    <div className={`${className}`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🗺️</span>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Roadmap Level
-          </span>
-        </div>
-        <span className={`text-xs px-2 py-1 rounded-full ${capability.bgColor} ${capability.color} font-medium`}>
-          {capability.icon} Level {capability.levels.join(', ')}
+    <div className={`subscription-card bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 ${className}`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Roadmap Level
+        </span>
+        <span className={`plan-badge text-xs px-3 py-1 rounded-full font-semibold ${capability.bgColor} ${capability.darkBgColor} ${capability.color} ${capability.darkColor}`}>
+          Level {capability.levels[capability.levels.length - 1]}
         </span>
       </div>
 
-      <div className="flex gap-1 mb-2">
+      <div className="flex gap-2 mb-3">
         {[1, 2, 3, 4, 5].map((level) => (
           <div
             key={level}
-            className={`flex-1 h-2 rounded-full ${capability.levels.includes(level)
-              ? 'bg-green-500'
-              : 'bg-gray-200 dark:bg-gray-700'
+            className={`roadmap-level flex-1 h-2.5 rounded-full transition-all duration-300 ${capability.levels.includes(level)
+              ? 'active bg-gradient-to-r from-indigo-600 to-indigo-700 shadow-sm'
+              : 'locked bg-gray-200 dark:bg-gray-700'
               }`}
           />
         ))}
       </div>
 
-      <p className={`text-xs ${capability.color}`}>
+      <p className={`text-xs font-medium ${capability.color} ${capability.darkColor}`}>
         {capability.description}
       </p>
 
       {detectedPlan !== 'Pro' && detectedPlan !== 'Premium' && (
-        <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-          💡 {detectedPlan === 'Free'
-            ? 'Upgrade to Basic for Level 1-2 access'
-            : 'Upgrade to Premium for all levels'
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          {detectedPlan === 'Free'
+            ? 'Upgrade to unlock more levels'
+            : 'Upgrade to Premium for full access'
           }
         </p>
       )}

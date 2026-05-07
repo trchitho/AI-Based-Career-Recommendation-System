@@ -8,7 +8,7 @@ export interface AppSettings {
   app_name: string | null;
   footer_html: string | null;
 
-  // 🔥 Thêm theme
+  //  Thêm theme
   theme: "light" | "dark";
 }
 

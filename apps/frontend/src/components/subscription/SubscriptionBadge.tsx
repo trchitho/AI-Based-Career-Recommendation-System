@@ -34,11 +34,11 @@ const SubscriptionBadge = ({ className = "", showDetails = false }: Subscription
   const getPlanIcon = (plan: string) => {
     switch (plan.toLowerCase()) {
       case 'pro':
-        return '👑';
+        return '';
       case 'premium':
         return '⭐';
       case 'basic':
-        return '🚀';
+        return '';
       default:
         return '🆓';
     }

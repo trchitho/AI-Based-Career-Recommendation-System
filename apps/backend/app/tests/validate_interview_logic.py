@@ -93,14 +93,14 @@ def test_irrelevant_patterns():
                     break
         
         # Check result
-        status = "❌ IRRELEVANT" if is_irrelevant else "✅ RELEVANT"
-        expected_status = "❌ IRRELEVANT" if expected_irrelevant else "✅ RELEVANT"
+        status = "[ERR] IRRELEVANT" if is_irrelevant else "[OK] RELEVANT"
+        expected_status = "[ERR] IRRELEVANT" if expected_irrelevant else "[OK] RELEVANT"
         
         if is_irrelevant == expected_irrelevant:
-            result = "✅ PASS"
+            result = "[OK] PASS"
             passed += 1
         else:
-            result = "❌ FAIL"
+            result = "[ERR] FAIL"
         
         print(f"'{answer}' → {status} (Expected: {expected_status}) {result}")
         print(f"   Description: {description}")
@@ -113,7 +113,7 @@ def test_irrelevant_patterns():
     if passed == total:
         print("🎉 ALL TESTS PASSED!")
     else:
-        print(f"⚠️ {total-passed} tests failed")
+        print(f"[WARN] {total-passed} tests failed")
 
 def test_question_distribution():
     """Test question distribution logic"""
@@ -162,19 +162,19 @@ def test_question_distribution():
         # Validate
         if count <= 0:
             if total == 0:
-                print("         ✅ Correctly handled edge case")
+                print("         [OK] Correctly handled edge case")
             else:
-                print("         ❌ Should return 0 total for non-positive counts")
+                print("         [ERR] Should return 0 total for non-positive counts")
         elif count == 1:
             if distribution["warm_up"] == 1 and total == 1:
-                print("         ✅ Correctly handled single question")
+                print("         [OK] Correctly handled single question")
             else:
-                print("         ❌ Single question should be warm_up only")
+                print("         [ERR] Single question should be warm_up only")
         else:
             if total == count:
-                print("         ✅ Total matches expected")
+                print("         [OK] Total matches expected")
             else:
-                print(f"         ❌ Total mismatch - expected {count}, got {total}")
+                print(f"         [ERR] Total mismatch - expected {count}, got {total}")
         print()
 
 def test_guidance_templates():
@@ -217,5 +217,5 @@ if __name__ == "__main__":
     test_question_distribution()
     test_guidance_templates()
     
-    print(f"\n✅ ALL VALIDATION TESTS COMPLETED")
+    print(f"\n[OK] ALL VALIDATION TESTS COMPLETED")
     print("=" * 80)

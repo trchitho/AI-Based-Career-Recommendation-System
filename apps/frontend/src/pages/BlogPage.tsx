@@ -180,6 +180,9 @@ const BlogPage = () => {
     return category?.label || categoryKey;
   };
 
+  const featuredPost = displayedPosts[0];
+  const gridPosts = displayedPosts.slice(1);
+
   return (
     <MainLayout>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

@@ -20,7 +20,7 @@ const AppLogo = ({ linkTo = '/home', className = '' }: AppLogoProps) => {
       ) : null}
 
       <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
-        career<span className="text-green-600 dark:text-green-500">bridge</span><span className="text-green-600 dark:text-green-500 text-3xl leading-none">.</span>
+        career<span className="text-indigo-800 dark:text-indigo-700">bridge</span><span className="text-indigo-800 dark:text-indigo-700 text-3xl leading-none">.</span>
       </span>
     </div>
   );
