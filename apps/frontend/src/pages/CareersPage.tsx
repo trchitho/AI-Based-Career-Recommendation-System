@@ -1,5 +1,12 @@
 // This file is no longer used - routes go directly to CareerGroupsPage
-import { Navigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Navigate, Link } from 'react-router-dom';
+import { careerService, CareerItem } from '../services/careerService';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import { useUsageTracking } from '../hooks/useUsageTracking';
+import { useApiCallTracker } from '../hooks/useApiCallTracker';
+import MainLayout from '../components/layout/MainLayout';
+import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh';
 
 const CareersPage = () => {
   // ==========================================

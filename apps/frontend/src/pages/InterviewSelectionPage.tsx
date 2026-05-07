@@ -317,10 +317,12 @@ const InterviewSelectionPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="interview-loading-container">
-                <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 interview-loading-spinner" />
-                    <p className="interview-loading-text">Đang tải thông tin nghề nghiệp...</p>
+            <MainLayout>
+                <div className="interview-loading-container">
+                    <div className="text-center">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 interview-loading-spinner" />
+                        <p className="interview-loading-text">Đang tải thông tin nghề nghiệp...</p>
+                    </div>
                 </div>
             </MainLayout>
         );
@@ -666,8 +668,8 @@ const InterviewSelectionPage: React.FC = () => {
                                         data-testid="interview-mode-text"
                                         onClick={() => setInterviewMode('text')}
                                         className={`flex flex-col items-center gap-3 p-4 rounded-lg border-2 transition-colors cursor-pointer ${interviewMode === 'text'
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 bg-white hover:border-gray-300'
                                             }`}
                                     >
                                         <FileText className={`h-8 w-8 ${interviewMode === 'text' ? 'text-blue-600' : 'text-gray-400'}`} />
@@ -682,8 +684,8 @@ const InterviewSelectionPage: React.FC = () => {
                                         data-testid="interview-mode-voice"
                                         onClick={() => setInterviewMode('voice')}
                                         className={`flex flex-col items-center gap-3 p-4 rounded-lg border-2 transition-colors cursor-pointer ${interviewMode === 'voice'
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 bg-white hover:border-gray-300'
                                             }`}
                                     >
                                         <Mic className={`h-8 w-8 ${interviewMode === 'voice' ? 'text-blue-600' : 'text-gray-400'}`} />

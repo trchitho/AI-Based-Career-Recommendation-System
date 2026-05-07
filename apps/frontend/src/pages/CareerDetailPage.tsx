@@ -44,9 +44,11 @@ const CareerDetailPage = () => {
           hasTrackedUsageRef.current = true;
         }
         // Load companies hiring for this career (background)
-        companyService.getForCareer(idOrSlug)
-          .then(list => setCompanies(list.slice(0, 8)))
-          .catch(() => {});
+        if (idOrSlug) {
+          companyService.getForCareer(idOrSlug)
+            .then(list => setCompanies(list.slice(0, 8)))
+            .catch(() => { });
+        }
       } catch (err: any) { console.error(err); } finally { setLoading(false); }
     };
     run();
@@ -136,7 +138,7 @@ const CareerDetailPage = () => {
                   {/* Block A: About */}
                   <div className="bg-white dark:bg-gray-800 rounded-[24px] p-8 shadow-lg border border-gray-100 dark:border-gray-700">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3"><span className="w-2 h-6 bg-green-500 rounded-full"></span>{t('careerDetail.aboutTheRole')}</h2>
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base mb-6">{detail.description || detail.sections.outlook?.summary_md || "Explore this career path to discover opportunities and requirements."}</p>
+                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base mb-6">{detail.short_desc || detail.sections.outlook?.summary_md || "Explore this career path to discover opportunities and requirements."}</p>
 
                     {/* Alternative Titles */}
                     {detail.alternative_titles && detail.alternative_titles.length > 0 && (
@@ -649,12 +651,12 @@ const CareerDetailPage = () => {
                               </span>
                             </div>
                           )}
-                          {/* Hiển thị openings_est_en hoặc openings_est_vn dựa trên ngôn ngữ */}
-                          {(language === 'vi' ? detail.sections.outlook?.openings_est_vn : detail.sections.outlook?.openings_est_en) && (
+                          {/* Hiển thị openings_est dựa trên ngôn ngữ */}
+                          {detail.sections.outlook?.openings_est && (
                             <div>
                               <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{t('careerDetail.projectedOpenings')}</div>
                               <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                                {language === 'vi' ? detail.sections.outlook.openings_est_vn : detail.sections.outlook.openings_est_en}
+                                {detail.sections.outlook.openings_est}
                               </div>
                             </div>
                           )}
@@ -668,7 +670,7 @@ const CareerDetailPage = () => {
                   {companies.length > 0 && (
                     <div className="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-lg border border-gray-100 dark:border-gray-700">
                       <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                         Công ty đang tuyển dụng
+                        Công ty đang tuyển dụng
                       </h3>
                       <div className="space-y-2">
                         {companies.map(co => {

@@ -416,7 +416,7 @@ const RecommendationsPage = () => {
                           fontSize: "0.68rem", fontWeight: 700,
                           display: "flex", alignItems: "center", gap: 4,
                         }}>
-                           {requiredPlanInfo?.name || "PRO"}
+                          {requiredPlanInfo?.name || "PRO"}
                         </span>
                       </div>
                     )}
@@ -424,8 +424,13 @@ const RecommendationsPage = () => {
                     {/* Card top — gradient banner */}
                     <div style={{
                       height: 120,
-                      background: `linear-gradient(135deg, var(--tw-gradient-stops))`,
-                      backgroundImage: `linear-gradient(135deg,${grad.includes("green") ? "10b981,14b8a6" : grad.includes("blue") ? "3b82f6,6366f1" : grad.includes("orange") ? "f97316,ec4899" : grad.includes("purple") ? "a855f7,7c3aed" : grad.includes("emerald") ? "34d399,06b6d4" : "fb7185,ef4444"})`,
+                      background: `linear-gradient(135deg, ${index % 6 === 0 ? "#10b981, #14b8a6" :
+                          index % 6 === 1 ? "#3b82f6, #6366f1" :
+                            index % 6 === 2 ? "#f97316, #ec4899" :
+                              index % 6 === 3 ? "#a855f7, #7c3aed" :
+                                index % 6 === 4 ? "#34d399, #06b6d4" :
+                                  "#fb7185, #ef4444"
+                        })`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
                       <div style={{

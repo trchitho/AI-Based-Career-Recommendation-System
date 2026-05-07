@@ -129,6 +129,8 @@ function App() {
                     }
                   />
                   <Route path="/careers" element={<CareerGroupsPage />} />
+                  <Route path="/404" element={<NotFoundPage />} />
+                  <Route path="/learning-path" element={<NotFoundPage />} />
                   <Route path="/careers/:param" element={<CareerRouterPage />} />
                   <Route path="/careers/:param/roadmap" element={<CareerRouterPage />} />
                   <Route path="/careers/:groupSlug/:careerIdOrSlug" element={<CareerDetailPage />} />

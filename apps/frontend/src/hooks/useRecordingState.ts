@@ -89,7 +89,7 @@ export const useRecordingState = () => {
 
                 mediaRecorderRef.current.onstop = (event) => {
                     // Call original onstop first
-                    if (originalOnStop) {
+                    if (originalOnStop && mediaRecorderRef.current) {
                         originalOnStop.call(mediaRecorderRef.current, event);
                     }
 

@@ -19,12 +19,12 @@ const sidebarItems = [
   },
   {
     label: 'Lộ trình học tập',
-    to: '/careers',
+    to: '/learning-path',
     icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>,
   },
   {
     label: 'Nghề nghiệp',
-    to: '/recommendations',
+    to: '/careers',
     icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
   },
   {
@@ -62,20 +62,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   // State cho Mobile Menu
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Sidebar collapse - Default to collapsed (true), persist state in localStorage
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    const saved = localStorage.getItem('sidebarCollapsed');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
-
-  // Calculate sidebar width for navbar positioning
-  const sidebarWidth = showSidebar ? (sidebarCollapsed ? 64 : 232) : 0;
-
-  // Save sidebar state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
-  }, [sidebarCollapsed]);
+  // Sidebar collapse state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Xử lý click ra ngoài để đóng dropdown
   useEffect(() => {
@@ -93,7 +81,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navLinks = [
     { to: "/dashboard", label: "Tổng quan" },
     { to: "/assessment", label: "Đánh giá" },
-    { to: "/careers", label: "Xu hướng" },
+    { to: "/404", label: "Xu hướng" },
+    { to: "/recommendations", label: "Nghề phù hợp" },
     { to: "/mentor-matching", label: "Cố vấn" },
     { to: "/interview", label: "Phỏng vấn" },
   ];
@@ -107,7 +96,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const displayName = user?.email?.split('@')[0] || 'User';
   const displayInitial = displayName.charAt(0).toUpperCase();
 
-  // Scroll state for navbar animation - SIMPLE THRESHOLD (no complex interpolation)
+  // Scroll state for navbar animation
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -118,784 +107,253 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Simple threshold - clean toggle at 80px
   const isScrolled = scrollY > 80;
 
   return (
-    <div className="min-h-screen flex flex-col font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
+    <div className="min-h-screen flex font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
 
       {/* CSS Injection */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
       `}</style>
 
-      {/* HEADER - Positioned relative to content area (accounting for sidebar) */}
-      <header
-        className="fixed top-0 z-50 transition-[height] duration-200 ease-out"
-        style={{
-          left: `${sidebarWidth}px`,
-          width: `calc(100% - ${sidebarWidth}px)`,
-        }}
-      >
-        {/* Inner container with max-width and centering */}
-        <div
-          className="mx-auto flex justify-between items-center transition-all duration-200 ease-out"
-          style={{
-            height: isScrolled ? '56px' : '72px',
-            width: isScrolled ? '90%' : '95%',
-            maxWidth: isScrolled ? '1400px' : '1600px',
-            paddingLeft: isScrolled ? '24px' : '32px',
-            paddingRight: isScrolled ? '24px' : '32px',
-            background: isScrolled
-              ? 'rgba(255, 255, 255, 0.75)'
-              : 'transparent',
-            backdropFilter: isScrolled ? 'blur(12px)' : 'none',
-            WebkitBackdropFilter: isScrolled ? 'blur(12px)' : 'none',
-            borderRadius: isScrolled ? '999px' : '0',
-            boxShadow: isScrolled
-              ? '0 4px 20px rgba(0, 0, 0, 0.08)'
-              : 'none',
-          }}
+      {/* SIDEBAR - Fixed left side, full height */}
+      {showSidebar && (
+        <aside
+          className={`fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-52'
+            }`}
         >
-          <style>{`
-            .dark header > div {
-              background: ${isScrolled
-              ? 'rgba(16, 20, 30, 0.75) !important'
-              : 'transparent !important'};
-              box-shadow: ${isScrolled
-              ? '0 4px 20px rgba(0, 0, 0, 0.4) !important'
-              : 'none !important'};
-            }
-          `}</style>
+          {/* Sidebar content */}
+          <div className="flex-1 flex flex-col p-4">
 
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <AppLogo />
-          </div>
-
-          {/* Menu chính giữa (Desktop) */}
-          <nav className="hidden md:flex items-center gap-2 px-2 py-2 rounded-2xl min-w-0 flex-1 justify-center header-nav">
-            <style>{`
-              /* Base nav item */
-              .header-nav-item {
-                position: relative;
-                overflow: visible;
-                transition: all 0.2s ease;
-                color: #6B7280;
-              }
-
-              .dark .header-nav-item {
-                color: #A1A7B3;
-              }
-
-              /* Pill background (subtle) */
-              .header-nav-item::before {
-                content: '';
-                position: absolute;
-                inset: -4px;
-                border-radius: 9999px;
-                background: rgba(37, 99, 235, 0.1);
-                opacity: 0;
-                transition: opacity 0.2s ease;
-                z-index: -1;
-              }
-
-              .dark .header-nav-item::before {
-                background: rgba(102, 191, 255, 0.1);
-              }
-
-              /* Underline glow */
-              .header-nav-item .underline-glow {
-                position: absolute;
-                left: 50%;
-                bottom: -2px;
-                transform: translateX(-50%);
-                width: 0%;
-                height: 2px;
-                border-radius: 999px;
-                background: linear-gradient(90deg, transparent, #2563EB, transparent);
-                opacity: 0;
-                transition: all 0.2s ease;
-              }
-
-              .dark .header-nav-item .underline-glow {
-                background: linear-gradient(90deg, transparent, #66BFFF, transparent);
-              }
-
-              /* HOVER STATE */
-              .header-nav-item:hover {
-                color: #2563EB;
-              }
-
-              .dark .header-nav-item:hover {
-                color: #66BFFF;
-              }
-
-              .header-nav-item:hover::before {
-                opacity: 1;
-              }
-
-              .header-nav-item:hover {
-                box-shadow: 0 0 12px rgba(37, 99, 235, 0.25);
-              }
-
-              .dark .header-nav-item:hover {
-                box-shadow: 0 0 12px rgba(102, 191, 255, 0.25);
-              }
-
-              /* ACTIVE STATE */
-              .header-nav-item[aria-current="page"] {
-                color: #2563EB;
-              }
-
-              .dark .header-nav-item[aria-current="page"] {
-                color: #66BFFF;
-              }
-
-              .header-nav-item[aria-current="page"]::before {
-                opacity: 1;
-              }
-
-              .header-nav-item[aria-current="page"] {
-                box-shadow: 0 0 16px rgba(37, 99, 235, 0.35);
-              }
-
-              .dark .header-nav-item[aria-current="page"] {
-                box-shadow: 0 0 16px rgba(102, 191, 255, 0.35);
-              }
-
-              .header-nav-item[aria-current="page"] .underline-glow {
-                opacity: 1;
-                width: 80%;
-              }
-            `}</style>
-            {navLinks.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className="header-nav-item text-[14px] font-semibold px-5 py-2.5 rounded-full select-none whitespace-nowrap relative"
+            {/* Toggle button */}
+            <div className={`flex ${sidebarCollapsed ? 'justify-center' : 'justify-end'} mb-4`}>
+              <button
+                onClick={() => {
+                  console.log('Toggle clicked!', sidebarCollapsed);
+                  setSidebarCollapsed(!sidebarCollapsed);
+                }}
+                className="relative z-50 p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                title={sidebarCollapsed ? 'Mở rộng' : 'Thu gọn'}
+                style={{ pointerEvents: 'auto' }}
               >
-                {item.label}
-                <span className="underline-glow"></span>
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* Khu vực bên phải */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            {/* Hamburger Button (Mobile) */}
-            <button
-              className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </button>
-
-            {/* Utilities Group (hidden on mobile — accessible via mobile menu) */}
-            <div className="hidden md:flex items-center gap-2 pr-3 border-r border-gray-200/50 dark:border-gray-700/50">
-              {user && (
-                <div className="notification-wrapper">
-                  <style>{`
-                    .notification-wrapper button {
-                      position: relative;
-                      padding: 0.5rem;
-                      border-radius: 12px;
-                      transition: all 0.2s ease;
-                      background: transparent;
-                      color: #6B7280;
-                    }
-                    .dark .notification-wrapper button {
-                      color: #A1A7B3;
-                    }
-                    .notification-wrapper button:hover {
-                      background: rgba(37, 99, 235, 0.08);
-                      color: #2563EB;
-                      box-shadow: 0 0 12px rgba(37, 99, 235, 0.25);
-                    }
-                    .dark .notification-wrapper button:hover {
-                      background: rgba(102, 191, 255, 0.08);
-                      color: #66BFFF;
-                      box-shadow: 0 0 12px rgba(102, 191, 255, 0.25);
-                    }
-                  `}</style>
-                  <NotificationCenter />
-                </div>
-              )}
-            </div>
-
-            {/* Mobile only */}
-            <div className="flex md:hidden items-center gap-1">
-              {user && <NotificationCenter />}
-            </div>
-
-            <div className="hidden md:flex items-center gap-3">
-              {isAdmin && (
-                <NavLink
-                  to="/admin"
-                  className="hidden lg:inline-flex px-3 py-1 text-xs font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 rounded-full dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-800"
+                <svg
+                  className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  Admin
-                </NavLink>
-              )}
-
-              {/* User Dropdown Menu */}
-              {user ? (
-                <div className="relative user-menu-wrapper" ref={dropdownRef}>
-                  <style>{`
-                    .user-menu-wrapper button {
-                      position: relative;
-                      padding: 0.5rem;
-                      border-radius: 999px;
-                      transition: all 0.2s ease;
-                    }
-                    .user-menu-wrapper button:hover {
-                      background: rgba(37, 99, 235, 0.08);
-                      box-shadow: 0 0 15px rgba(37, 99, 235, 0.25);
-                    }
-                    .dark .user-menu-wrapper button:hover {
-                      background: rgba(102, 191, 255, 0.08);
-                      box-shadow: 0 0 15px rgba(102, 191, 255, 0.25);
-                    }
-                    .user-avatar {
-                      transition: all 0.2s ease;
-                      border: 2px solid transparent;
-                    }
-                    .user-menu-wrapper button:hover .user-avatar {
-                      transform: scale(1.02);
-                      border-color: #2563EB;
-                      box-shadow: 0 0 12px rgba(37, 99, 235, 0.25);
-                    }
-                    .dark .user-menu-wrapper button:hover .user-avatar {
-                      border-color: #66BFFF;
-                      box-shadow: 0 0 12px rgba(102, 191, 255, 0.25);
-                    }
-                  `}</style>
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 cursor-pointer group"
-                  >
-                    <div className="user-avatar w-9 h-9 bg-indigo-50 dark:bg-indigo-950/50 rounded-full flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold text-sm transition-all">
-                      {displayInitial}
-                    </div>
-                    <div className="hidden lg:block text-left">
-                      <p className="text-sm font-bold max-w-[100px] truncate leading-none text-gray-700 dark:text-gray-300">{displayName}</p>
-                    </div>
-                    <svg className={`w-4 h-4 text-gray-400 transition-all duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </button>
-
-                  {/* Dropdown Content */}
-                  {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-60 rounded-2xl py-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right z-50 border-0" style={{ background: 'var(--neu-bg)', boxShadow: '10px 10px 24px var(--neu-shadow-dark), -10px -10px 24px var(--neu-shadow-light)' }}>
-
-                      {/* User Info Header inside Dropdown */}
-                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 mb-1">
-                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{displayName}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                      </div>
-
-                      {/* Profile Link */}
-                      <Link
-                        to="/profile"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-800 dark:hover:text-indigo-400 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        Hồ sơ
-                      </Link>
-
-                      {/* Settings Link */}
-                      <Link
-                        to="/settings"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-800 dark:hover:text-indigo-400 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        Cài đặt
-                      </Link>
-
-                      {/* Logout Button */}
-                      <button
-                        onClick={() => {
-                          setIsDropdownOpen(false);
-                          handleLogout();
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                        {t('common.logout')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Nút Login/Get Started nếu chưa đăng nhập
-                <div className="flex items-center gap-3">
-                  <NavLink to="/login" className="hidden sm:block text-[15px] font-bold text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-4 py-2 transition-colors">
-                    {t('auth.signIn')}
-                  </NavLink>
-                  <NavLink to="/assessment" className="text-[15px] font-bold bg-indigo-800 text-white px-6 py-2.5 rounded-full hover:bg-indigo-900 shadow-lg shadow-indigo-900/20 hover:-translate-y-0.5 transition-all duration-200">
-                    {t('nav.getStarted')}
-                  </NavLink>
-                </div>
-              )}
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
             </div>
-          </div>
-        </div>
-      </header>
 
-      {/* Mobile Menu Drawer */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setIsMobileMenuOpen(false)}>
-          <div
-            className="absolute left-0 right-0 py-4 px-4 transition-all duration-200"
-            style={{
-              top: `${isScrolled ? 56 : 72}px`,
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <style>{`
-              .dark .md\\:hidden > div > div {
-                background: rgba(16, 20, 30, 0.95) !important;
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
-              }
-            `}</style>
-            {/* Nav Links */}
-            <nav className="flex flex-col gap-1 mb-4">
-              {navLinks.map((item) => (
+            {/* Nav items */}
+            <nav className="flex-1 space-y-2">
+              {sidebarItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  title={sidebarCollapsed ? item.label : undefined}
                   className={({ isActive }) =>
-                    `px-4 py-3 rounded-xl text-[15px] font-semibold transition-all ${isActive
-                      ? "text-indigo-800 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30"
-                      : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${sidebarCollapsed ? 'justify-center' : ''
+                    } ${isActive
+                      ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400"
+                      : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700"
                     }`
                   }
                 >
-                  {item.label}
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  {!sidebarCollapsed && <span>{item.label}</span>}
                 </NavLink>
               ))}
-              {isAdmin && (
-                <NavLink
-                  to="/admin"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-indigo-900 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                >
-                  Admin Panel
-                </NavLink>
-              )}
             </nav>
 
-            {/* User section in mobile menu */}
-            {user ? (
-              <div className="border-t border-gray-100 dark:border-gray-800 pt-4 flex flex-col gap-1">
-                <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
-                <Link
-                  to="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-3"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  {t('nav.settingsProfile')}
-                </Link>
-                <button
-                  onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
-                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3 text-left"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                  {t('common.logout')}
-                </button>
-              </div>
-            ) : (
-              <div className="border-t border-gray-100 dark:border-gray-800 pt-4 flex flex-col gap-2">
-                <NavLink
-                  to="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full px-4 py-3 rounded-xl text-[15px] font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-center"
-                >
-                  {t('auth.signIn')}
-                </NavLink>
-                <NavLink
-                  to="/assessment"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full px-4 py-3 rounded-full text-[15px] font-bold bg-indigo-800 text-white hover:bg-indigo-900 transition-colors text-center"
-                >
-                  {t('nav.getStarted')}
-                </NavLink>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* PAGE CONTENT + SIDEBAR */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative', paddingTop: isScrolled ? '56px' : '72px' }}>
-
-        {/* ── Sidebar (only for authenticated pages) ── */}
-        {showSidebar && (
-          <>
-            {/* Mobile overlay */}
-            {sidebarMobileOpen && (
-              <div
-                onClick={() => setSidebarMobileOpen(false)}
-                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 40 }}
-              />
-            )}
-
-            {/* Desktop sidebar - Default collapsed (64px), can expand to 232px */}
-            <aside
-              className="hidden md:flex dark:bg-none"
-              style={{
-                width: sidebarCollapsed ? 64 : 232,
-                minWidth: sidebarCollapsed ? 64 : 232,
-                flexDirection: 'column',
-                background: isScrolled
-                  ? 'rgba(255, 255, 255, 0.75)'
-                  : 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
-                backdropFilter: isScrolled ? 'blur(12px)' : 'none',
-                WebkitBackdropFilter: isScrolled ? 'blur(12px)' : 'none',
-                padding: '1.1rem 0',
-                position: 'fixed',
-                left: 0,
-                top: isScrolled ? 0 : 72,
-                height: isScrolled ? '100vh' : 'calc(100vh - 72px)',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                zIndex: 30,
-                flexShrink: 0,
-                border: 'none',
-                boxShadow: 'none',
-                transition: 'width 0.25s ease, min-width 0.25s ease, top 0.2s ease, height 0.2s ease',
-              }}
-            >
-              <style>{`
-                .dark aside.md\\:flex {
-                  background: ${isScrolled
-                  ? 'rgba(16, 20, 30, 0.75) !important'
-                  : 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.95) 100%) !important'};
-                  backdrop-filter: ${isScrolled ? 'blur(12px)' : 'blur(20px)'};
-                }
-              `}</style>
-              {/* Collapse toggle - KEPT as requested */}
-              <div style={{ display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'flex-end', padding: '0 0.7rem 0.9rem' }}>
-                <button
-                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  style={{
-                    width: 28, height: 28, borderRadius: 8, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'var(--neu-bg-card)',
-                    border: '1.5px solid var(--neu-shadow-dark)',
-                    boxShadow: 'none',
-                    color: 'var(--neu-accent)',
-                    transition: 'background 0.15s, border-color 0.15s',
-                  }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.background = 'var(--neu-accent)';
-                    (e.currentTarget as HTMLElement).style.color = '#fff';
-                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--neu-accent)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.background = 'var(--neu-bg-card)';
-                    (e.currentTarget as HTMLElement).style.color = 'var(--neu-accent)';
-                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--neu-shadow-dark)';
-                  }}
-                  title={sidebarCollapsed ? 'Mở rộng' : 'Thu gọn'}
-                >
-                  <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    style={{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Nav items - Icon only when collapsed, with text when expanded */}
-              <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, padding: '0 0.55rem' }}>
-                {sidebarItems.map((item) => {
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      end={item.to === '/dashboard'}
-                      title={sidebarCollapsed ? item.label : undefined}
-                      className="group relative sidebar-nav-item"
-                      style={({ isActive }) => ({
-                        display: 'flex', alignItems: 'center',
-                        gap: 10,
-                        padding: sidebarCollapsed ? '0.6rem' : '0.6rem 0.85rem',
-                        borderRadius: 11,
-                        textDecoration: 'none',
-                        fontWeight: isActive ? 700 : 500,
-                        fontSize: '0.865rem',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                        color: isActive ? '#22c55e' : '#9ca3af',
-                        background: isActive ? 'rgba(34,197,94,0.15)' : 'transparent',
-                        boxShadow: isActive ? '0 0 10px rgba(34,197,94,0.35)' : 'none',
-                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                        transform: 'scale(1)',
-                      })}
-                      onMouseEnter={(e) => {
-                        const target = e.currentTarget as HTMLElement;
-                        const isActive = target.getAttribute('aria-current') === 'page';
-                        if (!isActive) {
-                          target.style.background = 'rgba(34,197,94,0.10)';
-                          target.style.color = '#22c55e';
-                          target.style.transform = 'scale(1.05)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        const target = e.currentTarget as HTMLElement;
-                        const isActive = target.getAttribute('aria-current') === 'page';
-                        if (!isActive) {
-                          target.style.background = 'transparent';
-                          target.style.color = '#9ca3af';
-                          target.style.transform = 'scale(1)';
-                        }
-                      }}
-                      onMouseDown={(e) => {
-                        (e.currentTarget as HTMLElement).style.transform = 'scale(0.96)';
-                      }}
-                      onMouseUp={(e) => {
-                        const target = e.currentTarget as HTMLElement;
-                        const isActive = target.getAttribute('aria-current') === 'page';
-                        target.style.transform = isActive ? 'scale(1)' : 'scale(1.05)';
-                      }}
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <span style={{ flexShrink: 0 }}>{item.icon}</span>
-                          {!sidebarCollapsed && <span>{item.label}</span>}
-                          {isActive && (
-                            <div style={{
-                              position: 'absolute',
-                              right: -6,
-                              width: 3,
-                              height: '60%',
-                              borderRadius: 999,
-                              background: 'linear-gradient(180deg, #22c55e, #4ade80)',
-                              boxShadow: '0 0 8px #22c55e, 0 0 16px #22c55e',
-                            }} />
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  );
-                })}
-              </nav>
-              <style>{`
-                .dark .sidebar-nav-item[aria-current="page"] {
-                  color: rgb(124, 173, 233) !important;
-                  background: rgba(124, 173, 233, 0.20) !important;
-                  box-shadow: 0 0 12px rgba(124, 173, 233, 0.6), 0 0 24px rgba(124, 173, 233, 0.25) !important;
-                }
-                .dark .sidebar-nav-item:not([aria-current="page"]) {
-                  color: rgba(148,163,184,0.8) !important;
-                }
-                .dark .sidebar-nav-item:not([aria-current="page"]):hover {
-                  background: rgba(124, 173, 233, 0.15) !important;
-                  color: rgb(124, 173, 233) !important;
-                }
-              `}</style>
-
-              {/* User footer - KEPT as requested, shows full info when expanded */}
-              {user && (
-                <div style={{
-                  margin: '0.9rem 0.55rem 0',
-                  padding: '0.8rem 0.85rem',
-                  borderRadius: 13,
-                  background: 'var(--neu-bg)',
-                  boxShadow: '3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light)',
-                  display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', gap: 9,
-                }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: '50%',
-                    background: 'var(--neu-accent)', color: 'var(--neu-btn-text, #fff)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 700, fontSize: '0.85rem', flexShrink: 0,
-                  }}>
+            {/* User info at bottom */}
+            {user && (
+              <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className={`flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 ${sidebarCollapsed ? 'justify-center' : ''
+                  }`}>
+                  <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                     {displayInitial}
                   </div>
                   {!sidebarCollapsed && (
                     <>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--neu-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {displayName}
                         </p>
-                        <p style={{ fontSize: '0.68rem', color: 'var(--neu-text-muted)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                           {user.email}
                         </p>
                       </div>
                       <button
                         onClick={handleLogout}
+                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0"
                         title="Đăng xuất"
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--neu-text-muted)', padding: 3, flexShrink: 0 }}
                       >
-                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                       </button>
                     </>
                   )}
+                  <button
+                    onClick={handleLogout}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    title="Đăng xuất"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                  </button>
                 </div>
-              )}
-            </aside>
+              </div>
+            )}
+          </div>
+        </aside>
+      )}
 
-            {/* Mobile sidebar drawer */}
-            <aside
-              className="md:hidden sidebar-mobile"
-              style={{
-                position: 'fixed',
-                top: isScrolled ? 0 : 72,
-                left: sidebarMobileOpen ? 0 : -248,
-                width: 232,
-                height: isScrolled ? '100vh' : 'calc(100vh - 72px)',
-                background: isScrolled
-                  ? 'rgba(255, 255, 255, 0.75)'
-                  : 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
-                backdropFilter: isScrolled ? 'blur(12px)' : 'blur(20px)',
-                WebkitBackdropFilter: isScrolled ? 'blur(12px)' : 'blur(20px)',
-                border: 'none',
-                boxShadow: 'none',
-                display: 'flex', flexDirection: 'column',
-                padding: '1rem 0.55rem',
-                zIndex: 41,
-                transition: 'left 0.25s ease, top 0.2s ease, height 0.2s ease',
-                overflowY: 'auto',
-              }}
-            >
-              <style>{`
-                .dark .sidebar-mobile {
-                  background: ${isScrolled
-                  ? 'rgba(16, 20, 30, 0.75) !important'
-                  : 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.95) 100%) !important'};
-                  backdrop-filter: blur(${isScrolled ? '12px' : '20px'});
-                }
-                .dark .sidebar-mobile-item[aria-current="page"] {
-                  color: rgb(124, 173, 233) !important;
-                  background: rgba(124, 173, 233, 0.20) !important;
-                  box-shadow: 0 0 12px rgba(124, 173, 233, 0.6), 0 0 24px rgba(124, 173, 233, 0.25) !important;
-                }
-                .dark .sidebar-mobile-item:not([aria-current="page"]) {
-                  color: rgba(148,163,184,0.8) !important;
-                }
-                .dark .sidebar-mobile-item:not([aria-current="page"]):hover {
-                  background: rgba(124, 173, 233, 0.15) !important;
-                  color: rgb(124, 173, 233) !important;
-                }
-              `}</style>
-              <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {sidebarItems.map((item) => {
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      end={item.to === '/dashboard'}
-                      onClick={() => setSidebarMobileOpen(false)}
-                      className="group relative sidebar-mobile-item"
-                      style={({ isActive }) => ({
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '0.6rem 0.85rem', borderRadius: 11,
-                        textDecoration: 'none',
-                        fontWeight: isActive ? 700 : 500,
-                        fontSize: '0.865rem',
-                        color: isActive ? '#22c55e' : '#9ca3af',
-                        background: isActive ? 'rgba(34,197,94,0.15)' : 'transparent',
-                        boxShadow: isActive ? '0 0 10px rgba(34,197,94,0.35)' : 'none',
-                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                        transform: 'scale(1)',
-                      })}
-                      onMouseEnter={(e) => {
-                        const target = e.currentTarget as HTMLElement;
-                        const isActive = target.getAttribute('aria-current') === 'page';
-                        if (!isActive) {
-                          target.style.background = 'rgba(34,197,94,0.10)';
-                          target.style.color = '#22c55e';
-                          target.style.transform = 'scale(1.05)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        const target = e.currentTarget as HTMLElement;
-                        const isActive = target.getAttribute('aria-current') === 'page';
-                        if (!isActive) {
-                          target.style.background = 'transparent';
-                          target.style.color = '#9ca3af';
-                          target.style.transform = 'scale(1)';
-                        }
-                      }}
-                      onMouseDown={(e) => {
-                        (e.currentTarget as HTMLElement).style.transform = 'scale(0.96)';
-                      }}
-                      onMouseUp={(e) => {
-                        const target = e.currentTarget as HTMLElement;
-                        const isActive = target.getAttribute('aria-current') === 'page';
-                        target.style.transform = isActive ? 'scale(1)' : 'scale(1.05)';
-                      }}
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <span>{item.icon}</span>
-                          <span>{item.label}</span>
-                          {isActive && (
-                            <div style={{
-                              position: 'absolute',
-                              right: -6,
-                              width: 3,
-                              height: '60%',
-                              borderRadius: 999,
-                              background: 'linear-gradient(180deg, #22c55e, #4ade80)',
-                              boxShadow: '0 0 8px #22c55e, 0 0 16px #22c55e',
-                            }} />
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  );
-                })}
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col transition-all duration-300" style={{
+        marginLeft: showSidebar ? (sidebarCollapsed ? '64px' : '208px') : '0'
+      }}>
+
+        {/* HEADER */}
+        <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+
+              {/* Logo */}
+              <div className="flex-shrink-0 ml-8">
+                <AppLogo />
+              </div>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex items-center space-x-8">
+                {navLinks.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `text-sm font-medium transition-colors ${isActive
+                        ? "text-indigo-600 dark:text-indigo-400"
+                        : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
               </nav>
-            </aside>
 
-            {/* Mobile FAB */}
-            <button
-              className="md:hidden"
-              onClick={() => setSidebarMobileOpen(!sidebarMobileOpen)}
-              style={{
-                position: 'fixed', bottom: 24, left: 16, zIndex: 50,
-                width: 44, height: 44, borderRadius: '50%',
-                background: 'var(--neu-accent)', color: 'var(--neu-btn-text, #fff)',
-                border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '4px 4px 12px rgba(0,0,0,0.25)',
-              }}
-            >
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-              </svg>
-            </button>
-          </>
-        )}
+              {/* Right side */}
+              <div className="flex items-center gap-4">
+                {/* Mobile menu button */}
+                <button
+                  className="md:hidden p-2 text-gray-600 dark:text-gray-400"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
 
-        <main className="relative z-10 flex-1 w-full" style={{ minWidth: 0 }}>
+                {/* Notifications */}
+                {user && <NotificationCenter />}
+
+                {/* User menu */}
+                {user ? (
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                        {displayInitial}
+                      </div>
+                    </button>
+
+                    {isDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
+                        <Link
+                          to="/profile"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Hồ sơ
+                        </Link>
+                        <Link
+                          to="/settings"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Cài đặt
+                        </Link>
+                        <button
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            handleLogout();
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Đăng xuất
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <NavLink
+                      to="/login"
+                      className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                    >
+                      Đăng nhập
+                    </NavLink>
+                    <NavLink
+                      to="/assessment"
+                      className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700"
+                    >
+                      Bắt đầu
+                    </NavLink>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+              <nav className="px-4 py-4 space-y-2">
+                {navLinks.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `block px-3 py-2 rounded-lg text-sm font-medium ${isActive
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400"
+                        : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700"
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
+          )}
+        </header>
+
+        {/* PAGE CONTENT */}
+        <main className="flex-1">
           {children}
         </main>
-      </div>
 
-      {/* FOOTER */}
-      <AppFooter />
+        {/* FOOTER */}
+        <AppFooter />
+      </div>
     </div>
   );
 };

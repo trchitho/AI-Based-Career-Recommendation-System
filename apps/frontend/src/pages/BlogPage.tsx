@@ -289,22 +289,18 @@ const BlogPage = () => {
                 ))}
               </div>
 
-        {/* ── Category Filter Bar ── */}
-        <section className="sticky top-0 z-40 bg-white/90 dark:bg-gray-800/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3">
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => handleCategoryChange(category)}
-                  className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap text-sm transition-all duration-200 ${selectedCategory === category
-                    ? 'bg-indigo-800 text-white shadow-sm'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                >
-                  {category}
-                </button>
-              ))}
+              {/* Right Arrow - pointing left (outward) */}
+              <button
+                onClick={() => {
+                  const container = document.getElementById('category-scroll');
+                  if (container) container.scrollBy({ left: 200, behavior: 'smooth' });
+                }}
+                className="flex-shrink-0 w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-all shadow-md"
+              >
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
           </div>
         </section>
@@ -578,7 +574,6 @@ const BlogCard = ({ post, onNavigate, getCategoryDisplayName, calculateReadingTi
               fallback.innerHTML = `<div class="text-white text-6xl font-bold">${post.title.charAt(0)}</div>`;
               parent.appendChild(fallback);
             }
-            e.currentTarget.style.display = 'none';
           }}
         />
 
