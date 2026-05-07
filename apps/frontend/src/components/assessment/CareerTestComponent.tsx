@@ -61,11 +61,11 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     try {
       const autosaveKey = getAutosaveKey(userId);
       const saved = localStorage.getItem(autosaveKey);
-      console.log(`📂 Raw localStorage data for user ${userId}:`, saved);
+      console.log(` Raw localStorage data for user ${userId}:`, saved);
 
       if (saved && isSavedDataValid()) {
         const data: AutoSaveData = JSON.parse(saved);
-        console.log('📋 Parsed data:', data);
+        console.log(' Parsed data:', data);
 
         // Validate data structure
         if (data && Array.isArray(data.responses) && data.responses.length > 0) {
@@ -78,7 +78,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       console.log('⏰ Timestamp:', timestamp);
 
     } catch (e) {
-      console.error('❌ Error loading saved progress:', e);
+      console.error(' Error loading saved progress:', e);
     }
     return null;
   }, [isSavedDataValid, userId]);
@@ -98,9 +98,9 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       localStorage.setItem(autosaveKey, JSON.stringify(data));
       localStorage.setItem(timestampKey, new Date().toISOString());
       setLastSaved(new Date());
-      console.log(`✅ Auto-saved for user ${userId}:`, data.responses.length, 'answers, page', page);
+      console.log(` Auto-saved for user ${userId}:`, data.responses.length, 'answers, page', page);
     } catch (e) {
-      console.error('❌ Error saving progress:', e);
+      console.error(' Error saving progress:', e);
     }
   }, [userId]);
 
@@ -111,7 +111,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     localStorage.removeItem(autosaveKey);
     localStorage.removeItem(timestampKey);
     setSavedProgress(null);
-    console.log(`🗑️ Cleared saved progress for user ${userId}`);
+    console.log(` Cleared saved progress for user ${userId}`);
   }, [userId]);
 
   // Check for saved progress on mount and when userId changes
@@ -120,22 +120,22 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     const oldAutosaveKey = 'assessment_autosave';
     const oldTimestampKey = 'assessment_autosave_timestamp';
     if (localStorage.getItem(oldAutosaveKey)) {
-      console.log('🧹 Cleaning up legacy autosave data (no userId)');
+      console.log(' Cleaning up legacy autosave data (no userId)');
       localStorage.removeItem(oldAutosaveKey);
       localStorage.removeItem(oldTimestampKey);
     }
     
-    console.log(`🔍 Checking for saved progress for user ${userId}...`);
+    console.log(` Checking for saved progress for user ${userId}...`);
     const saved = loadSavedProgress();
-    console.log('📦 Saved data:', saved);
+    console.log(' Saved data:', saved);
 
     if (saved && saved.responses && saved.responses.length > 0) {
-      console.log('✅ Found saved progress:', saved.responses.length, 'answers');
-      console.log('🔔 Setting showResumeModal to TRUE');
+      console.log(' Found saved progress:', saved.responses.length, 'answers');
+      console.log(' Setting showResumeModal to TRUE');
       setSavedProgress(saved);
       setShowResumeModal(true);
     } else {
-      console.log('❌ No saved progress found');
+      console.log(' No saved progress found');
       // Reset state when switching users
       setSavedProgress(null);
       setShowResumeModal(false);
@@ -145,17 +145,17 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   // Resume from saved progress
   const handleResume = () => {
     if (savedProgress) {
-      console.log('🔄 Resuming with', savedProgress.responses.length, 'answers');
+      console.log(' Resuming with', savedProgress.responses.length, 'answers');
 
       const restoredResponses = new Map(savedProgress.responses);
-      console.log('🗺️ Restored Map size:', restoredResponses.size);
+      console.log(' Restored Map size:', restoredResponses.size);
 
       setResponses(restoredResponses);
       setCurrentPage(savedProgress.currentPage);
 
       // Dùng câu hỏi đã lưu thay vì từ API
       if (savedProgress.questions && savedProgress.questions.length > 0) {
-        console.log('✅ Using saved questions:', savedProgress.questions.length);
+        console.log(' Using saved questions:', savedProgress.questions.length);
         setAllQuestions(savedProgress.questions);
         setLoading(false); // Không cần load từ API nữa
       }
@@ -192,7 +192,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         const timestampKey = getAutosaveTimestampKey(userId);
         localStorage.setItem(autosaveKey, JSON.stringify(data));
         localStorage.setItem(timestampKey, new Date().toISOString());
-        console.log(`💾 Saved on unload for user ${userId}:`, data.responses.length, 'answers');
+        console.log(` Saved on unload for user ${userId}:`, data.responses.length, 'answers');
 
         // Show confirmation dialog
         e.preventDefault();
@@ -402,16 +402,16 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   }
 
   // Show resume modal even while loading
-  console.log('🎯 Render check - showResumeModal:', showResumeModal, 'savedProgress:', savedProgress?.responses?.length);
+  console.log(' Render check - showResumeModal:', showResumeModal, 'savedProgress:', savedProgress?.responses?.length);
 
   if (showResumeModal && savedProgress) {
-    console.log('🔔 SHOWING RESUME MODAL!');
+    console.log(' SHOWING RESUME MODAL!');
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-fade-in-up">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-950/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-indigo-800 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -427,7 +427,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
           <div className="space-y-3">
             <button
               onClick={handleResume}
-              className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+              className="w-full px-6 py-3 bg-indigo-800 hover:bg-indigo-900 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -471,7 +471,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       {/* Progress Bar */}
       <div className="mb-10">
         <div className="flex justify-between items-center mb-3">
-          <span className="text-sm font-bold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
+          <span className="text-sm font-bold text-indigo-900 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full">
             {getProgress().toFixed(0)}% Completed
           </span>
           <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
@@ -481,7 +481,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
         <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
           <div
-            className="bg-gradient-to-r from-green-500 to-teal-500 h-3 transition-all duration-700 ease-out rounded-full"
+            className="bg-gradient-to-r from-indigo-700 to-indigo-600 h-3 transition-all duration-700 ease-out rounded-full"
             style={{ width: `${getProgress()}%` }}
           ></div>
         </div>
@@ -489,7 +489,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         {/* Auto-save indicator - Centered below progress bar */}
         {lastSaved && responses.size > 0 && (
           <div className="flex justify-center mt-4">
-            <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-green-200 dark:border-green-800">
+            <div className="bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-indigo-200 dark:border-indigo-800">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
@@ -508,8 +508,8 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-300"></div> Strongly Disagree</div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-300"></div> Disagree</div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-gray-300"></div> Neutral</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-300"></div> Agree</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-emerald-500"></div> Strongly Agree</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-300"></div> Agree</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-700"></div> Strongly Agree</div>
         </div>
       </div>
 
@@ -535,7 +535,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
             'R': { name: 'Realistic', description: 'Hands-on, practical, mechanical work', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700' },
             'I': { name: 'Investigative', description: 'Research, analysis, problem-solving', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' },
             'A': { name: 'Artistic', description: 'Creative, expressive, innovative work', color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-700' },
-            'S': { name: 'Social', description: 'Helping, teaching, caring for others', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700' },
+            'S': { name: 'Social', description: 'Helping, teaching, caring for others', color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800' },
             'E': { name: 'Enterprising', description: 'Leadership, persuasion, business', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
             'C': { name: 'Conventional', description: 'Organization, detail-oriented, structured', color: 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' },
             'O': { name: 'Openness', description: 'Curiosity, imagination, creativity', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700' },
@@ -544,8 +544,8 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
           // Debug log
           if (index === 0) {
-            console.log('🔍 Question ID:', question.id, 'Answer:', answer, 'Responses size:', responses.size);
-            console.log('🔍 All response keys:', Array.from(responses.keys()).slice(0, 5));
+            console.log(' Question ID:', question.id, 'Answer:', answer, 'Responses size:', responses.size);
+            console.log(' All response keys:', Array.from(responses.keys()).slice(0, 5));
           }
 
           return (
@@ -585,8 +585,8 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
                       { value: 1, color: 'bg-red-100', active: 'bg-red-500', ring: 'ring-red-200' },
                       { value: 2, color: 'bg-orange-100', active: 'bg-orange-400', ring: 'ring-orange-200' },
                       { value: 3, color: 'bg-gray-100', active: 'bg-gray-400', ring: 'ring-gray-200' },
-                      { value: 4, color: 'bg-green-100', active: 'bg-green-500', ring: 'ring-green-200' },
-                      { value: 5, color: 'bg-emerald-100', active: 'bg-emerald-600', ring: 'ring-emerald-200' }
+                      { value: 4, color: 'bg-indigo-50', active: 'bg-indigo-700', ring: 'ring-green-200' },
+                      { value: 5, color: 'bg-emerald-100', active: 'bg-indigo-800', ring: 'ring-emerald-200' }
                     ].map(({ value, color, active, ring }) => (
                       <button
                         key={value}
@@ -639,7 +639,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         ) : (
           <button
             onClick={handleSubmit}
-            className="px-10 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-xl shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+            className="px-10 py-3 bg-indigo-800 hover:bg-indigo-900 text-white rounded-xl font-bold shadow-xl shadow-indigo-800/30 hover:shadow-indigo-800/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
           >
             Complete Assessment
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>

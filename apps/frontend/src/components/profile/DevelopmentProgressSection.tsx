@@ -17,7 +17,7 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
   };
 
   const getProgressColor = (percentage: number) => {
-    if (percentage >= 75) return 'bg-green-500';
+    if (percentage >= 75) return 'bg-indigo-700';
     if (percentage >= 50) return 'bg-blue-500';
     if (percentage >= 25) return 'bg-yellow-500';
     return 'bg-gray-400';
@@ -48,7 +48,7 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-card-hero overflow-hidden">
 
       {/* Header with gradient */}
-      <div className="bg-gradient-to-r from-[#4A7C59] to-[#3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#1A237E] to-[#151c6b] dark:from-indigo-900 dark:to-indigo-950 px-8 py-6 relative overflow-hidden">
         {/* Abstract pattern overlay */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/5 skew-x-12 transform translate-x-10 pointer-events-none"></div>
@@ -57,7 +57,7 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
           <h3 className="text-2xl font-extrabold text-white mb-1 tracking-tight">
             Development Progress
           </h3>
-          <p className="text-green-100 font-medium text-sm">
+          <p className="text-indigo-100 font-medium text-sm">
             Track your active learning roadmaps and milestones
           </p>
         </div>
@@ -89,15 +89,15 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
             {developmentProgress.map((progress, idx) => (
               <div
                 key={progress.id || progress.roadmap_id || `${progress.career_id}-${progress.last_updated_at || idx}`}
-                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm hover:shadow-lg hover:border-green-200 dark:hover:border-green-800 transition-all duration-300 group"
+                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-900 transition-all duration-300 group"
               >
                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
                   <div>
                     <div className="flex items-center gap-3 mb-1">
-                      <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center text-indigo-800">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                       </div>
-                      <h4 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-green-600 transition-colors">
+                      <h4 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-indigo-800 transition-colors">
                         {progress.career_title}
                       </h4>
                     </div>
@@ -119,7 +119,7 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
                 <div className="mb-6 bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Overall Progress</span>
-                    <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                    <span className="text-sm font-bold text-indigo-800 dark:text-indigo-400">
                       {(typeof progress.progress_percentage === 'number' ? progress.progress_percentage : 0).toFixed(0)}%
                     </span>
                   </div>
@@ -136,7 +136,7 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
                   <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Completed</p>
                     <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <svg className="w-4 h-4 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       {getCompletedMilestonesText(progress)}
                     </p>
                   </div>

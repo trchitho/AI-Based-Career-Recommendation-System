@@ -40,7 +40,7 @@ const QuizModeSelectorPage = () => {
 
         {/* Background Layers */}
         <div className="absolute inset-0 bg-grid-pattern pointer-events-none z-0"></div>
-        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-green-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
         {/* Main Container */}
@@ -54,7 +54,7 @@ const QuizModeSelectorPage = () => {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
                 </span>
-                🎮 Game Modes
+                 Game Modes
               </span>
               <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-gray-900 via-purple-800 to-pink-800 dark:from-white dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-6 leading-tight">
                 Choose Your Game
@@ -224,7 +224,7 @@ const QuizModeSelectorPage = () => {
                 disabled={!selectedMode}
                 className={`group relative px-12 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${
                   selectedMode
-                    ? 'bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-2 cursor-pointer'
+                    ? 'bg-gradient-to-r from-indigo-800 via-emerald-600 to-violet-600 hover:from-indigo-900 hover:via-emerald-700 hover:to-violet-700 text-white shadow-indigo-800/30 hover:shadow-indigo-800/50 hover:-translate-y-2 cursor-pointer'
                     : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                 }`}
               >

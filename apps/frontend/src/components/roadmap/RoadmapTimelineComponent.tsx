@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Milestone, UserProgress } from '../../types/roadmap';
+import { mentorMatchingService, MentorMatch } from '../../services/mentorMatchingService';
 
 interface RoadmapTimelineComponentProps {
   milestones: Milestone[];
@@ -18,6 +19,23 @@ const RoadmapTimelineComponent = ({
   maxFreeLevel = -1,
 }: RoadmapTimelineComponentProps) => {
   const [expandedMilestone, setExpandedMilestone] = useState<number | null>(null);
+  const [mentorPanelStep, setMentorPanelStep] = useState<number | null>(null);
+  const [mentorCache, setMentorCache] = useState<Record<number, MentorMatch[]>>({});
+  const [mentorLoading, setMentorLoading] = useState<number | null>(null);
+
+  const loadMentorsForStep = async (order: number, skillName: string) => {
+    if (mentorCache[order]) { setMentorPanelStep(order); return; }
+    setMentorLoading(order);
+    setMentorPanelStep(order);
+    try {
+      const data = await mentorMatchingService.findMentorsForCareer(skillName, 3);
+      setMentorCache(prev => ({ ...prev, [order]: data }));
+    } catch {
+      setMentorCache(prev => ({ ...prev, [order]: [] }));
+    } finally {
+      setMentorLoading(null);
+    }
+  };
 
   const isMilestoneCompleted = (order: number) => {
     return userProgress?.completed_milestones?.includes(order.toString()) || false;
@@ -39,15 +57,15 @@ const RoadmapTimelineComponent = ({
   const getResourceIcon = (type: string) => {
     switch (type) {
       case 'course':
-        return '📚';
+        return '';
       case 'article':
-        return '📄';
+        return '';
       case 'video':
-        return '🎥';
+        return '';
       case 'book':
-        return '📖';
+        return '';
       default:
-        return '🔗';
+        return '';
     }
   };
 
@@ -105,7 +123,7 @@ const RoadmapTimelineComponent = ({
                 className={`absolute left-5 top-2 w-6 h-6 rounded-full border-4 transition-all duration-300 ${isLocked
                   ? 'bg-gradient-to-br from-purple-400 to-pink-400 border-purple-200 dark:border-purple-600 shadow-lg'
                   : isCompleted
-                    ? 'bg-primary-cta dark:bg-green-600 border-primary-50 dark:border-green-300'
+                    ? 'bg-primary-cta dark:bg-indigo-800 border-primary-50 dark:border-indigo-300'
                     : isCurrent
                       ? 'bg-orange-500 dark:bg-orange-600 border-orange-100 dark:border-orange-900 animate-pulse'
                       : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
@@ -145,7 +163,7 @@ const RoadmapTimelineComponent = ({
                   : isCurrent
                     ? 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-300 dark:border-orange-600 shadow-orange-200/50 dark:shadow-orange-900/20'
                     : isCompleted
-                      ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-300 dark:border-green-600'
+                      ? 'bg-gradient-to-br from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-900/20 border-indigo-300 dark:border-indigo-700'
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                   }`}
               >
@@ -173,7 +191,7 @@ const RoadmapTimelineComponent = ({
                           </span>
                         )}
                         {!isLocked && isCompleted && (
-                          <span className="px-2 py-1 bg-primary-50 dark:bg-green-900/30 text-primary-cta dark:text-green-400 text-xs font-semibold rounded-full border border-primary-cta/30 dark:border-green-600/30">
+                          <span className="px-2 py-1 bg-primary-50 dark:bg-indigo-950/30 text-primary-cta dark:text-indigo-400 text-xs font-semibold rounded-full border border-primary-cta/30 dark:border-indigo-700/30">
                             Completed
                           </span>
                         )}
@@ -248,7 +266,7 @@ const RoadmapTimelineComponent = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                               </svg>
                               Unlock Now
-                              <span>✨</span>
+                              <span></span>
                             </button>
                           </div>
                         </div>
@@ -299,15 +317,15 @@ const RoadmapTimelineComponent = ({
                           onCompleteMilestone(milestone.order.toString());
                         }}
                         disabled={isCompleting}
-                        className="w-full px-4 py-2 bg-primary-cta dark:bg-green-600 text-white rounded-lg hover:bg-primary-dark dark:hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-all shadow-sm"
+                        className="w-full px-4 py-2 bg-primary-cta dark:bg-indigo-800 text-white rounded-lg hover:bg-primary-dark dark:hover:bg-indigo-900 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-all shadow-sm"
                       >
                         {isCompleting ? 'Marking Complete...' : 'Mark as Complete'}
                       </button>
                     )}
 
                     {isCompleted && userProgress && (
-                      <div className="bg-primary-50 dark:bg-green-900/20 border border-primary-cta/30 dark:border-green-600/30 rounded-lg p-3">
-                        <p className="text-sm text-primary-cta dark:text-green-400 flex items-center gap-2">
+                      <div className="bg-primary-50 dark:bg-indigo-950/20 border border-primary-cta/30 dark:border-indigo-700/30 rounded-lg p-3">
+                        <p className="text-sm text-primary-cta dark:text-indigo-400 flex items-center gap-2">
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
@@ -330,6 +348,105 @@ const RoadmapTimelineComponent = ({
                         </p>
                       </div>
                     )}
+
+                    {/* ── Find Mentor for this step ── */}
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          mentorPanelStep === milestone.order
+                            ? setMentorPanelStep(null)
+                            : loadMentorsForStep(milestone.order, milestone.skillName);
+                        }}
+                        className="flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {mentorPanelStep === milestone.order ? 'Ẩn mentor' : `Tìm Mentor cho "${milestone.skillName}"`}
+                        <svg
+                          className={`w-3.5 h-3.5 transition-transform ${mentorPanelStep === milestone.order ? 'rotate-180' : ''}`}
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {mentorPanelStep === milestone.order && (
+                        <div className="mt-3">
+                          {mentorLoading === milestone.order && (
+                            <div className="flex items-center gap-2 py-3 text-sm text-gray-500 dark:text-gray-400">
+                              <div className="w-4 h-4 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+                              Đang tìm mentor phù hợp...
+                            </div>
+                          )}
+
+                          {mentorLoading !== milestone.order && mentorCache[milestone.order]?.length === 0 && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 py-2">
+                              Chưa có mentor cho kỹ năng này.{' '}
+                              <a href="/mentor-matching?tab=become" className="text-purple-600 dark:text-purple-400 font-semibold hover:underline">
+                                Trở thành người đầu tiên →
+                              </a>
+                            </p>
+                          )}
+
+                          {mentorLoading !== milestone.order && (mentorCache[milestone.order] || []).map(m => (
+                            <div
+                              key={m.mentor_id}
+                              className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 mb-2 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
+                            >
+                              {/* Avatar */}
+                              <div className="w-9 h-9 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                {m.mentor_name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()}
+                              </div>
+
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{m.mentor_name}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                  {m.current_position}{m.company ? ` · ${m.company}` : ''}
+                                </p>
+                                {m.matching_skills.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {m.matching_skills.slice(0, 3).map((s: string) => (
+                                      <span key={s} className="px-1.5 py-0.5 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs rounded-md">
+                                        {s}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Score + CTA */}
+                              <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                                <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                                  {Math.round(m.compatibility_score)}%
+                                </span>
+                                <a
+                                  href="/mentor-matching"
+                                  className="px-2.5 py-1 text-xs font-semibold rounded-lg text-white"
+                                  style={{ background: '#7c3aed' }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Kết nối
+                                </a>
+                              </div>
+                            </div>
+                          ))}
+
+                          {mentorLoading !== milestone.order && (mentorCache[milestone.order] || []).length > 0 && (
+                            <a
+                              href="/mentor-matching"
+                              className="flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 font-semibold hover:underline mt-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Xem tất cả mentor →
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

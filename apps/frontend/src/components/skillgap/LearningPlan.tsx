@@ -8,19 +8,19 @@ interface Props {
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
-  Coursera: '#0056D2',
-  Udemy: '#a435f0',
-  YouTube: '#ff0000',
-  freeCodeCamp: '#0a0a23',
-  docs: '#475569',
-  practice: '#059669',
+  Coursera: '0056D2',
+  Udemy: 'a435f0',
+  YouTube: 'ff0000',
+  freeCodeCamp: '0a0a23',
+  docs: '475569',
+  practice: '059669',
 };
 
 const TYPE_ICONS: Record<string, string> = {
-  course: '🎓',
-  video: '▶️',
-  docs: '📄',
-  practice: '💻',
+  course: '',
+  video: '▶',
+  docs: '',
+  practice: '',
 };
 
 const PHASE_COLORS = ['#16a34a', '#0d9488', '#0891b2', '#d97706'];
@@ -33,7 +33,7 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
   return (
     <div style={{ background: isDark ? '#1e293b' : 'white', borderRadius: 16, padding: '1.5rem', boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.08)' }}>
       <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.25rem', color: isDark ? '#f1f5f9' : '#1e293b' }}>
-        🗺️ Lộ trình học tập
+         Lộ trình học tập
       </h2>
       <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
         {plan.summary || `Lộ trình ${plan.total_weeks} tuần để trở thành ${careerName}`}
@@ -45,7 +45,7 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
           <React.Fragment key={i}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 100 }}>
               <div style={{
-                width: 36, height: 36, borderRadius: '50%', background: '#16a34a', color: 'white',
+                width: 36, height: 36, borderRadius: '50%', background: 'var(--color-primary)', color: 'white',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem',
               }}>
                 W{m.week}
@@ -119,7 +119,7 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
                   </div>
 
                   <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>
-                    📚 TÀI NGUYÊN HỌC TẬP
+                    TÀI NGUYÊN HỌC TẬP
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {phase.resources?.map((r, i) => (
@@ -128,7 +128,7 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
                         padding: '0.6rem 0.75rem', background: isDark ? '#0f172a' : 'white', borderRadius: 8,
                         border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
                       }}>
-                        <span style={{ fontSize: '1.1rem' }}>{TYPE_ICONS[r.type] || '📖'}</span>
+                        <span style={{ fontSize: '1.1rem' }}>{TYPE_ICONS[r.type] || ''}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 600, fontSize: '0.85rem', color: isDark ? '#f1f5f9' : '#1e293b' }}>{r.name}</div>
                           <div style={{ fontSize: '0.75rem', color: isDark ? '#94a3b8' : '#64748b' }}>{r.level}</div>
@@ -136,12 +136,12 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
                           <span style={{
                             padding: '0.15rem 0.5rem', borderRadius: 4, fontSize: '0.72rem', fontWeight: 700,
-                            background: PLATFORM_COLORS[r.platform] || '#16a34a', color: 'white',
+                            background: PLATFORM_COLORS[r.platform] || 'var(--color-primary)', color: 'white',
                           }}>
                             {r.platform}
                           </span>
-                          <span style={{ fontSize: '0.72rem', color: r.free ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
-                            {r.free ? '🆓 Miễn phí' : '💳 Trả phí'}
+                          <span style={{ fontSize: '0.72rem', color: r.free ? 'var(--color-primary)' : '#dc2626', fontWeight: 600 }}>
+                            {r.free ? '🆓 Miễn phí' : ' Trả phí'}
                           </span>
                         </div>
                       </div>
@@ -159,7 +159,7 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
 
       {/* Total time */}
       <div style={{ marginTop: '1.25rem', padding: '0.75rem 1rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span style={{ fontSize: '1.2rem' }}>⏱️</span>
+        <span style={{ fontSize: '1.2rem' }}>⏱</span>
         <span style={{ fontSize: '0.88rem', color: '#166534', fontWeight: 600 }}>
           Tổng thời gian ước tính: <strong>{plan.total_weeks} tuần</strong>
         </span>

@@ -35,7 +35,7 @@ export const DebugAuthPage: React.FC = () => {
             <div className="min-h-screen bg-gray-50 py-12 px-4">
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-white rounded-lg shadow-lg p-8">
-                        <h1 className="text-3xl font-bold mb-6">🔍 Debug Authentication</h1>
+                        <h1 className="text-3xl font-bold mb-6"> Debug Authentication</h1>
 
                         {/* Auth Status */}
                         <div className="mb-6">
@@ -43,14 +43,14 @@ export const DebugAuthPage: React.FC = () => {
                             <div className="bg-gray-50 p-4 rounded">
                                 <p className="mb-2">
                                     <strong>Authenticated:</strong>{' '}
-                                    <span className={isAuthenticated ? 'text-green-600' : 'text-red-600'}>
-                                        {isAuthenticated ? '✅ Yes' : '❌ No'}
+                                    <span className={isAuthenticated ? 'text-indigo-800' : 'text-red-600'}>
+                                        {isAuthenticated ? ' Yes' : ' No'}
                                     </span>
                                 </p>
                                 <p>
                                     <strong>Has Token:</strong>{' '}
-                                    <span className={token ? 'text-green-600' : 'text-red-600'}>
-                                        {token ? '✅ Yes' : '❌ No'}
+                                    <span className={token ? 'text-indigo-800' : 'text-red-600'}>
+                                        {token ? ' Yes' : ' No'}
                                     </span>
                                 </p>
                             </div>
@@ -115,15 +115,15 @@ export const DebugAuthPage: React.FC = () => {
                                 <ul className="space-y-1 text-sm">
                                     <li>
                                         <code>accessToken</code>:{' '}
-                                        {localStorage.getItem('accessToken') ? '✅ Exists' : '❌ Not found'}
+                                        {localStorage.getItem('accessToken') ? ' Exists' : ' Not found'}
                                     </li>
                                     <li>
                                         <code>token</code>:{' '}
-                                        {localStorage.getItem('token') ? '✅ Exists' : '❌ Not found'}
+                                        {localStorage.getItem('token') ? ' Exists' : ' Not found'}
                                     </li>
                                     <li>
                                         <code>refreshToken</code>:{' '}
-                                        {localStorage.getItem('refreshToken') ? '✅ Exists' : '❌ Not found'}
+                                        {localStorage.getItem('refreshToken') ? ' Exists' : ' Not found'}
                                     </li>
                                 </ul>
                             </div>

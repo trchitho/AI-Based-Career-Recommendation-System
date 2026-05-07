@@ -25,7 +25,7 @@ const STARMethodGuide: React.FC<STARMethodGuideProps> = ({ className = "" }) => 
             description: 'Nêu rõ trách nhiệm, mục tiêu cần đạt',
             example: 'Tôi được giao nhiệm vụ tối ưu hóa hiệu suất app trong 2 tuần...',
             icon: <CheckCircle className="h-4 w-4" />,
-            color: 'bg-green-100 text-green-600 border-green-200'
+            color: 'bg-indigo-50 text-indigo-800 border-indigo-200'
         },
         {
             letter: 'A',
@@ -96,7 +96,7 @@ const STARMethodGuide: React.FC<STARMethodGuideProps> = ({ className = "" }) => 
                     </div>
 
                     <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                        <h4 className="font-medium text-blue-900 mb-2">💡 Lợi ích của phương pháp STAR:</h4>
+                        <h4 className="font-medium text-blue-900 mb-2"> Lợi ích của phương pháp STAR:</h4>
                         <ul className="text-sm text-blue-800 space-y-1">
                             <li>• <strong>Cấu trúc rõ ràng:</strong> Giúp câu trả lời có logic, dễ theo dõi</li>
                             <li>• <strong>Thể hiện năng lực:</strong> Chứng minh kỹ năng qua ví dụ thực tế</li>
@@ -105,9 +105,9 @@ const STARMethodGuide: React.FC<STARMethodGuideProps> = ({ className = "" }) => 
                         </ul>
                     </div>
 
-                    <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                        <h4 className="font-medium text-green-900 mb-2">✅ Mẹo áp dụng hiệu quả:</h4>
-                        <ul className="text-sm text-green-800 space-y-1">
+                    <div className="mt-4 p-4 bg-indigo-50 rounded-lg">
+                        <h4 className="font-medium text-indigo-950 mb-2"> Mẹo áp dụng hiệu quả:</h4>
+                        <ul className="text-sm text-indigo-950 space-y-1">
                             <li>• Chuẩn bị trước 3-5 câu chuyện STAR cho các tình huống khác nhau</li>
                             <li>• Sử dụng số liệu cụ thể trong phần Result (tăng 30%, giảm 50%...)</li>
                             <li>• Tập trung vào vai trò của bạn, không nói chung chung về team</li>

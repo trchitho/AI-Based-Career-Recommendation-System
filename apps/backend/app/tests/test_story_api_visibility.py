@@ -59,7 +59,7 @@ def test_story_api():
         
         if response.ok:
             data = response.json()
-            print("✅ API Response Success!")
+            print("[OK] API Response Success!")
             print(f"📖 Groups generated: {len(data.get('groups', []))}")
             print(f"📝 Scenarios generated: {len(data.get('scenarios', []))}")
             print(f"🎯 Success flag: {data.get('success', False)}")
@@ -74,15 +74,15 @@ def test_story_api():
                 print(f"   Context: {first_scenario.get('context', 'N/A')[:100]}...")
                 
         else:
-            print(f"❌ API Error: {response.status_code}")
+            print(f"[ERR] API Error: {response.status_code}")
             print(f"📄 Error Response: {response.text}")
             
     except requests.exceptions.ConnectionError:
-        print("❌ Connection Error: Backend server not running on localhost:8000")
+        print("[ERR] Connection Error: Backend server not running on localhost:8000")
     except requests.exceptions.Timeout:
         print("⏰ Timeout Error: API took too long to respond")
     except Exception as e:
-        print(f"❌ Unexpected Error: {e}")
+        print(f"[ERR] Unexpected Error: {e}")
 
 def explain_visibility_issue():
     """Explain why user might not see the API in Network tab"""
@@ -120,10 +120,10 @@ def explain_visibility_issue():
 4. The call happens during initial loading
 
 🎯 CURRENT SETUP:
-- ✅ API exists and works: POST /api/assessments/generate-stories-batch
-- ✅ Frontend calls it: StoryBasedAssessment.tsx line ~280
-- ✅ Used in: EnhancedAssessmentFlow -> StoryBasedAssessment
-- ✅ Accessed via: /assessment (legacy mode)
+- [OK] API exists and works: POST /api/assessments/generate-stories-batch
+- [OK] Frontend calls it: StoryBasedAssessment.tsx line ~280
+- [OK] Used in: EnhancedAssessmentFlow -> StoryBasedAssessment
+- [OK] Accessed via: /assessment (legacy mode)
 """)
 
 if __name__ == "__main__":

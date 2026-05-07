@@ -21,7 +21,7 @@ try:
     TESSERACT_AVAILABLE = True
 except ImportError:
     TESSERACT_AVAILABLE = False
-    print("⚠️ pytesseract not installed. OCR features will be limited.")
+    print("[WARN] pytesseract not installed. OCR features will be limited.")
 
 
 class AdvancedImagePreprocessor:
@@ -184,7 +184,7 @@ class AdvancedImagePreprocessor:
             return best_image, best_angle
             
         except Exception as e:
-            print(f"⚠️ Rotation detection failed: {e}")
+            print(f"[WARN] Rotation detection failed: {e}")
             return image, 0.0
     
     @staticmethod
@@ -596,7 +596,7 @@ class MultiColumnDetector:
                 col_text = pytesseract.image_to_string(col_pil, lang='eng')
                 all_text.append(col_text)
             except Exception as e:
-                print(f"⚠️ OCR error on column: {e}")
+                print(f"[WARN] OCR error on column: {e}")
                 all_text.append('')
         
         # Combine columns
@@ -712,17 +712,17 @@ class AdvancedCVParser:
             
             if not quality_result['is_acceptable']:
                 result['warnings'].extend(quality_result['warnings'])
-                print(f"  ⚠️ Image quality too low: {quality_result['quality_score']:.1f}/100")
+                print(f"  [WARN] Image quality too low: {quality_result['quality_score']:.1f}/100")
                 # Still try to process, but warn user
             else:
-                print(f"  ✅ Image quality acceptable: {quality_result['quality_score']:.1f}/100")
+                print(f"  [OK] Image quality acceptable: {quality_result['quality_score']:.1f}/100")
             
             # Step 0.5: Auto-rotate if needed (TC-IMG-02)
             if enable_all_features:
                 print("  🔄 Step 0.5: Checking rotation...")
                 image_pil, rotation_angle = self.preprocessor.detect_and_correct_rotation(image_bytes)
                 if rotation_angle != 0:
-                    print(f"  ✅ Auto-rotated by {rotation_angle} degrees")
+                    print(f"  [OK] Auto-rotated by {rotation_angle} degrees")
                     result['warnings'].append(f'Ảnh đã được tự động xoay {rotation_angle} độ')
                     # Convert back to bytes
                     img_byte_arr = io.BytesIO()
@@ -786,10 +786,10 @@ class AdvancedCVParser:
                 if avg_confidence < 85:
                     result['text'] = filtered_text
                     result['warnings'].append('Phát hiện chữ viết tay - đã lọc text có độ tin cậy thấp')
-                    print(f"  ⚠️ Mixed confidence ({avg_confidence:.1f}%), using filtered text")
+                    print(f"  [WARN] Mixed confidence ({avg_confidence:.1f}%), using filtered text")
                 else:
                     result['text'] = full_text
-                    print(f"  ✅ High confidence ({avg_confidence:.1f}%), using full text")
+                    print(f"  [OK] High confidence ({avg_confidence:.1f}%), using full text")
                 
                 result['ocr_confidence'] = avg_confidence
                 
@@ -801,7 +801,7 @@ class AdvancedCVParser:
             
             result['success'] = True
             
-            print("  ✅ Advanced CV parsing complete")
+            print("  [OK] Advanced CV parsing complete")
             print(f"     - Quality: {quality_result['quality_score']:.1f}/100")
             print(f"     - Background: {result['preprocessing']['background_type']}")
             print(f"     - Skill bars: {len(skill_bar_result['bars_detected'])}")
@@ -811,7 +811,7 @@ class AdvancedCVParser:
                 print(f"     - OCR confidence: {result['ocr_confidence']:.1f}%")
             
         except Exception as e:
-            print(f"  ❌ Error in advanced CV parsing: {e}")
+            print(f"  [ERR] Error in advanced CV parsing: {e}")
             import traceback
             traceback.print_exc()
             result['warnings'].append(f'Error: {str(e)}')
@@ -833,14 +833,14 @@ class AdvancedCVParser:
         # Background warnings
         bg_type = result.get('preprocessing', {}).get('background_type')
         if bg_type == 'dark':
-            warnings.append('⚠️ CV có nền tối - đã áp dụng xử lý đặc biệt')
+            warnings.append('[WARN] CV có nền tối - đã áp dụng xử lý đặc biệt')
         elif bg_type == 'colorful':
-            warnings.append('⚠️ CV có nhiều màu sắc - một số chi tiết có thể bị mất')
+            warnings.append('[WARN] CV có nhiều màu sắc - một số chi tiết có thể bị mất')
         
         # Skill bar warnings
         if result.get('skill_bars', {}).get('requires_computer_vision'):
             warnings.append(
-                '⚠️ Phát hiện kỹ năng dạng icon/thanh phần trăm.\n'
+                '[WARN] Phát hiện kỹ năng dạng icon/thanh phần trăm.\n'
                 'Một số kỹ năng có thể không được nhận diện chính xác.\n'
                 'Khuyến nghị: Vui lòng kiểm tra và bổ sung text cho các kỹ năng này.'
             )
@@ -848,6 +848,6 @@ class AdvancedCVParser:
         # Column warnings
         columns = result.get('columns', {}).get('count', 1)
         if columns > 1:
-            warnings.append(f'ℹ️ CV có {columns} cột - đã đọc theo thứ tự từ trên xuống dưới mỗi cột')
+            warnings.append(f'[INFO] CV có {columns} cột - đã đọc theo thứ tự từ trên xuống dưới mỗi cột')
         
         return warnings

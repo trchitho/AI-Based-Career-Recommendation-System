@@ -16,11 +16,16 @@ export default defineConfig({
     port: 3000, // 🌐 Chạy server dev tại http://localhost:3000
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000', // 🔄 Proxy API backend (fixed DNS issue)
+        target: 'http://localhost:8000',
         changeOrigin: true,
       },
       '/bff': {
-        target: 'http://127.0.0.1:8000', // 🔄 Proxy BFF endpoints (fixed DNS issue)
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:8000',
+        ws: true,
         changeOrigin: true,
       },
     },

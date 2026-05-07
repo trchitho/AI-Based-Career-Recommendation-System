@@ -43,7 +43,7 @@ const UpgradeOptions = ({ currentPlan, onClose }: UpgradeOptionsProps) => {
           'Phân tích AI chi tiết tính cách & tiềm năng',
           'Ưu tiên hỗ trợ kỹ thuật và tư vấn'
         ],
-        gradient: 'from-green-500 to-emerald-500',
+        gradient: 'from-indigo-700 to-indigo-700',
         available: true,
       },
       {
@@ -53,10 +53,10 @@ const UpgradeOptions = ({ currentPlan, onClose }: UpgradeOptionsProps) => {
         description: 'Người cố vấn số đồng hành suốt hành trình',
         features: [
           'Tất cả tính năng gói Premium',
-          '🤖 Trợ lý ảo AI 24/7 (Gemini API)',
-          '📄 Xuất báo cáo PDF chuyên sâu',
-          '📊 So sánh lịch sử phát triển',
-          '🎓 Gợi ý khóa học từ Coursera, LinkedIn'
+          ' Trợ lý ảo AI 24/7 (Gemini API)',
+          ' Xuất báo cáo PDF chuyên sâu',
+          ' So sánh lịch sử phát triển',
+          ' Gợi ý khóa học từ Coursera, LinkedIn'
         ],
         gradient: 'from-purple-500 to-pink-500',
         available: true,
@@ -84,8 +84,8 @@ const UpgradeOptions = ({ currentPlan, onClose }: UpgradeOptionsProps) => {
   if (availablePlans.length === 0) {
     return (
       <div className="mt-8 bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 text-center">
-        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+        <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-950/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-indigo-800" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
         </div>
@@ -174,7 +174,7 @@ const UpgradeOptions = ({ currentPlan, onClose }: UpgradeOptionsProps) => {
                     }}
                     className={`w-full px-6 py-3 bg-gradient-to-r ${plan.gradient} hover:shadow-lg text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg`}
                   >
-                    Nâng cấp {plan.name} ✨
+                    Nâng cấp {plan.name} 
                   </PaymentButton>
                   
                   <button

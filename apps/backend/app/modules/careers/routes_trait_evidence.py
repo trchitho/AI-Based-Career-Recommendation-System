@@ -34,8 +34,6 @@ def get_trait_evidence(
             user_id=user_id,
             career_slug_or_onet=career_id,
         )
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

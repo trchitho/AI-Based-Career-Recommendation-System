@@ -163,9 +163,9 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         // Take first 44 questions (same as traditional test)
         const selected = combined.slice(0, 44);
         
-        console.log(`📊 Total questions loaded: ${selected.length}`);
-        console.log(`📊 RIASEC questions: ${riasecData.length}`);
-        console.log(`📊 Big Five questions: ${bigFiveData.length}`);
+        console.log(` Total questions loaded: ${selected.length}`);
+        console.log(` RIASEC questions: ${riasecData.length}`);
+        console.log(` Big Five questions: ${bigFiveData.length}`);
         
         setQuestions(selected);
         
@@ -179,7 +179,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
 
         // Add essay as scenario 45
         const essayScenario: StoryScenario = {
-          emoji: '✍️',
+          emoji: '',
           title: 'Chia Sẻ Câu Chuyện Của Bạn',
           context: 'Đây là cơ hội để bạn chia sẻ sâu hơn về bản thân, ước mơ và định hướng nghề nghiệp của mình.',
           situation: 'Hãy viết một đoạn văn ngắn (100-300 từ) về bản thân bạn, sở thích, điểm mạnh và nghề nghiệp mà bạn quan tâm.'
@@ -196,10 +196,10 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           console.warn('Failed to load essay prompt, using default');
         }
 
-        console.log(`📖 Story groups: ${groups.length}, scenarios: ${allScenarios.length}`);
+        console.log(` Story groups: ${groups.length}, scenarios: ${allScenarios.length}`);
 
         if (generatedScenarios.length < selected.length) {
-          console.warn(`⚠️ Missing ${selected.length - generatedScenarios.length} scenarios!`);
+          console.warn(` Missing ${selected.length - generatedScenarios.length} scenarios!`);
         }
         
         setLoadingMessage(t('assessment.startAssessment'));
@@ -220,20 +220,20 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isEditingEssay) {
         // Allow all keyboard input when editing essay
-        console.log('🔒 Blocking flipbook keyboard event:', e.key);
+        console.log(' Blocking flipbook keyboard event:', e.key);
         e.stopPropagation();
       }
     };
     
     if (isEditingEssay) {
-      console.log('✍️ Essay editing mode ENABLED - keyboard events blocked');
+      console.log(' Essay editing mode ENABLED - keyboard events blocked');
       // Add event listener with capture phase to intercept before flipbook
       document.addEventListener('keydown', handleKeyDown, true);
       document.addEventListener('keyup', handleKeyDown, true);
       document.addEventListener('keypress', handleKeyDown, true);
       
       return () => {
-        console.log('✍️ Essay editing mode DISABLED');
+        console.log(' Essay editing mode DISABLED');
         document.removeEventListener('keydown', handleKeyDown, true);
         document.removeEventListener('keyup', handleKeyDown, true);
         document.removeEventListener('keypress', handleKeyDown, true);
@@ -244,21 +244,21 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
   // Local fallback by dimension
   const _localFallback = (qs: Question[]): { groups: StoryGroup[]; flat: StoryScenario[] } => {
     const dimMap: Record<string, [string, string, string]> = {
-      R: ['🔧', 'Thực Hành', 'Bạn đang làm việc với công cụ và máy móc trong xưởng.'],
-      I: ['🔬', 'Nghiên Cứu', 'Bạn đang phân tích dữ liệu trong phòng thí nghiệm.'],
-      A: ['🎨', 'Sáng Tạo', 'Bạn đang tham gia dự án nghệ thuật và thiết kế.'],
-      S: ['🤝', 'Giao Tiếp', 'Bạn đang hỗ trợ và làm việc cùng mọi người.'],
-      E: ['💼', 'Lãnh Đạo', 'Bạn đang thuyết phục và dẫn dắt một nhóm.'],
-      C: ['📋', 'Tổ Chức', 'Bạn cần xử lý công việc theo quy trình chặt chẽ.'],
-      O: ['💡', 'Tư Duy Mở', 'Bạn đang đối mặt với ý tưởng và thay đổi mới.'],
-      N: ['😌', 'Cảm Xúc', 'Bạn đang xử lý tình huống áp lực và cảm xúc.'],
+      R: ['', 'Thực Hành', 'Bạn đang làm việc với công cụ và máy móc trong xưởng.'],
+      I: ['', 'Nghiên Cứu', 'Bạn đang phân tích dữ liệu trong phòng thí nghiệm.'],
+      A: ['', 'Sáng Tạo', 'Bạn đang tham gia dự án nghệ thuật và thiết kế.'],
+      S: ['', 'Giao Tiếp', 'Bạn đang hỗ trợ và làm việc cùng mọi người.'],
+      E: ['', 'Lãnh Đạo', 'Bạn đang thuyết phục và dẫn dắt một nhóm.'],
+      C: ['', 'Tổ Chức', 'Bạn cần xử lý công việc theo quy trình chặt chẽ.'],
+      O: ['', 'Tư Duy Mở', 'Bạn đang đối mặt với ý tưởng và thay đổi mới.'],
+      N: ['', 'Cảm Xúc', 'Bạn đang xử lý tình huống áp lực và cảm xúc.'],
     };
     const GROUP_SIZE = 5;
     const groups: StoryGroup[] = [];
     for (let i = 0; i < qs.length; i += GROUP_SIZE) {
       const chunk = qs.slice(i, i + GROUP_SIZE);
       const dim = (chunk[0]?.dimension || '').toUpperCase();
-      const [emoji, title, introduction] = dimMap[dim] ?? ['💭', `Nhóm ${groups.length + 1}`, 'Hãy đánh giá mức độ phù hợp:'];
+      const [emoji, title, introduction] = dimMap[dim] ?? ['', `Nhóm ${groups.length + 1}`, 'Hãy đánh giá mức độ phù hợp:'];
       groups.push({
         groupScenario: { emoji, title, introduction },
         questionScenarios: chunk.map(q => ({ emoji, title, context: introduction, situation: q.question_text })),
@@ -302,11 +302,11 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
       // Pad missing scenarios with fallback
       while (flat.length < questions.length) {
         const q = questions[flat.length];
-        flat.push({ emoji: '💭', title: `Tình Huống ${flat.length + 1}`, context: 'Hãy đánh giá mức độ phù hợp:', situation: q?.question_text ?? '' });
+        flat.push({ emoji: '', title: `Tình Huống ${flat.length + 1}`, context: 'Hãy đánh giá mức độ phù hợp:', situation: q?.question_text ?? '' });
       }
 
       setStoryProgress(100);
-      console.log(`📖 Story groups: ${groups.length}, scenarios: ${flat.length} (success=${result.success})`);
+      console.log(` Story groups: ${groups.length}, scenarios: ${flat.length} (success=${result.success})`);
       return { groups, flat };
 
     } catch (err) {
@@ -663,7 +663,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           {/* Question Pages - 1 scenario per page */}
           {questions.map((question, index) => {
             const scenario = scenarios[index] || {
-              emoji: '💭',
+              emoji: '',
               title: 'Tình Huống',
               context: 'Hãy suy nghĩ về tình huống này...',
               situation: question.question_text,
@@ -684,7 +684,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                   <div className="scenario-header">
                     <span className="scenario-number">Câu {index + 1} / {questions.length}</span>
                     {groupScenario && (
-                      <div className="label-badge" style={{ backgroundColor: 'rgba(22,163,74,0.15)', borderColor: '#16a34a', color: '#16a34a' }}>
+                      <div className="label-badge" style={{ backgroundColor: 'rgba(26,35,126,0.15)', borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
                         <span className="label-emoji">{groupScenario.emoji}</span>
                         <span className="label-name">{groupScenario.title}</span>
                       </div>
@@ -693,8 +693,8 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
 
                   {/* Group story intro — shown only on the FIRST question of each group */}
                   {isFirstInGroup && groupScenario && (
-                    <div className="label-intro" style={{ borderLeftColor: '#16a34a' }}>
-                      <h3 style={{ color: '#16a34a' }}>
+                    <div className="label-intro" style={{ borderLeftColor: 'var(--color-primary)' }}>
+                      <h3 style={{ color: 'var(--color-primary)' }}>
                         {groupScenario.emoji} {groupScenario.title}
                       </h3>
                       <p className="label-description">{groupScenario.introduction}</p>
@@ -759,18 +759,18 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               <div className="scenario-header">
                 <span className="scenario-number">Scenario 45 of 45</span>
                 <div className="label-badge" style={{ 
-                  backgroundColor: '#0d948820',
+                  backgroundColor: '0d948820',
                   borderColor: '#0d9488',
                   color: '#0d9488'
                 }}>
-                  <span className="label-emoji">✍️</span>
+                  <span className="label-emoji"></span>
                   <span className="label-name">Personal Story</span>
                 </div>
               </div>
               
               <div className="essay-intro">
                 <h3 style={{ color: '#0d9488' }}>
-                  ✍️ Chia Sẻ Câu Chuyện Của Bạn
+                   Chia Sẻ Câu Chuyện Của Bạn
                 </h3>
                 <p className="essay-description">
                   Đây là cơ hội để bạn chia sẻ sâu hơn về bản thân, ước mơ và định hướng nghề nghiệp của mình.
@@ -807,7 +807,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                     gap: '0.5rem',
                   }}
                 >
-                  ✍️ Viết Câu Chuyện Của Bạn
+                   Viết Câu Chuyện Của Bạn
                 </button>
 
                 {/* Voice record button */}
@@ -829,7 +829,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                       gap: '0.5rem',
                     }}
                   >
-                    🎙️ Thu Âm Giọng Nói (Voice AI)
+                     Thu Âm Giọng Nói (Voice AI)
                   </button>
                 )}
 
@@ -878,7 +878,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                       width: '100%',
                       textAlign: 'center',
                     }}>
-                      ✅ Đã thu âm {voiceDuration}s — AI sẽ phân tích giọng nói của bạn
+                       Đã thu âm {voiceDuration}s — AI sẽ phân tích giọng nói của bạn
                     </div>
                     <button
                       onClick={resetVoice}
@@ -886,27 +886,27 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                         padding: '0.4rem 1rem',
                         background: 'transparent',
                         color: '#888',
-                        border: '1px solid #ccc',
+                        border: '1px solid ccc',
                         borderRadius: '8px',
                         cursor: 'pointer',
                         fontSize: '0.85rem',
                       }}
                     >
-                      🔄 Thu âm lại
+                       Thu âm lại
                     </button>
                   </div>
                 )}
 
                 {voiceStatus === 'error' && (
                   <div style={{ color: '#e74c3c', fontSize: '0.9rem', textAlign: 'center' }}>
-                    ⚠️ Không thể truy cập microphone. Kiểm tra quyền truy cập.
+                     Không thể truy cập microphone. Kiểm tra quyền truy cập.
                   </div>
                 )}
               </div>
 
               {essayText.trim().length > 0 && (
                 <div className="continue-hint" style={{ marginTop: '0.75rem' }}>
-                  ✓ Đã viết {essayText.split(/\s+/).filter(w => w.length > 0).length} từ
+                   Đã viết {essayText.split(/\s+/).filter(w => w.length > 0).length} từ
                 </div>
               )}
             </div>
@@ -1009,7 +1009,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         >
           <div style={{ marginBottom: '1rem', color: 'white' }}>
             <h3 style={{ margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              ✍️ Chia Sẻ Câu Chuyện Của Bạn
+               Chia Sẻ Câu Chuyện Của Bạn
             </h3>
             <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.9 }}>
               Đây là cơ hội để bạn chia sẻ sâu hơn về bản thân, ước mơ và định hướng nghề nghiệp của mình.
@@ -1020,15 +1020,15 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
             ref={textareaRef}
             value={essayText}
             onChange={(e) => {
-              console.log('📝 Overlay textarea onChange:', e.target.value);
+              console.log(' Overlay textarea onChange:', e.target.value);
               setEssayText(e.target.value);
             }}
             onFocus={() => {
-              console.log('🎯 Overlay textarea focused');
+              console.log(' Overlay textarea focused');
               setIsEditingEssay(true);
             }}
             onBlur={() => {
-              console.log('👋 Overlay textarea blurred');
+              console.log(' Overlay textarea blurred');
               setIsEditingEssay(false);
             }}
             placeholder="Bắt đầu viết câu chuyện của bạn..."
@@ -1065,7 +1065,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               style={{
                 padding: '0.5rem 1.5rem',
                 background: 'white',
-                color: '#16a34a',
+                color: 'var(--color-primary)',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '1rem',

@@ -63,11 +63,11 @@ const EssayModalComponent = ({
 
         {/* Header */}
         <div className="relative p-8 md:p-10 border-b border-gray-100 dark:border-gray-700">
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 to-teal-500"></div>
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-700 to-indigo-600"></div>
 
           <div className="flex justify-between items-start gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold uppercase tracking-wider mb-3 border border-green-200 dark:border-green-800">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-3 border border-indigo-200 dark:border-indigo-800">
                 {t('assessment.essay.optionalStep')}
               </div>
               <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">
@@ -95,7 +95,7 @@ const EssayModalComponent = ({
               value={essayText}
               onChange={handleChange}
               rows={10}
-              className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 py-4 text-base text-gray-900 dark:text-white shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all resize-none placeholder-gray-400 font-medium"
+              className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 py-4 text-base text-gray-900 dark:text-white shadow-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 outline-none transition-all resize-none placeholder-gray-400 font-medium"
               placeholder={t('assessment.essay.placeholder')}
               disabled={loading}
             />
@@ -113,7 +113,7 @@ const EssayModalComponent = ({
               )}
               <span className={`text-xs font-bold px-2 py-1 rounded-md transition-colors ${
                 trimmedLen >= MIN_CHARS
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-400'
                   : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
               }`}>
                 {t('assessment.essay.charCount', { count: trimmedLen, min: MIN_CHARS })}
@@ -126,7 +126,7 @@ const EssayModalComponent = ({
             <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
-                  trimmedLen >= MIN_CHARS ? 'bg-green-500' : 'bg-blue-400'
+                  trimmedLen >= MIN_CHARS ? 'bg-indigo-700' : 'bg-blue-400'
                 }`}
                 style={{ width: `${progressPct}%` }}
               />
@@ -163,7 +163,7 @@ const EssayModalComponent = ({
               type="button"
               onClick={handleSubmit}
               disabled={!isValid || loading}
-              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
+              className="px-8 py-3 bg-indigo-800 hover:bg-indigo-900 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
             >
               {loading ? (
                 <>

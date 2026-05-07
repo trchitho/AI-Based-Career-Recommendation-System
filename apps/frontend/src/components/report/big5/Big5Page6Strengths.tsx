@@ -32,7 +32,7 @@ const Big5Page6Strengths = ({ strengths, challenges }: Big5Page6StrengthsProps) 
                 {/* Strengths Section */}
                 <section className="mb-5 print:mb-4 flex-shrink-0">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 print:text-base print:mb-2">
-                        <span className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 print:w-5 print:h-5">
+                        <span className="w-6 h-6 bg-indigo-700 rounded-full flex items-center justify-center flex-shrink-0 print:w-5 print:h-5">
                             <svg className="w-4 h-4 text-white print:w-3 print:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
@@ -40,11 +40,11 @@ const Big5Page6Strengths = ({ strengths, challenges }: Big5Page6StrengthsProps) 
                         Your Personal Strengths
                     </h3>
 
-                    <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100 dark:border-green-800/30 print:p-3">
+                    <div className="bg-indigo-50 dark:bg-indigo-950/20 rounded-lg p-4 border border-indigo-100 dark:border-indigo-800/30 print:p-3">
                         <div className="space-y-3 text-gray-700 dark:text-gray-300 leading-relaxed text-base print:text-sm print:space-y-2">
                             {strengths.map((strength, index) => (
                                 <p key={index}>
-                                    <span className="font-bold text-green-700 dark:text-green-400">
+                                    <span className="font-bold text-indigo-900 dark:text-indigo-400">
                                         {index + 1}.
                                     </span>{' '}
                                     {strength}

@@ -125,8 +125,8 @@ const SessionResultsPage = () => {
             {results.riasec && (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">RIASEC Interest Profile</h2>
-                <div className="bg-green-50 rounded-lg p-4 mb-6">
-                  <p className="text-sm font-medium text-green-600 mb-1">Sở thích nghề nghiệp hàng đầu</p>
+                <div className="bg-indigo-50 rounded-lg p-4 mb-6">
+                  <p className="text-sm font-medium text-indigo-800 mb-1">Sở thích nghề nghiệp hàng đầu</p>
                   <p className="text-2xl font-bold text-gray-900">{topRiasec.toUpperCase()}</p>
                   <p className="text-sm text-gray-600">Điểm: {topRiasecScore}/100</p>
                 </div>
@@ -137,7 +137,7 @@ const SessionResultsPage = () => {
                       <span className="text-gray-700 capitalize">{key}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-500 h-2 rounded-full" style={{ width: `${value}%` }}></div>
+                          <div className="bg-indigo-700 h-2 rounded-full" style={{ width: `${value}%` }}></div>
                         </div>
                         <span className="text-sm font-medium text-gray-900 w-12 text-right">{value}</span>
                       </div>

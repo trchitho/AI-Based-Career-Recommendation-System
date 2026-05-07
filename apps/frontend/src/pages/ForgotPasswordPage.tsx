@@ -42,7 +42,7 @@ const ForgotPasswordPage = () => {
   const ModernLogo = () => (
     <Link to="/home" className="flex items-center gap-2 group select-none">
       <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
-        career<span className="text-green-500">bridge</span><span className="text-green-500 text-3xl leading-none">.</span>
+        career<span className="text-indigo-700">bridge</span><span className="text-indigo-700 text-3xl leading-none">.</span>
       </span>
     </Link>
   );
@@ -73,7 +73,7 @@ const ForgotPasswordPage = () => {
       <div className="flex-1 flex flex-col items-center justify-center relative px-4 sm:px-6 lg:px-8 pt-20 pb-8">
 
         {/* Background Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-green-500/5 rounded-full blur-[120px] pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '4s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-700/5 rounded-full blur-[120px] pointer-events-none -z-10 animate-pulse" style={{ animationDuration: '4s' }}></div>
 
         <div className="w-full max-w-[480px] animate-fade-in-up">
 
@@ -103,7 +103,7 @@ const ForgotPasswordPage = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
-                    className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium"
+                    className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
                   />
                   <div className="absolute left-4 top-3.5 text-gray-400">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
@@ -115,7 +115,7 @@ const ForgotPasswordPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 px-4 bg-green-500 hover:bg-green-600 text-white rounded-full font-bold text-[16px] shadow-lg shadow-green-500/20 hover:shadow-green-500/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-4 bg-indigo-700 hover:bg-indigo-800 text-white rounded-full font-bold text-[16px] shadow-lg shadow-green-500/20 hover:shadow-indigo-700/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -132,12 +132,12 @@ const ForgotPasswordPage = () => {
 
               {/* Messages */}
               {sent && (
-                <div className="rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4 text-sm text-center animate-fade-in-up">
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600">
+                <div className="rounded-xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 p-4 text-sm text-center animate-fade-in-up">
+                  <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/30 rounded-full flex items-center justify-center mx-auto mb-3 text-indigo-800">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                   </div>
-                  <p className="text-green-800 dark:text-green-300 font-bold text-lg mb-1">{t('auth.checkYourEmail')}</p>
-                  <p className="text-green-700 dark:text-green-400 mb-4">{sent}</p>
+                  <p className="text-indigo-950 dark:text-indigo-300 font-bold text-lg mb-1">{t('auth.checkYourEmail')}</p>
+                  <p className="text-indigo-900 dark:text-indigo-400 mb-4">{sent}</p>
                 </div>
               )}
 

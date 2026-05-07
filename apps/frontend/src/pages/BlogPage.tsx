@@ -196,86 +196,81 @@ const BlogPage = () => {
       .join(' ');
   };
 
+  const featuredPost = displayedPosts[0];
+  const gridPosts = displayedPosts.slice(1);
+
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-gray-50 dark:from-gray-900 dark:to-gray-800">
 
-        {/* Hero Section with Search */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+        {/* ── Compact Hero ── */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
+          <div className="absolute inset-0 opacity-5 pointer-events-none">
+            <div className="absolute top-0 left-1/4 w-72 h-72 bg-indigo-700 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-blue-500 rounded-full blur-3xl"></div>
           </div>
 
-          <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
-            <div className="text-center max-w-4xl mx-auto">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
-                <Sparkles className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Career Insights & Expert Advice
-                </span>
-              </div>
+          <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-10 lg:py-14">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
-              {/* Title */}
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-                Latest News & <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">Articles</span>
-              </h1>
+              {/* Left: title + search */}
+              <div className="flex-1 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700 mb-4">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-800" />
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Career Insights & Expert Advice</span>
+                </div>
 
-              {/* Subtitle */}
-              <p className="text-xl text-gray-600 dark:text-gray-400 mb-12 leading-relaxed max-w-2xl mx-auto">
-                Expert career guidance, interview strategies, and professional development insights to accelerate your success.
-              </p>
+                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+                  Latest News &{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-800 to-blue-600">Articles</span>
+                </h1>
 
-              {/* Search Bar */}
-              <div className="max-w-2xl mx-auto mb-8">
+                {/* Search */}
                 <div className="relative group">
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-green-600 transition-colors" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-indigo-800 transition-colors" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="Search career advice, interview tips, resume strategies..."
-                    className="w-full pl-14 pr-6 py-5 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-green-500 dark:focus:border-green-500 shadow-lg hover:shadow-xl transition-all text-lg"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-600 shadow-sm hover:shadow-md transition-all text-sm"
                   />
                 </div>
-              </div>
 
-              {/* Trending Topics */}
-              <div className="flex items-center justify-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="font-medium">Trending:</span>
+                {/* Trending */}
+                <div className="flex items-center gap-2 flex-wrap mt-3">
+                  <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    <span className="font-medium">Trending:</span>
+                  </div>
+                  {trendingTopics.map((topic) => (
+                    <button
+                      key={topic}
+                      onClick={() => handleSearchChange(topic)}
+                      className="px-3 py-1 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-indigo-600 hover:text-indigo-800 transition-all"
+                    >
+                      {topic}
+                    </button>
+                  ))}
                 </div>
-                {trendingTopics.map((topic) => (
-                  <button
-                    key={topic}
-                    onClick={() => handleSearchChange(topic)}
-                    className="px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all"
-                  >
-                    {topic}
-                  </button>
-                ))}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center justify-center gap-4 mt-10">
+              {/* Right: actions */}
+              <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={() => navigate(isAdmin ? '/admin/blog/create' : '/blog/create')}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-800 to-indigo-900 hover:from-indigo-900 hover:to-indigo-950 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm"
                 >
-                  <Edit3 className="w-5 h-5" />
+                  <Edit3 className="w-4 h-4" />
                   Write Article
                 </button>
-
                 {isAdmin && (
                   <button
                     onClick={() => navigate('/admin/blog/manage')}
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-indigo-600 hover:text-indigo-800 transition-all text-sm"
                   >
-                    <Settings className="w-5 h-5" />
-                    Manage Blog
+                    <Settings className="w-4 h-4" />
+                    Manage
                   </button>
                 )}
               </div>
@@ -283,17 +278,17 @@ const BlogPage = () => {
           </div>
         </section>
 
-        {/* Category Filter Bar */}
-        <section className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5">
-            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+        {/* ── Category Filter Bar ── */}
+        <section className="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => handleCategoryChange(category)}
-                  className={`px-6 py-3 rounded-xl font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategory === category
-                    ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-500/30'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                  className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap text-sm transition-all duration-200 ${selectedCategory === category
+                    ? 'bg-indigo-800 text-white shadow-sm'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
                   {category}
@@ -303,15 +298,15 @@ const BlogPage = () => {
           </div>
         </section>
 
-        {/* Blog Grid Section */}
-        <section className="py-16 lg:py-24">
+        {/* ── Content ── */}
+        <section className="py-10 lg:py-14">
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
             {/* Loading State */}
             {loading && (
               <div className="flex items-center justify-center py-32">
                 <div className="relative">
                   <div className="w-20 h-20 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
-                  <div className="absolute top-0 left-0 w-20 h-20 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
+                  <div className="absolute top-0 left-0 w-20 h-20 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
                 </div>
               </div>
             )}
@@ -334,85 +329,122 @@ const BlogPage = () => {
               </div>
             )}
 
-            {/* Blog Cards Grid */}
+            {/* Blog Posts */}
             {!loading && !error && displayedPosts.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {displayedPosts.map((post) => {
-                  const readingTime = calculateReadingTime(post.content_md || '');
-                  const publishDate = post.published_at
-                    ? new Date(post.published_at).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })
-                    : 'Draft';
+              <div className="space-y-8">
+                {/* Featured post — full width dark card */}
+                {featuredPost && (
+                  <article
+                    onClick={() => navigate(`/blog/${featuredPost.slug}`)}
+                    className={`group cursor-pointer relative rounded-2xl overflow-hidden h-72 lg:h-80 bg-gradient-to-br ${getBlogGradient(featuredPost.category)} shadow-xl hover:shadow-2xl transition-all duration-300`}
+                  >
+                    <img
+                      src={getBlogImage(featuredPost.category, featuredPost.featured_image)}
+                      alt={featuredPost.title}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                    {/* Dark overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
 
-                  return (
-                    <article
-                      key={post.slug}
-                      onClick={() => navigate(`/blog/${post.slug}`)}
-                      className="group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-2xl hover:shadow-green-500/10 hover:-translate-y-2 transition-all duration-300 flex flex-col"
-                    >
-                      {/* Featured Image */}
-                      <div className={`relative h-56 overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)}`}>
-                        <img
-                          src={getBlogImage(post.category, post.featured_image)}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          onError={(e) => {
-                            // If image fails to load, hide it and show gradient background
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-
-                        {/* Fallback content - always show but behind image */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-white/20 text-6xl font-bold">
-                            {post.title.charAt(0)}
-                          </div>
-                        </div>
-
-                        {/* Category Badge */}
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1.5 rounded-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm text-xs font-bold text-gray-900 dark:text-white border border-white/20">
-                            {getCategoryDisplayName(post.category)}
-                          </span>
-                        </div>
+                    <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="px-2.5 py-1 rounded-md bg-indigo-700 text-white text-xs font-bold uppercase tracking-wide">
+                          Featured
+                        </span>
+                        <span className="px-2.5 py-1 rounded-md bg-white/20 text-white text-xs font-semibold backdrop-blur-sm">
+                          {getCategoryDisplayName(featuredPost.category)}
+                        </span>
                       </div>
-
-                      {/* Content */}
-                      <div className="p-6 flex flex-col flex-grow">
-                        {/* Meta Info */}
-                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="w-4 h-4" />
-                            <span>{publishDate}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="w-4 h-4" />
-                            <span>{readingTime}</span>
-                          </div>
-                        </div>
-
-                        {/* Title */}
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 leading-tight group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                          {post.title}
-                        </h3>
-
-                        {/* Description */}
-                        <p className="text-gray-600 dark:text-gray-400 line-clamp-3 mb-6 flex-grow leading-relaxed">
-                          {post.excerpt || post.content_md?.substring(0, 150) + '...'}
-                        </p>
-
-                        {/* Read More Link */}
-                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-semibold text-sm group-hover:gap-3 transition-all mt-auto">
-                          <span>Read Article</span>
+                      <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 line-clamp-2 leading-tight group-hover:text-indigo-300 transition-colors">
+                        {featuredPost.title}
+                      </h2>
+                      <p className="text-white/70 text-sm line-clamp-2 mb-4 max-w-2xl">
+                        {featuredPost.excerpt || featuredPost.content_md?.substring(0, 120) + '...'}
+                      </p>
+                      <div className="flex items-center gap-4">
+                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-900 font-semibold rounded-lg text-sm hover:bg-indigo-50 transition-colors">
+                          Read Full Report
                           <ArrowRight className="w-4 h-4" />
+                        </button>
+                        <div className="flex items-center gap-1.5 text-white/60 text-xs">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{calculateReadingTime(featuredPost.content_md || '')}</span>
                         </div>
                       </div>
-                    </article>
-                  );
-                })}
+                    </div>
+                  </article>
+                )}
+
+                {/* Grid of remaining posts */}
+                {gridPosts.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {gridPosts.map((post) => {
+                      const readingTime = calculateReadingTime(post.content_md || '');
+                      const publishDate = post.published_at
+                        ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : 'Draft';
+                      const authorInitial = (post.author_name || 'A').charAt(0).toUpperCase();
+
+                      return (
+                        <article
+                          key={post.slug}
+                          onClick={() => navigate(`/blog/${post.slug}`)}
+                          className="group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                        >
+                          {/* Image */}
+                          <div className={`relative h-44 overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)}`}>
+                            <img
+                              src={getBlogImage(post.category, post.featured_image)}
+                              alt={post.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <span className="text-white/10 text-7xl font-black">{post.title.charAt(0)}</span>
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-5 flex flex-col flex-grow">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wide">
+                                {getCategoryDisplayName(post.category)}
+                              </span>
+                              <span className="text-gray-300 dark:text-gray-600">·</span>
+                              <span className="text-xs text-gray-400 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />{readingTime}
+                              </span>
+                            </div>
+
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 leading-snug group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors">
+                              {post.title}
+                            </h3>
+
+                            <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-4 flex-grow leading-relaxed">
+                              {post.excerpt || post.content_md?.substring(0, 100) + '...'}
+                            </p>
+
+                            {/* Footer */}
+                            <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100 dark:border-gray-700">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                                  {authorInitial}
+                                </div>
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                  {post.author_name || 'Author'}
+                                </span>
+                              </div>
+                              <span className="text-xs text-indigo-800 dark:text-indigo-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                                Read More <ArrowRight className="w-3 h-3" />
+                              </span>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -441,14 +473,14 @@ const BlogPage = () => {
                 {searchQuery ? (
                   <button
                     onClick={() => handleSearchChange('')}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-xl transition-all"
                   >
                     Clear Search
                   </button>
                 ) : (
                   <button
                     onClick={() => navigate('/blog/create')}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-xl transition-all"
                   >
                     <Edit3 className="w-5 h-5" />
                     Write First Article
@@ -468,7 +500,7 @@ const BlogPage = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
+                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
                 >
                   Previous
                 </button>
@@ -492,8 +524,8 @@ const BlogPage = () => {
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
                         className={`w-12 h-12 rounded-xl font-semibold transition-all ${currentPage === pageNum
-                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-500/30'
-                          : 'border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400'
+                          ? 'bg-gradient-to-r from-indigo-800 to-indigo-900 text-white shadow-lg shadow-indigo-700/30'
+                          : 'border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400'
                           }`}
                       >
                         {pageNum}
@@ -511,7 +543,7 @@ const BlogPage = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
+                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-600 hover:text-indigo-800 dark:hover:text-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
                 >
                   Next
                 </button>

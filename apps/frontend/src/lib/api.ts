@@ -1,3 +1,9 @@
+/**
+ * @deprecated Dùng api-client.ts cho code mới.
+ * File này giữ nguyên để backward compatibility với các service cũ.
+ * Migration: thay `import api from '../lib/api'`
+ *            thành `import apiClient from '../lib/api-client'`
+ */
 import axios from 'axios';
 
 // In dev, use relative base to leverage Vite proxy (avoids CORS).

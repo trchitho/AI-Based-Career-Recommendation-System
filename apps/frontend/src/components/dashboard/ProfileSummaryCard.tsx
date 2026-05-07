@@ -26,8 +26,8 @@ const ProfileSummaryCard: React.FC<ProfileSummaryCardProps> = ({ profile }) => {
     <div className="relative h-full flex flex-col justify-center overflow-hidden p-10 bg-white dark:bg-gray-800">
 
       {/* Decorative Background Elements */}
-      <div className="absolute top-0 right-0 h-full w-1/2 bg-primary-50 dark:bg-green-900/10 rounded-l-full transform translate-x-1/3 scale-125 pointer-events-none opacity-60"></div>
-      <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-500/5 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10"></div>
+      <div className="absolute top-0 right-0 h-full w-1/2 bg-primary-50 dark:bg-indigo-950/10 rounded-l-full transform translate-x-1/3 scale-125 pointer-events-none opacity-60"></div>
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-700/5 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10"></div>
 
       <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-8 w-full">
 
@@ -56,7 +56,7 @@ const ProfileSummaryCard: React.FC<ProfileSummaryCardProps> = ({ profile }) => {
 
         {/* Edit Profile Button (Optional) */}
         <div className="absolute top-0 right-0 hidden md:block">
-          <button className="p-2 text-gray-400 hover:text-green-600 transition-colors rounded-full hover:bg-green-50 dark:hover:bg-gray-700">
+          <button className="p-2 text-gray-400 hover:text-indigo-800 transition-colors rounded-full hover:bg-indigo-50 dark:hover:bg-gray-700">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
           </button>
         </div>

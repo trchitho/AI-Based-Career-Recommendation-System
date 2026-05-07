@@ -57,7 +57,7 @@ const InterviewListPage: React.FC = () => {
 
         try {
             setIsLoading(true);
-            console.log('🔄 Loading initial interview data...');
+            console.log(' Loading initial interview data...');
 
             // Load truly random jobs from all 959 careers and recent interviews + stats in parallel
             const [jobsResponse, interviewsResponse, allInterviewsResponse] = await Promise.all([
@@ -82,9 +82,9 @@ const InterviewListPage: React.FC = () => {
                 average_score: completedInterviews.length > 0 ? scoresSum / completedInterviews.length : 0
             });
 
-            console.log('✅ Initial interview data loaded successfully');
+            console.log(' Initial interview data loaded successfully');
         } catch (error) {
-            console.error('❌ Error loading initial data:', error);
+            console.error(' Error loading initial data:', error);
             hasLoadedRef.current = false; // Reset on error to allow retry
         } finally {
             setIsLoading(false);
@@ -110,24 +110,24 @@ const InterviewListPage: React.FC = () => {
         if (query.trim().length < 2) {
             // If query is too short, load truly random jobs from all 959 careers
             try {
-                console.log('🔍 Loading random jobs for empty search...');
+                console.log(' Loading random jobs for empty search...');
                 const response = await interviewService.searchJobs('', 50, true); // Use random=true for full randomization
                 const shuffledJobs = response.jobs.sort(() => Math.random() - 0.5);
                 setJobs(shuffledJobs.slice(0, 12));
             } catch (error) {
-                console.error('❌ Error loading random jobs:', error);
+                console.error(' Error loading random jobs:', error);
             }
             return;
         }
 
         try {
             setIsSearching(true);
-            console.log(`🔍 Searching jobs with query: "${query}"`);
+            console.log(` Searching jobs with query: "${query}"`);
             const response = await interviewService.searchJobs(query, 50); // Search with query
             setJobs(response.jobs);
-            console.log(`✅ Found ${response.jobs.length} jobs for query: "${query}"`);
+            console.log(` Found ${response.jobs.length} jobs for query: "${query}"`);
         } catch (error) {
-            console.error('❌ Error searching jobs:', error);
+            console.error(' Error searching jobs:', error);
         } finally {
             setIsSearching(false);
         }
@@ -153,7 +153,7 @@ const InterviewListPage: React.FC = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'completed':
-                return 'bg-green-100 text-green-800';
+                return 'bg-indigo-50 text-indigo-950';
             case 'active':
                 return 'bg-blue-100 text-blue-800';
             case 'abandoned':
@@ -198,7 +198,7 @@ const InterviewListPage: React.FC = () => {
 
     // Effect for debounced search - ONLY when search query actually changes
     useEffect(() => {
-        console.log(`🔍 Search query changed to: "${debouncedSearchQuery}"`);
+        console.log(` Search query changed to: "${debouncedSearchQuery}"`);
         handleSearch(debouncedSearchQuery);
     }, [debouncedSearchQuery, handleSearch]); // Include handleSearch but it's stable due to empty deps
 
@@ -252,7 +252,7 @@ const InterviewListPage: React.FC = () => {
                         {/* Popular Career Suggestions */}
                         <div className="mt-4">
                             <p className="text-sm text-gray-500 mb-3 text-center">
-                                💡 Nghề nghiệp phổ biến:
+                                 Nghề nghiệp phổ biến:
                             </p>
                             <div className="flex flex-wrap justify-center gap-2">
                                 {[
@@ -384,10 +384,10 @@ const InterviewListPage: React.FC = () => {
                         <div className="space-y-6">
                             {/* Recent Interviews */}
                             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <div className="bg-gradient-to-r from-green-50 to-blue-50 px-6 py-5 border-b border-gray-200">
+                                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-5 border-b border-gray-200">
                                     <h3 className="text-xl font-bold text-gray-900 flex items-center gap-3">
                                         <div className="p-2 bg-white rounded-lg shadow-sm">
-                                            <Clock className="h-5 w-5 text-green-600" />
+                                            <Clock className="h-5 w-5 text-indigo-800" />
                                         </div>
                                         Phỏng vấn gần đây
                                     </h3>
@@ -435,7 +435,7 @@ const InterviewListPage: React.FC = () => {
 
                                                         <div className="space-y-2">
                                                             <p className="text-xs text-gray-500">
-                                                                📅 {formatDate(interview.started_at)}
+                                                                 {formatDate(interview.started_at)}
                                                             </p>
 
                                                             {interview.overall_score && (
@@ -447,7 +447,7 @@ const InterviewListPage: React.FC = () => {
                                                                         </span>
                                                                     </div>
                                                                     {interview.recommendation && (
-                                                                        <span className={`text-xs font-medium ${interview.recommendation === 'PASS' ? 'text-green-600' :
+                                                                        <span className={`text-xs font-medium ${interview.recommendation === 'PASS' ? 'text-indigo-800' :
                                                                             interview.recommendation === 'CONDITIONAL_PASS' ? 'text-yellow-600' :
                                                                                 'text-red-600'
                                                                             }`}>
@@ -529,19 +529,19 @@ const InterviewListPage: React.FC = () => {
                                         </div>
 
                                         {/* Completed Interviews */}
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
+                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-indigo-50 rounded-xl">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                                <div className="w-10 h-10 bg-indigo-700 rounded-full flex items-center justify-center">
                                                     <Clock className="h-5 w-5 text-white" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-green-900">Hoàn thành</p>
-                                                    <p className="text-xs text-green-700">Phỏng vấn thành công</p>
+                                                    <p className="text-sm font-medium text-indigo-950">Hoàn thành</p>
+                                                    <p className="text-xs text-indigo-900">Phỏng vấn thành công</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-2xl font-bold text-green-900">{interviewStats.completed_interviews}</p>
-                                                <p className="text-xs text-green-700">
+                                                <p className="text-2xl font-bold text-indigo-950">{interviewStats.completed_interviews}</p>
+                                                <p className="text-xs text-indigo-900">
                                                     {interviewStats.total_interviews > 0
                                                         ? `${((interviewStats.completed_interviews / interviewStats.total_interviews) * 100).toFixed(0)}%`
                                                         : '0%'
@@ -575,12 +575,12 @@ const InterviewListPage: React.FC = () => {
                                         <div className="text-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200">
                                             <p className="text-sm font-medium text-yellow-900 mb-1">
                                                 {interviewStats.total_interviews === 0
-                                                    ? '🚀 Bắt đầu hành trình phỏng vấn của bạn!'
+                                                    ? ' Bắt đầu hành trình phỏng vấn của bạn!'
                                                     : interviewStats.average_score >= 8
-                                                        ? '🎉 Xuất sắc! Bạn đã thành thạo kỹ năng phỏng vấn'
+                                                        ? ' Xuất sắc! Bạn đã thành thạo kỹ năng phỏng vấn'
                                                         : interviewStats.average_score >= 6
-                                                            ? '👍 Tốt lắm! Tiếp tục luyện tập để hoàn thiện'
-                                                            : '💪 Đừng bỏ cuộc! Mỗi lần thử là một bước tiến'
+                                                            ? ' Tốt lắm! Tiếp tục luyện tập để hoàn thiện'
+                                                            : ' Đừng bỏ cuộc! Mỗi lần thử là một bước tiến'
                                                 }
                                             </p>
                                             <p className="text-xs text-yellow-700">
@@ -600,11 +600,11 @@ const InterviewListPage: React.FC = () => {
                                     <div className="p-2 bg-white rounded-lg shadow-sm">
                                         <Users className="h-5 w-5 text-blue-600" />
                                     </div>
-                                    💡 Bí quyết phỏng vấn thành công
+                                     Bí quyết phỏng vấn thành công
                                 </h3>
                                 <div className="space-y-3">
                                     <div className="flex items-start gap-3 p-3 bg-white/50 rounded-lg">
-                                        <span className="text-lg">🎯</span>
+                                        <span className="text-lg"></span>
                                         <div>
                                             <p className="text-sm font-medium text-blue-900">Chuẩn bị kỹ lưỡng</p>
                                             <p className="text-xs text-blue-700">Tìm hiểu về công ty và vị trí ứng tuyển</p>
@@ -618,14 +618,14 @@ const InterviewListPage: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3 p-3 bg-white/50 rounded-lg">
-                                        <span className="text-lg">🗣️</span>
+                                        <span className="text-lg"></span>
                                         <div>
                                             <p className="text-sm font-medium text-blue-900">Giao tiếp tự tin</p>
                                             <p className="text-xs text-blue-700">Nói chậm, rõ ràng và duy trì ánh mắt</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3 p-3 bg-white/50 rounded-lg">
-                                        <span className="text-lg">💪</span>
+                                        <span className="text-lg"></span>
                                         <div>
                                             <p className="text-sm font-medium text-blue-900">Thái độ tích cực</p>
                                             <p className="text-xs text-blue-700">Thể hiện sự nhiệt tình và học hỏi</p>

@@ -34,8 +34,40 @@ const InterviewHistoryPage: React.FC = () => {
     const [hasMore, setHasMore] = useState(false);
     const pageSize = 20;
 
-    const filterAndSortInterviews = useCallback(() => {
-        let filtered = [...interviews];
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+        // Only load once when component mounts
+        loadAllInterviews();
+    }, [user, navigate]); // Remove loadAllInterviews from dependencies
+
+    useEffect(() => {
+        filterAndSortInterviews();
+    }, [interviews, searchQuery, statusFilter, sortBy, scoreFilter, dateRangeFilter]);
+
+    const loadAllInterviews = useCallback(async () => {
+        if (hasLoadedRef.current) return; // Prevent duplicate calls
+        hasLoadedRef.current = true;
+
+        try {
+            setIsLoading(true);
+            console.log(' Loading interview history...');
+            const response = await interviewService.getMyInterviews(1000);
+            setInterviews(response.interviews);
+            console.log(` Loaded ${response.interviews.length} interviews`);
+        } catch (error) {
+            console.error(' Error loading interviews:', error);
+            toast.error('Không thể tải lịch sử phỏng vấn');
+            hasLoadedRef.current = false; // Reset on error to allow retry
+        } finally {
+            setIsLoading(false);
+        }
+    }, []); // Empty dependency array
+
+    const filterAndSortInterviews = () => {
+        let filtered = interviews;
 
         // Filter by search query
         if (searchQuery.trim()) {
@@ -172,7 +204,9 @@ const InterviewHistoryPage: React.FC = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'completed':
-                return 'bg-green-100 text-green-800 border-green-200';
+                return 'bg-indigo-50 text-indigo-950 border-indigo-200';
+            case 'active':
+                return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'abandoned':
                 return 'bg-red-100 text-red-800 border-red-200';
             default:
@@ -194,7 +228,7 @@ const InterviewHistoryPage: React.FC = () => {
     const getRecommendationColor = (recommendation?: string) => {
         switch (recommendation) {
             case 'PASS':
-                return 'text-green-600';
+                return 'text-indigo-800';
             case 'CONDITIONAL_PASS':
                 return 'text-yellow-600';
             case 'FAIL':
@@ -363,7 +397,7 @@ const InterviewHistoryPage: React.FC = () => {
                                     </span>
                                 )}
                                 {scoreFilter !== 'all' && (
-                                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                    <span className="px-3 py-1 bg-indigo-50 text-indigo-950 rounded-full text-xs font-medium">
                                         Điểm: {scoreFilter === 'excellent' ? 'Xuất sắc' : scoreFilter === 'good' ? 'Tốt' : scoreFilter === 'average' ? 'Trung bình' : scoreFilter === 'poor' ? 'Cần cải thiện' : 'Chưa có điểm'}
                                     </span>
                                 )}

@@ -241,3 +241,4 @@ Thumbs.db
 .kiro/
 .shared/
 "@ | Out-File -Encoding utf8 .gitignore
+db/backup/
