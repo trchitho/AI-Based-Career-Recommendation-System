@@ -52,20 +52,13 @@ const BlogPreviewModal = ({
         setLoading(true);
         setError(null);
         try {
-            // Try to fetch blog directly by ID first
-            try {
-                const foundBlog = await blogService.adminGet(blogId);
-                setBlog(foundBlog);
-            } catch {
-                // Fallback: fetch from list if direct fetch fails
-                const response = await blogService.adminList({ page: 1, pageSize: 100 });
-                const foundBlog = response.items.find(b => b.id === blogId);
+            const response = await blogService.adminList({ page: 1, pageSize: 100 });
+            const foundBlog = response.items.find(b => b.id === blogId);
 
-                if (foundBlog) {
-                    setBlog(foundBlog);
-                } else {
-                    setError('Blog not found');
-                }
+            if (foundBlog) {
+                setBlog(foundBlog);
+            } else {
+                setError('Blog not found');
             }
         } catch (e: any) {
             setError(e?.response?.data?.detail || e?.message || 'Failed to load blog');
