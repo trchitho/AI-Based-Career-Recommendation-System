@@ -8,7 +8,7 @@ class Roadmap(Base):
     __tablename__ = "roadmaps"
     __table_args__ = (
         CheckConstraint(
-            "title_en IS NOT NULL OR title_vi IS NOT NULL",
+            "title_en IS NOT NULL OR title_vn IS NOT NULL",
             name="chk_roadmaps_has_title"
         ),
         {"schema": "core"}
@@ -17,7 +17,7 @@ class Roadmap(Base):
     id = Column(BigInteger, primary_key=True)
     career_id = Column(BigInteger, nullable=False)
     title_en = Column(Text, nullable=True, comment="English title")
-    title_vi = Column(Text, nullable=True, comment="Vietnamese title")
+    title_vn = Column(Text, nullable=True, comment="Vietnamese title")
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -25,10 +25,10 @@ class Roadmap(Base):
         """Get title in specified language with fallback"""
         if language.lower() == "en" and self.title_en:
             return self.title_en
-        elif language.lower() == "vn" and self.title_vi:
-            return self.title_vi
+        elif language.lower() == "vn" and self.title_vn:
+            return self.title_vn
         # Fallback to available title
-        return self.title_vi or self.title_en or f"Roadmap for Career {self.career_id}"
+        return self.title_vn or self.title_en or f"Roadmap for Career {self.career_id}"
 
     def to_dict(self, language: str = "vn") -> dict:
         """Convert to dictionary with localized title"""
@@ -37,7 +37,7 @@ class Roadmap(Base):
             "career_id": self.career_id,
             "title": self.get_title(language),
             "title_en": self.title_en,
-            "title_vi": self.title_vi,
+            "title_vn": self.title_vn,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

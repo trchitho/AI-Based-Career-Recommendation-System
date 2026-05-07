@@ -154,12 +154,12 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
     if not roadmap:
         ct = c.to_dict().get("title") or "Career"
         # Create roadmap with Vietnamese title (default) and English title if available
-        title_vi = f"{ct} Roadmap"
+        title_vn = f"{ct} Roadmap"
         title_en = f"{ct} Roadmap" if ct != "Career" else None
         
         roadmap = Roadmap(
             career_id=career_id, 
-            title_vi=title_vi,
+            title_vn=title_vn,
             title_en=title_en
         )
         session.add(roadmap)

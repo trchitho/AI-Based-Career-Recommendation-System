@@ -32,11 +32,11 @@ class RoadmapService:
     def create_roadmap(
         session: Session,
         career_id: int,
-        title_vi: Optional[str] = None,
+        title_vn: Optional[str] = None,
         title_en: Optional[str] = None
     ) -> Roadmap:
         """Create new roadmap with multilingual titles"""
-        if not title_vi and not title_en:
+        if not title_vn and not title_en:
             # Get career title as fallback
             career = session.execute(
                 select(Career).where(Career.id == career_id)
@@ -44,14 +44,14 @@ class RoadmapService:
             
             if career:
                 career_dict = career.to_dict()
-                title_vi = f"{career_dict.get('title', 'Career')} Roadmap"
+                title_vn = f"{career_dict.get('title', 'Career')} Roadmap"
                 title_en = f"{career_dict.get('title', 'Career')} Roadmap"
             else:
-                title_vi = f"Career {career_id} Roadmap"
+                title_vn = f"Career {career_id} Roadmap"
         
         roadmap = Roadmap(
             career_id=career_id,
-            title_vi=title_vi,
+            title_vn=title_vn,
             title_en=title_en
         )
         session.add(roadmap)
@@ -62,7 +62,7 @@ class RoadmapService:
     def update_roadmap_titles(
         session: Session,
         roadmap_id: int,
-        title_vi: Optional[str] = None,
+        title_vn: Optional[str] = None,
         title_en: Optional[str] = None
     ) -> Optional[Roadmap]:
         """Update roadmap titles"""
@@ -73,8 +73,8 @@ class RoadmapService:
         if not roadmap:
             return None
         
-        if title_vi is not None:
-            roadmap.title_vi = title_vi
+        if title_vn is not None:
+            roadmap.title_vn = title_vn
         if title_en is not None:
             roadmap.title_en = title_en
             
