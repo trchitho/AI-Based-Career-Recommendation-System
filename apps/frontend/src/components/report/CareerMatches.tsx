@@ -108,7 +108,7 @@ const CareerMatches = ({ careers }: CareerMatchesProps) => {
 
                             {/* Action Link */}
                             <Link
-                                to={`/careers/${careerId}/roadmap`}
+                                to={career.job_onet ? `/careers/${career.job_onet}/roadmap` : `/careers/${careerId}/roadmap`}
                                 className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                             >
                                 View Career Roadmap

@@ -43,7 +43,7 @@ const PaymentReturn = () => {
 
           // Redirect after 3 seconds
           setTimeout(() => {
-            navigate('/roadmap?payment=success');
+            navigate('/dashboard?payment=success');
           }, 3000);
 
         } else if (result.payment.status === 'cancelled') {

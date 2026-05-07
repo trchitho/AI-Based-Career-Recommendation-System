@@ -30,7 +30,7 @@ def search_careers(request: Request, q: str, limit: int = 20):
     session = _db(request)
     like = f"%{q.lower()}%"
     title_expr = func.coalesce(Career.title_vi, Career.title_en)
-    desc_expr = func.coalesce(Career.short_desc_vn, Career.short_desc_en)
+    desc_expr = func.coalesce(Career.short_desc_vi, Career.short_desc_en)
     rows = session.execute(
         select(Career.id, Career.slug, title_expr, desc_expr)
         .where(or_(title_expr.ilike(like), desc_expr.ilike(like)))
@@ -79,7 +79,7 @@ def reindex_careers(_: Request):
                 Career.id,
                 Career.slug,
                 func.coalesce(Career.title_vi, Career.title_en),
-                func.coalesce(Career.short_desc_vn, Career.short_desc_en),
+                func.coalesce(Career.short_desc_vi, Career.short_desc_en),
             )
         ).all()
         docs = (

@@ -22,6 +22,8 @@ class QuestionType(str, Enum):
     BEHAVIORAL = "behavioral"
     SITUATIONAL = "situational"
     CLOSING = "closing"
+    JD_SPECIFIC = "jd_specific"
+    JD_QUALIFICATION = "jd_qualification"
 
 
 class MessageRole(str, Enum):
@@ -39,8 +41,10 @@ class Recommendation(str, Enum):
 class StartInterviewRequest(BaseModel):
     job_id: str = Field(..., description="O*NET code của nghề nghiệp")
     question_count: int = Field(default=5, ge=5, le=12, description="Số lượng câu hỏi phỏng vấn (5, 7, 8, 10, 12)")
+    jd_id: Optional[int] = Field(None, description="ID của JD đã upload (tùy chọn)")
+    level_slug: Optional[str] = Field(None, description="Cấp bậc nghề nghiệp (fresher, junior, middle, senior, lead)")
 
-    model_config = {"json_schema_extra": {"example": {"job_id": "15-1252.00", "question_count": 7}}}
+    model_config = {"json_schema_extra": {"example": {"job_id": "15-1252.00", "question_count": 7, "level_slug": "junior"}}}
 
 
 class SubmitAnswerRequest(BaseModel):
@@ -114,8 +118,11 @@ class InterviewSessionDetail(InterviewSessionSummary):
     key_strengths: Optional[List[str]] = None
     key_weaknesses: Optional[List[str]] = None
     skill_gaps: Optional[List[str]] = None
-    learning_recommendations: Optional[List[LearningRecommendation]] = None
+    # learning_recommendations có thể là List[str] (từ ai_pipeline) hoặc List[LearningRecommendation] (từ services)
+    learning_recommendations: Optional[List[Any]] = None
     skills_context: Optional[List[Dict[str, Any]]] = None
+    question_count: Optional[int] = None
+    question_distribution: Optional[Dict[str, Any]] = None
 
 
 class StartInterviewResponse(BaseModel):
@@ -158,6 +165,14 @@ class SubmitAnswerResponse(BaseModel):
     original_question: Optional[str] = None  # Original question for guidance
     can_retry: Optional[bool] = None  # Whether user can retry
     skip_count: Optional[int] = None  # Number of skipped questions
+    
+    # New fields for skills information
+    skills_tested: Optional[List[str]] = None  # Tên các skills được test trong câu hỏi này
+    skills_type: Optional[str] = None  # "soft" hoặc "hard" - loại skills được test
+    skills_details: Optional[List[Dict[str, Any]]] = None  # Chi tiết đầy đủ về skills
+    
+    # HR acknowledgment cho jd_qualification và closing
+    hr_acknowledgment: Optional[str] = None  # HR phản hồi câu trả lời (jd_qualification) hoặc trả lời câu hỏi (closing)
 
 
 class InterviewHistoryResponse(BaseModel):
@@ -168,6 +183,9 @@ class InterviewHistoryResponse(BaseModel):
 class UserInterviewsResponse(BaseModel):
     interviews: List[InterviewSessionSummary]
     total: int
+    limit: int
+    offset: int
+    has_more: bool
 
 
 class SkillContext(BaseModel):
@@ -184,6 +202,7 @@ class JobInfo(BaseModel):
     soft_skills: List[SkillContext] = []
     hard_skills: List[SkillContext] = []
     hard_skills_total: int = 0  # tổng số hard skills trong DB (để biết còn bao nhiêu khi xem thêm)
+    soft_skills_total: int = 0  # tổng số soft skills trong DB
 
 
 # Error Schemas
@@ -217,3 +236,19 @@ class DailyStats(BaseModel):
     interviews_count: int
     average_score: float
     completion_rate: float
+
+
+# ── JD Schemas ──────────────────────────────────────────────────────────────
+
+class JDManualRequest(BaseModel):
+    career_id: Optional[str] = Field(None, description="O*NET code (tùy chọn)")
+    content: str = Field(..., min_length=50, description="Nội dung JD")
+
+class JDResponse(BaseModel):
+    jd_id: int
+    career_id: Optional[str]
+    extracted_data: Dict[str, Any]
+    jd_questions_count: int  # Số câu hỏi về JD (tính động)
+    source: str
+    created_at: datetime
+    skills_context: Optional[List[Dict[str, Any]]] = Field(None, description="Skills context (soft skills từ nghề + hard skills từ JD)")

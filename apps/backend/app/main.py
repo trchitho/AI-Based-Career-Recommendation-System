@@ -77,6 +77,44 @@ async def lifespan(_: FastAPI):
     except Exception as e:
         print("Skip email verification auto-migration:", repr(e))
 
+    # Auto-migration: tạo bảng interview.job_descriptions nếu chưa có
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS interview.job_descriptions (
+                    id          SERIAL PRIMARY KEY,
+                    user_id     INTEGER NOT NULL,
+                    career_id   VARCHAR,
+                    raw_text    TEXT NOT NULL,
+                    extracted_data JSONB,
+                    source      VARCHAR DEFAULT 'manual',
+                    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_jd_user_id ON interview.job_descriptions(user_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_jd_career_id ON interview.job_descriptions(career_id)"))
+            conn.commit()
+            print("✅ interview.job_descriptions table ready")
+    except Exception as e:
+        print("Skip job_descriptions migration:", repr(e))
+
+    # Auto-migration: thêm cột question_count và question_distribution vào interview_sessions
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE interview.interview_sessions ADD COLUMN IF NOT EXISTS question_count INTEGER DEFAULT 5"))
+            conn.commit()
+            print("✅ interview_sessions.question_count ready")
+    except Exception as e:
+        print("Skip question_count migration:", repr(e))
+
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE interview.interview_sessions ADD COLUMN IF NOT EXISTS question_distribution JSONB"))
+            conn.commit()
+            print("✅ interview_sessions.question_distribution ready")
+    except Exception as e:
+        print("Skip question_distribution migration:", repr(e))
+
     yield
 
 
@@ -403,7 +441,16 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("??  Skip skill gap router:", repr(e))
     
-    # Career
+    # Career Groups & Levels (NEW)
+    try:
+        from .modules.careers.routes import router as career_groups_router
+
+        app.include_router(career_groups_router, prefix="/api/career-system", tags=["career-groups"])
+        print("✅ Career Groups & Levels router registered")
+    except Exception as e:
+        print("??  Skip career groups router:", repr(e))
+
+    # Career Trait Evidence (EXISTING)
     try:
         from .modules.careers import routes_trait_evidence as career_router
 
@@ -427,6 +474,33 @@ def create_app() -> FastAPI:
         print("✅ AI Mock Interview API")
     except Exception as e:
         print("❌ AI Mock Interview API:", str(e)[:50])
+
+    # Voice Interview API Routes
+    try:
+        from .api import voice_interview as voice_interview_router
+
+        app.include_router(voice_interview_router.router, tags=["voice-interview"])
+        print("✅ Voice Interview API")
+    except Exception as e:
+        print("❌ Voice Interview API:", str(e)[:50])
+
+    # Voice Interview Streaming API Routes
+    try:
+        from .api import voice_interview_streaming as voice_streaming_router
+
+        app.include_router(voice_streaming_router.router, tags=["voice-interview-streaming"])
+        print("✅ Voice Interview Streaming API")
+    except Exception as e:
+        print("❌ Voice Interview Streaming API:", str(e)[:50])
+
+    # Voice Preferences API Routes
+    try:
+        from .api import voice_preferences as voice_preferences_router
+
+        app.include_router(voice_preferences_router.router, tags=["voice-preferences"])
+        print("✅ Voice Preferences API")
+    except Exception as e:
+        print("❌ Voice Preferences API:", str(e)[:50])
 
     # NLP — PB32 essay analysis, PB33 career embeddings, PB34 pgvector search
     try:

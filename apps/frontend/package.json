@@ -33,6 +33,10 @@
     "socket.io-client": "^4.6.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.7.5",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
@@ -44,6 +48,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "i18next-scanner": "^4.6.0",
+    "jsdom": "^29.0.2",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.3.3",

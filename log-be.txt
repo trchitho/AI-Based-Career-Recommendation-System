@@ -1,0 +1,198 @@
+🔍 Loading career levels for: 15-1252.00
+✅ Career levels for 15-1252.00: 0.033s, 5 levels
+INFO:     127.0.0.1:62016 - "GET /api/interview/jobs/15-1252.00/levels HTTP/1.1" 200 OK
+🔧 First use of interview - initializing now...
+🔧 Trying to initialize interview with model: models/gemma-3-4b-it
+[ok] Interview stream initialized with: gemma-3-4b-it
+✅ AI Pipeline Service initialized with enhanced Gemini
+🔍 DEBUG: Original skills count: 10
+🔍 Skill 0: Làm việc với máy tính | type: Đầu ra công việc | is_hard: False
+🔍 Skill 1: Analyze information to determine, recommend, and plan installation of a new system or modification of an existing system. | type: Kỹ năng chuyên ngành | is_hard: True
+🔍 Skill 2: Analyze user needs and software requirements to determine feasibility of design within time and cost constraints. | type: Kỹ năng chuyên ngành | is_hard: True
+🔍 DEBUG: Soft skills found: 5
+🔍 Soft 0: Làm việc với máy tính | type: Đầu ra công việc
+🔍 Soft 1: Xử lý thông tin | type: Quy trình tư duy
+🔍 Soft 2: Ra quyết định và giải quyết vấn đề | type: Quy trình tư duy
+🔍 DEBUG: Final skills = 5 soft + 16 JD hard = 21 total
+✅ Persisted 21 skills_context to JD 130
+POST /api/interview/jd/upload - 200 - 9.233s
+INFO:     127.0.0.1:64784 - "POST /api/interview/jd/upload?career_id=15-1252.00 HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+🔧 Starting interview: job_id=15-1252.00, question_count=5, jd_id=130, level_slug=fresher
+✅ Career Level context loaded: fresher (0-1 năm)
+✅ JD context loaded: 3 jd_specific + 3 jd_qualification questions
+🔍 DEBUG: Original skills count: 10
+🔍 Skill 0: Làm việc với máy tính | type: Đầu ra công việc | is_hard: False
+🔍 Skill 1: Analyze information to determine, recommend, and plan installation of a new system or modification of an existing system. | type: Kỹ năng chuyên ngành | is_hard: True
+🔍 Skill 2: Analyze user needs and software requirements to determine feasibility of design within time and cost constraints. | type: Kỹ năng chuyên ngành | is_hard: True
+🔍 DEBUG: Soft skills found: 5
+🔍 Soft 0: Làm việc với máy tính | type: Đầu ra công việc
+🔍 Soft 1: Xử lý thông tin | type: Quy trình tư duy
+🔍 Soft 2: Ra quyết định và giải quyết vấn đề | type: Quy trình tư duy
+🔍 DEBUG: Final skills = 5 soft + 16 JD hard = 21 total
+✅ Effective interview level: fresher
+✅ Question calculation: 5 base + 3 jd_specific + 3 jd_qualification + 1 closing = 12 total
+🔧 Interview started successfully: session_id=433, question_count=12
+POST /api/interview/start - 200 - 3.266s
+INFO:     127.0.0.1:63577 - "POST /api/interview/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58312 - "GET /api/interview/jobs/15-1252.00 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61292 - "GET /api/notifications/9 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52364 - "GET /api/notifications/9 HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: jd_specific for Q2
+✅ Using effective level for question generation: fresher
+✅ JD context for question generation:
+Kỹ năng từ JD: Java SE 8 (Basic concepts: control-flow, keyword…Classes and Objects; OOP; String, s...
+✅ JD Specific Q1: Using skill index 0 - Java SE 8 (Basic concepts: control-flow, keyword…Classes and Objects; OOP; String, static, Collections, Java IO, Concurrency, Lambda Expressions, Exceptions)
+🔧 Using fallback question generation for type: jd_specific
+🔧 Type label: về yêu cầu cụ thể trong JD của công ty
+🔧 Skills string: Java SE 8 (Basic concepts: control-flow, keyword…Classes and Objects; OOP; String, static, Collections, Java IO, Concurrency, Lambda Expressions, Exceptions)
+POST /api/interview/answer - 200 - 2.037s
+INFO:     127.0.0.1:59278 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: jd_specific for Q3
+✅ Using effective level for question generation: fresher
+✅ JD context for question generation:
+Kỹ năng từ JD: Java SE 8 (Basic concepts: control-flow, keyword…Classes and Objects; OOP; String, s...
+✅ JD Specific Q2: Using skill index 1 - JDBC
+🔧 Using fallback question generation for type: jd_specific
+🔧 Type label: về yêu cầu cụ thể trong JD của công ty
+🔧 Skills string: JDBC
+INFO:     127.0.0.1:56531 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: jd_specific for Q4
+✅ Using effective level for question generation: fresher
+✅ JD context for question generation:
+Kỹ năng từ JD: Java SE 8 (Basic concepts: control-flow, keyword…Classes and Objects; OOP; String, s...
+✅ JD Specific Q3: Using skill index 2 - HTML5
+🔧 Using fallback question generation for type: jd_specific
+🔧 Type label: về yêu cầu cụ thể trong JD của công ty
+🔧 Skills string: HTML5
+INFO:     127.0.0.1:64330 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: technical for Q5
+✅ Using effective level for question generation: fresher
+✅ Technical question using available JD Requirements: 5 available
+✅ Selected JD Requirement for technical Q1: CSS3
+🔧 Using fallback question generation for type: technical
+🔧 Type label: kỹ thuật chuyên môn
+🔧 Skills string: CSS3
+INFO:     127.0.0.1:55939 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: technical for Q6
+✅ Using effective level for question generation: fresher
+✅ Technical question using available JD Requirements: 5 available
+✅ Selected JD Requirement for technical Q2: Bootstrap 4
+🔧 Using fallback question generation for type: technical
+🔧 Type label: kỹ thuật chuyên môn
+🔧 Skills string: Bootstrap 4
+INFO:     127.0.0.1:54338 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: behavioral for Q7
+✅ Using effective level for question generation: fresher
+🔧 Using fallback question generation for type: behavioral
+🔧 Type label: hành vi/kinh nghiệm
+🔧 Skills string: Làm việc với máy tính
+POST /api/interview/answer - 200 - 2.285s
+INFO:     127.0.0.1:64893 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: situational for Q8
+✅ Using effective level for question generation: fresher
+🔧 Using fallback question generation for type: situational
+🔧 Type label: tình huống thực tế
+🔧 Skills string: Xử lý thông tin
+POST /api/interview/answer - 200 - 2.008s
+INFO:     127.0.0.1:58135 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: jd_qualification for Q9
+✅ Using effective level for question generation: fresher
+🎓 Generating JD qualification question for Q9
+🎓 JD data available: True
+🎓 Skills context: 21 skills
+🎓 DEBUG: Total skills_context = 21
+🎓 DEBUG: JD Qualification skills = 3
+🎓 DEBUG: jd_qualifications[0] = Sinh viên đã/sắp tốt nghiệp chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm, Điện tử viễn thông… hoặc các chuyên ngành có liên quan
+🎓 DEBUG: jd_qualifications[1] = Tiếng Nhật từ N3 trở lên
+🎓 DEBUG: jd_qualifications[2] = Tiếng Anh >650 TOEIC, Topik 3
+🎓 DEBUG: qual_count = 0
+🎓 DEBUG: Sorted qualifications by priority:
+🎓 DEBUG: sorted[0] = Sinh viên đã/sắp tốt nghiệp chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm, Điện tử viễn thông… hoặc các chuyên ngành có liên quan (priority: 0)
+🎓 DEBUG: sorted[1] = Tiếng Nhật từ N3 trở lên (priority: 1)
+🎓 DEBUG: sorted[2] = Tiếng Anh >650 TOEIC, Topik 3 (priority: 2)
+🎓 Q1 Selected qualification: Sinh viên đã/sắp tốt nghiệp chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm, Điện tử viễn thông… hoặc các chuyên ngành có liên quan
+🎓 Q1 Qualification type: education
+✅ Gemini generated JD qualification Q1 with COMPLETE API context: "Chào bạn, trong quá trình học tập, bạn đã tham gia dự án nào liên quan đến các ...
+🎓 Generated JD qualification question: "Chào bạn, trong quá trình học tập, bạn đã tham gia dự án nào liên quan đến các chuyên ngành như Côn...
+🎓 Using JD qualification skill: ['Sinh viên đã/sắp tốt nghiệp chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm, Điện tử viễn thông… hoặc các chuyên ngành có liên quan']
+INFO:     127.0.0.1:63362 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ No scoring for jd_qualification question - generating acknowledgment only
+✅ Gemini generated jd_qualification feedback: "Cảm ơn bạn đã chia sẻ về kinh nghiệm lãnh đạo tea...
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: jd_qualification for Q10
+✅ Using effective level for question generation: fresher
+🎓 Generating JD qualification question for Q10
+🎓 JD data available: True
+🎓 Skills context: 21 skills
+🎓 DEBUG: Total skills_context = 21
+🎓 DEBUG: JD Qualification skills = 3
+🎓 DEBUG: jd_qualifications[0] = Sinh viên đã/sắp tốt nghiệp chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm, Điện tử viễn thông… hoặc các chuyên ngành có liên quan
+🎓 DEBUG: jd_qualifications[1] = Tiếng Nhật từ N3 trở lên
+🎓 DEBUG: jd_qualifications[2] = Tiếng Anh >650 TOEIC, Topik 3
+🎓 DEBUG: qual_count = 1
+🎓 DEBUG: Sorted qualifications by priority:
+🎓 DEBUG: sorted[0] = Sinh viên đã/sắp tốt nghiệp chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm, Điện tử viễn thông… hoặc các chuyên ngành có liên quan (priority: 0)
+🎓 DEBUG: sorted[1] = Tiếng Nhật từ N3 trở lên (priority: 1)
+🎓 DEBUG: sorted[2] = Tiếng Anh >650 TOEIC, Topik 3 (priority: 2)
+🎓 Q2 Selected qualification: Tiếng Nhật từ N3 trở lên
+🎓 Q2 Qualification type: japanese
+✅ Gemini generated JD qualification Q2 with COMPLETE API context: "Chào bạn, công ty chúng tôi đang phát triển mạnh ở thị trường Nhật Bản. Bạn vui...
+🎓 Generated JD qualification question: "Chào bạn, công ty chúng tôi đang phát triển mạnh ở thị trường Nhật Bản. Bạn vui lòng cho mình biết ...
+🎓 Using JD qualification skill: ['Tiếng Nhật từ N3 trở lên']
+POST /api/interview/answer - 200 - 3.914s
+INFO:     127.0.0.1:56398 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ No scoring for jd_qualification question - generating acknowledgment only
+✅ Gemini generated jd_qualification feedback: "Cảm ơn bạn đã chia sẻ về kinh nghiệm làm việc nhó...
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: jd_qualification for Q11
+✅ Using effective level for question generation: fresher
+🎓 Generating JD qualification question for Q11
+🎓 JD data available: True
+🎓 Skills context: 21 skills
+🎓 DEBUG: Total skills_context = 21
+🎓 DEBUG: JD Qualification skills = 3
+🎓 DEBUG: jd_qualifications[0] = Sinh viên đã/sắp tốt nghiệp chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm, Điện tử viễn thông… hoặc các chuyên ngành có liên quan
+🎓 DEBUG: jd_qualifications[1] = Tiếng Nhật từ N3 trở lên
+🎓 DEBUG: jd_qualifications[2] = Tiếng Anh >650 TOEIC, Topik 3
+🎓 DEBUG: qual_count = 2
+🎓 DEBUG: Sorted qualifications by priority:
+🎓 DEBUG: sorted[0] = Sinh viên đã/sắp tốt nghiệp chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm, Điện tử viễn thông… hoặc các chuyên ngành có liên quan (priority: 0)
+🎓 DEBUG: sorted[1] = Tiếng Nhật từ N3 trở lên (priority: 1)
+🎓 DEBUG: sorted[2] = Tiếng Anh >650 TOEIC, Topik 3 (priority: 2)
+🎓 Q3 Selected qualification: Tiếng Anh >650 TOEIC, Topik 3
+🎓 Q3 Qualification type: english
+✅ Gemini generated JD qualification Q3 with COMPLETE API context: "Anh/Chị vui lòng cho em xin biết điểm số TOEIC cụ thể của anh/chị là bao nhiêu,...
+🎓 Generated JD qualification question: "Anh/Chị vui lòng cho em xin biết điểm số TOEIC cụ thể của anh/chị là bao nhiêu, và có thể chia sẻ m...
+🎓 Using JD qualification skill: ['Tiếng Anh >650 TOEIC, Topik 3']
+POST /api/interview/answer - 200 - 3.958s
+INFO:     127.0.0.1:51211 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+✅ No scoring for jd_qualification question - generating acknowledgment only
+✅ Gemini generated jd_qualification feedback: "Cảm ơn bạn đã chia sẻ về trình độ VSTEP B1. Chúng...
+✅ Continue interview - JD context: has_jd=True, jd_count=3, jd_data_exists=True
+✅ Determined question type from distribution: closing for Q12
+✅ Using effective level for question generation: fresher
+POST /api/interview/answer - 200 - 3.677s
+INFO:     127.0.0.1:52616 - "POST /api/interview/answer HTTP/1.1" 200 OK
+✅ AI Pipeline Service initialized with enhanced Gemini
+POST /api/interview/answer - 200 - 3.577s
+INFO:     127.0.0.1:50800 - "POST /api/interview/answer HTTP/1.1" 200 OK

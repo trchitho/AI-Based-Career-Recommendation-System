@@ -20,7 +20,7 @@ def seed_careers(session, careers_file: Path):
         obj = Career(
             slug=slug,
             title_vi=c.get("title") or slug.replace("-", " ").title(),
-            short_desc_vn=c.get("short_desc_vn") or c.get("short_desc") or None,
+            short_desc_vi=c.get("short_desc_vi") or c.get("short_desc") or None,
             short_desc_en=c.get("short_desc_en") or None,
             onet_code=c.get("onet_code"),
         )

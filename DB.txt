@@ -1,0 +1,454 @@
+salary_min_en numeric(12,2),
+
+    salary_min_vn numeric(12,2),
+
+    salary_max_en numeric(12,2),
+
+    salary_max_vn numeric(12,2),
+
+    salary_avg_en numeric(12,2),
+
+    salary_avg_vn numeric(12,2),
+
+    salary_currency_en text COLLATE pg_catalog."default" DEFAULT 'USD'::text,
+
+    salary_currency_vn text COLLATE pg_catalog."default" DEFAULT 'VND'::text,
+
+    salary_bands_en jsonb DEFAULT '[]'::jsonb,
+
+    salary_bands_vn jsonb DEFAULT '[]'::jsonb,
+
+
+
+thì lấy trong bảng: core.career_wages_us và core.career_wages_vi
+
+
+
+-- Table: core.career_wages_us
+
+-- DROP TABLE IF EXISTS core.career_wages_us;
+
+CREATE TABLE IF NOT EXISTS core.career_wages_us
+
+(
+
+    id integer NOT NULL DEFAULT nextval('core.career_wages_us_id_seq'::regclass),
+
+    onet_code character varying(10) COLLATE pg_catalog."default" NOT NULL,
+
+    annual_median numeric(10,2),
+
+    annual_10th_percentile numeric(10,2),
+
+    annual_25th_percentile numeric(10,2),
+
+    annual_75th_percentile numeric(10,2),
+
+    annual_90th_percentile numeric(10,2),
+
+    hourly_median numeric(8,2),
+
+    hourly_10th_percentile numeric(8,2),
+
+    hourly_25th_percentile numeric(8,2),
+
+    hourly_75th_percentile numeric(8,2),
+
+    hourly_90th_percentile numeric(8,2),
+
+    date character varying(10) COLLATE pg_catalog."default",
+
+    source character varying(50) COLLATE pg_catalog."default",
+
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+
+    experience_level character varying(20) COLLATE pg_catalog."default",
+
+    job_zone integer,
+
+    industry_category character varying(50) COLLATE pg_catalog."default",
+
+    adjustment_factor numeric(4,2),
+
+    confidence_level character varying(10) COLLATE pg_catalog."default",
+
+    last_updated date DEFAULT CURRENT_DATE,
+
+    data_quality character varying(20) COLLATE pg_catalog."default" DEFAULT 'estimated'::character varying,
+
+    market_demand character varying(20) COLLATE pg_catalog."default" DEFAULT 'medium'::character varying,
+
+    CONSTRAINT career_wages_us_pkey PRIMARY KEY (id)
+
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS core.career_wages_us
+
+    OWNER to postgres;
+
+COMMENT ON TABLE core.career_wages_us
+
+    IS 'US wage and salary data by occupation';
+
+COMMENT ON COLUMN core.career_wages_us.experience_level
+
+    IS 'Experience level: entry, mid, senior';
+
+COMMENT ON COLUMN core.career_wages_us.job_zone
+
+    IS 'O*NET Job Zone (1-5)';
+
+COMMENT ON COLUMN core.career_wages_us.industry_category
+
+    IS 'Industry classification';
+
+COMMENT ON COLUMN core.career_wages_us.adjustment_factor
+
+    IS 'Factor for converting to other currencies';
+
+COMMENT ON COLUMN core.career_wages_us.confidence_level
+
+    IS 'Data reliability: high, medium, low';
+
+COMMENT ON COLUMN core.career_wages_us.data_quality
+
+    IS 'Data quality: bls_official, estimated, interpolated';
+
+COMMENT ON COLUMN core.career_wages_us.market_demand
+
+    IS 'US job market demand: high, medium, low';
+
+-- Index: idx_career_wages_us_experience
+
+-- DROP INDEX IF EXISTS core.idx_career_wages_us_experience;
+
+CREATE INDEX IF NOT EXISTS idx_career_wages_us_experience
+
+    ON core.career_wages_us USING btree
+
+    (experience_level COLLATE pg_catalog."default" ASC NULLS LAST)
+
+    TABLESPACE pg_default;
+
+-- Index: idx_career_wages_us_industry
+
+-- DROP INDEX IF EXISTS core.idx_career_wages_us_industry;
+
+CREATE INDEX IF NOT EXISTS idx_career_wages_us_industry
+
+    ON core.career_wages_us USING btree
+
+    (industry_category COLLATE pg_catalog."default" ASC NULLS LAST)
+
+    TABLESPACE pg_default;
+
+-- Index: idx_career_wages_us_job_zone
+
+-- DROP INDEX IF EXISTS core.idx_career_wages_us_job_zone;
+
+CREATE INDEX IF NOT EXISTS idx_career_wages_us_job_zone
+
+    ON core.career_wages_us USING btree
+
+    (job_zone ASC NULLS LAST)
+
+    TABLESPACE pg_default;
+
+-- Index: idx_career_wages_us_onet
+
+-- DROP INDEX IF EXISTS core.idx_career_wages_us_onet;
+
+CREATE INDEX IF NOT EXISTS idx_career_wages_us_onet
+
+    ON core.career_wages_us USING btree
+
+    (onet_code COLLATE pg_catalog."default" ASC NULLS LAST)
+
+    TABLESPACE pg_default;
+
+
+
+
+
+
+
+-- Table: core.career_wages_vi
+
+-- DROP TABLE IF EXISTS core.career_wages_vi;
+
+CREATE TABLE IF NOT EXISTS core.career_wages_vi
+
+(
+
+    id integer NOT NULL DEFAULT nextval('core.career_wages_vi_id_seq'::regclass),
+
+    onet_code character varying(10) COLLATE pg_catalog."default" NOT NULL,
+
+    annual_median_vnd bigint,
+
+    annual_min_vnd bigint,
+
+    annual_max_vnd bigint,
+
+    monthly_median_vnd integer,
+
+    monthly_min_vnd integer,
+
+    monthly_max_vnd integer,
+
+    experience_level character varying(20) COLLATE pg_catalog."default",
+
+    experience_level_vi character varying(50) COLLATE pg_catalog."default",
+
+    job_zone integer,
+
+    industry_category character varying(50) COLLATE pg_catalog."default",
+
+    industry_category_vi character varying(100) COLLATE pg_catalog."default",
+
+    data_source character varying(50) COLLATE pg_catalog."default",
+
+    data_source_vi character varying(200) COLLATE pg_catalog."default",
+
+    adjustment_factor numeric(4,2),
+
+    confidence_level character varying(10) COLLATE pg_catalog."default",
+
+    confidence_level_vi character varying(50) COLLATE pg_catalog."default",
+
+    last_updated date,
+
+    created_at timestamp without time zone,
+
+    updated_at timestamp without time zone,
+
+    region_hcm_monthly integer,
+
+    region_hanoi_monthly integer,
+
+    region_danang_monthly integer,
+
+    region_provinces_monthly integer,
+
+    data_quality character varying(20) COLLATE pg_catalog."default",
+
+    data_quality_vi character varying(50) COLLATE pg_catalog."default",
+
+    market_demand character varying(20) COLLATE pg_catalog."default",
+
+    market_demand_vi character varying(50) COLLATE pg_catalog."default",
+
+    CONSTRAINT career_wages_vi_pkey PRIMARY KEY (id),
+
+    CONSTRAINT career_wages_vi_onet_code_key UNIQUE (onet_code)
+
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS core.career_wages_vi
+
+    OWNER to postgres;
+
+COMMENT ON TABLE core.career_wages_vi
+
+    IS 'Dữ liệu lương Việt Nam với các mức lương theo vùng và ngành nghề';
+
+COMMENT ON COLUMN core.career_wages_vi.annual_median_vnd
+
+    IS 'Mức lương trung vị hàng năm tính bằng đồng Việt Nam';
+
+COMMENT ON COLUMN core.career_wages_vi.monthly_median_vnd
+
+    IS 'Mức lương trung vị hàng tháng tính bằng đồng Việt Nam';
+
+COMMENT ON COLUMN core.career_wages_vi.experience_level
+
+    IS 'Cấp độ kinh nghiệm (tiếng Anh)';
+
+COMMENT ON COLUMN core.career_wages_vi.experience_level_vi
+
+    IS 'Cấp độ kinh nghiệm (tiếng Việt)';
+
+COMMENT ON COLUMN core.career_wages_vi.industry_category
+
+    IS 'Ngành nghề (tiếng Anh)';
+
+COMMENT ON COLUMN core.career_wages_vi.industry_category_vi
+
+    IS 'Ngành nghề (tiếng Việt)';
+
+COMMENT ON COLUMN core.career_wages_vi.data_source
+
+    IS 'Nguồn dữ liệu (tiếng Anh)';
+
+COMMENT ON COLUMN core.career_wages_vi.data_source_vi
+
+    IS 'Nguồn dữ liệu (tiếng Việt)';
+
+COMMENT ON COLUMN core.career_wages_vi.adjustment_factor
+
+    IS 'Hệ số điều chỉnh từ mức lương Hoa Kỳ sang Việt Nam';
+
+COMMENT ON COLUMN core.career_wages_vi.confidence_level
+
+    IS 'Độ tin cậy dữ liệu: high (báo cáo VN), medium (điều chỉnh), low (ước tính)';
+
+COMMENT ON COLUMN core.career_wages_vi.confidence_level_vi
+
+    IS 'Độ tin cậy dữ liệu bằng tiếng Việt';
+
+COMMENT ON COLUMN core.career_wages_vi.region_hcm_monthly
+
+    IS 'Lương tháng tại TP. Hồ Chí Minh (VNĐ)';
+
+COMMENT ON COLUMN core.career_wages_vi.region_hanoi_monthly
+
+    IS 'Lương tháng tại Hà Nội (VNĐ)';
+
+COMMENT ON COLUMN core.career_wages_vi.region_danang_monthly
+
+    IS 'Lương tháng tại Đà Nẵng (VNĐ)';
+
+COMMENT ON COLUMN core.career_wages_vi.region_provinces_monthly
+
+    IS 'Lương tháng tại các tỉnh thành khác (VNĐ)';
+
+COMMENT ON COLUMN core.career_wages_vi.data_quality
+
+    IS 'Chất lượng dữ liệu (tiếng Anh)';
+
+COMMENT ON COLUMN core.career_wages_vi.data_quality_vi
+
+    IS 'Chất lượng dữ liệu (tiếng Việt)';
+
+COMMENT ON COLUMN core.career_wages_vi.market_demand
+
+    IS 'Nhu cầu thị trường lao động (tiếng Anh)';
+
+COMMENT ON COLUMN core.career_wages_vi.market_demand_vi
+
+    IS 'Nhu cầu thị trường lao động (tiếng Việt)';
+
+-- Index: idx_career_wages_vi_experience
+
+-- DROP INDEX IF EXISTS core.idx_career_wages_vi_experience;
+
+CREATE INDEX IF NOT EXISTS idx_career_wages_vi_experience
+
+    ON core.career_wages_vi USING btree
+
+    (experience_level COLLATE pg_catalog."default" ASC NULLS LAST)
+
+    TABLESPACE pg_default;
+
+-- Index: idx_career_wages_vi_job_zone
+
+-- DROP INDEX IF EXISTS core.idx_career_wages_vi_job_zone;
+
+CREATE INDEX IF NOT EXISTS idx_career_wages_vi_job_zone
+
+    ON core.career_wages_vi USING btree
+
+    (job_zone ASC NULLS LAST)
+
+    TABLESPACE pg_default;
+
+-- Index: idx_career_wages_vi_onet
+
+-- DROP INDEX IF EXISTS core.idx_career_wages_vi_onet;
+
+CREATE INDEX IF NOT EXISTS idx_career_wages_vi_onet
+
+    ON core.career_wages_vi USING btree
+
+    (onet_code COLLATE pg_catalog."default" ASC NULLS LAST)
+
+    TABLESPACE pg_default;
+
+-- Index: idx_career_wages_vi_source
+
+-- DROP INDEX IF EXISTS core.idx_career_wages_vi_source;
+
+CREATE INDEX IF NOT EXISTS idx_career_wages_vi_source
+
+    ON core.career_wages_vi USING btree
+
+    (data_source COLLATE pg_catalog."default" ASC NULLS LAST)
+
+    TABLESPACE pg_default;
+
+
+
+
+
+-- Table: core.career_overview
+
+-- DROP TABLE IF EXISTS core.career_overview;
+
+CREATE TABLE IF NOT EXISTS core.career_overview
+
+(
+
+    id bigint NOT NULL,
+
+    career_id bigint NOT NULL,
+
+    experience_text_en text COLLATE pg_catalog."default",
+
+    experience_text_vn text COLLATE pg_catalog."default",
+
+    degree_text_en text COLLATE pg_catalog."default",
+
+    degree_text_vn text COLLATE pg_catalog."default",
+
+    salary_min_en numeric(12,2),
+
+    salary_min_vn numeric(12,2),
+
+    salary_max_en numeric(12,2),
+
+    salary_max_vn numeric(12,2),
+
+    salary_avg_en numeric(12,2),
+
+    salary_avg_vn numeric(12,2),
+
+    salary_currency_en text COLLATE pg_catalog."default" DEFAULT 'USD'::text,
+
+    salary_currency_vn text COLLATE pg_catalog."default" DEFAULT 'VND'::text,
+
+    salary_bands_en jsonb DEFAULT '[]'::jsonb,
+
+    salary_bands_vn jsonb DEFAULT '[]'::jsonb,
+
+    updated_at timestamp with time zone DEFAULT now(),
+
+    CONSTRAINT career_overview_pkey PRIMARY KEY (id),
+
+    CONSTRAINT ux_career_overview_career UNIQUE (career_id)
+
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS core.career_overview
+
+    OWNER to postgres;
+
+-- Index: idx_career_overview_career
+
+-- DROP INDEX IF EXISTS core.idx_career_overview_career;
+
+CREATE INDEX IF NOT EXISTS idx_career_overview_career
+
+    ON core.career_overview USING btree
+
+    (career_id ASC NULLS LAST)
+
+    TABLESPACE pg_default;
+

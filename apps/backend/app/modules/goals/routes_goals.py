@@ -460,9 +460,10 @@ def _get_roadmap_data(session: Session, career_id: str) -> dict:
     career_db_id = career_row.id
     career_title = career_row.title_vi or career_row.title_en or career_row.slug
     
-    # Get roadmap
+    # Get roadmap with language preference
     roadmap_query = text("""
-        SELECT r.id, r.title
+        SELECT r.id, 
+               COALESCE(r.title_vi, r.title_en) as title
         FROM core.roadmaps r
         WHERE r.career_id = :career_id
         LIMIT 1
