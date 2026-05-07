@@ -19,9 +19,9 @@ router = APIRouter(prefix="/api/schedule", tags=["schedule"])
 
 try:
     Base.metadata.create_all(bind=engine, tables=[MentorSession.__table__])
-    print("✅ MentorSession table ready")
+    print("[OK] MentorSession table ready")
 except Exception as e:
-    print(f"⚠️  MentorSession table init: {e}")
+    print(f"[WARN]  MentorSession table init: {e}")
 
 
 async def _send_session_reminders():

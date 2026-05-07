@@ -208,7 +208,7 @@ const UserManagementPage = () => {
                   {/* Status indicator */}
                   <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${u.is_locked
                       ? "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
-                      : "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800"
+                      : "bg-indigo-50 text-indigo-800 border-emerald-200 dark:bg-indigo-950/20 dark:text-emerald-400 dark:border-emerald-800"
                     }`}>
                     {u.is_locked ? "" : ""}
                   </span>
@@ -255,7 +255,7 @@ const UserManagementPage = () => {
                   <button
                     className={`w-full px-3 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2
                       ${u.is_locked
-                        ? "bg-indigo-700 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                        ? "bg-indigo-700 hover:bg-indigo-800 text-white shadow-lg shadow-indigo-700/30"
                         : "bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 dark:bg-gray-700 dark:hover:bg-red-900/30 dark:text-gray-300 dark:hover:text-red-400 border-2 border-gray-200 dark:border-gray-600 hover:border-red-200 dark:hover:border-red-800"
                       }`}
                     onClick={async () => {

@@ -43,7 +43,7 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
   const getStatusColor = () => {
     if (isExpired) return 'from-red-500 to-red-600';
     if (isExpiringSoon) return 'from-orange-500 to-orange-600';
-    return 'from-indigo-700 to-green-600';
+    return 'from-indigo-700 to-indigo-800';
   };
 
   const getStatusText = () => {
@@ -148,7 +148,7 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
                 ? 'text-red-900 dark:text-red-100'
                 : isExpiringSoon
                   ? 'text-orange-900 dark:text-orange-100'
-                  : 'text-green-900 dark:text-green-100'
+                  : 'text-indigo-950 dark:text-indigo-100'
                 }`}>
                 {isExpired
                   ? 'Plan has expired'

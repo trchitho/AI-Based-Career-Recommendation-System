@@ -20,7 +20,7 @@ const NoAssessmentPrompt: React.FC = () => {
 
       <div className="relative z-10 max-w-2xl mx-auto">
         {/* Illustration Icon */}
-        <div className="mx-auto mb-8 w-24 h-24 bg-indigo-50 dark:bg-indigo-950/20 rounded-[24px] flex items-center justify-center shadow-sm border border-green-100 dark:border-indigo-800/50 group hover:scale-105 transition-transform duration-300">
+        <div className="mx-auto mb-8 w-24 h-24 bg-indigo-50 dark:bg-indigo-950/20 rounded-[24px] flex items-center justify-center shadow-sm border border-indigo-100 dark:border-indigo-800/50 group hover:scale-105 transition-transform duration-300">
           <svg className="w-12 h-12 text-indigo-800 dark:text-indigo-400 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
           </svg>
@@ -53,7 +53,7 @@ const NoAssessmentPrompt: React.FC = () => {
         {/* CTA Button */}
         <button
           onClick={handleStartAssessment}
-          className="group relative inline-flex items-center justify-center px-10 py-4 bg-indigo-800 hover:bg-indigo-900 text-white rounded-2xl font-bold text-lg shadow-xl shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-1 transition-all duration-300"
+          className="group relative inline-flex items-center justify-center px-10 py-4 bg-indigo-800 hover:bg-indigo-900 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-800/30 hover:shadow-indigo-800/50 hover:-translate-y-1 transition-all duration-300"
         >
           <span>Làm bài đánh giá nghề nghiệp</span>
           <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -78,11 +78,11 @@ const ChatSummaryPage = () => {
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
           .bg-dot-pattern {
-            background-image: radial-gradient(E5E7EB 1px, transparent 1px);
+            background-image: radial-gradient(#E5E7EB 1px, transparent 1px);
             background-size: 24px 24px;
           }
           .dark .bg-dot-pattern {
-            background-image: radial-gradient(374151 1px, transparent 1px);
+            background-image: radial-gradient(#374151 1px, transparent 1px);
           }
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
@@ -144,7 +144,7 @@ const ChatSummaryPage = () => {
                   <div className="relative">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-transparent to-white/10 pointer-events-none"></div>
                     <textarea
-                      className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-5 py-4 h-80 bg-white dark:bg-gray-950 text-gray-800 dark:text-green-100/80 font-['JetBrains_Mono'] text-sm leading-relaxed focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none resize-none shadow-inner"
+                      className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-5 py-4 h-80 bg-white dark:bg-gray-950 text-gray-800 dark:text-indigo-100/80 font-['JetBrains_Mono'] text-sm leading-relaxed focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none resize-none shadow-inner"
                       value={summary}
                       onChange={(e) => setSummary(e.target.value)}
                       spellCheck={false}

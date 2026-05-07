@@ -325,7 +325,7 @@ const SkillManagementPage = () => {
 
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${skill.ksa_type === 'Knowledge' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                      skill.ksa_type === 'Skills' ? 'bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-green-200' :
+                      skill.ksa_type === 'Skills' ? 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200' :
                         'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                       }`}>
                       {skill.ksa_type}

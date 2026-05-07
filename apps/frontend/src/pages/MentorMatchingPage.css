@@ -780,14 +780,31 @@ html.dark .mm-card-top {
 }
 
 .mm-req-item {
-    background: white;
-    border-radius: 14px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid var(--mm-border);
-    box-shadow: var(--mm-shadow);
+  background: var(--neu-bg-card); border-radius: 16px; box-shadow: var(--neu-raised);
+  padding: 1.1rem 1.4rem; display: flex; align-items: center; gap: 1.1rem;
+  animation: mm-fade-up 0.4s ease-out both;
+}
+.mm-req-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--neu-accent); color: var(--neu-btn-text, #fff);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.95rem; flex-shrink: 0;
+  box-shadow: 2px 2px 6px var(--neu-shadow-dark), -2px -2px 5px var(--neu-shadow-light);
+}
+.mm-req-info { flex: 1; min-width: 0; }
+.mm-req-name { font-size: 0.92rem; font-weight: 700; color: var(--neu-text); }
+.mm-req-meta { font-size: 0.75rem; color: var(--neu-text-muted); margin-top: 0.12rem; }
+.mm-req-msg { font-size: 0.75rem; color: var(--neu-text-muted); margin-top: 0.25rem; font-style: italic; }
+.mm-status-badge { padding: 0.28rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+.mm-status-badge.pending  { background: rgba(245,158,11,0.15); color: #92400e; }
+.mm-status-badge.accepted { background: rgba(26,35,126,0.15); color: #065f46; }
+.mm-status-badge.rejected { background: rgba(239,68,68,0.12);  color: #991b1b; }
+
+/* ── Banner ───────────────────────────────────────────────── */
+.mm-success-banner {
+  padding: 0.8rem 1.1rem; background: rgba(26,35,126,0.1);
+  border: 1px solid rgba(26,35,126,0.3); border-radius: 10px;
+  color: #065f46; font-size: 0.88rem; font-weight: 600; margin-bottom: 1.25rem;
 }
 
 .mm-req-info {

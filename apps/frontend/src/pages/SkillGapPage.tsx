@@ -211,7 +211,10 @@ const SkillGapPage: React.FC = () => {
 
   const handleStartInterview = () => {
     if (analysis) {
-      navigate(`/interview?analysisId=${analysis.id}`);
+      // Convert career_id format from "27-2099-00" to "27-2099.00" for URL
+      const formattedCareerId = analysis.career_id.replace(/-(\d{2})$/, '.$1');
+      // Navigate to interview selection page with the formatted career ID
+      navigate(`/interview/selection/${formattedCareerId}`);
     }
   };
 
@@ -305,11 +308,12 @@ const SkillGapPage: React.FC = () => {
             </div>
 
             <div style={{
-              background: t.containerBg,
-              borderRadius: '12px',
-              padding: '1.5rem',
-              marginBottom: '2rem',
-              border: t.border,
+              background: 'linear-gradient(135deg, #667eea 0%, 764ba2 100%)',
+              borderRadius: '20px',
+              padding: '3rem 2rem',
+              textAlign: 'center',
+              color: 'white',
+              boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4)',
             }}>
               <p style={{ fontSize: '0.95rem', marginBottom: '0.5rem', color: t.textMuted }}>
                 Gói hiện tại của bạn:
@@ -412,16 +416,13 @@ const SkillGapPage: React.FC = () => {
                   e.currentTarget.style.boxShadow = t.shadowPremium;
                 }}>
                 <div style={{
-                  position: 'absolute',
-                  top: '-12px',
-                  right: '20px',
-                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                  color: '#1f2937',
-                  padding: '0.25rem 1rem',
-                  borderRadius: '20px',
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold',
-                  boxShadow: '0 2px 8px rgba(251, 191, 36, 0.4)',
+                  background: 'linear-gradient(135deg, #667eea 0%, 764ba2 100%)',
+                  borderRadius: '16px',
+                  padding: '2rem',
+                  boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                  border: '2px solid #667eea',
+                  position: 'relative',
+                  transform: 'scale(1.05)',
                 }}>
                   ⭐ PHỔ BIẾN
                 </div>
@@ -520,7 +521,9 @@ const SkillGapPage: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Table */}
                   <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 14, border: '1px solid var(--neu-border, #e5e7eb)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                    {/* Table head */}
                     <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.65rem 1.25rem', background: 'var(--neu-bg, #f9fafb)', borderBottom: '1px solid var(--neu-border, #e5e7eb)' }}>
                       {['FILENAME & TARGET ROLE', 'DATE UPLOADED', 'MATCH SCORE', 'ACTIONS'].map(h => (
                         <span key={h} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</span>
@@ -530,6 +533,7 @@ const SkillGapPage: React.FC = () => {
                     {historyLoading ? (
                       <div style={{ padding: '1.5rem', textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                         <div style={{ width: 16, height: 16, border: '2px solid #e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
                         Đang tải...
                       </div>
                     ) : (

@@ -154,7 +154,7 @@ const InterviewListPage: React.FC = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'completed':
-                return 'bg-indigo-50 text-green-800';
+                return 'bg-indigo-50 text-indigo-950';
             case 'active':
                 return 'bg-blue-100 text-blue-800';
             case 'abandoned':
@@ -180,6 +180,9 @@ const InterviewListPage: React.FC = () => {
 
     // Check authentication and load data ONLY ONCE
     useEffect(() => {
+        // Scroll to top when component mounts
+        window.scrollTo(0, 0);
+
         if (!user) {
             navigate('/login', {
                 state: {

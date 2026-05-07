@@ -137,11 +137,11 @@ const ChatPage = () => {
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           .bg-dot-pattern {
-            background-image: radial-gradient(E5E7EB 1px, transparent 1px);
+            background-image: radial-gradient(#E5E7EB 1px, transparent 1px);
             background-size: 24px 24px;
           }
           .dark .bg-dot-pattern {
-            background-image: radial-gradient(374151 1px, transparent 1px);
+            background-image: radial-gradient(#374151 1px, transparent 1px);
           }
           .scrollbar-hide::-webkit-scrollbar { display: none; }
           .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
@@ -182,7 +182,7 @@ const ChatPage = () => {
             <button
               onClick={() => setHistoryOpen(true)}
               title="Lịch sử trò chuyện"
-              className="absolute right-4 sm:right-6 lg:right-8 top-6 flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-green-400 hover:text-indigo-800 transition-all shadow-sm text-sm font-medium"
+              className="absolute right-4 sm:right-6 lg:right-8 top-6 flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-800 transition-all shadow-sm text-sm font-medium"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

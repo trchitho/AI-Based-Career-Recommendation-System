@@ -517,7 +517,7 @@ const ProgressComparisonPage: React.FC = () => {
                               <CareerTooltip key={career.career_id} career={career}>
                                 <Link
                                   to={`/careers/${career.career_slug || career.career_id}`}
-                                  className="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-indigo-50 dark:hover:bg-green-900/20 transition-all duration-200 group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-900"
+                                  className="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all duration-200 group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-900"
                                 >
                                   <span className="w-6 h-6 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                                     {idx + 1}

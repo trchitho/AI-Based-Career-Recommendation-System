@@ -173,8 +173,9 @@ async def _stream_chatbot(
 
     # Build context
     ctx = "\n".join([f"{h['role']}: {h['content']}" for h in history[-6:]])
+    history_block = f"Lịch sử hội thoại:\n{ctx}" if ctx else ""
     prompt = f"""Bạn là AI Career Advisor. Trả lời ngắn gọn, hữu ích bằng tiếng Việt.
-{f'Lịch sử hội thoại:\n{ctx}' if ctx else ''}
+{history_block}
 Người dùng: {message}
 AI:"""
 

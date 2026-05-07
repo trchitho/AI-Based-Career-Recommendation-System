@@ -55,7 +55,7 @@ function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const colors = ['#6366f1', '8b5cf6', 'ec4899', '10b981', '3b82f6', 'f59e0b', '14b8a6'];
   const color = colors[name.charCodeAt(0) % colors.length];
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: color, color: 'fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: size * 0.35, flexShrink: 0 }}>
+    <div style={{ width: size, height: size, borderRadius: '50%', background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: size * 0.35, flexShrink: 0 }}>
       {init}
     </div>
   );
@@ -64,14 +64,14 @@ function Avatar({ name, size = 40 }: { name: string; size?: number }) {
 /* ── StatusBadge ──────────────────────────────────────────────── */
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; bg: string; color: string }> = {
-    pending: { label: 'Đang chờ', bg: 'fef3c7', color: '#92400e' },
-    accepted: { label: 'Đã chấp nhận', bg: 'd1fae5', color: '#065f46' },
-    rejected: { label: 'Đã từ chối', bg: 'fee2e2', color: '#991b1b' },
-    confirmed: { label: 'Đã xác nhận', bg: 'dbeafe', color: '#1e40af' },
-    cancelled: { label: 'Đã huỷ', bg: 'f3f4f6', color: '#6b7280' },
-    completed: { label: 'Hoàn thành', bg: 'd1fae5', color: '#065f46' },
+    pending:   { label: 'Đang chờ',     bg: '#fef3c7', color: '#92400e' },
+    accepted:  { label: 'Đã chấp nhận', bg: '#d1fae5', color: '#065f46' },
+    rejected:  { label: 'Đã từ chối',   bg: '#fee2e2', color: '#991b1b' },
+    confirmed: { label: 'Đã xác nhận',  bg: '#dbeafe', color: '#1e40af' },
+    cancelled: { label: 'Đã huỷ',       bg: '#f3f4f6', color: '#6b7280' },
+    completed: { label: 'Hoàn thành',   bg: '#d1fae5', color: '#065f46' },
   };
-  const s = map[status] ?? { label: status, bg: 'f3f4f6', color: '#6b7280' };
+  const s = map[status] ?? { label: status, bg: '#f3f4f6', color: '#6b7280' };
   return (
     <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: 99, background: s.bg, color: s.color }}>{s.label}</span>
   );
@@ -138,13 +138,13 @@ const MentorMatchingPage = () => {
   /* ── init ── */
   useEffect(() => {
     (async () => {
-      // Check mentee profile
-      try { await mentorMatchingService.getMenteeProfile(); setHasProfile(true); loadMentors(); return; } catch { }
-      try {
-        const auto = await mentorMatchingService.createMenteeFromProfile();
-        if (auto.target_career || auto.desired_skills.length > 0) { setHasProfile(true); loadMentors(); return; }
-      } catch { }
-      setHasProfile(false);
+      // Try existing mentee profile
+      try { await mentorMatchingService.getMenteeProfile(); setHasProfile(true); loadMentors(); return; } catch {}
+      // Auto-create from user data (assessment + CV)
+      try { await mentorMatchingService.createMenteeFromProfile(); } catch {}
+      // Always show mentors (backend returns all when no profile data)
+      setHasProfile(true);
+      loadMentors();
     })();
   }, []);
 
@@ -344,13 +344,11 @@ const MentorMatchingPage = () => {
         <div className="mm-content">
 
           {/* Notice */}
-          <div className="mm-notice-bar">
-            <div className="icon-wrapper">
-              <Info size={16} />
-            </div>
-            <div className="text">
-              <strong>Tính năng hỗ trợ: </strong>
-              Gợi ý yêu cầu kết nối, nhắn tin và đặt lịch gặp với mentor. Hệ thống <strong>không</strong> bao gồm gọi video trực tuyến.
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.85rem 1.1rem', marginBottom: '1.5rem', background: 'var(--neu-bg-card)', borderRadius: 12, boxShadow: 'var(--neu-raised-sm)', borderLeft: '3px solid #f59e0b' }}>
+            <Info size={18} className="flex-shrink-0 text-amber-500 mt-0.5" />
+            <div style={{ fontSize: '0.83rem', color: 'var(--neu-text-muted)' }}>
+              <strong style={{ color: 'var(--neu-text)' }}>Tính năng hỗ trợ:&nbsp;</strong>
+              Gửi yêu cầu kết nối, nhắn tin và đặt lịch gặp với mentor. Hệ thống <strong>không</strong> bao gồm gọi video trực tuyến.
             </div>
             <a href="#" className="cta-link">Tìm hiểu thêm →</a>
           </div>
@@ -515,11 +513,11 @@ const MentorMatchingPage = () => {
                               {isSent ? <><Check size={12} className="inline mr-1" />Đã gửi</> : isFull ? 'Đã đầy slot' : 'Gửi yêu cầu'}
                             </button>
                             <button title="Nhắn tin" onClick={() => setChatTarget({ userId: m.user_id, name: m.mentor_name })}
-                              style={{ padding: '0 0.75rem', borderRadius: 10, border: '1.5px solid 3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                              style={{ padding: '0 0.75rem', borderRadius: 10, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', flexShrink: 0, display:'flex', alignItems:'center' }}>
                               <MessageCircle size={16} />
                             </button>
                             <button title="Đặt lịch" onClick={() => setBookingTarget({ userId: m.user_id, name: m.mentor_name })}
-                              style={{ padding: '0 0.75rem', borderRadius: 10, border: '1.5px solid 8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                              style={{ padding: '0 0.75rem', borderRadius: 10, border: '1.5px solid #8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', flexShrink: 0, display:'flex', alignItems:'center' }}>
                               <Calendar size={16} />
                             </button>
                           </div>
@@ -574,25 +572,25 @@ const MentorMatchingPage = () => {
                               <div className="mm-req-name">{r.mentee_name || `Mentee ${r.mentee_id}`}</div>
                               <div className="mm-req-meta">{new Date(r.requested_at).toLocaleDateString('vi-VN')}</div>
                               {r.message && <div className="mm-req-msg">"{r.message}"</div>}
-                              {r.response_message && <div className="mm-req-msg" style={{ color: r.status === 'accepted' ? '065f46' : '991b1b' }}>Phản hồi của bạn: "{r.response_message}"</div>}
+                              {r.response_message && <div className="mm-req-msg" style={{ color: r.status === 'accepted' ? '#065f46' : '#991b1b' }}>Phản hồi của bạn: "{r.response_message}"</div>}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                               <StatusBadge status={r.status} />
                               {r.status === 'pending' && (
                                 <>
                                   <button onClick={() => { setRespondModal({ req: r, action: 'accepted' }); setRespondMsg(''); }}
-                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: 'none', background: '#10b981', color: 'fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: 'none', background: 'var(--color-success)', color: '#fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
                                     <Check size={12} className="inline mr-1" />Chấp nhận
                                   </button>
                                   <button onClick={() => { setRespondModal({ req: r, action: 'rejected' }); setRespondMsg(''); }}
-                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: 'none', background: '#ef4444', color: 'fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
                                     <X size={12} className="inline mr-1" />Từ chối
                                   </button>
                                 </>
                               )}
                               {r.status === 'accepted' && (
                                 <button onClick={() => setChatTarget({ userId: r.mentee_user_id || r.mentee_id, name: r.mentee_name || 'Mentee' })}
-                                  style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: '1.5px solid 3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                                  style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
                                   <MessageCircle size={14} className="inline mr-1" />Nhắn tin
                                 </button>
                               )}
@@ -629,7 +627,7 @@ const MentorMatchingPage = () => {
                               </div>
                               {r.message && <div className="mm-req-msg">"{r.message}"</div>}
                               {r.response_message && (
-                                <div className="mm-req-msg" style={{ color: r.status === 'accepted' ? '065f46' : '991b1b' }}>
+                                <div className="mm-req-msg" style={{ color: r.status === 'accepted' ? '#065f46' : '#991b1b' }}>
                                   Phản hồi: "{r.response_message}"
                                 </div>
                               )}
@@ -639,11 +637,11 @@ const MentorMatchingPage = () => {
                               {r.status === 'accepted' && (
                                 <>
                                   <button onClick={() => setChatTarget({ userId: r.mentor_user_id || r.mentor_id, name: r.mentor_name || 'Mentor' })}
-                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: '1.5px solid 3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
                                     <MessageCircle size={14} className="inline mr-1" />Nhắn tin
                                   </button>
                                   <button onClick={() => setBookingTarget({ userId: r.mentor_id, name: r.mentor_name || 'Mentor' })}
-                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: '1.5px solid 8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+                                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: '1.5px solid #8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
                                     <Calendar size={14} className="inline mr-1" />Đặt lịch
                                   </button>
                                 </>
@@ -684,11 +682,11 @@ const MentorMatchingPage = () => {
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                         <button onClick={() => setChatTarget({ userId: r.mentee_user_id || r.mentee_id, name: r.mentee_name || 'Mentee' })}
-                          style={{ padding: '0.45rem 1rem', borderRadius: 9, border: '1.5px solid 3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          style={{ padding: '0.45rem 1rem', borderRadius: 9, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                           <MessageCircle size={14} className="inline mr-1" />Nhắn tin
                         </button>
                         <button onClick={() => setBookingTarget({ userId: r.mentee_id, name: r.mentee_name || 'Mentee' })}
-                          style={{ padding: '0.45rem 1rem', borderRadius: 9, border: '1.5px solid 8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          style={{ padding: '0.45rem 1rem', borderRadius: 9, border: '1.5px solid #8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                           <Calendar size={14} className="inline mr-1" />Đặt lịch
                         </button>
                       </div>
@@ -740,20 +738,20 @@ const MentorMatchingPage = () => {
                         {/* Actions */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flexShrink: 0 }}>
                           <button onClick={() => setChatTarget({ userId: isMentorRole ? s.mentee_id : s.mentor_id, name: isMentorRole ? s.mentee_name : s.mentor_name })}
-                            style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: '1.5px solid 3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+                            style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
                             <MessageCircle size={13} className="inline mr-1" />Chat
                           </button>
                           {isMentorRole && s.status === 'pending' && (
                             <>
-                              <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'confirmed'); await loadSessions(); } catch { } finally { setSessionRespondingId(null); } }}
-                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: '#10b981', color: 'fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><Check size={12} />Xác nhận</button>
-                              <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'cancelled'); await loadSessions(); } catch { } finally { setSessionRespondingId(null); } }}
-                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: '#ef4444', color: 'fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><X size={12} />Từ chối</button>
+                              <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'confirmed'); await loadSessions(); } catch {} finally { setSessionRespondingId(null); } }}
+                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: 'var(--color-success)', color: '#fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display:'flex', alignItems:'center', gap:4 }}><Check size={12} />Xác nhận</button>
+                              <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'cancelled'); await loadSessions(); } catch {} finally { setSessionRespondingId(null); } }}
+                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display:'flex', alignItems:'center', gap:4 }}><X size={12} />Từ chối</button>
                             </>
                           )}
                           {(s.status === 'pending' || s.status === 'confirmed') && (
-                            <button onClick={async () => { try { await scheduleService.cancel(s.id); await loadSessions(); } catch { } }}
-                              style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: '1px solid d1d5db', background: '#f9fafb', color: '#374151', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>Huỷ</button>
+                            <button onClick={async () => { try { await scheduleService.cancel(s.id); await loadSessions(); } catch {} }}
+                              style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: '#f9fafb', color: '#374151', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>Huỷ</button>
                           )}
                         </div>
                       </div>
@@ -865,7 +863,7 @@ const MentorMatchingPage = () => {
             <div className="mm-modal-actions">
               <button className="mm-btn-secondary" onClick={() => setRespondModal(null)}>Huỷ</button>
               <button disabled={respondingId === respondModal.req.id} onClick={respondRequest}
-                style={{ padding: '0.55rem 1.25rem', borderRadius: 10, border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', background: respondModal.action === 'accepted' ? '10b981' : 'ef4444', color: 'fff' }}>
+                style={{ padding: '0.55rem 1.25rem', borderRadius: 10, border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', background: respondModal.action === 'accepted' ? '#10b981' : '#ef4444', color: '#fff' }}>
                 {respondingId === respondModal.req.id ? 'Đang xử lý...' : respondModal.action === 'accepted' ? 'Xác nhận chấp nhận' : 'Xác nhận từ chối'}
               </button>
             </div>

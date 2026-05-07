@@ -65,7 +65,7 @@ const CounterItem = ({ value, label, suffix = '' }: { value: string, label: stri
     if (isNaN(num)) return (
         <div className="text-white">
             <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono">{value}</div>
-            <div className="text-green-100 font-medium">{label}</div>
+            <div className="text-indigo-100 font-medium">{label}</div>
         </div>
     );
 
@@ -76,7 +76,7 @@ const CounterItem = ({ value, label, suffix = '' }: { value: string, label: stri
             <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-indigo-50">
                 {value.includes('<') ? '< ' : ''}{count.toLocaleString()}{suf}
             </div>
-            <div className="text-green-100 font-medium group-hover:text-white transition-colors">{label}</div>
+            <div className="text-indigo-100 font-medium group-hover:text-white transition-colors">{label}</div>
         </div>
     );
 };
@@ -90,7 +90,7 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
                 className="flex w-full items-center justify-between py-5 text-left text-lg font-semibold text-gray-900 dark:text-white hover:text-indigo-700 transition-colors group"
             >
                 <span className="group-hover:translate-x-1 transition-transform">{question}</span>
-                <span className={`transform transition-transform duration-300 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-indigo-50 dark:group-hover:bg-green-900/30 text-gray-500 group-hover:text-indigo-800 ${isOpen ? 'rotate-180' : ''}`}>
+                <span className={`transform transition-transform duration-300 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/30 text-gray-500 group-hover:text-indigo-800 ${isOpen ? 'rotate-180' : ''}`}>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -206,7 +206,7 @@ const HomePage = () => {
                 }
 
                 .text-shimmer {
-                    background: linear-gradient(to right, 166534 20%, 4ade80 40%, 4ade80 60%, 166534 80%);
+                    background: linear-gradient(to right, #166534 20%, #4ade80 40%, #4ade80 60%, #166534 80%);
                     background-size: 200% auto;
                     color: transparent;
                     -webkit-background-clip: text;
@@ -214,7 +214,7 @@ const HomePage = () => {
                     animation: shimmer 5s linear infinite;
                 }
                 .dark .text-shimmer {
-                    background: linear-gradient(to right, 4ade80 20%, ffffff 40%, ffffff 60%, 4ade80 80%);
+                    background: linear-gradient(to right, #4ade80 20%, #ffffff 40%, #ffffff 60%, #4ade80 80%);
                     background-size: 200% auto;
                     color: transparent;
                     -webkit-background-clip: text;
@@ -248,7 +248,7 @@ const HomePage = () => {
                         <div className="bg-grid-pattern absolute w-full h-full opacity-[0.6]"></div>
                         <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob"></div>
                         <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 dark:bg-yellow-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-                        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-green-300 dark:bg-indigo-950 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+                        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-300 dark:bg-indigo-950 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
                     </div>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -285,7 +285,7 @@ const HomePage = () => {
 
                             {/* RIGHT — dashboard mockup */}
                             <div className="flex-1 w-full max-w-lg lg:max-w-none animate-fade-in-up relative" style={{ animationDelay: '0.2s' }}>
-                                <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(135deg,0f172a 0%,1e2d4a 100%)' }}>
+                                <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(135deg,#0f172a 0%, #1e2d4a 100%)' }}>
                                     <div className="flex items-center gap-2 px-5 py-3 border-b border-white/10">
                                         <span className="w-2.5 h-2.5 rounded-full bg-red-400 opacity-80"></span>
                                         <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 opacity-80"></span>
@@ -370,13 +370,13 @@ const HomePage = () => {
 
                 {/* --- BENTO GRID FEATURES --- */}
                 <section className="py-24 bg-gray-50 dark:bg-gray-800/50 relative overflow-hidden">
-                    <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-green-200/20 dark:bg-indigo-950/20 rounded-full blur-[120px] pointer-events-none"></div>
+                    <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-indigo-200/20 dark:bg-indigo-950/20 rounded-full blur-[120px] pointer-events-none"></div>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
                             <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
                                 {t('home.features.sectionTitle')} <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-emerald-700">{t('home.features.sectionHighlight')}</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-violet-700">{t('home.features.sectionHighlight')}</span>
                             </h2>
                             <p className="text-lg text-gray-500 dark:text-gray-400">{t('home.features.sectionSubtitle')}</p>
                         </div>
@@ -394,9 +394,9 @@ const HomePage = () => {
 
                                     <div className="mt-auto relative w-full h-64 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-inner transform group-hover:scale-[1.02] transition-transform duration-500 flex flex-col gap-4 overflow-hidden">
                                         <div className="flex items-center gap-4 mb-2">
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold">R</div>
+                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center text-white font-bold">R</div>
                                             <div className="flex flex-col gap-2">
-                                                <div className="w-32 h-3 bg-green-300 dark:bg-indigo-800 rounded-full"></div>
+                                                <div className="w-32 h-3 bg-indigo-300 dark:bg-indigo-800 rounded-full"></div>
                                                 <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                                             </div>
                                             <div className="ml-auto w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center">
@@ -577,7 +577,7 @@ const HomePage = () => {
                             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-black opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 relative z-10 text-center">{t('home.cta.title')}</h2>
-                            <p className="text-green-100 text-lg mb-10 max-w-2xl mx-auto relative z-10 text-center">{t('home.cta.subtitle')}</p>
+                            <p className="text-indigo-100 text-lg mb-10 max-w-2xl mx-auto relative z-10 text-center">{t('home.cta.subtitle')}</p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
                                 <Link to="/assessment" className="px-8 py-4 bg-white text-indigo-900 rounded-full font-bold hover:bg-gray-100 hover:scale-105 transition-all shadow-lg text-center">
                                     {t('home.cta.btn')}
@@ -610,13 +610,13 @@ const HomePage = () => {
                                     ))}
                                 </div>
 
-                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-100 dark:border-indigo-800">
+                                <div className="bg-gradient-to-br from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-800">
                                     {!showContactForm ? (
                                         <div className="flex flex-col justify-center items-center h-full">
                                             <div className="text-6xl mb-4"></div>
                                             <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.contact.sendTitle')}</h4>
                                             <p className="text-gray-600 dark:text-gray-400 text-center mb-6">{t('home.contact.sendDesc')}</p>
-                                            <button onClick={() => setShowContactForm(true)} className="px-8 py-4 bg-gradient-to-r from-indigo-800 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg">
+                                            <button onClick={() => setShowContactForm(true)} className="px-8 py-4 bg-gradient-to-r from-indigo-800 to-indigo-800 hover:from-indigo-900 hover:to-violet-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg">
                                                 {t('home.contact.btn')}
                                             </button>
                                         </div>

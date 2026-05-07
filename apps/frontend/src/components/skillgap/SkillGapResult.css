@@ -272,7 +272,7 @@
 .strengths-weaknesses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
 
 .sw-card { padding: 1.25rem; border-radius: 14px; box-shadow: var(--neu-raised-sm); }
-.strengths-card { background: rgba(16,185,129,0.08); border-left: 3px solid var(--color-success); }
+.strengths-card { background: rgba(26,35,126,0.08); border-left: 3px solid var(--color-success); }
 .weaknesses-card { background: rgba(239,68,68,0.08); border-left: 3px solid #ef4444; }
 
 .sw-title { margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 700; color: var(--neu-text); }

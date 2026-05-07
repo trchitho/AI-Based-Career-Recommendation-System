@@ -416,19 +416,19 @@ const AssessmentPage = () => {
               }}
             >
               {/* Animated border gradient */}
-              <div className="absolute inset-0 rounded-[32px] bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl"></div>
+              <div className="absolute inset-0 rounded-[32px] bg-gradient-to-r from-indigo-600 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl"></div>
 
               {/* Content */}
               <div className="relative w-full p-8 md:p-12 flex flex-col justify-center z-10">
                 <div className="mb-8">
-                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-6 border border-indigo-200 dark:border-indigo-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-indigo-100 dark:from-indigo-950/30 dark:to-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-6 border border-indigo-200 dark:border-indigo-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-700"></span>
                     </span>
                     {t('assessment.aiPowered')}
                   </span>
-                  <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-gray-900 via-green-800 to-emerald-800 dark:from-white dark:via-green-400 dark:to-emerald-400 bg-clip-text text-transparent mb-6 leading-tight">
+                  <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-gray-900 via-indigo-900 to-violet-800 dark:from-white dark:via-indigo-400 dark:to-violet-400 bg-clip-text text-transparent mb-6 leading-tight">
                     {t('assessment.discoverCareer')}
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed mb-8 font-medium">
@@ -551,20 +551,20 @@ const AssessmentPage = () => {
         {!upgradeRequired && step === 'intro' && (
           <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 pb-8">
             <div className={`border rounded-2xl p-6 shadow-lg ${getAssessmentLimit() === -1 // Unlimited
-              ? 'bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border-indigo-200 dark:border-indigo-800'
+              ? 'bg-gradient-to-r from-indigo-50 via-indigo-50 to-teal-50 dark:from-indigo-950/20 dark:via-emerald-900/20 dark:to-teal-900/20 border-indigo-200 dark:border-indigo-800'
               : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800'
               }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${getAssessmentLimit() === -1 // Unlimited
-                    ? 'bg-gradient-to-br from-indigo-700 to-emerald-500'
+                    ? 'bg-gradient-to-br from-indigo-700 to-indigo-700'
                     : 'bg-gradient-to-br from-blue-500 to-indigo-500'
                     }`}>
                     <span className="text-2xl">{getAssessmentLimit() === -1 ? '⭐' : ''}</span>
                   </div>
                   <div>
                     <h3 className={`text-lg font-bold mb-1 ${getAssessmentLimit() === -1 // Unlimited
-                      ? 'text-green-900 dark:text-green-100'
+                      ? 'text-indigo-950 dark:text-indigo-100'
                       : 'text-blue-900 dark:text-blue-100'
                       }`}>
                       {detectedPlan === 'Premium' || detectedPlan === 'Pro' ? t('assessment.planPremiumActive') :

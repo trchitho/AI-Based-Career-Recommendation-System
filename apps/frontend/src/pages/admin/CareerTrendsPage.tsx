@@ -59,7 +59,7 @@ const CareerTrendsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50/30 to-teal-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-teal-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-6 space-y-6">
       {/* Modern Header with Gradient */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-800 via-teal-600 to-blue-600 p-8 shadow-2xl">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -129,14 +129,14 @@ const CareerTrendsPage = () => {
               </div>
             </div>
 
-            <div className="group relative bg-gradient-to-br from-indigo-700 to-emerald-600 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+            <div className="group relative bg-gradient-to-br from-indigo-700 to-indigo-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
               <div className="relative z-10">
-                <p className="text-sm font-semibold text-green-100 mb-2">Top Careers</p>
+                <p className="text-sm font-semibold text-indigo-100 mb-2">Top Careers</p>
                 <p className="text-5xl font-bold text-white mb-1">
                   {data.topCareers.length}
                 </p>
-                <div className="flex items-center gap-2 text-green-100 text-sm">
+                <div className="flex items-center gap-2 text-indigo-100 text-sm">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>

@@ -21,7 +21,7 @@ export const AssessmentLimitBanner: React.FC<AssessmentLimitBannerProps> = ({
 
     // Màu sắc dựa trên số lượt còn lại
     const getColorClass = () => {
-        if (percentage > 50) return 'bg-indigo-50 border-indigo-200 text-green-800';
+        if (percentage > 50) return 'bg-indigo-50 border-indigo-200 text-indigo-950';
         if (percentage > 20) return 'bg-yellow-50 border-yellow-200 text-yellow-800';
         return 'bg-red-50 border-red-200 text-red-800';
     };

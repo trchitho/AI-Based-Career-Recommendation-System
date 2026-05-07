@@ -8,6 +8,11 @@ from typing import List
 from app.core.db import get_db, engine
 from app.core.auth_deps import get_current_user_from_token
 from app.modules.auth.models import User
+from app.modules.graph.neo4j_client import get_driver as _get_neo4j
+from app.modules.graph.graph_queries import (
+    find_mentors_by_skill_overlap,
+    find_users_completed_similar_career,
+)
 
 from .models import Base, MentorProfile, MenteeProfile
 from .schemas import (
@@ -31,9 +36,9 @@ try:
         MenteeProfile.__table__,
         __import__('app.modules.mentor_matching.models', fromlist=['MentorshipRequest']).MentorshipRequest.__table__,
     ])
-    print("✅ Mentor Matching tables ready")
+    print("[OK] Mentor Matching tables ready")
 except Exception as _e:
-    print(f"⚠️  Mentor Matching table init: {_e}")
+    print(f"[WARN]  Mentor Matching table init: {_e}")
 
 
 # ── Mentor endpoints ─────────────────────────────────────────────
@@ -116,7 +121,16 @@ def find_mentors(
     current_user: User = Depends(get_current_user_from_token),
     db: Session = Depends(get_db),
 ):
-    svc = MentorMatchingService(db)
+    """
+    Tim mentor phu hop — full 5-signal pipeline:
+    1. Keyword Skill Match     (30%)
+    2. vi-SBERT Semantic Skill (20%)
+    3. Career Match            (20%)
+    4. Personality Cosine      (15%) — RIASEC + Big5
+    5. Neo4j GDS Graph         (15%) — Jaccard + Path Traversal + PageRank
+    """
+    neo4j_driver = _get_neo4j()
+    svc = MentorMatchingService(db, neo4j_driver=neo4j_driver)
     return svc.find_mentors_for_mentee(current_user.id)
 
 
@@ -348,3 +362,16 @@ def find_mentors_for_career(
 
     results.sort(key=lambda x: x.compatibility_score, reverse=True)
     return results[:limit]
+
+
+# ── Graph sync endpoint ───────────────────────────────────────────
+
+@router.post("/graph/sync-personality", summary="Dong bo RIASEC + Big5 len Neo4j Mentor/Mentee nodes")
+def sync_personality_to_graph(db: Session = Depends(get_db)):
+    """Dong bo diem RIASEC va Big5 tu PostgreSQL len Mentor/Mentee nodes trong Neo4j."""
+    neo4j_driver = _get_neo4j()
+    if not neo4j_driver:
+        raise HTTPException(503, "Neo4j not available")
+    from .graph_gds import sync_personality_to_graph as _sync
+    result = _sync(neo4j_driver, db)
+    return {"status": "ok", **result}

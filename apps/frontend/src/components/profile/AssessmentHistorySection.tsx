@@ -162,7 +162,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl rounded-card-hero overflow-hidden">
 
       {/* Header with gradient */}
-      <div className="bg-gradient-to-r from-[4A7C59] to-[3d6449] dark:from-green-800 dark:to-green-900 px-8 py-6 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#1A237E] to-[#151c6b] dark:from-indigo-900 dark:to-indigo-950 px-8 py-6 relative overflow-hidden">
         {/* Abstract pattern overlay */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
         <div className="absolute right-0 top-0 h-full w-1/3 bg-white/5 skew-x-12 transform translate-x-10 pointer-events-none"></div>
@@ -172,7 +172,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
             <h3 className="text-2xl font-extrabold text-white mb-1 tracking-tight">
               Assessment History
             </h3>
-            <p className="text-green-100 text-sm font-medium">
+            <p className="text-indigo-100 text-sm font-medium">
               Track your career development journey
             </p>
           </div>
@@ -334,12 +334,12 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                             <div className="space-y-3">
                               {(() => {
                                 const riasecColors: Record<string, string> = {
-                                  realistic: 'EF4444',
-                                  investigative: 'F59E0B',
-                                  artistic: '10B981',
-                                  social: '3B82F6',
-                                  enterprising: '8B5CF6',
-                                  conventional: 'EC4899'
+                                  realistic: '#EF4444',
+                                  investigative: '#F59E0B',
+                                  artistic: '#10B981',
+                                  social: '#3B82F6',
+                                  enterprising: '#8B5CF6',
+                                  conventional: '#EC4899'
                                 };
                                 const riasecNames: Record<string, string> = {
                                   realistic: 'Realistic',
@@ -385,11 +385,11 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                             <div className="space-y-3">
                               {(() => {
                                 const traitColors: Record<string, string> = {
-                                  openness: '8B5CF6',
-                                  conscientiousness: '3B82F6',
-                                  extraversion: '10B981',
-                                  agreeableness: 'F59E0B',
-                                  neuroticism: 'EF4444'
+                                  openness: '#8B5CF6',
+                                  conscientiousness: '#3B82F6',
+                                  extraversion: '#10B981',
+                                  agreeableness: '#F59E0B',
+                                  neuroticism: '#EF4444'
                                 };
                                 return Object.entries(session.big_five_scores)
                                   .sort((a: any, b: any) => b[1] - a[1])

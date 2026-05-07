@@ -5,7 +5,7 @@
   align-items: center;
   min-height: 100vh;
   height: 100vh;
-  background: linear-gradient(135deg, rgba(22, 163, 74, 0.3) 0%, rgba(13, 148, 136, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(26,35,126, 0.3) 0%, rgba(13, 148, 136, 0.3) 100%);
   padding: 1rem 2rem;
   gap: 2rem;
   position: relative;
@@ -415,7 +415,7 @@
   margin: 0;
   text-align: center;
   padding: 1.25rem;
-  background: rgba(22, 163, 74, 0.1);
+  background: rgba(26,35,126, 0.1);
   border-radius: 15px;
 }
 
@@ -810,7 +810,7 @@
   font-size: 1.25rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 30px rgba(22, 163, 74, 0.4);
+  box-shadow: 0 8px 30px rgba(26,35,126, 0.4);
   transition: all 0.3s ease;
   font-family: 'Poppins', sans-serif;
   pointer-events: all;
@@ -818,7 +818,7 @@
 
 .submit-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(22, 163, 74, 0.5);
+  box-shadow: 0 12px 40px rgba(26,35,126, 0.5);
 }
 
 .submit-btn:active {
@@ -873,7 +873,7 @@
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(22, 163, 74, 0.2);
+  box-shadow: 0 4px 15px rgba(26,35,126, 0.2);
   transition: all 0.3s ease;
   font-family: 'Poppins', sans-serif;
   white-space: nowrap;
@@ -883,7 +883,7 @@
   background: var(--color-primary);
   color: white;
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.3);
+  box-shadow: 0 6px 20px rgba(26,35,126, 0.3);
 }
 
 .nav-btn:active:not(:disabled) {
@@ -905,7 +905,7 @@
 
 .open-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(22, 163, 74, 0.4);
+  box-shadow: 0 8px 25px rgba(26,35,126, 0.4);
 }
 
 /* Submit Navigation Button */
@@ -920,15 +920,15 @@
 
 .submit-nav-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(22, 163, 74, 0.5);
+  box-shadow: 0 8px 30px rgba(26,35,126, 0.5);
 }
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+    box-shadow: 0 4px 15px rgba(26,35,126, 0.3);
   }
   50% {
-    box-shadow: 0 6px 25px rgba(22, 163, 74, 0.6);
+    box-shadow: 0 6px 25px rgba(26,35,126, 0.6);
   }
 }
 

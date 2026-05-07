@@ -1,11 +1,5 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import MainLayout from '../components/layout/MainLayout';
-import { careerService, CareerItem } from '../services/careerService';
-import { Link } from 'react-router-dom';
-import { useFeatureAccess } from '../hooks/useFeatureAccess';
-import { useUsageTracking } from '../hooks/useUsageTracking';
-import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh';
-import { useApiCallTracker } from '../hooks/useApiCallTracker';
+// This file is no longer used - routes go directly to CareerGroupsPage
+import { Navigate } from 'react-router-dom';
 
 const CareersPage = () => {
   // ==========================================
@@ -99,11 +93,11 @@ const CareersPage = () => {
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           .bg-dot-pattern {
-            background-image: radial-gradient(D1D5DB 1px, transparent 1px);
+            background-image: radial-gradient(#D1D5DB 1px, transparent 1px);
             background-size: 24px 24px;
           }
           .dark .bg-dot-pattern {
-            background-image: radial-gradient(374151 1px, transparent 1px);
+            background-image: radial-gradient(#374151 1px, transparent 1px);
           }
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
@@ -214,11 +208,11 @@ const CareersPage = () => {
 
                 // Gradient backgrounds for placeholders
                 const gradients = [
-                  'from-indigo-700 to-teal-600',
+                  'from-indigo-700 to-violet-600',
                   'from-blue-500 to-indigo-600',
                   'from-orange-400 to-pink-500',
                   'from-purple-500 to-violet-600',
-                  'from-emerald-400 to-cyan-500',
+                  'from-violet-500 to-cyan-500',
                   'from-rose-400 to-red-500',
                 ];
                 const bgGradient = gradients[index % gradients.length];
@@ -231,7 +225,7 @@ const CareersPage = () => {
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none z-10">
                         <div className="absolute top-4 right-4">
                           <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
-                            requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-indigo-700 to-emerald-500' :
+                            requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-indigo-700 to-indigo-700' :
                               'bg-gradient-to-r from-purple-500 to-pink-500'
                             }`}>
                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">

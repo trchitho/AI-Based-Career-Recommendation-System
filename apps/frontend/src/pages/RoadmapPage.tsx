@@ -16,10 +16,13 @@ import { mentorMatchingService, MentorMatch } from '../services/mentorMatchingSe
 import ChatModal from '../components/chat/ChatModal';
 
 const RoadmapPage = () => {
-  const { careerId } = useParams<{ careerId: string }>();
+  const { groupSlug, careerIdOrSlug } = useParams<{ groupSlug: string; careerIdOrSlug: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const navState = (location.state || {}) as { title?: string; description?: string };
+
+  // Use careerIdOrSlug as the career identifier
+  const careerId = careerIdOrSlug;
 
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,25 +61,52 @@ const RoadmapPage = () => {
 
   const fetchRoadmap = useCallback(async () => {
     if (!careerId) return;
+
+    console.log('🚀 Starting roadmap fetch for:', careerId);
+    const startTime = Date.now();
+
     try {
       setLoading(true);
       setError(null);
 
-      let data: Roadmap | null = null;
+      // Convert ONET code format for backend compatibility (dot to dash)
+      const normalizedCareerId = careerId.replace(/\./g, '-');
+      console.log('📝 Normalized career ID:', normalizedCareerId);
 
+      let data: Roadmap | null = null;
+      let careerData: any = null;
+
+      // First, try to get career data to validate the career exists
+      console.log('🔍 Fetching career data...');
+      const careerStartTime = Date.now();
       try {
-        data = await roadmapService.getRoadmap(careerId);
+        careerData = await careerService.get(normalizedCareerId);
+        console.log('✅ Career data fetched in', Date.now() - careerStartTime, 'ms');
+      } catch (err: any) {
+        console.error(`❌ Career not found: ${normalizedCareerId}`, err);
+        setError('Career not found. Please check the URL and try again.');
+        return;
+      }
+
+      // Then try to get roadmap data
+      console.log('🗺️ Fetching roadmap data...');
+      const roadmapStartTime = Date.now();
+      try {
+        data = await roadmapService.getRoadmap(normalizedCareerId);
+        console.log('✅ Roadmap data fetched in', Date.now() - roadmapStartTime, 'ms');
       } catch (err: any) {
         const status = err?.response?.status;
         const detail = err?.response?.data?.detail;
+        console.log('⚠️ Roadmap fetch error:', status, detail);
         if (status === 404 && detail === 'Roadmap not found') {
-          const c = await careerService.get(careerId);
+          // Create empty roadmap structure if not found
           data = {
-            careerId,
-            careerTitle: navState.title || (c as any).title_en || (c as any).title || careerId,
+            careerId: normalizedCareerId,
+            careerTitle: navState.title || careerData?.title_en || careerData?.title || careerId,
             milestones: [],
             userProgress: { completed_milestones: [] },
           } as any;
+          console.log('📝 Created empty roadmap structure');
         } else {
           throw err;
         }
@@ -84,22 +114,22 @@ const RoadmapPage = () => {
 
       if (!data) throw new Error('No roadmap data');
 
-      try {
-        const c = await careerService.get(careerId);
-        const desc = navState.description || (c as any).short_desc_en || (c as any).description || (c as any).short_desc || '';
-        setCareerDesc(desc);
-        const titleOverride = navState.title || (c as any).title_en || (c as any).title || data.careerTitle;
-        data = { ...(data as any), careerTitle: titleOverride } as Roadmap;
-      } catch {
-        if (navState.description) setCareerDesc(navState.description);
-        if (navState.title) data = { ...(data as any), careerTitle: navState.title } as Roadmap;
-      }
+      // Set career description and title from career data or nav state
+      const desc = navState.description || careerData?.short_desc_en || careerData?.description || careerData?.short_desc || '';
+      setCareerDesc(desc);
 
-      const hasUnlimitedCareers = hasFeature('unlimited_careers');
-      if (hasUnlimitedCareers) {
+      const titleOverride = navState.title || careerData?.title_en || careerData?.title || data.careerTitle;
+      data = { ...(data as any), careerTitle: titleOverride } as Roadmap;
+
+      // Set subscription-based access levels (get fresh values inside function)
+      const currentHasFeature = hasFeature('unlimited_careers');
+      const currentIsPremium = isPremium;
+      const currentCurrentPlan = currentPlan;
+
+      if (currentHasFeature) {
         setUpgradeRequired(false);
         setMaxFreeLevel(-1);
-      } else if (currentPlan === 'basic') {
+      } else if (currentCurrentPlan === 'basic') {
         setUpgradeRequired(true);
         setMaxFreeLevel(2);
       } else {
@@ -108,27 +138,43 @@ const RoadmapPage = () => {
       }
 
       setRoadmap(data);
+      console.log('✅ Roadmap set successfully');
 
-      if (!hasTrackedUsageRef.current && !isPremium) {
+      // Track usage for non-premium users
+      if (!hasTrackedUsageRef.current && !currentIsPremium) {
         incrementUsage('roadmap_level');
         hasTrackedUsageRef.current = true;
+        console.log('📊 Usage tracked');
       }
+
+      console.log('🎉 Total roadmap fetch time:', Date.now() - startTime, 'ms');
     } catch (err) {
-      console.error(err);
-      setError('Failed to load roadmap.');
+      console.error('❌ Error loading roadmap:', err);
+      setError('Failed to load roadmap. Please try again later.');
     } finally {
       setLoading(false);
     }
-  }, [careerId, navState.description, navState.title, currentPlan]);
+  }, [careerId, navState.title, navState.description]); // Simplified dependencies
 
   const loadTraitEvidence = useCallback(async () => {
     if (!careerId || hasLoadedTraitEvidenceRef.current) return;
     hasLoadedTraitEvidenceRef.current = true;
+
+    console.log('🔍 Loading trait evidence for:', careerId);
+    const startTime = Date.now();
+
     try {
-      const data = await roadmapService.getTraitEvidence(careerId);
+      // Convert ONET code format for backend compatibility (dot to dash)
+      const normalizedCareerId = careerId.replace(/\./g, '-');
+      const data = await roadmapService.getTraitEvidence(normalizedCareerId);
+      console.log('✅ Trait evidence loaded in', Date.now() - startTime, 'ms');
       setTraitEvidence(data);
     } catch (err: any) {
-      if (err?.response?.status !== 404) console.error('Failed to load trait evidence', err);
+      if (err?.response?.status !== 404) {
+        console.error('❌ Failed to load trait evidence', err);
+      } else {
+        console.log('ℹ️ No trait evidence found (404)');
+      }
     }
   }, [careerId]);
 
@@ -136,7 +182,7 @@ const RoadmapPage = () => {
     if (!careerId) return;
     fetchRoadmap();
     loadTraitEvidence();
-  }, [careerId, fetchRoadmap, loadTraitEvidence]);
+  }, [careerId]); // Remove fetchRoadmap and loadTraitEvidence from dependencies to prevent infinite loop
 
   // Load users who completed this career's roadmap
   useEffect(() => {
@@ -151,11 +197,18 @@ const RoadmapPage = () => {
     if (!careerId) return;
     try {
       setCompletingMilestone(milestoneId);
-      await roadmapService.completeMilestone(careerId, milestoneId);
+
+      // Convert ONET code format for backend compatibility (dot to dash)
+      const normalizedCareerId = careerId.replace(/\./g, '-');
+
+      await roadmapService.completeMilestone(normalizedCareerId, milestoneId);
+      // Refresh roadmap data after completing milestone
       await fetchRoadmap();
+      // Refresh trait evidence after completing milestone  
       await loadTraitEvidence();
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to mark complete.');
+      console.error('Error completing milestone:', err);
+      setError(err?.response?.data?.message || 'Failed to mark milestone as complete.');
     } finally {
       setCompletingMilestone(null);
     }
@@ -166,7 +219,14 @@ const RoadmapPage = () => {
   const completionRatio = totalMilestones > 0 ? completedCount / totalMilestones : 0;
   const completionPercent = Math.round(completionRatio * 100);
 
-  const handleUpgradeDetected = () => fetchRoadmap();
+  const handleUpgradeDetected = useCallback(() => {
+    console.log('🔄 Upgrade detected, refreshing roadmap...');
+    // Call fetchRoadmap directly without dependency to avoid infinite loop
+    if (careerId) {
+      setLoading(true);
+      fetchRoadmap();
+    }
+  }, [careerId]); // Only depend on careerId
 
   return (
     <MainLayout>
@@ -212,9 +272,9 @@ const RoadmapPage = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.2)', color: 'var(--neu-btn-text, ffffff)', border: '1px solid rgba(255,255,255,0.3)' }}>Lộ Trình Nghề Nghiệp</span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.2)', color: 'var(--neu-btn-text, #ffffff)', border: '1px solid rgba(255,255,255,0.3)' }}>Lộ Trình Nghề Nghiệp</span>
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8" style={{ color: 'var(--neu-btn-text, ffffff)' }}>{roadmap.careerTitle}</h1>
+                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8" style={{ color: 'var(--neu-btn-text, #ffffff)' }}>{roadmap.careerTitle}</h1>
 
                   {/* Dynamic career stages based on milestones count */}
                   {(() => {
@@ -240,7 +300,7 @@ const RoadmapPage = () => {
 
                           return (
                             <div key={idx} className="flex-shrink-0 flex flex-col items-center snap-center group cursor-default">
-                              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-indigo-900 border-white' : isCurrent ? 'bg-indigo-800 text-white border-white ring-4 ring-white/30' : 'bg-green-800/50 text-indigo-300 border-green-700/50'}`}>
+                              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-indigo-900 border-white' : isCurrent ? 'bg-indigo-800 text-white border-white ring-4 ring-white/30' : 'bg-indigo-950/50 text-indigo-300 border-indigo-800/50'}`}>
                                 {isCompleted ? (
                                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -248,9 +308,9 @@ const RoadmapPage = () => {
                                 ) : (
                                   <span className="text-lg font-bold">{idx + 1}</span>
                                 )}
-                                {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-green-800'}`} />}
+                                {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-indigo-950'}`} />}
                               </div>
-                              <span className="mt-2 text-xs font-bold uppercase tracking-wide" style={{ color: isCompleted || isCurrent ? 'var(--neu-btn-text, ffffff)' : 'rgba(255,255,255,0.45)' }}>{label}</span>
+                              <span className="mt-2 text-xs font-bold uppercase tracking-wide" style={{ color: isCompleted || isCurrent ? 'var(--neu-btn-text, #ffffff)' : 'rgba(255,255,255,0.45)' }}>{label}</span>
                             </div>
                           );
                         })}
@@ -371,17 +431,17 @@ const RoadmapPage = () => {
 
                   <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="text-white text-center md:text-left">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-700/20 border border-green-400/30 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-4">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-700/20 border border-indigo-400/30 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-4">
                         <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />Live Roadmap
                       </div>
                       <h2 className="text-2xl md:text-3xl font-extrabold mb-2 tracking-tight">Your Learning Journey</h2>
-                      <p className="text-green-100/80 max-w-lg">Master skills one step at a time. Track your progress and reach your career goals.</p>
+                      <p className="text-indigo-100/80 max-w-lg">Master skills one step at a time. Track your progress and reach your career goals.</p>
                     </div>
 
                     <div className="flex items-center gap-4 bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
                       <div className="relative w-16 h-16 flex-shrink-0">
                         <svg className="w-full h-full transform -rotate-90">
-                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-green-900/50" />
+                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-indigo-950/50" />
                           <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={176} strokeDashoffset={176 - 176 * completionRatio} className="text-indigo-400 transition-all duration-1000 ease-out" strokeLinecap="round" />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center flex-col text-white">

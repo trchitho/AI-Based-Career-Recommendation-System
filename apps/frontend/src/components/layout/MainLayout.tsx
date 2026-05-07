@@ -122,7 +122,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const isScrolled = scrollY > 80;
 
   return (
-    <div className="min-h-screen flex flex-col font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, f0f2f5)' }}>
+    <div className="min-h-screen flex flex-col font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
 
       {/* CSS Injection */}
       <style>{`
@@ -605,7 +605,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   }}
                   onMouseEnter={e => {
                     (e.currentTarget as HTMLElement).style.background = 'var(--neu-accent)';
-                    (e.currentTarget as HTMLElement).style.color = 'fff';
+                    (e.currentTarget as HTMLElement).style.color = '#fff';
                     (e.currentTarget as HTMLElement).style.borderColor = 'var(--neu-accent)';
                   }}
                   onMouseLeave={e => {
@@ -724,7 +724,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%',
-                    background: 'var(--neu-accent)', color: 'var(--neu-btn-text, fff)',
+                    background: 'var(--neu-accent)', color: 'var(--neu-btn-text, #fff)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontWeight: 700, fontSize: '0.85rem', flexShrink: 0,
                   }}>
@@ -876,7 +876,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               style={{
                 position: 'fixed', bottom: 24, left: 16, zIndex: 50,
                 width: 44, height: 44, borderRadius: '50%',
-                background: 'var(--neu-accent)', color: 'var(--neu-btn-text, fff)',
+                background: 'var(--neu-accent)', color: 'var(--neu-btn-text, #fff)',
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '4px 4px 12px rgba(0,0,0,0.25)',

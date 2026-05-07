@@ -80,7 +80,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
                 
                 {/* Header - Green gradient matching CareerBridge */}
-                <div className="bg-gradient-to-r from-emerald-500 to-green-600 p-6">
+                <div className="bg-gradient-to-r from-indigo-500 to-indigo-800 p-6">
                     <div className="flex justify-between items-start">
                         <div>
                             <h2 className="text-xl font-bold text-white">{planName}</h2>
@@ -112,7 +112,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                         onClick={() => setSelectedMethod('vnpay')}
                         className={`w-full p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 ${
                             selectedMethod === 'vnpay'
-                                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                                ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20'
                                 : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300'
                         }`}
                     >
@@ -137,7 +137,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                         onClick={() => setSelectedMethod('zalopay')}
                         className={`w-full p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 ${
                             selectedMethod === 'zalopay'
-                                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                                ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20'
                                 : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300'
                         }`}
                     >
@@ -176,7 +176,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 <div className="px-6">
                     <button
                         onClick={() => setShowTestCards(!showTestCards)}
-                        className="w-full flex items-center justify-between py-2 text-sm text-gray-500 hover:text-emerald-600 transition-colors"
+                        className="w-full flex items-center justify-between py-2 text-sm text-gray-500 hover:text-indigo-800 transition-colors"
                     >
                         <span className="flex items-center gap-2">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,7 +220,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                     <button
                         onClick={handlePayment}
                         disabled={loading}
-                        className="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25"
+                        className="w-full py-4 bg-gradient-to-r from-indigo-500 to-indigo-800 hover:from-indigo-800 hover:to-indigo-900 text-white font-bold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-700/25"
                     >
                         {loading ? (
                             <span className="flex items-center justify-center gap-2">

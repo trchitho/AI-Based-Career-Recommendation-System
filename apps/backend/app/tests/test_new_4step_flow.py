@@ -65,7 +65,7 @@ def test_step1_postgres_work_activities(job_id: str) -> list:
         return skills
 
     except Exception as e:
-        print(f"   ❌ Step 1 error: {e}")
+        print(f"   [ERR] Step 1 error: {e}")
         return []
 
 
@@ -108,7 +108,7 @@ def test_step2_neo4j(job_id: str) -> list:
             return skills
 
     except Exception as e:
-        print(f"   ❌ Step 2 error: {e}")
+        print(f"   [ERR] Step 2 error: {e}")
         return []
     finally:
         driver.close()
@@ -163,7 +163,7 @@ def test_step3_postgres_ksas(job_id: str) -> list:
         return skills
 
     except Exception as e:
-        print(f"   ❌ Step 3 error: {e}")
+        print(f"   [ERR] Step 3 error: {e}")
         return []
 
 
@@ -256,7 +256,7 @@ def simulate_4step_flow(job_id: str):
     print(f"   Result: {len(step1_skills)} skills")
 
     if step1_skills:
-        print("   ✅ Using Step 1 (PostgreSQL work activities)")
+        print("   [OK] Using Step 1 (PostgreSQL work activities)")
         final_skills = step1_skills
         final_source = "PostgreSQL work activities"
     else:
@@ -266,7 +266,7 @@ def simulate_4step_flow(job_id: str):
         print(f"   Result: {len(step2_skills)} skills")
 
         if step2_skills:
-            print("   ✅ Using Step 2 (Neo4j)")
+            print("   [OK] Using Step 2 (Neo4j)")
             final_skills = step2_skills
             final_source = "Neo4j"
         else:
@@ -276,7 +276,7 @@ def simulate_4step_flow(job_id: str):
             print(f"   Result: {len(step3_skills)} abilities/knowledge")
 
             if step3_skills:
-                print("   ✅ Using Step 3 (PostgreSQL KSAs)")
+                print("   [OK] Using Step 3 (PostgreSQL KSAs)")
                 final_skills = step3_skills
                 final_source = "PostgreSQL career_ksas"
             else:
@@ -284,7 +284,7 @@ def simulate_4step_flow(job_id: str):
                 print("📋 Step 4: Fallback")
                 step4_skills = test_step4_fallback(job_id)
                 print(f"   Result: {len(step4_skills)} fallback skills")
-                print("   ✅ Using Step 4 (Fallback)")
+                print("   [OK] Using Step 4 (Fallback)")
                 final_skills = step4_skills
                 final_source = "Fallback"
 
@@ -337,7 +337,7 @@ def main():
         skill_count = len(result["skills"])
         print(f"   {job_id}: {source} ({skill_count} skills)")
 
-    print("\n✅ 4-STEP FLOW TESTING COMPLETE!")
+    print("\n[OK] 4-STEP FLOW TESTING COMPLETE!")
     print("   Step 1: PostgreSQL work activities")
     print("   Step 2: Neo4j")
     print("   Step 3: PostgreSQL career_ksas (abilities + knowledge)")

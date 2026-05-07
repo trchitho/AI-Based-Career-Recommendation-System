@@ -59,7 +59,7 @@ const SkillHeatmap: React.FC<SkillHeatmapProps> = ({ data }) => {
         line.setAttribute('y1', sourceNode.y.toString());
         line.setAttribute('x2', targetNode.x.toString());
         line.setAttribute('y2', targetNode.y.toString());
-        line.setAttribute('stroke', 'cbd5e1');
+        line.setAttribute('stroke', '#cbd5e1');
         line.setAttribute('stroke-width', (link.strength * 3).toString());
         
         if (link.style === 'dashed') {
@@ -90,7 +90,7 @@ const SkillHeatmap: React.FC<SkillHeatmapProps> = ({ data }) => {
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('text-anchor', 'middle');
       text.setAttribute('dy', (nodeSize + 20).toString());
-      text.setAttribute('fill', '1f2937');
+      text.setAttribute('fill', '#1f2937');
       text.setAttribute('font-size', '12');
       text.setAttribute('font-weight', '600');
       text.textContent = node.name;

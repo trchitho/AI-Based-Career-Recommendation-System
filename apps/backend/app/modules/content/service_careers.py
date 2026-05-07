@@ -11,7 +11,7 @@ def list_careers(session: Session, q: str | None, category_id: int | None, limit
     # Select only portable columns to avoid schema drift
     # Prioritize English titles and descriptions
     title_expr = func.coalesce(Career.title_en, Career.title_vi)
-    desc_expr = func.coalesce(Career.short_desc_en, Career.short_desc_vn)
+    desc_expr = func.coalesce(Career.short_desc_en, Career.short_desc_vi)
     stmt = select(
         Career.id,
         Career.slug,
@@ -59,7 +59,7 @@ def get_career(session: Session, id_or_slug: str):
             Career.slug,
             Career.title_vi,
             Career.title_en,
-            Career.short_desc_vn,
+            Career.short_desc_vi,
             Career.short_desc_en,
             Career.created_at,
             Career.updated_at,
@@ -93,7 +93,7 @@ def get_career(session: Session, id_or_slug: str):
                 slug,
                 title_vi,
                 title_en,
-                short_desc_vn,
+                short_desc_vi,
                 short_desc_en,
                 created_at,
                 updated_at,
@@ -101,7 +101,7 @@ def get_career(session: Session, id_or_slug: str):
             ) = row
             # Prioritize English titles and descriptions
             title = title_en or title_vi or ""
-            sdesc = short_desc_en or short_desc_vn or ""
+            sdesc = short_desc_en or short_desc_vi or ""
             return {
                 "id": cid,
                 "slug": slug,
@@ -132,18 +132,36 @@ def get_career(session: Session, id_or_slug: str):
 
 
 def get_roadmap(session: Session, user_id: int, id_or_slug: str):
-    # Resolve career by id or slug
+    # Resolve career by id, slug, or ONET code
     if id_or_slug.isdigit():
         c = session.get(Career, int(id_or_slug))
+    elif '-' in id_or_slug and len(id_or_slug.split('-')) == 3:
+        # Looks like ONET code with dashes, try both formats
+        onet_dash = id_or_slug  # 39-5094-00
+        onet_dot = id_or_slug.replace('-', '.', 1).replace('-', '.', 1)  # 39-5094.00
+        c = session.execute(
+            select(Career).where(
+                or_(Career.slug == id_or_slug, Career.onet_code == onet_dash, Career.onet_code == onet_dot)
+            )
+        ).scalar_one_or_none()
     else:
         c = session.execute(select(Career).where(Career.slug == id_or_slug)).scalar_one_or_none()
+    
     if not c:
         return None
     career_id = int(c.id)
     roadmap = session.execute(select(Roadmap).where(Roadmap.career_id == career_id)).scalar_one_or_none()
     if not roadmap:
         ct = c.to_dict().get("title") or "Career"
-        roadmap = Roadmap(career_id=career_id, title=f"{ct} Roadmap")
+        # Create roadmap with Vietnamese title (default) and English title if available
+        title_vn = f"{ct} Roadmap"
+        title_en = f"{ct} Roadmap" if ct != "Career" else None
+        
+        roadmap = Roadmap(
+            career_id=career_id, 
+            title_vn=title_vn,
+            title_en=title_en
+        )
         session.add(roadmap)
         session.flush()
         demo_ms = [
@@ -233,9 +251,21 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
 
 
 def complete_milestone(session: Session, user_id: int, id_or_slug: str, milestone_id: int):
-    # Resolve career id
+    # Resolve career id by id, slug, or ONET code
     if id_or_slug.isdigit():
         cid = int(id_or_slug)
+    elif '-' in id_or_slug and len(id_or_slug.split('-')) == 3:
+        # Looks like ONET code with dashes, try both formats
+        onet_dash = id_or_slug  # 39-5094-00
+        onet_dot = id_or_slug.replace('-', '.', 1).replace('-', '.', 1)  # 39-5094.00
+        c = session.execute(
+            select(Career).where(
+                or_(Career.slug == id_or_slug, Career.onet_code == onet_dash, Career.onet_code == onet_dot)
+            )
+        ).scalar_one_or_none()
+        if not c:
+            return None
+        cid = int(c.id)
     else:
         c = session.execute(select(Career).where(Career.slug == id_or_slug)).scalar_one_or_none()
         if not c:

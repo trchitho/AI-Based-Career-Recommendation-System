@@ -335,7 +335,7 @@ const CareerGoalsPage: React.FC = () => {
                                     );
                                   }}
                                   className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${milestone.status === 'completed'
-                                    ? 'bg-indigo-50 text-indigo-900 hover:bg-green-200 dark:bg-indigo-950/30 dark:text-indigo-400'
+                                    ? 'bg-indigo-50 text-indigo-900 hover:bg-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400'
                                     : 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400'
                                     }`}
                                 >

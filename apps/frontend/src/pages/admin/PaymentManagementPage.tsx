@@ -223,7 +223,7 @@ const PaymentManagementPage = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-green-200';
+        return 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'failed':
@@ -629,7 +629,7 @@ const PaymentManagementPage = () => {
                       </button>
                       <button
                         onClick={() => setShowUserHistory(payment.user_id)}
-                        className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-50 dark:bg-indigo-950/20 dark:hover:bg-green-900/40 text-indigo-800 dark:text-indigo-400 rounded-lg text-xs font-semibold border border-indigo-200 dark:border-indigo-800 transition-colors"
+                        className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-50 dark:bg-indigo-950/20 dark:hover:bg-indigo-950/40 text-indigo-800 dark:text-indigo-400 rounded-lg text-xs font-semibold border border-indigo-200 dark:border-indigo-800 transition-colors"
                       >
                         History
                       </button>
@@ -868,7 +868,7 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-green-200';
+        return 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'failed':
@@ -942,7 +942,7 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
               </div>
               <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-lg">
                 <div className="text-sm text-indigo-800 dark:text-indigo-400">Thành công</div>
-                <div className="text-2xl font-bold text-green-900 dark:text-green-100">{stats.successCount}</div>
+                <div className="text-2xl font-bold text-indigo-950 dark:text-indigo-100">{stats.successCount}</div>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
                 <div className="text-sm text-purple-600 dark:text-purple-400">Tổng tiền</div>

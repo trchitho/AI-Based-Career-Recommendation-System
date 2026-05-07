@@ -27,13 +27,13 @@ const RIASECCover = ({ cover }: RIASECCoverProps) => {
     return (
         <div className="h-full flex flex-col">
             {/* Header Banner - Full width with negative margins to extend to edges */}
-            <div className="bg-gradient-to-r from-indigo-800 to-teal-700 text-white px-10 py-6 -mx-10 -mt-10 mb-6 print:-mx-[15mm] print:-mt-[15mm] print:px-[15mm] print:py-5 print:mb-4">
+            <div className="bg-gradient-to-r from-indigo-800 to-violet-700 text-white px-10 py-6 -mx-10 -mt-10 mb-6 print:-mx-[15mm] print:-mt-[15mm] print:px-[15mm] print:py-5 print:mb-4">
                 {/* Title Row */}
                 <h1 className="text-2xl font-extrabold mb-2 print:text-xl">
                     {cover.title}
                 </h1>
                 {cover.subtitle && (
-                    <p className="text-green-100 text-base print:text-sm mb-3">
+                    <p className="text-indigo-100 text-base print:text-sm mb-3">
                         {cover.subtitle}
                     </p>
                 )}
@@ -46,7 +46,7 @@ const RIASECCover = ({ cover }: RIASECCoverProps) => {
                         </p>
                     )}
                     {cover.completed_at && (
-                        <p className="text-green-100 text-base print:text-sm">
+                        <p className="text-indigo-100 text-base print:text-sm">
                             {formatDate(cover.completed_at)}
                         </p>
                     )}

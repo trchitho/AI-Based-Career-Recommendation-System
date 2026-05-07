@@ -57,7 +57,7 @@ export const PaymentPage: React.FC = () => {
                 'Full learning roadmap',
                 'Detailed Knowledge, Skills, and Abilities analysis'
             ],
-            gradient: 'from-indigo-700 to-emerald-500',
+            gradient: 'from-indigo-700 to-indigo-700',
             popular: true,
         },
         {
@@ -170,7 +170,7 @@ export const PaymentPage: React.FC = () => {
     const getStatusBadge = (status: string) => {
         const badges: Record<string, string> = {
             pending: 'bg-yellow-100 text-yellow-800',
-            success: 'bg-indigo-50 text-green-800',
+            success: 'bg-indigo-50 text-indigo-950',
             failed: 'bg-red-100 text-red-800',
             cancelled: 'bg-gray-100 text-gray-800',
         };
@@ -206,7 +206,7 @@ export const PaymentPage: React.FC = () => {
                     {/* Notification Banner */}
                     {notification && (
                         <div className={`mb-8 p-4 rounded-xl flex items-center justify-between ${
-                            notification.type === 'success' ? 'bg-indigo-50 text-green-800 border border-indigo-200' :
+                            notification.type === 'success' ? 'bg-indigo-50 text-indigo-950 border border-indigo-200' :
                             notification.type === 'warning' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
                             'bg-red-100 text-red-800 border border-red-200'
                         }`}>

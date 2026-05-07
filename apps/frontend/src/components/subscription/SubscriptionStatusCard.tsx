@@ -53,13 +53,13 @@ const SubscriptionStatusCard = ({
     <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden ${className}`}>
       {/* Header */}
       <div className={`p-6 ${isPremium
-        ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-b border-indigo-200 dark:border-indigo-800'
+        ? 'bg-gradient-to-r from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20 border-b border-indigo-200 dark:border-indigo-800'
         : 'bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 border-b border-gray-200 dark:border-gray-700'
         }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isPremium
-              ? 'bg-gradient-to-br from-indigo-700 to-emerald-500 text-white'
+              ? 'bg-gradient-to-br from-indigo-700 to-indigo-700 text-white'
               : 'bg-gradient-to-br from-gray-400 to-blue-400 text-white'
               }`}>
               {isPremium ? (
@@ -74,7 +74,7 @@ const SubscriptionStatusCard = ({
             </div>
             <div>
               <h3 className={`font-bold ${isPremium
-                ? 'text-green-900 dark:text-green-100'
+                ? 'text-indigo-950 dark:text-indigo-100'
                 : 'text-gray-900 dark:text-white'
                 }`}>
                 {isPremium ? `${planName} Plan` : 'Free Plan'}
@@ -247,7 +247,7 @@ const SubscriptionStatusCard = ({
             className={`w-full px-4 py-3 font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 ${currentPlan === 'free'
               ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white'
               : currentPlan === 'basic'
-                ? 'bg-gradient-to-r from-indigo-700 to-emerald-500 hover:from-indigo-800 hover:to-emerald-600 text-white'
+                ? 'bg-gradient-to-r from-indigo-700 to-indigo-700 hover:from-indigo-800 hover:to-indigo-800 text-white'
                 : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
               }`}
           >

@@ -123,7 +123,7 @@ const LoginPage = () => {
                   <div className="flex gap-3">
                     <svg className="w-5 h-5 text-indigo-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <div>
-                      <p className="text-green-800 dark:text-indigo-300 font-medium">{verifyMsg}</p>
+                      <p className="text-indigo-950 dark:text-indigo-300 font-medium">{verifyMsg}</p>
                       {verifyUrl && (
                         <a href={verifyUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block font-bold text-indigo-900 underline hover:no-underline">
                           Verify Email Now
@@ -201,7 +201,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 px-4 bg-indigo-700 hover:bg-indigo-800 text-white rounded-full font-bold text-[16px] shadow-lg shadow-green-500/20 hover:shadow-green-500/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-4 bg-indigo-700 hover:bg-indigo-800 text-white rounded-full font-bold text-[16px] shadow-lg shadow-green-500/20 hover:shadow-indigo-700/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

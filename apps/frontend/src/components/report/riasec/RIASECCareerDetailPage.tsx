@@ -72,7 +72,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
             )}
 
             {/* Career Header */}
-            <div className="flex justify-between items-start mb-3 print:mb-2 pb-2 border-b border-indigo-600 dark:border-green-400 flex-shrink-0">
+            <div className="flex justify-between items-start mb-3 print:mb-2 pb-2 border-b border-indigo-600 dark:border-indigo-400 flex-shrink-0">
                 <div className="flex-1">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white print:text-base leading-tight">
                         {rank}. {career.title}
@@ -116,7 +116,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium uppercase tracking-wide print:text-[9px]">Average Salary</p>
                     <p className="text-base font-bold text-blue-700 dark:text-blue-300 print:text-sm">{formatSalary(career.salary_avg)}</p>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-indigo-50 dark:from-green-900/30 dark:to-green-800/20 rounded-lg p-2 print:p-1.5">
+                <div className="bg-gradient-to-br from-indigo-50 to-indigo-50 dark:from-indigo-950/30 dark:to-indigo-900/20 rounded-lg p-2 print:p-1.5">
                     <p className="text-[10px] text-indigo-800 dark:text-indigo-400 font-medium uppercase tracking-wide print:text-[9px]">Job Growth</p>
                     <p className="text-base font-bold text-indigo-900 dark:text-indigo-300 print:text-sm">{career.growth_label || 'N/A'}</p>
                 </div>

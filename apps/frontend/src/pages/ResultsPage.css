@@ -211,7 +211,7 @@
   flex-shrink: 0;
 }
 .res-section-icon.blue  { background: rgba(59,130,246,0.12); color: #2563eb; }
-.res-section-icon.green { background: rgba(16,185,129,0.12); color: #059669; }
+.res-section-icon.green { background: rgba(26,35,126,0.12); color: #059669; }
 .res-section-icon.purple{ background: rgba(139,92,246,0.12); color: #7c3aed; }
 .res-section-title {
   font-size: 1.15rem;
@@ -241,8 +241,8 @@
   overflow: hidden;
 }
 .res-highlight-card.green {
-  background: rgba(16,185,129,0.08);
-  border: 1px solid rgba(16,185,129,0.2);
+  background: rgba(26,35,126,0.08);
+  border: 1px solid rgba(26,35,126,0.2);
 }
 .res-highlight-card.blue {
   background: rgba(59,130,246,0.08);
@@ -272,11 +272,16 @@
 
 /* ── Chart box ───────────────────────────────────────────────── */
 .res-chart-box {
-  background: var(--neu-bg);
+  background: #f8fafc;
   border-radius: 16px;
-  box-shadow: var(--neu-pressed-sm);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   padding: 1.5rem;
   margin-bottom: 1.25rem;
+}
+.dark .res-chart-box {
+  background: #1e293b;
+  border-color: #334155;
 }
 .res-chart-box:last-child { margin-bottom: 0; }
 .res-chart-title {

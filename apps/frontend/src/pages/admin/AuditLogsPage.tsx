@@ -93,7 +93,7 @@ const AuditLogsPage = () => {
   };
 
   const getActionBadgeColor = (action: string) => {
-    if (action.includes("login")) return "bg-indigo-50 text-green-800 dark:bg-indigo-950 dark:text-indigo-300";
+    if (action.includes("login")) return "bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-300";
     if (action.includes("logout")) return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     if (action.includes("delete")) return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
     if (action.includes("create")) return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";

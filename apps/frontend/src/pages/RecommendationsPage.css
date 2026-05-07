@@ -770,14 +770,12 @@
   align-items: center;
   min-width: 320px;
 }
-
-.hero-visual-wrapper {
-  position: relative;
-  width: 320px;
-  height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.feedback-btn:hover { border-color: var(--neu-accent); color: var(--neu-accent); }
+.feedback-btn.active-up {
+  background: var(--color-success);
+  color: #fff;
+  border-color: var(--color-success);
+  box-shadow: 2px 2px 6px rgba(26,35,126,0.35);
 }
 
 .hero-visual-glow {
@@ -903,16 +901,24 @@
   transform: rotate(-12deg);
 }
 
-.floating-card.user {
-  bottom: 50px;
-  left: 20px;
-  transform: rotate(10deg);
+/* ── View button on strip cards ──────────────────────────────── */
+html body button.view-btn {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 3px 3px 10px rgba(26,35,126,0.35) !important;
+  padding: 0.4rem 1.1rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  transition: opacity 0.15s, transform 0.15s !important;
 }
-
-.floating-card.clock {
-  bottom: 70px;
-  right: 25px;
-  transform: rotate(-8deg);
+html body button.view-btn:hover {
+  opacity: 0.85 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 4px 4px 14px rgba(26,35,126,0.45) !important;
 }
 
 .floating-card.pie {

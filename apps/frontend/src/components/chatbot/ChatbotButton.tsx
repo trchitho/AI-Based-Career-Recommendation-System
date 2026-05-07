@@ -14,15 +14,15 @@ const ToastBar: React.FC<{ toasts: Toast[]; onClose: (id: number) => void }> = (
     {toasts.map(t => (
       <div key={t.id}
         style={{
-          background: t.type === 'reminder' ? '7c3aed' : t.type === 'schedule' ? '0ea5e9' : '16a34a',
-          color: 'fff', borderRadius: 12, padding: '10px 14px',
+          background: t.type === 'reminder' ? '#7c3aed' : t.type === 'schedule' ? '#0ea5e9' : '#16a34a',
+          color: '#fff', borderRadius: 12, padding: '10px 14px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
           display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.85rem',
           animation: 'slideIn .25s ease',
         }}>
         <style>{`@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}`}</style>
         <span style={{ flex: 1, lineHeight: 1.45 }}>{t.msg}</span>
-        <button onClick={() => onClose(t.id)} style={{ background: 'none', border: 'none', color: 'fff', cursor: 'pointer', opacity: 0.7, lineHeight: 1, padding: 0, flexShrink: 0, display:'flex', alignItems:'center' }}><X size={14} /></button>
+        <button onClick={() => onClose(t.id)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', opacity: 0.7, lineHeight: 1, padding: 0, flexShrink: 0, display:'flex', alignItems:'center' }}><X size={14} /></button>
       </div>
     ))}
   </div>
@@ -161,7 +161,7 @@ export const ChatbotButton: React.FC = () => {
       {/* Messenger popup */}
       {isMessengerOpen && (
         <div className="fixed bottom-28 right-6 z-50 w-80 h-[480px] rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700"
-          style={{ background: 'var(--neu-bg-card,f0f0f3)' }}>
+          style={{ background: 'var(--neu-bg-card,#f0f0f3)' }}>
           <ChatInboxPanel onUnreadChange={fetchUnread} />
         </div>
       )}

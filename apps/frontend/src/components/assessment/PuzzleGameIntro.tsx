@@ -23,7 +23,7 @@ const PuzzleGameIntro = ({ onStart, onCancel }: PuzzleGameIntroProps) => {
       <div className="text-center space-y-4 animate-fade-in-up">
         <div className="flex items-center justify-center gap-3 mb-4">
           <span className="text-6xl animate-bounce"></span>
-          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-blue-600 via-cyan-600 to-violet-600 bg-clip-text text-transparent">
             Puzzle Game
           </h1>
           <span className="text-6xl animate-bounce" style={{ animationDelay: '0.2s' }}></span>
@@ -153,8 +153,8 @@ const PuzzleGameIntro = ({ onStart, onCancel }: PuzzleGameIntroProps) => {
           </div>
 
           {/* Step 3 */}
-          <div className="flex gap-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-indigo-200 dark:border-indigo-800">
-            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-indigo-700 to-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+          <div className="flex gap-4 p-4 bg-gradient-to-br from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20 rounded-2xl border border-indigo-200 dark:border-indigo-800">
+            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-indigo-700 to-indigo-700 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
               3
             </div>
             <div>

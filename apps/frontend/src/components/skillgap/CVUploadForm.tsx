@@ -491,20 +491,20 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
 
             {/* Progress Info */}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
-              <span style={{ fontSize:'0.875rem', color:'var(--neu-text-muted)', fontWeight:'500' }}>{progressMessage}</span>
-              <span style={{ fontSize:'0.875rem', color:'var(--neu-accent)', fontWeight:'700' }}>{progress}%</span>
+              <span style={{ fontSize:'0.875rem', color:'var(--neu-text-muted)', fontWeight:'#500' }}>{progressMessage}</span>
+              <span style={{ fontSize:'0.875rem', color:'var(--neu-accent)', fontWeight:'#700' }}>{progress}%</span>
             </div>
 
             {/* Warning Message */}
             <div style={{ background:'rgba(245,158,11,0.12)', border:'1px solid rgba(245,158,11,0.35)', borderRadius:'10px', padding:'10px 14px', marginBottom:'1.5rem' }}>
-              <p style={{ fontSize:'0.85rem', color:'#92400e', margin:0, fontWeight:'500' }}>
+              <p style={{ fontSize:'0.85rem', color:'#92400e', margin:0, fontWeight:'#500' }}>
                  Không được tắt trang này khi đang phân tích, có thể gây lỗi hệ thống!
               </p>
             </div>
 
             {/* Processing Steps */}
             <div style={{ textAlign:'left', marginTop:'1.25rem' }}>
-              <h4 style={{ fontSize:'0.9rem', color:'var(--neu-text)', marginBottom:'0.5rem', fontWeight:'600' }}>
+              <h4 style={{ fontSize:'0.9rem', color:'var(--neu-text)', marginBottom:'0.5rem', fontWeight:'#600' }}>
                 Các bước đang thực hiện:
               </h4>
               <div style={{ fontSize:'0.85rem', color:'var(--neu-text-muted)', lineHeight:'1.8' }}>

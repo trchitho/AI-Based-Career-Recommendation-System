@@ -14,7 +14,7 @@ interface MetricCardProps {
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, status = 'good', icon }) => {
     const statusColors = {
-        good: 'bg-indigo-50 border-indigo-200 text-green-800',
+        good: 'bg-indigo-50 border-indigo-200 text-indigo-950',
         warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
         error: 'bg-red-50 border-red-200 text-red-800'
     };
@@ -189,7 +189,7 @@ const PerformanceDashboard: React.FC = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stats.error_rate > 5 ? 'bg-red-100 text-red-800' :
                                                         stats.error_rate > 1 ? 'bg-yellow-100 text-yellow-800' :
-                                                            'bg-indigo-50 text-green-800'
+                                                            'bg-indigo-50 text-indigo-950'
                                                     }`}>
                                                     {stats.error_rate.toFixed(2)}%
                                                 </span>

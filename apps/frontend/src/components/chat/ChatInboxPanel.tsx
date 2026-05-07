@@ -4,7 +4,7 @@ import ChatModal from './ChatModal';
 
 interface Props { onNewChat?: () => void; onUnreadChange?: () => void; }
 
-const AVATAR_COLORS = ['16a34a','6366f1','f59e0b','ef4444','06b6d4','8b5cf6','ec4899'];
+const AVATAR_COLORS = ['#16a34a','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#ec4899'];
 
 function initials(name: string) { return name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?'; }
 function avatarColor(name: string) { let h=0; for(let i=0;i<name.length;i++) h=name.charCodeAt(i)+((h<<5)-h); return AVATAR_COLORS[Math.abs(h)%AVATAR_COLORS.length]; }
@@ -77,7 +77,7 @@ const ChatInboxPanel: React.FC<Props> = ({ onNewChat, onUnreadChange }) => {
           <button key={t} onClick={()=>setTab(t)}
             className="flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border-none"
             style={tab===t
-              ? { background:'var(--neu-accent)', color:'fff' }
+              ? { background:'var(--neu-accent)', color:'#fff' }
               : { background:'var(--neu-bg)', color:'var(--neu-text-muted)', boxShadow:'var(--neu-raised-sm)' }
             }>
             {t==='all' ? 'Tất cả' : <>Chưa đọc{totalUnread>0&&<span className="ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">{totalUnread>99?'99+':totalUnread}</span>}</>}

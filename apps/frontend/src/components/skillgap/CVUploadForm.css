@@ -357,7 +357,7 @@
 /* Career hint text */
 .career-info-hint p { color: var(--neu-text-muted) !important; }
 .text-yellow-600 { color: #d97706; }
-.text-green-600 { color: var(--neu-accent); }
+.text-indigo-800 { color: var(--neu-accent); }
 .text-gray-500 { color: var(--neu-text-muted); }
 .ml-2 { margin-left: 0.5rem; }
 .mt-1 { margin-top: 0.25rem; }

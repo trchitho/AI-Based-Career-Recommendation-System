@@ -86,7 +86,7 @@ def get_saved_recommendations(
                 c.title_vi,
                 c.title_en,
                 c.short_desc_en,
-                c.short_desc_vn
+                c.short_desc_vi
             FROM core.career_recommendations cr
             JOIN core.careers c ON c.id = cr.career_id
             WHERE cr.assessment_id = :assessment_id

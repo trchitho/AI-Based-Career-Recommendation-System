@@ -17,7 +17,7 @@ const THEME_CONFIGS: Record<ThemeMode, ThemeConfig> = {
       '--neu-bg-card': '#eceef4',
       '--neu-shadow-dark': '#c5c8d2',
       '--neu-shadow-light': '#ffffff',
-      '--neu-accent': '#16a34a',
+      '--neu-accent': 'var(--color-primary)',
       '--neu-btn-text': '#ffffff',
       '--neu-text': '#1f2937',
       '--neu-text-muted': '#6b7280',

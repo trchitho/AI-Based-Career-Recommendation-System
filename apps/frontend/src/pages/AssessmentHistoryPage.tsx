@@ -50,7 +50,7 @@ const AssessmentHistoryPage = () => {
 
   const getSessionBadgeColor = (types: string) => {
     if (types.includes('RIASEC') && types.includes('BigFive')) {
-      return 'bg-indigo-50 text-green-800';
+      return 'bg-indigo-50 text-indigo-950';
     } else if (types.includes('RIASEC')) {
       return 'bg-blue-100 text-blue-800';
     } else if (types.includes('BigFive')) {

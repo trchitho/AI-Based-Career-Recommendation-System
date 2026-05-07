@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { blogService, BlogPost, BlogListResponse } from '../../services/blogService';
+import BlogPreviewModal from '../../components/admin/BlogPreviewModal';
 
 const BlogManagementPage = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const loadPosts = async () => {
     setLoading(true);
@@ -40,17 +45,33 @@ const BlogManagementPage = () => {
     try {
       await blogService.adminUpdate(id, { status: 'Published' });
       await loadPosts(); // Reload list
+      showSuccessToast('Blog approved successfully!');
     } catch (e: any) {
       alert('Cannot approve blog: ' + (e?.response?.data?.detail || e?.message));
     }
   };
 
-  const handleReject = async (id: string) => {
-    if (!confirm('Are you sure you want to reject this blog?')) return;
+  const handleView = (id: string) => {
+    setSelectedBlogId(id);
+    setIsModalOpen(true);
+  };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedBlogId(null);
+  };
+
+  const showSuccessToast = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleReject = async (id: string) => {
     try {
       await blogService.adminUpdate(id, { status: 'Rejected' });
       await loadPosts(); // Reload list
+      showSuccessToast('Blog rejected successfully!');
     } catch (e: any) {
       alert('Cannot reject blog: ' + (e?.response?.data?.detail || e?.message));
     }
@@ -169,6 +190,44 @@ const BlogManagementPage = () => {
           )}
         </div>
       )}
+
+      {/* Blog Preview Modal */}
+      <BlogPreviewModal
+        isOpen={isModalOpen}
+        blogId={selectedBlogId}
+        onClose={handleCloseModal}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        onEdit={(id) => navigate(`/admin/blog/edit/${id}`)}
+      />
+
+      {/* Success Toast */}
+      {showToast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+          <div className="bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="font-semibold">{toastMessage}</span>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slide-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };

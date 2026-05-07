@@ -22,7 +22,7 @@ const PaidUserStatus = () => {
         <div className="max-w-2xl w-full">
           {/* Success Header */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-indigo-700 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-700 to-indigo-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -38,11 +38,11 @@ const PaidUserStatus = () => {
           {/* Subscription Details Card */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-700 to-emerald-500 p-6 text-white">
+            <div className="bg-gradient-to-r from-indigo-700 to-indigo-700 p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold mb-1">{planName} Plan</h2>
-                  <p className="text-green-100">Status: Active</p>
+                  <p className="text-indigo-100">Status: Active</p>
                 </div>
                 <div className="text-right">
                   <span className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-sm font-semibold">
@@ -108,7 +108,7 @@ const PaidUserStatus = () => {
               <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={() => window.location.href = '/dashboard'}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-700 to-emerald-500 hover:from-indigo-800 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-700 to-indigo-700 hover:from-indigo-800 hover:to-indigo-800 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
                 >
                   Continue to Dashboard
                 </button>

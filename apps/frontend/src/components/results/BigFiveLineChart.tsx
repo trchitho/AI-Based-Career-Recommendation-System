@@ -49,8 +49,8 @@ const BigFiveLineChart = ({ scores }: BigFiveLineChartProps) => {
         <AreaChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
           <defs>
             <linearGradient id="bigfiveGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="8B5CF6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="8B5CF6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -73,8 +73,8 @@ const BigFiveLineChart = ({ scores }: BigFiveLineChartProps) => {
             stroke="#8B5CF6"
             strokeWidth={3}
             fill="url(bigfiveGradient)"
-            dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 5, stroke: 'fff' }}
-            activeDot={{ r: 7, stroke: '#8B5CF6', strokeWidth: 2, fill: 'fff' }}
+            dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 5, stroke: '#fff' }}
+            activeDot={{ r: 7, stroke: '#8B5CF6', strokeWidth: 2, fill: '#fff' }}
           />
         </AreaChart>
       </ResponsiveContainer>

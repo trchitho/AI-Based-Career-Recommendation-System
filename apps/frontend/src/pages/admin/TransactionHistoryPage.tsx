@@ -476,7 +476,7 @@ const TransactionHistoryPage = () => {
                   {detail.order_url && (
                     <div className="col-span-2">
                       <p className="text-gray-500 dark:text-gray-400">Gateway URL</p>
-                      <a href={detail.order_url} target="_blank" rel="noreferrer" className="text-emerald-600 dark:text-emerald-300 hover:underline break-all">
+                      <a href={detail.order_url} target="_blank" rel="noreferrer" className="text-indigo-800 dark:text-emerald-300 hover:underline break-all">
                         {detail.order_url}
                       </a>
                     </div>

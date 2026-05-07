@@ -26,6 +26,15 @@ const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
 };
 const CIRC = 2 * Math.PI * 20; // r=20
 
+const GRADIENTS = [
+  "from-indigo-700 to-violet-600",
+  "from-blue-500 to-indigo-600",
+  "from-orange-400 to-pink-500",
+  "from-purple-500 to-violet-600",
+  "from-violet-500 to-cyan-500",
+  "from-rose-400 to-red-500",
+];
+
 const RecommendationsPage = () => {
   const navigate = useNavigate();
   const { hasFeature, currentPlan, getPlanInfo } = useFeatureAccess();
@@ -399,23 +408,37 @@ const RecommendationsPage = () => {
 
                     {/* Premium badge for locked cards */}
                     {isLocked && (
-                      <div className="premium-badge">
-                        <Lock size={12} />
-                        <span>{requiredPlanInfo?.name || "Basic"}</span>
+                      <div style={{ position: "absolute", top: 12, right: 12, zIndex: 5 }}>
+                        <span style={{
+                          padding: "0.2rem 0.6rem",
+                          background: "linear-gradient(to right,#a855f7,ec4899)",
+                          color: "#fff", borderRadius: 999,
+                          fontSize: "0.68rem", fontWeight: 700,
+                          display: "flex", alignItems: "center", gap: 4,
+                        }}>
+                           {requiredPlanInfo?.name || "PRO"}
+                        </span>
                       </div>
                     )}
 
                     {/* Card top — gradient banner */}
-                    <div className={`card-top ${gradientClass}`}>
-                      {isLocked ? (
-                        <div className="overlay-lock">
-                          <Lock size={24} />
-                        </div>
-                      ) : (
-                        <div className="icon-container">
-                          <Briefcase size={22} />
-                        </div>
-                      )}
+                    <div style={{
+                      height: 120,
+                      background: `linear-gradient(135deg, var(--tw-gradient-stops))`,
+                      backgroundImage: `linear-gradient(135deg,${grad.includes("green") ? "10b981,14b8a6" : grad.includes("blue") ? "3b82f6,6366f1" : grad.includes("orange") ? "f97316,ec4899" : grad.includes("purple") ? "a855f7,7c3aed" : grad.includes("emerald") ? "34d399,06b6d4" : "fb7185,ef4444"})`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <div style={{
+                        width: 48, height: 48, borderRadius: 14,
+                        background: "rgba(255,255,255,0.2)", backdropFilter: "blur(4px)",
+                        border: "1px solid rgba(255,255,255,0.3)",
+                        display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
+                      }}>
+                        {isLocked
+                          ? <Lock size={22} />
+                          : <Briefcase size={22} />
+                        }
+                      </div>
                     </div>
 
                     {/* Card body */}

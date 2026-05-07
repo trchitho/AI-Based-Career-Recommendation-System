@@ -41,9 +41,9 @@ const LABEL_CARD_COLORS: Record<
     },
     caretaker: {
         bg: 'bg-indigo-50 dark:bg-indigo-950/20',
-        border: 'border-green-300 dark:border-green-700',
+        border: 'border-indigo-300 dark:border-indigo-800',
         text: 'text-indigo-900 dark:text-indigo-400',
-        ring: 'ring-green-400',
+        ring: 'ring-indigo-500',
     },
     pragmatist: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -66,9 +66,9 @@ const LABEL_CARD_COLORS: Record<
     },
     dutiful: {
         bg: 'bg-indigo-50 dark:bg-indigo-950/20',
-        border: 'border-green-300 dark:border-green-700',
+        border: 'border-indigo-300 dark:border-indigo-800',
         text: 'text-indigo-900 dark:text-indigo-400',
-        ring: 'ring-green-400',
+        ring: 'ring-indigo-500',
     },
     casual: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -91,9 +91,9 @@ const LABEL_CARD_COLORS: Record<
     },
     supportive: {
         bg: 'bg-indigo-50 dark:bg-indigo-950/20',
-        border: 'border-green-300 dark:border-green-700',
+        border: 'border-indigo-300 dark:border-indigo-800',
         text: 'text-indigo-900 dark:text-indigo-400',
-        ring: 'ring-green-400',
+        ring: 'ring-indigo-500',
     },
     independent: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -116,9 +116,9 @@ const LABEL_CARD_COLORS: Record<
     },
     insightful: {
         bg: 'bg-indigo-50 dark:bg-indigo-950/20',
-        border: 'border-green-300 dark:border-green-700',
+        border: 'border-indigo-300 dark:border-indigo-800',
         text: 'text-indigo-900 dark:text-indigo-400',
-        ring: 'ring-green-400',
+        ring: 'ring-indigo-500',
     },
     concise: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -141,9 +141,9 @@ const LABEL_CARD_COLORS: Record<
     },
     improviser: {
         bg: 'bg-indigo-50 dark:bg-indigo-950/20',
-        border: 'border-green-300 dark:border-green-700',
+        border: 'border-indigo-300 dark:border-indigo-800',
         text: 'text-indigo-900 dark:text-indigo-400',
-        ring: 'ring-green-400',
+        ring: 'ring-indigo-500',
     },
     cooperator: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -166,9 +166,9 @@ const LABEL_CARD_COLORS: Record<
     },
     inspector: {
         bg: 'bg-indigo-50 dark:bg-indigo-950/20',
-        border: 'border-green-300 dark:border-green-700',
+        border: 'border-indigo-300 dark:border-indigo-800',
         text: 'text-indigo-900 dark:text-indigo-400',
-        ring: 'ring-green-400',
+        ring: 'ring-indigo-500',
     },
     responder: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',

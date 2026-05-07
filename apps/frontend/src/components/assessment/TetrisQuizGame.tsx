@@ -728,7 +728,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                 setShowVictoryModal(false);
                 onComplete(finalResponses);
               }}
-              className="w-full bg-gradient-to-r from-indigo-700 via-emerald-500 to-indigo-600 hover:from-indigo-800 hover:via-emerald-600 hover:to-teal-600 text-white font-black text-sm py-2.5 px-4 rounded-lg shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-green-400 hover:border-green-300"
+              className="w-full bg-gradient-to-r from-indigo-700 via-indigo-500 to-indigo-600 hover:from-indigo-800 hover:via-emerald-600 hover:to-violet-600 text-white font-black text-sm py-2.5 px-4 rounded-lg shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-indigo-400 hover:border-indigo-300"
             >
                View My Analysis 
             </button>
@@ -871,7 +871,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
               style={{
                 width: `${GRID_COLS * CELL_SIZE}px`,
                 height: `${GRID_ROWS * CELL_SIZE}px`,
-                border: '4px solid 2a2a2a',
+                border: '4px solid #2a2a2a',
                 boxShadow: 'inset 0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.5)',
               }}
             >
@@ -953,7 +953,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                         key={idx}
                         className={`absolute rounded-lg transition-all duration-100 ${
                           canPlace
-                            ? 'border-4 border-green-400 bg-indigo-400/30'
+                            ? 'border-4 border-indigo-400 bg-indigo-400/30'
                             : 'border-4 border-red-400 bg-red-400/30'
                         }`}
                         style={{
@@ -969,7 +969,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                         {/* Animated pulse ring */}
                         <div className={`absolute inset-0 rounded-lg animate-ping ${canPlace ? 'bg-indigo-400/40' : 'bg-red-400/40'}`}></div>
                         {/* Inner bright center */}
-                        <div className={`absolute inset-2 rounded ${canPlace ? 'bg-green-300/60' : 'bg-red-300/60'}`}></div>
+                        <div className={`absolute inset-2 rounded ${canPlace ? 'bg-indigo-300/60' : 'bg-red-300/60'}`}></div>
                       </div>
                     );
                   })}
@@ -1192,11 +1192,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
               completedAnswers.map((answer, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 border-2 border-green-400 dark:border-indigo-600/30 rounded-lg p-2 animate-slide-in shadow-md hover:shadow-lg transition-all duration-200"
+                  className="bg-gradient-to-r from-indigo-100 to-indigo-100 dark:from-indigo-950/50 dark:to-emerald-900/50 border-2 border-indigo-400 dark:border-indigo-600/30 rounded-lg p-2 animate-slide-in shadow-md hover:shadow-lg transition-all duration-200"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-center gap-2">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-indigo-700 to-emerald-500 rounded flex items-center justify-center text-white font-black text-xs shadow-md">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-indigo-700 to-indigo-700 rounded flex items-center justify-center text-white font-black text-xs shadow-md">
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1237,7 +1237,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, 10b981, 059669);
+          background: linear-gradient(to bottom, #10b981, #059669);
           border-radius: 10px;
         }
       `}</style>
