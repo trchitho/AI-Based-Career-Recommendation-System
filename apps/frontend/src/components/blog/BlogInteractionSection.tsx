@@ -35,7 +35,7 @@ const BlogInteractionSection: React.FC<BlogInteractionSectionProps> = ({
             if (!isAuthenticated()) return;
 
             try {
-                const response = await api.get(`/api/blog/${postId}`);
+                const response = await api.get(`/api/blog/${postSlug}`);
                 const data = response.data;
 
                 // ALWAYS use API response as source of truth
@@ -48,7 +48,7 @@ const BlogInteractionSection: React.FC<BlogInteractionSectionProps> = ({
         };
 
         fetchReactionData();
-    }, [postId]);
+    }, [postSlug]);
 
     const handleLike = async () => {
         if (!isAuthenticated()) {
