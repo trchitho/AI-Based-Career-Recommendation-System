@@ -1,8 +1,8 @@
 import MainLayout from '../components/layout/MainLayout';
-import { useAppTheme, APP_THEMES } from '../hooks/useAppTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const SettingsPage = () => {
-  const { themeId, selectTheme } = useAppTheme();
+  const { mode, setThemeMode, isLight } = useAppTheme();
 
   return (
     <MainLayout>
@@ -23,40 +23,58 @@ const SettingsPage = () => {
               boxShadow: '6px 6px 16px var(--neu-shadow-dark), -6px -6px 16px var(--neu-shadow-light)',
             }}
           >
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Màu nền & giao diện</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Chọn theme áp dụng cho toàn bộ trang web</p>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Chế độ hiển thị</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Chọn chế độ sáng hoặc tối</p>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              {APP_THEMES.map((theme) => {
-                const isSelected = theme.id === themeId;
-                return (
-                  <button
-                    key={theme.id}
-                    onClick={() => selectTheme(theme.id)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95"
-                    style={{
-                      background: theme.vars['--neu-bg'],
-                      boxShadow: isSelected
-                        ? `0 0 0 2.5px ${theme.vars['--neu-accent']}, 4px 4px 10px ${theme.vars['--neu-shadow-dark']}, -4px -4px 10px ${theme.vars['--neu-shadow-light']}`
-                        : `4px 4px 10px ${theme.vars['--neu-shadow-dark']}, -4px -4px 10px ${theme.vars['--neu-shadow-light']}`,
-                    }}
-                  >
-                    <span className="text-2xl">{theme.emoji}</span>
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: theme.vars['--neu-text'] }}
-                    >
-                      {theme.name}
-                    </span>
-                    {isSelected && (
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: theme.vars['--neu-accent'] }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
+            {/* Theme Toggle Buttons */}
+            <div className="flex gap-4">
+              <button
+                onClick={() => setThemeMode('light')}
+                className="flex-1 flex items-center justify-center gap-3 p-4 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: isLight ? 'var(--neu-bg)' : 'var(--neu-bg-card)',
+                  boxShadow: isLight
+                    ? 'inset 4px 4px 9px var(--neu-shadow-dark), inset -4px -4px 9px var(--neu-shadow-light)'
+                    : '4px 4px 10px var(--neu-shadow-dark), -4px -4px 10px var(--neu-shadow-light)',
+                  color: 'var(--neu-text)',
+                }}
+              >
+                <span className="text-2xl">☀️</span>
+                <div className="text-left">
+                  <div className="font-semibold">Sáng</div>
+                  <div className="text-xs opacity-70">Giao diện sáng</div>
+                </div>
+                {isLight && (
+                  <div
+                    className="ml-auto w-2 h-2 rounded-full"
+                    style={{ background: 'var(--neu-accent)' }}
+                  />
+                )}
+              </button>
+
+              <button
+                onClick={() => setThemeMode('dark')}
+                className="flex-1 flex items-center justify-center gap-3 p-4 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: !isLight ? 'var(--neu-bg)' : 'var(--neu-bg-card)',
+                  boxShadow: !isLight
+                    ? 'inset 4px 4px 9px var(--neu-shadow-dark), inset -4px -4px 9px var(--neu-shadow-light)'
+                    : '4px 4px 10px var(--neu-shadow-dark), -4px -4px 10px var(--neu-shadow-light)',
+                  color: 'var(--neu-text)',
+                }}
+              >
+                <span className="text-2xl">🌙</span>
+                <div className="text-left">
+                  <div className="font-semibold">Tối</div>
+                  <div className="text-xs opacity-70">Giao diện tối</div>
+                </div>
+                {!isLight && (
+                  <div
+                    className="ml-auto w-2 h-2 rounded-full"
+                    style={{ background: 'var(--neu-accent)' }}
+                  />
+                )}
+              </button>
             </div>
           </div>
 

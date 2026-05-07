@@ -55,15 +55,15 @@
   },
   "nav": {
     "home": "Trang chủ",
-    "dashboard": "Bảng điều khiển",
-    "assessment": "Bài đánh giá",
+    "dashboard": "Tổng quan",
+    "assessment": "Đánh giá",
     "interview": "Phỏng vấn",
     "results": "Kết quả",
     "roadmap": "Lộ trình",
     "profile": "Hồ sơ",
     "admin": "Quản trị",
     "recommendations": "Gợi ý nghề nghiệp",
-    "careers": "Nghề nghiệp",
+    "careers": "Xu hướng",
     "blogs": "Bài viết",
     "skillGap": "Khoảng cách kỹ năng",
     "pricing": "Bảng giá",
@@ -156,6 +156,7 @@
     "hero": {
       "title": "Xây dựng tương lai với",
       "titleHighlight": "Định hướng nghề nghiệp thông minh",
+      "titleSuffix": "một cách chính xác.",
       "subtitle": "Khám phá con đường sự nghiệp lý tưởng với đánh giá tính cách bằng AI, gợi ý cá nhân hóa và lộ trình chi tiết.",
       "cta": "Bắt đầu đánh giá",
       "exploreBtn": "Khám phá nghề nghiệp"
@@ -174,15 +175,20 @@
       "sectionSubtitle": "Nền tảng kết hợp AI tiên tiến với chiến lược nghề nghiệp đã được kiểm chứng để mang lại lợi thế cạnh tranh.",
       "assessment": {
         "title": "Đánh giá nghề nghiệp bằng AI",
-        "desc": "Khám phá con đường nghề nghiệp lý tưởng với bài đánh giá toàn diện RIASEC & Big Five được hỗ trợ bởi phân tích AI tiên tiến."
+        "desc": "Khám phá con đường nghề nghiệp lý tưởng với bài đánh giá toàn diện RIASEC & Big Five được hỗ trợ bởi phân tích AI tiên tiến.",
+        "shortDesc": "Đánh giá nhận thức và kỹ thuật sâu để khám phá lợi thế cạnh tranh ẩn của bạn."
       },
       "skillGap": {
         "title": "Phân tích khoảng cách kỹ năng",
-        "desc": "Xác định các kỹ năng còn thiếu cho nghề nghiệp mơ ước của bạn."
+        "desc": "Xác định các kỹ năng còn thiếu cho nghề nghiệp mơ ước của bạn.",
+        "shortDesc": "Thu thập dữ liệu thời gian thực từ các lĩnh vực toàn cầu để xác định khoảng trống nhân tài mới nổi."
       },
       "roadmap": {
         "title": "Lộ trình nghề nghiệp",
         "desc": "Lộ trình học tập cá nhân hóa dẫn đến thành công."
+      },
+      "mentor": {
+        "shortDesc": "Truy cập trực tiếp các chuyên gia ngành đã đi qua con đường bạn đang tìm kiếm."
       }
     },
     "howItWorks": {
@@ -265,7 +271,7 @@
     }
   },
   "dashboard": {
-    "title": "Bảng điều khiển",
+    "title": "Tổng quan",
     "welcome": "Chào mừng trở lại",
     "overview": "Theo dõi hành trình phát triển nghề nghiệp",
     "loading": "Đang tải dữ liệu...",

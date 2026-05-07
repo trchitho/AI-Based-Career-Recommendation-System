@@ -426,7 +426,7 @@ const AssessmentPage = () => {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-700"></span>
                     </span>
-                     {t('assessment.aiPowered')}
+                    {t('assessment.aiPowered')}
                   </span>
                   <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-gray-900 via-indigo-900 to-violet-800 dark:from-white dark:via-indigo-400 dark:to-violet-400 bg-clip-text text-transparent mb-6 leading-tight">
                     {t('assessment.discoverCareer')}
@@ -496,10 +496,11 @@ const AssessmentPage = () => {
                     disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
                     className="btn-game group relative flex flex-col items-center justify-center px-6 py-6 rounded-2xl font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden"
                   >
-                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                     <div className="text-center relative z-10">
-                      <p className="text-lg font-extrabold text-white">Chế Độ Game</p>
-                      <p className="text-xs font-normal text-white/80 mt-0.5">Vui & hấp dẫn</p>
+                      <p className="text-xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">🎮 Chế Độ Game</p>
+                      <p className="text-sm font-bold text-white drop-shadow-md mt-1">Vui & hấp dẫn</p>
                     </div>
                   </button>
 
@@ -509,10 +510,11 @@ const AssessmentPage = () => {
                     disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
                     className="btn-interactive group relative flex flex-col items-center justify-center px-6 py-6 rounded-2xl font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                     <div className="text-center relative z-10">
-                      <p className="text-lg font-extrabold text-white">{t('assessment.startInteractive')}</p>
-                      <p className="text-xs font-normal text-white/80 mt-0.5">{t('assessment.storyBased')}</p>
+                      <p className="text-xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">✨ {t('assessment.startInteractive')}</p>
+                      <p className="text-sm font-bold text-white drop-shadow-md mt-1">{t('assessment.storyBased')}</p>
                     </div>
                   </button>
 

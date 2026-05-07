@@ -187,11 +187,11 @@ const BlogPage = () => {
     <MainLayout>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-20 left-1/4 w-96 h-96 bg-indigo-400 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-400 rounded-full blur-3xl"></div>
+        {/* ── Compact Hero ── */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-800 dark:via-gray-850 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div className="absolute inset-0 opacity-5 pointer-events-none">
+            <div className="absolute top-0 left-1/4 w-72 h-72 bg-indigo-700 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-blue-500 rounded-full blur-3xl"></div>
           </div>
 
           <div className="relative max-w-6xl mx-auto px-6 py-24 text-center">
@@ -289,18 +289,22 @@ const BlogPage = () => {
                 ))}
               </div>
 
-              {/* Right Arrow - pointing left (inward) */}
-              <button
-                onClick={() => {
-                  const container = document.getElementById('category-scroll');
-                  if (container) container.scrollBy({ left: 200, behavior: 'smooth' });
-                }}
-                className="flex-shrink-0 w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-all shadow-md"
-              >
-                <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+        {/* ── Category Filter Bar ── */}
+        <section className="sticky top-0 z-40 bg-white/90 dark:bg-gray-800/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategoryChange(category)}
+                  className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap text-sm transition-all duration-200 ${selectedCategory === category
+                    ? 'bg-indigo-800 text-white shadow-sm'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
           </div>
         </section>
@@ -330,16 +334,121 @@ const BlogPage = () => {
             )}
 
             {!loading && !error && displayedPosts.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {displayedPosts.map((post) => (
-                  <BlogCard
-                    key={post.slug}
-                    post={post}
-                    onNavigate={() => navigate(`/blog/${post.slug}`)}
-                    getCategoryDisplayName={getCategoryDisplayName}
-                    calculateReadingTime={calculateReadingTime}
-                  />
-                ))}
+              <div className="space-y-8">
+                {/* Featured post — full width dark card */}
+                {featuredPost && (
+                  <article
+                    onClick={() => navigate(`/blog/${featuredPost.slug}`)}
+                    className={`group cursor-pointer relative rounded-2xl overflow-hidden h-72 lg:h-80 bg-gradient-to-br ${getBlogGradient(featuredPost.category)} shadow-xl hover:shadow-2xl transition-all duration-300`}
+                  >
+                    <img
+                      src={getBlogImage(featuredPost.category, featuredPost.featured_image)}
+                      alt={featuredPost.title}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                    {/* Dark overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20" />
+
+                    <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="px-2.5 py-1 rounded-md bg-indigo-700 text-white text-xs font-bold uppercase tracking-wide">
+                          Featured
+                        </span>
+                        <span className="px-2.5 py-1 rounded-md bg-white/20 text-white text-xs font-semibold backdrop-blur-sm">
+                          {getCategoryDisplayName(featuredPost.category)}
+                        </span>
+                      </div>
+                      <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 line-clamp-2 leading-tight group-hover:text-indigo-300 transition-colors">
+                        {featuredPost.title}
+                      </h2>
+                      <p className="text-white/70 text-sm line-clamp-2 mb-4 max-w-2xl">
+                        {featuredPost.excerpt || featuredPost.content_md?.substring(0, 120) + '...'}
+                      </p>
+                      <div className="flex items-center gap-4">
+                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-sm transition-colors">
+                          Read Full Report
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                        <div className="flex items-center gap-1.5 text-white/80 text-xs">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{calculateReadingTime(featuredPost.content_md || '')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                )}
+
+                {/* Grid of remaining posts */}
+                {gridPosts.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {gridPosts.map((post) => {
+                      const readingTime = calculateReadingTime(post.content_md || '');
+                      const publishDate = post.published_at
+                        ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : 'Draft';
+                      const authorInitial = (post.author_name || 'A').charAt(0).toUpperCase();
+
+                      return (
+                        <article
+                          key={post.slug}
+                          onClick={() => navigate(`/blog/${post.slug}`)}
+                          className="group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                        >
+                          {/* Image */}
+                          <div className={`relative h-44 overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)}`}>
+                            <img
+                              src={getBlogImage(post.category, post.featured_image)}
+                              alt={post.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent dark:from-black/50" />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <span className="text-white/10 dark:text-white/5 text-7xl font-black">{post.title.charAt(0)}</span>
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-5 flex flex-col flex-grow">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wide">
+                                {getCategoryDisplayName(post.category)}
+                              </span>
+                              <span className="text-gray-300 dark:text-gray-600">·</span>
+                              <span className="text-xs text-gray-400 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />{readingTime}
+                              </span>
+                            </div>
+
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 leading-snug group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors">
+                              {post.title}
+                            </h3>
+
+                            <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-4 flex-grow leading-relaxed">
+                              {post.excerpt || post.content_md?.substring(0, 100) + '...'}
+                            </p>
+
+                            {/* Footer */}
+                            <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100 dark:border-gray-700">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                                  {authorInitial}
+                                </div>
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                                  {post.author_name || 'Author'}
+                                </span>
+                              </div>
+                              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                                Read More <ArrowRight className="w-3 h-3" />
+                              </span>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 

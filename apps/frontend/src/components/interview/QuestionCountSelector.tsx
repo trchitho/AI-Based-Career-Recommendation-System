@@ -1,5 +1,6 @@
 import React from 'react';
 import { Clock, Users, Target, Briefcase, Star } from 'lucide-react';
+import './QuestionCountSelector.css';
 
 interface QuestionCountOption {
     count: number;
@@ -83,12 +84,12 @@ const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
         return { ...base, technical: tech, situational: sit, jd_specific: jd };
     };
     return (
-        <div className={`space-y-4 ${className}`}>
+        <div className={`space-y-4 question-selector-container ${className}`}>
             <div className="text-center mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="question-selector-title">
                     Chọn số lượng câu hỏi phỏng vấn
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="question-selector-subtitle">
                     Chọn mức độ chi tiết phù hợp với mục tiêu của bạn
                 </p>
             </div>
@@ -104,13 +105,13 @@ const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
                             }`}
                     >
                         {option.recommended && (
-                            <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            <div className="question-recommended-badge">
                                 Đề xuất
                             </div>
                         )}
 
                         <div className="flex items-center gap-3 mb-3">
-                            <div className={`p-2 rounded-lg ${selectedCount === option.count ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                            <div className={`question-icon-container ${selectedCount === option.count ? 'question-icon-selected' : 'question-icon-default'
                                 }`}>
                                 {option.icon}
                             </div>
@@ -120,12 +121,12 @@ const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
                             </div>
                         </div>
 
-                        <p className="text-sm text-gray-600 mb-3">{option.description}</p>
+                        <p className="question-description-text mb-3">{option.description}</p>
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Thời gian:</span>
-                                <span className="font-medium text-gray-700">{option.duration}</span>
+                                <span className="question-detail-label">Thời gian:</span>
+                                <span className="question-detail-value">{option.duration}</span>
                             </div>
 
                             <div className="text-xs text-gray-500">
@@ -166,9 +167,9 @@ const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
                 ))}
             </div>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2"> Gợi ý chọn lựa:</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
+            <div className="question-info-box">
+                <h4 className="question-info-title">💡 Gợi ý chọn lựa:</h4>
+                <ul className="question-info-list space-y-1">
                     <li>• <strong>5 câu:</strong> Phù hợp cho đánh giá nhanh, sinh viên mới ra trường</li>
                     <li>• <strong>7 câu:</strong> Cân bằng tốt giữa thời gian và độ chi tiết (đề xuất)</li>
                     <li>• <strong>8-10 câu:</strong> Cho các vị trí chuyên môn cao, cần đánh giá kỹ</li>

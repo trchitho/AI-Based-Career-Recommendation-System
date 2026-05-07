@@ -1,0 +1,593 @@
+/* ═══════════════════════════════════════════════════════════════
+   Design System — Color Palette v2
+   Primary  #1A237E  · Secondary #7C4DFF  · Tertiary #00B0FF
+   Neutral  #F8FAFC
+   Fonts: Manrope (headline) · Inter (body/label)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Fonts ────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+/* ── Global ────────────────────────────────────────────────────── */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--neu-text-muted, #475569);
+  background-color: var(--neu-bg, #f8fafc);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-weight: 700;
+  color: var(--neu-text, #0f172a);
+}
+}
+
+/* ── CSS Variables ─────────────────────────────────────────────── */
+:root {
+  /* ── Backgrounds (Neutral #F8FAFC) ── */
+  --neu-bg: #f8fafc;
+  /* neutral light background */
+  --neu-bg-card: #ffffff;
+  /* pure white card surface */
+
+  /* Shadows (soft UI style for light mode) */
+  --neu-shadow-dark: rgba(148, 163, 184, 0.15);
+  /* soft shadow */
+  --neu-shadow-light: rgba(255, 255, 255, 0.8);
+  /* subtle highlight */
+
+  /* Border radius */
+  --neu-radius: 14px;
+  --neu-radius-sm: 12px;
+  --neu-radius-lg: 20px;
+
+  /* ══════════════════════════════════════════
+     COLOR PALETTE
+     Primary   #1A237E  (dark navy indigo)
+     Secondary #7C4DFF  (vivid purple)
+     Tertiary  #00B0FF  (cyan/sky)
+     Neutral   #F8FAFC
+  ══════════════════════════════════════════ */
+
+  /* Primary — Dark Navy Indigo */
+  --color-primary: #1A237E;
+  --color-primary-hover: #151c6b;
+  --color-primary-light: #e8eaf6;
+  --color-primary-muted: rgba(26, 35, 126, 0.10);
+  --color-primary-dark: #0d1442;
+
+  /* Secondary — Vivid Purple */
+  --color-secondary: #7C4DFF;
+  --color-secondary-hover: #651fff;
+  --color-secondary-light: #ede7f6;
+  --color-secondary-muted: rgba(124, 77, 255, 0.12);
+
+  /* Tertiary — Cyan / Sky */
+  --color-tertiary: #00B0FF;
+  --color-tertiary-hover: #0091ea;
+  --color-tertiary-light: #e1f5fe;
+  --color-tertiary-muted: rgba(0, 176, 255, 0.12);
+
+  /* ── Main accent (used throughout) → Primary ── */
+  --neu-accent: var(--color-primary);
+  --neu-accent-hover: var(--color-primary-hover);
+  --neu-accent-dark: var(--color-primary-dark);
+  --neu-accent-light: var(--color-primary-light);
+  --neu-accent-muted: var(--color-primary-muted);
+
+  /* ── Semantic ── */
+  --color-success: #00897b;
+  /* teal-600 */
+  --color-warning: #f57c00;
+  /* orange-700 */
+  --color-error: #d32f2f;
+  /* red-700 */
+  --color-info: var(--color-tertiary);
+
+  /* ── Score badges ── */
+  --score-excellent: var(--color-primary);
+  --score-good: var(--color-secondary);
+  --score-ok: var(--color-tertiary);
+  --score-low: #94a3b8;
+
+  /* ── Text ── */
+  --neu-text: #0f172a;
+  /* slate-900 - darker for better contrast */
+  --neu-text-muted: #475569;
+  /* slate-600 - readable muted text */
+  --neu-btn-text: #ffffff;
+
+  /* ── Border ── */
+  --neu-border: #e2e8f0;
+  /* slate-200 */
+
+  /* ── Shadows (Soft UI style - single direction) ── */
+  --neu-raised: 0 4px 16px rgba(148, 163, 184, 0.12), 0 2px 4px rgba(148, 163, 184, 0.08);
+  --neu-raised-sm: 0 2px 8px rgba(148, 163, 184, 0.10), 0 1px 2px rgba(148, 163, 184, 0.06);
+  --neu-raised-lg: 0 8px 24px rgba(148, 163, 184, 0.15), 0 4px 8px rgba(148, 163, 184, 0.10);
+  --neu-pressed: inset 0 2px 6px rgba(148, 163, 184, 0.15);
+  --neu-pressed-sm: inset 0 1px 4px rgba(148, 163, 184, 0.12);
+}
+
+.dark {
+  --neu-bg: #0f172a;
+  /* slate-900 */
+  --neu-bg-card: #1e293b;
+  /* slate-800 */
+  --neu-shadow-dark: #0a0f1e;
+  --neu-shadow-light: #1e3a5f;
+  --neu-text: #f1f5f9;
+  --neu-text-muted: #94a3b8;
+  --neu-border: #334155;
+}
+
+/* ── 1. Page backgrounds ──────────────────────────────────────── */
+/* Only sets the background — does NOT touch text or child elements */
+
+body,
+.bg-gray-50,
+.bg-gray-100,
+.bg-\[#F8F9FA\],
+.bg-surface-primary,
+.bg-surface-secondary,
+.bg-gray-50\/50 {
+  background-color: var(--neu-bg) !important;
+}
+
+/* White surfaces that are truly plain cards (no gradient, no colored bg) */
+/* We only apply when the element does NOT have a gradient or colored background class */
+.bg-white:not([class*="from-"]):not([class*="bg-green"]):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([class*="bg-gradient"]) {
+  background-color: var(--neu-bg-card) !important;
+}
+
+/* Dark mode */
+.dark body,
+.dark .dark\:bg-gray-900:not([class*="from-"]):not([class*="bg-green"]) {
+  background-color: var(--neu-bg) !important;
+}
+
+.dark .dark\:bg-gray-800:not([class*="from-"]) {
+  background-color: var(--neu-bg-card) !important;
+}
+
+/* ── 2. Headers & Navbars ─────────────────────────────────────── */
+
+header {
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* ── 3. Neutral cards — white bg with soft shadow ───────────── */
+/* Cards that use bg-white + shadow: pure white bg + soft shadow */
+
+.bg-white.rounded-xl,
+.bg-white.rounded-2xl,
+.bg-white.rounded-lg {
+  background-color: #ffffff !important;
+  box-shadow: var(--neu-raised) !important;
+  border: 1px solid rgba(226, 232, 240, 0.6) !important;
+}
+
+/* Cards already identified by shadow classes — just enhance the shadow */
+/* Only safe when they don't have a gradient or specific color bg */
+[class*="rounded-xl"][class*="shadow-sm"]:not([class*="bg-green"]):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([class*="from-"]):not([class*="bg-gradient"]):not(button):not(a):not([role="button"]) {
+  box-shadow: var(--neu-raised) !important;
+  border-color: transparent !important;
+}
+
+/* ── 4. Inputs — inset effect ─────────────────────────────────── */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="url"],
+input[type="tel"],
+textarea,
+select {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  border-radius: var(--neu-radius-sm) !important;
+  box-shadow: var(--neu-pressed-sm) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: inset 3px 3px 7px var(--neu-shadow-dark),
+    inset -3px -3px 7px var(--neu-shadow-light),
+    0 0 0 2px var(--neu-accent) !important;
+}
+
+/* ── Always ensure buttons are visible & clickable ───────────── */
+button,
+[role="button"] {
+  cursor: pointer !important;
+  position: relative;
+  z-index: 1;
+  /* ensure above overlay siblings */
+}
+
+button:disabled {
+  cursor: not-allowed !important;
+}
+
+/* ── 5. Plain buttons (no color class) — neu raised ──────────── */
+
+button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]) {
+  background: var(--neu-bg-card) !important;
+  border: none !important;
+  border-radius: var(--neu-radius-sm) !important;
+  box-shadow: var(--neu-raised-sm) !important;
+  transition: box-shadow 0.2s ease, transform 0.15s ease !important;
+}
+
+button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]):hover {
+  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light) !important;
+}
+
+button:not([class*="bg-"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):not(.submit-button):not(.retry-button):not(.back-button):not(.browse-button):not(.view-btn):not([style*="background"]):not([style*="gradient"]):not([style*="linear"]):active {
+  box-shadow: var(--neu-pressed-sm) !important;
+  transform: scale(0.97) !important;
+}
+
+/* ═══════════════════════════════════════════════
+   BUTTON SYSTEM — 4 variants (ảnh tham khảo)
+   Primary  · Secondary · Inverted · Outlined
+   ═══════════════════════════════════════════════ */
+
+/* ── PRIMARY button (solid navy) ── */
+.btn-primary,
+button[class*="bg-indigo"],
+button[class*="bg-green"],
+button[class*="bg-blue"],
+a[class*="bg-indigo"],
+a[class*="bg-green"] {
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(26, 35, 126, 0.30) !important;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s !important;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+.btn-primary:hover,
+button[class*="bg-indigo"]:hover,
+button[class*="bg-green"]:hover,
+button[class*="bg-blue"]:hover,
+a[class*="bg-indigo"]:hover,
+a[class*="bg-green"]:hover {
+  background-color: var(--color-primary-hover) !important;
+  box-shadow: 0 5px 18px rgba(26, 35, 126, 0.40) !important;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active,
+button[class*="bg-indigo"]:active,
+button[class*="bg-green"]:active {
+  transform: scale(0.97) !important;
+  box-shadow: 0 2px 6px rgba(26, 35, 126, 0.20) !important;
+}
+
+/* ── SECONDARY button (purple) ── */
+.btn-secondary-purple,
+button[class*="bg-purple"],
+button[class*="bg-violet"],
+a[class*="bg-purple"] {
+  background-color: var(--color-secondary) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(124, 77, 255, 0.30) !important;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s !important;
+  font-weight: 600;
+}
+
+button[class*="bg-purple"]:hover,
+button[class*="bg-violet"]:hover {
+  background-color: var(--color-secondary-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* ── TERTIARY / INVERTED (cyan) ── */
+button[class*="bg-cyan"],
+button[class*="bg-sky"],
+button[class*="bg-teal"],
+a[class*="bg-teal"] {
+  background-color: var(--color-tertiary) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(0, 176, 255, 0.30) !important;
+  font-weight: 600;
+}
+
+/* ── OUTLINED button style ── */
+.btn-outlined {
+  background: transparent !important;
+  color: var(--color-primary) !important;
+  border: 1.5px solid var(--color-primary) !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+.btn-outlined:hover {
+  background: var(--color-primary-muted) !important;
+}
+
+/* ── Other colored (error/warning/etc) ── */
+button[class*="bg-red"],
+button[class*="bg-rose"] {
+  background-color: var(--color-error) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 3px 10px rgba(211, 47, 47, 0.30) !important;
+}
+
+button[class*="bg-orange"],
+button[class*="bg-amber"] {
+  background-color: var(--color-warning) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+button[class*="bg-emerald"] {
+  background-color: var(--color-success) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+button[class*="bg-pink"] {
+  color: #fff !important;
+}
+
+/* White text inside all colored buttons */
+button[class*="bg-indigo"] *,
+button[class*="bg-green"] *,
+button[class*="bg-blue"] *,
+button[class*="bg-purple"] *,
+button[class*="bg-violet"] *,
+button[class*="bg-red"] *,
+button[class*="bg-cyan"] *,
+button[class*="bg-teal"] *,
+a[class*="bg-indigo"] *,
+a[class*="bg-green"] * {
+  color: #ffffff !important;
+}
+
+button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+/* ── 6. Modals ────────────────────────────────────────────────── */
+
+[class*="rounded-2xl"][class*="shadow-2xl"]:not([class*="bg-green"]):not([class*="from-"]):not(.btn-game):not(.btn-interactive),
+[class*="rounded-xl"][class*="shadow-xl"]:not([class*="bg-green"]):not([class*="from-"]):not(.btn-game):not(.btn-interactive) {
+  background: var(--neu-bg-card) !important;
+  box-shadow: var(--neu-raised-lg) !important;
+  border: none !important;
+}
+
+/* ── 7. Tables ────────────────────────────────────────────────── */
+
+table {
+  border-radius: var(--neu-radius);
+  overflow: hidden;
+  box-shadow: var(--neu-raised);
+}
+
+thead tr {
+  background: var(--neu-bg) !important;
+}
+
+tbody tr {
+  background: var(--neu-bg-card) !important;
+  border-bottom: 1px solid var(--neu-shadow-dark) !important;
+}
+
+tbody tr:hover {
+  box-shadow: inset 3px 0 0 var(--neu-accent);
+}
+
+/* ── 8. Progress bars ─────────────────────────────────────────── */
+
+[class*="h-2"][class*="rounded-full"],
+[class*="h-1"][class*="rounded-full"] {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-pressed-sm) !important;
+}
+
+[class*="h-full"][class*="rounded-full"][class*="bg-"] {
+  box-shadow: none !important;
+}
+
+/* ── 9. Checkboxes & radios ───────────────────────────────────── */
+
+input[type="checkbox"],
+input[type="radio"] {
+  border: none !important;
+  box-shadow: var(--neu-pressed-sm) !important;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background: var(--neu-accent) !important;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ── 10. Scrollbar ────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--neu-bg);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neu-shadow-dark);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0aab4;
+}
+
+/* ── 11. Utility classes ──────────────────────────────────────── */
+
+.neu-raised {
+  background: var(--neu-bg-card);
+  box-shadow: var(--neu-raised);
+  border-radius: var(--neu-radius);
+  border: none;
+}
+
+.neu-raised-sm {
+  background: var(--neu-bg-card);
+  box-shadow: var(--neu-raised-sm);
+  border-radius: var(--neu-radius-sm);
+  border: none;
+}
+
+.neu-raised-lg {
+  background: var(--neu-bg-card);
+  box-shadow: var(--neu-raised-lg);
+  border-radius: var(--neu-radius-lg);
+  border: none;
+}
+
+.neu-inset {
+  background: var(--neu-bg);
+  box-shadow: var(--neu-pressed);
+  border-radius: var(--neu-radius);
+  border: none;
+}
+
+.neu-inset-sm {
+  background: var(--neu-bg);
+  box-shadow: var(--neu-pressed-sm);
+  border-radius: var(--neu-radius-sm);
+  border: none;
+}
+
+/* ── 12. Animate-spin — remove shadow ─────────────────────────── */
+.animate-spin {
+  box-shadow: none !important;
+}
+
+/* ── 13. Gradient buttons — keep their own background ─────────── */
+html body button.btn-game {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35), 0 4px 12px rgba(139, 92, 246, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+html body button.btn-interactive {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7, #ec4899) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35), 0 4px 12px rgba(236, 72, 153, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+html body button.btn-game *,
+html body button.btn-interactive * {
+  color: #ffffff !important;
+}
+
+/* ── 14. Accent-class buttons — always use theme accent ───────── */
+html body button.submit-button,
+html body button.retry-button,
+html body label.browse-button {
+  background: var(--neu-accent) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25) !important;
+  border: none !important;
+}
+
+html body button.submit-button:hover,
+html body button.retry-button:hover {
+  background: var(--neu-accent-hover, var(--color-primary-hover)) !important;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+/* ── 18. Consistent green for Tailwind green buttons ─────────── */
+button.bg-green-600,
+a.bg-green-600 {
+  background-color: var(--neu-accent) !important;
+  color: #ffffff !important;
+}
+
+button.bg-green-600:hover,
+button.hover\:bg-green-700:hover,
+a.bg-green-600:hover {
+  background-color: var(--neu-accent-hover, var(--color-primary-hover)) !important;
+}
+
+/* ── 19. Muted secondary button style ───────────────────────── */
+.btn-outline-green {
+  background: transparent !important;
+  color: var(--neu-accent) !important;
+  border: 1.5px solid var(--neu-accent) !important;
+  box-shadow: none !important;
+}
+
+.btn-outline-green:hover {
+  background: var(--neu-accent-muted, rgba(22, 163, 74, 0.1)) !important;
+}
+
+/* ── 15. Ghost buttons — transparent, no shadow ───────────────── */
+html body button.btn-ghost {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* ── 16. Protect inline-style buttons from neumorphic override ── */
+/* Buttons with explicit background in style attr keep their own look */
+button[style*="background"],
+button[style*="linear-gradient"],
+a[style*="background"],
+a[style*="linear-gradient"] {
+  background: revert !important;
+}
+
+/* But still allow color property & box-shadow from inline */
+button[style*="background"]:not([style*="linear"]) {
+  background: unset !important;
+}
+
+/* ── 17. Ensure action buttons are always visible ───────────── */
+.ap-btn-blue,
+.ap-btn-dark,
+.pill-blue,
+.pill-dark {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* ── Print ────────────────────────────────────────────────────── */
+@media print {
+  * {
+    box-shadow: none !important;
+  }
+}

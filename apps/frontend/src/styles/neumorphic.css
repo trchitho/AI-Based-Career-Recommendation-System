@@ -1,100 +1,19 @@
-/* ═══════════════════════════════════════════════════════════════
-   Design System — Color Palette v2
-   Primary  #1A237E  · Secondary #7C4DFF  · Tertiary #00B0FF
-   Neutral  #F8FAFC
-   Fonts: Manrope (headline) · Inter (body/label)
-   ═══════════════════════════════════════════════════════════════ */
+/* ==========================================
+   NEUMORPHIC DESIGN SYSTEM - VIBRANT COLORS
+   ========================================== */
 
-/* ── Fonts ────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
-
-/* ── Global ────────────────────────────────────────────────────── */
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: var(--neu-text, #1e293b);
-  background-color: var(--neu-bg, #f1f5f9);
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Manrope', 'Inter', sans-serif;
-  font-weight: 700;
-}
-
-/* ── CSS Variables ─────────────────────────────────────────────── */
 :root {
-  /* ── Backgrounds (Neutral #F8FAFC) ── */
-  --neu-bg:           #f1f5f9;   /* slate-100 */
-  --neu-bg-card:      #f8fafc;   /* neutral — card surface */
+  /* Light Mode Colors */
+  --neu-bg: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e3f2fd 100%);
+  --neu-bg-card: rgba(255, 255, 255, 0.95);
+  --neu-text: #1a1a1a;
+  --neu-text-secondary: #4a5568;
+  --neu-shadow-dark: rgba(0, 0, 0, 0.15);
+  --neu-shadow-light: rgba(255, 255, 255, 0.9);
 
-  /* Shadows (tuned for lighter background) */
-  --neu-shadow-dark:  #cbd5e1;   /* slate-300 */
-  --neu-shadow-light: #ffffff;
-
-  /* Border radius */
-  --neu-radius:       14px;
-  --neu-radius-sm:    12px;
-  --neu-radius-lg:    20px;
-
-  /* ══════════════════════════════════════════
-     COLOR PALETTE
-     Primary   #1A237E  (dark navy indigo)
-     Secondary #7C4DFF  (vivid purple)
-     Tertiary  #00B0FF  (cyan/sky)
-     Neutral   #F8FAFC
-  ══════════════════════════════════════════ */
-
-  /* Primary — Dark Navy Indigo */
-  --color-primary:        #1A237E;
-  --color-primary-hover:  #151c6b;
-  --color-primary-light:  #e8eaf6;
-  --color-primary-muted:  rgba(26,35,126,0.10);
-  --color-primary-dark:   #0d1442;
-
-  /* Secondary — Vivid Purple */
-  --color-secondary:       #7C4DFF;
-  --color-secondary-hover: #651fff;
-  --color-secondary-light: #ede7f6;
-  --color-secondary-muted: rgba(124,77,255,0.12);
-
-  /* Tertiary — Cyan / Sky */
-  --color-tertiary:       #00B0FF;
-  --color-tertiary-hover: #0091ea;
-  --color-tertiary-light: #e1f5fe;
-  --color-tertiary-muted: rgba(0,176,255,0.12);
-
-  /* ── Main accent (used throughout) → Primary ── */
-  --neu-accent:        var(--color-primary);
-  --neu-accent-hover:  var(--color-primary-hover);
-  --neu-accent-dark:   var(--color-primary-dark);
-  --neu-accent-light:  var(--color-primary-light);
-  --neu-accent-muted:  var(--color-primary-muted);
-
-  /* ── Semantic ── */
-  --color-success:  #00897b;   /* teal-600 */
-  --color-warning:  #f57c00;   /* orange-700 */
-  --color-error:    #d32f2f;   /* red-700 */
-  --color-info:     var(--color-tertiary);
-
-  /* ── Score badges ── */
-  --score-excellent: var(--color-primary);
-  --score-good:      var(--color-secondary);
-  --score-ok:        var(--color-tertiary);
-  --score-low:       #94a3b8;
-
-  /* ── Text ── */
-  --neu-text:       #1e293b;   /* slate-800 */
-  --neu-text-muted: #64748b;   /* slate-500 */
-  --neu-btn-text:   #ffffff;
-
-  /* ── Border ── */
-  --neu-border: #e2e8f0;   /* slate-200 */
-
-  /* ── Shadows ── */
-  --neu-raised:     5px 5px 12px var(--neu-shadow-dark), -5px -5px 12px var(--neu-shadow-light);
-  --neu-raised-sm:  4px 4px 9px  var(--neu-shadow-dark), -4px -4px 9px  var(--neu-shadow-light);
-  --neu-raised-lg:  8px 8px 20px var(--neu-shadow-dark), -8px -8px 20px var(--neu-shadow-light);
-  --neu-pressed:    inset 4px 4px 9px var(--neu-shadow-dark), inset -4px -4px 9px var(--neu-shadow-light);
-  --neu-pressed-sm: inset 3px 3px 6px var(--neu-shadow-dark), inset -3px -3px 6px var(--neu-shadow-light);
+  /* Button Colors - SUPER VIBRANT & EYE-CATCHING */
+  --btn-game-bg: linear-gradient(135deg, #FF3B3B 0%, #FF6B35 25%, #FF8E53 50%, #FFB84D 75%, #FFA500 100%);
+  --btn-interactive-bg: linear-gradient(135deg, #00D9FF 0%, #4ECDC4 25%, #44A08D 50%, #3DBE7C 75%, #2ECC71 100%);
 }
 
 .dark {
@@ -344,83 +263,21 @@ html body button.btn-game *, html body button.btn-interactive * { color: #fff !i
 table {
   border-radius: var(--neu-radius);
   overflow: hidden;
-  box-shadow: var(--neu-raised);
-}
-thead tr {
-  background: var(--neu-bg) !important;
-}
-tbody tr {
-  background: var(--neu-bg-card) !important;
-  border-bottom: 1px solid var(--neu-shadow-dark) !important;
-}
-tbody tr:hover {
-  box-shadow: inset 3px 0 0 var(--neu-accent);
 }
 
-/* ── 8. Progress bars ─────────────────────────────────────────── */
-
-[class*="h-2"][class*="rounded-full"],
-[class*="h-1"][class*="rounded-full"] {
-  background: var(--neu-bg) !important;
-  box-shadow: var(--neu-pressed-sm) !important;
-}
-[class*="h-full"][class*="rounded-full"][class*="bg-"] {
-  box-shadow: none !important;
+.btn-game:hover:not(:disabled) {
+  box-shadow: 0 18px 60px rgba(255, 107, 107, 0.9), 0 0 40px rgba(255, 140, 83, 0.7) !important;
+  transform: translateY(-4px) scale(1.03) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
 }
 
-/* ── 9. Checkboxes & radios ───────────────────────────────────── */
-
-input[type="checkbox"],
-input[type="radio"] {
-  border: none !important;
-  box-shadow: var(--neu-pressed-sm) !important;
-}
-input[type="checkbox"]:checked,
-input[type="radio"]:checked {
-  background: var(--neu-accent) !important;
-  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.2) !important;
-}
-
-/* ── 10. Scrollbar ────────────────────────────────────────────── */
-
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track {
-  background: var(--neu-bg);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--neu-shadow-dark);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover { background: #a0aab4; }
-
-/* ── 11. Utility classes ──────────────────────────────────────── */
-
-.neu-raised    { background: var(--neu-bg-card); box-shadow: var(--neu-raised);    border-radius: var(--neu-radius);    border: none; }
-.neu-raised-sm { background: var(--neu-bg-card); box-shadow: var(--neu-raised-sm); border-radius: var(--neu-radius-sm); border: none; }
-.neu-raised-lg { background: var(--neu-bg-card); box-shadow: var(--neu-raised-lg); border-radius: var(--neu-radius-lg); border: none; }
-.neu-inset     { background: var(--neu-bg);      box-shadow: var(--neu-pressed);    border-radius: var(--neu-radius);    border: none; }
-.neu-inset-sm  { background: var(--neu-bg);      box-shadow: var(--neu-pressed-sm); border-radius: var(--neu-radius-sm); border: none; }
-
-/* ── 12. Animate-spin — remove shadow ─────────────────────────── */
-.animate-spin { box-shadow: none !important; }
-
-/* ── 13. Gradient buttons — keep their own background ─────────── */
-html body button.btn-game {
-  background: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6) !important;
-  color: #ffffff !important;
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35), 0 4px 12px rgba(139, 92, 246, 0.25) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-html body button.btn-interactive {
-  background: linear-gradient(135deg, #8b5cf6, #a855f7, #ec4899) !important;
-  color: #ffffff !important;
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35), 0 4px 12px rgba(236, 72, 153, 0.25) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-html body button.btn-game *,
-html body button.btn-interactive * {
-  color: #ffffff !important;
+.btn-interactive {
+  background: var(--btn-interactive-bg) !important;
+  color: white !important;
+  box-shadow: 0 12px 45px rgba(78, 205, 196, 0.7), 0 0 30px rgba(46, 204, 113, 0.5) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  position: relative;
+  overflow: hidden;
 }
 
 /* ── label.browse-button (file upload) ── */
@@ -431,5 +288,6 @@ html body label.browse-button {
   cursor: pointer !important;
 }
 
-/* ── Print ────────────────────────────────────────────────────── */
-@media print { * { box-shadow: none !important; } }
+.neu-text-secondary {
+  color: var(--neu-text-secondary);
+}

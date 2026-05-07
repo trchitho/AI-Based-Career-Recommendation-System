@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
   Target, ClipboardList, Users, Calendar, Star, MessageCircle,
-  Info, Check, X, Pin, BookOpen, CheckCheck
+  Info, Check, X, Pin, BookOpen, CheckCheck, Sparkles, HelpCircle
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import MainLayout from '../components/layout/MainLayout';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -16,6 +17,8 @@ import { scheduleService, MentorSession } from '../services/scheduleService';
 import BookingModal from '../components/chat/BookingModal';
 import ChatModal from '../components/chat/ChatModal';
 import './MentorMatchingPage.css';
+import './MentorMatchingPage-decorations.css';
+import './MentorMatchingPage-hero.css';
 
 type Tab = 'find' | 'requests' | 'mentees' | 'schedule' | 'become';
 
@@ -49,7 +52,7 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
 /* ── Avatar ───────────────────────────────────────────────────── */
 function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const init = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
-  const colors = ['#6366f1','8b5cf6','ec4899','10b981','3b82f6','f59e0b','14b8a6'];
+  const colors = ['#6366f1', '8b5cf6', 'ec4899', '10b981', '3b82f6', 'f59e0b', '14b8a6'];
   const color = colors[name.charCodeAt(0) % colors.length];
   return (
     <div style={{ width: size, height: size, borderRadius: '50%', background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: size * 0.35, flexShrink: 0 }}>
@@ -157,7 +160,7 @@ const MentorMatchingPage = () => {
 
   const loadMentors = async () => {
     setMentorsLoading(true);
-    try { setMentors(await mentorMatchingService.findMentors()); } catch {} finally { setMentorsLoading(false); }
+    try { setMentors(await mentorMatchingService.findMentors()); } catch { } finally { setMentorsLoading(false); }
   };
 
   const loadRequests = async () => {
@@ -172,12 +175,12 @@ const MentorMatchingPage = () => {
         setIncomingRequests(incoming.value);
         setMentees(incoming.value.filter(r => r.status === 'accepted'));
       }
-    } catch {} finally { setReqLoading(false); }
+    } catch { } finally { setReqLoading(false); }
   };
 
   const loadSessions = async () => {
     setSessionsLoading(true);
-    try { setSessions(await scheduleService.mySessions()); } catch {} finally { setSessionsLoading(false); }
+    try { setSessions(await scheduleService.mySessions()); } catch { } finally { setSessionsLoading(false); }
   };
 
   /* ── create mentee profile ── */
@@ -238,12 +241,104 @@ const MentorMatchingPage = () => {
   return (
     <MainLayout>
       <div className="mm-page">
+        {/* Decorative background elements */}
+        <div className="mm-page-decorations">
+          <div className="mm-decoration circle-1"></div>
+          <div className="mm-decoration circle-2"></div>
+          <div className="mm-decoration circle-3"></div>
+          <div className="mm-decoration circle-4"></div>
+          <div className="mm-decoration circle-5"></div>
+          <div className="mm-decoration star-1">✦</div>
+          <div className="mm-decoration star-2">✦</div>
+          <div className="mm-decoration star-3">✦</div>
+          <div className="mm-decoration curve-1"></div>
+          <div className="mm-decoration curve-2"></div>
+        </div>
 
         {/* Hero */}
-        <div className="mm-hero">
-          <span className="mm-hero-badge">AI-Powered Matching</span>
-          <h1>Tìm <span>Mentor</span> Phù Hợp</h1>
-          <p>Kết nối với chuyên gia hàng đầu — được xếp hạng bởi AI dựa trên kỹ năng, nghề nghiệp và tính cách của bạn.</p>
+        <div className="relative max-w-[1200px] mx-auto mb-8 py-20 px-5">
+          {/* Decorative elements for hero */}
+          <div className="absolute top-[10%] left-[8%] w-[150px] h-[150px] rounded-full opacity-20 pointer-events-none z-0" style={{ background: 'linear-gradient(135deg, #c4b5fd 0%, #ddd6fe 100%)' }}></div>
+          <div className="absolute top-[15%] right-[12%] w-[100px] h-[100px] rounded-full opacity-15 pointer-events-none z-0" style={{ background: 'linear-gradient(135deg, #bfdbfe 0%, #dbeafe 100%)' }}></div>
+          <div className="absolute bottom-[20%] left-[15%] w-[80px] h-[80px] rounded-full opacity-18 pointer-events-none z-0" style={{ background: 'linear-gradient(135deg, #e9d5ff 0%, #f3e8ff 100%)' }}></div>
+
+          {/* Curved lines */}
+          <div className="absolute top-[5%] left-[-5%] w-[400px] h-[400px] border-2 border-purple-200/30 rounded-full pointer-events-none z-0"></div>
+          <div className="absolute bottom-[10%] right-[-8%] w-[350px] h-[350px] border-2 border-blue-200/25 rounded-full pointer-events-none z-0"></div>
+
+          {/* Stars */}
+          <div className="absolute top-[20%] right-[18%] text-purple-300/40 text-2xl pointer-events-none z-0">✦</div>
+          <div className="absolute top-[60%] left-[12%] text-blue-300/35 text-xl pointer-events-none z-0">✦</div>
+          <div className="absolute bottom-[25%] right-[10%] text-purple-200/40 text-lg pointer-events-none z-0">✦</div>
+
+          <div className="absolute left-[25%] top-[50%] w-[600px] h-[600px] pointer-events-none z-0 opacity-100" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.12), transparent 30%)', filter: 'blur(100px)' }}>
+            <motion.div animate={{ y: [0, -20, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="w-full h-full" />
+          </div>
+          <div className="absolute right-[20%] top-[70%] w-[500px] h-[500px] pointer-events-none z-0 opacity-100" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.10), transparent 30%)', filter: 'blur(120px)' }}>
+            <motion.div animate={{ y: [0, 20, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="w-full h-full" />
+          </div>
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] border border-indigo-400/10 rounded-full pointer-events-none z-0" />
+          <motion.div className="absolute left-[15%] top-[30%] w-2 h-2 bg-purple-400/40 rounded-full pointer-events-none z-0" style={{ filter: 'blur(2px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.2, 1] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} />
+          <motion.div className="absolute right-[18%] top-[40%] w-1.5 h-1.5 bg-blue-400/40 rounded-full pointer-events-none z-0" style={{ filter: 'blur(2px)' }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.2, 1] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 }} />
+          <motion.div className="absolute left-[20%] top-[20%] text-purple-400/20 pointer-events-none z-0" animate={{ opacity: [0.2, 0.4, 0.2], y: [0, -10, 0], rotate: [0, 180, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}><Sparkles size={14} /></motion.div>
+          <motion.div className="absolute right-[25%] top-[25%] text-purple-400/20 pointer-events-none z-0" animate={{ opacity: [0.2, 0.4, 0.2], y: [0, -10, 0], rotate: [0, 180, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}><Sparkles size={12} /></motion.div>
+          <motion.div className="absolute left-1/2 bottom-[15%] text-purple-400/20 pointer-events-none z-0" animate={{ opacity: [0.2, 0.4, 0.2], y: [0, -10, 0], rotate: [0, 180, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 3 }}><Sparkles size={10} /></motion.div>
+
+          <motion.div
+            className="mm-hero-content relative z-10 text-center max-w-[1000px] mx-auto px-10 py-16"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <motion.span
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-indigo-500 text-xs font-bold tracking-[0.08em] uppercase mb-6"
+              style={{ boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
+              <Sparkles size={12} />
+              AI-POWERED MATCHING
+            </motion.span>
+
+            <motion.h1
+              className="font-extrabold text-center tracking-tight mb-5"
+              style={{
+                fontSize: 'clamp(48px, 6vw, 78px)',
+                lineHeight: '1.05',
+                color: '#0F172A'
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
+              Tìm <motion.span
+                className="inline-block bg-clip-text text-transparent"
+                style={{
+                  background: 'linear-gradient(90deg, #7C3AED 0%, #8B5CF6 50%, #6366F1 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  textShadow: '0 8px 25px rgba(124,58,237,0.15)',
+                  backgroundSize: '200% 100%'
+                }}
+                animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >Mentor</motion.span> Phù Hợp
+            </motion.h1>
+
+            <motion.p
+              className="text-lg text-center max-w-[760px] mx-auto"
+              style={{
+                color: '#64748B',
+                lineHeight: '1.8'
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+            >
+              Kết nối với chuyên gia hàng đầu — được xếp hạng bởi AI dựa trên kỹ năng, kinh nghiệm và tính cách của bạn.
+            </motion.p>
+          </motion.div>
         </div>
 
         <div className="mm-content">
@@ -255,22 +350,27 @@ const MentorMatchingPage = () => {
               <strong style={{ color: 'var(--neu-text)' }}>Tính năng hỗ trợ:&nbsp;</strong>
               Gửi yêu cầu kết nối, nhắn tin và đặt lịch gặp với mentor. Hệ thống <strong>không</strong> bao gồm gọi video trực tuyến.
             </div>
+            <a href="#" className="cta-link">Tìm hiểu thêm →</a>
           </div>
 
           {/* Tabs */}
           <div className="mm-tabs">
-            <button className={`mm-tab${tab === 'find' ? ' active' : ''}`} onClick={() => setTab('find')}><Target size={14} className="inline mr-1.5" />Tìm Mentor</button>
+            <button className={`mm-tab${tab === 'find' ? ' active' : ''}`} onClick={() => setTab('find')}>
+              <Target size={15} />Tìm Mentor
+            </button>
             <button className={`mm-tab${tab === 'requests' ? ' active' : ''}`} onClick={() => setTab('requests')}>
-              <ClipboardList size={14} className="inline mr-1.5" />Yêu cầu
+              <ClipboardList size={15} />Yêu cầu
               {(pendingMyReq + pendingIncoming) > 0 && <span className="mm-tab-count">{pendingMyReq + pendingIncoming}</span>}
             </button>
             <button className={`mm-tab${tab === 'mentees' ? ' active' : ''}`} onClick={() => setTab('mentees')}>
-              <Users size={14} className="inline mr-1.5" />Mentee của tôi
+              <Users size={15} />Mentee của tôi
               {mentees.length > 0 && <span className="mm-tab-count">{mentees.length}</span>}
             </button>
-            <button className={`mm-tab${tab === 'schedule' ? ' active' : ''}`} onClick={() => setTab('schedule')}><Calendar size={14} className="inline mr-1.5" />Lịch hẹn</button>
+            <button className={`mm-tab${tab === 'schedule' ? ' active' : ''}`} onClick={() => setTab('schedule')}>
+              <Calendar size={15} />Lịch hẹn
+            </button>
             <button className={`mm-tab${tab === 'become' ? ' active' : ''}`} onClick={() => setTab('become')}>
-              <Star size={14} className="inline mr-1.5" />{isMentor ? 'Hồ sơ Mentor' : 'Trở thành Mentor'}
+              <Star size={15} />{isMentor ? 'Hồ sơ Mentor' : 'Trở thành Mentor'}
             </button>
           </div>
 
@@ -280,12 +380,20 @@ const MentorMatchingPage = () => {
               {/* No profile */}
               {hasProfile === false && !showMenteeForm && (
                 <div className="mm-setup-card">
-                  <div className="mm-setup-icon">‍</div>
+                  <div className="mm-setup-icon">
+                    <Users size={36} />
+                  </div>
                   <h2>Hoàn thiện hồ sơ để tìm mentor</h2>
-                  <p>Hệ thống cần dữ liệu từ kết quả <strong>bài đánh giá</strong> và <strong>CV đã upload</strong> để tự động tìm mentor phù hợp.</p>
-                  <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button className="mm-btn-secondary" onClick={() => setShowMenteeForm(true)}> Điền thủ công</button>
-                    <button className="mm-btn-primary" onClick={() => window.location.href = '/assessment'}><Target size={14} className="inline mr-1" />Làm bài đánh giá</button>
+                  <p>Hệ thống căn cứ dữ liệu từ kết quả bài đánh giá và CV đã upload để tự động tìm mentor phù hợp.</p>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
+                    <button className="mm-btn-secondary" onClick={() => setShowMenteeForm(true)}>
+                      <ClipboardList size={18} />
+                      Điền thủ công
+                    </button>
+                    <button className="mm-btn-gradient" onClick={() => window.location.href = '/assessment'}>
+                      <Target size={18} />
+                      Làm bài đánh giá
+                    </button>
                   </div>
                 </div>
               )}
@@ -380,9 +488,9 @@ const MentorMatchingPage = () => {
                           <div>
                             <div className="mm-section-label">Độ phù hợp</div>
                             <div className="mm-score-bars">
-                              <ScoreBar label="Kỹ năng"   value={m.skill_match_score}  color="#8b5cf6" />
+                              <ScoreBar label="Kỹ năng" value={m.skill_match_score} color="#8b5cf6" />
                               <ScoreBar label="Nghề nghiệp" value={m.career_match_score} color="#3b82f6" />
-                              <ScoreBar label="Tính cách"  value={m.personality_score}  color="#10b981" />
+                              <ScoreBar label="Tính cách" value={m.personality_score} color="#10b981" />
                             </div>
                           </div>
                           {m.matching_reasons.length > 0 && (
@@ -422,10 +530,21 @@ const MentorMatchingPage = () => {
 
               {hasProfile === true && !mentorsLoading && mentors.length === 0 && (
                 <div className="mm-empty">
-                  <div className="mm-empty-icon"></div>
+                  <div className="mm-empty-icon">
+                    <Users size={32} />
+                  </div>
                   <h3>Chưa tìm thấy mentor phù hợp</h3>
                   <p>Hãy cập nhật kỹ năng muốn học để AI tìm được mentor tốt hơn cho bạn.</p>
-                  <button className="mm-btn-secondary" style={{ marginTop: '1rem' }} onClick={() => setShowMenteeForm(true)}> Cập nhật hồ sơ</button>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '24px' }}>
+                    <button className="mm-btn-secondary" onClick={() => setShowMenteeForm(true)}>
+                      <ClipboardList size={18} />
+                      Điền thủ công
+                    </button>
+                    <button className="mm-btn-gradient" onClick={() => window.location.href = '/assessment'}>
+                      <Target size={18} />
+                      Làm bài đánh giá
+                    </button>
+                  </div>
                 </div>
               )}
             </>
@@ -442,7 +561,7 @@ const MentorMatchingPage = () => {
                   {incomingRequests.length > 0 && (
                     <div>
                       <h3 style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--neu-text)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                         Yêu cầu nhận được
+                        Yêu cầu nhận được
                         {pendingIncoming > 0 && <span className="mm-tab-count">{pendingIncoming}</span>}
                       </h3>
                       <div className="mm-req-list">
@@ -485,12 +604,12 @@ const MentorMatchingPage = () => {
                   {/* My sent requests (mentee view) */}
                   <div>
                     <h3 style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--neu-text)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                       Yêu cầu đã gửi
+                      Yêu cầu đã gửi
                       {pendingMyReq > 0 && <span className="mm-tab-count">{pendingMyReq}</span>}
                     </h3>
                     {myRequests.length === 0 ? (
                       <div className="mm-empty" style={{ padding: '2rem' }}>
-                        <div className="mm-empty-icon"><ClipboardList size={28} style={{ color:'var(--neu-accent)' }} /></div>
+                        <div className="mm-empty-icon"><ClipboardList size={28} style={{ color: 'var(--neu-accent)' }} /></div>
                         <h3>Chưa gửi yêu cầu nào</h3>
                         <p>Tìm và gửi yêu cầu đến mentor phù hợp từ tab "Tìm Mentor".</p>
                       </div>
@@ -544,7 +663,7 @@ const MentorMatchingPage = () => {
               {reqLoading && <div className="mm-loading"><div className="mm-spinner" /><span>Đang tải...</span></div>}
               {!reqLoading && mentees.length === 0 && (
                 <div className="mm-empty">
-                  <div className="mm-empty-icon"><Users size={28} style={{ color:'var(--neu-accent)' }} /></div>
+                  <div className="mm-empty-icon"><Users size={28} style={{ color: 'var(--neu-accent)' }} /></div>
                   <h3>Chưa có mentee nào</h3>
                   <p>Khi bạn chấp nhận yêu cầu từ mentee, họ sẽ hiển thị tại đây.</p>
                 </div>
@@ -584,7 +703,7 @@ const MentorMatchingPage = () => {
               {sessionsLoading && <div className="mm-loading"><div className="mm-spinner" /><span>Đang tải lịch hẹn...</span></div>}
               {!sessionsLoading && sessions.length === 0 && (
                 <div className="mm-empty">
-                  <div className="mm-empty-icon"><Calendar size={28} style={{ color:'var(--neu-accent)' }} /></div>
+                  <div className="mm-empty-icon"><Calendar size={28} style={{ color: 'var(--neu-accent)' }} /></div>
                   <h3>Chưa có lịch hẹn nào</h3>
                   <p>Nhấn nút <Calendar size={13} className="inline" /> trong danh sách mentor hoặc mentee để đặt lịch hẹn.</p>
                 </div>
@@ -612,9 +731,9 @@ const MentorMatchingPage = () => {
                             <StatusBadge status={s.status} />
                             <span style={{ fontSize: '0.75rem', color: 'var(--neu-text-muted)' }}>· {s.duration_minutes} phút · {isMentorRole ? 'Bạn là mentor' : 'Bạn là mentee'}</span>
                           </div>
-                          {s.topic && <div style={{ fontSize: '0.85rem', color: 'var(--neu-text)', display:'flex', alignItems:'center', gap:4 }}><Pin size={12} />{s.topic}</div>}
+                          {s.topic && <div style={{ fontSize: '0.85rem', color: 'var(--neu-text)', display: 'flex', alignItems: 'center', gap: 4 }}><Pin size={12} />{s.topic}</div>}
                           {s.notes && <div style={{ fontSize: '0.8rem', color: 'var(--neu-text-muted)' }}>{s.notes}</div>}
-                          {s.mentor_note && <div style={{ fontSize: '0.8rem', color: '#065f46', marginTop: '0.2rem', display:'flex', alignItems:'center', gap:4 }}><MessageCircle size={11} />{s.mentor_note}</div>}
+                          {s.mentor_note && <div style={{ fontSize: '0.8rem', color: '#065f46', marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: 4 }}><MessageCircle size={11} />{s.mentor_note}</div>}
                         </div>
                         {/* Actions */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flexShrink: 0 }}>
@@ -673,7 +792,7 @@ const MentorMatchingPage = () => {
                 )}
 
                 {mentorSuccess && <div className="mm-success-banner"> {mentorSuccess}</div>}
-                {mentorErr    && <div className="mm-error-banner"> {mentorErr}</div>}
+                {mentorErr && <div className="mm-error-banner"> {mentorErr}</div>}
 
                 <form className="mm-form" onSubmit={saveMentorProfile}>
                   <div className="mm-form-grid">
@@ -763,6 +882,16 @@ const MentorMatchingPage = () => {
       {chatTarget && (
         <ChatModal otherUserId={chatTarget.userId} otherName={chatTarget.name} onClose={() => setChatTarget(null)} />
       )}
+
+      {/* Floating Action Buttons */}
+      <div className="mm-fab-container">
+        <button className="mm-fab purple" title="Trò chuyện" onClick={() => {/* Open chat */ }}>
+          <MessageCircle size={22} />
+        </button>
+        <button className="mm-fab blue" title="Trợ giúp" onClick={() => {/* Open help */ }}>
+          <HelpCircle size={22} />
+        </button>
+      </div>
     </MainLayout>
   );
 };
