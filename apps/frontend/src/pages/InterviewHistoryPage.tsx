@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Eye, Briefcase, Calendar, TrendingUp, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,7 +9,7 @@ import MainLayout from '../components/layout/MainLayout';
 interface InterviewSession {
     id: number;
     job_title: string;
-    status: 'active' | 'completed' | 'abandoned';
+    status: 'completed' | 'abandoned';
     started_at: string;
     completed_at?: string;
     overall_score?: number;
@@ -20,7 +20,6 @@ interface InterviewSession {
 const InterviewHistoryPage: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const hasLoadedRef = useRef(false); // Prevent duplicate loads
 
     const [interviews, setInterviews] = useState<InterviewSession[]>([]);
     const [filteredInterviews, setFilteredInterviews] = useState<InterviewSession[]>([]);
@@ -30,6 +29,10 @@ const InterviewHistoryPage: React.FC = () => {
     const [sortBy, setSortBy] = useState<'date' | 'score' | 'recommendation' | 'questions'>('date');
     const [scoreFilter, setScoreFilter] = useState<string>('all');
     const [dateRangeFilter, setDateRangeFilter] = useState<string>('all');
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalInterviews, setTotalInterviews] = useState(0);
+    const [hasMore, setHasMore] = useState(false);
+    const pageSize = 20;
 
     useEffect(() => {
         if (!user) {
@@ -159,7 +162,34 @@ const InterviewHistoryPage: React.FC = () => {
         });
 
         setFilteredInterviews(filtered);
-    };
+    }, [interviews, searchQuery, statusFilter, sortBy, scoreFilter, dateRangeFilter]);
+
+    const loadAllInterviews = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const response = await interviewService.getMyInterviews(pageSize, currentPage * pageSize);
+            setInterviews(response.interviews);
+            setTotalInterviews(response.total);
+            setHasMore(response.has_more);
+        } catch (error) {
+            console.error('❌ Error loading interviews:', error);
+            toast.error('Không thể tải lịch sử phỏng vấn');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentPage]);
+
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+        loadAllInterviews();
+    }, [user, navigate, loadAllInterviews]);
+
+    useEffect(() => {
+        filterAndSortInterviews();
+    }, [filterAndSortInterviews]);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -178,7 +208,7 @@ const InterviewHistoryPage: React.FC = () => {
             case 'active':
                 return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'abandoned':
-                return 'bg-gray-100 text-gray-800 border-gray-200';
+                return 'bg-red-100 text-red-800 border-red-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
         }
@@ -188,8 +218,6 @@ const InterviewHistoryPage: React.FC = () => {
         switch (status) {
             case 'completed':
                 return 'Hoàn thành';
-            case 'active':
-                return 'Đang diễn ra';
             case 'abandoned':
                 return 'Đã hủy';
             default:
@@ -225,12 +253,14 @@ const InterviewHistoryPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Đang tải lịch sử phỏng vấn...</p>
+            <MainLayout>
+                <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Đang tải lịch sử phỏng vấn...</p>
+                    </div>
                 </div>
-            </div>
+            </MainLayout>
         );
     }
 
@@ -261,7 +291,7 @@ const InterviewHistoryPage: React.FC = () => {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-3xl font-bold text-blue-600">{interviews.length}</div>
+                                <div className="text-3xl font-bold text-blue-600">{totalInterviews}</div>
                                 <div className="text-sm text-gray-500">Tổng phỏng vấn</div>
                             </div>
                         </div>
@@ -298,7 +328,6 @@ const InterviewHistoryPage: React.FC = () => {
                                     >
                                         <option value="all">Tất cả trạng thái</option>
                                         <option value="completed">Hoàn thành</option>
-                                        <option value="active">Đang diễn ra</option>
                                         <option value="abandoned">Đã hủy</option>
                                     </select>
                                 </div>
@@ -363,8 +392,8 @@ const InterviewHistoryPage: React.FC = () => {
                             <div className="mt-4 flex flex-wrap items-center gap-2">
                                 <span className="text-sm text-gray-600">Bộ lọc đang áp dụng:</span>
                                 {statusFilter !== 'all' && (
-                                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                                        Trạng thái: {statusFilter === 'completed' ? 'Hoàn thành' : statusFilter === 'active' ? 'Đang diễn ra' : 'Đã hủy'}
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusFilter === 'abandoned' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                        Trạng thái: {statusFilter === 'completed' ? 'Hoàn thành' : 'Đã hủy'}
                                     </span>
                                 )}
                                 {scoreFilter !== 'all' && (
@@ -494,6 +523,36 @@ const InterviewHistoryPage: React.FC = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* Pagination Controls */}
+                        {totalInterviews > pageSize && (
+                            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mt-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-sm text-gray-600">
+                                        Hiển thị {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, totalInterviews)} trong tổng số {totalInterviews} phỏng vấn
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                                            disabled={currentPage === 0}
+                                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            Trang trước
+                                        </button>
+                                        <span className="px-4 py-2 text-sm font-medium text-gray-700">
+                                            Trang {currentPage + 1} / {Math.ceil(totalInterviews / pageSize)}
+                                        </span>
+                                        <button
+                                            onClick={() => setCurrentPage(prev => prev + 1)}
+                                            disabled={!hasMore}
+                                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            Trang sau
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

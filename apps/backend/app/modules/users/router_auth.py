@@ -277,26 +277,30 @@ def login(request: Request, payload: LoginPayload):
     session.commit()
     
     # Ghi audit log cho login
-    user_agent = request.headers.get("user-agent", "")
-    browser = "Unknown"
-    if "Chrome" in user_agent:
-        browser = "Chrome"
-    elif "Firefox" in user_agent:
-        browser = "Firefox"
-    elif "Safari" in user_agent:
-        browser = "Safari"
-    elif "Edge" in user_agent:
-        browser = "Edge"
-    
-    log_audit(
-        session=session,
-        user_id=u.id,
-        action="login",
-        resource_type="user",
-        resource_id=str(u.id),
-        details={"browser": browser, "user_agent": user_agent[:200]},
-        ip_address=client_ip,
-    )
+    try:
+        user_agent = request.headers.get("user-agent", "")
+        browser = "Unknown"
+        if "Chrome" in user_agent:
+            browser = "Chrome"
+        elif "Firefox" in user_agent:
+            browser = "Firefox"
+        elif "Safari" in user_agent:
+            browser = "Safari"
+        elif "Edge" in user_agent:
+            browser = "Edge"
+        
+        log_audit(
+            session=session,
+            user_id=u.id,
+            action="login",
+            resource_type="user",
+            resource_id=str(u.id),
+            details={"browser": browser, "user_agent": user_agent[:200]},
+            ip_address=client_ip,
+        )
+    except Exception as e:
+        logger.error(f"Failed to log audit for login: {e}")
+        # Continue with login even if audit log fails
 
     return {
         "access_token": token,

@@ -251,14 +251,14 @@ def load_jobs_vi_tagged():
 # ---------- SQL ----------
 UPSERT_CAREER = """
 INSERT INTO core.careers(
-  onet_code, slug, title_en, title_vi, short_desc_en, short_desc_vn, created_at, updated_at
+  onet_code, slug, title_en, title_vi, short_desc_en, short_desc_vi, created_at, updated_at
 ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
 ON CONFLICT (onet_code) DO UPDATE SET
   slug           = EXCLUDED.slug,
   title_en       = EXCLUDED.title_en,
   title_vi       = COALESCE(EXCLUDED.title_vi, core.careers.title_vi),
   short_desc_en  = COALESCE(EXCLUDED.short_desc_en, core.careers.short_desc_en),
-  short_desc_vn  = COALESCE(EXCLUDED.short_desc_vn, core.careers.short_desc_vn),
+  short_desc_vi  = COALESCE(EXCLUDED.short_desc_vi, core.careers.short_desc_vi),
   updated_at     = EXCLUDED.updated_at
 RETURNING id;
 """

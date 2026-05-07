@@ -57,7 +57,7 @@ def reload_core_careers():
                     text(
                         """
                     INSERT INTO core.careers 
-                    (onet_code, title_en, title_vi, short_desc_en, short_desc_vn, industry_category, source)
+                    (onet_code, title_en, title_vi, short_desc_en, short_desc_vi, industry_category, source)
                     VALUES (:onet_code, :title_en, :title_vi, :desc_en, :desc_vi, :industry_category, 'ETL_FINAL')
                 """
                     ),

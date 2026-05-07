@@ -135,30 +135,133 @@ iframe {
 .animate-bounce-in {
   animation: bounce-in 0.4s ease-out;
 }
-/* ── Global Responsive Utilities ───────────────────────────── */
-@media (max-width: 768px) {
-  /* Prevent horizontal overflow globally */
-  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
+
+/* Level Selection Animations - Updated for new component */
+@keyframes level-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
   }
-  /* Sidebar: auto-collapse on mobile (handled by JS already) */
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
+  }
 }
 
-@media (max-width: 480px) {
-  /* Tighter padding on very small screens */
-  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
+@keyframes tooltip-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px) scale(0.95);
   }
-  /* Stack flex rows on mobile */
-  .sm\:flex-row { flex-direction: column; }
-  /* Table overflow */
-  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
 }
 
-/* Prevent inline-style grids from overflowing */
-[style*="gridTemplateColumns"] {
-  max-width: 100%;
-  overflow-x: hidden;
+@keyframes pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+}
+
+/* Smooth hover transitions for level cards */
+.level-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.level-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Line clamp utilities for consistent text truncation */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Dynamic Grid Layout for Level Cards */
+.level-cards-dynamic-grid {
+  display: grid;
+  gap: 1.25rem;
+  /* gap-5 */
+  width: 100%;
+}
+
+/* Mobile: 1 column */
+@media (max-width: 767px) {
+  .level-cards-dynamic-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .level-cards-dynamic-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: Dynamic based on item count */
+@media (min-width: 1024px) {
+
+  /* 4 items: 2x2 grid */
+  .level-cards-dynamic-grid[data-count="4"] {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* 5 items: 3 columns with centered last row */
+  .level-cards-dynamic-grid[data-count="5"] {
+    grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
+  }
+
+  .level-cards-dynamic-grid[data-count="5"]>div:nth-child(4) {
+    grid-column: 2;
+  }
+
+  .level-cards-dynamic-grid[data-count="5"]>div:nth-child(5) {
+    grid-column: 3;
+  }
+
+  /* Default: 3 columns */
+  .level-cards-dynamic-grid:not([data-count="4"]):not([data-count="5"]) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Ensure all level cards have equal height */
+.level-card-wrapper {
+  display: flex;
+  width: 100%;
+  max-width: 320px;
 }

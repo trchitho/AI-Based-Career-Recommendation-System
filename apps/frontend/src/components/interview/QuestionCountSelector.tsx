@@ -11,6 +11,7 @@ interface QuestionCountOption {
         technical: number;
         behavioral: number;
         situational: number;
+        closing: number;
     };
     icon: React.ReactNode;
     recommended?: boolean;
@@ -19,6 +20,7 @@ interface QuestionCountOption {
 interface QuestionCountSelectorProps {
     selectedCount: number;
     onSelect: (count: number) => void;
+    hasJD?: boolean;
     className?: string;
 }
 
@@ -28,7 +30,7 @@ const questionOptions: QuestionCountOption[] = [
         label: "Cơ bản",
         description: "Phỏng vấn nhanh, tập trung vào các kỹ năng cốt lõi",
         duration: "10-15 phút",
-        distribution: { warm_up: 1, technical: 2, behavioral: 1, situational: 1 },
+        distribution: { warm_up: 1, technical: 2, behavioral: 1, situational: 1, closing: 1 },
         icon: <Clock className="h-5 w-5" />
     },
     {
@@ -36,7 +38,7 @@ const questionOptions: QuestionCountOption[] = [
         label: "Tiêu chuẩn",
         description: "Đánh giá toàn diện các khía cạnh quan trọng",
         duration: "15-20 phút",
-        distribution: { warm_up: 1, technical: 3, behavioral: 2, situational: 1 },
+        distribution: { warm_up: 1, technical: 3, behavioral: 2, situational: 1, closing: 1 },
         icon: <Users className="h-5 w-5" />,
         recommended: true
     },
@@ -45,7 +47,7 @@ const questionOptions: QuestionCountOption[] = [
         label: "Mở rộng",
         description: "Khám phá sâu hơn về kỹ năng và kinh nghiệm",
         duration: "20-25 phút",
-        distribution: { warm_up: 1, technical: 3, behavioral: 2, situational: 2 },
+        distribution: { warm_up: 1, technical: 3, behavioral: 2, situational: 2, closing: 1 },
         icon: <Target className="h-5 w-5" />
     },
     {
@@ -53,7 +55,7 @@ const questionOptions: QuestionCountOption[] = [
         label: "Chuyên sâu",
         description: "Đánh giá chi tiết cho các vị trí quan trọng",
         duration: "25-30 phút",
-        distribution: { warm_up: 1, technical: 4, behavioral: 3, situational: 2 },
+        distribution: { warm_up: 1, technical: 4, behavioral: 3, situational: 2, closing: 1 },
         icon: <Briefcase className="h-5 w-5" />
     },
     {
@@ -61,7 +63,7 @@ const questionOptions: QuestionCountOption[] = [
         label: "Toàn diện",
         description: "Phỏng vấn đầy đủ nhất, phù hợp cho senior",
         duration: "30-35 phút",
-        distribution: { warm_up: 1, technical: 5, behavioral: 3, situational: 3 },
+        distribution: { warm_up: 1, technical: 5, behavioral: 3, situational: 3, closing: 1 },
         icon: <Star className="h-5 w-5" />
     }
 ];
@@ -69,8 +71,17 @@ const questionOptions: QuestionCountOption[] = [
 const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
     selectedCount,
     onSelect,
+    hasJD = false,
     className = ""
 }) => {
+    // Khi có JD: thay 2 câu technical/situational bằng jd_specific
+    const getDistribution = (base: QuestionCountOption['distribution']) => {
+        if (!hasJD) return base;
+        const jd = 2;
+        const tech = Math.max(0, base.technical - 1);
+        const sit = Math.max(0, base.situational - 1);
+        return { ...base, technical: tech, situational: sit, jd_specific: jd };
+    };
     return (
         <div className={`space-y-4 ${className}`}>
             <div className="text-center mb-6">
@@ -88,8 +99,8 @@ const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
                         key={option.count}
                         onClick={() => onSelect(option.count)}
                         className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md ${selectedCount === option.count
-                                ? 'border-blue-500 bg-blue-50 shadow-md'
-                                : 'border-gray-200 bg-white hover:border-gray-300'
+                            ? 'border-blue-500 bg-blue-50 shadow-md'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
                             }`}
                     >
                         {option.recommended && (
@@ -104,7 +115,7 @@ const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
                                 {option.icon}
                             </div>
                             <div>
-                                <h4 className="font-semibold text-gray-900">{option.count} câu hỏi</h4>
+                                <h4 className="font-semibold text-gray-900">{option.count + 1} câu hỏi</h4>
                                 <p className="text-sm font-medium text-blue-600">{option.label}</p>
                             </div>
                         </div>
@@ -118,18 +129,37 @@ const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
                             </div>
 
                             <div className="text-xs text-gray-500">
-                                <div className="flex justify-between">
-                                    <span>Kỹ thuật:</span>
-                                    <span className="font-medium">{option.distribution.technical}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Hành vi:</span>
-                                    <span className="font-medium">{option.distribution.behavioral}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Tình huống:</span>
-                                    <span className="font-medium">{option.distribution.situational}</span>
-                                </div>
+                                {(() => {
+                                    const dist = getDistribution(option.distribution) as any;
+                                    return (
+                                        <>
+                                            <div className="flex justify-between">
+                                                <span>Kỹ thuật:</span>
+                                                <span className="font-medium">{dist.technical}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Hành vi:</span>
+                                                <span className="font-medium">{dist.behavioral}</span>
+                                            </div>
+                                            {dist.situational > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span>Tình huống:</span>
+                                                    <span className="font-medium">{dist.situational}</span>
+                                                </div>
+                                            )}
+                                            {hasJD && (
+                                                <div className="flex justify-between text-yellow-700 font-medium">
+                                                    <span>Từ JD:</span>
+                                                    <span>{dist.jd_specific}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between text-purple-600 font-medium">
+                                                <span>Kết thúc:</span>
+                                                <span>1</span>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </div>
                     </div>

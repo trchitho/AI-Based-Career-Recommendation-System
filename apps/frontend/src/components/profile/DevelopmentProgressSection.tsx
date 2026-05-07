@@ -107,8 +107,8 @@ const DevelopmentProgressSection = ({ developmentProgress }: DevelopmentProgress
                   </div>
 
                   <button
-                    onClick={() => navigate(`/roadmap/${progress.career_id}`)}
-                    className="px-5 py-2.5 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-white rounded-xl font-semibold hover:bg-indigo-800 hover:text-white dark:hover:bg-indigo-800 transition-all shadow-sm flex items-center gap-2 whitespace-nowrap"
+                    onClick={() => navigate(`/careers/${progress.career_id}/roadmap`)}
+                    className="px-5 py-2.5 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-white rounded-xl font-semibold hover:bg-green-600 hover:text-white dark:hover:bg-green-600 transition-all shadow-sm flex items-center gap-2 whitespace-nowrap"
                   >
                     View Roadmap
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>

@@ -90,6 +90,23 @@ class Settings(BaseSettings):
     zalopay_callback_url: str = Field("http://localhost:8000/api/payment/callback")
 
     # ======================================================
+    # Voice Interview & Audio Storage
+    # ======================================================
+    # Audio Services
+    EDGE_TTS_ENABLED: bool = Field(True)
+    WHISPER_MODEL_SIZE: str = Field("base")  # base, small, medium
+    MAX_AUDIO_FILE_SIZE_MB: int = Field(25)
+    MAX_AUDIO_DURATION_SECONDS: int = Field(300)
+
+    # Audio Storage (Cloudflare R2)
+    CF_R2_AUDIO_BUCKET_NAME: str | None = Field(None)
+    
+    # Voice Interview Settings
+    VOICE_INTERVIEW_ENABLED: bool = Field(True)
+    DEFAULT_VOICE_PREFERENCE: str = Field("female")
+    MAX_TAB_SWITCHES: int = Field(10)
+
+    # ======================================================
     # Helper alias (nếu sau này muốn dùng snake_case)
     # ======================================================
     @property

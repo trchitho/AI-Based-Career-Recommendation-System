@@ -206,15 +206,22 @@ const InterviewResultsPage: React.FC = () => {
 
                 pdf.setFontSize(12);
                 pdf.setFont('helvetica', 'normal');
-                history.session.learning_recommendations.forEach(rec => {
+                history.session.learning_recommendations.forEach((rec: any) => {
                     if (yPos > pageHeight - 30) {
                         pdf.addPage();
                         yPos = 20;
                     }
-                    pdf.text(`• ${rec.skill} (${interviewService.getPriorityLabel(rec.priority)})`, 20, yPos);
-                    yPos += 6;
-                    pdf.text(`  Thời gian: ${rec.estimated_time}`, 20, yPos);
-                    yPos += 10;
+                    if (typeof rec === 'string') {
+                        pdf.text(`• ${rec}`, 20, yPos);
+                        yPos += 8;
+                    } else {
+                        pdf.text(`• ${rec.skill} (${interviewService.getPriorityLabel(rec.priority)})`, 20, yPos);
+                        yPos += 6;
+                        if (rec.estimated_time) {
+                            pdf.text(`  Thời gian: ${rec.estimated_time}`, 20, yPos);
+                            yPos += 10;
+                        }
+                    }
                 });
             }
 
@@ -535,36 +542,51 @@ const InterviewResultsPage: React.FC = () => {
                                         </div>
                                         <div className="p-8">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {history.session.learning_recommendations.map((rec, index) => (
+                                                {history.session.learning_recommendations.map((rec: any, index: number) => (
                                                     <div key={index} className="border border-gray-200 rounded-xl p-6 bg-gradient-to-br from-white to-gray-50">
-                                                        <div className="flex items-center justify-between mb-4">
-                                                            <h4 className="font-bold text-gray-900 text-lg">{rec.skill}</h4>
-                                                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${rec.priority === 'HIGH'
-                                                                ? 'bg-red-100 text-red-800'
-                                                                : rec.priority === 'MEDIUM'
-                                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                                    : 'bg-indigo-50 text-indigo-950'
-                                                                }`}>
-                                                                {interviewService.getPriorityLabel(rec.priority)}
-                                                            </span>
-                                                        </div>
-                                                        <div className="space-y-4">
-                                                            <div>
-                                                                <p className="text-sm font-medium text-gray-700 mb-2">Khóa học đề xuất:</p>
-                                                                <ul className="space-y-2">
-                                                                    {rec.suggested_courses.map((course, courseIndex) => (
-                                                                        <li key={courseIndex} className="flex items-start space-x-2">
-                                                                            <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                                                                            <span className="text-sm text-gray-600">{course}</span>
-                                                                        </li>
-                                                                    ))}
-                                                                </ul>
+                                                        {typeof rec === 'string' ? (
+                                                            // Format string (từ ai_pipeline_service)
+                                                            <div className="flex items-start space-x-3">
+                                                                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                                                                <span className="text-gray-700">{rec}</span>
                                                             </div>
-                                                            <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                                                <Clock className="h-4 w-4" />
-                                                                <span>Thời gian ước tính: {rec.estimated_time}</span>
-                                                            </div>
-                                                        </div>
+                                                        ) : (
+                                                            // Format object LearningRecommendation (từ services.py Gemini)
+                                                            <>
+                                                                <div className="flex items-center justify-between mb-4">
+                                                                    <h4 className="font-bold text-gray-900 text-lg">{rec.skill}</h4>
+                                                                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${rec.priority === 'HIGH'
+                                                                        ? 'bg-red-100 text-red-800'
+                                                                        : rec.priority === 'MEDIUM'
+                                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                                            : 'bg-green-100 text-green-800'
+                                                                        }`}>
+                                                                        {interviewService.getPriorityLabel(rec.priority)}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="space-y-4">
+                                                                    {rec.suggested_courses && rec.suggested_courses.length > 0 && (
+                                                                        <div>
+                                                                            <p className="text-sm font-medium text-gray-700 mb-2">Khóa học đề xuất:</p>
+                                                                            <ul className="space-y-2">
+                                                                                {rec.suggested_courses.map((course: string, courseIndex: number) => (
+                                                                                    <li key={courseIndex} className="flex items-start space-x-2">
+                                                                                        <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                                                                                        <span className="text-sm text-gray-600">{course}</span>
+                                                                                    </li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        </div>
+                                                                    )}
+                                                                    {rec.estimated_time && (
+                                                                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                                                                            <Clock className="h-4 w-4" />
+                                                                            <span>Thời gian ước tính: {rec.estimated_time}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>

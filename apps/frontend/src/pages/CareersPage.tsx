@@ -1,11 +1,5 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import MainLayout from '../components/layout/MainLayout';
-import { careerService, CareerItem } from '../services/careerService';
-import { Link } from 'react-router-dom';
-import { useFeatureAccess } from '../hooks/useFeatureAccess';
-import { useUsageTracking } from '../hooks/useUsageTracking';
-import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh';
-import { useApiCallTracker } from '../hooks/useApiCallTracker';
+// This file is no longer used - routes go directly to CareerGroupsPage
+import { Navigate } from 'react-router-dom';
 
 const CareersPage = () => {
   // ==========================================
