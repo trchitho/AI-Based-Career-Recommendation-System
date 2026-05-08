@@ -23,7 +23,7 @@ class CourseCatalog(Base):
     duration_hrs = Column(Float)
     thumbnail    = Column(String(1000))
     language     = Column(String(20), default="en")
-    tags         = Column(ARRAY(String), default=[])
+    tags         = Column(ARRAY(String), default=list)
     embedding    = Column(ARRAY(Float))       # SBERT 384-dim vector
     is_embedded  = Column(Boolean, default=False)
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
