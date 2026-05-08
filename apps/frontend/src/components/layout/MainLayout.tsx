@@ -2,11 +2,12 @@ import { ReactNode, useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
-import ThemeToggle from "../ThemeToggle";
 import { useAppSettings } from "../../contexts/AppSettingsContext";
 import AppLogo from "../common/AppLogo";
 import AppFooter from "./AppFooter";
 import NotificationCenter from "../notifications/NotificationCenter";
+import ScrollIndicator from "../common/ScrollIndicator";
+import { useScrollBehavior } from "../../hooks/useScrollBehavior";
 
 // Pages that should NOT show the sidebar (public / auth pages)
 const NO_SIDEBAR_PATHS = ['/', '/login', '/register', '/forgot-password', '/verify', '/oauth'];
@@ -62,8 +63,32 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   // State cho Mobile Menu
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Sidebar collapse state
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Sidebar collapse state - tách biệt mobile và desktop với localStorage persistence
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebarCollapsed');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Persist sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
+  // Đóng mobile sidebar khi resize sang desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Xử lý click ra ngoài để đóng dropdown
   useEffect(() => {
@@ -96,21 +121,14 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const displayName = user?.email?.split('@')[0] || 'User';
   const displayInitial = displayName.charAt(0).toUpperCase();
 
-  // Scroll state for navbar animation
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const isScrolled = scrollY > 80;
+  // Scroll behavior hook
+  const { scrollY, isScrolled, isScrollingUp, isScrollingDown } = useScrollBehavior(20);
 
   return (
     <div className="min-h-screen flex font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
+
+      {/* Scroll Progress Indicator */}
+      <ScrollIndicator />
 
       {/* CSS Injection */}
       <style>{`
@@ -119,108 +137,117 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
       {/* SIDEBAR - Fixed left side, full height */}
       {showSidebar && (
-        <aside
-          className={`fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-52'
-            }`}
-        >
-          {/* Sidebar content */}
-          <div className="flex-1 flex flex-col p-4">
+        <>
+          {/* Mobile overlay */}
+          <div
+            className={`fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden ${mobileSidebarOpen ? 'block' : 'hidden'
+              }`}
+            onClick={() => setMobileSidebarOpen(false)}
+          />
 
-            {/* Toggle button */}
-            <div className={`flex ${sidebarCollapsed ? 'justify-center' : 'justify-end'} mb-4`}>
-              <button
-                onClick={() => {
-                  console.log('Toggle clicked!', sidebarCollapsed);
-                  setSidebarCollapsed(!sidebarCollapsed);
-                }}
-                className="relative z-50 p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
-                title={sidebarCollapsed ? 'Mở rộng' : 'Thu gọn'}
-                style={{ pointerEvents: 'auto' }}
-              >
-                <svg
-                  className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+          {/* Sidebar */}
+          <aside
+            className={`fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-40 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'md:w-16' : 'md:w-52'
+              } ${mobileSidebarOpen ? 'w-52 translate-x-0' : 'w-52 -translate-x-full md:translate-x-0'
+              }`}
+          >
+            {/* Sidebar content */}
+            <div className="flex-1 flex flex-col p-4">
+
+              {/* Toggle button */}
+              <div className={`flex ${sidebarCollapsed ? 'justify-center' : 'justify-end'} mb-4`}>
+                <button
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  title={sidebarCollapsed ? 'Mở rộng' : 'Thu gọn'}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Nav items */}
-            <nav className="flex-1 space-y-2">
-              {sidebarItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  title={sidebarCollapsed ? item.label : undefined}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${sidebarCollapsed ? 'justify-center' : ''
-                    } ${isActive
-                      ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400"
-                      : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700"
-                    }`
-                  }
-                >
-                  <span className="flex-shrink-0">{item.icon}</span>
-                  {!sidebarCollapsed && <span>{item.label}</span>}
-                </NavLink>
-              ))}
-            </nav>
-
-            {/* User info at bottom */}
-            {user && (
-              <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className={`flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 ${sidebarCollapsed ? 'justify-center' : ''
-                  }`}>
-                  <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                    {displayInitial}
-                  </div>
-                  {!sidebarCollapsed && (
-                    <>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                          {displayName}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                      <button
-                        onClick={handleLogout}
-                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0"
-                        title="Đăng xuất"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                      </button>
-                    </>
-                  )}
-                  <button
-                    onClick={handleLogout}
-                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    title="Đăng xuất"
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                  </button>
-                </div>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
               </div>
-            )}
-          </div>
-        </aside>
+
+              {/* Nav items */}
+              <nav className="flex-1 space-y-2">
+                {sidebarItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    title={sidebarCollapsed ? item.label : undefined}
+                    onClick={() => {
+                      // Đóng mobile sidebar khi click vào navigation item trên mobile
+                      if (window.innerWidth < 768) {
+                        setMobileSidebarOpen(false);
+                      }
+                    }}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${sidebarCollapsed ? 'justify-center' : ''
+                      } ${isActive
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400"
+                        : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700"
+                      }`
+                    }
+                  >
+                    <span className="flex-shrink-0">{item.icon}</span>
+                    {!sidebarCollapsed && <span>{item.label}</span>}
+                  </NavLink>
+                ))}
+              </nav>
+
+              {/* User info at bottom */}
+              {user && (
+                <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className={`flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 ${sidebarCollapsed ? 'justify-center' : ''
+                    }`}>
+                    <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      {displayInitial}
+                    </div>
+                    {!sidebarCollapsed && (
+                      <>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            {displayName}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleLogout}
+                          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0"
+                          title="Đăng xuất"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </aside>
+        </>
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col transition-all duration-300" style={{
-        marginLeft: showSidebar ? (sidebarCollapsed ? '64px' : '208px') : '0'
-      }}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidebar && !sidebarCollapsed ? 'md:ml-52' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
+        }`}>
 
         {/* HEADER */}
-        <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+        <header className={`fixed top-0 z-50 transition-all duration-300 ease-in-out ${isScrolled
+          ? 'bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-700'
+          : 'bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700'
+          } ${showSidebar && !sidebarCollapsed ? 'md:left-52 left-0 right-0' :
+            showSidebar && sidebarCollapsed ? 'md:left-16 left-0 right-0' :
+              'left-0 right-0'
+          }`}>
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
 
@@ -229,14 +256,14 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 <AppLogo />
               </div>
 
-              {/* Desktop Navigation */}
+              {/* Desktop Navigation - KHÔNG ảnh hưởng đến sidebar state */}
               <nav className="hidden md:flex items-center space-x-8">
                 {navLinks.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `text-sm font-medium transition-colors ${isActive
+                      `text-sm font-medium transition-all duration-200 hover:scale-105 ${isActive
                         ? "text-indigo-600 dark:text-indigo-400"
                         : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                       }`
@@ -251,8 +278,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               <div className="flex items-center gap-4">
                 {/* Mobile menu button */}
                 <button
-                  className="md:hidden p-2 text-gray-600 dark:text-gray-400"
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="md:hidden p-2 text-gray-600 dark:text-gray-400 rounded-lg smooth-transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-110 micro-bounce"
+                  onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -260,43 +287,58 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 </button>
 
                 {/* Notifications */}
-                {user && <NotificationCenter />}
+                {user && (
+                  <div>
+                    <NotificationCenter />
+                  </div>
+                )}
 
                 {/* User menu */}
                 {user ? (
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 smooth-transition hover:scale-105 micro-bounce"
                     >
-                      <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg hover-lift">
                         {displayInitial}
                       </div>
                     </button>
 
                     {isDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 animate-fade-in-scale">
                         <Link
                           to="/profile"
                           onClick={() => setIsDropdownOpen(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
                         >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
                           Hồ sơ
                         </Link>
                         <Link
                           to="/settings"
                           onClick={() => setIsDropdownOpen(false)}
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
                         >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
                           Cài đặt
                         </Link>
+                        <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
                         <button
                           onClick={() => {
                             setIsDropdownOpen(false);
                             handleLogout();
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150"
                         >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
                           Đăng xuất
                         </button>
                       </div>
@@ -306,13 +348,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   <div className="flex items-center gap-3">
                     <NavLink
                       to="/login"
-                      className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all duration-200 hover:scale-105"
                     >
                       Đăng nhập
                     </NavLink>
                     <NavLink
                       to="/assessment"
-                      className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700"
+                      className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
                     >
                       Bắt đầu
                     </NavLink>
@@ -324,7 +366,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
           {/* Mobile menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 animate-fade-in-scale">
               <nav className="px-4 py-4 space-y-2">
                 {navLinks.map((item) => (
                   <NavLink
@@ -332,7 +374,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                     to={item.to}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-lg text-sm font-medium ${isActive
+                      `block px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${isActive
                         ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400"
                         : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700"
                       }`
@@ -345,6 +387,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             </div>
           )}
         </header>
+
+        {/* Spacer for fixed header */}
+        <div className="h-20"></div>
 
         {/* PAGE CONTENT */}
         <main className="flex-1">

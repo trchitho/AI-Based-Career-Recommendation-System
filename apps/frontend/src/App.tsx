@@ -9,6 +9,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import { ChatbotWrapper } from './components/chatbot/ChatbotWrapper';
 
+// Import animations CSS
+import './styles/animations.css';
+
 // Pages
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -188,6 +191,10 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <CourseRecommendationPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/cv-history"
                     element={
                       <ProtectedRoute>
