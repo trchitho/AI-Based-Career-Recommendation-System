@@ -241,4 +241,5 @@ Thumbs.db
 .kiro/
 .shared/
 "@ | Out-File -Encoding utf8 .gitignore
-db/backup/
+# Chặn file backup SQL nặng
+db/backup/dev_snapshot_utf8/dev_snapshot_utf8.sql

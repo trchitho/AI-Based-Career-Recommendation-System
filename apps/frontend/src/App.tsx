@@ -49,6 +49,7 @@ import ProgressComparisonPage from './pages/ProgressComparisonPage';
 import SettingsPage from './pages/SettingsPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
 import SkillGapPage from './pages/SkillGapPage';
+import CourseRecommendationPage from './pages/CourseRecommendationPage';
 import CVHistoryPage from './pages/CVHistoryPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import MentorMatchingPage from './pages/MentorMatchingPage';
@@ -183,6 +184,10 @@ function App() {
                     }
                   />
                   <Route
+                    path="/courses"
+                    element={
+                      <ProtectedRoute>
+                        <CourseRecommendationPage />
                     path="/cv-history"
                     element={
                       <ProtectedRoute>

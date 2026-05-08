@@ -77,6 +77,143 @@ async def lifespan(_: FastAPI):
     except Exception as e:
         print("Skip email verification auto-migration:", repr(e))
 
+    # Auto-migrate course recommendation tables
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS core.course_catalog (
+                    id           SERIAL PRIMARY KEY,
+                    external_id  VARCHAR(255) UNIQUE NOT NULL,
+                    title        VARCHAR(500) NOT NULL,
+                    description  TEXT,
+                    url          VARCHAR(1000),
+                    platform     VARCHAR(50),
+                    instructor   VARCHAR(255),
+                    rating       FLOAT DEFAULT 0.0,
+                    num_reviews  INTEGER DEFAULT 0,
+                    price        FLOAT DEFAULT 0.0,
+                    is_free      BOOLEAN DEFAULT FALSE,
+                    level        VARCHAR(50),
+                    duration_hrs FLOAT,
+                    thumbnail    VARCHAR(1000),
+                    language     VARCHAR(20) DEFAULT 'en',
+                    tags         TEXT[] DEFAULT '{}',
+                    embedding    FLOAT[],
+                    is_embedded  BOOLEAN DEFAULT FALSE,
+                    created_at   TIMESTAMPTZ DEFAULT NOW(),
+                    updated_at   TIMESTAMPTZ DEFAULT NOW()
+                )
+            """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS core.course_skill_map (
+                    id               SERIAL PRIMARY KEY,
+                    course_id        INTEGER NOT NULL REFERENCES core.course_catalog(id) ON DELETE CASCADE,
+                    skill_name       VARCHAR(255) NOT NULL,
+                    similarity_score FLOAT NOT NULL,
+                    created_at       TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE(course_id, skill_name)
+                )
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS ix_csm_skill_score
+                ON core.course_skill_map(skill_name, similarity_score DESC)
+            """))
+            conn.commit()
+        print("✅ Course tables ready")
+    except Exception as e:
+        print("Skip course auto-migration:", repr(e))
+
+    # Auto-seed + embed courses in background on startup (gated by env flag)
+    # Set RUN_COURSE_PIPELINE_ON_STARTUP=true to enable (disabled by default in production)
+    if _bool_env("RUN_COURSE_PIPELINE_ON_STARTUP", default=False):
+        import threading
+
+        def _course_startup_pipeline():
+            """
+            Runs once in background thread after server starts:
+            1. Seed static courses (idempotent — skips already-inserted rows)
+            2. Embed any un-embedded courses with SBERT
+            3. Build skill ↔ course similarity map
+            4. Sync to Neo4j (if available)
+            """
+            try:
+                from sqlalchemy.orm import sessionmaker as _sm
+                _Session = _sm(bind=engine, autocommit=False, autoflush=False)
+                db = _Session()
+                try:
+                    from app.modules.courses import service as _cs
+                    from app.modules.courses.models import CourseCatalog as _CC
+
+                    # Step 1: Seed (fast, skips duplicates)
+                    seed_result = _cs.seed_courses(db)
+                    print(f"📚 Courses seed: {seed_result['inserted']} inserted, {seed_result['skipped']} skipped")
+
+                    # Step 2: Embed only if there are un-embedded courses
+                    need_embed = db.query(_CC).filter(_CC.is_embedded == False).count()
+                    if need_embed > 0:
+                        print(f"🔄 Embedding {need_embed} courses with SBERT…")
+                        embed_result = _cs.run_embedding_pipeline(db)
+                        print(f"✅ Embedded {embed_result['embedded']}/{embed_result['total']} courses")
+                    else:
+                        print("✅ All courses already embedded")
+
+                    # Step 3: Build skill map if not yet populated
+                    from app.modules.courses.models import CourseSkillMap as _CSM
+                    map_count = db.query(_CSM).count()
+                    if map_count == 0:
+                        print("🗺️  Building skill-course similarity map…")
+                        map_result = _cs.build_skill_course_map(db)
+                        print(f"✅ Skill map: {map_result['mapped']} pairs")
+                    else:
+                        print(f"✅ Skill map already exists ({map_count} pairs)")
+
+                    # Step 4: Web crawl (Coursera only on startup — reliable, no auth)
+                    try:
+                        from app.modules.courses.crawler import run_crawl
+                        # Only crawl if we have few/no web-sourced courses already
+                        existing_web = db.query(_CC).filter(
+                            _CC.external_id.like("coursera-%")
+                        ).count()
+                        if existing_web < 30:
+                            print("🌐 Crawling Coursera for fresh course data…")
+                            crawl_kws = [
+                                "Python", "Machine Learning", "Data Science",
+                                "SQL", "React", "Docker", "AWS",
+                            ]
+                            crawl_result = run_crawl(db, keywords=crawl_kws, platforms=["coursera"], page_size=10)
+                            print(f"🌐 Crawl: {crawl_result['inserted']} new, {crawl_result['updated']} updated")
+                            # Re-embed and rebuild map if new data arrived
+                            if crawl_result["inserted"] > 0:
+                                _cs.run_embedding_pipeline(db)
+                                _cs.build_skill_course_map(db)
+                        else:
+                            print(f"✅ Coursera already crawled ({existing_web} courses), skipping startup crawl")
+                    except Exception as crawl_err:
+                        print(f"⚠️  Startup crawl skipped: {crawl_err}")
+
+                    # Step 5: Sync to Neo4j (best-effort)
+                    try:
+                        from app.modules.courses.neo4j_sync import sync_courses_to_neo4j
+                        neo_result = sync_courses_to_neo4j(db)
+                        print(f"✅ Neo4j synced: {neo_result['synced_courses']} courses, {neo_result['synced_mappings']} mappings")
+                    except Exception as neo_err:
+                        print(f"⚠️  Neo4j sync skipped: {neo_err}")
+
+                finally:
+                    db.close()
+            except Exception as e:
+                print(f"⚠️  Course startup pipeline error: {e}")
+
+        # Delay 3 s to let the server finish booting before heavy work
+        def _delayed_start():
+            import time
+            time.sleep(3)
+            _course_startup_pipeline()
+
+        threading.Thread(target=_delayed_start, daemon=True, name="course-pipeline").start()
+        print("🚀 Course pipeline scheduled (runs in background after 3 s)")
+    else:
+        print("ℹ️  Course startup pipeline disabled (set RUN_COURSE_PIPELINE_ON_STARTUP=true to enable)")
     # Auto-migration: tạo bảng interview.job_descriptions nếu chưa có
     try:
         with engine.connect() as conn:
@@ -612,6 +749,15 @@ def create_app() -> FastAPI:
         print("[OK] NLP router registered at /api/nlp")
     except Exception as e:
         print("??  Skip NLP router:", repr(e))
+
+    # Course Recommendation — Embedding + Neo4j (Cap2)
+    try:
+        from .modules.courses.router import router as courses_router
+
+        app.include_router(courses_router, prefix="/api/courses", tags=["courses"])
+        print("✅ Course Recommendation API registered at /api/courses")
+    except Exception as e:
+        print("❌ Course Recommendation API:", str(e)[:80])
 
     # CV Documents admin endpoint (direct registration - guaranteed)
     from fastapi import Depends as _Depends

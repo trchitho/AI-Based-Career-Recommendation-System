@@ -22,6 +22,7 @@ import AnomalyDetectionPage from "./AnomalyDetectionPage";
 import DataSyncPage from "./DataSyncPage";
 import AdminNotificationsPage from "./AdminNotificationsPage";
 import CVDocumentsPage from "./CVDocumentsPage";
+import AdminCourseManagementPage from "./AdminCourseManagementPage";
 
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
@@ -58,36 +59,128 @@ const AdminDashboardPage = () => {
     location.pathname.startsWith(path + "/");
 
   return (
-    <AdminLayout>
-      <Routes>
-        <Route
-          index
-          element={
-            <DashboardOverview
-              metrics={metrics}
-              aiMetrics={aiMetrics}
-              loading={loading}
-              error={error}
-            />
-          }
-        />
-        <Route path="careers"       element={<CareerManagementPage />} />
-        <Route path="skills"        element={<SkillManagementPage />} />
-        <Route path="questions"     element={<QuestionManagementPage />} />
-        <Route path="ai-monitoring" element={<AIMonitoringPage />} />
-        <Route path="users"         element={<UserManagementPage />} />
-        <Route path="payments"      element={<PaymentManagementPage />} />
-        <Route path="settings"      element={<SettingsPage />} />
-        <Route path="blogs"         element={<BlogManagementPage />} />
-        <Route path="transactions"  element={<TransactionHistoryPage />} />
-        <Route path="audit-logs"    element={<AuditLogsPage />} />
-        <Route path="career-trends" element={<CareerTrendsPage />} />
-        <Route path="anomalies"     element={<AnomalyDetectionPage />} />
-        <Route path="data-sync"     element={<DataSyncPage />} />
-        <Route path="notifications" element={<AdminNotificationsPage />} />
-        <Route path="cv-documents"  element={<CVDocumentsPage />} />
-      </Routes>
-    </AdminLayout>
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-900 dark:text-white transition-colors">
+      {/* NAVBAR */}
+      <nav className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-14 items-center">
+            <Link to="/admin" className="text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap hover:text-green-600 dark:hover:text-green-400 transition-colors">
+              Admin Panel
+            </Link>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Link
+                to="/"
+                className="hidden sm:flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Trang chủ
+              </Link>
+              <button
+                onClick={() => setShowLogoutConfirm(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                title="Đăng xuất"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="hidden sm:inline">Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Logout Confirmation Dialog */}
+          {showLogoutConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)}>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border border-gray-200 dark:border-gray-700" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                    <svg className="w-7 h-7 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white text-center mb-2">Đăng xuất</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-center text-sm mb-6">
+                  Bạn có chắc muốn đăng xuất khỏi trang quản trị không?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Huỷ
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors shadow-lg shadow-red-600/20"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation tabs - scrollable */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
+          <div className="flex items-center gap-1 py-2 min-w-max">
+            <NavItem to="/admin" label="Dashboard" active={location.pathname === "/admin"} />
+            <NavItem to="/admin/users" label="Users" active={isActive("/admin/users")} />
+            <NavItem to="/admin/payments" label="Payments" active={isActive("/admin/payments")} />
+            <NavItem to="/admin/settings" label="Settings" active={isActive("/admin/settings")} />
+            <NavItem to="/admin/blogs" label="Blogs" active={isActive("/admin/blogs")} />
+            <NavItem to="/admin/careers" label="Careers" active={isActive("/admin/careers")} />
+            <NavItem to="/admin/skills" label="Skills" active={isActive("/admin/skills")} />
+            <NavItem to="/admin/questions" label="Questions" active={isActive("/admin/questions")} />
+            <NavItem to="/admin/ai-monitoring" label="AI" active={isActive("/admin/ai-monitoring")} />
+            <NavItem to="/admin/audit-logs" label="Logs" active={isActive("/admin/audit-logs")} />
+            <NavItem to="/admin/career-trends" label="Trends" active={isActive("/admin/career-trends")} />
+            <NavItem to="/admin/anomalies" label="Alerts" active={isActive("/admin/anomalies")} />
+            <NavItem to="/admin/data-sync" label="Sync" active={isActive("/admin/data-sync")} />
+            <NavItem to="/admin/notifications" label="Notifications" active={isActive("/admin/notifications")} />
+            <NavItem to="/admin/cv-documents" label="CV Docs" active={isActive("/admin/cv-documents")} />
+            <NavItem to="/admin/courses" label="Courses" active={isActive("/admin/courses")} />
+          </div>
+        </div>
+      </nav>
+
+      {/* MAIN CONTENT */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <Routes>
+          <Route
+            index
+            element={
+              <DashboardOverview
+                metrics={metrics}
+                aiMetrics={aiMetrics}
+                loading={loading}
+                error={error}
+              />
+            }
+          />
+          <Route path="careers" element={<CareerManagementPage />} />
+          <Route path="skills" element={<SkillManagementPage />} />
+          <Route path="questions" element={<QuestionManagementPage />} />
+          <Route path="ai-monitoring" element={<AIMonitoringPage />} />
+          <Route path="users" element={<UserManagementPage />} />
+          <Route path="payments" element={<PaymentManagementPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="blogs" element={<BlogManagementPage />} />
+          <Route path="transactions" element={<TransactionHistoryPage />} />
+          <Route path="audit-logs" element={<AuditLogsPage />} />
+          <Route path="career-trends" element={<CareerTrendsPage />} />
+          <Route path="anomalies" element={<AnomalyDetectionPage />} />
+          <Route path="data-sync" element={<DataSyncPage />} />
+          <Route path="notifications" element={<AdminNotificationsPage />} />
+          <Route path="cv-documents" element={<CVDocumentsPage />} />
+          <Route path="courses" element={<AdminCourseManagementPage />} />
+        </Routes>
+      </div>
+    </div>
   );
 };
 
