@@ -804,5 +804,47 @@
     "showMore": "Xem thêm",
     "showLess": "Ẩn bớt",
     "moreTasks": "nhiệm vụ khác"
+  },
+  "quizMode": {
+    "chooseYourGame": "Chọn chế độ chơi",
+    "selectGameMode": "Chọn một chế độ chơi cho bài đánh giá của bạn. Tất cả các chế độ đều cung cấp kết quả định hướng nghề nghiệp chính xác.",
+    "sameResults": "Cùng kết quả, trải nghiệm khác nhau",
+    "sameResultsDesc": "Cả hai chế độ đều sử dụng phương pháp đánh giá khoa học giống nhau và cung cấp gợi ý nghề nghiệp chính xác như nhau.",
+    "puzzleGame": "Trò chơi ghép hình",
+    "interactiveFun": "Tương tác & Vui nhộn",
+    "puzzleGameDesc": "Hoàn thành các câu đố sở thích nghề nghiệp bằng cách ghép các mảnh. Mỗi mảnh tiết lộ những hiểu biết về tính cách của bạn!",
+    "dragDropPieces": "Kéo thả các mảnh ghép",
+    "progressiveDifficulty": "Độ khó tăng dần",
+    "xpRewards": "Phần thưởng XP mỗi câu đố",
+    "animatedQuiz": "Trò chơi hoạt hình",
+    "engagingVisual": "Hấp dẫn & Trực quan",
+    "animatedQuizDesc": "Trải nghiệm bài đánh giá theo câu chuyện hoạt hình với hình ảnh đẹp mắt và chuyển tiếp mượt mà.",
+    "storyDriven": "Kịch bản theo câu chuyện",
+    "beautifulAnimations": "Hoạt hình đẹp mắt",
+    "levelProgression": "Tiến trình cấp độ",
+    "startAssessment": "Bắt đầu đánh giá"
+  },
+  "gameMode": {
+    "level": "Cấp độ",
+    "greatAnswer": "Câu trả lời tuyệt vời!"
+  },
+  "storyAssessment": {
+    "welcomeAdventurer": "Chào Mừng, Nhà Thám Hiểm!",
+    "yourCareerJourney": "Hành Trình Nghề Nghiệp Của Bạn",
+    "interactiveAdventure": "Cuộc Phiêu Lưu Tương Tác",
+    "howItWorks": "Cách Thức Hoạt Động",
+    "readScenario": "Đọc kỹ từng tình huống",
+    "imagineYourself": "Tưởng tượng bạn trong tình huống đó",
+    "chooseResponse": "Chọn cách bạn sẽ phản ứng tự nhiên",
+    "interactiveScenarios": "Kịch Bản Tương Tác",
+    "honestResponses": "Phản Hồi Trung Thực",
+    "careerInsights": "Hiểu Biết Nghề Nghiệp",
+    "careerInsightsReady": "Hiểu Biết Nghề Nghiệp Sẵn Sàng",
+    "responseGuide": "Hướng Dẫn Trả Lời:"
+  },
+  "tetrisGame": {
+    "congratulations": "CHÚC MỪNG!",
+    "finalScore": "Điểm Cuối",
+    "maxCombo": "Combo Tối Đa"
   }
 }

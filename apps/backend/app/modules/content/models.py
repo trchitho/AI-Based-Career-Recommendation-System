@@ -64,25 +64,33 @@ class Career(Base):
         }
 
 
-# bảng core.essay_prompts
+# bảng core.essay_prompts (bilingual: VI + EN)
 class EssayPrompt(Base):
     __tablename__ = "essay_prompts"
     __table_args__ = {"schema": "core"}
 
-    id = Column(BigInteger, primary_key=True)
-    title = Column(Text, nullable=False)
-    prompt_text = Column(Text, nullable=False)
-    lang = Column(Text, nullable=False)
-    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    id             = Column(BigInteger, primary_key=True)
+    title_en       = Column(Text, nullable=False)
+    title_vi       = Column(Text, nullable=False)
+    prompt_text_en = Column(Text, nullable=False)
+    prompt_text_vi = Column(Text, nullable=False)
+    created_at     = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id,
-            "title": self.title,
-            "prompt_text": self.prompt_text,
-            "lang": self.lang,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "id":             self.id,
+            "title_en":       self.title_en,
+            "title_vi":       self.title_vi,
+            "prompt_text_en": self.prompt_text_en,
+            "prompt_text_vi": self.prompt_text_vi,
+            "created_at":     self.created_at.isoformat() if self.created_at else None,
         }
+
+    def get_title(self, lang: str = "vi") -> str:
+        return self.title_vi if lang == "vi" else self.title_en
+
+    def get_prompt_text(self, lang: str = "vi") -> str:
+        return self.prompt_text_vi if lang == "vi" else self.prompt_text_en
 
 
 # bảng core.blog_posts

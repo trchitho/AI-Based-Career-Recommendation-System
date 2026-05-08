@@ -10,9 +10,9 @@ const AUTOSAVE_TIMESTAMP_KEY_PREFIX = 'assessment_autosave_timestamp_';
 const AUTOSAVE_EXPIRY_HOURS = 24; // Dữ liệu hết hạn sau 24 giờ
 
 // Helper to get user-specific keys
-const getAutosaveKey = (userId: number | string | undefined) => 
+const getAutosaveKey = (userId: number | string | undefined) =>
   `${AUTOSAVE_KEY_PREFIX}${userId || 'guest'}`;
-const getAutosaveTimestampKey = (userId: number | string | undefined) => 
+const getAutosaveTimestampKey = (userId: number | string | undefined) =>
   `${AUTOSAVE_TIMESTAMP_KEY_PREFIX}${userId || 'guest'}`;
 
 interface AutoSaveData {
@@ -32,7 +32,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const { t } = useTranslation();
   const { user } = useAuth(); // Get current user
   const userId = user?.id; // User ID for per-user storage
-  
+
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [responses, setResponses] = useState<Map<string, string | number>>(new Map());
@@ -124,7 +124,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       localStorage.removeItem(oldAutosaveKey);
       localStorage.removeItem(oldTimestampKey);
     }
-    
+
     console.log(` Checking for saved progress for user ${userId}...`);
     const saved = loadSavedProgress();
     console.log(' Saved data:', saved);
@@ -502,14 +502,14 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       {/* Title */}
       <div className="text-center mb-10">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          How accurately does this describe you?
+          Mức độ mô tả chính xác về bạn như thế nào?
         </h3>
         <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mt-4">
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-300"></div> Strongly Disagree</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-300"></div> Disagree</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-gray-300"></div> Neutral</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-300"></div> Agree</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-700"></div> Strongly Agree</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-300"></div> Rất không đồng ý</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-300"></div> Không đồng ý</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-gray-300"></div> Trung lập</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-300"></div> Đồng ý</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-700"></div> Rất đồng ý</div>
         </div>
       </div>
 

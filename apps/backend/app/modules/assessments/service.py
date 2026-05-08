@@ -215,7 +215,7 @@ def get_questions(
         .scalars()
         .all()
     )
-    out = [q.to_client() | {"test_type": test_type} for q in rows]
+    out = [q.to_client(lang=lang or "vi") | {"test_type": test_type} for q in rows]
 
     if shuffle:
         rng = random.Random(seed)
@@ -1014,20 +1014,11 @@ def save_essay(
 
         resolved_prompt_id = pid
 
-    # 4) Nếu FE **không** gửi prompt_id → random theo lang (giữ logic cũ)
+    # 4) Nếu FE **không** gửi prompt_id → random toàn bảng (tất cả prompts đều bilingual)
     if resolved_prompt_id is None:
         prompt_obj = None
         try:
-            q = session.query(EssayPrompt)
-
-            # ưu tiên random trong đúng lang
-            q_lang = q.filter(EssayPrompt.lang == effective_lang)
-            prompt_obj = q_lang.order_by(func.random()).first()
-
-            if not prompt_obj:
-                # không có cùng lang -> random toàn bảng
-                prompt_obj = q.order_by(func.random()).first()
-
+            prompt_obj = session.query(EssayPrompt).order_by(func.random()).first()
             if prompt_obj:
                 resolved_prompt_id = int(prompt_obj.id)
         except Exception as e:

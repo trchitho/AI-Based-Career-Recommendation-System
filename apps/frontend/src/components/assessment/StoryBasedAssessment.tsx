@@ -114,10 +114,10 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
       try {
         setLoading(true);
         setLoadingMessage(t('assessment.loadingQuestions'));
-        
+
         const riasecData = await assessmentService.getQuestions('RIASEC');
         const bigFiveData = await assessmentService.getQuestions('BIGFIVE');
-        
+
         // Group RIASEC questions by label (R, I, A, S, E, C)
         const riasecByLabel: { [key: string]: Question[] } = {};
         riasecData.forEach(q => {
@@ -159,19 +159,19 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
             }
           }
         }
-        
-        // Take first 44 questions (same as traditional test)
-        const selected = combined.slice(0, 44);
-        
+
+        // Take first 33 questions (3 per dimension: 6 RIASEC × 3 + 5 Big Five × 3)
+        const selected = combined.slice(0, 33);
+
         console.log(` Total questions loaded: ${selected.length}`);
         console.log(` RIASEC questions: ${riasecData.length}`);
         console.log(` Big Five questions: ${bigFiveData.length}`);
-        
+
         setQuestions(selected);
-        
+
         // Generate story scenarios using backend API
         setLoadingMessage(t('assessment.generating'));
-        
+
         const { groups, flat: generatedScenarios } = await generateStoriesFromBackend(selected);
 
         // Set both together so render sees consistent state
@@ -201,7 +201,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         if (generatedScenarios.length < selected.length) {
           console.warn(` Missing ${selected.length - generatedScenarios.length} scenarios!`);
         }
-        
+
         setLoadingMessage(t('assessment.startAssessment'));
         setError(null);
       } catch (err) {
@@ -214,7 +214,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
 
     loadQuestionsAndStories();
   }, []);
-  
+
   // Disable flipbook keyboard events when editing essay
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -224,14 +224,14 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         e.stopPropagation();
       }
     };
-    
+
     if (isEditingEssay) {
       console.log(' Essay editing mode ENABLED - keyboard events blocked');
       // Add event listener with capture phase to intercept before flipbook
       document.addEventListener('keydown', handleKeyDown, true);
       document.addEventListener('keyup', handleKeyDown, true);
       document.addEventListener('keypress', handleKeyDown, true);
-      
+
       return () => {
         console.log(' Essay editing mode DISABLED');
         document.removeEventListener('keydown', handleKeyDown, true);
@@ -240,7 +240,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
       };
     }
   }, [isEditingEssay]);
-  
+
   // Local fallback by dimension
   const _localFallback = (qs: Question[]): { groups: StoryGroup[]; flat: StoryScenario[] } => {
     const dimMap: Record<string, [string, string, string]> = {
@@ -314,24 +314,24 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
       return _localFallback(questions);
     }
   };
-  
+
   // 1 question per page for immersive story experience
   const questionPages = questions.length;
   const totalPages = 3 + questionPages + 2; // cover, intro, story intro, questions, ending, back cover
 
   const handleFlip = (e: any) => {
     setCurrentPage(e.data);
-    
+
     // Check if we're on essay page (page index = 3 + questions.length)
     const essayPageIndex = 3 + questions.length;
     setShowEssayOverlay(e.data === essayPageIndex);
-    
+
     // Update story progress
     if (e.data > 3 && e.data <= 3 + questionPages) {
       const progress = ((e.data - 3) / questionPages) * 100;
       setStoryProgress(progress);
     }
-    
+
     if (e.data >= totalPages - 1) {
       setIsBookClosed(true);
     } else {
@@ -351,18 +351,18 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
   const handleAnswer = (questionId: string, value: number) => {
     setAnswers(prev => {
       const newAnswers = { ...prev, [questionId]: value };
-      
+
       // Calculate which page we're on
       const questionIndex = questions.findIndex(q => String(q.id) === questionId);
-      
+
       if (questionIndex >= 0) {
         const isLastQuestion = questionIndex === questions.length - 1;
-        
+
         // Don't auto-flip on last question - let user submit manually
         if (isLastQuestion) {
           return newAnswers;
         }
-        
+
         // First question (index 0) is alone on first page
         if (questionIndex === 0) {
           // Auto flip after answering first question
@@ -375,12 +375,12 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           const pairIndex = Math.floor((questionIndex - 1) / 2);
           const pairStartIndex = pairIndex * 2 + 1; // +1 because first question is alone
           const questionsInPair = questions.slice(pairStartIndex, pairStartIndex + 2);
-          
+
           // Count answered questions in this pair
-          const answeredInPair = questionsInPair.filter(q => 
+          const answeredInPair = questionsInPair.filter(q =>
             newAnswers[String(q.id)] !== undefined
           ).length;
-          
+
           // Auto flip when both questions in pair are answered
           if (answeredInPair === questionsInPair.length) {
             setTimeout(() => {
@@ -389,7 +389,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           }
         }
       }
-      
+
       return newAnswers;
     });
   };
@@ -408,7 +408,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         const form = new FormData();
         form.append('audio', blob, 'voice.webm');
         fetch('/api/assessments/voice-story', { method: 'POST', body: form })
-          .catch(() => {/* non-critical */});
+          .catch(() => {/* non-critical */ });
       }
     }
   };
@@ -460,7 +460,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
   const canGoNext = () => {
     if (currentPage < 3) return true; // Cover, intro, story intro
     if (currentPage >= totalPages - 2) return true; // Ending and back cover
-    
+
     // For question pages, check if current question is answered
     const questionIndex = currentPage - 3;
     if (questionIndex >= 0 && questionIndex < questions.length) {
@@ -469,7 +469,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         return answers[String(question.id)] !== undefined;
       }
     }
-    
+
     return true;
   };
 
@@ -478,13 +478,13 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
     const questionIndex = currentPage - 3;
     const isLastQuestion = questionIndex === questions.length - 1;
     const allAnswered = Object.keys(answers).length === questions.length;
-    
+
     // If on last question and all answered, submit instead of going to next page
     if (isLastQuestion && allAnswered) {
       handleSubmit();
       return;
     }
-    
+
     if (canGoNext()) {
       bookRef.current?.pageFlip().flipNext();
     } else {
@@ -499,10 +499,10 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           <div className="loading-spinner"></div>
           <p>{loadingMessage}</p>
           {storyProgress > 0 && (
-            <div style={{ 
-              width: '300px', 
-              height: '8px', 
-              background: 'rgba(255,255,255,0.2)', 
+            <div style={{
+              width: '300px',
+              height: '8px',
+              background: 'rgba(255,255,255,0.2)',
               borderRadius: '10px',
               overflow: 'hidden',
               marginTop: '20px'
@@ -601,28 +601,28 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           {/* Cover */}
           <Page className="story-cover">
             <div className="cover-content">
-              <h1>Your Career Journey</h1>
-              <p className="cover-subtitle">An Interactive Adventure</p>
+              <h1>Hành Trình Nghề Nghiệp Của Bạn</h1>
+              <p className="cover-subtitle">Cuộc Phiêu Lưu Tương Tác</p>
             </div>
           </Page>
 
           {/* Welcome */}
           <Page className="welcome-page">
             <div className="welcome-content">
-              <h2>Welcome, Adventurer!</h2>
+              <h2>Chào Mừng, Nhà Thám Hiểm!</h2>
               <p className="welcome-text">
-                You're about to embark on a journey of self-discovery. 
+                You're about to embark on a journey of self-discovery.
                 Instead of boring questions, you'll experience real-life scenarios.
               </p>
               <div className="welcome-features">
                 <div className="feature">
-                  <span>Interactive Scenarios</span>
+                  <span>Kịch Bản Tương Tác</span>
                 </div>
                 <div className="feature">
-                  <span>Honest Responses</span>
+                  <span>Phản Hồi Trung Thực</span>
                 </div>
                 <div className="feature">
-                  <span>Career Insights</span>
+                  <span>Hiểu Biết Nghề Nghiệp</span>
                 </div>
               </div>
               <p className="welcome-note">
@@ -634,23 +634,23 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           {/* Story Introduction */}
           <Page className="story-intro-page">
             <div className="story-intro-content">
-              <h2>How It Works</h2>
+              <h2>Cách Thức Hoạt Động</h2>
               <div className="instructions">
                 <div className="instruction-step">
                   <span className="step-number">1</span>
-                  <p>Read each scenario carefully</p>
+                  <p>Đọc kỹ từng tình huống</p>
                 </div>
                 <div className="instruction-step">
                   <span className="step-number">2</span>
-                  <p>Imagine yourself in that situation</p>
+                  <p>Tưởng tượng bạn trong tình huống đó</p>
                 </div>
                 <div className="instruction-step">
                   <span className="step-number">3</span>
-                  <p>Choose how you'd naturally respond</p>
+                  <p>Chọn cách bạn sẽ phản ứng tự nhiên</p>
                 </div>
               </div>
               <div className="response-guide">
-                <p className="guide-title">Response Guide:</p>
+                <p className="guide-title">Hướng Dẫn Trả Lời:</p>
                 {responseOptions.map(opt => (
                   <div key={opt.value} className="guide-item">
                     <span className="guide-label">{opt.label}</span>
@@ -700,25 +700,25 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                       <p className="label-description">{groupScenario.introduction}</p>
                     </div>
                   )}
-                  
+
                   {/* Story Context - AI Generated Scenario (TOP) */}
                   <div className="scenario-context">
                     <p className="context-text">{scenario.context}</p>
                   </div>
-                  
+
                   {/* AI Rephrased Question (MIDDLE) */}
                   <div className="scenario-situation">
                     <div className="situation-box">
                       <p className="situation-text">{scenario.situation}</p>
                     </div>
                   </div>
-                  
+
                   {/* Original Question from Database (REFERENCE) */}
                   <div className="original-question">
                     <p className="original-label">Câu hỏi gốc:</p>
                     <p className="original-text">{question.question_text}</p>
                   </div>
-                  
+
                   <div className="response-options">
                     {responseOptions.map((option) => {
                       const selected = answers[String(question.id)] === option.value;
@@ -737,7 +737,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                       );
                     })}
                   </div>
-                  
+
                   {isAnswered && (
                     <div className="continue-hint">
                       Response recorded! Click Next to continue
@@ -750,15 +750,15 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
 
           {/* Essay Page - Scenario 45 */}
           <Page className="essay-page">
-            <div 
+            <div
               className="scenario-content"
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
             >
               <div className="scenario-header">
-                <span className="scenario-number">Scenario 45 of 45</span>
-                <div className="label-badge" style={{ 
+                <span className="scenario-number">Câu {questions.length + 1} / {questions.length + 1}</span>
+                <div className="label-badge" style={{
                   backgroundColor: '0d948820',
                   borderColor: '#0d9488',
                   color: '#0d9488'
@@ -767,22 +767,22 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                   <span className="label-name">Personal Story</span>
                 </div>
               </div>
-              
+
               <div className="essay-intro">
                 <h3 style={{ color: '#0d9488' }}>
-                   Chia Sẻ Câu Chuyện Của Bạn
+                  Chia Sẻ Câu Chuyện Của Bạn
                 </h3>
                 <p className="essay-description">
                   Đây là cơ hội để bạn chia sẻ sâu hơn về bản thân, ước mơ và định hướng nghề nghiệp của mình.
                 </p>
               </div>
-              
+
               <div className="essay-prompt">
                 <p className="prompt-text">
                   {essayPrompt || 'Hãy viết một đoạn văn ngắn (100-300 từ) về bản thân bạn, sở thích, điểm mạnh và nghề nghiệp mà bạn quan tâm.'}
                 </p>
               </div>
-              
+
               {/* Two options: write or record voice */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
                 {/* Write button */}
@@ -807,7 +807,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                     gap: '0.5rem',
                   }}
                 >
-                   Viết Câu Chuyện Của Bạn
+                  Viết Câu Chuyện Của Bạn
                 </button>
 
                 {/* Voice record button */}
@@ -829,7 +829,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                       gap: '0.5rem',
                     }}
                   >
-                     Thu Âm Giọng Nói (Voice AI)
+                    Thu Âm Giọng Nói (Voice AI)
                   </button>
                 )}
 
@@ -878,7 +878,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                       width: '100%',
                       textAlign: 'center',
                     }}>
-                       Đã thu âm {voiceDuration}s — AI sẽ phân tích giọng nói của bạn
+                      Đã thu âm {voiceDuration}s — AI sẽ phân tích giọng nói của bạn
                     </div>
                     <button
                       onClick={resetVoice}
@@ -892,21 +892,21 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                         fontSize: '0.85rem',
                       }}
                     >
-                       Thu âm lại
+                      Thu âm lại
                     </button>
                   </div>
                 )}
 
                 {voiceStatus === 'error' && (
                   <div style={{ color: '#e74c3c', fontSize: '0.9rem', textAlign: 'center' }}>
-                     Không thể truy cập microphone. Kiểm tra quyền truy cập.
+                    Không thể truy cập microphone. Kiểm tra quyền truy cập.
                   </div>
                 )}
               </div>
 
               {essayText.trim().length > 0 && (
                 <div className="continue-hint" style={{ marginTop: '0.75rem' }}>
-                   Đã viết {essayText.split(/\s+/).filter(w => w.length > 0).length} từ
+                  Đã viết {essayText.split(/\s+/).filter(w => w.length > 0).length} từ
                 </div>
               )}
             </div>
@@ -924,7 +924,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                   <span className="stat-text">{Object.keys(answers).length} Scenarios Completed</span>
                 </div>
                 <div className="stat">
-                  <span className="stat-text">Career Insights Ready</span>
+                  <span className="stat-text">Hiểu Biết Nghề Nghiệp Sẵn Sàng</span>
                 </div>
               </div>
               {Object.keys(answers).length === questions.length && (
@@ -958,7 +958,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               const isLastQuestion = questionIndex === questions.length - 1;
               const allAnswered = Object.keys(answers).length === questions.length;
               const isOnQuestionPage = questionIndex >= 0 && questionIndex < questions.length;
-              
+
               // Show Submit button on last question if all answered
               if (isOnQuestionPage && isLastQuestion && allAnswered) {
                 return (
@@ -970,7 +970,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                   </button>
                 );
               }
-              
+
               // Otherwise show Next button
               return (
                 <button
@@ -989,7 +989,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
 
       {/* Essay Textarea Overlay - Appears on top when on essay page */}
       {showEssayOverlay && (
-        <div 
+        <div
           className="essay-textarea-overlay"
           style={{
             position: 'fixed',
@@ -1009,13 +1009,13 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         >
           <div style={{ marginBottom: '1rem', color: 'white' }}>
             <h3 style={{ margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-               Chia Sẻ Câu Chuyện Của Bạn
+              Chia Sẻ Câu Chuyện Của Bạn
             </h3>
             <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.9 }}>
               Đây là cơ hội để bạn chia sẻ sâu hơn về bản thân, ước mơ và định hướng nghề nghiệp của mình.
             </p>
           </div>
-          
+
           <textarea
             ref={textareaRef}
             value={essayText}
@@ -1050,10 +1050,10 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               cursor: 'text'
             }}
           />
-          
-          <div style={{ 
-            marginTop: '0.5rem', 
-            color: 'white', 
+
+          <div style={{
+            marginTop: '0.5rem',
+            color: 'white',
             fontSize: '0.9rem',
             display: 'flex',
             justifyContent: 'space-between',

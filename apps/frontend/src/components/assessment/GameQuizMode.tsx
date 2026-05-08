@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Question, QuestionResponse } from '../../types/assessment';
 
 interface GameQuizModeProps {
@@ -8,6 +9,7 @@ interface GameQuizModeProps {
 }
 
 const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) => {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Map<string, string | number>>(new Map());
   const [xp, setXp] = useState(0);
@@ -38,7 +40,7 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
     if (isNewAnswer) {
       setXp(prev => prev + xpPerQuestion);
       setShowFeedback(true);
-      
+
       setTimeout(() => {
         setShowFeedback(false);
         if (currentIndex < questions.length - 1) {
@@ -88,15 +90,15 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
               ⭐
             </div>
           </div>
-          
+
           {/* XP Bar */}
           <div className="flex-1 min-w-[200px]">
             <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
-              <span>Level {level}</span>
+              <span>{t('gameMode.level')} {level}</span>
               <span>{xp % 100} / 100 XP</span>
             </div>
             <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
                 style={{ width: `${(xp % 100)}%` }}
               />
@@ -109,18 +111,18 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
           <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">
             {xp} XP
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">Total Earned</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">Tổng kiếm được</div>
         </div>
       </div>
 
       {/* Progress Bar */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
-          <span>Question {currentIndex + 1} of {questions.length}</span>
-          <span>{Math.round(progress)}% Complete</span>
+          <span>Câu hỏi {currentIndex + 1} / {questions.length}</span>
+          <span>{Math.round(progress)}% Hoàn thành</span>
         </div>
         <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
@@ -143,7 +145,7 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
               <div className="relative z-10">
                 <div className="mb-6">
                   <span className="inline-block px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full mb-4 shadow-lg">
-                    {currentQuestion.test_type === 'RIASEC' ? ' Career Interest' : ' Personality Trait'}
+                    {currentQuestion.test_type === 'RIASEC' ? 'Sở thích nghề nghiệp' : 'Đặc điểm tính cách'}
                   </span>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white leading-relaxed">
                     {currentQuestion.question_text}
@@ -156,25 +158,24 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
                     // Likert Scale with Emoji
                     <div className="space-y-4">
                       <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        <span> Strongly Disagree</span>
-                        <span> Strongly Agree</span>
+                        <span>Rất không đồng ý</span>
+                        <span>Rất đồng ý</span>
                       </div>
                       <div className="flex gap-3">
                         {[
-                          { value: 1, emoji: '', label: 'Strongly Disagree' },
-                          { value: 2, emoji: '', label: 'Disagree' },
-                          { value: 3, emoji: '', label: 'Neutral' },
-                          { value: 4, emoji: '', label: 'Agree' },
-                          { value: 5, emoji: '', label: 'Strongly Agree' }
+                          { value: 1, emoji: '', label: 'Rất không đồng ý' },
+                          { value: 2, emoji: '', label: 'Không đồng ý' },
+                          { value: 3, emoji: '', label: 'Trung lập' },
+                          { value: 4, emoji: '', label: 'Đồng ý' },
+                          { value: 5, emoji: '', label: 'Rất đồng ý' }
                         ].map(({ value, emoji, label }) => (
                           <button
                             key={value}
                             onClick={() => handleAnswer(value)}
-                            className={`flex-1 h-20 rounded-2xl font-semibold transition-all duration-300 flex flex-col items-center justify-center gap-1 ${
-                              currentAnswer === value
-                                ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-2xl scale-110 -translate-y-2'
-                                : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 hover:scale-105 hover:-translate-y-1'
-                            }`}
+                            className={`flex-1 h-20 rounded-2xl font-semibold transition-all duration-300 flex flex-col items-center justify-center gap-1 ${currentAnswer === value
+                              ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-2xl scale-110 -translate-y-2'
+                              : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 hover:scale-105 hover:-translate-y-1'
+                              }`}
                             title={label}
                           >
                             <span className="text-2xl">{emoji}</span>
@@ -189,21 +190,19 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
                       <button
                         key={index}
                         onClick={() => handleAnswer(option)}
-                        className={`w-full p-6 rounded-2xl text-left font-medium transition-all duration-300 relative overflow-hidden group ${
-                          currentAnswer === option
-                            ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white shadow-2xl scale-105'
-                            : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 hover:scale-102 hover:shadow-lg'
-                        }`}
+                        className={`w-full p-6 rounded-2xl text-left font-medium transition-all duration-300 relative overflow-hidden group ${currentAnswer === option
+                          ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white shadow-2xl scale-105'
+                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 hover:scale-102 hover:shadow-lg'
+                          }`}
                       >
                         {/* Shine effect on hover */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                        
+
                         <div className="flex items-center gap-4 relative z-10">
-                          <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                            currentAnswer === option
-                              ? 'border-white bg-white'
-                              : 'border-gray-300 dark:border-gray-500'
-                          }`}>
+                          <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${currentAnswer === option
+                            ? 'border-white bg-white'
+                            : 'border-gray-300 dark:border-gray-500'
+                            }`}>
                             {currentAnswer === option && (
                               <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -233,7 +232,7 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
               <span className="text-3xl"></span>
               <div>
                 <div className="font-bold text-xl">+{xpPerQuestion} XP</div>
-                <div className="text-sm opacity-90">Great answer!</div>
+                <div className="text-sm opacity-90">{t('gameMode.greatAnswer')}</div>
               </div>
             </div>
           </div>
@@ -245,7 +244,7 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
         onClick={onCancel}
         className="w-full px-6 py-3 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 font-medium transition-colors"
       >
-        Cancel Assessment
+        {t('assessment.cancelAssessment')}
       </button>
 
       {/* Custom Styles for 3D Transform */}

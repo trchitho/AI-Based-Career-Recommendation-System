@@ -25,7 +25,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
   const [xp, setXp] = useState(0);
   const [level, setLevel] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
-  
+
   // Tetris-style game state
   const [fallingPiece, setFallingPiece] = useState<PuzzlePiece | null>(null);
   const [availablePieces, setAvailablePieces] = useState<PuzzlePiece[]>([]);
@@ -43,7 +43,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
     let pieces: PuzzlePiece[] = [];
 
     if (currentQuestion.question_type === 'SCALE') {
-      const labels = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
+      const labels = ['Rất không đồng ý', 'Không đồng ý', 'Trung lập', 'Đồng ý', 'Rất đồng ý'];
       const emojis = ['', '', '', '', ''];
       pieces = [1, 2, 3, 4, 5].map((value, index) => ({
         id: `piece-${value}`,
@@ -92,7 +92,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
 
   const handlePieceClick = (piece: PuzzlePiece) => {
     if (fallingPiece) return; // Already have a falling piece
-    
+
     setFallingPiece(piece);
     setFallingY(0);
     setSelectedAnswer(piece.value);
@@ -162,14 +162,14 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
               ⭐
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-[200px]">
             <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
               <span>Level {level}</span>
               <span>{xp % 100} / 100 XP</span>
             </div>
             <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
                 style={{ width: `${(xp % 100)}%` }}
               />
@@ -192,7 +192,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
           <span>{Math.round(progress)}% Complete</span>
         </div>
         <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-600 transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
@@ -275,13 +275,12 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
               key={piece.id}
               onClick={() => handlePieceClick(piece)}
               disabled={!!fallingPiece || selectedAnswer === piece.value}
-              className={`group relative bg-white dark:bg-gray-700 rounded-2xl p-4 border-2 transition-all duration-300 ${
-                selectedAnswer === piece.value
+              className={`group relative bg-white dark:bg-gray-700 rounded-2xl p-4 border-2 transition-all duration-300 ${selectedAnswer === piece.value
                   ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 opacity-50'
                   : fallingPiece
-                  ? 'border-gray-300 dark:border-gray-600 opacity-50 cursor-not-allowed'
-                  : 'border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:scale-105 hover:shadow-xl cursor-pointer'
-              }`}
+                    ? 'border-gray-300 dark:border-gray-600 opacity-50 cursor-not-allowed'
+                    : 'border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:scale-105 hover:shadow-xl cursor-pointer'
+                }`}
             >
               <div className="text-center">
                 {piece.emoji && (
@@ -291,7 +290,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
                   {piece.text}
                 </div>
               </div>
-              
+
               {selectedAnswer !== piece.value && !fallingPiece && (
                 <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/10 rounded-2xl transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
@@ -299,10 +298,10 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel }: PuzzleGameModeProps
                   </span>
                 </div>
               )}
-              
+
               {selectedAnswer === piece.value && (
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-indigo-700 rounded-full flex items-center justify-center text-white text-xs">
-                  
+
                 </div>
               )}
             </button>

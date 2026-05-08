@@ -1201,12 +1201,30 @@ def delete_skill(request: Request, skill_id: int):
 
 
 # ----- Questions CRUD -----
-def _question_to_client(q: AssessmentQuestion, test_type: str) -> dict:
-    opts = getattr(q, "options_json", None)
-    opts = opts or []
+def _question_to_client(q: AssessmentQuestion, test_type: str, lang: str = "vi") -> dict:
+    opts_src = getattr(q, "options_json", None) or {}
+    # Chọn options theo lang
+    if isinstance(opts_src, dict):
+        if lang == "vi" and "options_vi" in opts_src:
+            opts = opts_src["options_vi"]
+        elif "options" in opts_src:
+            opts = opts_src["options"]
+        else:
+            opts = []
+    elif isinstance(opts_src, list):
+        opts = opts_src
+    else:
+        opts = []
+
+    prompt = getattr(q, "prompt_vi", None) if lang == "vi" else getattr(q, "prompt_en", None)
+    if not prompt:
+        prompt = getattr(q, "prompt_en", "") or getattr(q, "prompt_vi", "")
+
     return {
         "id": str(q.id),
-        "text": q.prompt,
+        "text": prompt,
+        "prompt_en": getattr(q, "prompt_en", ""),
+        "prompt_vi": getattr(q, "prompt_vi", ""),
         "test_type": test_type,
         "dimension": q.question_key or "",
         "question_type": "multiple_choice" if opts else "scale",

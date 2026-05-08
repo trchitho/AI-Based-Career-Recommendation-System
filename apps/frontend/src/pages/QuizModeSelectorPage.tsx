@@ -22,7 +22,7 @@ const QuizModeSelectorPage = () => {
   return (
     <MainLayout>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-hidden flex flex-col">
-        
+
         {/* Background Styles */}
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -46,7 +46,7 @@ const QuizModeSelectorPage = () => {
         {/* Main Container */}
         <div className="flex-1 flex items-center justify-center p-4 md:p-8 relative z-10">
           <div className="w-full max-w-6xl">
-            
+
             {/* Header */}
             <div className="text-center mb-12 animate-fade-in-up">
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-400 text-xs font-bold uppercase tracking-wider mb-6 border border-purple-200 dark:border-purple-800">
@@ -54,27 +54,26 @@ const QuizModeSelectorPage = () => {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
                 </span>
-                 Game Modes
+                Chế độ trò chơi
               </span>
               <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-gray-900 via-purple-800 to-pink-800 dark:from-white dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-6 leading-tight">
-                Choose Your Game
+                {t('quizMode.chooseYourGame')}
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-medium max-w-3xl mx-auto">
-                Select a game mode for your assessment. All modes provide accurate career orientation results.
+                {t('quizMode.selectGameMode')}
               </p>
             </div>
 
             {/* Game Mode Cards */}
             <div className="grid md:grid-cols-2 gap-8 mb-12">
-              
+
               {/* Puzzle Game */}
-              <div 
+              <div
                 onClick={() => handleModeSelect('standard')}
-                className={`group relative bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-2xl ${
-                  selectedMode === 'standard' 
-                    ? 'border-blue-500 dark:border-blue-400 ring-4 ring-blue-500/20' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
-                }`}
+                className={`group relative bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-2xl ${selectedMode === 'standard'
+                  ? 'border-blue-500 dark:border-blue-400 ring-4 ring-blue-500/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                  }`}
               >
                 {selectedMode === 'standard' && (
                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg">
@@ -85,12 +84,12 @@ const QuizModeSelectorPage = () => {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Puzzle Game</h3>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">Interactive & Fun</p>
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('quizMode.puzzleGame')}</h3>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">{t('quizMode.interactiveFun')}</p>
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                  Complete career interest puzzles by matching pieces. Each piece reveals insights about your personality!
+                  {t('quizMode.puzzleGameDesc')}
                 </p>
 
                 <div className="space-y-3">
@@ -100,7 +99,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Drag & drop puzzle pieces</span>
+                    <span>{t('quizMode.dragDropPieces')}</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
@@ -108,7 +107,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Progressive difficulty</span>
+                    <span>{t('quizMode.progressiveDifficulty')}</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
@@ -116,7 +115,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>XP rewards per puzzle</span>
+                    <span>{t('quizMode.xpRewards')}</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
@@ -124,19 +123,18 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>~12 minutes</span>
+                    <span>~12 phút</span>
                   </div>
                 </div>
               </div>
 
               {/* Animated Quiz Game */}
-              <div 
+              <div
                 onClick={() => handleModeSelect('game')}
-                className={`group relative bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-2xl ${
-                  selectedMode === 'game' 
-                    ? 'border-purple-500 dark:border-purple-400 ring-4 ring-purple-500/20' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
-                }`}
+                className={`group relative bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-2xl ${selectedMode === 'game'
+                  ? 'border-purple-500 dark:border-purple-400 ring-4 ring-purple-500/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
+                  }`}
               >
                 {selectedMode === 'game' && (
                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white shadow-lg">
@@ -147,12 +145,12 @@ const QuizModeSelectorPage = () => {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Animated Quiz</h3>
-                  <p className="text-sm text-purple-600 dark:text-purple-400 font-semibold">Smooth & Engaging</p>
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Trò chơi hoạt hình</h3>
+                  <p className="text-sm text-purple-600 dark:text-purple-400 font-semibold">Mượt mà & Hấp dẫn</p>
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                  Answer questions with beautiful animations, emoji scales, and instant visual feedback. Engaging and fun!
+                  Trả lời câu hỏi với hoạt hình đẹp mắt, thang điểm emoji và phản hồi trực quan tức thì. Thú vị và vui nhộn!
                 </p>
 
                 <div className="space-y-3">
@@ -162,7 +160,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Smooth transitions</span>
+                    <span>Chuyển tiếp mượt mà</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
@@ -170,7 +168,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Emoji-based scales</span>
+                    <span>Thang điểm emoji</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
@@ -178,7 +176,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>XP rewards</span>
+                    <span>Phần thưởng XP</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
@@ -186,7 +184,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>~10 minutes</span>
+                    <span>~10 phút</span>
                   </div>
                 </div>
               </div>
@@ -202,7 +200,7 @@ const QuizModeSelectorPage = () => {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-bold text-amber-900 dark:text-amber-100 text-lg mb-2">
-                    Same Results, Different Experience
+                    {t('quizMode.sameResults')}
                   </h4>
                   <p className="text-amber-700 dark:text-amber-300 leading-relaxed">
                     Both modes use identical questions and assessment algorithms. Your career orientation results will be exactly the same regardless of which mode you choose. The only difference is how you interact with the quiz.
@@ -222,17 +220,16 @@ const QuizModeSelectorPage = () => {
               <button
                 onClick={handleStart}
                 disabled={!selectedMode}
-                className={`group relative px-12 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${
-                  selectedMode
-                    ? 'bg-gradient-to-r from-indigo-800 via-emerald-600 to-violet-600 hover:from-indigo-900 hover:via-emerald-700 hover:to-violet-700 text-white shadow-indigo-800/30 hover:shadow-indigo-800/50 hover:-translate-y-2 cursor-pointer'
-                    : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                }`}
+                className={`group relative px-12 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${selectedMode
+                  ? 'bg-gradient-to-r from-indigo-800 via-emerald-600 to-violet-600 hover:from-indigo-900 hover:via-emerald-700 hover:to-violet-700 text-white shadow-indigo-800/30 hover:shadow-indigo-800/50 hover:-translate-y-2 cursor-pointer'
+                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  }`}
               >
                 {selectedMode && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 )}
                 <span className="relative z-10 flex items-center gap-3">
-                  Start Assessment
+                  {t('quizMode.startAssessment')}
                   <svg className="w-6 h-6 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
