@@ -371,7 +371,12 @@ def crawl_linkedin(keyword: str, limit: int = 10) -> list[dict]:
         "Sec-Fetch-Site": "same-origin",
     }
 
-    resp = _get(_LINKEDIN_SEARCH_URL, params=params, extra_headers=extra)
+    resp = _get(
+        _LINKEDIN_SEARCH_URL,
+        params=params,
+        extra_headers=extra,
+        cookies=cookies,
+    )
     if not resp:
         return []
 
