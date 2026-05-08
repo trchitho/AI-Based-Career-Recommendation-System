@@ -92,7 +92,7 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
           <button
             onClick={handleSubmit}
             disabled={responses.size === 0}
-            className="flex-1 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed"
+            className="flex-1 px-6 py-4 bg-gradient-to-r from-indigo-800 to-indigo-800 hover:from-indigo-900 hover:to-violet-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed"
           >
             Submit Assessment
           </button>
@@ -120,13 +120,13 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
       {/* Question Card */}
       <div className="bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-blue-900/20 dark:via-cyan-900/20 dark:to-teal-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-2xl p-8 relative overflow-hidden">
         {/* Puzzle piece decorations */}
-        <div className="absolute top-4 right-4 text-4xl opacity-20">🧩</div>
-        <div className="absolute bottom-4 left-4 text-3xl opacity-10">🧩</div>
+        <div className="absolute top-4 right-4 text-4xl opacity-20"></div>
+        <div className="absolute bottom-4 left-4 text-3xl opacity-10"></div>
         
         <div className="mb-6 relative z-10">
           <div className="flex items-center gap-3 mb-4">
             <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold rounded-full shadow-lg">
-              {currentQuestion.test_type === 'RIASEC' ? '🎯 Career Interest' : '🧠 Personality Trait'}
+              {currentQuestion.test_type === 'RIASEC' ? ' Career Interest' : ' Personality Trait'}
             </span>
             <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
               Puzzle Piece {currentIndex + 1}/{questions.length}
@@ -159,7 +159,7 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
                   >
                     {currentAnswer === value && (
                       <div className="absolute inset-0 flex items-center justify-center text-4xl opacity-20">
-                        🧩
+                        
                       </div>
                     )}
                     <span className="relative z-10">{value}</span>
@@ -181,7 +181,7 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
               >
                 {currentAnswer === option && (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-3xl opacity-30">
-                    🧩
+                    
                   </div>
                 )}
                 <div className="flex items-center gap-3">

@@ -223,7 +223,7 @@ const PaymentManagementPage = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'failed':
@@ -255,12 +255,12 @@ const PaymentManagementPage = () => {
   };
 
   return (
-    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
+    <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
             Payment Management
@@ -274,7 +274,7 @@ const PaymentManagementPage = () => {
             Export CSV
           </button>
           <button onClick={() => exportData('json')}
-            className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors">
+            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             Export JSON
           </button>
@@ -299,15 +299,15 @@ const PaymentManagementPage = () => {
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-green-500"></div>
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-700"></div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Successful</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.completed_payments}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatAmount(stats.completed_amount)}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
             </div>
           </div>
@@ -597,7 +597,7 @@ const PaymentManagementPage = () => {
                       {payment.user_email}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {payment.user_name || `User #${payment.user_id}`}
+                      {payment.user_name || `User ${payment.user_id}`}
                     </div>
                   </td>
 
@@ -629,7 +629,7 @@ const PaymentManagementPage = () => {
                       </button>
                       <button
                         onClick={() => setShowUserHistory(payment.user_id)}
-                        className="px-3 py-1.5 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 rounded-lg text-xs font-semibold border border-green-200 dark:border-green-800 transition-colors"
+                        className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-50 dark:bg-indigo-950/20 dark:hover:bg-indigo-950/40 text-indigo-800 dark:text-indigo-400 rounded-lg text-xs font-semibold border border-indigo-200 dark:border-indigo-800 transition-colors"
                       >
                         History
                       </button>
@@ -868,7 +868,7 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'failed':
@@ -940,9 +940,9 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
                 <div className="text-sm text-blue-600 dark:text-blue-400">Tổng giao dịch</div>
                 <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.total}</div>
               </div>
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                <div className="text-sm text-green-600 dark:text-green-400">Thành công</div>
-                <div className="text-2xl font-bold text-green-900 dark:text-green-100">{stats.successCount}</div>
+              <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-lg">
+                <div className="text-sm text-indigo-800 dark:text-indigo-400">Thành công</div>
+                <div className="text-2xl font-bold text-indigo-950 dark:text-indigo-100">{stats.successCount}</div>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
                 <div className="text-sm text-purple-600 dark:text-purple-400">Tổng tiền</div>

@@ -35,10 +35,10 @@ def init_interview_database():
                     conn.execute(text(statement))
 
             conn.commit()
-            print("✅ Đã tạo thành công schema và tables cho Interview module!")
+            print("[OK] Đã tạo thành công schema và tables cho Interview module!")
 
     except Exception as e:
-        print(f"❌ Lỗi khi tạo database: {e}")
+        print(f"[ERR] Lỗi khi tạo database: {e}")
         raise
 
 
@@ -59,11 +59,11 @@ def check_interview_tables():
         with engine.connect() as conn:
             for i, query in enumerate(check_queries):
                 result = conn.execute(text(query)).scalar()
-                status = "✅ Tồn tại" if result > 0 else "❌ Chưa tạo"
+                status = "[OK] Tồn tại" if result > 0 else "[ERR] Chưa tạo"
                 print(f"{table_names[i]}: {status}")
 
     except Exception as e:
-        print(f"❌ Lỗi khi kiểm tra tables: {e}")
+        print(f"[ERR] Lỗi khi kiểm tra tables: {e}")
 
 
 def create_sample_templates():
@@ -127,10 +127,10 @@ def create_sample_templates():
                 )
 
             conn.commit()
-            print("✅ Đã tạo sample templates thành công!")
+            print("[OK] Đã tạo sample templates thành công!")
 
     except Exception as e:
-        print(f"❌ Lỗi khi tạo sample templates: {e}")
+        print(f"[ERR] Lỗi khi tạo sample templates: {e}")
 
 
 if __name__ == "__main__":

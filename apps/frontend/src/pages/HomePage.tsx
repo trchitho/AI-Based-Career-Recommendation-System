@@ -1,11 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import ThemeToggle from '../components/ThemeToggle';
-import LanguageSwitcher from '../components/LanguageSwitcher';
-import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
-import AppFooter from '../components/layout/AppFooter';
 
 // --- TYPES ---
 interface PublicStats {
@@ -57,22 +53,19 @@ const useCounter = (end: number, duration: number = 2000) => {
 };
 
 const CounterItem = ({ value, label, suffix = '' }: { value: string, label: string, suffix?: string }) => {
-    // Tách số và chữ (ví dụ: '1M+' -> 1000000 và '+')
-    // Để đơn giản demo, ta giả định value là số hoặc số kèm k/M
     const parseValue = (val: string) => {
         if (val.includes('k')) return { num: parseFloat(val) * 1000, suf: 'k+' };
         if (val.includes('M')) return { num: parseFloat(val) * 1000000, suf: 'M+' };
         if (val.includes('%')) return { num: parseFloat(val), suf: '%' };
-        if (val.includes('<')) return { num: 2, suf: 'min' }; // Hardcode cho case < 2min
+        if (val.includes('<')) return { num: 2, suf: 'min' };
         return { num: parseFloat(val), suf: suffix };
     };
 
     const { num, suf } = parseValue(value);
-    // Nếu không parse được số (ví dụ '24/7'), hiển thị text gốc
     if (isNaN(num)) return (
         <div className="text-white">
             <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono">{value}</div>
-            <div className="text-green-100 font-medium">{label}</div>
+            <div className="text-indigo-100 font-medium">{label}</div>
         </div>
     );
 
@@ -80,10 +73,10 @@ const CounterItem = ({ value, label, suffix = '' }: { value: string, label: stri
 
     return (
         <div ref={countRef} className="text-white group hover:-translate-y-1 transition-transform duration-300">
-            <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-green-100">
+            <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-indigo-50">
                 {value.includes('<') ? '< ' : ''}{count.toLocaleString()}{suf}
             </div>
-            <div className="text-green-100 font-medium group-hover:text-white transition-colors">{label}</div>
+            <div className="text-indigo-100 font-medium group-hover:text-white transition-colors">{label}</div>
         </div>
     );
 };
@@ -94,10 +87,10 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
         <div className="border-b border-gray-200 dark:border-gray-800 last:border-0">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex w-full items-center justify-between py-5 text-left text-lg font-semibold text-gray-900 dark:text-white hover:text-green-500 transition-colors group"
+                className="flex w-full items-center justify-between py-5 text-left text-lg font-semibold text-gray-900 dark:text-white hover:text-indigo-700 transition-colors group"
             >
                 <span className="group-hover:translate-x-1 transition-transform">{question}</span>
-                <span className={`transform transition-transform duration-300 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-green-100 dark:group-hover:bg-green-900/30 text-gray-500 group-hover:text-green-600 ${isOpen ? 'rotate-180' : ''}`}>
+                <span className={`transform transition-transform duration-300 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/30 text-gray-500 group-hover:text-indigo-800 ${isOpen ? 'rotate-180' : ''}`}>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -112,13 +105,8 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
 
 const HomePage = () => {
     const { t } = useTranslation();
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
 
-    // --- PUBLIC STATS ---
     const [stats, setStats] = useState<PublicStats | null>(null);
-
-    // --- CONTACT FORM ---
     const [showContactForm, setShowContactForm] = useState(false);
     const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' });
     const [contactLoading, setContactLoading] = useState(false);
@@ -129,15 +117,8 @@ const HomePage = () => {
             try {
                 const response = await api.get('/api/app/stats');
                 setStats(response.data);
-            } catch (error) {
-                console.error('Failed to fetch public stats:', error);
-                // Use fallback stats
-                setStats({
-                    totalAssessments: 150,
-                    totalCareerPaths: 50,
-                    totalCareerInfo: 20000,
-                    satisfactionRate: 98
-                });
+            } catch {
+                setStats({ totalAssessments: 150, totalCareerPaths: 50, totalCareerInfo: 20000, satisfactionRate: 98 });
             }
         };
         fetchStats();
@@ -147,184 +128,39 @@ const HomePage = () => {
         e.preventDefault();
         setContactLoading(true);
         setContactResult(null);
-
-        // Validate Name
-        if (!contactForm.name.trim()) {
-            setContactResult({ success: false, message: 'Please enter your name.' });
-            setContactLoading(false);
-            return;
-        }
-        if (contactForm.name.trim().length < 2) {
-            setContactResult({ success: false, message: 'Name must be at least 2 characters long.' });
-            setContactLoading(false);
-            return;
-        }
-        if (contactForm.name.trim().length > 100) {
-            setContactResult({ success: false, message: 'Name must be less than 100 characters.' });
-            setContactLoading(false);
-            return;
-        }
-
-        // Validate Email
-        if (!contactForm.email.trim()) {
-            setContactResult({ success: false, message: 'Please enter your email address.' });
-            setContactLoading(false);
-            return;
+        if (!contactForm.name.trim() || contactForm.name.trim().length < 2) {
+            setContactResult({ success: false, message: 'Please enter your name (at least 2 characters).' });
+            setContactLoading(false); return;
         }
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(contactForm.email.trim())) {
-            setContactResult({ success: false, message: 'Please enter a valid email address (e.g., example@domain.com).' });
-            setContactLoading(false);
-            return;
+            setContactResult({ success: false, message: 'Please enter a valid email address.' });
+            setContactLoading(false); return;
         }
-        if (contactForm.email.trim().length > 254) {
-            setContactResult({ success: false, message: 'Email address is too long.' });
-            setContactLoading(false);
-            return;
+        if (!contactForm.message.trim() || contactForm.message.trim().length < 10) {
+            setContactResult({ success: false, message: 'Message must be at least 10 characters.' });
+            setContactLoading(false); return;
         }
-        // Check for common typos in email domains
-        const emailDomain = contactForm.email.split('@')[1]?.toLowerCase();
-        const commonTypos: Record<string, string> = {
-            'gmial.com': 'gmail.com',
-            'gmal.com': 'gmail.com',
-            'gamil.com': 'gmail.com',
-            'gmail.con': 'gmail.com',
-            'gmail.co': 'gmail.com',
-            'hotmal.com': 'hotmail.com',
-            'hotmai.com': 'hotmail.com',
-            'yaho.com': 'yahoo.com',
-            'yahooo.com': 'yahoo.com',
-        };
-        if (emailDomain && commonTypos[emailDomain]) {
-            setContactResult({ success: false, message: `Did you mean ${contactForm.email.split('@')[0]}@${commonTypos[emailDomain]}?` });
-            setContactLoading(false);
-            return;
-        }
-
-        // Validate Phone (optional but if provided, must be valid)
-        if (contactForm.phone.trim()) {
-            // Remove all non-digit characters for validation
-            const phoneDigits = contactForm.phone.replace(/\D/g, '');
-
-            if (phoneDigits.length < 9) {
-                setContactResult({ success: false, message: 'Phone number must have at least 9 digits.' });
-                setContactLoading(false);
-                return;
-            }
-            if (phoneDigits.length > 15) {
-                setContactResult({ success: false, message: 'Phone number is too long (max 15 digits).' });
-                setContactLoading(false);
-                return;
-            }
-            // Check for valid phone format (allows +, spaces, dashes, parentheses)
-            const phoneRegex = /^[\d\s\-+()]+$/;
-            if (!phoneRegex.test(contactForm.phone)) {
-                setContactResult({ success: false, message: 'Phone number contains invalid characters. Use only digits, +, -, (), or spaces.' });
-                setContactLoading(false);
-                return;
-            }
-            // Vietnam phone validation (if starts with 0 or +84)
-            if (phoneDigits.startsWith('84') || phoneDigits.startsWith('0')) {
-                const vnPhone = phoneDigits.startsWith('84') ? phoneDigits.slice(2) : phoneDigits.slice(1);
-                if (vnPhone.length !== 9) {
-                    setContactResult({ success: false, message: 'Vietnamese phone number must have 10 digits (e.g., 0901234567).' });
-                    setContactLoading(false);
-                    return;
-                }
-            }
-        }
-
-        // Validate Message
-        if (!contactForm.message.trim()) {
-            setContactResult({ success: false, message: 'Please enter your message.' });
-            setContactLoading(false);
-            return;
-        }
-        if (contactForm.message.trim().length < 10) {
-            setContactResult({ success: false, message: 'Message must be at least 10 characters long.' });
-            setContactLoading(false);
-            return;
-        }
-        if (contactForm.message.trim().length > 2000) {
-            setContactResult({ success: false, message: 'Message is too long (max 2000 characters).' });
-            setContactLoading(false);
-            return;
-        }
-
         try {
             const response = await api.post('/api/app/contact', contactForm);
             setContactResult(response.data);
             if (response.data.success) {
                 setContactForm({ name: '', email: '', phone: '', message: '' });
-                setTimeout(() => {
-                    setShowContactForm(false);
-                    setContactResult(null);
-                }, 3000);
+                setTimeout(() => { setShowContactForm(false); setContactResult(null); }, 3000);
             }
-        } catch (error: unknown) {
-            // Handle different error types
-            let errorMessage = 'Failed to send message. Please try again.';
-
-            if (error && typeof error === 'object' && 'response' in error) {
-                const axiosError = error as { response?: { status?: number; data?: { message?: string; detail?: string } } };
-                const status = axiosError.response?.status;
-                const data = axiosError.response?.data;
-
-                if (status === 400) {
-                    errorMessage = data?.message || data?.detail || 'Invalid form data. Please check your inputs.';
-                } else if (status === 422) {
-                    errorMessage = 'Invalid email format. Please enter a valid email address.';
-                } else if (status === 429) {
-                    errorMessage = 'Too many requests. Please wait a moment and try again.';
-                } else if (status === 500) {
-                    errorMessage = 'Server error. Please try again later or email us directly at careersystemai@gmail.com';
-                } else if (status === 503) {
-                    errorMessage = 'Service temporarily unavailable. Please try again later.';
-                } else if (status === 404) {
-                    errorMessage = 'Service not available. Please email us directly at careersystemai@gmail.com';
-                }
-            } else if (error instanceof Error) {
-                if (error.message.includes('Network Error') || error.message.includes('ERR_NETWORK')) {
-                    errorMessage = 'Network error. Please check your internet connection and try again.';
-                } else if (error.message.includes('timeout')) {
-                    errorMessage = 'Request timed out. Please try again.';
-                }
-            }
-
-            setContactResult({ success: false, message: errorMessage });
+        } catch {
+            setContactResult({ success: false, message: 'Failed to send. Please email careersystemai@gmail.com' });
         } finally {
             setContactLoading(false);
         }
     };
 
-    // --- LOGIC ---
-    const isAuthenticated = Boolean(user);
-    const isAdmin = user?.role === 'admin';
-    const displayName = user?.email?.split('@')[0] || 'User';
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
-
-    const navItems = [
-        { label: t('nav.dashboard'), path: 'dashboard' },
-        { label: t('nav.assessment'), path: 'assessment' },
-        { label: t('nav.skillGap'), path: 'skill-gap' },
-        { label: t('nav.interview'), path: 'interview' },
-        { label: t('nav.blogs'), path: 'blog' },
-        { label: t('nav.careers'), path: 'careers' },
-        { label: t('nav.pricing'), path: 'pricing' },
-    ];
-
-    // --- DATA ---
     const testimonials = [
-        { name: 'Sarah Nguyen', role: 'Software Engineer', text: "The insights were incredibly accurate. I finally understand why certain careers appeal to me.", initial: 'S', color: 'bg-indigo-500' },
-        { name: 'Michael Chen', role: 'Product Manager', text: "A game-changer for my career planning. The roadmap gave me clear direction.", initial: 'M', color: 'bg-emerald-500' },
-        { name: 'Emily Patel', role: 'UX Designer', text: "Highly recommended for anyone feeling stuck in their current role.", initial: 'E', color: 'bg-purple-500' },
-        { name: 'David Kim', role: 'Data Scientist', text: "The AI analysis is spot on. It helped me pivot my career successfully.", initial: 'D', color: 'bg-blue-500' },
-        { name: 'Lisa Wang', role: 'Marketing Lead', text: "Simple, intuitive, and effective. Best career tool I've used.", initial: 'L', color: 'bg-pink-500' },
+        { name: 'Sarah Nguyen', role: 'Software Engineer', text: "The insights were incredibly accurate. I finally understand why certain careers appeal to me.", initial: 'S', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
+        { name: 'Michael Chen', role: 'Product Manager', text: "A game-changer for my career planning. The roadmap gave me clear direction.", initial: 'M', gradient: 'linear-gradient(135deg, #3b82f6, #06b6d4)' },
+        { name: 'Emily Patel', role: 'UX Designer', text: "Highly recommended for anyone feeling stuck in their current role.", initial: 'E', gradient: 'linear-gradient(135deg, #ec4899, #8b5cf6)' },
+        { name: 'David Kim', role: 'Data Scientist', text: "The AI analysis is spot on. It helped me pivot my career successfully.", initial: 'D', gradient: 'linear-gradient(135deg, #06b6d4, #22c55e)' },
+        { name: 'Lisa Wang', role: 'Marketing Lead', text: "Simple, intuitive, and effective. Best career tool I've used.", initial: 'L', gradient: 'linear-gradient(135deg, #f59e0b, #fb923c)' },
     ];
     const row1 = [...testimonials, ...testimonials];
     const row2 = [...testimonials].reverse().concat([...testimonials].reverse());
@@ -336,30 +172,20 @@ const HomePage = () => {
         { q: t('home.faq.q4'), a: t('home.faq.a4') },
     ];
 
-    const ModernLogo = () => (
-        <Link to="/home" className="flex items-center gap-2 group">
-            <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
-                career<span className="text-green-500">bridge</span><span className="text-green-500 text-3xl leading-none">.</span>
-            </span>
-        </Link>
-    );
-
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white selection:bg-green-100 selection:text-green-900 overflow-x-hidden">
+        <div className="selection:bg-indigo-50 selection:text-indigo-900 overflow-x-hidden">
 
-            {/* --- CSS INJECTION --- */}
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-                
-                /* Animations */
+
                 @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 @keyframes scroll-reverse { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
                 @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
-                @keyframes blob { 
-                    0% { transform: translate(0px, 0px) scale(1); } 
-                    33% { transform: translate(30px, -50px) scale(1.1); } 
-                    66% { transform: translate(-20px, 20px) scale(0.9); } 
-                    100% { transform: translate(0px, 0px) scale(1); } 
+                @keyframes blob {
+                    0% { transform: translate(0px, 0px) scale(1); }
+                    33% { transform: translate(30px, -50px) scale(1.1); }
+                    66% { transform: translate(-20px, 20px) scale(0.9); }
+                    100% { transform: translate(0px, 0px) scale(1); }
                 }
                 @keyframes shimmer {
                     0% { background-position: 200% 0; }
@@ -372,7 +198,7 @@ const HomePage = () => {
                 .animate-blob { animation: blob 7s infinite; }
                 .animation-delay-2000 { animation-delay: 2s; }
                 .animation-delay-4000 { animation-delay: 4s; }
-                
+
                 .animate-shimmer {
                     background: linear-gradient(90deg, rgba(34,197,94,0) 0%, rgba(34,197,94,0.1) 50%, rgba(34,197,94,0) 100%);
                     background-size: 200% 100%;
@@ -395,11 +221,8 @@ const HomePage = () => {
                     background-clip: text;
                 }
 
-                .group:hover .animate-scroll, .group:hover .animate-scroll-reverse { animation-play-state: paused; }
-
-                /* Patterns & Glass */
                 .bg-grid-pattern {
-                    background-image: 
+                    background-image:
                         linear-gradient(to right, rgba(34, 197, 94, 0.05) 1px, transparent 1px),
                         linear-gradient(to bottom, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
                     background-size: 40px 40px;
@@ -416,242 +239,127 @@ const HomePage = () => {
                     border: 1px solid rgba(255, 255, 255, 0.05);
                     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
                 }
-                
-                /* Custom UI shapes for Bento Grid */
-                .skeleton-line {
-                    height: 8px;
-                    border-radius: 4px;
-                    background: #e5e7eb;
-                }
-                .dark .skeleton-line { background: #374151; }
             `}</style>
 
-            {/* --- HEADER --- */}
-            <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 h-[72px] transition-all duration-300 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
-                    <div className="flex-shrink-0">
-                        <ModernLogo />
-                    </div>
-
-                    <nav className="hidden md:flex items-center gap-8">
-                        {navItems.map((item) => (
-                            <NavLink
-                                key={item.path}
-                                to={`/${item.path}`}
-                                className={({ isActive }) => `text-[15px] font-medium transition-all duration-200 relative hover:text-green-600 dark:hover:text-green-400 ${isActive
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : 'text-gray-600 dark:text-gray-300'
-                                    }`}
-                            >
-                                {({ isActive }) => (
-                                    <>
-                                        {item.label}
-                                        {isActive && <span className="absolute -bottom-6 left-0 right-0 h-0.5 bg-green-500 rounded-t-full shadow-[0_-2px_10px_rgba(34,197,94,0.5)]"></span>}
-                                    </>
-                                )}
-                            </NavLink>
-                        ))}
-                    </nav>
-
-                    <div className="flex items-center gap-5">
-                        {/* Hamburger Button (Mobile) */}
-                        <button
-                            className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            aria-label="Toggle menu"
-                        >
-                            {isMobileMenuOpen ? (
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            ) : (
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
-                            )}
-                        </button>
-
-                        <div className="hidden lg:flex items-center gap-3 pr-3 border-r border-gray-200 dark:border-gray-700">
-                            <LanguageSwitcher />
-                            <ThemeToggle />
-                        </div>
-
-                        {isAuthenticated ? (
-                            <div className="flex items-center gap-3 animate-fade-in-up">
-                                {isAdmin && (
-                                    <Link to="/admin" className="hidden lg:inline-flex px-3 py-1 text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-full dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 hover:scale-105 transition-transform">
-                                        Admin
-                                    </Link>
-                                )}
-                                <div className="flex items-center gap-2 cursor-default group">
-                                    <div className="w-9 h-9 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-full flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-sm border-2 border-green-200 dark:border-green-700 group-hover:border-green-400 transition-colors">
-                                        {displayName.charAt(0).toUpperCase()}
-                                    </div>
-                                    <span className="hidden sm:block text-sm font-semibold max-w-[100px] truncate group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">{displayName}</span>
-                                </div>
-                                <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-full transition-all">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-3">
-                                <Link to="/login" className="hidden sm:block text-[15px] font-semibold text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-full transition-all">
-                                    {t('auth.signIn')}
-                                </Link>
-                                <Link to="/assessment" className="relative inline-flex items-center justify-center px-6 py-2.5 overflow-hidden font-bold text-white transition-all duration-300 bg-green-600 rounded-full group hover:bg-green-600 ring-offset-2 focus:ring-2 ring-green-400 ease focus:outline-none">
-                                    <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
-                                    <span className="relative">{t('nav.getStarted')}</span>
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </header>
-
-            {/* Mobile Menu Drawer */}
-            {isMobileMenuOpen && (
-                <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div
-                        className="absolute top-[72px] left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-xl py-4 px-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <nav className="flex flex-col gap-1 mb-4">
-                            {navItems.map((item) => (
-                                <NavLink
-                                    key={item.path}
-                                    to={`/${item.path}`}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className={({ isActive }) =>
-                                        `px-4 py-3 rounded-xl text-[15px] font-semibold transition-colors ${isActive
-                                            ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20'
-                                            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800'
-                                        }`
-                                    }
-                                >
-                                    {item.label}
-                                </NavLink>
-                            ))}
-                        </nav>
-                        <div className="flex items-center gap-3 px-4 py-2 border-t border-gray-100 dark:border-gray-800">
-                            <LanguageSwitcher />
-                            <ThemeToggle />
-                        </div>
-                        {!isAuthenticated && (
-                            <div className="flex flex-col gap-2 mt-3">
-                                <Link
-                                    to="/login"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="w-full px-4 py-3 rounded-xl text-[15px] font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-center"
-                                >
-                                    {t('auth.signIn')}
-                                </Link>
-                                <Link
-                                    to="/assessment"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="w-full px-4 py-3 rounded-full text-[15px] font-bold bg-green-600 text-white hover:bg-green-700 transition-colors text-center"
-                                >
-                                    {t('nav.getStarted')}
-                                </Link>
-                            </div>
-                        )}
-                        {isAuthenticated && (
-                            <div className="mt-3 border-t border-gray-100 dark:border-gray-800 pt-3">
-                                <button
-                                    onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
-                                    className="w-full px-4 py-3 rounded-xl text-[15px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                                    {t('common.logout')}
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            <main className="pt-[72px]">
+            <main>
                 {/* --- HERO SECTION --- */}
-                <section className="relative pt-20 pb-32 overflow-hidden bg-white dark:bg-gray-900">
-                    {/* Animated Background Blobs */}
+                <section className="relative pt-16 pb-20 overflow-hidden" style={{ background: 'var(--neu-bg)' }}>
                     <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                         <div className="bg-grid-pattern absolute w-full h-full opacity-[0.6]"></div>
                         <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob"></div>
                         <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 dark:bg-yellow-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-                        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-green-300 dark:bg-green-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+                        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-300 dark:bg-indigo-950 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
                     </div>
 
-                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-                        <div className="flex flex-col items-center justify-center gap-4 mb-8 animate-fade-in-up">
-                            <span className="relative px-4 py-1.5 rounded-full bg-white/50 dark:bg-gray-800/50 border border-green-200 dark:border-green-800 backdrop-blur-sm text-sm font-bold inline-block mb-4 shadow-sm hover:scale-105 transition-transform cursor-default">
-                                <span className="text-shimmer">{t('home.badge')}</span>
-                            </span>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
-                            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1] drop-shadow-sm">
-                                {t('home.hero.title')} <br className="hidden md:block" />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 animate-gradient-x">{t('home.hero.titleHighlight')}</span>
-                            </h1>
+                            {/* LEFT — text */}
+                            <div className="flex-1 animate-fade-in-up">
+                                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "10px 18px", borderRadius: "999px", fontSize: "14px", fontWeight: 600, lineHeight: "20px", color: "#4f46e5", background: "rgba(255,255,255,0.92)", border: "1px solid rgba(99,102,241,0.35)", boxShadow: "0 8px 20px rgba(99,102,241,0.12)", position: "relative", zIndex: 20, opacity: 1, visibility: "visible", whiteSpace: "nowrap", marginBottom: "24px" }} className="hover:scale-105 transition-transform cursor-default">
+                                    {t('home.badge')}
+                                </span>
 
-                            <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed max-w-2xl mx-auto font-medium">
-                                {t('home.hero.subtitle')}
-                            </p>
+                                <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1]">
+                                    {t('home.hero.title')}{' '}
+                                    <em className="not-italic text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600">
+                                        {t('home.hero.titleHighlight')}
+                                    </em>{' '}
+                                    {t('home.hero.titleSuffix', 'trajectory with precision.')}
+                                </h1>
 
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-5 w-full">
-                                <Link to="/assessment" className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-green-600 rounded-full hover:bg-green-700 transition-all shadow-[0_10px_20px_-10px_rgba(22,163,74,0.5)] hover:shadow-[0_20px_20px_-10px_rgba(22,163,74,0.6)] hover:-translate-y-1 relative overflow-hidden group">
-                                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></span>
-                                    {t('home.hero.cta')}
-                                    <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                                </Link>
-                                <Link to="/careers" className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-gray-600 bg-white/80 border border-gray-200 rounded-full hover:bg-white hover:border-gray-300 dark:bg-gray-800/80 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-800 transition-all backdrop-blur-sm shadow-sm hover:shadow-md">
-                                    <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                                    {t('home.hero.exploreBtn')}
-                                </Link>
+                                <p className="text-lg text-gray-500 dark:text-gray-400 mb-10 leading-relaxed max-w-xl font-medium">
+                                    {t('home.hero.subtitle')}
+                                </p>
+
+                                <div className="flex flex-col sm:flex-row items-start gap-4">
+                                    <Link to="/assessment" className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 relative overflow-hidden group uppercase tracking-wide">
+                                        {t('home.hero.cta')}
+                                        <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                    </Link>
+                                    <Link to="/careers" className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm uppercase tracking-wide">
+                                        {t('home.hero.exploreBtn')}
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* RIGHT — dashboard mockup */}
+                            <div className="flex-1 w-full max-w-lg lg:max-w-none animate-fade-in-up relative" style={{ animationDelay: '0.2s' }}>
+                                <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(135deg,#0f172a 0%, #1e2d4a 100%)' }}>
+                                    <div className="flex items-center gap-2 px-5 py-3 border-b border-white/10">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-red-400 opacity-80"></span>
+                                        <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 opacity-80"></span>
+                                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 opacity-80"></span>
+                                        <span className="ml-3 text-xs text-white/40 font-mono tracking-widest">• CAREER AI</span>
+                                    </div>
+                                    <div className="p-6">
+                                        <div className="flex items-end justify-between h-36 gap-1.5 mb-4">
+                                            {[35, 55, 42, 70, 58, 85, 65, 90, 72, 80, 60, 95].map((h, i) => (
+                                                <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i >= 9 ? 'rgba(56,189,248,0.9)' : `rgba(56,189,248,${0.25 + i * 0.04})` }}></div>
+                                            ))}
+                                        </div>
+                                        <div className="flex justify-between text-xs text-white/30 font-mono">
+                                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
+                                                <span key={m}>{m.slice(0, 1)}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="absolute -bottom-5 -right-4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl border border-gray-100 dark:border-gray-700 min-w-[180px]">
+                                    <div className="flex items-center gap-1.5 mb-1.5">
+                                        <svg className="w-3.5 h-3.5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Market Pulse</span>
+                                    </div>
+                                    <div className="text-2xl font-extrabold text-gray-900 dark:text-white">+12.4%</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Demand for AI Ethics roles</div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Floating Stats UI Preview */}
-                        <div className="relative mt-16 mx-auto max-w-4xl animate-fade-in-up delay-300 group perspective-1000">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                            <div className="relative glass-card rounded-2xl p-6 md:p-8 shadow-2xl transform transition-transform duration-500 hover:rotate-x-2">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-gray-800/50">
-                                    <div className="flex flex-col items-center justify-center p-2">
-                                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600 mb-3 shadow-inner"><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></div>
-                                        <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">98%</div>
-                                        <div className="text-sm font-medium text-gray-500">{t('home.stats.successRate')}</div>
+                        {/* 3 feature mini-cards */}
+                        <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            {[
+                                {
+                                    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+                                    color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+                                    title: t('home.features.assessment.title'),
+                                    desc: t('home.features.assessment.shortDesc', 'Deep-dive cognitive and technical evaluation to uncover your hidden competitive edges.'),
+                                },
+                                {
+                                    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+                                    color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 dark:text-indigo-400',
+                                    title: t('home.features.skillGap.title'),
+                                    desc: t('home.features.skillGap.shortDesc', 'Real-time data scraping from global sectors to identify emerging talent vacuums.'),
+                                },
+                                {
+                                    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+                                    color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+                                    title: 'Mentor Network',
+                                    desc: t('home.features.mentor.shortDesc', 'Direct access to industry architects who have already navigated the paths you seek.'),
+                                },
+                            ].map((card, i) => (
+                                <div key={i} className="glass-card rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${card.color} group-hover:scale-110 transition-transform`}>
+                                        {card.icon}
                                     </div>
-                                    <div className="flex flex-col items-center justify-center p-2">
-                                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center text-green-600 mb-3 shadow-inner"><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div>
-                                        <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">20K+</div>
-                                        <div className="text-sm font-medium text-gray-500">{t('home.stats.careerDataPoints')}</div>
-                                    </div>
-                                    <div className="flex flex-col items-center justify-center p-2">
-                                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center text-purple-600 mb-3 shadow-inner"><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                                        <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">&lt; 10min</div>
-                                        <div className="text-sm font-medium text-gray-500">{t('home.stats.assessmentTime')}</div>
-                                    </div>
+                                    <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5">{card.title}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{card.desc}</p>
                                 </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </section>
 
                 {/* --- FEATURE CLOUD --- */}
-                <div className="border-y border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 py-10 overflow-hidden relative">
-                    <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10"></div>
-                    <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10"></div>
-                    <div className="flex w-max animate-scroll hover:pause">
+                <div className="border-y border-gray-200 dark:border-gray-700/50 py-10 overflow-hidden relative" style={{ background: 'var(--neu-bg)' }}>
+                    <div className="absolute inset-y-0 left-0 w-32 z-10" style={{ background: 'linear-gradient(to right, var(--neu-bg), transparent)' }}></div>
+                    <div className="absolute inset-y-0 right-0 w-32 z-10" style={{ background: 'linear-gradient(to left, var(--neu-bg), transparent)' }}></div>
+                    <div className="flex w-max animate-scroll">
                         {[...Array(2)].map((_, i) => (
                             <div key={i} className="flex gap-20 px-12 items-center">
-                                {[
-                                    'RIASEC Assessment',
-                                    'Big Five Analysis',
-                                    'AI Career Matching',
-                                    'Learning Roadmaps',
-                                    '900+ Careers',
-                                    'Skill Gap Analysis',
-                                    'AI Assistant',
-                                    'PDF Reports'
-                                ].map((text, idx) => (
-                                    <span key={idx} className="text-xl font-bold tracking-wide text-gray-400 hover:text-green-600 dark:text-gray-500 dark:hover:text-green-400 select-none transition-colors duration-300 whitespace-nowrap uppercase">
+                                {['Đánh Giá RIASEC', 'Phân Tích Big Five', 'Gợi Ý Nghề Nghiệp AI', 'Lộ Trình Học Tập', '900+ Nghề Nghiệp', 'Phân Tích Khoảng Cách Kỹ Năng', 'Trợ Lý AI', 'Báo Cáo PDF'].map((text, idx) => (
+                                    <span key={idx} className="text-xl font-bold tracking-wide text-gray-400 hover:text-indigo-800 dark:text-gray-500 dark:hover:text-indigo-400 select-none transition-colors duration-300 whitespace-nowrap uppercase">
                                         {text}
                                     </span>
                                 ))}
@@ -662,41 +370,42 @@ const HomePage = () => {
 
                 {/* --- BENTO GRID FEATURES --- */}
                 <section className="py-24 bg-gray-50 dark:bg-gray-800/50 relative overflow-hidden">
-                    <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-green-200/20 dark:bg-green-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+                    <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-indigo-200/20 dark:bg-indigo-950/20 rounded-full blur-[120px] pointer-events-none"></div>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">{t('home.features.sectionTitle')} <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-700">{t('home.features.sectionHighlight')}</span></h2>
+                            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
+                                {t('home.features.sectionTitle')} <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-violet-700">{t('home.features.sectionHighlight')}</span>
+                            </h2>
                             <p className="text-lg text-gray-500 dark:text-gray-400">{t('home.features.sectionSubtitle')}</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-2 gap-6 h-auto md:h-[650px]">
-                            {/* Feature 1: Large - Career Assessment */}
+                            {/* Feature 1: Large */}
                             <div className="md:col-span-4 md:row-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
-                                <div className="absolute top-0 right-0 w-96 h-96 bg-green-500/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-green-500/20 transition-colors duration-500"></div>
+                                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-700/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-indigo-700/20 transition-colors duration-500"></div>
                                 <div className="relative z-10 h-full flex flex-col">
-                                    <div className="w-14 h-14 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                                         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">{t('home.features.assessment.title')}</h3>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors">{t('home.features.assessment.title')}</h3>
                                     <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">{t('home.features.assessment.desc')}</p>
 
-                                    {/* Abstract UI Representation - Assessment Visual */}
                                     <div className="mt-auto relative w-full h-64 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-inner transform group-hover:scale-[1.02] transition-transform duration-500 flex flex-col gap-4 overflow-hidden">
                                         <div className="flex items-center gap-4 mb-2">
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold">R</div>
+                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center text-white font-bold">R</div>
                                             <div className="flex flex-col gap-2">
-                                                <div className="w-32 h-3 bg-green-300 dark:bg-green-600 rounded-full"></div>
+                                                <div className="w-32 h-3 bg-indigo-300 dark:bg-indigo-800 rounded-full"></div>
                                                 <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                                             </div>
-                                            <div className="ml-auto w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
-                                                <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                                            <div className="ml-auto w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center">
+                                                <div className="w-4 h-4 bg-indigo-700 rounded-full animate-pulse"></div>
                                             </div>
                                         </div>
                                         <div className="w-full h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
-                                        {/* RIASEC Progress Bars */}
                                         <div className="space-y-2">
-                                            {[{ l: 'Realistic', w: '75%', c: 'bg-red-400' }, { l: 'Investigative', w: '85%', c: 'bg-yellow-400' }, { l: 'Artistic', w: '60%', c: 'bg-green-400' }, { l: 'Social', w: '90%', c: 'bg-blue-400' }].map((item, i) => (
+                                            {[{ l: 'Realistic', w: '75%', c: 'bg-red-400' }, { l: 'Investigative', w: '85%', c: 'bg-yellow-400' }, { l: 'Artistic', w: '60%', c: 'bg-indigo-400' }, { l: 'Social', w: '90%', c: 'bg-blue-400' }].map((item, i) => (
                                                 <div key={i} className="flex items-center gap-2">
                                                     <span className="text-xs text-gray-500 w-20">{item.l}</span>
                                                     <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -705,17 +414,15 @@ const HomePage = () => {
                                                 </div>
                                             ))}
                                         </div>
-
-                                        {/* Floating Badge */}
                                         <div className="absolute bottom-6 right-6 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 flex items-center gap-2 animate-bounce">
-                                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                            <span className="w-2 h-2 bg-indigo-700 rounded-full"></span>
                                             <span className="text-xs font-bold text-gray-700 dark:text-gray-200">Match: 95%</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Feature 2: Small - Skills */}
+                            {/* Feature 2 */}
                             <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative">
                                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all"></div>
                                 <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 text-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:rotate-12 transition-transform">
@@ -723,18 +430,14 @@ const HomePage = () => {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.features.skillGap.title')}</h3>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('home.features.skillGap.desc')}</p>
-                                {/* Abstract Chart */}
                                 <div className="flex items-end justify-between h-24 px-2 pb-2">
                                     {[40, 70, 50, 90, 60].map((h, i) => (
-                                        <div key={i} className="w-1/6 bg-gray-100 dark:bg-gray-700 rounded-t-md relative overflow-hidden group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors" style={{ height: `${h}%` }}>
-                                            <div className="absolute bottom-0 left-0 w-full bg-purple-500 transition-all duration-1000 ease-out" style={{ height: '0%', animation: `grow ${1 + i * 0.2}s forwards` }}></div>
-                                        </div>
+                                        <div key={i} className="w-1/6 bg-gray-100 dark:bg-gray-700 rounded-t-md relative overflow-hidden group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors" style={{ height: `${h}%` }}></div>
                                     ))}
-                                    <style>{`@keyframes grow { to { height: 100%; } }`}</style>
                                 </div>
                             </div>
 
-                            {/* Feature 3: Small - Career Roadmap */}
+                            {/* Feature 3 */}
                             <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative">
                                 <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all"></div>
                                 <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:-rotate-12 transition-transform">
@@ -742,7 +445,6 @@ const HomePage = () => {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.features.roadmap.title')}</h3>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('home.features.roadmap.desc')}</p>
-                                {/* Abstract Roadmap Animation */}
                                 <div className="relative w-full h-24 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                                     <div className="flex items-center gap-3">
                                         {[1, 2, 3, 4].map((step) => (
@@ -758,34 +460,32 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* --- HOW IT WORKS (Timeline) --- */}
-                <section className="py-24 bg-white dark:bg-gray-900 relative">
+                {/* --- HOW IT WORKS --- */}
+                <section className="py-24 relative" style={{ background: 'var(--neu-bg)' }}>
                     <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-gray-50 dark:from-gray-800/50 to-transparent"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="mb-20 text-center">
-                            <span className="text-green-500 font-bold tracking-wider uppercase text-sm bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full">{t('home.howItWorks.label')}</span>
+                            <span className="text-indigo-700 font-bold tracking-wider uppercase text-sm bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full">{t('home.howItWorks.label')}</span>
                             <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mt-4">{t('home.howItWorks.title')}</h2>
                             <p className="text-lg text-gray-500 dark:text-gray-400 mt-4 max-w-2xl mx-auto">{t('home.howItWorks.subtitle')}</p>
                         </div>
 
                         <div className="relative">
-                            {/* Line connecting steps */}
-                            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-100 dark:bg-gray-800 -translate-x-1/2"></div>
-
+                            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 -translate-x-1/2" style={{ width: "3px", borderRadius: "999px", background: "linear-gradient(to bottom, #8b5cf6 0%, #3b82f6 30%, #10b981 65%, #f59e0b 100%)", boxShadow: "0 0 12px rgba(139,92,246,.25)" }}></div>
                             {[
-                                { title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc'), icon: "1", align: "left" },
-                                { title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc'), icon: "2", align: "right" },
-                                { title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc'), icon: "3", align: "left" },
-                                { title: t('home.howItWorks.step4.title'), desc: t('home.howItWorks.step4.desc'), icon: "4", align: "right" }
+                                { title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc'), icon: "1", align: "left", gradient: "linear-gradient(135deg, #8b5cf6, #6366f1)" },
+                                { title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc'), icon: "2", align: "right", gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)" },
+                                { title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc'), icon: "3", align: "left", gradient: "linear-gradient(135deg, #10b981, #14b8a6)" },
+                                { title: t('home.howItWorks.step4.title'), desc: t('home.howItWorks.step4.desc'), icon: "4", align: "right", gradient: "linear-gradient(135deg, #fb923c, #f59e0b)" }
                             ].map((step, idx) => (
                                 <div key={idx} className={`relative flex items-center justify-between mb-16 ${step.align === 'right' ? 'flex-row-reverse' : ''} group`}>
                                     <div className="hidden md:block w-5/12"></div>
-                                    <div className="absolute left-0 md:left-1/2 top-0 md:-translate-x-1/2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold border-4 border-white dark:border-gray-900 z-10 shadow-lg group-hover:scale-110 group-hover:bg-green-400 transition-all duration-300">
+                                    <div className="absolute left-0 md:left-1/2 top-0 md:-translate-x-1/2 z-10" style={{ width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontWeight: 700, fontSize: "16px", border: "3px solid rgba(255,255,255,0.95)", boxShadow: "0 0 24px rgba(0,0,0,0.15)", flexShrink: 0, background: step.gradient }}>
                                         {step.icon}
                                     </div>
                                     <div className={`w-full md:w-5/12 pl-16 md:pl-0 ${step.align === 'left' ? 'md:pr-10 md:text-right' : 'md:pl-10'}`}>
                                         <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-                                            <div className={`absolute top-0 w-1 h-full bg-green-500 ${step.align === 'left' ? 'right-0' : 'left-0'} transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom`}></div>
+                                            <div className={`absolute top-0 w-1 h-full bg-indigo-700 ${step.align === 'left' ? 'right-0' : 'left-0'} transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom`}></div>
                                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{step.title}</h3>
                                             <p className="text-gray-500 dark:text-gray-400">{step.desc}</p>
                                         </div>
@@ -796,53 +496,38 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* --- STATISTICS (Animated Counter) --- */}
-                <section className="py-20 bg-green-600 relative overflow-hidden">
+                {/* --- STATISTICS --- */}
+                <section className="py-20 bg-indigo-800 relative overflow-hidden">
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                     <div className="absolute -top-40 -right-40 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
                     <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
-
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                            <CounterItem
-                                value={`${stats?.totalAssessments ?? 0}+`}
-                                label={t('home.stats.assessments')}
-                            />
-                            <CounterItem
-                                value={`${stats?.totalCareerPaths ?? 0}+`}
-                                label={t('home.stats.careerPaths')}
-                            />
-                            <CounterItem
-                                value={`${Math.round((stats?.totalCareerInfo ?? 20000) / 1000)}K+`}
-                                label={t('home.stats.careerData')}
-                            />
+                            <CounterItem value={`${stats?.totalAssessments ?? 0}+`} label={t('home.stats.assessments')} />
+                            <CounterItem value={`${stats?.totalCareerPaths ?? 0}+`} label={t('home.stats.careerPaths')} />
+                            <CounterItem value={`${Math.round((stats?.totalCareerInfo ?? 20000) / 1000)}K+`} label={t('home.stats.careerData')} />
                         </div>
                     </div>
                 </section>
 
                 {/* --- TESTIMONIALS --- */}
-                <section className="py-24 bg-white dark:bg-gray-900 overflow-hidden">
+                <section className="py-24 overflow-hidden" style={{ background: 'var(--neu-bg)' }}>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center">
                         <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">{t('home.testimonials.title')}</h2>
                     </div>
-
-                    <div className="relative group hover:cursor-grab active:cursor-grabbing">
-                        {/* Gradient Masks */}
+                    <div className="relative">
                         <div className="absolute top-0 left-0 h-full w-24 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
                         <div className="absolute top-0 right-0 h-full w-24 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
-
                         <div className="flex w-max animate-scroll gap-6 mb-6">
                             {row1.map((item, idx) => (
                                 <div key={`r1-${idx}`} className="w-[380px] bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg transition-all duration-300">
                                     <div className="flex items-center mb-4">
-                                        <div className={`w-10 h-10 ${item.color} rounded-full flex items-center justify-center text-white font-bold shadow-md`}>{item.initial}</div>
+                                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#ffffff", fontWeight: 700, fontSize: "16px", background: item.gradient, boxShadow: "0 8px 20px rgba(0,0,0,.18)" }}>{item.initial}</div>
                                         <div className="ml-3">
                                             <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
-                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">
-                                            {[...Array(5)].map((_, i) => <span key={i}>★</span>)}
-                                        </div>
+                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300 italic text-sm leading-relaxed">"{item.text}"</p>
                                 </div>
@@ -852,14 +537,12 @@ const HomePage = () => {
                             {row2.map((item, idx) => (
                                 <div key={`r2-${idx}`} className="w-[380px] bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg transition-all duration-300">
                                     <div className="flex items-center mb-4">
-                                        <div className={`w-10 h-10 ${item.color} rounded-full flex items-center justify-center text-white font-bold shadow-md`}>{item.initial}</div>
+                                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#ffffff", fontWeight: 700, fontSize: "16px", background: item.gradient, boxShadow: "0 8px 20px rgba(0,0,0,.18)" }}>{item.initial}</div>
                                         <div className="ml-3">
                                             <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
-                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">
-                                            {[...Array(5)].map((_, i) => <span key={i}>★</span>)}
-                                        </div>
+                                        <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300 italic text-sm leading-relaxed">"{item.text}"</p>
                                 </div>
@@ -868,7 +551,7 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* --- FAQ SECTION --- */}
+                {/* --- FAQ --- */}
                 <section className="py-24 bg-gray-50 dark:bg-gray-800/50">
                     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
@@ -885,169 +568,81 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* --- PRE-FOOTER CTA & CONTACT --- */}
+                {/* --- CTA & CONTACT --- */}
                 <section className="py-24 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-white dark:bg-gray-900"></div>
+                    <div className="absolute inset-0" style={{ background: 'var(--neu-bg)' }}></div>
                     <div className="max-w-5xl mx-auto px-4 relative z-10">
                         {/* CTA Card */}
-                        <div className="bg-gradient-to-br from-green-600 to-teal-800 rounded-[2.5rem] p-12 md:p-20 shadow-2xl relative overflow-hidden group mb-16">
-                            {/* Decorative circles */}
+                        <div className="bg-gradient-to-br from-indigo-800 to-indigo-900 rounded-[2.5rem] p-12 md:p-20 shadow-2xl relative overflow-hidden group mb-16">
                             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-black opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
-
                             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 relative z-10 text-center">{t('home.cta.title')}</h2>
-                            <p className="text-green-100 text-lg mb-10 max-w-2xl mx-auto relative z-10 text-center">{t('home.cta.subtitle')}</p>
-
+                            <p className="text-indigo-100 text-lg mb-10 max-w-2xl mx-auto relative z-10 text-center">{t('home.cta.subtitle')}</p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
-                                <Link to="/assessment" className="px-8 py-4 bg-white text-green-700 rounded-full font-bold hover:bg-gray-100 hover:scale-105 transition-all shadow-lg text-center">
+                                <Link to="/assessment" className="px-8 py-4 bg-white text-indigo-900 rounded-full font-bold hover:bg-gray-100 hover:scale-105 transition-all shadow-lg text-center">
                                     {t('home.cta.btn')}
                                 </Link>
                             </div>
                         </div>
 
-                        {/* Contact Developer Section */}
+                        {/* Contact */}
                         <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-8 md:p-12 shadow-xl border border-gray-100 dark:border-gray-700">
                             <div className="text-center mb-8">
                                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">{t('home.contact.title')}</h3>
                                 <p className="text-gray-600 dark:text-gray-400">{t('home.contact.subtitle')}</p>
                             </div>
-
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Contact Info */}
                                 <div className="space-y-6">
-                                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600">
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                            </svg>
+                                    {[
+                                        { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, bg: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800', label: 'Email', val: 'careersystemai@gmail.com', href: 'mailto:careersystemai@gmail.com' },
+                                        { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />, bg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600', label: t('home.contact.responseTime'), val: t('home.contact.responseTimeValue') },
+                                        { icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />, bg: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600', label: t('home.contact.support'), val: t('home.contact.supportValue') },
+                                    ].map((r, i) => (
+                                        <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                            <div className={`w-12 h-12 ${r.bg} rounded-full flex items-center justify-center`}>
+                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">{r.icon}</svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">{r.label}</p>
+                                                {r.href ? <a href={r.href} className="text-gray-900 dark:text-white font-semibold hover:text-indigo-800 transition-colors">{r.val}</a> : <p className="text-gray-900 dark:text-white font-semibold">{r.val}</p>}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-                                            <a href="mailto:careersystemai@gmail.com" className="text-gray-900 dark:text-white font-semibold hover:text-green-600 transition-colors">
-                                                careersystemai@gmail.com
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600">
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">{t('home.contact.responseTime')}</p>
-                                            <p className="text-gray-900 dark:text-white font-semibold">{t('home.contact.responseTimeValue')}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600">
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">{t('home.contact.support')}</p>
-                                            <p className="text-gray-900 dark:text-white font-semibold">{t('home.contact.supportValue')}</p>
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
 
-                                {/* Contact Form */}
-                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-100 dark:border-green-800">
+                                <div className="bg-gradient-to-br from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-800">
                                     {!showContactForm ? (
                                         <div className="flex flex-col justify-center items-center h-full">
-                                            <div className="text-6xl mb-4">💬</div>
+                                            <div className="text-6xl mb-4"></div>
                                             <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.contact.sendTitle')}</h4>
                                             <p className="text-gray-600 dark:text-gray-400 text-center mb-6">{t('home.contact.sendDesc')}</p>
-                                            <button
-                                                onClick={() => setShowContactForm(true)}
-                                                className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center gap-2"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                </svg>
+                                            <button onClick={() => setShowContactForm(true)} className="px-8 py-4 bg-gradient-to-r from-indigo-800 to-indigo-800 hover:from-indigo-900 hover:to-violet-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg">
                                                 {t('home.contact.btn')}
                                             </button>
                                         </div>
                                     ) : (
                                         <form onSubmit={handleContactSubmit} className="space-y-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.nameLabel')}</label>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    value={contactForm.name}
-                                                    onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                    placeholder={t('home.contact.namePlaceholder')}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.emailLabel')}</label>
-                                                <input
-                                                    type="email"
-                                                    required
-                                                    value={contactForm.email}
-                                                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                    placeholder={t('home.contact.emailPlaceholder')}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.phoneLabel')}</label>
-                                                <input
-                                                    type="tel"
-                                                    value={contactForm.phone}
-                                                    onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                                    placeholder={t('home.contact.phonePlaceholder')}
-                                                />
-                                            </div>
+                                            {[
+                                                { label: t('home.contact.nameLabel'), key: 'name', type: 'text', ph: t('home.contact.namePlaceholder') },
+                                                { label: t('home.contact.emailLabel'), key: 'email', type: 'email', ph: t('home.contact.emailPlaceholder') },
+                                                { label: t('home.contact.phoneLabel'), key: 'phone', type: 'tel', ph: t('home.contact.phonePlaceholder') },
+                                            ].map(f => (
+                                                <div key={f.key}>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{f.label}</label>
+                                                    <input type={f.type} value={(contactForm as any)[f.key]} onChange={e => setContactForm({ ...contactForm, [f.key]: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-600 focus:border-transparent" placeholder={f.ph} />
+                                                </div>
+                                            ))}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('home.contact.messageLabel')}</label>
-                                                <textarea
-                                                    required
-                                                    rows={3}
-                                                    value={contactForm.message}
-                                                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                                                    placeholder={t('home.contact.messagePlaceholder')}
-                                                />
+                                                <textarea required rows={3} value={contactForm.message} onChange={e => setContactForm({ ...contactForm, message: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-600 focus:border-transparent resize-none" placeholder={t('home.contact.messagePlaceholder')} />
                                             </div>
-
                                             {contactResult && (
-                                                <div className={`p-3 rounded-lg text-sm ${contactResult.success ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                                    {contactResult.message}
-                                                </div>
+                                                <div className={`p-3 rounded-lg text-sm ${contactResult.success ? 'bg-indigo-50 text-indigo-900' : 'bg-red-100 text-red-700'}`}>{contactResult.message}</div>
                                             )}
-
                                             <div className="flex gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setShowContactForm(false);
-                                                        setContactResult(null);
-                                                    }}
-                                                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                                >
-                                                    {t('common.cancel')}
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    disabled={contactLoading}
-                                                    className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                                >
-                                                    {contactLoading ? (
-                                                        <>
-                                                            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                            </svg>
-                                                            {t('home.contact.sending')}
-                                                        </>
-                                                    ) : t('home.contact.sendBtn')}
+                                                <button type="button" onClick={() => { setShowContactForm(false); setContactResult(null); }} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">{t('common.cancel')}</button>
+                                                <button type="submit" disabled={contactLoading} className="flex-1 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                                                    {contactLoading ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>{t('home.contact.sending')}</> : t('home.contact.sendBtn')}
                                                 </button>
                                             </div>
                                         </form>
@@ -1057,9 +652,6 @@ const HomePage = () => {
                         </div>
                     </div>
                 </section>
-
-                {/* --- FOOTER --- */}
-                <AppFooter />
             </main>
         </div>
     );

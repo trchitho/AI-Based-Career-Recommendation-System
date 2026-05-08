@@ -33,11 +33,11 @@ const UpgradePrompt = ({
   const getFeatureIcon = (feature: string) => {
     switch (feature) {
       case 'career_view':
-        return '👔';
+        return '';
       case 'assessment':
-        return '📝';
+        return '';
       case 'roadmap_level':
-        return '🗺️';
+        return '';
       default:
         return '⭐';
     }
@@ -96,23 +96,23 @@ const UpgradePrompt = ({
       {/* Premium Features Preview */}
       <div className="mt-6 pt-4 border-t border-orange-200 dark:border-orange-800">
         <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-          ✨ Với gói Premium bạn sẽ có:
+           Với gói Premium bạn sẽ có:
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
           <div className="flex items-center gap-2">
-            <span className="text-green-500">✓</span>
+            <span className="text-indigo-700"></span>
             <span>Xem không giới hạn nghề nghiệp</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-500">✓</span>
+            <span className="text-indigo-700"></span>
             <span>Test đánh giá không giới hạn</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-500">✓</span>
+            <span className="text-indigo-700"></span>
             <span>Roadmap chi tiết tất cả level</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-500">✓</span>
+            <span className="text-indigo-700"></span>
             <span>Hỗ trợ ưu tiên 24/7</span>
           </div>
         </div>

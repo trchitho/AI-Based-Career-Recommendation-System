@@ -35,7 +35,7 @@ const BAR_COLORS: Record<string, string> = {
     realistic: 'bg-amber-600',
     investigative: 'bg-blue-600',
     artistic: 'bg-purple-600',
-    social: 'bg-green-600',
+    social: 'bg-indigo-800',
     enterprising: 'bg-red-600',
     conventional: 'bg-gray-600',
 };

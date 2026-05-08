@@ -16,7 +16,7 @@ const SubscriptionStatusCard = () => {
         color: 'from-purple-500 to-pink-500',
         bgColor: 'from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20',
         borderColor: 'border-purple-200 dark:border-purple-700',
-        icon: '👑',
+        icon: '',
         badge: 'PRO'
       };
     }
@@ -24,9 +24,9 @@ const SubscriptionStatusCard = () => {
     if (plan.includes('premium')) {
       return {
         name: 'Premium',
-        color: 'from-green-500 to-emerald-500',
-        bgColor: 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20',
-        borderColor: 'border-green-200 dark:border-green-700',
+        color: 'from-indigo-700 to-indigo-700',
+        bgColor: 'from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-950/20',
+        borderColor: 'border-indigo-200 dark:border-indigo-800',
         icon: '⭐',
         badge: 'PREMIUM'
       };
@@ -38,7 +38,7 @@ const SubscriptionStatusCard = () => {
         color: 'from-blue-500 to-cyan-500',
         bgColor: 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20',
         borderColor: 'border-blue-200 dark:border-blue-700',
-        icon: '✨',
+        icon: '',
         badge: 'BASIC'
       };
     }
@@ -81,8 +81,8 @@ const SubscriptionStatusCard = () => {
 
           {isPremium && (
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-bold text-green-600 dark:text-green-400">ACTIVE</span>
+              <div className="w-2 h-2 bg-indigo-700 rounded-full animate-pulse"></div>
+              <span className="text-xs font-bold text-indigo-800 dark:text-indigo-400">ACTIVE</span>
             </div>
           )}
         </div>
@@ -100,7 +100,7 @@ const SubscriptionStatusCard = () => {
             <>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Status:</span>
-                <span className="text-green-600 dark:text-green-400 font-semibold text-sm">Paid</span>
+                <span className="text-indigo-800 dark:text-indigo-400 font-semibold text-sm">Paid</span>
               </div>
 
               {expiryDate && (
@@ -128,19 +128,19 @@ const SubscriptionStatusCard = () => {
             {isPremium ? (
               <>
                 <div className="flex items-center gap-2 text-xs">
-                  <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3 h-3 text-indigo-700" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Unlimited assessments</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3 h-3 text-indigo-700" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Full career roadmaps</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3 h-3 text-indigo-700" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Priority support</span>
@@ -179,7 +179,7 @@ const SubscriptionStatusCard = () => {
               onClick={() => window.location.href = '/pricing'}
               className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md text-sm"
             >
-              Upgrade to Premium ✨
+              Upgrade to Premium 
             </button>
           )}
         </div>

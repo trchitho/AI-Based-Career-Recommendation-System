@@ -154,7 +154,7 @@ const CareerGoalsPage: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'completed': return 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-400';
       case 'in_progress': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
       case 'paused': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
       case 'cancelled': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
@@ -294,27 +294,27 @@ const CareerGoalsPage: React.FC = () => {
                             <div
                               key={milestone.id}
                               className={`p-4 rounded-lg border-l-4 ${milestone.status === 'completed'
-                                ? 'bg-green-50 dark:bg-green-900/20 border-green-500'
+                                ? 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-600'
                                 : 'bg-gray-50 dark:bg-gray-900/50 border-purple-500'
                                 }`}
                             >
                               <div className="flex items-start gap-3">
                                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${milestone.status === 'completed'
-                                  ? 'bg-green-500 text-white'
+                                  ? 'bg-indigo-700 text-white'
                                   : 'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400'
                                   }`}>
-                                  {milestone.status === 'completed' ? '✓' : index + 1}
+                                  {milestone.status === 'completed' ? '' : index + 1}
                                 </div>
                                 <div className="flex-1">
                                   <h5 className={`font-medium ${milestone.status === 'completed'
-                                    ? 'text-green-700 dark:text-green-400 line-through'
+                                    ? 'text-indigo-900 dark:text-indigo-400 line-through'
                                     : 'text-gray-900 dark:text-white'
                                     }`}>
                                     {milestone.title}
                                   </h5>
                                   {milestone.description && (
                                     <p className={`text-sm mt-1 ${milestone.status === 'completed'
-                                      ? 'text-green-600 dark:text-green-500'
+                                      ? 'text-indigo-800 dark:text-indigo-700'
                                       : 'text-gray-600 dark:text-gray-400'
                                       }`}>
                                       {milestone.description}
@@ -335,11 +335,11 @@ const CareerGoalsPage: React.FC = () => {
                                     );
                                   }}
                                   className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${milestone.status === 'completed'
-                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    ? 'bg-indigo-50 text-indigo-900 hover:bg-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400'
                                     : 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400'
                                     }`}
                                 >
-                                  {milestone.status === 'completed' ? 'Completed ✓' : 'Mark as Done'}
+                                  {milestone.status === 'completed' ? 'Completed ' : 'Mark as Done'}
                                 </button>
                               </div>
                             </div>
@@ -431,8 +431,8 @@ const CareerGoalsPage: React.FC = () => {
                                     milestone.status === 'completed' ? 'pending' : 'completed'
                                   )}
                                   className={`w-5 h-5 mt-0.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${milestone.status === 'completed'
-                                    ? 'bg-green-500 border-green-500'
-                                    : 'border-gray-300 dark:border-gray-600 hover:border-green-500'
+                                    ? 'bg-indigo-700 border-indigo-600'
+                                    : 'border-gray-300 dark:border-gray-600 hover:border-indigo-600'
                                     }`}
                                 >
                                   {milestone.status === 'completed' && (

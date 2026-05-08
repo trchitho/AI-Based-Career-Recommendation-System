@@ -35,7 +35,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
         {/* Header: Title & Score */}
         <div className="flex justify-between items-start mb-6">
           <div className="pr-4">
-            <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white leading-snug group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors line-clamp-2">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white leading-snug group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
               {displayTitle}
             </h3>
             {/* Optional: Industry Tag if available */}
@@ -47,7 +47,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
           </div>
 
           <div className="flex flex-col items-end shrink-0">
-            <div className="flex items-baseline text-green-600 dark:text-green-400">
+            <div className="flex items-baseline text-indigo-800 dark:text-indigo-400">
               <span className="text-3xl font-extrabold tracking-tight">{career.matchPercentage}</span>
               <span className="text-sm font-bold ml-0.5">%</span>
             </div>
@@ -59,7 +59,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
         <div className="mb-6">
           <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-green-500 to-teal-500 h-2 rounded-full transition-all duration-1000 ease-out"
+              className="bg-gradient-to-r from-indigo-700 to-indigo-600 h-2 rounded-full transition-all duration-1000 ease-out"
               style={{ width: `${career.matchPercentage}%` }}
             />
           </div>
@@ -72,17 +72,15 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
       </div>
 
       {/* Footer Action */}
-      <div className="mt-auto pt-6 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between group/btn">
-        <span className="text-sm font-bold text-gray-400 group-hover/btn:text-gray-600 dark:group-hover/btn:text-gray-300 transition-colors">
+      <div className="mt-auto pt-5 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <span className="text-sm font-semibold text-indigo-800 dark:text-indigo-400 group-hover:underline transition-colors">
           View Career Details
         </span>
-        <button
-          className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-green-500/30"
-        >
-          <svg className="w-5 h-5 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        <div className="w-9 h-9 rounded-full bg-indigo-800 text-white flex items-center justify-center shadow-md group-hover:bg-indigo-900 transition-all duration-200">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
-        </button>
+        </div>
       </div>
     </div>
   );

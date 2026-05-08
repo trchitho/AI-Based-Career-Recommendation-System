@@ -283,16 +283,16 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
       }
 
       // Create structured blog content
-      let blogContent = `# ${blogTitle}\n\n`;
+      let blogContent = ` ${blogTitle}\n\n`;
       blogContent += `*This article was created from a conversation with AI Career Assistant on ${new Date().toLocaleDateString('en-US')}*\n\n`;
-      blogContent += `## Conversation Content\n\n`;
+      blogContent += ` Conversation Content\n\n`;
 
       // Add conversation in Q&A format
       let currentQuestion = '';
       conversationMessages.forEach((msg, index) => {
         if (msg.sender === 'user') {
           currentQuestion = msg.text;
-          blogContent += `### Question ${Math.floor(index / 2) + 1}\n\n`;
+          blogContent += ` Question ${Math.floor(index / 2) + 1}\n\n`;
           blogContent += `**${msg.text}**\n\n`;
         } else if (msg.sender === 'bot' && currentQuestion) {
           blogContent += `**Answer:**\n\n`;
@@ -302,7 +302,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
       });
 
       // Add conclusion
-      blogContent += `## Conclusion\n\n`;
+      blogContent += ` Conclusion\n\n`;
       blogContent += `This conversation provides useful information about ${blogTitle.toLowerCase()}. `;
       blogContent += `For more details, you can continue chatting with AI Career Assistant.\n\n`;
       blogContent += `*Created by AI Career Assistant - Smart Career Counseling System*`;
@@ -608,7 +608,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
         <div className="flex items-center gap-2">
           <div className="relative">
             <Bot size={20} />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full border-2 border-white"></div>
             {hasFeature('career_counseling') && (
               <div className="absolute -bottom-1 -right-1">
                 <Crown size={12} className="text-yellow-300" />
@@ -625,7 +625,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
               )}
             </div>
             <div className="text-xs opacity-90">
-              {currentSessionId ? `Session #${currentSessionId}` : (hasFeature('career_counseling') ? 'Gemini API - 24/7 Support' : 'Smart Career Counseling')}
+              {currentSessionId ? `Session ${currentSessionId}` : (hasFeature('career_counseling') ? 'Gemini API - 24/7 Support' : 'Smart Career Counseling')}
             </div>
           </div>
         </div>
@@ -701,7 +701,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                   </button>
                   <button
                     onClick={() => setShowBlogCreator(true)}
-                    className="p-1.5 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                    className="p-1.5 bg-indigo-700 text-white rounded-md hover:bg-indigo-800 transition-colors"
                     title="Create Blog"
                   >
                     <FileText size={12} />

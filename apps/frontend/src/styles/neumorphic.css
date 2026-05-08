@@ -1,0 +1,293 @@
+/* ==========================================
+   NEUMORPHIC DESIGN SYSTEM - VIBRANT COLORS
+   ========================================== */
+
+:root {
+  /* Light Mode Colors */
+  --neu-bg: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e3f2fd 100%);
+  --neu-bg-card: rgba(255, 255, 255, 0.95);
+  --neu-text: #1a1a1a;
+  --neu-text-secondary: #4a5568;
+  --neu-shadow-dark: rgba(0, 0, 0, 0.15);
+  --neu-shadow-light: rgba(255, 255, 255, 0.9);
+
+  /* Button Colors - SUPER VIBRANT & EYE-CATCHING */
+  --btn-game-bg: linear-gradient(135deg, #FF3B3B 0%, #FF6B35 25%, #FF8E53 50%, #FFB84D 75%, #FFA500 100%);
+  --btn-interactive-bg: linear-gradient(135deg, #00D9FF 0%, #4ECDC4 25%, #44A08D 50%, #3DBE7C 75%, #2ECC71 100%);
+}
+
+.dark {
+  --neu-bg:           #0f172a;   /* slate-900 */
+  --neu-bg-card:      #1e293b;   /* slate-800 */
+  --neu-shadow-dark:  #0a0f1e;
+  --neu-shadow-light: #1e3a5f;
+  --neu-text:       #f1f5f9;
+  --neu-text-muted: #94a3b8;
+  --neu-border:     #334155;
+}
+
+/* ── 1. Page backgrounds ──────────────────────────────────────── */
+/* Only sets the background — does NOT touch text or child elements */
+
+body,
+.bg-gray-50,
+.bg-gray-100,
+.bg-\[#F8F9FA\],
+.bg-surface-primary,
+.bg-surface-secondary,
+.bg-gray-50\/50 {
+  background-color: var(--neu-bg) !important;
+}
+
+/* White surfaces that are truly plain cards (no gradient, no colored bg) */
+/* We only apply when the element does NOT have a gradient or colored background class */
+.bg-white:not([class*="from-"]):not([class*="bg-green"]):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([class*="bg-gradient"]) {
+  background-color: var(--neu-bg-card) !important;
+}
+
+/* Dark mode */
+.dark body,
+.dark .dark\:bg-gray-900:not([class*="from-"]):not([class*="bg-green"]) {
+  background-color: var(--neu-bg) !important;
+}
+.dark .dark\:bg-gray-800:not([class*="from-"]) {
+  background-color: var(--neu-bg-card) !important;
+}
+
+/* ── 2. Headers & Navbars ─────────────────────────────────────── */
+
+header {
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* ── 3. Neutral cards — shadow only, keep their bg ───────────── */
+/* Cards that use bg-white + shadow: replace white bg + add neu shadow */
+
+.bg-white.rounded-xl,
+.bg-white.rounded-2xl,
+.bg-white.rounded-lg {
+  background-color: var(--neu-bg-card) !important;
+  box-shadow: var(--neu-raised) !important;
+  border-color: transparent !important;
+}
+
+/* Cards already identified by shadow classes — just enhance the shadow */
+/* Only safe when they don't have a gradient or specific color bg */
+[class*="rounded-xl"][class*="shadow-sm"]:not([class*="bg-green"]):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([class*="from-"]):not([class*="bg-gradient"]):not(button):not(a):not([role="button"]) {
+  box-shadow: var(--neu-raised) !important;
+  border-color: transparent !important;
+}
+
+/* ── 4. Inputs — inset effect ─────────────────────────────────── */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="url"],
+input[type="tel"],
+textarea,
+select {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  border-radius: var(--neu-radius-sm) !important;
+  box-shadow: var(--neu-pressed-sm) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: inset 3px 3px 7px var(--neu-shadow-dark),
+              inset -3px -3px 7px var(--neu-shadow-light),
+              0 0 0 2px var(--neu-accent) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BUTTON SYSTEM — Clean, no conflicts
+   ════════════════════════════════════════════════════════════════ */
+
+/* Base */
+button, [role="button"] { cursor: pointer !important; position: relative; z-index: 1; }
+button:disabled, [role="button"]:disabled { cursor: not-allowed !important; opacity: 0.5 !important; }
+
+/* ── Plain buttons (no bg class, no inline style) → neumorphic ── */
+button:not([class*="bg-"]):not([style*="background"]):not([style*="gradient"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost) {
+  background: var(--neu-bg-card) !important;
+  border: none !important;
+  border-radius: var(--neu-radius-sm) !important;
+  box-shadow: var(--neu-raised-sm) !important;
+  color: var(--neu-text) !important;
+  transition: box-shadow 0.2s, transform 0.15s !important;
+}
+button:not([class*="bg-"]):not([style*="background"]):not([style*="gradient"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):hover {
+  box-shadow: var(--neu-raised) !important;
+  transform: translateY(-1px) !important;
+}
+button:not([class*="bg-"]):not([style*="background"]):not([style*="gradient"]):not(.btn-game):not(.btn-interactive):not(.btn-ghost):active {
+  box-shadow: var(--neu-pressed-sm) !important;
+  transform: scale(0.97) !important;
+}
+
+/* ── PRIMARY (navy indigo #1A237E) ── */
+html body button[class*="bg-indigo"],
+html body button[class*="bg-blue"],
+html body button[class*="bg-green"],
+html body a[class*="bg-indigo"],
+html body a[class*="bg-green"],
+html body .mm-btn-primary,
+html body button.submit-button,
+html body button.retry-button {
+  background-color: var(--color-primary) !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(26,35,126,0.35) !important;
+  font-weight: 600 !important;
+  transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s !important;
+}
+html body button[class*="bg-indigo"]:hover,
+html body button[class*="bg-blue"]:hover,
+html body button[class*="bg-green"]:hover,
+html body a[class*="bg-indigo"]:hover,
+html body button.submit-button:hover {
+  background-color: var(--color-primary-hover) !important;
+  box-shadow: 0 5px 18px rgba(26,35,126,0.45) !important;
+  transform: translateY(-1px) !important;
+}
+html body button[class*="bg-indigo"]:active,
+html body button[class*="bg-green"]:active {
+  transform: scale(0.97) !important;
+  box-shadow: 0 1px 6px rgba(26,35,126,0.20) !important;
+}
+html body button[class*="bg-indigo"] *,
+html body button[class*="bg-green"] *,
+html body button[class*="bg-blue"] *,
+html body a[class*="bg-indigo"] * { color: #ffffff !important; }
+
+/* ── SECONDARY (purple #7C4DFF) ── */
+html body button[class*="bg-purple"],
+html body button[class*="bg-violet"],
+html body a[class*="bg-purple"] {
+  background-color: var(--color-secondary) !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(124,77,255,0.35) !important;
+  font-weight: 600 !important;
+}
+html body button[class*="bg-purple"]:hover,
+html body button[class*="bg-violet"]:hover {
+  background-color: var(--color-secondary-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── TERTIARY (cyan #00B0FF) ── */
+html body button[class*="bg-cyan"],
+html body button[class*="bg-sky"],
+html body button[class*="bg-teal"],
+html body a[class*="bg-teal"] {
+  background-color: var(--color-tertiary) !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(0,176,255,0.35) !important;
+  font-weight: 600 !important;
+}
+html body button[class*="bg-teal"]:hover,
+html body button[class*="bg-cyan"]:hover { background-color: var(--color-tertiary-hover) !important; }
+
+/* ── Error / Warning ── */
+html body button[class*="bg-red"], html body button[class*="bg-rose"] {
+  background-color: var(--color-error) !important; background-image: none !important;
+  color: #fff !important; border: none !important;
+  box-shadow: 0 3px 10px rgba(211,47,47,0.30) !important;
+}
+html body button[class*="bg-orange"], html body button[class*="bg-amber"] {
+  background-color: var(--color-warning) !important; background-image: none !important;
+  color: #fff !important; border: none !important;
+}
+html body button[class*="bg-emerald"] {
+  background-color: var(--color-success) !important; background-image: none !important;
+  color: #fff !important; border: none !important;
+}
+
+/* ── Inline-styled buttons: don't override their background ── */
+/* Only override box-shadow to remove neumorphic white glow */
+button[style*="background"],
+button[style*="linear-gradient"],
+a[style*="background"] {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+}
+button[style*="background"]:hover,
+a[style*="background"]:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.22) !important; }
+
+/* ── Ghost / transparent ── */
+html body button.btn-ghost { background: transparent !important; box-shadow: none !important; border: none !important; }
+
+/* ── Game/interactive special ── */
+html body button.btn-game {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(59,130,246,0.35) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+html body button.btn-interactive {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7, #ec4899) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(139,92,246,0.35) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+html body button.btn-game *, html body button.btn-interactive * { color: #fff !important; }
+
+/* ── 6. Modals ────────────────────────────────────────────────── */
+
+[class*="rounded-2xl"][class*="shadow-2xl"]:not([class*="bg-green"]):not([class*="from-"]):not(.btn-game):not(.btn-interactive),
+[class*="rounded-xl"][class*="shadow-xl"]:not([class*="bg-green"]):not([class*="from-"]):not(.btn-game):not(.btn-interactive) {
+  background: var(--neu-bg-card) !important;
+  box-shadow: var(--neu-raised-lg) !important;
+  border: none !important;
+}
+
+/* ── 7. Tables ────────────────────────────────────────────────── */
+
+table {
+  border-radius: var(--neu-radius);
+  overflow: hidden;
+}
+
+.btn-game:hover:not(:disabled) {
+  box-shadow: 0 18px 60px rgba(255, 107, 107, 0.9), 0 0 40px rgba(255, 140, 83, 0.7) !important;
+  transform: translateY(-4px) scale(1.03) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.btn-interactive {
+  background: var(--btn-interactive-bg) !important;
+  color: white !important;
+  box-shadow: 0 12px 45px rgba(78, 205, 196, 0.7), 0 0 30px rgba(46, 204, 113, 0.5) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── label.browse-button (file upload) ── */
+html body label.browse-button {
+  background: var(--color-primary) !important;
+  color: #fff !important; border: none !important;
+  box-shadow: 0 2px 8px rgba(26,35,126,0.25) !important;
+  cursor: pointer !important;
+}
+
+.neu-text-secondary {
+  color: var(--neu-text-secondary);
+}

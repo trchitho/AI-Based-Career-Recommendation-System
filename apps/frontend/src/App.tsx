@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import MainLayout from './components/layout/MainLayout';
 import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -24,6 +25,10 @@ import ReportPage from './pages/ReportPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import CareersPage from './pages/CareersPage';
 import CareerDetailPage from './pages/CareerDetailPage';
+import CareerGroupsPage from './pages/CareerGroupsPage';
+import CareersByGroupPage from './pages/CareersByGroupPage';
+import CareerRedirectPage from './pages/CareerRedirectPage';
+import CareerRouterPage from './pages/CareerRouterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
@@ -41,15 +46,21 @@ import PaymentReturn from './components/payment/PaymentReturn';
 import DebugAuthPage from './pages/DebugAuthPage';
 import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
 import ProgressComparisonPage from './pages/ProgressComparisonPage';
+import SettingsPage from './pages/SettingsPage';
 import CareerGoalsPage from './pages/CareerGoalsPage';
 import SkillGapPage from './pages/SkillGapPage';
 import CourseRecommendationPage from './pages/CourseRecommendationPage';
+import CVHistoryPage from './pages/CVHistoryPage';
 import RecommendationsPage from './pages/RecommendationsPage';
+import MentorMatchingPage from './pages/MentorMatchingPage';
 import InterviewPage from './pages/InterviewPage';
 import InterviewSelectionPage from './pages/InterviewSelectionPage';
 import InterviewHistoryPage from './pages/InterviewHistoryPage';
 import InterviewListPage from './pages/InterviewListPage';
 import InterviewResultsPage from './pages/InterviewResultsPage';
+import DeviceTestPage from './pages/DeviceTestPage';
+import VoiceInterviewPage from './pages/VoiceInterviewPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -67,7 +78,7 @@ function App() {
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<RootRedirect />} />
-                  <Route path="/home" element={<HomePage />} />
+                  <Route path="/home" element={<MainLayout><HomePage /></MainLayout>} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/forgot" element={<ForgotPasswordPage />} />
@@ -118,8 +129,20 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/careers" element={<CareersPage />} />
-                  <Route path="/careers/:idOrSlug" element={<CareerDetailPage />} />
+                  <Route path="/careers" element={<CareerGroupsPage />} />
+                  <Route path="/404" element={<NotFoundPage />} />
+                  <Route path="/learning-path" element={<NotFoundPage />} />
+                  <Route path="/careers/:param" element={<CareerRouterPage />} />
+                  <Route path="/careers/:param/roadmap" element={<CareerRouterPage />} />
+                  <Route path="/careers/:groupSlug/:careerIdOrSlug" element={<CareerDetailPage />} />
+                  <Route
+                    path="/careers/:groupSlug/:careerIdOrSlug/roadmap"
+                    element={
+                      <ProtectedRoute>
+                        <RoadmapPage />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/assessment"
                     element={
@@ -165,6 +188,18 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <CourseRecommendationPage />
+                    path="/cv-history"
+                    element={
+                      <ProtectedRoute>
+                        <CVHistoryPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mentor-matching"
+                    element={
+                      <ProtectedRoute>
+                        <MentorMatchingPage />
                       </ProtectedRoute>
                     }
                   />
@@ -265,14 +300,6 @@ function App() {
                     }
                   />
                   <Route
-                    path="/careers/:careerId/roadmap"
-                    element={
-                      <ProtectedRoute>
-                        <RoadmapPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
                     path="/progress-comparison"
                     element={
                       <ProtectedRoute>
@@ -285,6 +312,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <CareerGoalsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <SettingsPage />
                       </ProtectedRoute>
                     }
                   />
@@ -330,6 +365,32 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/interview/device-test"
+                    element={
+                      <ProtectedRoute>
+                        <DeviceTestPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/interview/voice"
+                    element={
+                      <ProtectedRoute>
+                        <VoiceInterviewPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Mentor Matching */}
+                  <Route
+                    path="/mentor-matching"
+                    element={
+                      <ProtectedRoute>
+                        <MentorMatchingPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
                   {/* Admin routes */}
                   <Route
@@ -341,8 +402,8 @@ function App() {
                     }
                   />
 
-                  {/* Fallback */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  {/* Fallback — 404 catch-all */}
+                  <Route path="*" element={<NotFoundPage />} />
                 </Routes>
 
                 {/* Global Chatbot - chỉ hiện khi đã đăng nhập */}

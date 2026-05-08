@@ -41,7 +41,7 @@ class Career(Base):
     title_en: Mapped[Optional[str]] = mapped_column(Text)
     # Many DBs store short descriptions in localized columns
     short_desc_en: Mapped[Optional[str]] = mapped_column(Text)
-    short_desc_vn: Mapped[Optional[str]] = mapped_column(Text)
+    short_desc_vi: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     onet_code: Mapped[Optional[str]] = mapped_column(Text, unique=True)
@@ -51,7 +51,7 @@ class Career(Base):
         # Fallback title from slug if localized titles are missing
         fallback = (self.slug or "").replace("-", " ").title() if getattr(self, "slug", None) else ""
         display_title = self.title_vi or self.title_en or fallback
-        short_desc = self.short_desc_vn or self.short_desc_en or ""
+        short_desc = self.short_desc_vi or self.short_desc_en or ""
         return {
             "id": self.id,
             "slug": self.slug,

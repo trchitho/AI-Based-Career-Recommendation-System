@@ -25,10 +25,10 @@ def log_test_result(test_name: str, status: str, details: str = ""):
     
     if status == "PASS":
         passed_tests += 1
-        print(f"✅ {test_name}: PASS")
+        print(f"[OK] {test_name}: PASS")
     else:
         failed_tests += 1
-        print(f"❌ {test_name}: FAIL - {details}")
+        print(f"[ERR] {test_name}: FAIL - {details}")
     
     test_results.append({
         "test": test_name,
@@ -47,9 +47,9 @@ def run_test_suite():
     # Import services
     try:
         from app.modules.interview.services import InterviewService, Neo4jService, GeminiService
-        print("✅ Successfully imported interview services")
+        print("[OK] Successfully imported interview services")
     except Exception as e:
-        print(f"❌ Failed to import services: {e}")
+        print(f"[ERR] Failed to import services: {e}")
         return
     
     # Test Categories
@@ -706,10 +706,10 @@ def print_final_results():
     
     if pass_rate == 100.0:
         print(f"\n🎉 SUCCESS: 100% PASS RATE ACHIEVED!")
-        print(f"✅ All interview system components verified")
-        print(f"✅ System ready for production")
+        print(f"[OK] All interview system components verified")
+        print(f"[OK] System ready for production")
     else:
-        print(f"\n❌ FAILURE: {pass_rate:.1f}% pass rate (Required: 100%)")
+        print(f"\n[ERR] FAILURE: {pass_rate:.1f}% pass rate (Required: 100%)")
         print(f"🔧 Failed tests need to be fixed:")
         
         for result in test_results:

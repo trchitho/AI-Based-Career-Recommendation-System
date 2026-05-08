@@ -1,13 +1,43 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
-import { NavLink, useNavigate, Link } from "react-router-dom";
+import { NavLink, useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import ThemeToggle from "../ThemeToggle";
-import LanguageSwitcher from "../LanguageSwitcher";
 import { useAppSettings } from "../../contexts/AppSettingsContext";
 import AppLogo from "../common/AppLogo";
 import AppFooter from "./AppFooter";
 import NotificationCenter from "../notifications/NotificationCenter";
+
+// Pages that should NOT show the sidebar (public / auth pages)
+const NO_SIDEBAR_PATHS = ['/', '/login', '/register', '/forgot-password', '/verify', '/oauth'];
+
+const sidebarItems = [
+  {
+    label: 'Phân tích kỹ năng',
+    to: '/skill-gap',
+    icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+  },
+  {
+    label: 'Lộ trình học tập',
+    to: '/learning-path',
+    icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>,
+  },
+  {
+    label: 'Nghề nghiệp',
+    to: '/careers',
+    icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+  },
+  {
+    label: 'Thanh toán',
+    to: '/pricing',
+    icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
+  },
+  {
+    label: 'Bài viết',
+    to: '/blog',
+    icon: <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>,
+  },
+];
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -20,12 +50,20 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { t } = useTranslation();
   const app = useAppSettings();
 
+  const location = useLocation();
+  const showSidebar = !!user && !NO_SIDEBAR_PATHS.some(p =>
+    p === '/' ? location.pathname === '/' : location.pathname.startsWith(p)
+  );
+
   // State cho Dropdown User
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // State cho Mobile Menu
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Sidebar collapse state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Xử lý click ra ngoài để đóng dropdown
   useEffect(() => {
@@ -41,13 +79,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   }, []);
 
   const navLinks = [
-    { to: "/dashboard", label: t('nav.dashboard') },
-    { to: "/assessment", label: t('nav.assessment') },
-    { to: "/skill-gap", label: t('nav.skillGap') },
-    { to: "/interview", label: t('nav.interview') },
-    { to: "/blog", label: t('nav.blogs') },
-    { to: "/careers", label: t('nav.careers') },
-    { to: "/pricing", label: t('nav.pricing') },
+    { to: "/dashboard", label: "Tổng quan" },
+    { to: "/assessment", label: "Đánh giá" },
+    { to: "/404", label: "Xu hướng" },
+    { to: "/recommendations", label: "Nghề phù hợp" },
+    { to: "/mentor-matching", label: "Cố vấn" },
+    { to: "/interview", label: "Phỏng vấn" },
   ];
 
   const handleLogout = () => {
@@ -59,238 +96,264 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const displayName = user?.email?.split('@')[0] || 'User';
   const displayInitial = displayName.charAt(0).toUpperCase();
 
+  // Scroll state for navbar animation
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const isScrolled = scrollY > 80;
+
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen flex font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
 
       {/* CSS Injection */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
       `}</style>
 
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 h-[72px] transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
+      {/* SIDEBAR - Fixed left side, full height */}
+      {showSidebar && (
+        <aside
+          className={`fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-52'
+            }`}
+        >
+          {/* Sidebar content */}
+          <div className="flex-1 flex flex-col p-4">
 
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <AppLogo />
-          </div>
-
-          {/* Menu chính giữa (Desktop) */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `text-[15px] font-semibold transition-colors duration-200 ${isActive
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                  }`
-                }
+            {/* Toggle button */}
+            <div className={`flex ${sidebarCollapsed ? 'justify-center' : 'justify-end'} mb-4`}>
+              <button
+                onClick={() => {
+                  console.log('Toggle clicked!', sidebarCollapsed);
+                  setSidebarCollapsed(!sidebarCollapsed);
+                }}
+                className="relative z-50 p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                title={sidebarCollapsed ? 'Mở rộng' : 'Thu gọn'}
+                style={{ pointerEvents: 'auto' }}
               >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* Khu vực bên phải */}
-          <div className="flex items-center gap-4">
-            {/* Hamburger Button (Mobile) */}
-            <button
-              className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </button>
-
-            {/* Utilities Group (hidden on mobile — accessible via mobile menu) */}
-            <div className="hidden md:flex items-center gap-1 pr-3 border-r border-gray-200 dark:border-gray-700">
-              <LanguageSwitcher />
-              <ThemeToggle />
-
-              {user && (
-                <div className="ml-1">
-                  <NotificationCenter />
-                </div>
-              )}
-            </div>
-
-            {/* Theme/Language on mobile only (compact) */}
-            <div className="flex md:hidden items-center gap-1">
-              <ThemeToggle />
-              {user && <NotificationCenter />}
-            </div>
-
-            <div className="hidden md:flex items-center gap-3">
-              {isAdmin && (
-                <NavLink
-                  to="/admin"
-                  className="hidden lg:inline-flex px-3 py-1 text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-full dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
+                <svg
+                  className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  Admin
-                </NavLink>
-              )}
-
-              {/* User Dropdown Menu */}
-              {user ? (
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 cursor-pointer group p-1 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="w-9 h-9 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-sm border border-transparent group-hover:border-green-200 transition-all">
-                      {displayInitial}
-                    </div>
-                    <div className="hidden lg:block text-left">
-                      <p className="text-sm font-bold max-w-[100px] truncate leading-none">{displayName}</p>
-                    </div>
-                    <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </button>
-
-                  {/* Dropdown Content */}
-                  {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right z-50">
-
-                      {/* User Info Header inside Dropdown */}
-                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 mb-1">
-                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{displayName}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                      </div>
-
-                      {/* Settings Link (To Profile) */}
-                      <Link
-                        to="/profile"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        {t('nav.settingsProfile')}
-                      </Link>
-
-                      {/* Logout Button */}
-                      <button
-                        onClick={() => {
-                          setIsDropdownOpen(false);
-                          handleLogout();
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                        {t('common.logout')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Nút Login/Get Started nếu chưa đăng nhập
-                <div className="flex items-center gap-3">
-                  <NavLink to="/login" className="hidden sm:block text-[15px] font-bold text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-4 py-2 transition-colors">
-                    {t('auth.signIn')}
-                  </NavLink>
-                  <NavLink to="/assessment" className="text-[15px] font-bold bg-green-600 text-white px-6 py-2.5 rounded-full hover:bg-green-700 shadow-lg shadow-green-600/20 hover:-translate-y-0.5 transition-all duration-200">
-                    {t('nav.getStarted')}
-                  </NavLink>
-                </div>
-              )}
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
             </div>
-          </div>
-        </div>
-      </header>
 
-      {/* Mobile Menu Drawer */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setIsMobileMenuOpen(false)}>
-          <div
-            className="absolute top-[72px] left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 shadow-xl py-4 px-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Nav Links */}
-            <nav className="flex flex-col gap-1 mb-4">
-              {navLinks.map((item) => (
+            {/* Nav items */}
+            <nav className="flex-1 space-y-2">
+              {sidebarItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  title={sidebarCollapsed ? item.label : undefined}
                   className={({ isActive }) =>
-                    `px-4 py-3 rounded-xl text-[15px] font-semibold transition-colors ${isActive
-                      ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20"
-                      : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${sidebarCollapsed ? 'justify-center' : ''
+                    } ${isActive
+                      ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400"
+                      : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700"
                     }`
                   }
                 >
-                  {item.label}
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  {!sidebarCollapsed && <span>{item.label}</span>}
                 </NavLink>
               ))}
-              {isAdmin && (
-                <NavLink
-                  to="/admin"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-                >
-                  Admin Panel
-                </NavLink>
-              )}
             </nav>
 
-            {/* User section in mobile menu */}
-            {user ? (
-              <div className="border-t border-gray-100 dark:border-gray-800 pt-4 flex flex-col gap-1">
-                <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
-                <Link
-                  to="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-3"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  {t('nav.settingsProfile')}
-                </Link>
-                <button
-                  onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
-                  className="px-4 py-3 rounded-xl text-[15px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3 text-left"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                  {t('common.logout')}
-                </button>
-              </div>
-            ) : (
-              <div className="border-t border-gray-100 dark:border-gray-800 pt-4 flex flex-col gap-2">
-                <NavLink
-                  to="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full px-4 py-3 rounded-xl text-[15px] font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-center"
-                >
-                  {t('auth.signIn')}
-                </NavLink>
-                <NavLink
-                  to="/assessment"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full px-4 py-3 rounded-full text-[15px] font-bold bg-green-600 text-white hover:bg-green-700 transition-colors text-center"
-                >
-                  {t('nav.getStarted')}
-                </NavLink>
+            {/* User info at bottom */}
+            {user && (
+              <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className={`flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 ${sidebarCollapsed ? 'justify-center' : ''
+                  }`}>
+                  <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    {displayInitial}
+                  </div>
+                  {!sidebarCollapsed && (
+                    <>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {displayName}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleLogout}
+                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0"
+                        title="Đăng xuất"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    title="Đăng xuất"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             )}
           </div>
-        </div>
+        </aside>
       )}
 
-      {/* PAGE CONTENT */}
-      <main className="relative z-10 flex-1 w-full">
-        {children}
-      </main>
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col transition-all duration-300" style={{
+        marginLeft: showSidebar ? (sidebarCollapsed ? '64px' : '208px') : '0'
+      }}>
 
-      {/* FOOTER */}
-      <AppFooter />
+        {/* HEADER */}
+        <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+
+              {/* Logo */}
+              <div className="flex-shrink-0 ml-8">
+                <AppLogo />
+              </div>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex items-center space-x-8">
+                {navLinks.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `text-sm font-medium transition-colors ${isActive
+                        ? "text-indigo-600 dark:text-indigo-400"
+                        : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
+
+              {/* Right side */}
+              <div className="flex items-center gap-4">
+                {/* Mobile menu button */}
+                <button
+                  className="md:hidden p-2 text-gray-600 dark:text-gray-400"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+
+                {/* Notifications */}
+                {user && <NotificationCenter />}
+
+                {/* User menu */}
+                {user ? (
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                        {displayInitial}
+                      </div>
+                    </button>
+
+                    {isDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
+                        <Link
+                          to="/profile"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Hồ sơ
+                        </Link>
+                        <Link
+                          to="/settings"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Cài đặt
+                        </Link>
+                        <button
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            handleLogout();
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Đăng xuất
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <NavLink
+                      to="/login"
+                      className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                    >
+                      Đăng nhập
+                    </NavLink>
+                    <NavLink
+                      to="/assessment"
+                      className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700"
+                    >
+                      Bắt đầu
+                    </NavLink>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+              <nav className="px-4 py-4 space-y-2">
+                {navLinks.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `block px-3 py-2 rounded-lg text-sm font-medium ${isActive
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400"
+                        : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700"
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
+          )}
+        </header>
+
+        {/* PAGE CONTENT */}
+        <main className="flex-1">
+          {children}
+        </main>
+
+        {/* FOOTER */}
+        <AppFooter />
+      </div>
     </div>
   );
 };

@@ -40,10 +40,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     caretaker: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     pragmatist: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -65,10 +65,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     dutiful: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     casual: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -90,10 +90,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     supportive: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     independent: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -115,10 +115,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     insightful: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     concise: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -140,10 +140,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     improviser: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     cooperator: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -165,10 +165,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     inspector: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     responder: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',

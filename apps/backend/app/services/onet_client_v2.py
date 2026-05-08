@@ -42,21 +42,6 @@ class OnetV2Client:
             return path
         return f"{self.base_url}/{path.lstrip('/')}"
 
-    def _get(self, path: str, params: dict | None = None) -> dict:
-        url = self._build_url(path)
-        for attempt in range(3):
-            try:
-                resp = self._client.get(url, params=params or {})
-                if resp.status_code >= 400:
-                    logger.error(f"O*NET v2 error {resp.status_code}: {resp.text[:300]}")
-                    resp.raise_for_status()
-                return resp.json()
-            except (httpx.HTTPError, ValueError) as exc:
-                logger.warning(f"O*NET v2 RequestError (attempt {attempt + 1}/3) for {url}: {exc}")
-        raise RuntimeError(f"O*NET v2: failed GET {url} after retries")
-
-    # ---- Generic helpers -------------------------------------------------
-
     def _get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Wrapper GET với retry để tránh crash vì ReadTimeout / lỗi mạng tạm thời.

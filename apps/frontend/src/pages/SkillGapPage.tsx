@@ -1,35 +1,119 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Bot, AlertTriangle, FileText, ChevronRight } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import CVUploadForm from '../components/skillgap/CVUploadForm';
 import SkillGapResult from '../components/skillgap/SkillGapResult';
 import SkillHeatmapGrid from '../components/skillgap/SkillHeatmapGrid';
-import LearningPlan from '../components/skillgap/LearningPlan';
+import StreamingLearningPlan from '../components/skillgap/StreamingLearningPlan';
 import WhyUseAIScanner from '../components/skillgap/WhyUseAIScanner';
 import CourseRecommendationPage from './CourseRecommendationPage';
 import { skillGapService } from '../services/skillGapService';
+import { careerService } from '../services/careerService';
 import { SkillGapAnalysis, LearningPlan as LearningPlanType } from '../types/skillGap';
 import { useTheme } from '../contexts/ThemeContext';
 import './SkillGapPage.css';
+
+/* ══════════════════════════════════════════════════════════════
+   THEME TOKENS - Single Source of Truth
+   ══════════════════════════════════════════════════════════════ */
+const getThemeTokens = (isDark: boolean) => ({
+  // Backgrounds
+  cardBg: isDark ? 'rgba(30, 41, 59, 0.75)' : '#ffffff',
+  containerBg: isDark ? 'rgba(30, 41, 59, 0.75)' : 'rgba(255, 255, 255, 0.95)',
+
+  // Text
+  textPrimary: isDark ? '#ffffff' : '#0f172a',
+  textSecondary: isDark ? '#cbd5e1' : '#475569',
+  textMuted: isDark ? '#94a3b8' : '#475569',
+
+  // Borders
+  border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '2px solid #e2e8f0',
+  borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
+  borderSubtle: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(102, 126, 234, 0.15)',
+
+  // Gradients
+  gradient: isDark
+    ? 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)'
+    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  iconGradient: isDark
+    ? 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)'
+    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+
+  // Shadows
+  shadow: isDark
+    ? '0 8px 30px rgba(0, 0, 0, 0.4)'
+    : '0 4px 16px rgba(148, 163, 184, 0.12), 0 2px 4px rgba(148, 163, 184, 0.08)',
+  shadowHover: isDark
+    ? '0 0 0 1px rgba(99, 102, 241, 0.4), 0 10px 30px rgba(99, 102, 241, 0.2)'
+    : '0 8px 24px rgba(148, 163, 184, 0.18), 0 4px 8px rgba(148, 163, 184, 0.12)',
+  shadowPremium: isDark
+    ? '0 0 0 1px rgba(99, 102, 241, 0.4), 0 12px 40px rgba(99, 102, 241, 0.35)'
+    : '0 8px 32px rgba(102, 126, 234, 0.25), 0 4px 12px rgba(102, 126, 234, 0.15)',
+  shadowButton: isDark
+    ? '0 6px 20px rgba(99, 102, 241, 0.4)'
+    : '0 4px 20px rgba(26, 35, 126, 0.3)',
+  shadowButtonHover: isDark
+    ? '0 10px 30px rgba(99, 102, 241, 0.6)'
+    : '0 6px 30px rgba(26, 35, 126, 0.4)',
+
+  // Accents
+  checkmark: isDark ? '#22c55e' : null, // null means use brand color
+  link: isDark ? '#818cf8' : '#667eea',
+
+  // Premium card
+  premiumBorder: isDark ? '1px solid transparent' : '3px solid #667eea',
+  premiumBg: isDark ? 'rgba(30, 41, 59, 0.75)' : '#ffffff',
+  premiumGradient: isDark
+    ? 'linear-gradient(#1e293b, #1e293b), linear-gradient(135deg, #6366f1, #a855f7)'
+    : 'none',
+  premiumBgOrigin: isDark ? 'padding-box, border-box' : 'initial',
+  premiumBgClip: isDark ? 'padding-box, border-box' : 'initial',
+  premiumTitle: isDark ? '#818cf8' : '#667eea',
+
+  // Button
+  buttonBg: isDark ? 'linear-gradient(135deg, #6366f1, #a855f7)' : '#1A237E',
+});
+
+/* ══════════════════════════════════════════════════════════════
+   HELPER FUNCTIONS
+   ══════════════════════════════════════════════════════════════ */
+function matchBarColor(pct: number) {
+  if (pct >= 80) return '#10b981';
+  if (pct >= 60) return '#f59e0b';
+  if (pct >= 40) return '#ef4444';
+  return '#9ca3af';
+}
 
 const SkillGapPage: React.FC = () => {
   const navigate = useNavigate();
   const { analysisId } = useParams<{ analysisId?: string }>();
   const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const t = getThemeTokens(isDark);
+
+  // Debug: Log theme and tokens
+  console.log('🎨 SkillGapPage Theme Debug:', {
+    theme,
+    isDark,
+    cardBg: t.cardBg,
+    textPrimary: t.textPrimary
+  });
 
   const [currentStep, setCurrentStep] = useState<'upload' | 'result'>('upload');
   const [analysis, setAnalysis] = useState<SkillGapAnalysis | null>(null);
+  const [careerName, setCareerName] = useState<string>('');
   const [learningPlan, setLearningPlan] = useState<{ plan: LearningPlanType; career_id: string } | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<SkillGapAnalysis[]>([]);
+  const [historyCareerNames, setHistoryCareerNames] = useState<Record<string, string>>({});
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Paywall state
   const [checkingSubscription, setCheckingSubscription] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [userPlan, setUserPlan] = useState<string>('Free');
 
-  // Check subscription on mount
   useEffect(() => {
     checkSubscription();
   }, []);
@@ -37,31 +121,21 @@ const SkillGapPage: React.FC = () => {
   const checkSubscription = async () => {
     try {
       setCheckingSubscription(true);
-
-      // Call backend to check subscription
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/subscription/status', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
-
       if (response.ok) {
         const data = await response.json();
         const plan = data.plan_name || 'Free';
         setUserPlan(plan);
-
-        // Allow access only for paid plans
-        const isPaid = plan !== 'Free';
-        setHasAccess(isPaid);
+        setHasAccess(plan !== 'Free');
       } else {
-        // If API fails, assume Free (safe default)
         setHasAccess(false);
         setUserPlan('Free');
       }
     } catch (err) {
       console.error('Subscription check error:', err);
-      // On error, assume Free (safe default)
       setHasAccess(false);
       setUserPlan('Free');
     } finally {
@@ -69,14 +143,29 @@ const SkillGapPage: React.FC = () => {
     }
   };
 
-  // Load analysis if ID is provided in URL
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const data = await skillGapService.getMyAnalyses(20);
+      setHistory(data);
+      const ids = [...new Set(data.map(d => d.career_id).filter(Boolean))];
+      const map: Record<string, string> = {};
+      await Promise.all(ids.map(id =>
+        careerService.get(id).then(c => { map[id] = c.title || id; }).catch(() => { map[id] = id; })
+      ));
+      setHistoryCareerNames(map);
+    } catch { }
+    finally { setHistoryLoading(false); }
+  }, []);
+
+  useEffect(() => { loadHistory(); }, [loadHistory]);
+
   useEffect(() => {
     if (analysisId) {
       loadAnalysis(parseInt(analysisId));
     }
   }, [analysisId]);
 
-  // Prevent navigation during loading
   useEffect(() => {
     if (loading) {
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -84,29 +173,30 @@ const SkillGapPage: React.FC = () => {
         e.returnValue = 'Đang tải dữ liệu phân tích. Bạn có chắc muốn rời khỏi trang?';
         return e.returnValue;
       };
-
       window.addEventListener('beforeunload', handleBeforeUnload);
-
-      return () => {
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-      };
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }
   }, [loading]);
 
-  const loadAnalysis = async (id: number) => {
+  const loadAnalysis = async (id: number, autoLoadPlan = false) => {
     setLoading(true);
     setError(null);
     try {
       const analysisData = await skillGapService.getAnalysisDetail(id);
       setAnalysis(analysisData);
       setCurrentStep('result');
-
-      // Load learning plan in background
-      setPlanLoading(true);
-      skillGapService.getLearningPlan(id)
-        .then(res => setLearningPlan({ plan: res.plan, career_id: res.career_id }))
-        .catch(() => {/* non-critical */ })
-        .finally(() => setPlanLoading(false));
+      if (analysisData.career_id) {
+        careerService.get(analysisData.career_id)
+          .then(c => setCareerName(c.title || analysisData.career_id))
+          .catch(() => setCareerName(analysisData.career_id));
+      }
+      if (autoLoadPlan) {
+        setPlanLoading(true);
+        skillGapService.getLearningPlan(id)
+          .then(res => setLearningPlan({ plan: res.plan, career_id: res.career_id }))
+          .catch(() => { })
+          .finally(() => setPlanLoading(false));
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load analysis');
     } finally {
@@ -116,13 +206,16 @@ const SkillGapPage: React.FC = () => {
 
   const handleAnalysisComplete = (newAnalysisId: number) => {
     navigate(`/skill-gap/${newAnalysisId}`);
-    loadAnalysis(newAnalysisId);
+    loadAnalysis(newAnalysisId, true);
+    loadHistory();
   };
 
   const handleStartInterview = () => {
     if (analysis) {
-      // Navigate to interview page with analysis data
-      navigate(`/interview?analysisId=${analysis.id}`);
+      // Convert career_id format from "27-2099-00" to "27-2099.00" for URL
+      const formattedCareerId = analysis.career_id.replace(/-(\d{2})$/, '.$1');
+      // Navigate to interview selection page with the formatted career ID
+      navigate(`/interview/selection/${formattedCareerId}`);
     }
   };
 
@@ -133,164 +226,198 @@ const SkillGapPage: React.FC = () => {
     navigate('/skill-gap');
   };
 
-  if (loading) {
+  if (loading || checkingSubscription) {
     return (
       <MainLayout>
-        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
-          <div style={{ maxWidth: 860, margin: '0 auto' }}>
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Loading analysis...</p>
-            </div>
+        <div className="skill-gap-page">
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>{loading ? 'Đang tải phân tích...' : 'Đang kiểm tra gói dịch vụ...'}</p>
           </div>
         </div>
       </MainLayout>
     );
   }
 
-  // Show loading while checking subscription
-  if (checkingSubscription) {
-    return (
-      <MainLayout>
-        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
-          <div style={{ maxWidth: 860, margin: '0 auto' }}>
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Checking subscription...</p>
-            </div>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  // Show paywall if user doesn't have access
+  // Paywall Screen
   if (!hasAccess) {
     return (
       <MainLayout>
-        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
-          <div style={{ maxWidth: 860, margin: '0 auto', padding: '2rem' }}>
-            {/* Paywall Screen */}
+        <div className="skill-gap-page">
+          <div style={{
+            background: t.gradient,
+            borderRadius: '20px',
+            padding: '3rem 2rem',
+            textAlign: 'center',
+            color: 'white',
+            boxShadow: t.shadowButton,
+          }}>
+            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔒</div>
+            <h1 style={{ fontSize: '2rem', marginBottom: '1rem', fontWeight: 'bold' }}>
+              Phân Tích Khoảng Cách Kỹ Năng
+            </h1>
+            <p style={{ fontSize: '1.1rem', marginBottom: '2rem', opacity: 0.95 }}>
+              Tính năng cao cấp - Yêu cầu gói trả phí
+            </p>
+
             <div style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: t.containerBg,
+              backdropFilter: 'blur(10px)',
+              borderRadius: '16px',
+              padding: '2rem',
+              marginBottom: '2rem',
+              textAlign: 'left',
+              border: t.border,
+            }}>
+              <h3 style={{ fontSize: '1.3rem', marginBottom: '1rem', fontWeight: '600', color: t.textPrimary }}>
+                Tính năng bạn sẽ nhận được:
+              </h3>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {[
+                  { icon: <Bot size={18} style={{ color: 'white' }} />, title: 'AI phân tích CV', desc: 'Trích xuất kỹ năng tự động' },
+                  { icon: '📊', title: 'So sánh với yêu cầu công việc', desc: 'Xác định lỗ hổng kỹ năng' },
+                  { icon: '🎯', title: 'Lộ trình học tập cá nhân hóa', desc: 'AI tạo kế hoạch chi tiết' },
+                  { icon: '📈', title: 'Theo dõi tiến độ', desc: 'Lưu lịch sử phân tích' },
+                ].map((item, idx, arr) => (
+                  <li key={idx} style={{
+                    padding: '0.75rem 0',
+                    borderBottom: idx < arr.length - 1 ? t.borderSubtle : 'none',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: t.iconGradient,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: '0.75rem',
+                      flexShrink: 0,
+                      fontSize: typeof item.icon === 'string' ? '1.2rem' : undefined
+                    }}>
+                      {item.icon}
+                    </div>
+                    <div>
+                      <strong style={{ color: t.textPrimary }}>{item.title}</strong>
+                      <span style={{ color: t.textSecondary }}> - {item.desc}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div style={{
+              background: 'linear-gradient(135deg, #667eea 0%, 764ba2 100%)',
               borderRadius: '20px',
               padding: '3rem 2rem',
               textAlign: 'center',
               color: 'white',
               boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4)',
             }}>
-              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔒</div>
-              <h1 style={{ fontSize: '2rem', marginBottom: '1rem', fontWeight: 'bold' }}>
-                Skill Gap Analysis
-              </h1>
-              <p style={{ fontSize: '1.1rem', marginBottom: '2rem', opacity: 0.95 }}>
-                Tính năng cao cấp - Yêu cầu gói trả phí
+              <p style={{ fontSize: '0.95rem', marginBottom: '0.5rem', color: t.textMuted }}>
+                Gói hiện tại của bạn:
               </p>
-
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '16px',
-                padding: '2rem',
-                marginBottom: '2rem',
-                textAlign: 'left',
-              }}>
-                <h3 style={{ fontSize: '1.3rem', marginBottom: '1rem', fontWeight: '600' }}>
-                  ✨ Tính năng bạn sẽ nhận được:
-                </h3>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}>🤖</span>
-                    <strong>AI phân tích CV</strong> - Trích xuất kỹ năng tự động
-                  </li>
-                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}>📊</span>
-                    <strong>So sánh với yêu cầu công việc</strong> - Xác định lỗ hổng kỹ năng
-                  </li>
-                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}>🎯</span>
-                    <strong>Lộ trình học tập cá nhân hóa</strong> - AI tạo kế hoạch chi tiết
-                  </li>
-                  <li style={{ padding: '0.75rem 0' }}>
-                    <span style={{ fontSize: '1.5rem', marginRight: '0.75rem' }}>📈</span>
-                    <strong>Theo dõi tiến độ</strong> - Lưu lịch sử phân tích
-                  </li>
-                </ul>
-              </div>
-
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                marginBottom: '2rem',
-              }}>
-                <p style={{ fontSize: '0.95rem', marginBottom: '0.5rem', opacity: 0.9 }}>
-                  Gói hiện tại của bạn:
-                </p>
-                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>
-                  {userPlan}
-                </p>
-              </div>
-
-              <button
-                onClick={() => navigate('/pricing')}
-                style={{
-                  background: 'white',
-                  color: '#667eea',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: '1rem 3rem',
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 30px rgba(0,0,0,0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
-                }}
-              >
-                💳 Nâng cấp ngay - Chỉ từ 99,000đ/năm
-              </button>
-
-              <p style={{ marginTop: '1.5rem', fontSize: '0.9rem', opacity: 0.8 }}>
-                Hoặc <a href="/pricing" style={{ color: 'white', textDecoration: 'underline' }}>xem chi tiết các gói</a>
+              <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: t.textPrimary }}>
+                {userPlan}
               </p>
             </div>
 
-            {/* Benefits comparison */}
-            <div style={{ marginTop: '3rem', textAlign: 'center' }}>
-              <h2 style={{ fontSize: '1.8rem', marginBottom: '2rem', color: theme === 'dark' ? 'white' : '#1f2937' }}>
-                So sánh các gói
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-                {/* Basic Plan */}
-                <div style={{
-                  background: theme === 'dark' ? '#1f2937' : 'white',
-                  borderRadius: '16px',
-                  padding: '2rem',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  border: '2px solid #e5e7eb',
-                }}>
-                  <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#3b82f6' }}>Basic</h3>
-                  <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: theme === 'dark' ? 'white' : '#1f2937' }}>
-                    99,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/năm</span>
-                  </p>
-                  <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: theme === 'dark' ? '#d1d5db' : '#6b7280' }}>
-                    <li style={{ padding: '0.5rem 0' }}>✅ 20 phân tích/tháng</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ AI phân tích CV</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Lộ trình học tập cơ bản</li>
-                  </ul>
-                </div>
+            <button
+              onClick={() => navigate('/pricing')}
+              style={{
+                background: t.buttonBg,
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                padding: '1rem 3rem',
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                boxShadow: t.shadowButton,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = t.shadowButtonHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = t.shadowButton;
+              }}
+            >
+              Nâng cấp ngay - Chỉ từ 99,000đ/năm
+            </button>
 
-                {/* Premium Plan */}
+            <p style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: t.textMuted }}>
+              Hoặc <a href="/pricing" style={{ color: t.link, textDecoration: 'underline', fontWeight: '600' }}>xem chi tiết các gói</a>
+            </p>
+          </div>
+
+          {/* Pricing Cards */}
+          <div style={{ marginTop: '3rem', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '2rem', color: t.textPrimary, fontWeight: '700' }}>
+              So sánh các gói
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+
+              {/* Basic Plan */}
+              <div style={{
+                background: t.cardBg,
+                borderRadius: '16px',
+                padding: '2rem',
+                boxShadow: t.shadow,
+                border: t.border,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = t.shadowHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = t.shadow;
+                }}>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#3b82f6', fontWeight: '700' }}>Basic</h3>
+                <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: t.textPrimary }}>
+                  99,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal', color: t.textMuted }}>/năm</span>
+                </p>
+                <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: t.textSecondary }}>
+                  {['20 phân tích/tháng', 'AI phân tích CV', 'Lộ trình học tập cơ bản'].map((item, idx) => (
+                    <li key={idx} style={{ padding: '0.5rem 0', display: 'flex', alignItems: 'center' }}>
+                      <span style={{ color: t.checkmark || '#3b82f6', marginRight: '0.5rem', fontSize: '1.2rem' }}>✓</span> {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Premium Plan */}
+              <div style={{
+                background: t.premiumBg,
+                borderRadius: '16px',
+                padding: '2rem',
+                boxShadow: t.shadowPremium,
+                border: t.premiumBorder,
+                backgroundImage: t.premiumGradient,
+                backgroundOrigin: t.premiumBgOrigin as any,
+                backgroundClip: t.premiumBgClip as any,
+                position: 'relative',
+                transform: 'scale(1.05)',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.08) translateY(-4px)';
+                  e.currentTarget.style.boxShadow = isDark
+                    ? '0 0 0 1px rgba(99, 102, 241, 0.5), 0 16px 50px rgba(99, 102, 241, 0.45)'
+                    : '0 12px 40px rgba(102, 126, 234, 0.30), 0 6px 16px rgba(102, 126, 234, 0.20)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05) translateY(0)';
+                  e.currentTarget.style.boxShadow = t.shadowPremium;
+                }}>
                 <div style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #667eea 0%, 764ba2 100%)',
                   borderRadius: '16px',
                   padding: '2rem',
                   boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
@@ -298,50 +425,49 @@ const SkillGapPage: React.FC = () => {
                   position: 'relative',
                   transform: 'scale(1.05)',
                 }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: '-12px',
-                    right: '20px',
-                    background: '#fbbf24',
-                    color: '#1f2937',
-                    padding: '0.25rem 1rem',
-                    borderRadius: '20px',
-                    fontSize: '0.85rem',
-                    fontWeight: 'bold',
-                  }}>
-                    PHỔ BIẾN
-                  </div>
-                  <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'white' }}>Premium</h3>
-                  <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: 'white' }}>
-                    199,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/năm</span>
-                  </p>
-                  <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: 'rgba(255,255,255,0.95)' }}>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Không giới hạn phân tích</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ AI phân tích nâng cao</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Lộ trình học tập chi tiết</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Theo dõi tiến độ</li>
-                  </ul>
+                  ⭐ PHỔ BIẾN
                 </div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: t.premiumTitle, fontWeight: '700' }}>Premium</h3>
+                <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: t.textPrimary }}>
+                  199,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal', color: t.textMuted }}>/năm</span>
+                </p>
+                <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: t.textSecondary }}>
+                  {['Không giới hạn phân tích', 'AI phân tích nâng cao', 'Lộ trình học tập chi tiết', 'Theo dõi tiến độ'].map((item, idx) => (
+                    <li key={idx} style={{ padding: '0.5rem 0', display: 'flex', alignItems: 'center' }}>
+                      <span style={{ color: t.checkmark || '#667eea', marginRight: '0.5rem', fontSize: '1.2rem' }}>✓</span> {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-                {/* Pro Plan */}
-                <div style={{
-                  background: theme === 'dark' ? '#1f2937' : 'white',
-                  borderRadius: '16px',
-                  padding: '2rem',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  border: '2px solid #e5e7eb',
+              {/* Pro Plan */}
+              <div style={{
+                background: t.cardBg,
+                borderRadius: '16px',
+                padding: '2rem',
+                boxShadow: t.shadow,
+                border: t.border,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = t.shadowHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = t.shadow;
                 }}>
-                  <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#8b5cf6' }}>Pro</h3>
-                  <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: theme === 'dark' ? 'white' : '#1f2937' }}>
-                    299,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/năm</span>
-                  </p>
-                  <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: theme === 'dark' ? '#d1d5db' : '#6b7280' }}>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Tất cả tính năng Premium</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Xuất PDF báo cáo</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ AI Assistant 24/7</li>
-                    <li style={{ padding: '0.5rem 0' }}>✅ Ưu tiên hỗ trợ</li>
-                  </ul>
-                </div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#8b5cf6', fontWeight: '700' }}>Pro</h3>
+                <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: t.textPrimary }}>
+                  299,000đ<span style={{ fontSize: '1rem', fontWeight: 'normal', color: t.textMuted }}>/năm</span>
+                </p>
+                <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0, color: t.textSecondary }}>
+                  {['Tất cả tính năng Premium', 'Xuất PDF báo cáo', 'AI Assistant 24/7', 'Ưu tiên hỗ trợ'].map((item, idx) => (
+                    <li key={idx} style={{ padding: '0.5rem 0', display: 'flex', alignItems: 'center' }}>
+                      <span style={{ color: t.checkmark || '#8b5cf6', marginRight: '0.5rem', fontSize: '1.2rem' }}>✓</span> {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
@@ -353,16 +479,14 @@ const SkillGapPage: React.FC = () => {
   if (error) {
     return (
       <MainLayout>
-        <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
-          <div style={{ maxWidth: 860, margin: '0 auto' }}>
-            <div className="error-container">
-              <span className="error-icon">⚠️</span>
-              <h2>Error Loading Analysis</h2>
-              <p>{error}</p>
-              <button onClick={handleNewAnalysis} className="retry-button">
-                Start New Analysis
-              </button>
-            </div>
+        <div className="skill-gap-page">
+          <div className="error-container">
+            <AlertTriangle size={48} className="text-red-500 mb-3" />
+            <h2>Error Loading Analysis</h2>
+            <p>{error}</p>
+            <button onClick={handleNewAnalysis} className="retry-button">
+              Start New Analysis
+            </button>
           </div>
         </div>
       </MainLayout>
@@ -371,20 +495,95 @@ const SkillGapPage: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="skill-gap-page" style={theme === 'dark' ? { backgroundColor: '#111827', backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)' } : {}}>
-        <div style={{ maxWidth: 860, margin: '0 auto' }}>
-          <div className="page-header">
-            <h1>🎯 Skill Gap Analysis</h1>
-            <p className="page-subtitle">
-              Discover your skill gaps and get personalized learning recommendations
-            </p>
-          </div>
+      <div className="skill-gap-page">
+        <div className="page-header">
+          <h1>Phân Tích Khoảng Cách Kỹ Năng</h1>
+          <p className="page-subtitle">
+            Khám phá khoảng cách kỹ năng và nhận đề xuất học tập được cá nhân hóa bởi AI
+          </p>
         </div>
 
-        <div style={{ maxWidth: 860, margin: '0 auto' }}>
+        <div>
           {currentStep === 'upload' && (
             <>
               <CVUploadForm onAnalysisComplete={handleAnalysisComplete} />
+
+              {(historyLoading || history.length > 0) && (
+                <div style={{ marginTop: '2rem', marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+                    <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1rem', color: 'var(--neu-text, #111)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <FileText size={16} />
+                      CV History
+                    </h3>
+                    {history.length > 0 && (
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b7280', background: 'var(--neu-bg, #f3f4f6)', padding: '3px 10px', borderRadius: 99, border: '1px solid var(--neu-border, #e5e7eb)' }}>
+                        {history.length} PREVIOUS UPLOAD{history.length !== 1 ? 'S' : ''}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Table */}
+                  <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 14, border: '1px solid var(--neu-border, #e5e7eb)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                    {/* Table head */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.65rem 1.25rem', background: 'var(--neu-bg, #f9fafb)', borderBottom: '1px solid var(--neu-border, #e5e7eb)' }}>
+                      {['FILENAME & TARGET ROLE', 'DATE UPLOADED', 'MATCH SCORE', 'ACTIONS'].map(h => (
+                        <span key={h} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</span>
+                      ))}
+                    </div>
+
+                    {historyLoading ? (
+                      <div style={{ padding: '1.5rem', textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                        <div style={{ width: 16, height: 16, border: '2px solid #e5e7eb', borderTopColor: 'var(--neu-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                        Đang tải...
+                      </div>
+                    ) : (
+                      history.map((item, idx) => {
+                        const pct = Math.round(item.match_percentage ?? 0);
+                        const cName = historyCareerNames[item.career_id] || item.career_id || '—';
+                        const date = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const isLast = idx === history.length - 1;
+                        return (
+                          <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.9rem 1.25rem', alignItems: 'center', borderBottom: isLast ? 'none' : '1px solid var(--neu-border, #f3f4f6)', transition: 'background 0.15s' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--neu-bg, #f9fafb)'}
+                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                              <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <FileText size={16} style={{ color: 'var(--neu-accent)' }} />
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--neu-text, #111)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {item.cv_filename || `CV ${item.id}`}
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {cName}
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>{date}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ flex: 1, maxWidth: 60, height: 6, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${pct}%`, background: matchBarColor(pct), borderRadius: 99 }} />
+                              </div>
+                              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: matchBarColor(pct), minWidth: 32 }}>{pct}%</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <button
+                                onClick={() => navigate(`/skill-gap/${item.id}`)}
+                                style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--neu-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
+                                View Analysis
+                                <ChevronRight size={11} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+
               <WhyUseAIScanner />
             </>
           )}
@@ -395,37 +594,37 @@ const SkillGapPage: React.FC = () => {
                 <button onClick={handleNewAnalysis} className="back-button">
                   ← New Analysis
                 </button>
+                <span className="analysis-career" title={careerName || analysis.career_id}>
+                  {careerName || analysis.career_id}
+                </span>
                 <div className="analysis-info">
                   <span className="analysis-date">
-                    Analyzed: {new Date(analysis.created_at).toLocaleDateString()}
+                    {new Date(analysis.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </span>
-                  <span className="analysis-career">
-                    Target: {analysis.career_id}
-                  </span>
+                  <button
+                    onClick={() => navigate('/cv-history')}
+                    style={{ marginLeft: '0.75rem', padding: '0.3rem 0.85rem', borderRadius: 8, border: '1.5px solid var(--neu-accent)', background: 'transparent', color: 'var(--neu-accent)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <FileText size={12} />
+                    Lịch sử
+                  </button>
                 </div>
               </div>
 
-              {/* PB12+PB13: CV analysis result */}
               <SkillGapResult
                 analysis={analysis}
                 onStartInterview={handleStartInterview}
               />
 
-              {/* PB14: Skill Heatmap Grid */}
               <div style={{ marginTop: '1.5rem' }}>
                 <SkillHeatmapGrid analysis={analysis} />
               </div>
 
-              {/* PB15: AI Learning Plan */}
               <div style={{ marginTop: '1.5rem' }}>
-                {planLoading ? (
-                  <div style={{ background: 'white', borderRadius: 16, padding: '2rem', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
-                    <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🤖</div>
-                    <p style={{ color: '#64748b' }}>AI đang tạo lộ trình học tập...</p>
-                  </div>
-                ) : learningPlan ? (
-                  <LearningPlan plan={learningPlan.plan} careerName={learningPlan.career_id} />
-                ) : null}
+                <StreamingLearningPlan
+                  analysisId={analysis.id}
+                  careerId={careerName || analysis.career_id}
+                  autoStart={false}
+                />
               </div>
 
               {/* Course Recommendations — auto-populated from missing skills */}

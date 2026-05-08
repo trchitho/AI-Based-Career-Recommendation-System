@@ -143,7 +143,7 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
               <div className="relative z-10">
                 <div className="mb-6">
                   <span className="inline-block px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full mb-4 shadow-lg">
-                    {currentQuestion.test_type === 'RIASEC' ? '🎯 Career Interest' : '🧠 Personality Trait'}
+                    {currentQuestion.test_type === 'RIASEC' ? ' Career Interest' : ' Personality Trait'}
                   </span>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white leading-relaxed">
                     {currentQuestion.question_text}
@@ -156,16 +156,16 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
                     // Likert Scale with Emoji
                     <div className="space-y-4">
                       <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        <span>😟 Strongly Disagree</span>
-                        <span>😊 Strongly Agree</span>
+                        <span> Strongly Disagree</span>
+                        <span> Strongly Agree</span>
                       </div>
                       <div className="flex gap-3">
                         {[
-                          { value: 1, emoji: '😟', label: 'Strongly Disagree' },
-                          { value: 2, emoji: '🙁', label: 'Disagree' },
-                          { value: 3, emoji: '😐', label: 'Neutral' },
-                          { value: 4, emoji: '🙂', label: 'Agree' },
-                          { value: 5, emoji: '😊', label: 'Strongly Agree' }
+                          { value: 1, emoji: '', label: 'Strongly Disagree' },
+                          { value: 2, emoji: '', label: 'Disagree' },
+                          { value: 3, emoji: '', label: 'Neutral' },
+                          { value: 4, emoji: '', label: 'Agree' },
+                          { value: 5, emoji: '', label: 'Strongly Agree' }
                         ].map(({ value, emoji, label }) => (
                           <button
                             key={value}
@@ -212,7 +212,7 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
                           </div>
                           <span className="flex-1">{option}</span>
                           {currentAnswer === option && (
-                            <span className="text-2xl animate-bounce">✨</span>
+                            <span className="text-2xl animate-bounce"></span>
                           )}
                         </div>
                       </button>
@@ -230,7 +230,7 @@ const GameQuizMode = ({ questions, onComplete, onCancel }: GameQuizModeProps) =>
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-2xl shadow-2xl animate-bounce">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">🎉</span>
+              <span className="text-3xl"></span>
               <div>
                 <div className="font-bold text-xl">+{xpPerQuestion} XP</div>
                 <div className="text-sm opacity-90">Great answer!</div>

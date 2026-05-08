@@ -55,7 +55,7 @@ const LockedCareerCard = ({
           <div className="flex items-center">
             <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center mr-4">
               <span className="text-purple-600 dark:text-purple-400 font-bold text-lg">
-                #{position}
+                {position}
               </span>
             </div>
             <div>
@@ -109,7 +109,7 @@ const LockedCareerCard = ({
                 'Tài liệu và khóa học đề xuất'
               ].map((benefit, index) => (
                 <div key={index} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 text-indigo-700 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span>{benefit}</span>
@@ -125,7 +125,7 @@ const LockedCareerCard = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span>Nâng cấp Premium</span>
-              <span>✨</span>
+              <span></span>
             </button>
           </div>
         </div>

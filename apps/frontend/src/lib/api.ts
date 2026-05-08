@@ -1,3 +1,9 @@
+/**
+ * @deprecated Dùng api-client.ts cho code mới.
+ * File này giữ nguyên để backward compatibility với các service cũ.
+ * Migration: thay `import api from '../lib/api'`
+ *            thành `import apiClient from '../lib/api-client'`
+ */
 import axios from 'axios';
 
 // In dev, use relative base to leverage Vite proxy (avoids CORS).
@@ -36,7 +42,8 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
-          const resp = await axios.post(`${api.defaults.baseURL}api/auth/refresh`, {
+          const base = (api.defaults.baseURL || '/').replace(/\/$/, '');
+          const resp = await axios.post(`${base}/api/auth/refresh`, {
             refresh_token: refreshToken,
           });
           const newAccess = resp.data?.access_token;

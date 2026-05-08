@@ -115,6 +115,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
   const [easterEggCount, setEasterEggCount] = useState(0); // Track how many times earned (max 2)
   const [nextEasterEggCombo, setNextEasterEggCombo] = useState(3); // First at 3, then 4
   const [showEasterEggNotif, setShowEasterEggNotif] = useState(false); // Notification
+  const [usedPieceIndex, setUsedPieceIndex] = useState<number | null>(null); // Track which piece was used
   const [draggedPiece, setDraggedPiece] = useState<{
     text: string;
     emoji?: string | undefined;
@@ -534,7 +535,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
 
     if (currentQuestion.question_type === 'SCALE') {
       const labels = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
-      const emojis = ['😟', '🙁', '😐', '🙂', '😊'];
+      const emojis = ['', '', '', '', ''];
       return [1, 2, 3, 4, 5].map((value, index) => {
         const shape = shuffledShapes[index % shuffledShapes.length] || 'O';
         return {
@@ -545,8 +546,28 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
           shape: shape,
         };
       });
-    } else if (currentQuestion.options) {
-      return currentQuestion.options.map((option, index) => {
+    } else if (currentQuestion.options && currentQuestion.options.length > 0) {
+      console.log('Original options:', currentQuestion.options);
+      
+      // Remove duplicates from options using both text and value
+      const seen = new Set<string>();
+      const uniqueOptions = currentQuestion.options.filter(option => {
+        if (!option || typeof option !== 'string') return false;
+        const key = option.toLowerCase().trim();
+        if (seen.has(key)) {
+          console.log('Duplicate found:', option);
+          return false;
+        }
+        seen.add(key);
+        return true;
+      });
+      
+      console.log('Unique options:', uniqueOptions);
+      
+      // Limit to maximum 6 options to prevent UI overflow
+      const limitedOptions = uniqueOptions.slice(0, 6);
+      
+      return limitedOptions.map((option, index) => {
         const shape = shuffledShapes[index % shuffledShapes.length] || 'O';
         return {
           text: option,
@@ -611,19 +632,19 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
         <div className="relative max-w-md w-full bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-xl shadow-2xl border-4 border-yellow-400 dark:border-yellow-600 overflow-hidden">
           {/* Confetti Background Effect */}
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-3 left-3 text-2xl animate-bounce">🎉</div>
-            <div className="absolute top-5 right-5 text-xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎊</div>
+            <div className="absolute top-3 left-3 text-2xl animate-bounce"></div>
+            <div className="absolute top-5 right-5 text-xl animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             <div className="absolute bottom-5 left-5 text-xl animate-bounce" style={{ animationDelay: '0.4s' }}>⭐</div>
-            <div className="absolute bottom-3 right-3 text-2xl animate-bounce" style={{ animationDelay: '0.6s' }}>🏆</div>
-            <div className="absolute top-1/2 left-1/4 text-lg animate-spin" style={{ animationDuration: '3s' }}>✨</div>
-            <div className="absolute top-1/3 right-1/4 text-lg animate-spin" style={{ animationDuration: '4s' }}>💫</div>
+            <div className="absolute bottom-3 right-3 text-2xl animate-bounce" style={{ animationDelay: '0.6s' }}></div>
+            <div className="absolute top-1/2 left-1/4 text-lg animate-spin" style={{ animationDuration: '3s' }}></div>
+            <div className="absolute top-1/3 right-1/4 text-lg animate-spin" style={{ animationDuration: '4s' }}></div>
           </div>
 
           {/* Content */}
           <div className="relative z-10 p-4 text-center">
             {/* Trophy Icon */}
             <div className="mb-2 animate-bounce">
-              <div className="text-3xl mb-1">🏆</div>
+              <div className="text-3xl mb-1"></div>
               <div className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 dark:from-yellow-400 dark:via-orange-400 dark:to-red-400 drop-shadow-lg">
                 CONGRATULATIONS!
               </div>
@@ -632,7 +653,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
             {/* Completion Message */}
             <div className="mb-3">
               <p className="text-sm font-bold text-gray-800 dark:text-white mb-1">
-                🎮 You've Completed All {questions.length} Questions! 🎮
+                 You've Completed All {questions.length} Questions! 
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-300">
                 Amazing job! Let's see your achievements!
@@ -650,21 +671,21 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
 
               {/* Final Level */}
               <div className="bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg p-2.5 shadow-xl border-2 border-cyan-300 transform hover:scale-105 transition-all">
-                <div className="text-lg mb-0.5">🎯</div>
+                <div className="text-lg mb-0.5"></div>
                 <div className="text-[10px] font-bold text-cyan-900 uppercase mb-0.5">Final Level</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{level}</div>
               </div>
 
               {/* Total XP */}
               <div className="bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg p-2.5 shadow-xl border-2 border-purple-300 transform hover:scale-105 transition-all">
-                <div className="text-lg mb-0.5">💎</div>
+                <div className="text-lg mb-0.5"></div>
                 <div className="text-[10px] font-bold text-purple-900 uppercase mb-0.5">Total XP</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{xp}</div>
               </div>
 
               {/* Max Combo */}
               <div className="bg-gradient-to-br from-red-400 to-orange-500 rounded-lg p-2.5 shadow-xl border-2 border-red-300 transform hover:scale-105 transition-all">
-                <div className="text-lg mb-0.5">🔥</div>
+                <div className="text-lg mb-0.5"></div>
                 <div className="text-[10px] font-bold text-red-900 uppercase mb-0.5">Max Combo</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{maxCombo}x</div>
               </div>
@@ -674,27 +695,27 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
             {(maxCombo >= 5 || level >= 5 || nuclear > 0 || score >= 5000) && (
               <div className="mb-3 bg-white/50 dark:bg-gray-800/50 rounded-lg p-2 backdrop-blur-sm">
                 <div className="text-xs font-bold text-gray-800 dark:text-white mb-1.5">
-                  🌟 Special Achievements 🌟
+                   Special Achievements 
                 </div>
                 <div className="flex flex-wrap justify-center gap-1.5">
                   {maxCombo >= 5 && (
                     <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg">
-                      🔥 Combo Master ({maxCombo}x)
+                       Combo Master ({maxCombo}x)
                     </div>
                   )}
                   {level >= 5 && (
                     <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg">
-                      🎯 Level Champion (Lv.{level})
+                       Level Champion (Lv.{level})
                     </div>
                   )}
                   {nuclear > 0 && (
                     <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg animate-pulse">
-                      ☢️ Nuclear Unlocked!
+                       Nuclear Unlocked!
                     </div>
                   )}
                   {score >= 5000 && (
                     <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg">
-                      💰 High Scorer ({score})
+                       High Scorer ({score})
                     </div>
                   )}
                 </div>
@@ -707,9 +728,9 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                 setShowVictoryModal(false);
                 onComplete(finalResponses);
               }}
-              className="w-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white font-black text-sm py-2.5 px-4 rounded-lg shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-green-400 hover:border-green-300"
+              className="w-full bg-gradient-to-r from-indigo-700 via-indigo-500 to-indigo-600 hover:from-indigo-800 hover:via-emerald-600 hover:to-violet-600 text-white font-black text-sm py-2.5 px-4 rounded-lg shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-indigo-400 hover:border-indigo-300"
             >
-              ✨ View My Analysis ✨
+               View My Analysis 
             </button>
 
             <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-2">
@@ -770,7 +791,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
             <div className="w-px h-12 bg-gray-400 dark:bg-gray-700"></div>
             <div className="text-center">
               <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Progress</div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{currentIndex + 1}/{questions.length}</div>
+              <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-400">{currentIndex + 1}/{questions.length}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400">{Math.round(progress)}%</div>
             </div>
           </div>
@@ -780,7 +801,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
         {showEasterEggNotif && (
           <div className="fixed top-20 right-6 z-50 animate-slide-in">
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-xl shadow-2xl border-2 border-purple-400 flex items-center gap-3">
-              <span className="text-4xl animate-bounce">☢️</span>
+              <span className="text-4xl animate-bounce"></span>
               <div>
                 <div className="font-bold text-lg">Easter Egg Unlocked!</div>
                 <div className="text-sm text-purple-100">Nuclear Power obtained!</div>
@@ -832,7 +853,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div className="text-center">
                 <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Progress</div>
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{currentIndex + 1}/{questions.length}</div>
+                <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-400">{currentIndex + 1}/{questions.length}</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">{Math.round(progress)}%</div>
               </div>
             </div>
@@ -902,7 +923,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                         {/* Explosion effect */}
                         {isClearing && (
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-2xl animate-ping">💥</div>
+                            <div className="text-2xl animate-ping"></div>
                           </div>
                         )}
                       </div>
@@ -932,7 +953,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                         key={idx}
                         className={`absolute rounded-lg transition-all duration-100 ${
                           canPlace
-                            ? 'border-4 border-green-400 bg-green-400/30'
+                            ? 'border-4 border-indigo-400 bg-indigo-400/30'
                             : 'border-4 border-red-400 bg-red-400/30'
                         }`}
                         style={{
@@ -946,9 +967,9 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                         }}
                       >
                         {/* Animated pulse ring */}
-                        <div className={`absolute inset-0 rounded-lg animate-ping ${canPlace ? 'bg-green-400/40' : 'bg-red-400/40'}`}></div>
+                        <div className={`absolute inset-0 rounded-lg animate-ping ${canPlace ? 'bg-indigo-400/40' : 'bg-red-400/40'}`}></div>
                         {/* Inner bright center */}
-                        <div className={`absolute inset-2 rounded ${canPlace ? 'bg-green-300/60' : 'bg-red-300/60'}`}></div>
+                        <div className={`absolute inset-2 rounded ${canPlace ? 'bg-indigo-300/60' : 'bg-red-300/60'}`}></div>
                       </div>
                     );
                   })}
@@ -991,7 +1012,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
             <div className="flex items-center justify-center gap-2">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
               <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                🎮 Drag a Piece to Answer
+                 Drag a Piece to Answer
               </p>
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
             </div>
@@ -1071,12 +1092,12 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-6 border-2 border-blue-200 dark:border-blue-700 shadow-xl">
             <div className="flex items-center gap-2 mb-4">
               <div className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
-                <span className="text-2xl">❓</span>
+                <span className="text-2xl"></span>
                 <span>Question {currentIndex + 1} / {questions.length}</span>
               </div>
               <span className="text-gray-400 dark:text-gray-600">•</span>
               <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                {currentQuestion.test_type === 'RIASEC' ? '🎯 Career' : '🧠 Personality'}
+                {currentQuestion.test_type === 'RIASEC' ? ' Career' : ' Personality'}
               </span>
             </div>
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-5 border-2 border-blue-300 dark:border-blue-600 shadow-lg">
@@ -1097,7 +1118,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                 bombs > 0 ? 'cursor-grab hover:border-orange-400 dark:hover:border-orange-500' : 'opacity-40 cursor-not-allowed'
               } transition-all duration-200`}
             >
-              <span className="text-2xl">💣</span>
+              <span className="text-2xl"></span>
               <div className="flex-1 min-w-0">
                 <div className="text-gray-900 dark:text-white font-semibold text-xs">Bomb</div>
                 <div className="text-gray-500 dark:text-gray-400 text-xs">2x2</div>
@@ -1116,7 +1137,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                 rockets > 0 ? 'cursor-grab hover:border-blue-400 dark:hover:border-blue-500' : 'opacity-40 cursor-not-allowed'
               } transition-all duration-200`}
             >
-              <span className="text-2xl">🚀</span>
+              <span className="text-2xl"></span>
               <div className="flex-1 min-w-0">
                 <div className="text-gray-900 dark:text-white font-semibold text-xs">Rocket</div>
                 <div className="text-gray-500 dark:text-gray-400 text-xs">4x4</div>
@@ -1134,7 +1155,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                 onDragEnd={handleDragEnd}
                 className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-2 border-2 border-purple-400 shadow-xl cursor-grab hover:scale-105 transition-all duration-200 animate-pulse"
               >
-                <span className="text-2xl">☢️</span>
+                <span className="text-2xl"></span>
                 <div className="flex-1 min-w-0">
                   <div className="text-white font-bold text-xs">Nuclear</div>
                   <div className="text-purple-100 text-xs">ALL!</div>
@@ -1152,7 +1173,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
       <div className="mt-3">
         <div className="max-w-4xl mx-auto bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 shadow-2xl border-2 border-gray-300 dark:border-gray-700">
           <h3 className="text-lg font-black text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-            <span className="text-2xl">🏆</span>
+            <span className="text-2xl"></span>
             <span className="flex-1">Completed Answers</span>
             <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/50 px-3 py-1 rounded-full">
               {completedAnswers.length}/{questions.length}
@@ -1162,7 +1183,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
           <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
             {completedAnswers.length === 0 ? (
               <div className="col-span-3 text-center py-4">
-                <div className="text-4xl mb-2 animate-bounce">🎯</div>
+                <div className="text-4xl mb-2 animate-bounce"></div>
                 <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                   Drag pieces to answer!
                 </p>
@@ -1171,11 +1192,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
               completedAnswers.map((answer, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 border-2 border-green-400 dark:border-green-500/30 rounded-lg p-2 animate-slide-in shadow-md hover:shadow-lg transition-all duration-200"
+                  className="bg-gradient-to-r from-indigo-100 to-indigo-100 dark:from-indigo-950/50 dark:to-emerald-900/50 border-2 border-indigo-400 dark:border-indigo-600/30 rounded-lg p-2 animate-slide-in shadow-md hover:shadow-lg transition-all duration-200"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-center gap-2">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-500 rounded flex items-center justify-center text-white font-black text-xs shadow-md">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-indigo-700 to-indigo-700 rounded flex items-center justify-center text-white font-black text-xs shadow-md">
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1184,7 +1205,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                         {answer.answer}
                       </span>
                     </div>
-                    <div className="text-green-600 dark:text-green-400 text-sm">✓</div>
+                    <div className="text-indigo-800 dark:text-indigo-400 text-sm"></div>
                   </div>
                 </div>
               ))

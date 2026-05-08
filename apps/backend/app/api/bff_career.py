@@ -16,9 +16,9 @@ Section locking by plan:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
+from app.core.serialization import dumps_str as json_dumps, loads as json_loads  # orjson binary
 import re
 from pathlib import Path
 from typing import Any, Dict
@@ -51,10 +51,10 @@ router = APIRouter(prefix="/bff/catalog", tags=["catalog"])
 try:
     from ..core.cache import cache_manager
 
-    print("✅ Enhanced caching available")
+    print("[OK] Enhanced caching available")
 except ImportError:
     cache_manager = None
-    print("⚠️ Enhanced caching not available, using basic Redis")
+    print("[WARN] Enhanced caching not available, using basic Redis")
 
 # Fallback to basic Redis if enhanced caching not available
 _redis = None
@@ -78,9 +78,9 @@ async def _get_redis():
             _redis = redis_async.from_url(REDIS_URL, decode_responses=True)
             # Test connection
             await _redis.ping()
-            print("✅ Basic Redis cache connected")
+            print("[OK] Basic Redis cache connected")
         except Exception as e:
-            print(f"⚠️ Redis not available, caching disabled: {e}")
+            print(f"[WARN] Redis not available, caching disabled: {e}")
             _redis_available = False
             _redis = None
             return None
@@ -113,18 +113,18 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
     """Fetch career data from all available tables with language support"""
     with conn.cursor(row_factory=dict_row) as cur:
         # Language column selection helper
-        def get_lang_col(en_col: str, vi_col: str) -> str:
+        def get_lang_col(en_col: str, vn_col: str) -> str:
             if language == "vi":
-                return f"COALESCE({vi_col}, {en_col})"
+                return f"COALESCE({vn_col}, {en_col})"
             else:
-                return f"COALESCE({en_col}, {vi_col})"
+                return f"COALESCE({en_col}, {vn_col})"
 
         # 1. Career header from core.careers
         cur.execute(
             f"""
             SELECT id, onet_code, 
                    {get_lang_col("title_en", "title_vi")} AS title, 
-                   {get_lang_col("short_desc_en", "short_desc_vn")} AS short_desc,
+                   {get_lang_col("description_en", "description_vi")} AS description,
                    alternative_titles_en, alternative_titles_vi,
                    industry_category, source
             FROM core.careers
@@ -170,8 +170,8 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         cur.execute(
             f"""
             SELECT ksa_type, 
-                   {get_lang_col("name", "name_vi")} AS name,
-                   {get_lang_col("description", "description_vi")} AS description,
+                   {get_lang_col("name_en", "name_vn")} AS name,
+                   {get_lang_col("description_en", "description_vn")} AS description,
                    category, level, importance 
             FROM core.career_ksas 
             WHERE onet_code = %s 
@@ -187,9 +187,10 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         # 5. Outlook from core.career_outlook
         cur.execute(
             f"""
-            SELECT {get_lang_col("summary_md", "summary_md_vi")} AS summary_md,
-                   {get_lang_col("growth_label", "growth_label_vi")} AS growth_label,
-                   {get_lang_col("CAST(openings_est AS TEXT)", "openings_est_vi")} AS openings_est
+            SELECT {get_lang_col("summary_md_en", "summary_md_vn")} AS summary_md,
+                   {get_lang_col("growth_label_en", "growth_label_vn")} AS growth_label,
+                   {get_lang_col("openings_est_en", "openings_est_vn")} AS openings_est,
+                   openings_est_en, openings_est_vn
             FROM core.career_outlook 
             WHERE onet_code = %s
             """,
@@ -200,11 +201,11 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         # 6. Overview from core.career_overview (join by career_id)
         cur.execute(
             f"""
-            SELECT {get_lang_col("experience_text", "experience_text_vi")} AS experience_text,
-                   {get_lang_col("degree_text", "degree_text_vi")} AS degree_text,
-                   salary_min, salary_max, salary_avg, salary_currency,
+            SELECT {get_lang_col("experience_text_en", "experience_text_vn")} AS experience_text,
+                   {get_lang_col("degree_text_en", "degree_text_vn")} AS degree_text,
+                   salary_min_vn as salary_min, salary_max_vn as salary_max, salary_avg_vn as salary_avg, salary_currency_vn as salary_currency,
                    salary_min_en, salary_max_en, salary_avg_en, salary_currency_en,
-                   salary_bands, salary_bands_en
+                   salary_bands_vn as salary_bands, salary_bands_en
             FROM core.career_overview 
             WHERE career_id = %s
             """,
@@ -216,7 +217,7 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         cur.execute(
             f"""
             SELECT dwa_id, 
-                   {get_lang_col("dwa_title", "dwa_title_vi")} AS dwa_title,
+                   {get_lang_col("dwa_title_en", "dwa_title_vn")} AS dwa_title,
                    element_id, iwa_id
             FROM core.career_dwas 
             WHERE onet_code = %s
@@ -230,9 +231,9 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         cur.execute(
             f"""
             SELECT element_id,
-                   {get_lang_col("element_name", "element_name_vi")} AS element_name,
+                   {get_lang_col("element_name_en", "element_name_vn")} AS element_name,
                    category, 
-                   {get_lang_col("category_description", "category_description_vi")} AS category_description,
+                   {get_lang_col("category_description_en", "category_description_vn")} AS category_description,
                    data_value, n, standard_error
             FROM core.career_education_pct 
             WHERE onet_code = %s
@@ -322,7 +323,7 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
     dto = {
         "onet_code": header["onet_code"],
         "title": header["title"],
-        "short_desc": header["short_desc"],
+        "description": header["description"],
         "alternative_titles": header["alternative_titles_vi"] if language == "vi" else header["alternative_titles_en"],
         "industry_category": header["industry_category"],
         "language": language,
@@ -367,7 +368,7 @@ async def get_career(
     if language not in valid_languages:
         language = "en"
 
-    cache_key = f"career:v5:{normalized_code}:{plan}:{language}"
+    cache_key = f"career:v9:{normalized_code}:{plan}:{language}"
 
     # Try to get from cache (enhanced or basic Redis)
     cache_client = await _get_redis()
@@ -379,7 +380,7 @@ async def get_career(
             else:
                 # Use basic Redis
                 cached_data = await cache_client.get(cache_key)
-                cached = json.loads(cached_data) if cached_data else None
+                cached = json_loads(cached_data) if cached_data else None
 
             if cached:
                 return cached
@@ -418,7 +419,7 @@ async def get_career(
                 await cache_manager.set(cache_key, dto, ttl=1800)
             else:
                 # Use basic Redis
-                await cache_client.set(cache_key, json.dumps(dto, ensure_ascii=False, default=str), ex=1800)
+                await cache_client.set(cache_key, json_dumps(dto), ex=1800)
         except Exception as e:
             logger.warning(f"Cache set error: {e}")
 

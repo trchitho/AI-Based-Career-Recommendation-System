@@ -100,7 +100,7 @@ const PaymentManagementPageMock = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'failed':
@@ -160,8 +160,8 @@ const PaymentManagementPageMock = () => {
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2 bg-indigo-50 dark:bg-indigo-950 rounded-lg">
+                <svg className="w-6 h-6 text-indigo-800 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -255,7 +255,7 @@ const PaymentManagementPageMock = () => {
                       {payment.user_email}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {payment.user_name || `User #${payment.user_id}`}
+                      {payment.user_name || `User ${payment.user_id}`}
                     </div>
                   </td>
                   

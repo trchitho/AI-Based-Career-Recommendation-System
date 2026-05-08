@@ -5,7 +5,7 @@
 import axios from 'axios';
 import { getAccessToken } from '../utils/auth';
 
-const API_BASE = import.meta.env['VITE_API_BASE'] || 'http://localhost:8000';
+const API_BASE = import.meta.env['VITE_API_BASE'] || 'http://127.0.0.1:8000';
 
 export interface Plan {
     id: number;

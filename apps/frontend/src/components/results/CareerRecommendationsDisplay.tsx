@@ -76,7 +76,7 @@ const CareerRecommendationsDisplay = ({
   const displayedItems = items;
 
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 90) return "text-green-600 bg-green-100";
+    if (percentage >= 90) return "text-indigo-800 bg-indigo-50";
     if (percentage >= 80) return "text-blue-600 bg-blue-100";
     if (percentage >= 70) return "text-yellow-600 bg-yellow-100";
     return "text-gray-600 bg-gray-100";
@@ -282,7 +282,7 @@ const CareerRecommendationsDisplay = ({
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none">
                     <div className="absolute top-3 right-3">
                       <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
-                        requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                        requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-indigo-700 to-indigo-700' :
                           'bg-gradient-to-r from-purple-500 to-pink-500'
                         }`}>
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
@@ -298,13 +298,13 @@ const CareerRecommendationsDisplay = ({
                   <div className="flex items-center">
                     <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3 ${isLocked
                       ? 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30'
-                      : 'bg-beige-light dark:bg-green-900/30'
+                      : 'bg-beige-light dark:bg-indigo-950/30'
                       }`}>
                       <span className={`font-bold text-lg ${isLocked
                         ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-primary-cta dark:text-green-400'
+                        : 'text-primary-cta dark:text-indigo-400'
                         }`}>
-                        #{index + 1}
+                        {index + 1}
                       </span>
                     </div>
                     <div>
@@ -353,19 +353,19 @@ const CareerRecommendationsDisplay = ({
                     }
                     className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${isLocked
                       ? `bg-gradient-to-r ${requiredPlanInfo?.color === 'blue' ? 'from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600' :
-                        requiredPlanInfo?.color === 'green' ? 'from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' :
+                        requiredPlanInfo?.color === 'green' ? 'from-indigo-700 to-indigo-700 hover:from-indigo-800 hover:to-indigo-800' :
                           'from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
                       } text-white`
-                      : 'bg-primary-cta dark:bg-green-600 text-white hover:bg-primary-dark dark:hover:bg-green-700'
+                      : 'bg-primary-cta dark:bg-indigo-800 text-white hover:bg-primary-dark dark:hover:bg-indigo-900'
                       }`}
                   >
                     {isLocked ? (() => {
                       if (currentPlan === 'free') {
-                        return 'Upgrade to Basic ✨';
+                        return 'Upgrade to Basic ';
                       } else if (currentPlan === 'basic') {
-                        return 'Upgrade to Premium ✨';
+                        return 'Upgrade to Premium ';
                       } else {
-                        return `Upgrade to ${requiredPlanInfo?.name || 'Premium'} ✨`;
+                        return `Upgrade to ${requiredPlanInfo?.name || 'Premium'} `;
                       }
                     })() : 'View Career Details'}
                   </button>
@@ -376,7 +376,7 @@ const CareerRecommendationsDisplay = ({
                       onClick={() => handleSaveAsGoal(career.slug || career.career_id, title)}
                       disabled={savingGoal === career.career_id || savedGoals.has(career.career_id)}
                       className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${savedGoals.has(career.career_id)
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-400'
                         : canSetGoals
                           ? 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50'
                           : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
@@ -400,7 +400,7 @@ const CareerRecommendationsDisplay = ({
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                           </svg>
-                          {canSetGoals ? 'Save' : '🔒 Pro'}
+                          {canSetGoals ? 'Save' : ' Pro'}
                         </>
                       )}
                     </button>
@@ -442,7 +442,7 @@ const CareerRecommendationsDisplay = ({
 
             <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 mb-6">
               <p className="text-sm text-purple-700 dark:text-purple-300">
-                <span className="font-semibold">✨ AI will:</span>
+                <span className="font-semibold"> AI will:</span>
                 <br />• Analyze career data and roadmap
                 <br />• Create detailed action steps
                 <br />• Estimate time for each step
