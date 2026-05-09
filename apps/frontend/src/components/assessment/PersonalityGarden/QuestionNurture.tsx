@@ -230,21 +230,6 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
 
       {/* Top bar with stats */}
       <div className="relative z-20 p-3 space-y-2 flex-shrink-0">
-        {/* Day and Time indicator - COMPACT */}
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md px-4 py-2 rounded-full shadow-xl border-2 border-purple-300 dark:border-purple-600 flex items-center gap-2">
-            <span className="text-3xl animate-pulse filter drop-shadow-lg">{timeEmoji}</span>
-            <div className="flex flex-col">
-              <span className="text-sm font-black text-purple-600 dark:text-purple-400">
-                Ngày {currentDay}
-              </span>
-              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                {timeLabel}
-              </span>
-            </div>
-          </div>
-        </div>
-        
         <NatureEnergyBar
           natureEnergy={natureEnergy}
           growthLevel={growthLevel}
@@ -253,6 +238,21 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
           questionNumber={questionNumber}
           totalQuestions={totalQuestions}
         />
+      </div>
+      
+      {/* Day and Time indicator - LEFT SIDE, at cloud level */}
+      <div className="fixed top-[28%] left-12 z-30">
+        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md px-4 py-2 rounded-full shadow-xl border-2 border-purple-300 dark:border-purple-600 flex items-center gap-2">
+          <span className="text-3xl animate-pulse filter drop-shadow-lg">{timeEmoji}</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-black text-purple-600 dark:text-purple-400">
+              Ngày {currentDay}
+            </span>
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+              {timeLabel}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Main content area - COMPACT */}
