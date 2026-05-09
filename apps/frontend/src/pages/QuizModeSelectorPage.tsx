@@ -129,17 +129,17 @@ const QuizModeSelectorPage = () => {
                 </div>
               </div>
 
-              {/* Animated Quiz Game */}
+              {/* Personality Garden (formerly Animated Quiz) */}
               <div 
                 onClick={() => handleModeSelect('game')}
                 className={`group relative bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-2xl ${
                   selectedMode === 'game' 
-                    ? 'border-purple-500 dark:border-purple-400 ring-4 ring-purple-500/20' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
+                    ? 'border-green-500 dark:border-green-400 ring-4 ring-green-500/20' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600'
                 }`}
               >
                 {selectedMode === 'game' && (
-                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
@@ -147,47 +147,62 @@ const QuizModeSelectorPage = () => {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Animated Quiz</h3>
-                  <p className="text-sm text-purple-600 dark:text-purple-400 font-semibold">Smooth & Engaging</p>
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">🌳 Personality Garden</h3>
+                  <p className="text-sm text-green-600 dark:text-green-400 font-semibold">Magical & Immersive</p>
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                  Answer questions with beautiful animations, emoji scales, and instant visual feedback. Engaging and fun!
+                  Grow a magical tree that represents your personality. Nurture it with your answers and watch it bloom into a unique reflection of who you are!
                 </p>
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                    <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Smooth transitions</span>
+                    <span>Grow your personality tree</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                    <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Emoji-based scales</span>
+                    <span>Magical nurture elements</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                    <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>XP rewards</span>
+                    <span>Beautiful visual journey</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                    <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>~10 minutes</span>
+                    <span>Unique final tree</span>
                   </div>
+                  <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+                    <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span>Save & continue anytime</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>~10 minutes</span>
                 </div>
               </div>
             </div>

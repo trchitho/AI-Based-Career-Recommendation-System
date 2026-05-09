@@ -194,3 +194,46 @@ class GamificationService:
         db.flush()
         
         return achievement
+    
+    @staticmethod
+    def save_game_progress(
+        db: Session,
+        gamification_session_id: int,
+        user_id: int,
+        extra_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Save game progress to extra_data field"""
+        gam_session = db.query(AssessmentGamificationSession).filter(
+            AssessmentGamificationSession.id == gamification_session_id,
+            AssessmentGamificationSession.user_id == user_id
+        ).first()
+        
+        if not gam_session:
+            raise ValueError("Gamification session not found")
+        
+        # Update extra_data with game progress
+        gam_session.extra_data = extra_data
+        db.flush()
+        
+        return {
+            "success": True,
+            "gamification_session_id": gamification_session_id,
+            "saved_at": datetime.utcnow().isoformat()
+        }
+    
+    @staticmethod
+    def load_game_progress(
+        db: Session,
+        gamification_session_id: int,
+        user_id: int
+    ) -> Optional[Dict[str, Any]]:
+        """Load game progress from extra_data field"""
+        gam_session = db.query(AssessmentGamificationSession).filter(
+            AssessmentGamificationSession.id == gamification_session_id,
+            AssessmentGamificationSession.user_id == user_id
+        ).first()
+        
+        if not gam_session:
+            raise ValueError("Gamification session not found")
+        
+        return gam_session.extra_data

@@ -738,12 +738,14 @@ const AssessmentPage = () => {
                     questions={questions}
                     onComplete={handleTestComplete}
                     onCancel={handleCancel}
+                    assessmentSessionId={Date.now()} // Temporary ID, will be replaced when assessment is saved
                   />
                 ) : quizMode === 'game' ? (
                   <GameQuizMode
                     questions={questions}
                     onComplete={handleTestComplete}
                     onCancel={handleCancel}
+                    assessmentSessionId={Date.now()} // Temporary ID for gamification
                   />
                 ) : (
                   <CareerTestComponent
