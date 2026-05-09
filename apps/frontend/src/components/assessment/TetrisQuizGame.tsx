@@ -758,7 +758,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
     const shuffledShapes = currentQuestionShapes;
 
     if (currentQuestion.question_type === 'SCALE') {
-      const labels = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
+      const labels = ['Rất không đồng ý', 'Không đồng ý', 'Trung lập', 'Đồng ý', 'Rất đồng ý'];
       const emojis = ['😟', '🙁', '😐', '🙂', '😊'];
       return [1, 2, 3, 4, 5].map((value, index) => {
         const shape = shuffledShapes[index % shuffledShapes.length] || 'O';
@@ -771,12 +771,28 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         };
       });
     } else if (currentQuestion.options) {
+      // Translation map for English options to Vietnamese
+      const optionTranslations: Record<string, string> = {
+        'Strongly Dislike': 'Rất không thích',
+        'Dislike': 'Không thích',
+        'Unsure': 'Không chắc',
+        'Like': 'Thích',
+        'Strongly Like': 'Rất thích',
+        'Strongly Disagree': 'Rất không đồng ý',
+        'Disagree': 'Không đồng ý',
+        'Neutral': 'Trung lập',
+        'Agree': 'Đồng ý',
+        'Strongly Agree': 'Rất đồng ý'
+      };
+      
       return currentQuestion.options.map((option, index) => {
         const shape = shuffledShapes[index % shuffledShapes.length] || 'O';
+        // Translate option if it exists in translation map, otherwise use original
+        const translatedText = optionTranslations[option] || option;
         return {
-          text: option,
+          text: translatedText,
           emoji: undefined,
-          value: option,
+          value: option, // Keep original value for backend
           color: tetrisColors[shape],
           shape: shape,
         };
@@ -850,17 +866,17 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             <div className="mb-2 animate-bounce">
               <div className="text-3xl mb-1">🏆</div>
               <div className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 dark:from-yellow-400 dark:via-orange-400 dark:to-red-400 drop-shadow-lg">
-                CONGRATULATIONS!
+                CHÚC MỪNG!
               </div>
             </div>
 
             {/* Completion Message */}
             <div className="mb-3">
               <p className="text-sm font-bold text-gray-800 dark:text-white mb-1">
-                🎮 You've Completed All {questions.length} Questions! 🎮
+                🎮 Bạn Đã Hoàn Thành Tất Cả {questions.length} Câu Hỏi! 🎮
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                Amazing job! Let's see your achievements!
+                Tuyệt vời! Hãy xem thành tích của bạn!
               </p>
             </div>
 
@@ -869,28 +885,28 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               {/* Final Score */}
               <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg p-2.5 shadow-xl border-2 border-yellow-300 transform hover:scale-105 transition-all">
                 <div className="text-lg mb-0.5">⭐</div>
-                <div className="text-[10px] font-bold text-yellow-900 uppercase mb-0.5">Final Score</div>
+                <div className="text-[10px] font-bold text-yellow-900 uppercase mb-0.5">Điểm Cuối</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{score}</div>
               </div>
 
               {/* Final Level */}
               <div className="bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg p-2.5 shadow-xl border-2 border-cyan-300 transform hover:scale-105 transition-all">
                 <div className="text-lg mb-0.5">🎯</div>
-                <div className="text-[10px] font-bold text-cyan-900 uppercase mb-0.5">Final Level</div>
+                <div className="text-[10px] font-bold text-cyan-900 uppercase mb-0.5">Cấp Độ Cuối</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{level}</div>
               </div>
 
               {/* Total XP */}
               <div className="bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg p-2.5 shadow-xl border-2 border-purple-300 transform hover:scale-105 transition-all">
                 <div className="text-lg mb-0.5">💎</div>
-                <div className="text-[10px] font-bold text-purple-900 uppercase mb-0.5">Total XP</div>
+                <div className="text-[10px] font-bold text-purple-900 uppercase mb-0.5">Tổng KN</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{xp}</div>
               </div>
 
               {/* Max Combo */}
               <div className="bg-gradient-to-br from-red-400 to-orange-500 rounded-lg p-2.5 shadow-xl border-2 border-red-300 transform hover:scale-105 transition-all">
                 <div className="text-lg mb-0.5">🔥</div>
-                <div className="text-[10px] font-bold text-red-900 uppercase mb-0.5">Max Combo</div>
+                <div className="text-[10px] font-bold text-red-900 uppercase mb-0.5">Combo Tối Đa</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{maxCombo}x</div>
               </div>
             </div>
@@ -899,27 +915,27 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             {(maxCombo >= 5 || level >= 5 || nuclear > 0 || score >= 5000) && (
               <div className="mb-3 bg-white/50 dark:bg-gray-800/50 rounded-lg p-2 backdrop-blur-sm">
                 <div className="text-xs font-bold text-gray-800 dark:text-white mb-1.5">
-                  🌟 Special Achievements 🌟
+                  🌟 Thành Tích Đặc Biệt 🌟
                 </div>
                 <div className="flex flex-wrap justify-center gap-1.5">
                   {maxCombo >= 5 && (
                     <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg">
-                      🔥 Combo Master ({maxCombo}x)
+                      🔥 Bậc Thầy Combo ({maxCombo}x)
                     </div>
                   )}
                   {level >= 5 && (
                     <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg">
-                      🎯 Level Champion (Lv.{level})
+                      🎯 Nhà Vô Địch Cấp Độ (Lv.{level})
                     </div>
                   )}
                   {nuclear > 0 && (
                     <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg animate-pulse">
-                      ☢️ Nuclear Unlocked!
+                      ☢️ Đã Mở Khóa Hạt Nhân!
                     </div>
                   )}
                   {score >= 5000 && (
                     <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg">
-                      💰 High Scorer ({score})
+                      💰 Điểm Số Cao ({score})
                     </div>
                   )}
                 </div>
@@ -934,11 +950,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               }}
               className="w-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white font-black text-sm py-2.5 px-4 rounded-lg shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-green-400 hover:border-green-300"
             >
-              ✨ View My Analysis ✨
+              ✨ Xem Phân Tích Của Tôi ✨
             </button>
 
             <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-2">
-              Click to see your detailed personality and career analysis
+              Nhấp để xem phân tích chi tiết về tính cách và nghề nghiệp
             </p>
           </div>
         </div>
@@ -947,7 +963,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
   }
 
   if (!currentQuestion) {
-    return <div className="text-white text-center p-8">Loading questions...</div>;
+    return <div className="text-white text-center p-8">Đang tải câu hỏi...</div>;
   }
 
   return (
@@ -957,12 +973,12 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         <div className="w-full flex items-center justify-between bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-2xl p-4 shadow-2xl border-2 border-gray-300 dark:border-gray-700 mb-4">
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-center">
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Level</div>
+              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Cấp Độ</div>
               <div className="text-3xl font-black text-cyan-600 dark:text-cyan-400 drop-shadow-lg">{level}</div>
             </div>
             <div className="w-px h-12 bg-gray-400 dark:bg-gray-700"></div>
             <div className="flex flex-col">
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">XP Progress</div>
+              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Tiến Trình KN</div>
               <div className="w-40 h-3 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-400 dark:border-gray-600">
                 <div 
                   className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
@@ -982,19 +998,19 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
                 {combo}x
               </div>
               {maxCombo > 0 && (
-                <div className="text-xs text-gray-500 dark:text-gray-400">Max: {maxCombo}x</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Tối đa: {maxCombo}x</div>
               )}
             </div>
           </div>
           
           <div className="flex items-center gap-6">
             <div className="text-center">
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Score</div>
+              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Điểm Số</div>
               <div className="text-3xl font-black text-yellow-600 dark:text-yellow-400 drop-shadow-lg">{score}</div>
             </div>
             <div className="w-px h-12 bg-gray-400 dark:bg-gray-700"></div>
             <div className="text-center">
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Progress</div>
+              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Tiến Trình</div>
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">{currentIndex + 1}/{questions.length}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400">{Math.round(progress)}%</div>
             </div>
@@ -1007,8 +1023,8 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-xl shadow-2xl border-2 border-purple-400 flex items-center gap-3">
               <span className="text-4xl animate-bounce">☢️</span>
               <div>
-                <div className="font-bold text-lg">Easter Egg Unlocked!</div>
-                <div className="text-sm text-purple-100">Nuclear Power obtained!</div>
+                <div className="font-bold text-lg">Đã Mở Khóa Trứng Phục Sinh!</div>
+                <div className="text-sm text-purple-100">Đã nhận Năng Lượng Hạt Nhân!</div>
               </div>
             </div>
           </div>
@@ -1021,19 +1037,19 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             {/* Stats Vertical */}
             <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 shadow-xl border-2 border-gray-300 dark:border-gray-700 space-y-4">
               <div className="text-center">
-                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Level</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Cấp Độ</div>
                 <div className="text-4xl font-black text-cyan-600 dark:text-cyan-400 drop-shadow-lg">{level}</div>
               </div>
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div>
-                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 text-center">XP Progress</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 text-center">Tiến Trình KN</div>
                 <div className="w-full h-3 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-400 dark:border-gray-600">
                   <div 
                     className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
                     style={{ width: `${((xp % 400) / 400) * 100}%` }}
                   ></div>
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">{xp % 400} / 400 XP</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">{xp % 400} / 400 KN</div>
               </div>
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div className="text-center">
@@ -1046,17 +1062,17 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
                   {combo}x
                 </div>
                 {maxCombo > 0 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Max: {maxCombo}x</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Tối đa: {maxCombo}x</div>
                 )}
               </div>
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div className="text-center">
-                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Score</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Điểm Số</div>
                 <div className="text-4xl font-black text-yellow-600 dark:text-yellow-400 drop-shadow-lg">{score}</div>
               </div>
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div className="text-center">
-                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Progress</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Tiến Trình</div>
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">{currentIndex + 1}/{questions.length}</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">{Math.round(progress)}%</div>
               </div>
@@ -1216,7 +1232,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             <div className="flex items-center justify-center gap-2">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
               <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider px-2">
-                🎮 Drag a Piece to Answer
+                🎮 Kéo Mảnh Ghép Để Trả Lời
               </p>
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
             </div>
@@ -1248,7 +1264,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
                           }));
                         }}
                         className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg transform hover:scale-110 transition-all duration-200 border-2 border-white dark:border-gray-700"
-                        title="Rotate piece (Right-click also works)"
+                        title="Xoay mảnh ghép (Chuột phải cũng hoạt động)"
                       >
                         ↻
                       </button>
@@ -1297,11 +1313,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             <div className="flex items-center gap-2 mb-4">
               <div className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
                 <span className="text-2xl">❓</span>
-                <span>Question {currentIndex + 1} / {questions.length}</span>
+                <span>Câu Hỏi {currentIndex + 1} / {questions.length}</span>
               </div>
               <span className="text-gray-400 dark:text-gray-600">•</span>
               <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                {currentQuestion.test_type === 'RIASEC' ? '🎯 Career' : '🧠 Personality'}
+                {currentQuestion.test_type === 'RIASEC' ? '🎯 Nghề Nghiệp' : '🧠 Tính Cách'}
               </span>
             </div>
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-5 border-2 border-blue-300 dark:border-blue-600 shadow-lg">
@@ -1324,7 +1340,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             >
               <span className="text-2xl">💣</span>
               <div className="flex-1 min-w-0">
-                <div className="text-gray-900 dark:text-white font-semibold text-xs">Bomb</div>
+                <div className="text-gray-900 dark:text-white font-semibold text-xs">Bom</div>
                 <div className="text-gray-500 dark:text-gray-400 text-xs">2x2</div>
               </div>
               <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
@@ -1343,7 +1359,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             >
               <span className="text-2xl">🚀</span>
               <div className="flex-1 min-w-0">
-                <div className="text-gray-900 dark:text-white font-semibold text-xs">Rocket</div>
+                <div className="text-gray-900 dark:text-white font-semibold text-xs">Tên Lửa</div>
                 <div className="text-gray-500 dark:text-gray-400 text-xs">4x4</div>
               </div>
               <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
@@ -1361,8 +1377,8 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               >
                 <span className="text-2xl">☢️</span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-white font-bold text-xs">Nuclear</div>
-                  <div className="text-purple-100 text-xs">ALL!</div>
+                  <div className="text-white font-bold text-xs">Hạt Nhân</div>
+                  <div className="text-purple-100 text-xs">TẤT CẢ!</div>
                 </div>
                 <div className="bg-white/30 rounded-full w-7 h-7 flex items-center justify-center text-white font-black text-xs">
                   {nuclear}
@@ -1378,7 +1394,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         <div className="max-w-4xl mx-auto bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 shadow-2xl border-2 border-gray-300 dark:border-gray-700">
           <h3 className="text-lg font-black text-gray-900 dark:text-white mb-3 flex items-center gap-2">
             <span className="text-2xl">🏆</span>
-            <span className="flex-1">Completed Answers</span>
+            <span className="flex-1">Câu Trả Lời Đã Hoàn Thành</span>
             <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/50 px-3 py-1 rounded-full">
               {completedAnswers.length}/{questions.length}
             </span>
@@ -1389,7 +1405,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               <div className="col-span-3 text-center py-4">
                 <div className="text-4xl mb-2 animate-bounce">🎯</div>
                 <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                  Drag pieces to answer!
+                  Kéo mảnh ghép để trả lời!
                 </p>
               </div>
             ) : (
@@ -1421,7 +1437,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
           onClick={handleExitClick}
           className="w-full max-w-4xl mx-auto block mt-8 px-4 py-3 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 hover:from-gray-400 hover:to-gray-500 dark:hover:from-gray-600 dark:hover:to-gray-700 text-gray-900 dark:text-white rounded-lg font-bold text-sm transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-gray-400 dark:border-gray-600"
         >
-          ← Back to Menu
+          ← Quay Lại Menu
         </button>
       </div>
 

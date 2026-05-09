@@ -106,8 +106,8 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
       {/* Progress Bar */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
-          <span>Question {currentIndex + 1} of {questions.length}</span>
-          <span>{Math.round(progress)}% Complete</span>
+          <span>Câu hỏi {currentIndex + 1} / {questions.length}</span>
+          <span>{Math.round(progress)}% Hoàn thành</span>
         </div>
         <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div 

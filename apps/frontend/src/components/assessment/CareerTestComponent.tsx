@@ -573,7 +573,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
                 <div className="flex flex-col md:flex-row md:items-center gap-6">
                   {/* Question Text */}
                   <div className="flex-1">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1 block">Question {(currentPage * questionsPerPage) + index + 1}</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1 block">Câu hỏi {(currentPage * questionsPerPage) + index + 1}</span>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-snug">
                       {question.question_text}
                     </h3>

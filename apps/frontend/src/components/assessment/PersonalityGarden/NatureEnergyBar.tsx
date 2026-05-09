@@ -35,7 +35,7 @@ const NatureEnergyBar: React.FC<NatureEnergyBarProps> = ({
           {/* Energy Progress */}
           <div className="flex-1 min-w-[150px]">
             <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
-              <span>Growth Lv.{growthLevel}</span>
+              <span>Cấp Độ {growthLevel}</span>
               <span>{currentLevelEnergy} / 100</span>
             </div>
             <div className="w-full h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -53,17 +53,17 @@ const NatureEnergyBar: React.FC<NatureEnergyBarProps> = ({
         {bloomChain > 0 && (
           <div className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
             <span>🌸</span>
-            <span>{bloomChain}x Chain</span>
+            <span>{bloomChain}x Chuỗi</span>
           </div>
         )}
 
         {/* Question Progress */}
         <div className="text-right">
           <div className="text-sm font-bold text-gray-700 dark:text-gray-300">
-            Question {questionNumber}/{totalQuestions}
+            Câu hỏi {questionNumber}/{totalQuestions}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {Math.round(progress)}% Complete
+            {Math.round(progress)}% Hoàn thành
           </div>
         </div>
 
@@ -73,7 +73,7 @@ const NatureEnergyBar: React.FC<NatureEnergyBarProps> = ({
             {natureEnergy}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            Nature Energy
+            Năng Lượng Tự Nhiên
           </div>
         </div>
       </div>

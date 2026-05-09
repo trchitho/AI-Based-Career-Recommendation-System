@@ -203,10 +203,10 @@ const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ isPlaying = true, onA
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-[9999]">
       <button
         onClick={toggleMusic}
-        className="bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+        className="bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border-2 border-gray-300 dark:border-gray-600"
         title={isMusicEnabled ? 'Tắt nhạc' : 'Bật nhạc'}
       >
         {isMusicEnabled ? (

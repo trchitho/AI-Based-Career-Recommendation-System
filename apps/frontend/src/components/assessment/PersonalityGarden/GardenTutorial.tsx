@@ -10,74 +10,74 @@ const GardenTutorial: React.FC<GardenTutorialProps> = ({ onComplete, onSkip }) =
 
   const tutorialSteps = [
     {
-      title: "Welcome to Your Personality Garden! 🌳",
-      description: "You're about to embark on a magical journey of self-discovery. Let's learn how to grow your unique personality tree!",
+      title: "Chào mừng đến với Vườn Tính Cách! 🌳",
+      description: "Bạn sắp bắt đầu một hành trình kỳ diệu khám phá bản thân. Hãy cùng học cách trồng cây tính cách độc đáo của riêng bạn!",
       icon: "🌱",
       image: null,
       tips: [
-        "This is not a traditional quiz",
-        "Your answers will grow a living tree",
-        "The final tree represents YOU"
+        "Đây không phải bài kiểm tra truyền thống",
+        "Câu trả lời của bạn sẽ nuôi dưỡng một cây sống động",
+        "Cây cuối cùng đại diện cho CHÍNH BẠN"
       ]
     },
     {
-      title: "Plant Your Seed 🌱",
-      description: "First, you'll plant a magical seed in the soil. This seed represents the beginning of your journey.",
+      title: "Gieo Hạt Giống 🌱",
+      description: "Đầu tiên, bạn sẽ gieo một hạt giống kỳ diệu vào đất. Hạt giống này đại diện cho khởi đầu hành trình của bạn.",
       icon: "🌱",
       image: null,
       tips: [
-        "Click to plant your seed",
-        "Watch it drop into the soil",
-        "See the first sprout emerge"
+        "Nhấp để gieo hạt giống",
+        "Xem nó rơi xuống đất",
+        "Chứng kiến mầm non đầu tiên nảy lên"
       ]
     },
     {
-      title: "Nurture with Elements ✨",
-      description: "Answer questions by choosing magical elements. Each element represents a different answer and will help your tree grow!",
+      title: "Chăm Sóc Bằng Các Yếu Tố ✨",
+      description: "Trả lời câu hỏi bằng cách chọn các yếu tố kỳ diệu. Mỗi yếu tố đại diện cho một câu trả lời khác nhau và sẽ giúp cây của bạn phát triển!",
       icon: "✨",
       image: null,
       tips: [
-        "☀️ Warm Sunlight - Strong agreement",
-        "💧 Calm Water - Gentle responses",
-        "🌿 Growth Fertilizer - Balanced choices",
-        "🍃 Natural Breeze - Light preferences",
-        "✨ Magical Energy - Powerful feelings"
+        "☀️ Ánh nắng ấm áp - Rất đồng ý",
+        "💧 Nước trong lành - Phản hồi nhẹ nhàng",
+        "🌿 Phân bón tăng trưởng - Lựa chọn cân bằng",
+        "🍃 Gió tự nhiên - Sở thích nhẹ",
+        "✨ Năng lượng kỳ diệu - Cảm xúc mạnh mẽ"
       ]
     },
     {
-      title: "Watch Your Tree Grow 🌳",
-      description: "With each answer, your tree will grow taller, sprout new branches, and bloom beautiful flowers. The environment will change from dawn to twilight!",
+      title: "Xem Cây Của Bạn Lớn Lên 🌳",
+      description: "Với mỗi câu trả lời, cây của bạn sẽ cao lên, mọc thêm cành mới và nở những bông hoa xinh đẹp. Môi trường sẽ thay đổi từ bình minh đến hoàng hôn!",
       icon: "🌳",
       image: null,
       tips: [
-        "Tree grows with each answer",
-        "Branches and leaves appear",
-        "Flowers bloom as you progress",
-        "Environment evolves beautifully"
+        "Cây lớn lên sau mỗi câu trả lời",
+        "Cành và lá xuất hiện",
+        "Hoa nở khi bạn tiến bộ",
+        "Môi trường biến đổi tuyệt đẹp"
       ]
     },
     {
-      title: "Track Your Progress 📊",
-      description: "Watch your Nature Energy grow and your Growth Level increase. You can save your progress and continue anytime!",
+      title: "Theo Dõi Tiến Trình 📊",
+      description: "Xem Năng Lượng Tự Nhiên của bạn tăng lên và Cấp Độ Phát Triển tăng cao. Bạn có thể lưu tiến trình và tiếp tục bất cứ lúc nào!",
       icon: "📊",
       image: null,
       tips: [
-        "Nature Energy = Your XP",
-        "Growth Level increases every 100 energy",
-        "Progress bar shows completion",
-        "Save & continue anytime"
+        "Năng Lượng Tự Nhiên = Điểm kinh nghiệm",
+        "Cấp Độ Phát Triển tăng mỗi 100 năng lượng",
+        "Thanh tiến trình hiển thị hoàn thành",
+        "Lưu & tiếp tục bất cứ lúc nào"
       ]
     },
     {
-      title: "Discover Your Personality Tree 🎨",
-      description: "At the end, you'll see your fully grown personality tree - a unique, beautiful representation of who you are!",
+      title: "Khám Phá Cây Tính Cách Của Bạn 🎨",
+      description: "Cuối cùng, bạn sẽ thấy cây tính cách đã phát triển hoàn toàn - một đại diện độc đáo, tuyệt đẹp về con người bạn!",
       icon: "🎨",
       image: null,
       tips: [
-        "See your complete tree",
-        "View your achievements",
-        "Get career recommendations",
-        "Screenshot & share your tree!"
+        "Xem cây hoàn chỉnh của bạn",
+        "Xem thành tích của bạn",
+        "Nhận gợi ý nghề nghiệp",
+        "Chụp màn hình & chia sẻ cây của bạn!"
       ]
     }
   ];
@@ -161,7 +161,7 @@ const GardenTutorial: React.FC<GardenTutorialProps> = ({ onComplete, onSkip }) =
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 mb-8">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <span>💡</span>
-              <span>Key Points:</span>
+              <span>Điểm Chính:</span>
             </h3>
             <ul className="space-y-3">
               {currentTutorial.tips.map((tip, index) => (
@@ -197,12 +197,12 @@ const GardenTutorial: React.FC<GardenTutorialProps> = ({ onComplete, onSkip }) =
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
-              ← Previous
+              ← Trước
             </button>
 
             {/* Step indicator */}
             <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-              Step {currentStep + 1} of {tutorialSteps.length}
+              Bước {currentStep + 1} / {tutorialSteps.length}
             </div>
 
             {/* Next/Start button */}
@@ -212,11 +212,11 @@ const GardenTutorial: React.FC<GardenTutorialProps> = ({ onComplete, onSkip }) =
             >
               {isLastStep ? (
                 <span className="flex items-center gap-2">
-                  <span>Start Growing!</span>
+                  <span>Bắt Đầu Trồng Cây!</span>
                   <span>🌱</span>
                 </span>
               ) : (
-                <span>Next →</span>
+                <span>Tiếp →</span>
               )}
             </button>
           </div>
@@ -227,14 +227,14 @@ const GardenTutorial: React.FC<GardenTutorialProps> = ({ onComplete, onSkip }) =
               onClick={onSkip}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 text-sm font-medium transition-colors"
             >
-              Skip Tutorial
+              Bỏ Qua Hướng Dẫn
             </button>
           </div>
         </div>
 
         {/* Fun fact */}
         <div className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
-          <p>💡 <strong>Fun Fact:</strong> Your tree will be completely unique to you!</p>
+          <p>💡 <strong>Thú Vị:</strong> Cây của bạn sẽ hoàn toàn độc nhất vô nhị!</p>
         </div>
       </div>
 

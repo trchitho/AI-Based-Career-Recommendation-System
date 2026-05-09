@@ -160,8 +160,8 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           }
         }
         
-        // Take first 44 questions (same as traditional test)
-        const selected = combined.slice(0, 44);
+        // Take first 33 questions (3 per dimension × 11 dimensions)
+        const selected = combined.slice(0, 33);
         
         console.log(`📊 Total questions loaded: ${selected.length}`);
         console.log(`📊 RIASEC questions: ${riasecData.length}`);
@@ -177,7 +177,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         // Set both together so render sees consistent state
         setStoryGroups(groups);
 
-        // Add essay as scenario 45
+        // Add essay as scenario 34
         const essayScenario: StoryScenario = {
           emoji: '✍️',
           title: 'Chia Sẻ Câu Chuyện Của Bạn',
@@ -748,7 +748,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
             );
           })}
 
-          {/* Essay Page - Scenario 45 */}
+          {/* Essay Page - Scenario 34 */}
           <Page className="essay-page">
             <div 
               className="scenario-content"
@@ -757,7 +757,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               onPointerDown={(e) => e.stopPropagation()}
             >
               <div className="scenario-header">
-                <span className="scenario-number">Scenario 45 of 45</span>
+                <span className="scenario-number">Scenario 34 of 34</span>
                 <div className="label-badge" style={{ 
                   backgroundColor: '#0d948820',
                   borderColor: '#0d9488',

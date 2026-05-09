@@ -48,12 +48,12 @@ const PlantingIntro: React.FC<PlantingIntroProps> = ({ onComplete }) => {
           <>
             {/* Title */}
             <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent animate-fade-in">
-              Your Personality Garden
+              Vườn Tính Cách Của Bạn
             </h1>
             
             {/* Subtitle */}
             <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-12 animate-fade-in-delay">
-              Plant a magical seed and watch it grow into a tree that represents your unique personality
+              Trồng một hạt giống kỳ diệu và xem nó phát triển thành cây đại diện cho tính cách độc đáo của bạn
             </p>
 
             {/* Seed visualization */}
@@ -73,7 +73,7 @@ const PlantingIntro: React.FC<PlantingIntroProps> = ({ onComplete }) => {
             >
               <span className="relative z-10 flex items-center gap-3">
                 <span>🌱</span>
-                <span>Plant Your Seed</span>
+                <span>Trồng Hạt Giống</span>
                 <span>🌱</span>
               </span>
               
@@ -85,15 +85,15 @@ const PlantingIntro: React.FC<PlantingIntroProps> = ({ onComplete }) => {
             <div className="mt-12 space-y-4 text-gray-600 dark:text-gray-400">
               <p className="flex items-center justify-center gap-2">
                 <span className="text-2xl">✨</span>
-                <span>Answer questions by nurturing your tree</span>
+                <span>Trả lời câu hỏi bằng cách nuôi dưỡng cây của bạn</span>
               </p>
               <p className="flex items-center justify-center gap-2">
                 <span className="text-2xl">🌳</span>
-                <span>Watch it grow with every choice you make</span>
+                <span>Xem nó phát triển với mỗi lựa chọn bạn đưa ra</span>
               </p>
               <p className="flex items-center justify-center gap-2">
                 <span className="text-2xl">🎨</span>
-                <span>Discover your unique personality tree</span>
+                <span>Khám phá cây tính cách độc đáo của bạn</span>
               </p>
             </div>
           </>
@@ -182,7 +182,7 @@ const PlantingIntro: React.FC<PlantingIntroProps> = ({ onComplete }) => {
 
               {/* Message */}
               <div className="mt-8 text-2xl font-bold text-green-600 dark:text-green-400 animate-fade-in">
-                {!showSprout ? 'Planting your seed...' : 'Your journey begins! 🌱'}
+                {!showSprout ? 'Đang trồng hạt giống...' : 'Hành trình của bạn bắt đầu! 🌱'}
               </div>
             </div>
           </>

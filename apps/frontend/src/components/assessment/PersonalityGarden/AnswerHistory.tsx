@@ -68,7 +68,7 @@ const AnswerHistory: React.FC<AnswerHistoryProps> = ({
 
                   {/* Hover tooltip with full question */}
                   <div className="absolute left-0 bottom-full mb-2 w-64 bg-gray-900 text-white text-xs p-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                    <p className="font-semibold mb-1">Question {item.questionNumber}:</p>
+                    <p className="font-semibold mb-1">Câu hỏi {item.questionNumber}:</p>
                     <p>{item.question.question_text}</p>
                     <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                   </div>

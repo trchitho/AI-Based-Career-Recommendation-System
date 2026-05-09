@@ -64,7 +64,7 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
         {
           id: '1',
           type: 'water',
-          label: 'Strongly Disagree',
+          label: 'Rất không đồng ý',
           emoji: '💧',
           value: 1,
           color: 'from-blue-400 to-blue-600',
@@ -73,7 +73,7 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
         {
           id: '2',
           type: 'fertilizer',
-          label: 'Disagree',
+          label: 'Không đồng ý',
           emoji: '🌱',
           value: 2,
           color: 'from-amber-600 to-amber-800',
@@ -82,7 +82,7 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
         {
           id: '3',
           type: 'soil',
-          label: 'Neutral',
+          label: 'Trung lập',
           emoji: '🪴',
           value: 3,
           color: 'from-stone-500 to-stone-700',
@@ -91,7 +91,7 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
         {
           id: '4',
           type: 'sunlight',
-          label: 'Agree',
+          label: 'Đồng ý',
           emoji: '☀️',
           value: 4,
           color: 'from-yellow-400 to-orange-500',
@@ -100,7 +100,7 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
         {
           id: '5',
           type: 'nutrients',
-          label: 'Strongly Agree',
+          label: 'Rất đồng ý',
           emoji: '🌿',
           value: 5,
           color: 'from-green-500 to-green-700',
@@ -118,15 +118,31 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
         fertilizer: { emoji: '🌱', color: 'from-amber-600 to-amber-800', particleColor: '#D97706' }
       };
 
+      // Translation map for English options to Vietnamese
+      const optionTranslations: Record<string, string> = {
+        'Strongly Dislike': 'Rất không thích',
+        'Dislike': 'Không thích',
+        'Unsure': 'Không chắc',
+        'Like': 'Thích',
+        'Strongly Like': 'Rất thích',
+        'Strongly Disagree': 'Rất không đồng ý',
+        'Disagree': 'Không đồng ý',
+        'Neutral': 'Trung lập',
+        'Agree': 'Đồng ý',
+        'Strongly Agree': 'Rất đồng ý'
+      };
+
       return (question.options || []).map((option, index) => {
         const type = elementTypes[index % elementTypes.length];
         const config = elementConfigs[type];
+        // Translate option if it exists in translation map, otherwise use original
+        const translatedLabel = optionTranslations[option] || option;
         return {
           id: `${index}`,
           type,
-          label: option,
+          label: translatedLabel,
           emoji: config.emoji,
-          value: option,
+          value: option, // Keep original value for backend
           color: config.color,
           particleColor: config.particleColor
         };
@@ -265,7 +281,7 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
                 {question.test_type === 'RIASEC' ? '🎯' : '🧠'}
               </span>
               <span className="text-xs font-bold text-purple-600 dark:text-purple-400">
-                {question.test_type === 'RIASEC' ? 'Career Interest' : 'Personality Trait'}
+                {question.test_type === 'RIASEC' ? 'Sở Thích Nghề Nghiệp' : 'Đặc Điểm Tính Cách'}
               </span>
             </div>
             <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white leading-snug">
@@ -299,7 +315,7 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="max-w-4xl mx-auto p-2 pb-3">
           <p className="text-center text-xs font-bold text-gray-800 dark:text-gray-200 mb-2 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-full px-4 py-1 inline-block shadow-lg">
-            🌱 Choose how to nurture your tree
+            🌱 Chọn cách nuôi dưỡng cây của bạn
           </p>
           
           <div className="grid grid-cols-5 gap-2 mb-2">
@@ -383,7 +399,7 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
             onClick={onCancel}
             className="mt-2 w-full py-2 text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 font-bold transition-colors bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-md"
           >
-            Cancel Assessment
+            Hủy Đánh Giá
           </button>
         </div>
       </div>

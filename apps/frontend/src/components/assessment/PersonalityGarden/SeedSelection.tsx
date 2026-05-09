@@ -16,41 +16,41 @@ interface SeedSelectionProps {
 const SEEDS: Seed[] = [
   {
     id: 'oak',
-    name: 'Oak Seed',
+    name: 'Hạt Sồi',
     emoji: '🌰',
-    description: 'Strong and steady growth',
+    description: 'Phát triển mạnh mẽ và vững chắc',
     color: '#8D6E63',
     gradient: 'from-amber-700 to-amber-900'
   },
   {
     id: 'maple',
-    name: 'Maple Seed',
+    name: 'Hạt Phong',
     emoji: '🍁',
-    description: 'Vibrant and colorful',
+    description: 'Rực rỡ và đầy màu sắc',
     color: '#D32F2F',
     gradient: 'from-red-500 to-orange-600'
   },
   {
     id: 'cherry',
-    name: 'Cherry Seed',
+    name: 'Hạt Anh Đào',
     emoji: '🌸',
-    description: 'Beautiful blossoms',
+    description: 'Hoa nở tuyệt đẹp',
     color: '#EC407A',
     gradient: 'from-pink-400 to-pink-600'
   },
   {
     id: 'pine',
-    name: 'Pine Seed',
+    name: 'Hạt Thông',
     emoji: '🌲',
-    description: 'Evergreen and resilient',
+    description: 'Xanh tươi và kiên cường',
     color: '#388E3C',
     gradient: 'from-green-600 to-green-800'
   },
   {
     id: 'willow',
-    name: 'Willow Seed',
+    name: 'Hạt Liễu',
     emoji: '🌿',
-    description: 'Graceful and flowing',
+    description: 'Duyên dáng và uyển chuyển',
     color: '#7CB342',
     gradient: 'from-lime-500 to-green-600'
   }
@@ -103,10 +103,10 @@ const SeedSelection: React.FC<SeedSelectionProps> = ({ onSeedSelected }) => {
             {/* Title */}
             <div className="text-center mb-12 animate-fade-in">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-4">
-                🌱 Choose Your Seed
+                🌱 Chọn Hạt Giống Của Bạn
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-300">
-                Select a seed to begin your personality garden journey
+                Chọn một hạt giống để bắt đầu hành trình vườn tính cách của bạn
               </p>
             </div>
 
@@ -163,7 +163,7 @@ const SeedSelection: React.FC<SeedSelectionProps> = ({ onSeedSelected }) => {
               <div className="text-center mb-8 animate-fade-in">
                 <div className="inline-block bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl px-8 py-4 shadow-xl">
                   <p className="text-gray-700 dark:text-gray-300 mb-2">
-                    You selected: <span className="font-bold text-xl">{selectedSeed.emoji} {selectedSeed.name}</span>
+                    Bạn đã chọn: <span className="font-bold text-xl">{selectedSeed.emoji} {selectedSeed.name}</span>
                   </p>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">
                     {selectedSeed.description}
@@ -181,7 +181,7 @@ const SeedSelection: React.FC<SeedSelectionProps> = ({ onSeedSelected }) => {
                 >
                   <span className="relative z-10 flex items-center gap-3">
                     <span>🌱</span>
-                    <span>Plant Your Seed</span>
+                    <span>Trồng Hạt Giống</span>
                     <span>→</span>
                   </span>
                   
@@ -220,7 +220,7 @@ const SeedSelection: React.FC<SeedSelectionProps> = ({ onSeedSelected }) => {
             </div>
             
             <p className="mt-8 text-2xl font-bold text-gray-800 dark:text-white animate-pulse">
-              Planting your {selectedSeed?.name}...
+              Đang trồng {selectedSeed?.name}...
             </p>
           </div>
         )}

@@ -329,13 +329,13 @@ const GardenScenery: React.FC<GardenSceneryProps> = ({ timeOfDay, isAnswering, t
       {/* Tree Stage Indicator - in the sky area, centered, higher */}
       <div className="absolute top-[15%] left-1/2 transform -translate-x-1/2 z-50">
         <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-5 py-2.5 rounded-full text-base font-bold text-gray-700 dark:text-gray-300 shadow-xl border-2 border-white/50">
-          {treeGrowth.stage === 'seed' && '🌱 Seed'}
-          {treeGrowth.stage === 'sprout' && '🌱 Sprout'}
-          {treeGrowth.stage === 'seedling' && '🌿 Seedling'}
-          {treeGrowth.stage === 'young-plant' && '🌿 Young Plant'}
-          {treeGrowth.stage === 'young-tree' && '🌳 Young Tree'}
-          {treeGrowth.stage === 'blooming-tree' && '🌸 Blooming Tree'}
-          {treeGrowth.stage === 'personality-tree' && '✨ Personality Tree'}
+          {treeGrowth.stage === 'seed' && '🌱 Hạt Giống'}
+          {treeGrowth.stage === 'sprout' && '🌱 Mầm Non'}
+          {treeGrowth.stage === 'seedling' && '🌿 Cây Con'}
+          {treeGrowth.stage === 'young-plant' && '🌿 Cây Non'}
+          {treeGrowth.stage === 'young-tree' && '🌳 Cây Trẻ'}
+          {treeGrowth.stage === 'blooming-tree' && '🌸 Cây Nở Hoa'}
+          {treeGrowth.stage === 'personality-tree' && '✨ Cây Tính Cách'}
         </div>
       </div>
 

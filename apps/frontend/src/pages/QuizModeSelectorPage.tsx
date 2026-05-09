@@ -54,13 +54,13 @@ const QuizModeSelectorPage = () => {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
                 </span>
-                🎮 Game Modes
+                🎮 Chế Độ Đánh Giá
               </span>
               <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-gray-900 via-purple-800 to-pink-800 dark:from-white dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-6 leading-tight">
-                Choose Your Game
+                Chọn Trò Chơi Của Bạn
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-medium max-w-3xl mx-auto">
-                Select a game mode for your assessment. All modes provide accurate career orientation results.
+                Chọn chế độ trò chơi cho bài đánh giá của bạn. Tất cả các chế độ đều cung cấp kết quả định hướng nghề nghiệp chính xác.
               </p>
             </div>
 
@@ -85,12 +85,12 @@ const QuizModeSelectorPage = () => {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Puzzle Game</h3>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">Interactive & Fun</p>
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Trò Chơi Xếp Hình</h3>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">Tương Tác & Vui Vẻ</p>
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                  Complete career interest puzzles by matching pieces. Each piece reveals insights about your personality!
+                  Hoàn thành các câu đố về sở thích nghề nghiệp bằng cách ghép các mảnh. Mỗi mảnh tiết lộ thông tin về tính cách của bạn!
                 </p>
 
                 <div className="space-y-3">
@@ -100,7 +100,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Drag & drop puzzle pieces</span>
+                    <span>Kéo & thả mảnh ghép</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
@@ -108,7 +108,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Progressive difficulty</span>
+                    <span>Độ khó tăng dần</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
@@ -116,7 +116,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>XP rewards per puzzle</span>
+                    <span>Phần thưởng KN mỗi câu đố</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
@@ -124,7 +124,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>~12 minutes</span>
+                    <span>~12 phút</span>
                   </div>
                 </div>
               </div>
@@ -147,12 +147,12 @@ const QuizModeSelectorPage = () => {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">🌳 Personality Garden</h3>
-                  <p className="text-sm text-green-600 dark:text-green-400 font-semibold">Magical & Immersive</p>
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">🌳 Vườn Tính Cách</h3>
+                  <p className="text-sm text-green-600 dark:text-green-400 font-semibold">Kỳ Diệu & Đắm Chìm</p>
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                  Grow a magical tree that represents your personality. Nurture it with your answers and watch it bloom into a unique reflection of who you are!
+                  Trồng một cây kỳ diệu đại diện cho tính cách của bạn. Nuôi dưỡng nó bằng câu trả lời của bạn và xem nó nở hoa thành phản ánh độc đáo về con người bạn!
                 </p>
 
                 <div className="space-y-3">
@@ -162,7 +162,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Grow your personality tree</span>
+                    <span>Trồng cây tính cách của bạn</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
@@ -170,7 +170,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Magical nurture elements</span>
+                    <span>Yếu tố nuôi dưỡng kỳ diệu</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
@@ -178,7 +178,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Beautiful visual journey</span>
+                    <span>Hành trình hình ảnh tuyệt đẹp</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
@@ -186,7 +186,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Unique final tree</span>
+                    <span>Cây cuối cùng độc đáo</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                     <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
@@ -194,7 +194,7 @@ const QuizModeSelectorPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <span>Save & continue anytime</span>
+                    <span>Lưu & tiếp tục bất cứ lúc nào</span>
                   </div>
                 </div>
 
@@ -202,7 +202,7 @@ const QuizModeSelectorPage = () => {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>~10 minutes</span>
+                  <span>~10 phút</span>
                 </div>
               </div>
             </div>
@@ -217,10 +217,10 @@ const QuizModeSelectorPage = () => {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-bold text-amber-900 dark:text-amber-100 text-lg mb-2">
-                    Same Results, Different Experience
+                    Kết Quả Giống Nhau, Trải Nghiệm Khác Nhau
                   </h4>
                   <p className="text-amber-700 dark:text-amber-300 leading-relaxed">
-                    Both modes use identical questions and assessment algorithms. Your career orientation results will be exactly the same regardless of which mode you choose. The only difference is how you interact with the quiz.
+                    Cả hai chế độ đều sử dụng câu hỏi và thuật toán đánh giá giống hệt nhau. Kết quả định hướng nghề nghiệp của bạn sẽ hoàn toàn giống nhau bất kể bạn chọn chế độ nào. Sự khác biệt duy nhất là cách bạn tương tác với bài kiểm tra.
                   </p>
                 </div>
               </div>
@@ -232,7 +232,7 @@ const QuizModeSelectorPage = () => {
                 onClick={() => navigate('/dashboard')}
                 className="px-8 py-4 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105"
               >
-                Back to Dashboard
+                Quay Lại Trang Chủ
               </button>
               <button
                 onClick={handleStart}
@@ -247,7 +247,7 @@ const QuizModeSelectorPage = () => {
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 )}
                 <span className="relative z-10 flex items-center gap-3">
-                  Start Assessment
+                  Bắt Đầu Đánh Giá
                   <svg className="w-6 h-6 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>

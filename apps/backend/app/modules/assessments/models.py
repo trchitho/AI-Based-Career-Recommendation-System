@@ -25,7 +25,8 @@ class AssessmentQuestion(Base):
     form_id = Column(BigInteger)
     question_no = Column(Integer)
     question_key = Column(Text)
-    prompt = Column(Text, nullable=False)
+    prompt_en = Column(Text, nullable=True)
+    prompt_vi = Column(Text, nullable=True)
     options_json = Column(JSONB)
     reverse_score = Column(Boolean, default=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
@@ -39,11 +40,14 @@ class AssessmentQuestion(Base):
             opts = opts_src["options"]
 
         qtype = "MULTIPLE_CHOICE" if opts else "SCALE"
+        
+        # Use Vietnamese prompt by default, fallback to English
+        question_text = self.prompt_vi or self.prompt_en or ""
 
         return {
             "id": str(self.id),
             "test_type": None,  # fill ở service
-            "question_text": self.prompt,
+            "question_text": question_text,
             "question_type": qtype,
             "options": opts,
             "dimension": self.question_key,

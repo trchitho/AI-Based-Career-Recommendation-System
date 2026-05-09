@@ -10,6 +10,7 @@ import EssayModalComponent from '../components/assessment/EssayModalComponent';
 import VoiceAssessmentComponent from '../components/assessment/VoiceAssessmentComponent';
 import EnhancedAssessmentFlow from '../components/assessment/EnhancedAssessmentFlow';
 import { assessmentService } from '../services/assessmentService';
+import api from '../lib/api';
 import MainLayout from '../components/layout/MainLayout';
 import UsageStatus from '../components/subscription/UsageStatus';
 import { LimitExceededModal } from '../components/assessment/LimitExceededModal';
@@ -164,9 +165,20 @@ const AssessmentPage = () => {
     if (quizMode === 'standard' || quizMode === 'game') {
       try {
         setLoading(true);
-        const riasecQuestions = await assessmentService.getQuestions('RIASEC');
-        const bigFiveQuestions = await assessmentService.getQuestions('BIGFIVE');
-        setQuestions([...riasecQuestions, ...bigFiveQuestions]);
+        
+        // BOTH game modes (Puzzle Game and Personality Garden) use 33 questions (3 per dimension)
+        // Only traditional test uses 44 questions (4 per dimension)
+        const perDim = 3; // Always 3 for game modes
+        
+        // Fetch with specific per_dim parameter
+        const riasecRes = await api.get('/api/assessments/questions/RIASEC', {
+          params: { shuffle: true, seed: Date.now(), per_dim: perDim },
+        });
+        const bigFiveRes = await api.get('/api/assessments/questions/BIGFIVE', {
+          params: { shuffle: true, seed: Date.now(), per_dim: perDim },
+        });
+        
+        setQuestions([...riasecRes.data, ...bigFiveRes.data]);
       } catch (err) {
         console.error('Failed to load questions:', err);
         setError('Failed to load questions. Please try again.');
@@ -717,12 +729,12 @@ const AssessmentPage = () => {
             <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 w-full max-w-[95vw] p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
               <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-6 px-4">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {quizMode === 'game' ? '🎮 Game Mode Assessment' :
-                    quizMode === 'standard' ? '📋 Standard Assessment' :
+                  {quizMode === 'game' ? '🎮 Đánh Giá Chế Độ Trò Chơi' :
+                    quizMode === 'standard' ? '📋 Đánh Giá Tiêu Chuẩn' :
                       t('assessment.title')}
                 </h2>
                 <button onClick={handleCancel} className="text-sm font-semibold text-gray-500 hover:text-red-500 transition-colors">
-                  {t('common.cancel')}
+                  Hủy
                 </button>
               </div>
 
