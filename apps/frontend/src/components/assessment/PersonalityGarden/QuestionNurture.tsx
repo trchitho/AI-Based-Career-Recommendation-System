@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Question } from '../../../types/assessment';
 import { TreeGrowthState, NurtureElement } from './types/garden.types';
 import TreeCanvas from './TreeCanvas';
 import NatureEnergyBar from './NatureEnergyBar';
 import AnswerHistory from './AnswerHistory';
+import NurtureParticles from './NurtureParticles';
+import GardenScenery from './GardenScenery';
 
 interface QuestionNurtureProps {
   question: Question;
@@ -21,6 +23,11 @@ interface QuestionNurtureProps {
   }>;
   onAnswer: (answer: string | number, selectedElement?: NurtureElement) => void;
   onCancel: () => void;
+  disabled?: boolean; // Disable buttons during processing
+  currentDay?: number;
+  timeOfDay?: 'morning' | 'noon' | 'afternoon' | 'evening';
+  timeEmoji?: string;
+  timeLabel?: string;
 }
 
 const QuestionNurture: React.FC<QuestionNurtureProps> = ({
@@ -34,11 +41,21 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
   bloomChain,
   answeredQuestions = [],
   onAnswer,
-  onCancel
+  onCancel,
+  disabled = false,
+  currentDay = 1,
+  timeOfDay = 'morning',
+  timeEmoji = '🌅',
+  timeLabel = 'Buổi sáng'
 }) => {
   const [selectedElement, setSelectedElement] = useState<NurtureElement | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [historyExpanded, setHistoryExpanded] = useState(false);
+
+  // Debug log to check time props
+  useEffect(() => {
+    console.log('[QuestionNurture] Time props:', { timeOfDay, timeEmoji, timeLabel, currentDay });
+  }, [timeOfDay, timeEmoji, timeLabel, currentDay]);
 
   // Transform answers into nurture elements - REALISTIC PLANT NEEDS
   const getNurtureElements = (): NurtureElement[] => {
@@ -180,15 +197,15 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
 
   return (
     <div className="question-nurture relative w-full h-screen flex flex-col overflow-hidden">
-      {/* Background with time-of-day gradient */}
-      <div className={`absolute inset-0 transition-colors duration-2000 ${
-        progress < 25 ? 'bg-gradient-to-b from-orange-200 via-yellow-100 to-green-100' : // Dawn
-        progress < 50 ? 'bg-gradient-to-b from-sky-200 via-blue-100 to-green-100' : // Day
-        progress < 75 ? 'bg-gradient-to-b from-orange-300 via-pink-200 to-purple-100' : // Golden hour
-        'bg-gradient-to-b from-purple-300 via-indigo-200 to-blue-200' // Twilight
-      } dark:from-gray-900 dark:via-gray-800 dark:to-gray-900`}>
+      {/* Background with time-of-day gradient - DYNAMIC BASED ON TIME */}
+      <div className={`absolute inset-0 transition-colors duration-2000 z-0 ${
+        timeOfDay === 'morning' ? 'bg-gradient-to-b from-orange-200 via-yellow-100 to-green-100 dark:from-orange-900/40 dark:via-yellow-900/30 dark:to-green-900/20' :
+        timeOfDay === 'noon' ? 'bg-gradient-to-b from-sky-200 via-blue-100 to-green-100 dark:from-sky-900/50 dark:via-blue-900/40 dark:to-green-900/30' :
+        timeOfDay === 'afternoon' ? 'bg-gradient-to-b from-orange-300 via-pink-200 to-purple-100 dark:from-orange-900/50 dark:via-pink-900/40 dark:to-purple-900/30' :
+        'bg-gradient-to-b from-indigo-900 via-purple-800 to-blue-900 dark:from-indigo-950 dark:via-purple-950 dark:to-blue-950' // Evening - DARK
+      }`}>
         {/* Floating particles */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden z-1">
           {[...Array(15)].map((_, i) => (
             <div
               key={i}
@@ -200,14 +217,34 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
                 animationDuration: `${8 + Math.random() * 4}s`
               }}
             >
-              <div className="w-3 h-3 bg-white/20 rounded-full blur-sm"></div>
+              <div className={`w-3 h-3 rounded-full blur-sm ${
+                timeOfDay === 'evening' ? 'bg-yellow-300/40' : 'bg-white/20'
+              }`}></div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Garden Scenery - ALWAYS VISIBLE AT BOTTOM */}
+      <GardenScenery timeOfDay={timeOfDay} isAnswering={isAnimating} treeGrowth={treeGrowth} />
+
       {/* Top bar with stats */}
-      <div className="relative z-20 p-4">
+      <div className="relative z-20 p-3 space-y-2 flex-shrink-0">
+        {/* Day and Time indicator - COMPACT */}
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md px-4 py-2 rounded-full shadow-xl border-2 border-purple-300 dark:border-purple-600 flex items-center gap-2">
+            <span className="text-3xl animate-pulse filter drop-shadow-lg">{timeEmoji}</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-black text-purple-600 dark:text-purple-400">
+                Ngày {currentDay}
+              </span>
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                {timeLabel}
+              </span>
+            </div>
+          </div>
+        </div>
+        
         <NatureEnergyBar
           natureEnergy={natureEnergy}
           growthLevel={growthLevel}
@@ -218,74 +255,87 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
         />
       </div>
 
-      {/* Main content area */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-32">
-        {/* Floating question */}
-        <div className="mb-8 max-w-2xl w-full animate-float">
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-3xl p-6 shadow-2xl border-2 border-white/50">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl">
+      {/* Main content area - COMPACT */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-start px-4 py-2 min-h-0">
+        {/* Floating question - COMPACT */}
+        <div className="mb-4 max-w-2xl w-full animate-float">
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl p-4 shadow-xl border-2 border-white/50">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">
                 {question.test_type === 'RIASEC' ? '🎯' : '🧠'}
               </span>
-              <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+              <span className="text-xs font-bold text-purple-600 dark:text-purple-400">
                 {question.test_type === 'RIASEC' ? 'Career Interest' : 'Personality Trait'}
               </span>
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-relaxed">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white leading-snug">
               {question.question_text}
             </h3>
           </div>
         </div>
 
-        {/* Tree canvas */}
-        <div className="flex-1 flex items-center justify-center w-full max-w-4xl">
-          <TreeCanvas
-            growth={treeGrowth}
-            isAnimating={isAnimating}
-            selectedElement={selectedElement}
-          />
+        {/* Tree canvas - LARGER AND LOWER */}
+        <div className="flex items-end justify-center w-full max-w-4xl relative flex-shrink-0" style={{ height: '350px', marginBottom: '-50px' }}>
+          <div className="transform scale-125 origin-bottom">
+            <TreeCanvas
+              growth={treeGrowth}
+              isAnimating={isAnimating}
+              selectedElement={selectedElement}
+              timeOfDay={timeOfDay}
+            />
+          </div>
+          
+          {/* Particle effects when element is selected */}
+          {selectedElement && isAnimating && (
+            <NurtureParticles
+              element={selectedElement}
+              isActive={isAnimating}
+            />
+          )}
         </div>
       </div>
 
-      {/* Bottom element selector */}
-      <div className="relative z-20 bg-gradient-to-t from-white/95 via-white/90 to-transparent dark:from-gray-900/95 dark:via-gray-900/90 backdrop-blur-md p-6 pb-8">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-center text-sm font-semibold text-gray-600 dark:text-gray-400 mb-4">
+      {/* Bottom element selector - CLEAR BUTTONS WITH MINIMAL BACKGROUND */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="max-w-4xl mx-auto p-2 pb-3">
+          <p className="text-center text-xs font-bold text-gray-800 dark:text-gray-200 mb-2 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-full px-4 py-1 inline-block shadow-lg">
             🌱 Choose how to nurture your tree
           </p>
           
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-5 gap-2 mb-2">
             {elements.map((element) => (
               <button
                 key={element.id}
                 onClick={() => handleElementSelect(element)}
-                disabled={isAnimating}
-                className={`group relative p-4 rounded-2xl transition-all duration-300 ${
-                  isAnimating && selectedElement?.id === element.id
+                disabled={isAnimating || disabled}
+                className={`group relative p-3 rounded-xl transition-all duration-300 ${
+                  (isAnimating || disabled) && selectedElement?.id === element.id
                     ? 'scale-110 opacity-50'
                     : 'hover:scale-105 hover:-translate-y-1'
                 } ${
-                  isAnimating && selectedElement?.id !== element.id
+                  (isAnimating || disabled) && selectedElement?.id !== element.id
                     ? 'opacity-30'
                     : ''
+                } ${
+                  disabled ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
               >
                 {/* Background gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${element.color} rounded-2xl opacity-90 group-hover:opacity-100 transition-opacity`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${element.color} rounded-xl opacity-90 group-hover:opacity-100 transition-opacity`}></div>
                 
                 {/* Glow effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${element.color} rounded-2xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${element.color} rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity`}></div>
                 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col items-center gap-2">
-                  <span className="text-4xl drop-shadow-lg">{element.emoji}</span>
-                  <span className="text-white font-bold text-sm text-center leading-tight">
+                <div className="relative z-10 flex flex-col items-center gap-1">
+                  <span className="text-3xl drop-shadow-lg">{element.emoji}</span>
+                  <span className="text-white font-bold text-xs text-center leading-tight">
                     {element.label}
                   </span>
                 </div>
 
                 {/* Particle effect on hover */}
-                <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+                <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none">
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
@@ -302,10 +352,36 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
             ))}
           </div>
 
-          {/* Cancel button */}
+          {/* Element descriptions - CLEAR BACKGROUND */}
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-xl p-2 border border-green-300 dark:border-green-700 shadow-lg">
+            <div className="grid grid-cols-5 gap-1 text-xs text-center">
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-lg">💧</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400 text-xs">Nước</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-lg">🌱</span>
+                <span className="font-bold text-amber-700 dark:text-amber-500 text-xs">Phân bón</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-lg">🪴</span>
+                <span className="font-bold text-stone-600 dark:text-stone-400 text-xs">Đất</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-lg">☀️</span>
+                <span className="font-bold text-yellow-600 dark:text-yellow-400 text-xs">Ánh sáng</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-lg">🌿</span>
+                <span className="font-bold text-green-600 dark:text-green-400 text-xs">Dinh dưỡng</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Cancel button - CLEAR */}
           <button
             onClick={onCancel}
-            className="mt-6 w-full py-3 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 font-medium transition-colors"
+            className="mt-2 w-full py-2 text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 font-bold transition-colors bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-md"
           >
             Cancel Assessment
           </button>

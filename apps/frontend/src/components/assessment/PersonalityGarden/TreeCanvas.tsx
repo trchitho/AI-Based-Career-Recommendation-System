@@ -6,6 +6,7 @@ interface TreeCanvasProps {
   isAnimating?: boolean;
   selectedElement?: NurtureElement | null;
   personality?: any;
+  timeOfDay?: 'morning' | 'noon' | 'afternoon' | 'evening';
 }
 
 interface BranchSegment {
@@ -20,7 +21,8 @@ interface BranchSegment {
 const TreeCanvas: React.FC<TreeCanvasProps> = ({
   growth,
   isAnimating,
-  selectedElement
+  selectedElement,
+  timeOfDay = 'morning'
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -353,9 +355,9 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
           </div>
         ))}
         
-        {/* Sun/Moon */}
+        {/* Sun/Moon - BASED ON TIME OF DAY */}
         <div className="absolute top-8 right-12 text-5xl opacity-50 animate-pulse-slow">
-          {growth.height < 50 ? '☀️' : '🌙'}
+          {timeOfDay === 'evening' ? '🌙' : '☀️'}
         </div>
       </div>
 
@@ -723,16 +725,7 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
         )}
       </svg>
 
-      {/* Stage indicator - moved to top left corner */}
-      <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 shadow-lg border-2 border-white/50">
-        {growth.stage === 'seed' && '🌱 Seed'}
-        {growth.stage === 'sprout' && '🌱 Sprout'}
-        {growth.stage === 'seedling' && '🌿 Seedling'}
-        {growth.stage === 'young-plant' && '🌿 Young Plant'}
-        {growth.stage === 'young-tree' && '🌳 Young Tree'}
-        {growth.stage === 'blooming-tree' && '🌸 Blooming Tree'}
-        {growth.stage === 'personality-tree' && '✨ Personality Tree'}
-      </div>
+      {/* Stage indicator - removed, moved to GardenScenery */}
 
       {/* Animations */}
       <style>{`
