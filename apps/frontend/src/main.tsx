@@ -22,7 +22,7 @@ const LEGACY_THEME_MAP: Record<string, 'light' | 'dark'> = {
 
 const THEME_CONFIGS = {
   light: {
-    '--neu-bg': '#e8eaf0',
+    '--neu-bg': '#eef0f5',
     '--neu-bg-card': '#eceef4',
     '--neu-shadow-dark': '#c5c8d2',
     '--neu-shadow-light': '#ffffff',

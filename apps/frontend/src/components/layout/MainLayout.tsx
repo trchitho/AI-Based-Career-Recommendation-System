@@ -10,7 +10,7 @@ import ScrollIndicator from "../common/ScrollIndicator";
 import { useScrollBehavior } from "../../hooks/useScrollBehavior";
 
 // Pages that should NOT show the sidebar (public / auth pages)
-const NO_SIDEBAR_PATHS = ['/', '/login', '/register', '/forgot-password', '/verify', '/oauth'];
+const NO_SIDEBAR_PATHS = ['/', '/home', '/login', '/register', '/forgot-password', '/verify', '/oauth', '/careers', '/pricing', '/blog'];
 
 const sidebarItems = [
   {
@@ -125,7 +125,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { scrollY, isScrolled, isScrollingUp, isScrollingDown } = useScrollBehavior(20);
 
   return (
-    <div className="min-h-screen flex font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
+    <div className="min-h-screen w-full overflow-x-hidden flex font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
 
       {/* Scroll Progress Indicator */}
       <ScrollIndicator />
@@ -237,11 +237,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${showSidebar && !sidebarCollapsed ? 'md:ml-52' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
+      <div className={`flex-1 min-w-0 flex flex-col transition-[margin] duration-300 ${showSidebar && !sidebarCollapsed ? 'md:ml-52' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
         }`}>
 
         {/* HEADER */}
-        <header className={`fixed top-0 z-50 transition-all duration-300 ease-in-out ${isScrolled
+        <header className={`fixed top-0 z-50 transition-[left] duration-300 ease-in-out ${isScrolled
           ? 'bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-700'
           : 'bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700'
           } ${showSidebar && !sidebarCollapsed ? 'md:left-52 left-0 right-0' :
@@ -252,7 +252,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             <div className="flex items-center justify-between">
 
               {/* Logo */}
-              <div className="flex-shrink-0 ml-8">
+              <div className="flex-shrink-0">
                 <AppLogo />
               </div>
 
