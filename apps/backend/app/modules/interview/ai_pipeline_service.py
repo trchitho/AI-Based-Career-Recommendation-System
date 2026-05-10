@@ -38,13 +38,70 @@ class AIPipelineService:
             "neo4j_available": self.neo4j.driver is not None if self.neo4j else False
         }
 
-    async def start_interview(self, user_id: int, job_id: str, question_count: int = 7, jd_id: Optional[int] = None, level_slug: Optional[str] = None) -> Dict:
-        """Bắt đầu phỏng vấn với pipeline logic mới + Career Level"""
+    def _build_cv_context(self, skill_gap_analysis_id: int, user_id: int) -> Optional[Dict]:
+        """
+        Đọc kết quả phân tích CV từ DB và build context cho CV-based interview.
+        Trả về dict chứa cv_skills, skill_gaps, cv_projects, cv_experiences.
+        """
+        try:
+            from app.modules.skill_gap.models import SkillGapAnalysis
+            sg = self.db.query(SkillGapAnalysis).filter(
+                SkillGapAnalysis.id == skill_gap_analysis_id,
+                SkillGapAnalysis.user_id == user_id,
+            ).first()
+            if not sg:
+                return None
+
+            cv_skills = []
+            if sg.cv_skills:
+                cv_skills = [s.get('name', s) if isinstance(s, dict) else str(s) for s in sg.cv_skills[:20]]
+
+            gaps = sg.skill_gaps or {}
+            critical  = [s.get('name', s) if isinstance(s, dict) else str(s) for s in gaps.get('critical', [])[:5]]
+            important = [s.get('name', s) if isinstance(s, dict) else str(s) for s in gaps.get('important', [])[:5]]
+            matched   = [s.get('name', s) if isinstance(s, dict) else str(s) for s in (sg.matched_skills or [])[:10]]
+
+            return {
+                "cv_skills":        cv_skills,
+                "matched_skills":   matched,
+                "critical_gaps":    critical,
+                "important_gaps":   important,
+                "match_percentage": sg.match_percentage or 0,
+                "cv_name":          sg.cv_name or "",
+                "career_id":        sg.career_id or "",
+                "analysis_id":      skill_gap_analysis_id,
+            }
+        except Exception as e:
+            print(f"[CV-Interview] Error building CV context: {e}")
+            return None
+
+    async def start_interview(self, user_id: int, job_id: str, question_count: int = 7,
+                              jd_id: Optional[int] = None, level_slug: Optional[str] = None,
+                              skill_gap_analysis_id: Optional[int] = None) -> Dict:
+        """Bắt đầu phỏng vấn — hỗ trợ cả 2 hướng:
+        1. Theo nghề nghiệp (career-based)
+        2. Dựa trên CV cá nhân (CV-based personalized) khi skill_gap_analysis_id được cung cấp
+        """
         try:
             # Lấy thông tin job từ database
             career_context = self._get_career_context(job_id)
             if not career_context:
                 raise ValueError(f"Không tìm thấy nghề nghiệp với ID: {job_id}")
+
+            # Load CV context nếu là CV-based interview
+            cv_context = None
+            if skill_gap_analysis_id:
+                cv_context = self._build_cv_context(skill_gap_analysis_id, user_id)
+                if cv_context:
+                    # Inject CV data vào career_context để AI sử dụng
+                    career_context["cv_based"] = True
+                    career_context["cv_skills"] = cv_context["cv_skills"]
+                    career_context["critical_gaps"] = cv_context["critical_gaps"]
+                    career_context["important_gaps"] = cv_context["important_gaps"]
+                    career_context["matched_skills"] = cv_context["matched_skills"]
+                    career_context["match_percentage"] = cv_context["match_percentage"]
+                    career_context["skill_gap_analysis_id"] = skill_gap_analysis_id
+                    print(f"[CV-Interview] CV context loaded: {len(cv_context['cv_skills'])} skills, {len(cv_context['critical_gaps'])} critical gaps")
 
             # Lấy Career Level context nếu có
             level_context = None
@@ -92,9 +149,22 @@ class AIPipelineService:
                 except Exception as e:
                     print(f"⚠️ JD merge failed: {e}")
             
+            # Save CV fields before build_interview_context (it creates a new dict and loses them)
+            _cv_preserve = {k: career_context[k] for k in (
+                "cv_based", "cv_skills", "critical_gaps", "important_gaps",
+                "matched_skills", "match_percentage", "skill_gap_analysis_id",
+            ) if k in career_context}
+
             # Build final context với priority: Level > JD > Neo4j
             career_context = build_interview_context(career_context, jd_data, level_context)
-            
+
+            # Re-inject CV fields (they were stripped by build_interview_context)
+            if _cv_preserve:
+                career_context.update(_cv_preserve)
+                print(f"[CV-Interview] CV context preserved: cv_based={_cv_preserve.get('cv_based')}, "
+                      f"skills={len(_cv_preserve.get('cv_skills', []))}, "
+                      f"critical_gaps={len(_cv_preserve.get('critical_gaps', []))}")
+
             # Xác định effective level
             effective_level = career_context.get("effective_level", "junior")
             print(f"✅ Effective interview level: {effective_level}")
@@ -111,9 +181,14 @@ class AIPipelineService:
             has_jd = career_context.get("has_jd", False)
             db_session = self._create_db_session(user_id, job_id, career_context, total_questions, has_jd, jd_questions_count, jd_qualification_count, jd_data, level_context)
             
-            # Tạo greeting và first question với enhanced prompts
-            greeting_content = self._generate_enhanced_greeting(career_context['title'], career_context['skills'])
-            first_question_content = self._generate_enhanced_first_question(career_context, effective_level)
+            # Tạo greeting và first question
+            # CV-based: greeting nhắc đến CV, first question xoáy vào kỹ năng trong CV
+            if career_context.get("cv_based") and cv_context:
+                greeting_content = self._generate_cv_based_greeting(career_context, cv_context)
+                first_question_content = self._generate_cv_based_first_question(career_context, cv_context, effective_level)
+            else:
+                greeting_content = self._generate_enhanced_greeting(career_context['title'], career_context['skills'])
+                first_question_content = self._generate_enhanced_first_question(career_context, effective_level)
             
             # Lưu messages
             greeting_msg = InterviewMessage(
@@ -236,7 +311,9 @@ class AIPipelineService:
                 return result
                 
         except Exception as e:
+            import traceback
             print(f"⚠️ Pipeline submit failed: {e}")
+            traceback.print_exc()  # Log full traceback to find exact failure point
             # Use fallback service directly
             from .services import InterviewService
             fallback_service = InterviewService(self.db)
@@ -537,7 +614,15 @@ class AIPipelineService:
             "jd_questions_count": jd_questions_count,
             "jd_qualification_count": jd_qualification_count,
             "jd_data": jd_data,
-            "level_context": level_context
+            "level_context": level_context,
+            # CV-based interview persistence
+            "cv_based": career_context.get("cv_based", False),
+            "cv_skills": career_context.get("cv_skills", []),
+            "critical_gaps": career_context.get("critical_gaps", []),
+            "important_gaps": career_context.get("important_gaps", []),
+            "matched_skills": career_context.get("matched_skills", []),
+            "match_percentage": career_context.get("match_percentage", 0),
+            "skill_gap_analysis_id": career_context.get("skill_gap_analysis_id"),
         }
         
         db_session = InterviewSession(
@@ -559,6 +644,52 @@ class AIPipelineService:
         self.db.refresh(db_session)
         
         return db_session
+
+    def _generate_cv_based_greeting(self, career_context: Dict, cv_context: Dict) -> str:
+        """Lời chào cho CV-based interview — nhắc đến CV và kỹ năng đã có."""
+        job_title = career_context.get('title', 'vị trí này')
+        cv_skills_str = ', '.join(cv_context.get('cv_skills', [])[:4]) or 'các kỹ năng đã trình bày'
+        match_pct = cv_context.get('match_percentage', 0)
+
+        prompt = f"""Bạn là HR Manager. Viết lời chào mở đầu buổi phỏng vấn CÁ NHÂN HÓA dựa trên CV.
+Vị trí: {job_title}
+CV của ứng viên có: {cv_skills_str} (phù hợp {match_pct:.0f}% với nghề)
+Yêu cầu: 2-3 câu, nhắc đến CV, nói sẽ hỏi sâu về kinh nghiệm thực tế. CHỈ trả về lời chào."""
+        try:
+            r = self.gemini.stream_manager.generate_content_with_retry(prompt, max_output_tokens=150, temperature=0.7)
+            if r and len(r.strip()) > 30:
+                return r.strip()
+        except Exception:
+            pass
+        return (f"Xin chào! Tôi đã đọc CV của bạn và thấy bạn có kinh nghiệm về {cv_skills_str}. "
+                f"Hôm nay chúng ta sẽ đi sâu vào những kinh nghiệm thực tế của bạn để đánh giá sự phù hợp với vị trí {job_title}. "
+                f"Bạn đã sẵn sàng chưa?")
+
+    def _generate_cv_based_first_question(self, career_context: Dict, cv_context: Dict, level: str) -> str:
+        """Câu hỏi đầu tiên xoáy vào kỹ năng/kinh nghiệm trong CV."""
+        job_title = career_context.get('title', 'vị trí này')
+        cv_skills = cv_context.get('cv_skills', [])
+        critical_gaps = cv_context.get('critical_gaps', [])
+        matched = cv_context.get('matched_skills', [])
+
+        top_skill = cv_skills[0] if cv_skills else 'kỹ năng chuyên môn'
+        gap_hint = f" Lưu ý CV còn thiếu: {', '.join(critical_gaps[:2])}." if critical_gaps else ""
+
+        prompt = f"""Bạn là HR Manager phỏng vấn ứng viên cho vị trí {job_title}.
+CV của ứng viên có: {', '.join(cv_skills[:5])}.{gap_hint}
+Kỹ năng match với nghề: {', '.join(matched[:3]) or 'chưa rõ'}.
+Tạo 1 câu hỏi warm-up XOÁ vào {top_skill} để kiểm tra tính xác thực của CV.
+Câu hỏi phải: hỏi về DỰ ÁN CỤ THỂ hoặc THÁCH THỨC thực tế liên quan đến {top_skill}.
+1-2 câu, cụ thể. CHỈ trả về câu hỏi."""
+        try:
+            r = self.gemini.stream_manager.generate_content_with_retry(prompt, max_output_tokens=120, temperature=0.8)
+            if r and len(r.strip()) > 30:
+                return r.strip()
+        except Exception:
+            pass
+        return (f"Trong CV của bạn có đề cập đến {top_skill}. "
+                f"Bạn hãy chia sẻ một dự án cụ thể mà bạn đã ứng dụng {top_skill} — "
+                f"thách thức lớn nhất bạn gặp phải và bạn đã xử lý như thế nào?")
 
     def _generate_enhanced_greeting(self, job_title: str, skills: List[Dict] = None) -> str:
         """Tạo lời chào chuyên nghiệp và chi tiết"""
@@ -1177,6 +1308,15 @@ CHỈ trả về câu trả lời, không giải thích."""
         """Tiếp tục phỏng vấn với enhanced question generation"""
         # CRITICAL FIX: Lấy JD context từ market_context thay vì detect từ question_distribution
         market_context = db_session.market_context or {}
+
+        # DEBUG: log CV context status
+        _cv_debug = {
+            "cv_based": market_context.get("cv_based", False),
+            "cv_skills_count": len(market_context.get("cv_skills", [])),
+            "critical_gaps_count": len(market_context.get("critical_gaps", [])),
+            "important_gaps_count": len(market_context.get("important_gaps", [])),
+        }
+        print(f"[CV-Debug] Q{next_question_number} market_context CV: {_cv_debug}")
         has_jd = market_context.get("has_jd", False)
         jd_count = market_context.get("jd_questions_count", 0)
         jd_data = market_context.get("jd_data")  # Get full JD data
@@ -1284,48 +1424,73 @@ CHỈ trả về câu trả lời, không giải thích."""
         jd_context_safe = jd_context_str.replace('{', '(').replace('}', ')')
         level_context_safe = level_context_str.replace('{', '(').replace('}', ')')
 
-        # Chọn skills phù hợp theo loại câu hỏi với logic mới - Handle all data types safely
-        all_skills = db_session.skills_context or []
-        
-        def is_hard_skill_safe(skill):
-            if not isinstance(skill, dict):
+        # ── CV-based mode: override skills with CV data ──────────────
+        is_cv_based = market_context.get("cv_based", False)
+        cv_skills_list   = market_context.get("cv_skills", [])
+        critical_gaps    = market_context.get("critical_gaps", [])
+        important_gaps   = market_context.get("important_gaps", [])
+
+        if is_cv_based and (cv_skills_list or critical_gaps):
+            # For CV-based interview, alternate between:
+            # - Questions about skills they HAVE (odd questions → behavioral)
+            # - Questions about skills they LACK (even questions → situational/knowledge)
+            odd_question = next_question_number % 2 == 1
+            if odd_question and cv_skills_list:
+                focus_skill = cv_skills_list[(next_question_number // 2) % len(cv_skills_list)]
+                skills_tested_names = [focus_skill]
+                skills_str = focus_skill
+            else:
+                all_gaps = critical_gaps + important_gaps
+                if all_gaps:
+                    focus_skill = all_gaps[(next_question_number // 2) % len(all_gaps)]
+                    skills_tested_names = [focus_skill]
+                    skills_str = focus_skill
+                elif cv_skills_list:
+                    focus_skill = cv_skills_list[0]
+                    skills_tested_names = [focus_skill]
+                    skills_str = focus_skill
+                else:
+                    skills_tested_names = []
+                    skills_str = ""
+            skills_for_msg = [{"skill_name": s} for s in skills_tested_names]
+        else:
+            # Standard mode: use O*NET skills from session context
+            all_skills = db_session.skills_context or []
+
+            def is_hard_skill_safe(skill):
+                if not isinstance(skill, dict):
+                    return False
+                is_hard = skill.get("is_hard_skill", False)
+                if isinstance(is_hard, bool):
+                    return is_hard
+                if isinstance(is_hard, str):
+                    return is_hard.lower() in ['true', 'yes', '1']
+                if isinstance(is_hard, (int, float)):
+                    return bool(is_hard)
                 return False
-            is_hard = skill.get("is_hard_skill", False)
-            if isinstance(is_hard, bool):
-                return is_hard
-            if isinstance(is_hard, str):
-                return is_hard.lower() in ['true', 'yes', '1']
-            if isinstance(is_hard, (int, float)):
-                return bool(is_hard)
-            return False
-        
-        hard_skills = [s for s in all_skills if is_hard_skill_safe(s) and s.get("source") != "jd"]
-        soft_skills = [s for s in all_skills if isinstance(s, dict) and not is_hard_skill_safe(s)]
-        
-        # Sort theo importance (cao nhất trước) - Handle all data types safely
-        def safe_importance(skill):
-            importance = skill.get("importance")
-            if importance is None:
-                return 0
-            try:
-                value = float(importance)
-                # Handle inf and nan
-                if value == float('inf') or value == float('-inf') or value != value:  # NaN check
+
+            def safe_importance(skill):
+                importance = skill.get("importance")
+                if importance is None:
                     return 0
-                return value
-            except (ValueError, TypeError):
-                return 0
-        
-        hard_skills.sort(key=safe_importance, reverse=True)
-        soft_skills.sort(key=safe_importance, reverse=True)
-        
-        # Tính skills MỘT LẦN DUY NHẤT trước khi commit
-        # Dùng cho cả prompt (skills_str) và message/response (skills_for_msg)
-        skills_for_msg = self._select_skills_for_question_type(
-            db_session.skills_context, question_type, next_question_number, db_session.id
-        )
-        skills_tested_names = [s.get("skill_name", "") for s in skills_for_msg]
-        skills_str = ', '.join(skills_tested_names)
+                try:
+                    value = float(importance)
+                    if value in (float('inf'), float('-inf')) or value != value:
+                        return 0
+                    return value
+                except (ValueError, TypeError):
+                    return 0
+
+            hard_skills = [s for s in all_skills if is_hard_skill_safe(s) and s.get("source") != "jd"]
+            soft_skills = [s for s in all_skills if isinstance(s, dict) and not is_hard_skill_safe(s)]
+            hard_skills.sort(key=safe_importance, reverse=True)
+            soft_skills.sort(key=safe_importance, reverse=True)
+
+            skills_for_msg = self._select_skills_for_question_type(
+                db_session.skills_context, question_type, next_question_number, db_session.id
+            )
+            skills_tested_names = [s.get("skill_name", "") for s in skills_for_msg]
+            skills_str = ', '.join(skills_tested_names)
 
         # CRITICAL FIX: Handle jd_qualification questions using dedicated method
         if question_type == 'jd_qualification':
@@ -1500,21 +1665,106 @@ QUY TẮC BẮT BUỘC:
 
 CHỈ TRẢ VỀ CÂU HỎI DUY NHẤT, KHÔNG GIẢI THÍCH."""
         else:
-            print(f"🔧 Using fallback question generation for type: {question_type}")
-            print(f"🔧 Type label: {type_label}")
-            print(f"🔧 Skills string: {skills_str}")
-            
-            question_prompt = f"""Bạn là HR Manager chuyên nghiệp. Tạo 1 câu hỏi phỏng vấn MỚI HOÀN TOÀN.
+            print(f"[Q-Gen] type={question_type}, cv_based={is_cv_based}, "
+                  f"cv_skills={len(cv_skills_list)}, critical_gaps={len(critical_gaps)}, focus={skills_str!r}")
+
+            if is_cv_based and skills_str:
+                # ── CV-BASED: sinh câu hỏi từ CV, kỹ năng đã đánh giá, điểm mạnh/yếu ──
+
+                # Lấy strengths/weaknesses từ các câu trả lời trước
+                prev_evaluations = self.db.query(InterviewMessage).filter(
+                    InterviewMessage.session_id == db_session.id,
+                    InterviewMessage.role == "candidate",
+                    InterviewMessage.score != None,
+                ).order_by(InterviewMessage.timestamp.asc()).all()
+
+                strengths_seen = []
+                weaknesses_seen = []
+                for ev in prev_evaluations:
+                    if ev.strengths:
+                        strengths_seen.extend(ev.strengths[:2])
+                    if ev.weaknesses:
+                        weaknesses_seen.extend(ev.weaknesses[:2])
+                # Deduplicate
+                strengths_seen = list(dict.fromkeys(strengths_seen))[:4]
+                weaknesses_seen = list(dict.fromkeys(weaknesses_seen))[:4]
+
+                strengths_ctx = ', '.join(strengths_seen) if strengths_seen else 'chưa đủ dữ liệu'
+                weaknesses_ctx = ', '.join(weaknesses_seen) if weaknesses_seen else 'chưa đủ dữ liệu'
+
+                all_gaps   = critical_gaps + important_gaps
+                is_gap_q   = skills_str in all_gaps  # câu hỏi này nhắm vào kỹ năng còn thiếu
+
+                if is_gap_q:
+                    question_prompt = f"""Bạn là HR Manager đang phỏng vấn ứng viên vào vị trí {db_session.job_title}.
+
+=== THÔNG TIN CV ===
+Kỹ năng ứng viên ĐÃ CÓ: {', '.join(cv_skills_list[:6]) or 'chưa rõ'}
+Kỹ năng CÒN THIẾU (critical): {', '.join(critical_gaps[:4]) or 'không có'}
+Kỹ năng cần bổ sung thêm: {', '.join(important_gaps[:3]) or 'không có'}
+
+=== ĐÁNH GIÁ TỪ CÁC CÂU TRƯỚC ===
+Điểm mạnh đã thể hiện: {strengths_ctx}
+Điểm yếu cần cải thiện: {weaknesses_ctx}
+
+=== YÊU CẦU ===
+Tạo 1 câu hỏi về kỹ năng [{skills_str}] — đây là kỹ năng ứng viên CHƯA CÓ.
+Mục tiêu: kiểm tra nhận thức, kinh nghiệm tự học, hoặc kế hoạch bổ sung {skills_str}.
+Có thể liên hệ điểm yếu [{weaknesses_ctx}] nếu phù hợp.
+
+CÁC CÂU ĐÃ HỎI (KHÔNG lặp lại):
+{asked_context_safe}
+
+CHỈ trả về 1 câu hỏi, tiếng Việt tự nhiên, không giải thích."""
+                else:
+                    question_prompt = f"""Bạn là HR Manager đang phỏng vấn ứng viên vào vị trí {db_session.job_title}.
+
+=== THÔNG TIN CV ===
+Kỹ năng ứng viên ĐÃ CÓ: {', '.join(cv_skills_list[:6]) or 'chưa rõ'}
+Kỹ năng CÒN THIẾU: {', '.join((critical_gaps + important_gaps)[:5]) or 'không có'}
+
+=== ĐÁNH GIÁ TỪ CÁC CÂU TRƯỚC ===
+Điểm mạnh đã thể hiện: {strengths_ctx}
+Điểm yếu cần cải thiện: {weaknesses_ctx}
+
+=== YÊU CẦU ===
+Tạo 1 câu hỏi "ĐÀO SÂU" vào kỹ năng [{skills_str}] — ứng viên ĐÃ CÓ kỹ năng này.
+Mục tiêu: kiểm tra kinh nghiệm THỰC TẾ, dự án đã làm, thách thức đã vượt qua.
+Có thể khai thác điểm yếu [{weaknesses_ctx}] để hiểu rõ hơn khả năng thực sự.
+Tránh câu hỏi lý thuyết, ưu tiên STAR method (Situation, Task, Action, Result).
+
+CÁC CÂU ĐÃ HỎI (KHÔNG lặp lại):
+{asked_context_safe}
+
+CHỈ trả về 1 câu hỏi, tiếng Việt tự nhiên, không giải thích."""
+            else:
+                # ── STANDARD mode: O*NET skills-based questions ──
+                # Lấy thêm strengths/weaknesses cho standard mode
+                prev_evals_std = self.db.query(InterviewMessage).filter(
+                    InterviewMessage.session_id == db_session.id,
+                    InterviewMessage.role == "candidate",
+                    InterviewMessage.score != None,
+                ).order_by(InterviewMessage.timestamp.asc()).all()
+                weaknesses_std = []
+                for ev in prev_evals_std:
+                    if ev.weaknesses:
+                        weaknesses_std.extend(ev.weaknesses[:1])
+                weaknesses_std = list(dict.fromkeys(weaknesses_std))[:3]
+                weak_ctx_safe = (', '.join(weaknesses_std) if weaknesses_std else '').replace('{','(').replace('}',')')
+
+                question_prompt = f"""Bạn là HR Manager chuyên nghiệp. Tạo 1 câu hỏi phỏng vấn MỚI HOÀN TOÀN.
 
 Vị trí: {db_session.job_title}
 Câu hỏi số: {next_question_number}/{db_session.question_count}
 Loại: {type_label}{jd_context_safe}{level_context_safe}
 Kỹ năng cần đánh giá: {skills_str}
+{f'Điểm yếu cần khai thác thêm: {weak_ctx_safe}' if weak_ctx_safe else ''}
 
 CÁC CÂU HỎI ĐÃ HỎI (KHÔNG được lặp lại hoặc tương tự):
 {asked_context_safe}
 
-Yêu cầu: câu hỏi {type_label} cụ thể, khác hoàn toàn các câu trên, phù hợp với cấp bậc {effective_level}, khuyến khích chia sẻ kinh nghiệm thực tế.
+Yêu cầu: câu hỏi {type_label} cụ thể, khác hoàn toàn các câu trên, phù hợp với cấp bậc {effective_level}.
+Khuyến khích chia sẻ kinh nghiệm thực tế.
 CHỈ trả về câu hỏi."""
 
         try:

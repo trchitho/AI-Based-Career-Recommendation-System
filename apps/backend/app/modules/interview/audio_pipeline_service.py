@@ -92,6 +92,7 @@ class AudioPipelineService:
         message_id: Optional[int],
         content_type: str,
         audio_duration: Optional[float] = None,
+        skip_stt: bool = False,  # set True when text_answer already provided
     ) -> dict:
         """
         Xử lý audio từ user: upload → transcribe → lưu metadata.
@@ -130,12 +131,17 @@ class AudioPipelineService:
             # Yêu cầu 7.5: storage failure không block flow
             logger.warning(f"[AudioPipeline] Storage upload failed (non-blocking): {exc}")
 
-        # 2. Transcribe via Whisper STT
-        transcript = await whisper_stt_service.transcribe(
-            audio_data=audio_data,
-            language="vi",
-            content_type=content_type,
-        )
+        # 2. Transcribe via Whisper STT (skip if text_answer already provided)
+        transcript = ""
+        if not skip_stt:
+            try:
+                transcript = await whisper_stt_service.transcribe(
+                    audio_data=audio_data,
+                    language="vi",
+                    content_type=content_type,
+                )
+            except Exception as stt_exc:
+                logger.warning(f"[AudioPipeline] STT failed (non-blocking): {stt_exc}")
 
         # 3. Save metadata to interview_audio
         audio_record_id: Optional[str] = None

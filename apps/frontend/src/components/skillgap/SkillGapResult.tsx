@@ -13,9 +13,10 @@ interface SkillGapResultProps {
 
 const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterview }) => {
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 80) return '10b981';
-    if (percentage >= 60) return 'f59e0b';
-    return 'ef4444';
+    if (percentage >= 80) return '#10b981';
+    if (percentage >= 60) return '#f59e0b';
+    if (percentage >= 40) return '#f97316';
+    return '#ef4444';
   };
 
   const getMatchLabel = (percentage: number) => {
@@ -256,15 +257,19 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           <div className="ai-summary-content">
             <h4>{analysis.cv_name || 'Ứng viên'}</h4>
             <p className="ai-description">
-              {analysis.match_percentage >= 80 &&
-                `Là người điểm tĩnh, thích nghỉ nhanh với môi trường mới, không ngại khó khăn, quan tâm đến việc tìm kiếm giải pháp cho vấn đề. Với kiến thức cơ bản về ${uniqueMatchedSkills.slice(0, 3).map(s => s.name).join(', ')} cùng kinh nghiệm triển khai một số dự án web cá nhân, ứng viên mong muốn học hỏi và phát triển trong lĩnh vực phát triển web backend sử dụng ${uniqueMatchedSkills[0]?.name || 'công nghệ hiện đại'}, sẵn sàng khám phá công nghệ mới và đóng góp vào đội ngũ kỹ thuật.`
-              }
-              {analysis.match_percentage >= 60 && analysis.match_percentage < 80 &&
-                `Ứng viên có nền tảng tốt với ${analysis.matched_skills_count} kỹ năng phù hợp. Cần bổ sung thêm ${analysis.missing_skills_count} kỹ năng quan trọng để đạt mức độ phù hợp cao hơn với vị trí này.`
-              }
-              {analysis.match_percentage < 60 &&
-                `Ứng viên đang ở giai đoạn phát triển với ${analysis.matched_skills_count} kỹ năng cơ bản. Cần tập trung học tập và rèn luyện thêm ${analysis.missing_skills_count} kỹ năng thiếu để đáp ứng yêu cầu công việc.`
-              }
+              {(() => {
+                const pct = analysis.match_percentage;
+                const matched = uniqueMatchedSkills.slice(0, 3).map(s => s.name).join(', ');
+                const critical = analysis.skill_gaps?.critical?.slice(0, 2).map((s: any) => s.name).join(', ') || '';
+                const totalGaps = (analysis.skill_gaps?.critical?.length || 0) + (analysis.skill_gaps?.important?.length || 0);
+                if (pct >= 80)
+                  return `CV phù hợp ở mức xuất sắc với vị trí này. Ứng viên đã đáp ứng ${analysis.matched_skills_count}/${analysis.total_required_skills} kỹ năng yêu cầu${matched ? `, bao gồm: ${matched}` : ''}. ${totalGaps > 0 ? `Cần bổ sung thêm ${totalGaps} kỹ năng để hoàn thiện hồ sơ.` : 'Hồ sơ rất cạnh tranh cho vị trí này.'}`;
+                if (pct >= 60)
+                  return `CV có nền tảng tốt với ${analysis.matched_skills_count} kỹ năng phù hợp${matched ? ` (${matched})` : ''}. Cần bổ sung thêm ${totalGaps} kỹ năng quan trọng${critical ? ` như: ${critical}` : ''} để tăng tính cạnh tranh.`;
+                if (pct >= 30)
+                  return `Ứng viên đang ở giai đoạn phát triển. Đã có ${analysis.matched_skills_count} kỹ năng cơ bản phù hợp. Cần tập trung học thêm ${totalGaps} kỹ năng${critical ? ` quan trọng như: ${critical}` : ''} để đáp ứng yêu cầu công việc.`;
+                return `CV cần được cải thiện đáng kể. Hiện chỉ đáp ứng ${analysis.matched_skills_count}/${analysis.total_required_skills} yêu cầu. Khuyến nghị học thêm các kỹ năng cốt lõi${critical ? ` như: ${critical}` : ''} trước khi ứng tuyển.`;
+              })()}
             </p>
           </div>
         </div>

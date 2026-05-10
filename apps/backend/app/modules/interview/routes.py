@@ -425,7 +425,11 @@ async def start_interview(
             )
         
         # CRITICAL FIX: Chỉ sử dụng AI Pipeline Service, không có fallback để tránh double initialization
-        result = await ai_service.start_interview(current_user.id, request.job_id, request.question_count, request.jd_id, request.level_slug)
+        result = await ai_service.start_interview(
+            current_user.id, request.job_id, request.question_count,
+            request.jd_id, request.level_slug,
+            skill_gap_analysis_id=request.skill_gap_analysis_id,
+        )
         print(f"🔧 Interview started successfully: session_id={result['session_id']}, question_count={result['question_count']}")
         
         return StartInterviewResponse(
@@ -1348,5 +1352,64 @@ async def get_career_levels(job_id: str, service: InterviewService = Depends(get
         raise HTTPException(status_code=500, detail=f"Lỗi khi lấy career levels: {str(e)}")
 
 
-# Import models để tránh circular import
-# from .models import InterviewSession, InterviewMessage
+# ── Interview Assets (avatar & video by gender) ──────────────────
+
+@router.get("/assets", summary="Lay avatar va video URL theo gender")
+def get_interview_assets(
+    gender: str = "female",
+    db: Session = Depends(get_db),
+):
+    """
+    Tra ve avatar_url va video_url cho AI interviewer theo gioi tinh.
+    gender: 'male' | 'female'
+    """
+    from sqlalchemy import text as _t
+
+    gender = gender.lower()
+    if gender not in ("male", "female"):
+        gender = "female"
+
+    try:
+        rows = db.execute(_t("""
+            SELECT asset_type, url
+            FROM interview.interview_assets
+            WHERE gender = :g
+        """), {"g": gender}).fetchall()
+    except Exception:
+        rows = []
+
+    result = {"gender": gender, "avatar_url": None, "video_url": None}
+    for row in rows:
+        if row.asset_type == "avatar":
+            result["avatar_url"] = row.url
+        elif row.asset_type == "video":
+            result["video_url"] = row.url
+
+    # Hard-coded fallback if DB not seeded yet
+    base = "https://pub-8df5715d271b42d6bf03e5ecd279f612.r2.dev"
+    if not result["avatar_url"]:
+        result["avatar_url"] = f"{base}/interview/avatars/anh{'Nam' if gender == 'male' else 'Nu'}.png"
+    if not result["video_url"]:
+        result["video_url"] = f"{base}/interview/videos/{'nam' if gender == 'male' else 'nu'}.mp4"
+
+    return result
+
+
+@router.patch("/sessions/{session_id}/gender", summary="Cap nhat gender cho phien phong van")
+def update_session_gender(
+    session_id: int,
+    gender: str,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
+    """Cap nhat voice_type (gender) cho session: 'male' | 'female'"""
+    from sqlalchemy import text as _t
+    if gender not in ("male", "female"):
+        raise HTTPException(400, "gender must be 'male' or 'female'")
+    db.execute(_t("""
+        UPDATE interview.interview_sessions
+        SET voice_type = :g
+        WHERE id = :sid AND user_id = :uid
+    """), {"g": gender, "sid": session_id, "uid": current_user.id})
+    db.commit()
+    return {"session_id": session_id, "gender": gender}

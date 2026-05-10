@@ -117,12 +117,14 @@ async def test_analyze_cv_skill_gap(
             'data': result
         }
     except Exception as e:
+        try:
+            db.rollback()
+        except Exception:
+            pass
         import traceback
-        error_details = traceback.format_exc()
-        
         raise HTTPException(
             status_code=500,
-            detail=f"Error analyzing CV: {str(e)}\n\nDetails:\n{error_details}"
+            detail=f"Error analyzing CV: {str(e)}\n\n{traceback.format_exc()}"
         )
 
 
@@ -316,6 +318,11 @@ async def analyze_cv_skill_gap(
             'data': result
         }
     except Exception as e:
+        # Rollback any aborted transaction
+        try:
+            db.rollback()
+        except Exception:
+            pass
         raise HTTPException(
             status_code=500,
             detail=f"Error analyzing CV: {str(e)}"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Loader2, Mic, MicOff, Send, Clock, User, Bot, CheckCircle, XCircle, AlertCircle, Timer, Users, Brain, Code, MessageSquare, Target, Lightbulb, FileText, ChevronDown } from 'lucide-react';
+import { Loader2, Mic, MicOff, Send, Clock, User, Bot, CheckCircle, XCircle, AlertCircle, Timer, Users, Brain, Code, MessageSquare, Target, Lightbulb, FileText, ChevronDown, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { interviewService } from '../services/interviewService';
 import ScoreTooltip from '../components/interview/ScoreTooltip';
@@ -98,11 +98,25 @@ const Badge: React.FC<{ children: React.ReactNode; className?: string }> = ({ ch
 );
 
 // ─── Main Component ───────────────────────────────────────────────────────────
+const BASE_R2 = 'https://pub-8df5715d271b42d6bf03e5ecd279f612.r2.dev';
+
 const InterviewPage: React.FC = () => {
     const { jobId } = useParams<{ jobId: string }>();
     const navigate = useNavigate();
     const location = useLocation();
     const { user } = useAuth();
+
+    // Gender / avatar / video from navigation state
+    const navState = (location.state as any) || {};
+    const interviewerGender: 'male' | 'female' = navState.interviewerGender || 'female';
+    const avatarUrl = interviewerGender === 'male'
+        ? `${BASE_R2}/interview/avatars/anhNam.png`
+        : `${BASE_R2}/interview/avatars/anhNu.png`;
+    const videoUrl = interviewerGender === 'male'
+        ? `${BASE_R2}/interview/videos/nam.mp4`
+        : `${BASE_R2}/interview/videos/nu.mp4`;
+
+    const [showVideo, setShowVideo] = useState(false);
 
     const [session, setSession] = useState<SessionState | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -705,33 +719,98 @@ const InterviewPage: React.FC = () => {
 
     return (
         <MainLayout>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
+            {/* Dark interview environment */}
+            <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #0d0d1a 0%, #0f1535 50%, #0d0d1a 100%)' }}>
                 <ToastContainer toasts={toasts} onRemove={removeToast} />
-                <div className="max-w-5xl mx-auto px-4">
 
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <h1 className="text-xl font-bold text-gray-900">Phỏng vấn AI — {session?.jobTitle}</h1>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="text-sm text-gray-500">Câu {session?.questionNumber}</span>
-                                <span className="text-gray-300">•</span>
-                                {session?.questionType && (
-                                    <Badge className={`text-xs font-medium ${getQBadge(session.questionType)}`}>
-                                        {qTypeLabel[session.questionType] || 'Khác'}
-                                    </Badge>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                                <Clock className="h-4 w-4" /><span>{fmt(elapsedTime)}</span>
-                            </div>
-                            <Badge className={session?.status === 'active' ? 'bg-indigo-50 text-indigo-950' : 'bg-gray-100 text-gray-700'}>
-                                {session?.status === 'active' ? 'Đang diễn ra' : 'Hoàn thành'}
+                {/* Top bar */}
+                <div className="flex items-center justify-between px-6 py-3 border-b border-white/10">
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => setShowAbandonModal(true)}
+                            className="text-white/60 hover:text-white transition-colors text-sm flex items-center gap-1.5">
+                            <ArrowLeft className="h-4 w-4" /> Thoát
+                        </button>
+                        <span className="text-white/30">|</span>
+                        <span className="text-white font-semibold text-sm truncate max-w-xs">{session?.jobTitle}</span>
+                        {session?.questionType && (
+                            <Badge className={`text-xs ${getQBadge(session.questionType)}`}>
+                                {qTypeLabel[session.questionType] || 'Câu hỏi'}
                             </Badge>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5 text-white/70 text-sm">
+                            <Clock className="h-3.5 w-3.5" />
+                            <span className="font-mono">{fmt(elapsedTime)}</span>
+                        </div>
+                        <div className="text-sm text-white/50">
+                            Câu <span className="text-white font-bold">{session?.questionNumber}</span>/{session?.questionCount}
+                        </div>
+                        <button
+                            onClick={() => setShowAbandonModal(true)}
+                            className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs font-semibold transition-colors border border-red-500/30">
+                            Kết thúc
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex flex-1 overflow-hidden">
+                {/* ── LEFT: AI Interviewer panel ── */}
+                <div className="hidden lg:flex flex-col items-center justify-center w-72 xl:w-80 flex-shrink-0 px-6 py-8"
+                    style={{ background: 'rgba(255,255,255,0.03)', borderRight: '1px solid rgba(255,255,255,0.08)' }}>
+
+                    {/* Avatar */}
+                    <div className="relative mb-5">
+                        {/* Glow ring */}
+                        <div className="absolute inset-0 rounded-full animate-pulse"
+                            style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%)', transform: 'scale(1.3)' }} />
+                        <div className="w-40 h-40 rounded-full overflow-hidden border-4 relative z-10"
+                            style={{ borderColor: 'rgba(99,102,241,0.6)', boxShadow: '0 0 30px rgba(99,102,241,0.4)' }}>
+                            {showVideo ? (
+                                <video src={videoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                            ) : (
+                                <img src={avatarUrl} alt="AI Interviewer" className="w-full h-full object-cover" />
+                            )}
+                        </div>
+                        {/* Live indicator */}
+                        <div className="absolute bottom-2 right-2 z-20 flex items-center gap-1.5 px-2 py-0.5 rounded-full"
+                            style={{ background: 'rgba(16,185,129,0.9)', backdropFilter: 'blur(4px)' }}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            <span className="text-white text-[10px] font-bold">LIVE</span>
                         </div>
                     </div>
+
+                    <p className="text-indigo-300 text-xs font-bold tracking-widest uppercase mb-1">AI INTERVIEWER</p>
+                    <p className="text-white font-semibold text-sm mb-4">{interviewerGender === 'female' ? 'Nữ phỏng vấn viên' : 'Nam phỏng vấn viên'}</p>
+
+                    {/* Toggle video */}
+                    <button onClick={() => setShowVideo(v => !v)}
+                        className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors border border-indigo-500/30 rounded-full px-3 py-1">
+                        {showVideo ? 'Dùng ảnh tĩnh' : 'Xem video'}
+                    </button>
+
+                    {/* Timer bar */}
+                    {session?.status === 'active' && (
+                        <div className="mt-8 w-full">
+                            <div className="flex justify-between text-xs mb-1.5">
+                                <span className="text-white/50">Thời gian câu hỏi</span>
+                                <span className={`font-mono font-bold ${remaining <= 15 ? 'text-red-400 animate-pulse' : remaining <= 30 ? 'text-yellow-400' : 'text-white/70'}`}>
+                                    {fmt(remaining)}
+                                </span>
+                            </div>
+                            <div className="w-full h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                                <div className={`h-full rounded-full transition-all duration-1000 ${timerColor}`}
+                                    style={{ width: `${timerPct}%` }} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* ── RIGHT: Chat + Answer ── */}
+                <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-hidden flex flex-col">
+                {/* old header placeholder - removed */ }
+                <div style={{display:'none'}}>
 
                     {/* Per-question countdown bar */}
                     {session?.status === 'active' && (
@@ -766,15 +845,15 @@ const InterviewPage: React.FC = () => {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                        {/* Chat */}
-                        <div className="lg:col-span-2">
-                            <Card className="flex flex-col" style={{ height: 'min(900px, 88vh)' }}>
-                                <CardHeader><CardTitle className="text-base">Cuộc trò chuyện</CardTitle></CardHeader>
-                                <CardContent className="flex-1 flex flex-col overflow-hidden p-0 relative">
+                </div>
+
+                    {/* ── New dark chat layout ── */}
+                    <div className="flex flex-col flex-1 overflow-hidden">
+                        <div className="flex-1 overflow-hidden flex flex-col">
+                            <div className="flex-1 overflow-hidden" style={{ position: 'relative' }}>
                                     <div
                                         ref={chatContainerRef}
-                                        className="flex-1 overflow-y-auto px-4 py-3 space-y-3"
+                                        className="absolute inset-0 overflow-y-auto px-5 py-4 space-y-4"
                                         onScroll={checkScrollPosition}
                                         style={{ scrollBehavior: 'auto' }}
                                     >
@@ -782,17 +861,20 @@ const InterviewPage: React.FC = () => {
                                             <React.Fragment key={msg.id}>
                                                 <div className={`flex ${msg.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
                                                     {msg.role === 'interviewer' ? (
-                                                        /* HR Manager Message - Enhanced styling */
-                                                        <div className="max-w-[85%] bg-white border border-gray-200 rounded-xl shadow-sm">
-                                                            {/* Header with role and question type */}
-                                                            <div className={`px-4 py-3 rounded-t-xl border-b ${getQBg(msg.questionType)}`}>
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className={`p-2 rounded-lg ${getQIcon(msg.questionType)}`}>
-                                                                        <Bot className="h-4 w-4" />
+                                                        /* AI Interviewer bubble — dark theme */
+                                                        <div className="max-w-[88%] flex gap-3 items-end">
+                                                            {/* Mini avatar */}
+                                                            <img src={avatarUrl} alt="AI" className="w-9 h-9 rounded-full object-cover flex-shrink-0 mb-1 border-2" style={{ borderColor: 'rgba(99,102,241,0.5)' }} />
+                                                            <div className="rounded-2xl rounded-bl-sm overflow-hidden" style={{ background: 'rgba(30,35,60,0.95)', border: '1px solid rgba(99,102,241,0.3)', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                                                            {/* Header */}
+                                                            <div className="px-4 py-2.5 flex items-center gap-2.5" style={{ background: 'rgba(99,102,241,0.15)', borderBottom: '1px solid rgba(99,102,241,0.2)' }}>
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="p-1.5 rounded-lg bg-indigo-500/30">
+                                                                        <Bot className="h-3.5 w-3.5 text-indigo-300" />
                                                                     </div>
-                                                                    <div className="flex-1">
+                                                                    <div>
                                                                         <div className="flex items-center gap-2">
-                                                                            <span className="font-semibold text-gray-900">HR Manager</span>
+                                                                            <span className="font-semibold text-white text-sm">AI INTERVIEWER</span>
                                                                             {msg.questionType && (
                                                                                 <Badge className={`text-xs font-medium ${getQBadge(msg.questionType)}`}>
                                                                                     {qTypeLabel[msg.questionType] || msg.questionType}
@@ -806,7 +888,7 @@ const InterviewPage: React.FC = () => {
                                                             {/* Question content */}
                                                             <div className="px-4 py-4">
                                                                 {msg.content ? (
-                                                                    <div className="text-gray-800 leading-relaxed text-xs">
+                                                                    <div className="text-white/90 leading-relaxed text-sm">
                                                                         {/* Enhanced question formatting with proper line breaks */}
                                                                         {msg.content.split('\n').map((paragraph, index) => {
                                                                             // Check if this is a question type label line
@@ -839,24 +921,31 @@ const InterviewPage: React.FC = () => {
                                                                         })}
                                                                     </div>
                                                                 ) : (
-                                                                    <div className="flex items-center gap-2 text-gray-500 italic">
+                                                                    <div className="flex items-center gap-2 text-indigo-300/70 italic">
                                                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                                                        <span>Đang chuẩn bị câu hỏi...</span>
+                                                                        <span className="text-sm">Đang chuẩn bị câu hỏi...</span>
                                                                     </div>
                                                                 )}
                                                             </div>
+                                                            </div>
                                                         </div>
                                                     ) : (
-                                                        /* Candidate Message - Keep existing style */
-                                                        <div className="max-w-[82%] bg-blue-600 text-white rounded-xl px-4 py-3 text-sm">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <User className="h-3.5 w-3.5" />
-                                                                <span className="font-medium text-xs">Bạn</span>
+                                                        /* Candidate message — right side */
+                                                        <div className="max-w-[82%] flex gap-2 items-end justify-end">
+                                                            <div className="rounded-2xl rounded-br-sm px-4 py-3 text-sm"
+                                                                style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff' }}>
+                                                                <div className="flex items-center gap-1.5 mb-1 opacity-80">
+                                                                    <User className="h-3 w-3" />
+                                                                    <span className="text-xs font-semibold">Bạn</span>
+                                                                </div>
+                                                                {msg.content
+                                                                    ? <p className="leading-relaxed">{msg.content}</p>
+                                                                    : <p className="leading-relaxed italic opacity-60">Bỏ qua câu hỏi này</p>
+                                                                }
                                                             </div>
-                                                            {msg.content
-                                                                ? <p className="leading-relaxed">{msg.content}</p>
-                                                                : <p className="leading-relaxed italic opacity-60">Bỏ qua câu hỏi này</p>
-                                                            }
+                                                            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 mb-1">
+                                                                <User className="h-4 w-4 text-white" />
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
@@ -960,7 +1049,7 @@ const InterviewPage: React.FC = () => {
                                         <div className="border-t px-4 py-3 space-y-2">
                                             {/* Loading indicator */}
                                             {isLoading && (
-                                                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg text-sm text-blue-700">
+                                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm" style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
                                                     <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                                                     <span>Đang chấm điểm và chuẩn bị câu hỏi tiếp theo...</span>
                                                 </div>
@@ -972,181 +1061,98 @@ const InterviewPage: React.FC = () => {
                                                 placeholder="Nhập câu trả lời... (Ctrl+Enter để gửi)"
                                                 disabled={isLoading}
                                                 rows={3}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 resize-none"
+                                                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none resize-none"
+                                                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', caretColor: '#818cf8' }}
                                             />
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
-                                                    <Btn variant={isRecording ? 'danger' : 'outline'} size="sm"
+                                                    <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isRecording ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-white/10 text-white/70 border border-white/20 hover:bg-white/15'}`}
                                                         onClick={isRecording ? stopRecording : startRecording} disabled={isLoading}>
-                                                        {isRecording ? <><MicOff className="h-3.5 w-3.5 mr-1" />Dừng ghi âm</> : <><Mic className="h-3.5 w-3.5 mr-1" />Ghi âm</>}
-                                                    </Btn>
-                                                    {isRecording && <span className="text-xs text-red-600 animate-pulse">● Đang ghi...</span>}
-                                                    {audioDuration && !isRecording && <span className="text-xs text-indigo-800"> {audioDuration.toFixed(1)}s</span>}
-                                                    <span className="text-xs text-gray-400">{currentAnswer.length} ký tự</span>
+                                                        {isRecording ? <><MicOff className="h-3.5 w-3.5" />Dừng</> : <><Mic className="h-3.5 w-3.5" />Ghi âm</>}
+                                                    </button>
+                                                    {isRecording && <span className="text-xs text-red-400 animate-pulse">● Đang ghi...</span>}
+                                                    {audioDuration && !isRecording && <span className="text-xs text-indigo-300"> {audioDuration.toFixed(1)}s</span>}
+                                                    <span className="text-xs text-white/30">{currentAnswer.length} ký tự</span>
                                                 </div>
-                                                <Btn onClick={() => handleSubmit()} disabled={isLoading}>
-                                                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
-                                                    Gửi
-                                                </Btn>
+                                                <button onClick={() => handleSubmit()} disabled={isLoading}
+                                                    className="flex items-center gap-2 px-5 py-2 rounded-xl font-semibold text-sm transition-all disabled:opacity-50"
+                                                    style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', boxShadow: '0 4px 15px rgba(79,70,229,0.4)' }}>
+                                                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                                    Gửi trả lời
+                                                </button>
                                             </div>
                                         </div>
                                     )}
-                                </CardContent>
-                            </Card>
+                            </div>
                         </div>
 
-                        {/* Sidebar */}
-                        <div className="space-y-4">
-                            <Card>
-                                <CardContent className="p-5 text-center">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-3 flex items-center justify-center">
-                                        <Bot className="h-8 w-8 text-white" />
-                                    </div>
-                                    <p className="font-semibold text-gray-900 text-sm">HR Manager</p>
-                                    <p className="text-xs text-gray-500">AI Interviewer</p>
-                                    {session?.status === 'active' && (
-                                        <div className="mt-2 flex items-center justify-center gap-1">
-                                            <div className="w-2 h-2 bg-indigo-700 rounded-full animate-pulse" />
-                                            <span className="text-xs text-indigo-800">Đang hoạt động</span>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-
+                        {/* Sidebar — progress + skills */}
+                        <div className="w-64 xl:w-72 flex-shrink-0 flex flex-col gap-3 p-4 overflow-y-auto" style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
                             {/* Progress */}
-                            <Card>
-                                <CardHeader><CardTitle className="text-sm">Tiến độ</CardTitle></CardHeader>
-                                <CardContent className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span>Câu hỏi</span>
-                                        <span>{Math.min(session?.questionNumber || 0, session?.questionCount || 5)}/{session?.questionCount || 5}</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                        <div className="bg-blue-600 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(((session?.questionNumber || 0) / (session?.questionCount || 5)) * 100, 100)}%` }} />
-                                    </div>
-                                    <div className="text-xs text-gray-500">Tổng thời gian: {fmt(elapsedTime)}</div>
-                                </CardContent>
-                            </Card>
+                            <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-3">Tiến độ</p>
+                                <div className="flex justify-between text-sm text-white mb-2">
+                                    <span className="text-white/70">Câu hỏi</span>
+                                    <span className="font-bold">{Math.min(session?.questionNumber || 0, session?.questionCount || 5)}/{session?.questionCount || 5}</span>
+                                </div>
+                                <div className="w-full h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                                    <div className="h-full rounded-full bg-indigo-500 transition-all"
+                                        style={{ width: `${Math.min(((session?.questionNumber || 0) / (session?.questionCount || 5)) * 100, 100)}%` }} />
+                                </div>
+                                <p className="text-white/40 text-xs mt-2">Tổng thời gian: {fmt(elapsedTime)}</p>
+                            </div>
 
-                            {/* Enhanced Skills Section - Consistent with Results Page */}
+                            {/* Skills Section */}
                             {session?.skillsContext && session.skillsContext.length > 0 && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-sm flex items-center">
-                                            <Brain className="h-4 w-4 mr-2 text-indigo-600" />
-                                            Kỹ năng được đánh giá
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {/* Soft Skills - filter is_hard_skill === false */}
-                                        {(() => {
-                                            const softSkills = (session.skillsContext as any[]).filter((s: any) => s.is_hard_skill === false);
-                                            const hardSkills = (session.skillsContext as any[]).filter((s: any) => s.is_hard_skill === true);
-                                            return (
-                                                <>
-                                                    {softSkills.length > 0 && (
-                                                        <div>
-                                                            <h4 className="text-xs font-semibold text-gray-900 mb-2 flex items-center">
-                                                                <Users className="h-3 w-3 mr-1 text-blue-600" />
-                                                                Kỹ năng mềm
-                                                            </h4>
-                                                            <div className="space-y-1">
-                                                                {softSkills.slice(0, 5).map((skill: any, index: number) => (
-                                                                    <div
-                                                                        key={index}
-                                                                        className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                                                                        title={`${skill.skill_name} - Mức độ quan trọng: ${(skill.importance || 0).toFixed(1)}/5`}
-                                                                    >
-                                                                        <span className="text-gray-700 group-hover:text-blue-700 transition-colors flex-1 mr-2 truncate">
-                                                                            {skill.skill_name}
-                                                                        </span>
-                                                                        <span className="text-blue-600 font-medium group-hover:text-blue-700 transition-colors shrink-0">
-                                                                            {(skill.importance || 0).toFixed(1)}/5
-                                                                        </span>
-                                                                        <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
-                                                                            <div className="font-medium mb-1">{skill.skill_name}</div>
-                                                                            <div className="text-gray-300">Mức độ quan trọng: <span className="text-blue-300 font-medium">{(skill.importance || 0).toFixed(1)}/5</span></div>
-                                                                            <div className="text-gray-300">Loại: <span className="text-blue-300 font-medium">{skill.skill_type}</span></div>
-                                                                            <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                                {softSkills.length > 5 && (
-                                                                    <p className="text-xs text-gray-500 mt-2 text-center">+{softSkills.length - 5} kỹ năng khác</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    {hardSkills.length > 0 && (
-                                                        <div>
-                                                            <h4 className="text-xs font-semibold text-gray-900 mb-2 flex items-center">
-                                                                <div className="h-3 w-3 mr-1 text-orange-600">🔧</div>
-                                                                Kỹ năng chuyên ngành
-                                                            </h4>
-                                                            <div className="space-y-1">
-                                                                {hardSkills.slice(0, 5).map((skill: any, index: number) => (
-                                                                    <div
-                                                                        key={index}
-                                                                        className="flex items-center justify-between text-xs group cursor-help relative p-2 rounded-lg hover:bg-orange-50 transition-colors"
-                                                                        title={`${skill.skill_name} - Mức độ quan trọng: ${(skill.importance || 0).toFixed(1)}/5`}
-                                                                    >
-                                                                        <span className="text-gray-700 group-hover:text-orange-700 transition-colors flex-1 mr-2 truncate">
-                                                                            {skill.skill_name}
-                                                                        </span>
-                                                                        <span className="text-orange-600 font-medium group-hover:text-orange-700 transition-colors shrink-0">
-                                                                            {(skill.importance || 0).toFixed(1)}/5
-                                                                        </span>
-                                                                        <div className="absolute left-0 bottom-full mb-2 w-max max-w-xs bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg">
-                                                                            <div className="font-medium mb-1">{skill.skill_name}</div>
-                                                                            <div className="text-gray-300">Mức độ quan trọng: <span className="text-orange-300 font-medium">{(skill.importance || 0).toFixed(1)}/5</span></div>
-                                                                            <div className="text-gray-300">Loại: <span className="text-orange-300 font-medium">Kỹ năng chuyên ngành</span></div>
-                                                                            <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                                {hardSkills.length > 5 && (
-                                                                    <p className="text-xs text-gray-500 mt-2 text-center">+{hardSkills.length - 5} kỹ năng khác</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </>
-                                            );
-                                        })()}
-                                    </CardContent>
-                                </Card>
+                                <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                    <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                        <Brain className="h-3.5 w-3.5 text-indigo-400" /> Kỹ năng đánh giá
+                                    </p>
+                                    <div className="space-y-1.5">
+                                        {(session.skillsContext as any[]).slice(0, 8).map((skill: any, index: number) => (
+                                            <div key={index} className="flex items-center justify-between text-xs">
+                                                <span className="text-white/70 truncate flex-1 mr-2">{skill.skill_name}</span>
+                                                <span className={`font-semibold shrink-0 ${skill.is_hard_skill ? 'text-orange-400' : 'text-indigo-400'}`}>
+                                                    {(skill.importance || 0).toFixed(1)}/5
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
 
                             {/* Tips */}
-                            <STARMethodGuide className="mb-4" />
-
-                            <Card>
-                                <CardHeader><CardTitle className="text-sm">Gợi ý thêm</CardTitle></CardHeader>
-                                <CardContent>
-                                    <ul className="text-xs text-gray-600 space-y-1.5">
-                                        <li>• Nói chậm, rõ ràng và tự tin</li>
-                                        <li>• Sử dụng ví dụ cụ thể, có số liệu</li>
-                                        <li>• Thể hiện thái độ tích cực và học hỏi</li>
-                                        <li>• Đừng ngại hỏi lại nếu không hiểu câu hỏi</li>
-                                    </ul>
-                                </CardContent>
-                            </Card>
+                            <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-2.5">Gợi ý</p>
+                                <ul className="text-xs space-y-1.5 text-white/60">
+                                    <li>• Nói chậm, rõ ràng và tự tin</li>
+                                    <li>• Dùng ví dụ cụ thể với số liệu</li>
+                                    <li>• Thái độ tích cực và học hỏi</li>
+                                    <li>• Hỏi lại nếu không hiểu</li>
+                                </ul>
+                            </div>
 
                             {/* Completed actions */}
                             {session?.status === 'completed' && (
                                 <div className="space-y-2">
-                                    <Btn className="w-full" onClick={() => navigate(`/interview/results/${session.sessionId}`)}>
+                                    <button className="w-full py-2.5 rounded-xl font-semibold text-sm text-white transition-all"
+                                        style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)' }}
+                                        onClick={() => navigate(`/interview/results/${session.sessionId}`)}>
                                         Xem kết quả chi tiết
-                                    </Btn>
-                                    <Btn variant="outline" className="w-full" onClick={() => navigate('/dashboard')}>
+                                    </button>
+                                    <button className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all"
+                                        style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}
+                                        onClick={() => navigate('/dashboard')}>
                                         Về Dashboard
-                                    </Btn>
+                                    </button>
                                 </div>
                             )}
                         </div>
                     </div>
-                </div >
-            </div >
+                </div>
+                </div>
+                </div>
+            </div>
 
             {/* ── Abandon Confirmation Modal ─────────────────────────────────── */}
             {showAbandonModal && (

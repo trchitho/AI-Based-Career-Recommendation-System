@@ -105,13 +105,22 @@ class SkillGraphAnalyzer:
                 'devops-engineer': 'software-developers-15-1252-00',  # Use software dev as fallback
             }
             
-            # Try to map the career name
+            # Normalize ONET code: handle both "25-2012-00" and "25-2012.00" formats
+            # DB stores as "25-2012.00" but career_id may come as "25-2012-00"
+            onet_normalized = onet_code
+            if onet_code and onet_code.count('-') >= 2 and '.' not in onet_code:
+                # Convert last "-" to "." e.g. "25-2012-00" → "25-2012.00"
+                parts = onet_code.rsplit('-', 1)
+                if len(parts) == 2 and parts[1].isdigit():
+                    onet_normalized = f"{parts[0]}.{parts[1]}"
+
             search_slug = career_mapping.get(onet_code, onet_code)
-            
-            # First, try to find the career by slug or ONET code
+
+            # Search by slug, original code, and normalized code
             career_stmt = select(Career).where(
-                (Career.slug == search_slug) | 
+                (Career.slug == search_slug) |
                 (Career.onet_code == onet_code) |
+                (Career.onet_code == onet_normalized) |
                 (Career.slug == onet_code)
             )
             career_result = self.db.execute(career_stmt)
@@ -136,24 +145,30 @@ class SkillGraphAnalyzer:
                     print(f"  [WARN] Career not found, using provided code: {actual_onet_code}")
             
             # Query skills from database
-            stmt = select(CareerKSA).where(
-                CareerKSA.onet_code == actual_onet_code,
-                CareerKSA.ksa_type == 'skill'
-            ).order_by(CareerKSA.importance.desc())
-            
-            result = self.db.execute(stmt)
-            ksa_rows = result.scalars().all()
-            
+            # Use raw SQL to avoid model column name mismatch (name_en vs name)
+            from sqlalchemy import text as _text
+            rows = self.db.execute(_text("""
+                SELECT name_en, name_vn, category, level, importance
+                FROM core.career_ksas
+                WHERE onet_code = :code AND ksa_type = 'skill'
+                  AND (name_en IS NOT NULL OR name_vn IS NOT NULL)
+                ORDER BY importance DESC
+            """), {"code": actual_onet_code}).fetchall()
+
             skills = []
-            for ksa in ksa_rows:
-                # Normalize importance to 0-1 scale
-                importance = float(ksa.importance) / 100.0 if ksa.importance else 0.5
-                
+            for row in rows:
+                skill_name = row.name_en or row.name_vn or ""
+                if not skill_name:
+                    continue
+                # Importance stored as 0-100 or 0-1, normalize to 0-1
+                raw_imp = float(row.importance or 50)
+                importance = raw_imp / 100.0 if raw_imp > 1 else raw_imp
+
                 skills.append({
-                    'name': ksa.name,
-                    'category': ksa.category or 'Other',
-                    'importance': importance,
-                    'proficiency_level': 'intermediate',  # Default
+                    'name': skill_name,
+                    'category': row.category or 'Other',
+                    'importance': round(importance, 3),
+                    'proficiency_level': 'intermediate',
                     'source': 'onet_database'
                 })
             
@@ -162,8 +177,12 @@ class SkillGraphAnalyzer:
             
         except Exception as e:
             print(f"  [WARN] Error querying database for skills: {e}")
-            import traceback
-            traceback.print_exc()
+            # Rollback aborted transaction so subsequent queries can proceed
+            try:
+                if self.db:
+                    self.db.rollback()
+            except Exception:
+                pass
             return []
     
     def get_job_required_skills(self, career_id: str) -> List[Dict]:
@@ -187,12 +206,13 @@ class SkillGraphAnalyzer:
                 return skills
         
         # Try 2: Get from Neo4j (if available)
+        # Relationship is REQUIRES (not REQUIRES_SKILL), property is level (not proficiency_level)
         query = """
-        MATCH (c:Career {id: $career_id})-[r:REQUIRES_SKILL]->(s:Skill)
-        RETURN s.name as skill_name, 
-               s.category as category,
-               r.importance as importance,
-               r.proficiency_level as proficiency_level
+        MATCH (c:Career {id: $career_id})-[r:REQUIRES]->(s:Skill)
+        RETURN s.name AS skill_name,
+               s.category AS category,
+               r.importance AS importance,
+               r.level AS level
         ORDER BY r.importance DESC
         """
         
@@ -203,8 +223,8 @@ class SkillGraphAnalyzer:
                 skills.append({
                     'name': record['skill_name'],
                     'category': record.get('category', 'Other'),
-                    'importance': record.get('importance', 0.5),
-                    'proficiency_level': record.get('proficiency_level', 'intermediate'),
+                    'importance': float(record.get('importance') or 0.5),
+                    'proficiency_level': record.get('level', 'intermediate'),
                     'source': 'neo4j'
                 })
             
@@ -373,7 +393,7 @@ class SkillGraphAnalyzer:
         Returns:
             Dict: Kết quả phân tích chi tiết
         """
-        print("  🔍 [Gap Analysis] Starting skill comparison...")
+        print("  [Search] [Gap Analysis] Starting skill comparison...")
         
         # Convert CV skills to lowercase dict for matching
         cv_skill_names = {skill['name'].lower() for skill in cv_skills}
@@ -545,7 +565,7 @@ class SkillGraphAnalyzer:
         Returns:
             Dict: Kết quả phân tích đầy đủ với insights
         """
-        print(f"\n🎯 [Gap Analysis Pipeline] Analyzing for career: {career_id}")
+        print(f"\n[Target] [Gap Analysis Pipeline] Analyzing for career: {career_id}")
         
         # Step 1: Get job requirements
         print("  [1/3] Querying job requirements...")
@@ -611,13 +631,27 @@ class SkillGraphAnalyzer:
         Returns:
             Dict: Analysis in standard format
         """
-        print("  🤖 Building analysis from AI semantic matching...")
-        
+        print("  [AI] Building analysis from AI semantic matching...")
+
         # Get matched pairs from AI
         matched_pairs = ai_result.get('matched_pairs', [])
-        unmatched_cv = set(ai_result.get('unmatched_cv_skills', []))
-        unmatched_job = set(ai_result.get('unmatched_job_skills', []))
-        match_percentage = ai_result.get('overall_match_percentage', 0)
+        unmatched_cv  = set(ai_result.get('unmatched_cv_skills',  []))
+        unmatched_job = set(ai_result.get('unmatched_job_skills',  []))
+
+        # Build job skill importance map
+        job_skill_imp = {s['name'].lower(): float(s.get('importance', 0.5)) for s in job_skills}
+        total_importance = sum(job_skill_imp.values()) or 1.0
+
+        # Collect matched job skill names (deduped)
+        seen_job_matched: set = set()
+        for pair in matched_pairs:
+            seen_job_matched.add(pair['job_skill'].lower())
+
+        # Importance-weighted match%: consistent with calculate_skill_match
+        matched_importance = sum(
+            job_skill_imp.get(j, 0.5) for j in seen_job_matched
+        )
+        match_percentage = round((matched_importance / total_importance) * 100, 2)
         
         # Build matched skills list
         matched_skills = []

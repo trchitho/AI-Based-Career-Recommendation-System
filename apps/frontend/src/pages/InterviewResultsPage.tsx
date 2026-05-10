@@ -37,6 +37,12 @@ const InterviewResultsPage: React.FC = () => {
     const [history, setHistory] = useState<InterviewHistory | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+    const [showConversation, setShowConversation] = useState(false);
+    const [conversation, setConversation] = useState<any[]>([]);
+    const [loadingConversation, setLoadingConversation] = useState(false);
+    const [aiAnalysis, setAiAnalysis] = useState<Record<number, any>>({});
+    const [analyzingId, setAnalyzingId] = useState<number | null>(null);
+    const [analysisError, setAnalysisError] = useState<Record<number, string>>({});
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     const [feedback, setFeedback] = useState<Partial<InterviewFeedback>>({
         question_quality: 5,
@@ -65,6 +71,99 @@ const InterviewResultsPage: React.FC = () => {
             navigate('/dashboard');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const loadConversation = async () => {
+        if (!sessionId || loadingConversation) return;
+        setLoadingConversation(true);
+        try {
+            const res = await interviewService.getConversation(parseInt(sessionId));
+            const msgs = res.conversation || [];
+            setConversation(msgs);
+            setShowConversation(true);
+
+            // Load saved analysis from DB for all user messages in parallel
+            const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+            const userMsgs = msgs.filter((m: any) => m.role === 'user' && m.content);
+            const analysisResults = await Promise.allSettled(
+                userMsgs.map((m: any) =>
+                    fetch(`/api/interview/analysis/result/${sessionId}/${m.id}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }).then(r => r.json()).then(data => ({ msgId: m.id, data }))
+                )
+            );
+            const saved: Record<number, any> = {};
+            for (const r of analysisResults) {
+                if (r.status === 'fulfilled' && r.value.data?.found) {
+                    saved[r.value.msgId] = r.value.data.analysis;
+                }
+            }
+            if (Object.keys(saved).length > 0) {
+                setAiAnalysis(prev => ({ ...prev, ...saved }));
+            }
+        } catch { /* ignore */ }
+        finally { setLoadingConversation(false); }
+    };
+
+    const analyzeAnswer = async (msgId: number, _question: string, _answer: string, _questionType: string, _score: number | null) => {
+        if (analyzingId === msgId || aiAnalysis[msgId]) return;
+        setAnalyzingId(msgId);
+        setAnalysisError(prev => { const n = {...prev}; delete n[msgId]; return n; });
+
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+        const sid = sessionId;
+        const url = `/api/interview/analysis/stream/${sid}/${msgId}?token=${encodeURIComponent(token)}`;
+
+        try {
+            const response = await fetch(url, { headers: { Accept: 'text/event-stream' } });
+            if (!response.ok) { throw new Error(`HTTP ${response.status}`); }
+
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+            if (!reader) throw new Error('No stream');
+
+            let buffer = '';
+            let streamedChunks = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    if (line.startsWith('event: ')) {
+                        const event = line.slice(7).trim();
+                        const dataLine = lines[lines.indexOf(line) + 1];
+                        if (!dataLine?.startsWith('data: ')) continue;
+                        const data = JSON.parse(dataLine.slice(6));
+
+                        if (event === 'chunk') {
+                            streamedChunks += data.text || '';
+                        } else if (event === 'cached' || (event === 'done' && data.analysis)) {
+                            const analysis = data.analysis || data;
+                            setAiAnalysis(prev => ({ ...prev, [msgId]: analysis }));
+                            setAnalyzingId(null);
+                        } else if (event === 'error') {
+                            setAnalysisError(prev => ({ ...prev, [msgId]: data.message || 'Lỗi AI' }));
+                            setAnalyzingId(null);
+                        } else if (event === 'done' && !data.analysis) {
+                            // Try to parse from accumulated chunks
+                            try {
+                                const m = streamedChunks.match(/\{[\s\S]*\}/);
+                                if (m) setAiAnalysis(prev => ({ ...prev, [msgId]: JSON.parse(m[0]) }));
+                            } catch { /* ignore */ }
+                            setAnalyzingId(null);
+                        }
+                    }
+                }
+            }
+        } catch (e: any) {
+            setAnalysisError(prev => ({ ...prev, [msgId]: e?.message || 'Lỗi kết nối' }));
+        } finally {
+            setAnalyzingId(null);
         }
     };
 
@@ -293,10 +392,10 @@ const InterviewResultsPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p>Đang tải kết quả...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Đang tải kết quả...</p>
                 </div>
             </div>
         );
@@ -304,9 +403,9 @@ const InterviewResultsPage: React.FC = () => {
 
     if (!history) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="text-center">
-                    <p className="text-gray-600 mb-4">Không tìm thấy kết quả phỏng vấn</p>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">Không tìm thấy kết quả phỏng vấn</p>
                     <Button onClick={() => navigate('/dashboard')}>
                         Về Dashboard
                     </Button>
@@ -330,61 +429,58 @@ const InterviewResultsPage: React.FC = () => {
 
     return (
         <MainLayout>
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
-
-                <div className="relative z-10 py-8">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                <div className="py-8">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Header */}
                         <div className="mb-8">
-                            <div className="flex items-center justify-between mb-8">
-                                <div className="flex items-center space-x-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                                <div className="flex items-center gap-4">
                                     <button
                                         onClick={() => navigate('/interview')}
-                                        className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+                                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm text-sm font-medium flex-shrink-0"
                                     >
                                         <ArrowLeft className="h-4 w-4" />
                                         <span>Quay lại</span>
                                     </button>
                                     <div>
-                                        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                                             Kết quả phỏng vấn AI
                                         </h1>
-                                        <div className="flex items-center space-x-4 text-gray-600">
-                                            <span className="flex items-center space-x-2">
+                                        <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                            <span className="flex items-center gap-1.5">
                                                 <Briefcase className="h-4 w-4" />
                                                 <span>{history.session.job_title}</span>
                                             </span>
-                                            <span className="flex items-center space-x-2">
+                                            <span className="flex items-center gap-1.5">
                                                 <Clock className="h-4 w-4" />
                                                 <span>{new Date(history.session.started_at).toLocaleDateString('vi-VN')}</span>
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-3">
+                                <div className="flex items-center gap-2 flex-shrink-0">
                                     <button
                                         onClick={shareResults}
-                                        className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+                                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm text-sm font-medium"
                                     >
                                         <Share2 className="h-4 w-4" />
-                                        <span>Chia sẻ</span>
+                                        <span className="hidden sm:inline">Chia sẻ</span>
                                     </button>
                                     <button
                                         onClick={downloadReport}
                                         disabled={isGeneratingPDF}
-                                        className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm disabled:opacity-50"
+                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-sm disabled:opacity-50 text-sm font-semibold"
                                     >
                                         {isGeneratingPDF ? (
                                             <>
                                                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                                <span>Đang tạo PDF...</span>
+                                                <span>Đang tạo...</span>
                                             </>
                                         ) : (
                                             <>
                                                 <Download className="h-4 w-4" />
-                                                <span>Tải báo cáo PDF</span>
+                                                <span>Tải PDF</span>
                                             </>
                                         )}
                                     </button>
@@ -392,37 +488,37 @@ const InterviewResultsPage: React.FC = () => {
                             </div>
 
                             {/* Overall Result Card */}
-                            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-6">
-                                        <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full">
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 mb-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex items-center gap-5">
+                                        <div className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex-shrink-0">
                                             {getRecommendationIcon(history.session.recommendation)}
                                         </div>
                                         <div>
-                                            <h2 className="text-4xl font-bold text-gray-900 mb-1">
+                                            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
                                                 {interviewService.formatScore(history.session.overall_score)}
                                             </h2>
-                                            <p className="text-lg text-gray-600">Điểm tổng thể</p>
+                                            <p className="text-gray-500 dark:text-gray-400">Điểm tổng thể</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className={`inline-flex items-center px-6 py-3 rounded-full text-lg font-semibold ${history.session.recommendation === 'PASS'
-                                            ? 'bg-indigo-50 text-indigo-950 border border-indigo-200'
+                                    <div>
+                                        <div className={`inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-full text-base sm:text-lg font-semibold ${history.session.recommendation === 'PASS'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800'
                                             : history.session.recommendation === 'CONDITIONAL_PASS'
-                                                ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                                                : 'bg-red-100 text-red-800 border border-red-200'
+                                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800'
                                             }`}>
                                             {interviewService.getRecommendationLabel(history.session.recommendation)}
                                         </div>
                                     </div>
                                 </div>
                                 {history.session.summary && (
-                                    <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
-                                        <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
-                                            <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                                    <div className="mt-5 p-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
+                                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                                            <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                                             Tóm tắt đánh giá
                                         </h3>
-                                        <p className="text-gray-700 leading-relaxed">{history.session.summary}</p>
+                                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{history.session.summary}</p>
                                     </div>
                                 )}
                             </div>
@@ -432,16 +528,16 @@ const InterviewResultsPage: React.FC = () => {
                             {/* Main Content */}
                             <div className="lg:col-span-2 space-y-8">
                                 {/* Detailed Scores */}
-                                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                                    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-8 py-6 border-b border-gray-200">
-                                        <h3 className="text-2xl font-bold text-gray-900 flex items-center">
-                                            <BarChart3 className="h-6 w-6 mr-3 text-indigo-600" />
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                    <div className="bg-indigo-50 dark:bg-indigo-900/20 px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                            <BarChart3 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                             Điểm chi tiết
                                         </h3>
-                                        <p className="text-gray-600 mt-1">Phân tích kỹ năng theo từng tiêu chí</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Phân tích kỹ năng theo từng tiêu chí</p>
                                     </div>
-                                    <div className="p-8">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="p-5">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {[
                                                 { label: 'Kỹ thuật', score: history.session.technical_score, icon: Target, color: 'blue' },
                                                 { label: 'Giao tiếp', score: history.session.communication_score, icon: MessageSquare, color: 'green' },
@@ -449,21 +545,21 @@ const InterviewResultsPage: React.FC = () => {
                                                 { label: 'Kinh nghiệm', score: history.session.experience_score, icon: Clock, color: 'orange' },
                                                 { label: 'Thái độ', score: history.session.attitude_score, icon: Star, color: 'pink' }
                                             ].map((item, index) => (
-                                                <div key={index} className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200">
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <div className="flex items-center space-x-3">
-                                                            <div className={`p-2 rounded-lg bg-${item.color}-100`}>
-                                                                <item.icon className={`h-5 w-5 text-${item.color}-600`} />
+                                                <div key={index} className="p-4 bg-gray-50 dark:bg-gray-900/40 rounded-xl border border-gray-200 dark:border-gray-700">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`p-1.5 rounded-lg bg-${item.color}-100 dark:bg-${item.color}-900/30`}>
+                                                                <item.icon className={`h-4 w-4 text-${item.color}-600 dark:text-${item.color}-400`} />
                                                             </div>
-                                                            <span className="font-semibold text-gray-900">{item.label}</span>
+                                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{item.label}</span>
                                                         </div>
-                                                        <span className={`text-2xl font-bold ${interviewService.getScoreColor(item.score)}`}>
+                                                        <span className={`text-xl font-bold ${interviewService.getScoreColor(item.score)}`}>
                                                             {interviewService.formatScore(item.score)}
                                                         </span>
                                                     </div>
-                                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                                         <div
-                                                            className={`h-3 rounded-full bg-gradient-to-r from-${item.color}-400 to-${item.color}-600 transition-all duration-500`}
+                                                            className={`h-2 rounded-full bg-gradient-to-r from-${item.color}-400 to-${item.color}-600 transition-all duration-500`}
                                                             style={{ width: `${(item.score || 0) * 10}%` }}
                                                         ></div>
                                                     </div>
@@ -474,56 +570,56 @@ const InterviewResultsPage: React.FC = () => {
                                 </div>
 
                                 {/* Strengths & Weaknesses */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Strengths */}
-                                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                                        <div className="bg-gradient-to-r from-indigo-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
-                                            <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                                                <TrendingUp className="h-5 w-5 mr-2 text-indigo-800" />
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900/20">
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                                <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
                                                 Điểm mạnh
                                             </h3>
                                         </div>
-                                        <div className="p-6">
+                                        <div className="p-5">
                                             {history.session.key_strengths && history.session.key_strengths.length > 0 ? (
-                                                <div className="space-y-3">
+                                                <div className="space-y-2.5">
                                                     {history.session.key_strengths.map((strength, index) => (
-                                                        <div key={index} className="flex items-start space-x-3 p-3 bg-indigo-50 rounded-lg">
-                                                            <CheckCircle className="h-5 w-5 text-indigo-800 mt-0.5 flex-shrink-0" />
-                                                            <span className="text-gray-700 leading-relaxed">{strength}</span>
+                                                        <div key={index} className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                                            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                                                            <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{strength}</span>
                                                         </div>
                                                     ))}
                                                 </div>
                                             ) : (
                                                 <div className="text-center py-8">
-                                                    <Award className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                                                    <p className="text-gray-500">Chưa có điểm mạnh được ghi nhận</p>
+                                                    <Award className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                                                    <p className="text-sm text-gray-400 dark:text-gray-500">Chưa có điểm mạnh được ghi nhận</p>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
                                     {/* Weaknesses */}
-                                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                                        <div className="bg-gradient-to-r from-red-50 to-pink-50 px-6 py-5 border-b border-gray-200">
-                                            <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                                                <TrendingDown className="h-5 w-5 mr-2 text-red-600" />
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-900/20">
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                                <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
                                                 Điểm cần cải thiện
                                             </h3>
                                         </div>
-                                        <div className="p-6">
+                                        <div className="p-5">
                                             {history.session.key_weaknesses && history.session.key_weaknesses.length > 0 ? (
-                                                <div className="space-y-3">
+                                                <div className="space-y-2.5">
                                                     {history.session.key_weaknesses.map((weakness, index) => (
-                                                        <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
-                                                            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                                                            <span className="text-gray-700 leading-relaxed">{weakness}</span>
+                                                        <div key={index} className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                                            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                                                            <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{weakness}</span>
                                                         </div>
                                                     ))}
                                                 </div>
                                             ) : (
                                                 <div className="text-center py-8">
-                                                    <Zap className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                                                    <p className="text-gray-500">Không có điểm yếu được ghi nhận</p>
+                                                    <Zap className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                                                    <p className="text-sm text-gray-400 dark:text-gray-500">Không có điểm yếu được ghi nhận</p>
                                                 </div>
                                             )}
                                         </div>
@@ -532,18 +628,18 @@ const InterviewResultsPage: React.FC = () => {
 
                                 {/* Learning Recommendations */}
                                 {history.session.learning_recommendations && history.session.learning_recommendations.length > 0 && (
-                                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-8 py-6 border-b border-gray-200">
-                                            <h3 className="text-2xl font-bold text-gray-900 flex items-center">
-                                                <BookOpen className="h-6 w-6 mr-3 text-purple-600" />
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-purple-50 dark:bg-purple-900/20">
+                                            <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                                <BookOpen className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                                                 Gợi ý học tập
                                             </h3>
-                                            <p className="text-gray-600 mt-1">Lộ trình phát triển kỹ năng được cá nhân hóa</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Lộ trình phát triển kỹ năng được cá nhân hóa</p>
                                         </div>
-                                        <div className="p-8">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="p-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {history.session.learning_recommendations.map((rec: any, index: number) => (
-                                                    <div key={index} className="border border-gray-200 rounded-xl p-6 bg-gradient-to-br from-white to-gray-50">
+                                                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gray-50 dark:bg-gray-900/40">
                                                         {typeof rec === 'string' ? (
                                                             // Format string (từ ai_pipeline_service)
                                                             <div className="flex items-start space-x-3">
@@ -883,6 +979,190 @@ const InterviewResultsPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+
+                        {/* ── Xem chi tiết cuộc trò chuyện — full width below grid ── */}
+                        <div className="mt-8 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                        <button
+                        onClick={() => { if (!showConversation) loadConversation(); else setShowConversation(false); }}
+                        className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
+                        >
+                        <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center">
+                        <MessageSquare className="h-5 w-5 text-indigo-700" />
+                        </div>
+                        <div className="text-left">
+                        <p className="font-bold text-gray-900 text-sm">Xem chi tiết từng câu trả lời</p>
+                        <p className="text-xs text-gray-500">Phân tích sâu • Điểm mạnh/yếu • Ví dụ cải thiện</p>
+                        </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                        {loadingConversation && <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />}
+                        <AlertCircle className={`h-4 w-4 transition-transform ${showConversation ? 'rotate-180 text-indigo-600' : 'text-gray-400'}`} />
+                        </div>
+                        </button>
+
+                        {showConversation && conversation.length > 0 && (
+                        <div className="border-t border-gray-100 divide-y divide-gray-100">
+                        {conversation.filter(m => m.role === 'user' && m.content).map((msg: any, idx: number) => {
+                        // Find the AI question before this answer
+                        const msgIndex = conversation.indexOf(msg);
+                        const question = conversation.slice(0, msgIndex).reverse().find(m => m.role === 'ai' && m.question_type !== 'greeting');
+                        const score = msg.score;
+                        const isGood = score != null && score >= 4;
+                        const isMid  = score != null && score >= 3 && score < 4;
+                        const isBad  = score != null && score < 3;
+
+                        return (
+                        <div key={msg.id} className="px-6 py-5">
+                        {/* Question */}
+                        {question && (
+                        <div className="flex items-start gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-white text-[10px] font-bold">{idx + 1}</span>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-700 leading-relaxed">{question.content}</p>
+                        </div>
+                        )}
+
+                        {/* Answer */}
+                        <div className={`rounded-xl p-4 mb-3 ${isGood ? 'bg-green-50 border border-green-200' : isMid ? 'bg-yellow-50 border border-yellow-200' : isBad ? 'bg-red-50 border border-red-200' : 'bg-gray-50 border border-gray-200'}`}>
+                        <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Câu trả lời của bạn</span>
+                        {score != null && (
+                        <span className={`text-sm font-black px-2 py-0.5 rounded-full ${isGood ? 'bg-green-100 text-green-700' : isMid ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                        {score.toFixed(1)}/10
+                        </span>
+                        )}
+                        </div>
+                        <p className="text-sm text-gray-700 leading-relaxed">{msg.content || <span className="italic text-gray-400">Không có câu trả lời</span>}</p>
+                        </div>
+
+                        {/* AI Deep Analysis */}
+                        <div className="mt-3">
+                        {/* Static feedback from session */}
+                        {msg.feedback && !aiAnalysis[msg.id] && (
+                        <div className={`flex gap-2 items-start mb-2 p-2.5 rounded-lg ${isGood ? 'bg-green-50' : isMid ? 'bg-yellow-50' : 'bg-red-50'}`}>
+                        {isGood
+                        ? <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        : <XCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />}
+                        <p className="text-xs text-gray-700 leading-relaxed">{msg.feedback}</p>
+                        </div>
+                        )}
+
+                        {/* AI Analysis result */}
+                        {aiAnalysis[msg.id] && (() => {
+                        const a = aiAnalysis[msg.id];
+                        return (
+                        <div className="space-y-3 mt-1">
+                        {/* Strengths */}
+                        {a.strengths?.length > 0 && (
+                        <div className="rounded-xl bg-green-50 border border-green-200 p-3">
+                        <div className="flex items-center gap-1.5 mb-2">
+                        <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                        <span className="text-xs font-bold text-green-700 uppercase tracking-wide">Điểm mạnh</span>
+                        </div>
+                        <ul className="space-y-1">
+                        {a.strengths.map((s: string, i: number) => (
+                        <li key={i} className="text-xs text-green-800 flex gap-1.5">
+                        <span className="text-green-500 flex-shrink-0">✓</span>{s}
+                        </li>
+                        ))}
+                        </ul>
+                        </div>
+                        )}
+                        {/* Weaknesses */}
+                        {a.weaknesses?.length > 0 && (
+                        <div className="rounded-xl bg-red-50 border border-red-200 p-3">
+                        <div className="flex items-center gap-1.5 mb-2">
+                        <XCircle className="h-3.5 w-3.5 text-red-500" />
+                        <span className="text-xs font-bold text-red-700 uppercase tracking-wide">Điểm cần cải thiện</span>
+                        </div>
+                        <ul className="space-y-1">
+                        {a.weaknesses.map((w: string, i: number) => (
+                        <li key={i} className="text-xs text-red-800 flex gap-1.5">
+                        <span className="text-red-400 flex-shrink-0">✗</span>{w}
+                        </li>
+                        ))}
+                        </ul>
+                        </div>
+                        )}
+                        {/* Missing elements */}
+                        {a.missing_elements?.length > 0 && (
+                        <div className="rounded-xl bg-orange-50 border border-orange-200 p-3">
+                        <div className="flex items-center gap-1.5 mb-2">
+                        <AlertCircle className="h-3.5 w-3.5 text-orange-500" />
+                        <span className="text-xs font-bold text-orange-700 uppercase tracking-wide">Còn thiếu</span>
+                        </div>
+                        <ul className="space-y-1">
+                        {a.missing_elements.map((m: string, i: number) => (
+                        <li key={i} className="text-xs text-orange-800 flex gap-1.5">
+                        <span className="text-orange-400 flex-shrink-0">•</span>{m}
+                        </li>
+                        ))}
+                        </ul>
+                        </div>
+                        )}
+                        {/* Improved example */}
+                        {a.improved_example && (
+                        <div className="rounded-xl bg-indigo-50 border border-indigo-200 p-3.5">
+                        <div className="flex items-center gap-1.5 mb-2">
+                        <BookOpen className="h-3.5 w-3.5 text-indigo-600" />
+                        <span className="text-xs font-bold text-indigo-700 uppercase tracking-wide">Ví dụ câu trả lời tốt hơn</span>
+                        </div>
+                        <p className="text-xs text-indigo-800 leading-relaxed italic">{a.improved_example}</p>
+                        </div>
+                        )}
+                        {/* Action tips */}
+                        {a.action_tips?.length > 0 && (
+                        <div className="rounded-xl bg-blue-50 border border-blue-200 p-3">
+                        <div className="flex items-center gap-1.5 mb-2">
+                        <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
+                        <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Lời khuyên</span>
+                        </div>
+                        <ul className="space-y-1">
+                        {a.action_tips.map((t: string, i: number) => (
+                        <li key={i} className="text-xs text-blue-800 flex gap-1.5">
+                        <span className="text-blue-400 flex-shrink-0">→</span>{t}
+                        </li>
+                        ))}
+                        </ul>
+                        </div>
+                        )}
+                        </div>
+                        );
+                        })()}
+
+                        {/* Error state */}
+                        {analysisError[msg.id] && (
+                        <div className="mt-2 text-xs text-red-500 flex items-center gap-1.5">
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                        {analysisError[msg.id]}
+                        <button onClick={() => { setAnalysisError(p => { const n = {...p}; delete n[msg.id]; return n; }); }}
+                        className="underline ml-1">Thử lại</button>
+                        </div>
+                        )}
+
+                        {/* Analyze button */}
+                        {!aiAnalysis[msg.id] && !analysisError[msg.id] && msg.content && question && (
+                        <button
+                        onClick={() => analyzeAnswer(msg.id, question.content, msg.content, question.question_type || 'behavioral', msg.score)}
+                        disabled={analyzingId === msg.id}
+                        className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all disabled:opacity-60 disabled:cursor-wait"
+                        style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', boxShadow: '0 2px 10px rgba(79,70,229,0.3)' }}>
+                        {analyzingId === msg.id
+                        ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Đang phân tích AI...</>
+                        : <><Brain className="h-3.5 w-3.5" /> Phân tích AI sâu hơn</>}
+                        </button>
+                        )}
+                        </div>
+                        </div>
+                        );
+                        })}
+                        </div>
+                        )}
+                        </div>
+
         </MainLayout>
     );
 };

@@ -59,6 +59,7 @@ import MentorMatchingPage from './pages/MentorMatchingPage';
 import InterviewPage from './pages/InterviewPage';
 import InterviewSelectionPage from './pages/InterviewSelectionPage';
 import InterviewHistoryPage from './pages/InterviewHistoryPage';
+import InterviewConversationPage from './pages/InterviewConversationPage';
 import InterviewListPage from './pages/InterviewListPage';
 import InterviewResultsPage from './pages/InterviewResultsPage';
 import DeviceTestPage from './pages/DeviceTestPage';
@@ -361,6 +362,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <InterviewHistoryPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/interview/conversation/:sessionId"
+                    element={
+                      <ProtectedRoute>
+                        <InterviewConversationPage />
                       </ProtectedRoute>
                     }
                   />

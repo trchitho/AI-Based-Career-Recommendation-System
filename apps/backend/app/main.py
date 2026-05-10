@@ -286,6 +286,21 @@ async def lifespan(_: FastAPI):
     except Exception as e:
         print(f"[WARN]  Session reminder job failed: {e}")
 
+    # Pre-load faster-whisper model in background so first STT call is fast
+    def _preload_whisper():
+        try:
+            from app.modules.interview.faster_stt_service import _get_model
+            model = _get_model()
+            if model:
+                print("[OK] faster-whisper model preloaded and ready")
+            else:
+                print("[WARN] faster-whisper model failed to load at startup")
+        except Exception as e:
+            print(f"[WARN] faster-whisper preload skipped: {e}")
+
+    import threading as _threading
+    _threading.Thread(target=_preload_whisper, daemon=True, name="whisper-preload").start()
+
     yield
 
     # Shutdown scheduler on app stop
@@ -722,13 +737,28 @@ def create_app() -> FastAPI:
         print("[OK] Admin Interview Management API")
     except Exception as e:
         print("[ERR] Admin Interview Management API:", str(e)[:80])
+    # Interview Answer Analysis (dedicated API key, SSE streaming, DB storage)
+    try:
+        from .api import interview_analysis as ia_router
+        app.include_router(ia_router.router, tags=["interview-analysis"])
+        print("[OK] Interview Analysis API (SSE streaming)")
+    except Exception as e:
+        print("[ERR] Interview Analysis API:", str(e)[:60])
+
+    # WebSocket STT (faster-whisper realtime)
+    try:
+        from .api import ws_stt as ws_stt_router
+        app.include_router(ws_stt_router.router, tags=["ws-stt"])
+        print("[OK] WebSocket STT (faster-whisper)")
+    except Exception as e:
+        print("[ERR] WebSocket STT:", str(e)[:60])
 
     # Voice Interview API Routes
     try:
         from .api import voice_interview as voice_interview_router
 
         app.include_router(voice_interview_router.router, tags=["voice-interview"])
-        print("✅ Voice Interview API")
+        print("[OK] Voice Interview API")
     except Exception as e:
         print("❌ Voice Interview API:", str(e)[:50])
 

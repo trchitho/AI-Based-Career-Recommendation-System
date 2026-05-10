@@ -1848,8 +1848,22 @@ Trả về JSON:
             raise e
 
     def get_user_interviews(self, user_id: int, limit: int = 20, offset: int = 0) -> Dict:
-        """Lấy danh sách phỏng vấn của user với pagination - exclude active sessions"""
-        # Get paginated sessions (exclude active sessions from history)
+        """Lấy danh sách phỏng vấn của user với pagination."""
+        from sqlalchemy import text as _sql
+
+        # Step 1: mark stale active sessions (>2h old) as abandoned via raw SQL
+        try:
+            self.db.execute(_sql(
+                "UPDATE interview.interview_sessions "
+                "SET status = 'abandoned' "
+                "WHERE user_id = :uid AND status = 'active' "
+                "AND started_at < NOW() - INTERVAL '2 hours'"
+            ), {"uid": user_id})
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+
+        # Step 2: fetch all non-active sessions
         sessions = (
             self.db.query(InterviewSession)
             .filter(InterviewSession.user_id == user_id)
@@ -1860,24 +1874,6 @@ Trả về JSON:
             .all()
         )
 
-        # Re-classify completed sessions that don't have closing question
-        needs_commit = False
-        for s in sessions:
-            if s.status == 'completed':
-                has_closing = (
-                    self.db.query(InterviewMessage)
-                    .filter(InterviewMessage.session_id == s.id)
-                    .filter(InterviewMessage.question_type == 'closing')
-                    .first() is not None
-                )
-                if not has_closing:
-                    s.status = 'abandoned'
-                    needs_commit = True
-
-        if needs_commit:
-            self.db.commit()
-
-        # Get total count AFTER re-classification (exclude active)
         total_count = (
             self.db.query(InterviewSession)
             .filter(InterviewSession.user_id == user_id)

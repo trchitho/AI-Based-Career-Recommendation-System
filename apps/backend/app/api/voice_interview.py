@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import logging
 import time
+import os
 
 from app.core.db import get_db
 from app.core.auth_deps import get_current_user_from_token
@@ -54,6 +55,7 @@ async def start_voice_interview(
     jd_id: Optional[int] = Form(None),
     level_slug: Optional[str] = Form(None),
     voice_preference: str = Form("female"),
+    skill_gap_analysis_id: Optional[int] = Form(None),  # CV-based interview support
     current_user: User = Depends(get_current_user_from_token),
     ai_pipeline: AIPipelineService = Depends(get_ai_pipeline),
     audio_pipeline: AudioPipelineService = Depends(get_audio_pipeline),
@@ -78,12 +80,15 @@ async def start_voice_interview(
                 preferred_voice=voice_preference
             )
         # Yêu cầu 8.3: Gọi AIPipelineService.start_interview() không thay đổi
+        if skill_gap_analysis_id:
+            logger.info(f"[VoiceStart] CV-based interview: skill_gap_analysis_id={skill_gap_analysis_id}")
         result = await ai_pipeline.start_interview(
             user_id=current_user.id,
             job_id=job_id,
             question_count=question_count,
             jd_id=jd_id,
             level_slug=level_slug,
+            skill_gap_analysis_id=skill_gap_analysis_id,
         )
 
         session_id = result["session_id"]
@@ -213,7 +218,7 @@ async def submit_voice_answer(
         logger.warning(f"[VoiceAnswer] Failed to get voice preferences: {e}")
         # Continue with default voice_preference
     # Yêu cầu 6.7: Kiểm tra tab switch violations
-    if tab_switch_count >= 10:  # Increased from 3 to 10 for debugging
+    if tab_switch_count >= 100:  # Tăng lên 100 để tắt tính năng (thực tế không ai chuyển tab 100 lần)
         raise HTTPException(
             status_code=403,
             detail="Phiên phỏng vấn đã bị hủy do vi phạm quy tắc (chuyển tab >= 3 lần).",
@@ -241,21 +246,38 @@ async def submit_voice_answer(
     # Cập nhật tab_switch_count (Yêu cầu 6.6)
     if tab_switch_count > 0:
         try:
-            session.tab_switch_count = max(0, min(tab_switch_count, 10))
+            session.tab_switch_count = max(0, min(tab_switch_count, 100))  # Tăng lên 100
             ai_pipeline.db.commit()
         except Exception as e:
             logger.warning(f"[VoiceAnswer] Failed to update tab_switch_count: {e}")
 
-    # ── Text fallback path (Yêu cầu 9.3) ─────────────────────────────────────
+    # ── Text path: dùng khi có transcript từ browser Web Speech API ──────────
+    # Priority: text_answer > Whisper STT (avoid Windows ffmpeg issues)
     if text_answer and text_answer.strip():
         transcript = text_answer.strip()
-        # Không có audio → không upload, không STT, không lưu interview_audio
+        logger.info(f"[VoiceAnswer] Using browser transcript ({len(transcript)} chars), skipping Whisper STT")
+        # Upload audio file in background (non-blocking) if provided
+        if audio_file:
+            try:
+                audio_data_bg = await audio_file.read()
+                content_type_bg = audio_file.content_type or "audio/webm"
+                import asyncio as _aio
+                _aio.ensure_future(audio_pipeline.process_user_audio(
+                    audio_data=audio_data_bg,
+                    session_id=session_id,
+                    message_id=message_id,
+                    content_type=content_type_bg,
+                    audio_duration=audio_duration,
+                    skip_stt=True,  # transcript already provided via text_answer
+                ))
+            except Exception:
+                pass  # non-blocking upload failure
         try:
             ai_result = await ai_pipeline.submit_answer(
                 session_id=session_id,
                 user_answer=transcript,
-                has_audio=False,  # text fallback — không có audio
-                audio_duration=None,
+                has_audio=bool(audio_file),
+                audio_duration=audio_duration,
             )
         except Exception as e:
             logger.error(f"[VoiceAnswer] AI pipeline failed (text fallback): {e}")
@@ -353,16 +375,77 @@ async def submit_voice_answer(
     if len(audio_data) > 25 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Audio file too large (max 25MB)")
 
-    # Yêu cầu 3.4, 3.5, 3.9: Process audio via AudioPipelineService
+    # ── STT: Deepgram → Whisper fallback ─────────────────────────────────────
+    # Deepgram Nova-2 dùng WAV 16kHz hoặc webm trực tiếp, rất nhanh và chính xác
+    transcript = None
+    _dg_key = os.getenv("DEEPGRAM_API_KEY", "")
+    if _dg_key and len(audio_data) > 1000:
+        try:
+            import asyncio as _aio2
+            import urllib.request as _urllib2
+            import json as _json2
+
+            _dg_url = (
+                "https://api.deepgram.com/v1/listen"
+                "?model=nova-2&language=vi&smart_format=true&punctuate=true"
+            )
+            _audio_snap = bytes(audio_data)
+
+            def _dg_stt():
+                req = _urllib2.Request(
+                    _dg_url, data=_audio_snap,
+                    headers={"Authorization": f"Token {_dg_key}", "Content-Type": content_type},
+                    method="POST",
+                )
+                with _urllib2.urlopen(req, timeout=20) as r:
+                    return _json2.loads(r.read().decode())
+
+            dg_result = await _aio2.get_event_loop().run_in_executor(None, _dg_stt)
+            transcript = (
+                dg_result.get("results", {})
+                .get("channels", [{}])[0]
+                .get("alternatives", [{}])[0]
+                .get("transcript", "")
+                or ""
+            ).strip()
+            conf = (
+                dg_result.get("results", {})
+                .get("channels", [{}])[0]
+                .get("alternatives", [{}])[0]
+                .get("confidence", 0)
+            )
+            logger.info(f"[VoiceAnswer] Deepgram STT: {repr(transcript[:80])} conf={conf:.2f}")
+            if not transcript or conf < 0.2:
+                transcript = None  # fall through to Whisper
+        except Exception as _dg_e:
+            logger.warning(f"[VoiceAnswer] Deepgram STT failed: {_dg_e}, using Whisper")
+            transcript = None
+
+    # Whisper fallback (nếu không có Deepgram key hoặc Deepgram failed)
+    pipeline_result = {}  # Initialize to avoid UnboundLocalError
+    if transcript is None:
+        try:
+            pipeline_result = await audio_pipeline.process_user_audio(
+                audio_data=audio_data,
+                session_id=session_id,
+                message_id=message_id,
+                content_type=content_type,
+                audio_duration=audio_duration,
+            )
+            transcript = pipeline_result["transcript"]
+        except STTNoSpeechError:
+            transcript = None
+
+    if not transcript:
+        return JSONResponse(status_code=200, content={
+            "success": False, "error": "STT_NO_SPEECH_DETECTED",
+            "message": "Không thể nhận dạng giọng nói. Vui lòng thử ghi âm lại.",
+            "allow_retry": True,
+        })
+
+    # Legacy try block — keep for other exceptions
     try:
-        pipeline_result = await audio_pipeline.process_user_audio(
-            audio_data=audio_data,
-            session_id=session_id,
-            message_id=message_id,
-            content_type=content_type,
-            audio_duration=audio_duration,
-        )
-        transcript = pipeline_result["transcript"]
+        if False: raise Exception()  # dummy to keep except blocks below
 
     except STTNoSpeechError:
         # Yêu cầu 3.8: no speech → allow retry
@@ -761,14 +844,13 @@ async def update_tab_switch_count(
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    # Clamp tab_switch_count trong range DB constraint (0-10)
-    safe_count = max(0, min(tab_switch_count, 10))
+    # Clamp tab_switch_count trong range DB constraint (0-100)
+    safe_count = max(0, min(tab_switch_count, 100))  # Tăng lên 100
     session.tab_switch_count = safe_count
 
-    # Debug mode: MAX_TAB_SWITCH = 10 (tăng từ 3 để dễ debug)
-    MAX_TAB_SWITCH = 10
-    if safe_count >= MAX_TAB_SWITCH:
-        session.status = "abandoned"
+    # Tắt tính năng terminate - chỉ warning
+    MAX_TAB_SWITCH = 100  # Tăng lên 100 để tắt tính năng
+    show_warning = safe_count >= 3  # Hiển thị warning sau 3 lần
 
     db.commit()
 
@@ -777,7 +859,9 @@ async def update_tab_switch_count(
         content={
             "success": True,
             "tab_switch_count": safe_count,
-            "session_terminated": safe_count >= MAX_TAB_SWITCH,
+            "session_terminated": False,  # Không terminate nữa
+            "show_warning": show_warning,  # Thêm flag để hiển thị warning
+            "warning_message": "⚠️ Vui lòng không chuyển tab trong khi phỏng vấn để đảm bảo kết quả tốt nhất!" if show_warning else None,
             "max_allowed": MAX_TAB_SWITCH,
         },
     )
@@ -886,3 +970,285 @@ async def get_full_conversation(
 @router.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "voice-interview"}
+
+
+@router.post("/session/{session_id}/terminate")
+async def terminate_session(
+    session_id: int,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
+    """Huỷ phiên phỏng vấn khi user bấm Thoát phòng."""
+    try:
+        session = db.query(InterviewSession).filter(
+            InterviewSession.id == session_id,
+            InterviewSession.user_id == current_user.id,
+        ).first()
+        if session and session.status not in ("completed", "abandoned"):
+            session.status = "abandoned"
+            db.commit()
+        return JSONResponse(status_code=200, content={"success": True})
+    except Exception as e:
+        logger.warning(f"[terminate] session {session_id}: {e}")
+        return JSONResponse(status_code=200, content={"success": False})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# POST /stt-live  — Live transcript via faster-whisper small (~242MB)
+# No ffmpeg, no API cost, better Vietnamese accuracy than base.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_fw_model = None
+_fw_model_loaded = False
+_fw_lock = None
+
+
+def _get_fw_model():
+    global _fw_model, _fw_model_loaded, _fw_lock
+    if _fw_model_loaded:
+        return _fw_model
+    import os as _os, threading as _th
+    try:
+        from faster_whisper import WhisperModel as _FW
+        name = _os.getenv("WHISPER_LIVE_MODEL", "small")
+        logger.info(f"[stt-live] Loading faster-whisper '{name}'...")
+        _fw_model = _FW(name, device="cpu", compute_type="int8")
+        _fw_lock = _th.Lock()
+        _fw_model_loaded = True
+        logger.info(f"[stt-live] faster-whisper '{name}' ready ✓")
+    except Exception as e:
+        logger.error(f"[stt-live] load failed: {e}")
+    return _fw_model
+
+
+@router.post("/stt-live")
+async def transcribe_live_chunk(
+    audio_file: UploadFile = File(...),
+    lang: str = Form("vi"),
+):
+    """
+    Live transcript via Deepgram Nova-2 (tiếng Việt chính xác, ~300ms latency).
+    Frontend gửi WAV 16kHz converted từ webm qua WebAudio API.
+    Fallback về faster-whisper nếu không có DEEPGRAM_API_KEY.
+    """
+    import os as _os
+    audio_data = await audio_file.read()
+    if len(audio_data) < 500:
+        return JSONResponse(status_code=200, content={"text": "", "debug": "too small"})
+
+    api_key = _os.getenv("DEEPGRAM_API_KEY", "")
+
+    # ── Primary: Deepgram Nova-2 (dùng urllib built-in, chạy trong thread pool) ──
+    if api_key:
+        try:
+            import asyncio as _asyncio2
+            import urllib.request as _urllib
+            import json as _json
+
+            dg_lang = "vi" if lang == "vi" else lang
+            dg_url = (
+                f"https://api.deepgram.com/v1/listen"
+                f"?model=nova-2"
+                f"&language={dg_lang}"
+                f"&smart_format=true"
+                f"&punctuate=true"
+                f"&utterances=false"
+                f"&filler_words=false"
+            )
+            content_type = audio_file.content_type or "audio/wav"
+            _audio_snap = bytes(audio_data)  # capture for thread
+
+            def _call_deepgram():
+                req = _urllib.Request(
+                    dg_url,
+                    data=_audio_snap,
+                    headers={
+                        "Authorization": f"Token {api_key}",
+                        "Content-Type": content_type,
+                    },
+                    method="POST",
+                )
+                with _urllib.urlopen(req, timeout=15) as resp:
+                    return _json.loads(resp.read().decode())
+
+            dg_data = await _asyncio2.get_event_loop().run_in_executor(None, _call_deepgram)
+
+            transcript = (
+                dg_data
+                .get("results", {})
+                .get("channels", [{}])[0]
+                .get("alternatives", [{}])[0]
+                .get("transcript", "")
+                or ""
+            ).strip()
+            confidence = (
+                dg_data
+                .get("results", {})
+                .get("channels", [{}])[0]
+                .get("alternatives", [{}])[0]
+                .get("confidence", 0)
+            )
+            logger.info(f"[Deepgram] transcript={repr(transcript[:80])} conf={confidence:.2f}")
+            if confidence < 0.3 and not transcript:
+                return JSONResponse(status_code=200, content={"text": "", "debug": "low_confidence"})
+            return JSONResponse(status_code=200, content={"text": transcript})
+
+        except Exception as e:
+            logger.warning(f"[Deepgram] error: {e} — falling back to whisper")
+
+    # ── Fallback: faster-whisper ─────────────────────────────────────────
+    import io, wave as _wave, asyncio as _asyncio
+    import numpy as _np
+
+    try:
+        with _wave.open(io.BytesIO(audio_data), "rb") as wf:
+            n_ch = wf.getnchannels(); sr = wf.getframerate()
+            sw = wf.getsampwidth(); raw = wf.readframes(wf.getnframes())
+
+        dtype = {1: _np.uint8, 2: _np.int16, 4: _np.int32}.get(sw, _np.int16)
+        audio = _np.frombuffer(raw, dtype=dtype).astype(_np.float32)
+        if sw == 1:   audio = audio / 128.0 - 1.0
+        elif sw == 2: audio = audio / 32768.0
+        else:         audio = audio / 2147483648.0
+        if n_ch > 1:  audio = audio.reshape(-1, n_ch).mean(axis=1)
+        if sr != 16000 and len(audio):
+            n = int(len(audio) * 16000 / sr)
+            audio = _np.interp(_np.linspace(0, len(audio)-1, n), _np.arange(len(audio)), audio).astype(_np.float32)
+
+        dur = len(audio) / 16000
+        if dur < 0.5:
+            return JSONResponse(status_code=200, content={"text": "", "debug": "too short"})
+
+        rms = float(_np.sqrt(_np.mean(audio ** 2)))
+        if rms < 0.005:
+            return JSONResponse(status_code=200, content={"text": "", "debug": "silent"})
+
+        model = _get_fw_model()
+        if model is None:
+            return JSONResponse(status_code=200, content={"text": "", "error": "No STT model — set DEEPGRAM_API_KEY"})
+
+        _HALLUCINATION = ["la la school", "subscribe", "đăng ký kênh", "dòng cốt phúc", "hẹn gặp lại"]
+
+        def _run():
+            with _fw_lock:
+                segs, _ = model.transcribe(
+                    audio, language=lang, beam_size=5,
+                    initial_prompt="Đây là câu trả lời phỏng vấn tuyển dụng bằng tiếng Việt.",
+                    vad_filter=True,
+                    vad_parameters={"min_silence_duration_ms": 200},
+                    condition_on_previous_text=False,
+                    no_speech_threshold=0.7,
+                    compression_ratio_threshold=2.0,
+                    log_prob_threshold=-0.8,
+                    temperature=0.0,
+                )
+                result = " ".join(s.text.strip() for s in segs if s.no_speech_prob < 0.7).strip()
+                if any(p in result.lower() for p in _HALLUCINATION):
+                    return ""
+                return result
+
+        text = await _asyncio.get_event_loop().run_in_executor(None, _run)
+        logger.info(f"[whisper-fallback] → {repr(text[:80])}")
+        return JSONResponse(status_code=200, content={"text": text})
+
+    except _wave.Error as e:
+        return JSONResponse(status_code=200, content={"text": "", "error": f"WAV: {e}"})
+    except Exception as e:
+        logger.error(f"[stt-live] {e}", exc_info=True)
+        return JSONResponse(status_code=200, content={"text": "", "error": str(e)[:200]})
+
+
+# ── AI Deep Analysis for each answer ─────────────────────────────────────────
+
+from pydantic import BaseModel as _BM
+
+class AnalyzeAnswerRequest(_BM):
+    question: str
+    answer: str
+    question_type: str = "behavioral"
+    job_title: str = ""
+    score: float | None = None
+
+
+@router.post("/analyze-answer", summary="AI phan tich sau cau tra loi phong van")
+async def analyze_answer(
+    req: AnalyzeAnswerRequest,
+    current_user: User = Depends(get_current_user_from_token),
+):
+    """
+    Dung Gemini 2.0 Flash phan tich sau 1 cau tra loi phong van.
+    """
+    import os, re, json
+    import google.generativeai as genai
+    from app.core.serialization import ORJSONResponse
+
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        return ORJSONResponse({"success": False, "error": "API key not configured"})
+
+    genai.configure(api_key=api_key)
+
+    score_text = f"{req.score:.1f}/10" if req.score is not None else "chua cham"
+    qt_map = {
+        "behavioral": "Hanh vi (STAR)",
+        "technical": "Ky thuat",
+        "situational": "Tinh huong",
+        "warm_up": "Khoi dong",
+        "jd_specific": "Theo JD",
+    }
+    qt_label = qt_map.get(req.question_type, req.question_type)
+
+    prompt = f"""Ban la chuyen gia tuyen dung, phan tich sau cau tra loi phong van.
+
+Vi tri: {req.job_title or 'khong ro'}
+Loai cau hoi: {qt_label}
+Cau hoi: {req.question}
+Cau tra loi: {req.answer or '(khong co)'}
+Diem: {score_text}
+
+Phan tich THUC TE, CU THE dua tren noi dung tren. Tra ve JSON:
+{{
+  "strengths": ["diem manh 1", "diem manh 2"],
+  "weaknesses": ["diem yeu 1", "diem yeu 2"],
+  "missing_elements": ["thieu yeu to 1", "thieu yeu to 2"],
+  "improved_example": "Vi du cau tra loi tot hon (2-4 cau, co so lieu, ap dung STAR neu la behavioral)",
+  "action_tips": ["loi khuyen 1", "loi khuyen 2"],
+  "score_explanation": "ly do diem nay"
+}}
+Chi tra JSON, khong text ngoai."""
+
+    # Safety settings — interview analysis is professional content, not harmful
+    safety_settings = [
+        {"category": "HARM_CATEGORY_HARASSMENT",        "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_HATE_SPEECH",       "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+    ]
+
+    # Shorten prompt for token efficiency
+    short_prompt = f"""Phan tich cau tra loi phong van. Tra ve JSON.
+{{"q":"{req.question[:100]}","a":"{(req.answer or '')[:150]}","score":{req.score or 0},"type":"{qt_label}","job":"{req.job_title or ''}"}}
+JSON output:
+{{"strengths":["<diem manh cu the>","<diem manh 2>"],"weaknesses":["<diem yeu cu the>","<diem yeu 2>"],"missing_elements":["<con thieu 1>","<con thieu 2>"],"improved_example":"<Viet lai cau tra loi day du hon, ap dung STAR neu behavioral, co so lieu, 2-3 cau>","action_tips":["<loi khuyen 1>","<loi khuyen 2>"],"score_explanation":"<ly do diem nay>"}}
+Chi tra JSON, khong text ngoai."""
+
+    try:
+        model = genai.GenerativeModel("gemini-2.5-flash", safety_settings=safety_settings)
+        resp = model.generate_content(
+            short_prompt,
+            generation_config={"max_output_tokens": 4096, "temperature": 0.3},
+        )
+        raw = resp.text if resp and resp.candidates else None
+        if not raw:
+            return ORJSONResponse({"success": False, "error": "AI khong tra ve ket qua"})
+        m = re.search(r'\{.*\}', raw, re.DOTALL)
+        if m:
+            data = json.loads(m.group())
+            return ORJSONResponse({"success": True, "analysis": data})
+        # Try to extract any JSON-like structure
+        return ORJSONResponse({"success": False, "error": "Khong tim thay JSON trong phan hoi", "raw": raw[:300]})
+    except json.JSONDecodeError:
+        return ORJSONResponse({"success": False, "error": "JSON khong hop le"})
+    except Exception as e:
+        logger.error(f"[AnalyzeAnswer] Error: {e}")
+        return ORJSONResponse({"success": False, "error": str(e)[:150]})

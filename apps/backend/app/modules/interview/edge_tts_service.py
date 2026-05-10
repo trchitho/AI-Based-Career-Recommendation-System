@@ -179,18 +179,18 @@ class EdgeTTSService:
 
         # Reduce retries if we've had recent failures
         max_retries = 1 if self._consecutive_failures > 0 else 2  # Reduced from 3
-        retry_delays = [3, 8]  # Simplified delays
+        retry_delays = [1, 2]  # Reduced from [3, 8] for faster response
         
         for attempt in range(max_retries):
             try:
                 # Add progressive delay to avoid rate limiting
                 if attempt > 0:
-                    delay = retry_delays[min(attempt-1, len(retry_delays)-1)] + random.uniform(0.5, 1.5)
+                    delay = retry_delays[min(attempt-1, len(retry_delays)-1)] + random.uniform(0.2, 0.5)
                     logger.info(f"[TTS] Retry {attempt+1}/{max_retries} after {delay:.1f}s delay")
                     await asyncio.sleep(delay)
                 
                 # Add small random delay before each attempt
-                await asyncio.sleep(random.uniform(0.1, 0.3))
+                await asyncio.sleep(random.uniform(0.05, 0.15))
                 
                 audio_data, word_timestamps = await self._generate_audio_with_timestamps_safe(text, voice_name)
                 
@@ -418,10 +418,15 @@ class EdgeTTSService:
         session_id: Optional[str] = None,
         voice_settings: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Create successful TTS result with storage upload and caching"""
+        """Create successful TTS result with storage upload and caching."""
+        import base64 as _b64
+
+        # Fallback: base64 data URL so frontend can play without needing storage
+        data_url = f"data:audio/mp3;base64,{_b64.b64encode(audio_data).decode()}" if audio_data else None
+
         result: Dict[str, Any] = {
             "audio_data": audio_data,
-            "audio_url": None,
+            "audio_url": data_url,   # default to inline data URL
             "duration_seconds": duration,
             "voice_used": voice_name,
             "question_text": text,
@@ -430,7 +435,7 @@ class EdgeTTSService:
             "fallback_reason": None,
         }
 
-        # Tiêu chí 4.2: Lưu vào Audio_Storage
+        # Tiêu chí 4.2: Lưu vào Audio_Storage (R2) — overwrite data_url if upload succeeds
         if session_id:
             try:
                 audio_url = await audio_storage_service.upload_ai_question_audio(
@@ -438,8 +443,9 @@ class EdgeTTSService:
                     session_id=session_id,
                     file_extension="mp3",
                 )
-                result["audio_url"] = audio_url
-                logger.info(f"[TTS] Audio stored at: {audio_url}")
+                if audio_url:
+                    result["audio_url"] = audio_url  # prefer R2 URL over data URL
+                    logger.info(f"[TTS] Audio stored at: {audio_url}")
                 
                 # Cache the successful result
                 if audio_url and voice_settings:

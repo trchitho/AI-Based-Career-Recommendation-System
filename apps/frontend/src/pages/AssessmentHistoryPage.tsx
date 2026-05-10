@@ -133,7 +133,7 @@ const AssessmentHistoryPage = () => {
                     <div className="flex gap-2">
                       <Link
                         to={`/session-results/${session.session_id}`}
-                        className="px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 transition-colors text-sm font-medium"
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                       >
                         Xem kết quả
                       </Link>
@@ -185,7 +185,7 @@ const AssessmentHistoryPage = () => {
               </p>
               <Link
                 to="/assessment"
-                className="inline-flex items-center px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 transition-colors font-medium"
+                className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
               >
                 Bắt đầu đánh giá
               </Link>
