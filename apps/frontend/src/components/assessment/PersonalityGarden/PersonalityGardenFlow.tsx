@@ -400,7 +400,7 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
             responses: Array.from(responses.entries()),
             completedAnswers: answeredQuestions.map(aq => ({
               questionText: aq.question.question_text,
-              answer: aq.selectedElement?.name || '',
+              answer: aq.selectedElement?.label || '',
               timestamp: Date.now(),
             })),
           });
