@@ -693,7 +693,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                     disabled={isLoading}
                     className={`p-1.5 rounded-md transition-colors flex items-center justify-center text-xs ${isRecording
                       ? 'bg-red-500 text-white hover:bg-red-600'
-                      : 'bg-purple-500 text-white hover:bg-purple-600'
+                      : 'bg-blue-500 text-white hover:bg-blue-600'
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     title={isRecording ? "Stop recording" : "Voice Input"}
                   >
@@ -853,7 +853,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                   disabled={isLoading}
                   className={`p-2 rounded-lg transition-colors flex items-center justify-center ${isRecording
                     ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                   title={isRecording ? "Stop recording" : "Voice recording"}
                 >

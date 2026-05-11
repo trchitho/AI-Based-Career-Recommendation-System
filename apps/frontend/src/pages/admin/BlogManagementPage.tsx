@@ -35,7 +35,7 @@ const BlogManagementPage = () => {
 
     try {
       await blogService.adminDelete(id);
-      await loadPosts(); // Reload list
+      await loadPosts();
     } catch (e: any) {
       alert('Cannot delete blog: ' + (e?.response?.data?.detail || e?.message));
     }
@@ -44,7 +44,7 @@ const BlogManagementPage = () => {
   const handleApprove = async (id: string) => {
     try {
       await blogService.adminUpdate(id, { status: 'Published' });
-      await loadPosts(); // Reload list
+      await loadPosts();
       showSuccessToast('Blog approved successfully!');
     } catch (e: any) {
       alert('Cannot approve blog: ' + (e?.response?.data?.detail || e?.message));
@@ -70,7 +70,7 @@ const BlogManagementPage = () => {
   const handleReject = async (id: string) => {
     try {
       await blogService.adminUpdate(id, { status: 'Rejected' });
-      await loadPosts(); // Reload list
+      await loadPosts();
       showSuccessToast('Blog rejected successfully!');
     } catch (e: any) {
       alert('Cannot reject blog: ' + (e?.response?.data?.detail || e?.message));
@@ -144,13 +144,13 @@ const BlogManagementPage = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-0.5 text-xs font-bold rounded border ${post.status === 'Published'
-                            ? 'bg-indigo-50 text-indigo-900 border-indigo-200 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-800'
-                            : post.status === 'Pending'
-                              ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800'
-                              : post.status === 'Rejected'
-                                ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
-                                : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800'
+                        <span className={`inline-flex px-2.5 py-1 text-xs font-bold rounded-md ${post.status === 'Published'
+                          ? 'bg-[#DBEAFE] text-[#1E40AF] dark:bg-blue-950/20 dark:text-blue-400'
+                          : post.status === 'Pending'
+                            ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                            : post.status === 'Rejected'
+                              ? 'bg-[#FEE2E2] text-[#DC2626] dark:bg-red-900/20 dark:text-red-400'
+                              : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
                           }`}>
                           {post.status || 'Draft'}
                         </span>
@@ -161,25 +161,25 @@ const BlogManagementPage = () => {
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-2">
                           <button onClick={() => navigate(`/blog/${post.slug}`)}
-                            className="px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">View</button>
+                            className="px-2.5 py-1.5 text-xs font-semibold bg-white text-gray-600 border border-[#E2E8F0] dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#CBD5E1] dark:hover:bg-gray-700 transition-all shadow-sm">View</button>
                           {post.status === 'Pending' && (<>
                             <button onClick={() => handleApprove(post.id)}
-                              className="px-2.5 py-1 text-xs font-semibold text-indigo-900 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-50 transition-colors">Approve</button>
+                              className="px-2.5 py-1.5 text-xs font-semibold text-white bg-[#6366F1] rounded-lg hover:bg-[#5558E3] shadow-lg shadow-[#6366F1]/40 hover:shadow-[#6366F1]/60 transition-all">Approve</button>
                             <button onClick={() => handleReject(post.id)}
-                              className="px-2.5 py-1 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 transition-colors">Reject</button>
+                              className="px-2.5 py-1.5 text-xs font-semibold text-white bg-[#EF4444] rounded-lg hover:bg-[#DC2626] dark:bg-[#DC2626] dark:hover:bg-[#B91C1C] shadow-lg shadow-[#EF4444]/40 hover:shadow-[#EF4444]/60 transition-all">Reject</button>
                           </>)}
                           {post.status === 'Draft' && (
                             <button onClick={() => handleApprove(post.id)}
-                              className="px-2.5 py-1 text-xs font-semibold text-indigo-900 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-50 transition-colors">Publish</button>
+                              className="px-2.5 py-1.5 text-xs font-semibold text-white bg-[#6366F1] rounded-lg hover:bg-[#5558E3] shadow-lg shadow-[#6366F1]/40 hover:shadow-[#6366F1]/60 transition-all">Publish</button>
                           )}
                           {post.status === 'Published' && (
                             <button onClick={() => blogService.adminUpdate(post.id, { status: 'Draft' }).then(() => loadPosts())}
-                              className="px-2.5 py-1 text-xs font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 transition-colors">Unpublish</button>
+                              className="px-2.5 py-1.5 text-xs font-semibold bg-white text-gray-600 border border-[#E2E8F0] dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#CBD5E1] transition-all shadow-sm">Unpublish</button>
                           )}
                           <button onClick={() => navigate(`/admin/blog/edit/${post.id}`)}
-                            className="px-2.5 py-1 text-xs font-semibold text-indigo-900 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-50 transition-colors">Edit</button>
+                            className="px-2.5 py-1.5 text-xs font-semibold text-white bg-[#6366F1] rounded-lg hover:bg-[#5558E3] shadow-lg shadow-[#6366F1]/40 hover:shadow-[#6366F1]/60 transition-all">Edit</button>
                           <button onClick={() => handleDelete(post.id)}
-                            className="px-2.5 py-1 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 transition-colors">Delete</button>
+                            className="px-2.5 py-1.5 text-xs font-semibold bg-[#EF4444] text-white rounded-lg hover:bg-[#DC2626] dark:bg-[#DC2626] dark:hover:bg-[#B91C1C] shadow-lg shadow-[#EF4444]/40 hover:shadow-[#EF4444]/60 transition-all">Delete</button>
                         </div>
                       </td>
                     </tr>

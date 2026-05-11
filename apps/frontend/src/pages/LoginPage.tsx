@@ -73,7 +73,7 @@ const LoginPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-indigo-50 selection:text-indigo-900 transition-colors duration-base flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-gray-200 dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-indigo-50 selection:text-indigo-900 transition-colors duration-base flex flex-col overflow-hidden">
 
       {/* CSS Injection */}
       <style>{`
@@ -96,26 +96,26 @@ const LoginPage = () => {
       </header>
 
       {/* --- MAIN CONTENT --- */}
-      <div className="flex-1 flex flex-col items-center justify-center relative px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+      <div className="flex-1 flex flex-col items-center justify-center relative px-4 sm:px-6 lg:px-8 pt-24 pb-12">
 
         {/* Background Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-700/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
-        <div className="w-full max-w-[480px] animate-fade-in-up">
+        <div className="w-full max-w-[580px] animate-fade-in-up">
 
           {/* Title & Subtitle */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-3 tracking-tight">
+          <div className="text-center mb-16">
+            <h1 className="text-[44px] font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight leading-none">
               {t('auth.welcomeBack')}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 font-medium text-[16px]">
+            <p className="text-gray-500 dark:text-gray-400 font-normal text-[18px]">
               {t('auth.loginCredentials')}
             </p>
           </div>
 
           {/* CARD FORM */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-gray-200/40 dark:shadow-none border border-gray-100 dark:border-gray-700 p-8 sm:p-10 relative">
-            <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="bg-white dark:bg-gray-800 rounded-[28px] shadow-2xl shadow-gray-400/20 dark:shadow-gray-900/50 border-0 px-14 py-12 relative">
+            <form className="space-y-7" onSubmit={handleSubmit}>
 
               {/* Messages */}
               {verifyMsg && (
@@ -142,8 +142,8 @@ const LoginPage = () => {
               )}
 
               {/* Email Input */}
-              <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">
+              <div className="space-y-2.5">
+                <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                   {t('auth.email')}
                 </label>
                 <div className="relative">
@@ -153,22 +153,22 @@ const LoginPage = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
-                    className="block w-full pl-11 pr-4 py-3.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
+                    className="block w-full pl-12 pr-4 py-[16px] bg-blue-50 dark:bg-gray-700 border-0 rounded-[18px] text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/40 focus:bg-blue-100 dark:focus:bg-gray-600 outline-none transition-all font-normal text-[15px]"
                   />
-                  <div className="absolute left-4 top-3.5 text-gray-400">
+                  <div className="absolute left-4 top-[16px] text-gray-400 dark:text-gray-500">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                   </div>
                 </div>
               </div>
 
               {/* Password Input */}
-              <div className="space-y-2">
-                <div className="flex justify-between ml-1">
-                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
+              <div className="space-y-2.5">
+                <div className="flex justify-between items-center">
+                  <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                     {t('auth.password')}
                   </label>
-                  <Link to="/forgot" className="text-sm font-semibold text-indigo-800 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                    {t('auth.forgotPassword') || 'Forgot?'}
+                  <Link to="/forgot" className="text-[14px] font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                    {t('auth.forgotPassword') || 'Forgot Password?'}
                   </Link>
                 </div>
                 <div className="relative">
@@ -178,15 +178,15 @@ const LoginPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="block w-full pl-11 pr-12 py-3.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium"
+                    className="block w-full pl-12 pr-12 py-[16px] bg-blue-50 dark:bg-gray-700 border-0 rounded-[18px] text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/40 focus:bg-blue-100 dark:focus:bg-gray-600 outline-none transition-all font-normal text-[15px]"
                   />
-                  <div className="absolute left-4 top-3.5 text-gray-400">
+                  <div className="absolute left-4 top-[16px] text-gray-400 dark:text-gray-500">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="absolute right-4 top-[16px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     {showPassword ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4-10-7 0-1.07.37-2.144 1.075-3.15M4.22 4.22l15.56 15.56M9.9 9.9A3 3 0 0114.1 14.1" /></svg>
@@ -201,7 +201,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 px-4 bg-indigo-700 hover:bg-indigo-800 text-white rounded-full font-bold text-[16px] shadow-lg shadow-green-500/20 hover:shadow-indigo-700/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-[17px] px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[18px] font-bold text-[17px] shadow-xl shadow-indigo-500/25 hover:shadow-indigo-600/35 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 mt-9"
               >
                 {loading ? (
                   <>
@@ -217,9 +217,9 @@ const LoginPage = () => {
               </button>
 
               {/* Divider */}
-              <div className="relative my-8">
+              <div className="relative my-9">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-gray-700"></div></div>
-                <div className="relative flex justify-center text-sm"><span className="px-4 bg-white dark:bg-gray-800 text-gray-500 font-medium">{t('auth.orContinueWith')}</span></div>
+                <div className="relative flex justify-center text-[14px]"><span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-normal">{t('auth.orContinueWith')}</span></div>
               </div>
 
               {/* Google Button */}
@@ -230,7 +230,7 @@ const LoginPage = () => {
                   const url = `${api.defaults.baseURL}api/auth/google/login?redirect=${encodeURIComponent(redirect)}`;
                   window.location.href = url;
                 }}
-                className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-gray-700 dark:text-white font-bold text-[15px]"
+                className="w-full flex items-center justify-center gap-3 py-[17px] px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-[18px] hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all text-gray-700 dark:text-white font-semibold text-[16px]"
               >
                 <svg className="w-5 h-5" viewBox="0 0 533.5 544.3">
                   <path fill="#4285F4" d="M533.5 278.4c0-18.5-1.5-36.9-4.6-54.8H272v103.8h147.3c-6.4 34.7-25.9 64.1-55.2 83.7v69.5h89.2c52.2-48 80.2-118.8 80.2-202.2z" />
@@ -242,9 +242,9 @@ const LoginPage = () => {
               </button>
 
               {/* Sign Up Link */}
-              <div className="text-center pt-4">
-                <span className="text-gray-500 dark:text-gray-400 font-medium">{t('auth.noAccount')} </span>
-                <Link to="/register" className="font-bold text-indigo-700 hover:text-indigo-800 dark:text-indigo-400 hover:underline transition-colors">
+              <div className="text-center pt-7">
+                <span className="text-gray-500 dark:text-gray-400 font-normal text-[15px]">{t('auth.noAccount')} </span>
+                <Link to="/register" className="font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 hover:underline transition-colors text-[15px]">
                   {t('auth.signUp')}
                 </Link>
               </div>
@@ -253,12 +253,12 @@ const LoginPage = () => {
           </div>
 
           {/* Footer Text */}
-          <div className="mt-8 text-center text-xs text-gray-400 dark:text-gray-500 font-medium">
-            <div className="flex items-center justify-center gap-1.5 mb-2">
+          <div className="mt-10 text-center text-xs text-gray-400 dark:text-gray-500 space-y-2">
+            <div className="flex items-center justify-center gap-1.5">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-              {t('auth.secureEncryption')}
+              <span className="font-medium">{t('auth.secureEncryption')}</span>
             </div>
-            © 2025 CareerBridge AI. All rights reserved.
+            <p className="font-normal">© 2025 CareerBridge AI. All rights reserved.</p>
           </div>
 
         </div>
