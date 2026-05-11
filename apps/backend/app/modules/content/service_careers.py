@@ -9,9 +9,9 @@ from .models import Career
 
 def list_careers(session: Session, q: str | None, category_id: int | None, limit: int, offset: int):
     # Select only portable columns to avoid schema drift
-    # Prioritize English titles and descriptions
-    title_expr = func.coalesce(Career.title_en, Career.title_vi)
-    desc_expr = func.coalesce(Career.short_desc_en, Career.short_desc_vi)
+    # Ưu tiên tiếng Việt
+    title_expr = func.coalesce(Career.title_vi, Career.title_en)
+    desc_expr = func.coalesce(Career.short_desc_vi, Career.short_desc_en)
     stmt = select(
         Career.id,
         Career.slug,
@@ -99,9 +99,9 @@ def get_career(session: Session, id_or_slug: str):
                 updated_at,
                 onet_code,
             ) = row
-            # Prioritize English titles and descriptions
-            title = title_en or title_vi or ""
-            sdesc = short_desc_en or short_desc_vi or ""
+            # Ưu tiên tiếng Việt
+            title = title_vi or title_en or ""
+            sdesc = short_desc_vi or short_desc_en or ""
             return {
                 "id": cid,
                 "slug": slug,

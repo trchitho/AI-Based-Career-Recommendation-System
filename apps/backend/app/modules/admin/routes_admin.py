@@ -865,7 +865,7 @@ def _career_to_client(c: Career, session: Session) -> dict:
         ksa_rows = session.execute(
             select(CareerKSA).where(CareerKSA.onet_code == c.onet_code, CareerKSA.ksa_type == 'skill').limit(10)
         ).scalars().all()
-        skills = [k.name for k in ksa_rows]
+        skills = [k.name_en or "" for k in ksa_rows]
 
     # Get salary from career_overview
     salary_range = {"min": 0, "max": 0, "currency": "USD"}
@@ -1149,7 +1149,7 @@ def create_skill(request: Request, payload: dict):
         s = CareerKSA(
             onet_code=requested_onet,
             ksa_type=category or "skill",
-            name=name,
+            name_en=name,
             category=description,
             level=None,
             importance=None,
@@ -1173,7 +1173,7 @@ def update_skill(request: Request, skill_id: int, payload: dict):
     if not s:
         raise HTTPException(status_code=404, detail="Skill not found")
     if "name" in payload:
-        s.name = payload.get("name") or s.name
+        s.name_en = payload.get("name") or s.name_en
     if "category" in payload:
         s.ksa_type = payload.get("category") or s.ksa_type
     if "description" in payload:
@@ -1328,13 +1328,13 @@ def update_question(request: Request, question_id: int, payload: dict):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     if "text" in payload:
-        q.prompt = payload.get("text") or q.prompt
+        q.prompt_vi = payload.get("text") or q.prompt_vi
     if "dimension" in payload:
         q.question_key = payload.get("dimension") or q.question_key
     if "options" in payload:
         q.options_json = payload.get("options") or None  # type: ignore[assignment]
     _write_audit_log(session, "update_question", "question", question_id, actor_id=admin_id,
-                     details={"prompt_preview": (q.prompt or "")[:80]})
+                     details={"prompt_preview": (q.prompt_vi or q.prompt_en or "")[:80]})
     session.commit()
     f = session.get(AssessmentForm, q.form_id) if q.form_id is not None else None
     form_type = str(f.form_type) if f and f.form_type is not None else "RIASEC"
@@ -1349,7 +1349,7 @@ def delete_question(request: Request, question_id: int):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     _write_audit_log(session, "delete_question", "question", question_id, actor_id=admin_id,
-                     details={"prompt_preview": (q.prompt or "")[:80]})
+                     details={"prompt_preview": (q.prompt_vi or q.prompt_en or "")[:80]})
     session.delete(q)
     session.commit()
     return {"status": "ok"}

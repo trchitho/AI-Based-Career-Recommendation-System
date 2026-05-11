@@ -964,7 +964,7 @@ class InterviewService:
                 rows2 = self.db.execute(
                     text(
                         """
-                    SELECT DISTINCT dwa_title, dwa_title_vi
+                    SELECT DISTINCT dwa_title_en, dwa_title_vn
                     FROM core.career_dwas
                     WHERE onet_code = :onet_code LIMIT 5
                 """
@@ -973,8 +973,8 @@ class InterviewService:
                 ).fetchall()
                 all_tasks = [
                     {
-                        "task_en": r.dwa_title, 
-                        "task_vi": r.dwa_title_vi or r.dwa_title, 
+                        "task_en": r.dwa_title_en,
+                        "task_vi": r.dwa_title_vn or r.dwa_title_en,
                         "importance": 3.5,
                         "task_type": "Kỹ năng chuyên ngành"  # Fallback default
                     } for r in rows2

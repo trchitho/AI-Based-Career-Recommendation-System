@@ -105,7 +105,7 @@ def get_saved_recommendations(
                 "slug": row[3],
                 "title_vi": row[4],
                 "title_en": row[5],
-                "description": row[6] or row[7] or ""
+                "description": row[7] or row[6] or ""  # Ưu tiên short_desc_vi
             })
         
         return {

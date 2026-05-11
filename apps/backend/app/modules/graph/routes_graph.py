@@ -128,7 +128,7 @@ def sync_career_skills(request: Request):
             # MERGE Skill node
             s.run(
                 "MERGE (sk:Skill {name:$name}) SET sk.category=$cat",
-                name=k.name,
+                name=k.name_en or "",
                 cat=k.ksa_type,
             )
             # MERGE relation
@@ -137,7 +137,7 @@ def sync_career_skills(request: Request):
                 "MERGE (c)-[r:REQUIRES]->(sk) "
                 "SET r.level=$lvl, r.importance=$imp",
                 cid=str(c.id),
-                name=k.name,
+                name=k.name_en or "",
                 lvl=float(k.level) if k.level is not None else None,
                 imp=float(k.importance) if k.importance is not None else None,
             )

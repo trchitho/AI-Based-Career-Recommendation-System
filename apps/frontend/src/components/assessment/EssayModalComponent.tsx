@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface EssayModalComponentProps {
@@ -22,6 +22,9 @@ const EssayModalComponent = ({
   const { t } = useTranslation();
   const [essayText, setEssayText] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [sttActive, setSttActive] = useState(false);
+  const [sttError, setSttError] = useState('');
+  const recognitionRef = useRef<any>(null);
 
   const trimmedLen = essayText.trim().length;
   const rawLen = essayText.length;
@@ -30,13 +33,46 @@ const EssayModalComponent = ({
   const progressPct = Math.min((trimmedLen / MIN_CHARS) * 100, 100);
   const remaining = MAX_CHARS - rawLen;
 
+  // ── STT tiếng Việt ──────────────────────────────────────────────
+  const startSTT = () => {
+    setSttError('');
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { setSttError('Trình duyệt không hỗ trợ. Dùng Chrome.'); return; }
+    const rec = new SR();
+    recognitionRef.current = rec;
+    rec.lang = 'vi-VN';
+    rec.continuous = true;
+    rec.interimResults = true;
+    let final = essayText;
+    rec.onstart = () => setSttActive(true);
+    rec.onresult = (e: any) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const txt = e.results[i][0].transcript;
+        if (e.results[i].isFinal) {
+          const c = txt.trim();
+          if (c) final = final ? final.trimEnd() + ' ' + c.charAt(0).toUpperCase() + c.slice(1) : c.charAt(0).toUpperCase() + c.slice(1);
+        } else interim += txt;
+      }
+      const newText = final + (interim ? ' ' + interim : '');
+      setEssayText(newText.slice(0, MAX_CHARS));
+      if (error && newText.trim().length >= MIN_CHARS) setError(null);
+    };
+    rec.onerror = (e: any) => {
+      setSttError(e.error === 'not-allowed' ? 'Cần cấp quyền microphone.' : 'Lỗi: ' + e.error);
+      setSttActive(false);
+    };
+    rec.onend = () => { setSttActive(false); setEssayText(final.slice(0, MAX_CHARS)); };
+    rec.start();
+  };
+  const stopSTT = () => { recognitionRef.current?.stop(); setSttActive(false); };
+  // ────────────────────────────────────────────────────────────────
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
-    if (val.length > MAX_CHARS) return; // hard cap
+    if (val.length > MAX_CHARS) return;
     setEssayText(val);
-    if (error && val.trim().length >= MIN_CHARS) {
-      setError(null);
-    }
+    if (error && val.trim().length >= MIN_CHARS) setError(null);
   };
 
   const handleSubmit = () => {
@@ -49,7 +85,7 @@ const EssayModalComponent = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 font-['Plus_Jakarta_Sans']">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 pt-20 font-['Plus_Jakarta_Sans'] overflow-y-auto">
 
       <style>{`
         @keyframes modal-pop {
@@ -95,10 +131,29 @@ const EssayModalComponent = ({
               value={essayText}
               onChange={handleChange}
               rows={10}
-              className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 py-4 text-base text-gray-900 dark:text-white shadow-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 outline-none transition-all resize-none placeholder-gray-400 font-medium"
+              className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 py-4 pr-14 text-base text-gray-900 dark:text-white shadow-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 outline-none transition-all resize-none placeholder-gray-400 font-medium"
               placeholder={t('assessment.essay.placeholder')}
               disabled={loading}
             />
+
+            {/* Nút mic STT */}
+            <button
+              type="button"
+              onClick={() => sttActive ? stopSTT() : startSTT()}
+              disabled={loading}
+              title={sttActive ? 'Dừng nhận dạng giọng nói' : 'Nhận dạng giọng nói tiếng Việt'}
+              className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center text-white transition-all shadow-md disabled:opacity-50 ${
+                sttActive
+                  ? 'bg-gradient-to-br from-teal-500 to-teal-700 shadow-teal-300 animate-pulse'
+                  : 'bg-gradient-to-br from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 shadow-indigo-200'
+              }`}
+            >
+              {sttActive ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 9a7 7 0 0 0 14 0h2a9 9 0 0 1-8 8.94V23h-2v-2.06A9 9 0 0 1 3 12h2z"/></svg>
+              )}
+            </button>
 
             {/* Max chars warning */}
             <div className="absolute bottom-4 right-4 flex items-center gap-2">
@@ -120,6 +175,17 @@ const EssayModalComponent = ({
               </span>
             </div>
           </div>
+
+          {/* STT status */}
+          {sttActive && (
+            <div className="mt-2 flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm font-semibold">
+              <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse inline-block" />
+              Đang nghe... Hãy nói tiếng Việt
+            </div>
+          )}
+          {sttError && (
+            <p className="mt-2 text-sm text-red-500">⚠ {sttError}</p>
+          )}
 
           {/* Progress bar */}
           <div className="mt-3">

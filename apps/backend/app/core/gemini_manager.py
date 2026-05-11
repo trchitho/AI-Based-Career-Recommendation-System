@@ -77,6 +77,7 @@ class GeminiStreamManager:
         self.fast_fail = os.getenv('AI_FAST_FAIL', 'false').lower() == 'true'
         
         # Fallback models list (in priority order, deduped)
+        # NOTE: Gemma models (gemma-3-*) require OAuth, NOT API key → excluded
         seen = set()
         candidates = [
             self.model_name,           # Primary from env
@@ -143,13 +144,23 @@ class GeminiStreamManager:
                 error_msg = str(e).lower()
                 print(f"[warn] Model {model_name} failed: {e}")
                 
-                # Check if it's a quota/auth issue (don't try other models)
-                if any(keyword in error_msg for keyword in ['api key', 'expired', 'invalid', 'authentication', 'not valid']):
-                    print("[err] API authentication issue detected, stopping fallback attempts")
+                # ACCESS_TOKEN_TYPE_UNSUPPORTED = model requires OAuth, not API key
+                # → skip this model but continue trying others
+                if 'access_token_type_unsupported' in error_msg:
+                    print(f"[warn] Model {model_name} requires OAuth (not API key), skipping")
+                    continue
+                
+                # Hard auth failure = the API key itself is invalid → stop all attempts
+                if any(keyword in error_msg for keyword in ['api key not valid', 'api_key_invalid', 'expired']):
+                    print("[err] API key is invalid, stopping fallback attempts")
                     break
+                
+                # Soft auth / quota issues → continue trying other models
+                if any(keyword in error_msg for keyword in ['authentication', 'invalid', 'not valid']):
+                    print(f"[warn] Auth issue with {model_name}, trying next model...")
+                    continue
                 elif any(keyword in error_msg for keyword in ['quota', '429', 'rate limit', 'exceeded']):
-                    print("[warn] Quota exceeded - will try fallback models with different endpoints")
-                    # Continue to try other models which might use different quotas
+                    print("[warn] Quota exceeded - trying fallback models with different endpoints")
                     continue
                 
                 # Continue to next model for other errors

@@ -141,8 +141,15 @@ const ResultsPage = () => {
     return getRIASECFullName(entries[0]?.[0] ?? '').toUpperCase();
   };
 
-  const getTopBigFive = () =>
-    Object.entries(results?.big_five_scores ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0]?.toUpperCase() ?? 'N/A';
+  const getTopBigFive = () => {
+    const BIG5_VI: Record<string, string> = {
+      openness: 'Cởi Mở', conscientiousness: 'Tận Tâm',
+      extraversion: 'Hướng Ngoại', agreeableness: 'Dễ Chịu', neuroticism: 'Nhạy Cảm',
+    };
+    const key = Object.entries(results?.big_five_scores ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (!key) return 'N/A';
+    return (BIG5_VI[key.toLowerCase()] || key).toUpperCase();
+  };
 
   return (
     <MainLayout>
@@ -177,13 +184,13 @@ const ResultsPage = () => {
               <div className="res-hero">
                 <div className="res-hero-top">
                   <div className="res-hero-meta">
-                    <span className="res-hero-badge">Report Ready</span>
+                    <span className="res-hero-badge">Báo Cáo Sẵn Sàng</span>
                     <span className="res-hero-date">{formatDate(results.completed_at)}</span>
                   </div>
-                  <h1>Your Personal Analysis</h1>
+                  <h1>Phân Tích Cá Nhân Của Bạn</h1>
                   <p>
-                    We've analyzed your responses to uncover your unique personality traits
-                    and career potential.
+                    Chúng tôi đã phân tích câu trả lời của bạn để khám phá đặc điểm tính cách
+                    và tiềm năng nghề nghiệp độc đáo của bạn.
                   </p>
                 </div>
 
@@ -194,7 +201,7 @@ const ResultsPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      View Full Report
+                      Xem Báo Cáo Đầy Đủ
                     </Link>
                   ) : (
                     <Link to="/pricing" className="res-hero-btn">
@@ -202,7 +209,7 @@ const ResultsPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
-                      {currentPlan === 'free' ? 'Upgrade to Premium' : 'Upgrade to Premium'}
+                      {currentPlan === 'free' ? 'Nâng Cấp Lên Premium' : 'Nâng Cấp Lên Premium'}
                     </Link>
                   )}
 
@@ -212,14 +219,14 @@ const ResultsPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
-                      Compare Progress
+                      So Sánh Tiến Trình
                     </Link>
                   ) : currentPlan !== 'pro' && (
                     <span className="res-hero-btn locked pro">
                       <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" />
                       </svg>
-                      Pro Feature
+                      Tính Năng Pro
                     </span>
                   )}
                 </div>
@@ -256,19 +263,19 @@ const ResultsPage = () => {
                           </svg>
                         </span>
                         <div>
-                          <p className="res-section-title">Key Highlights</p>
+                          <p className="res-section-title">Điểm Nổi Bật</p>
                         </div>
                       </div>
                       <div className="res-highlights">
                         <div className="res-highlight-card green">
-                          <p className="res-highlight-label">Top Career Interest</p>
+                          <p className="res-highlight-label">Sở Thích Nghề Nghiệp Hàng Đầu</p>
                           <p className="res-highlight-value">{getTopRIASEC()}</p>
                           <svg className="res-highlight-bg-icon" width="100" height="100" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
                         </div>
                         <div className="res-highlight-card blue">
-                          <p className="res-highlight-label">Dominant Trait</p>
+                          <p className="res-highlight-label">Đặc Điểm Nổi Trội</p>
                           <p className="res-highlight-value">{getTopBigFive()}</p>
                           <svg className="res-highlight-bg-icon" width="100" height="100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -287,13 +294,13 @@ const ResultsPage = () => {
                             </svg>
                           </span>
                           <div>
-                            <p className="res-section-title">AI Analysis</p>
+                            <p className="res-section-title">Phân Tích AI</p>
                           </div>
                         </div>
 
                         {results.essay_analysis.key_insights?.length > 0 && (
                           <>
-                            <p className="res-section-label">Key Insights</p>
+                            <p className="res-section-label">Nhận Xét Chính</p>
                             <ul className="res-insights-list">
                               {results.essay_analysis.key_insights.map((ins, idx) => (
                                 <li key={idx}>
@@ -307,7 +314,7 @@ const ResultsPage = () => {
 
                         {results.essay_analysis.themes?.length > 0 && (
                           <>
-                            <p className="res-section-label">Identified Themes</p>
+                            <p className="res-section-label">Chủ Đề Nhận Diện</p>
                             <div className="res-theme-tags">
                               {results.essay_analysis.themes.map((theme, i) => (
                                 <span key={i} className="res-theme-tag">{theme}</span>
@@ -333,27 +340,27 @@ const ResultsPage = () => {
                           </svg>
                         </span>
                         <div>
-                          <p className="res-section-title">RIASEC Interest Profile</p>
-                          <p className="res-section-sub">Your career interests based on the Holland model</p>
+                          <p className="res-section-title">Hồ Sơ Sở Thích RIASEC</p>
+                          <p className="res-section-sub">Sở thích nghề nghiệp của bạn theo mô hình Holland</p>
                         </div>
                       </div>
 
                       <div className="res-chart-box">
-                        <p className="res-chart-title">Radar Chart</p>
+                        <p className="res-chart-title">Biểu Đồ Radar</p>
                         <div className="res-chart-inner">
                           <RIASECSpiderChart scores={results.riasec_scores} />
                         </div>
                       </div>
 
                       <div className="res-chart-box">
-                        <p className="res-chart-title">Line Chart</p>
+                        <p className="res-chart-title">Biểu Đồ Đường</p>
                         <div className="res-chart-inner sm">
                           <RIASECLineChart scores={results.riasec_scores} />
                         </div>
                       </div>
 
                       <div className="res-chart-box">
-                        <p className="res-chart-title">Score Details</p>
+                        <p className="res-chart-title">Chi Tiết Điểm</p>
                         <div className="res-score-grid">
                           {Object.entries(results.riasec_scores)
                             .sort((a, b) => b[1] - a[1])
@@ -385,20 +392,20 @@ const ResultsPage = () => {
                           </svg>
                         </span>
                         <div>
-                          <p className="res-section-title">Big Five Personality Traits</p>
-                          <p className="res-section-sub">Your 5 core personality dimensions</p>
+                          <p className="res-section-title">Đặc Điểm Tính Cách Big Five</p>
+                          <p className="res-section-sub">5 chiều tính cách cốt lõi của bạn</p>
                         </div>
                       </div>
 
                       <div className="res-chart-box">
-                        <p className="res-chart-title">Bar Chart</p>
+                        <p className="res-chart-title">Biểu Đồ Cột</p>
                         <div className="res-chart-inner">
                           <BigFiveBarChart scores={results.big_five_scores} />
                         </div>
                       </div>
 
                       <div className="res-chart-box">
-                        <p className="res-chart-title">Line Chart</p>
+                        <p className="res-chart-title">Biểu Đồ Đường</p>
                         <div className="res-chart-inner sm">
                           <BigFiveLineChart scores={results.big_five_scores} />
                         </div>

@@ -2,20 +2,20 @@
  * RIASEC utilities for consistent label display across the app
  */
 
-// RIASEC letter → full name mapping
+// RIASEC letter → full name mapping (tiếng Việt)
 export const RIASEC_LABEL_MAP: Record<string, string> = {
-    R: 'Realistic',
-    I: 'Investigative',
-    A: 'Artistic',
-    S: 'Social',
-    E: 'Enterprising',
-    C: 'Conventional',
-    realistic: 'Realistic',
-    investigative: 'Investigative',
-    artistic: 'Artistic',
-    social: 'Social',
-    enterprising: 'Enterprising',
-    conventional: 'Conventional',
+    R: 'Kỹ Thuật',
+    I: 'Nghiên Cứu',
+    A: 'Nghệ Thuật',
+    S: 'Xã Hội',
+    E: 'Kinh Doanh',
+    C: 'Nghiệp Vụ',
+    realistic: 'Kỹ Thuật',
+    investigative: 'Nghiên Cứu',
+    artistic: 'Nghệ Thuật',
+    social: 'Xã Hội',
+    enterprising: 'Kinh Doanh',
+    conventional: 'Nghiệp Vụ',
 };
 
 /**

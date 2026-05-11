@@ -396,6 +396,7 @@ def _get_gemini_models():
     genai.configure(api_key=api_key)
     
     # Prioritize fast models - same as chatbot
+    # NOTE: Gemma models require OAuth (not API key) → excluded
     return [
         "models/gemini-2.5-flash",       # Fast and efficient (2025)
         "models/gemini-flash-latest",    # Always latest

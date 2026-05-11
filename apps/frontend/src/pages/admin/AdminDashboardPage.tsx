@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { adminService } from "../../services/adminService";
 import { AdminDashboardMetrics, AIMetrics } from "../../types/admin";
 import AdminLayout from "../../components/layout/AdminLayout";
+import ThemeToggle from "../../components/ThemeToggle";
 
 // Admin pages
 import CareerManagementPage from "./CareerManagementPage";
@@ -24,13 +25,41 @@ import CVDocumentsPage from "./CVDocumentsPage";
 import AdminCourseManagementPage from "./AdminCourseManagementPage";
 import AdminInterviewPage from "./AdminInterviewPage";
 
+// ── NavItem helper ────────────────────────────────────────────────
+const NavItem = ({ to, label, active }: { to: string; label: string; active: boolean }) => (
+  <Link
+    to={to}
+    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+      active
+        ? "bg-green-600 text-white"
+        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+    }`}
+  >
+    {label}
+  </Link>
+);
+
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
   const [aiMetrics, setAIMetrics] = useState<AIMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      // ignore
+    } finally {
+      navigate("/login");
+    }
+  };
 
   useEffect(() => {
     loadMetrics();
