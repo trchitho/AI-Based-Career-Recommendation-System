@@ -210,7 +210,7 @@ const UserManagementPage = () => {
                     ? "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
                     : "bg-indigo-50 text-indigo-800 border-emerald-200 dark:bg-indigo-950/20 dark:text-emerald-400 dark:border-emerald-800"
                     }`}>
-                    {u.is_locked ? "" : ""}
+                    {u.is_locked ? "Locked" : "Active"}
                   </span>
                 </div>
 
