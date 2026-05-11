@@ -33,12 +33,12 @@ class AssessmentQuestion(Base):
 
     @property
     def prompt(self) -> str:
-        """Backward-compatible property that returns Vietnamese prompt by default."""
+        """Backward-compatible property that returns prompt_vi if available, otherwise prompt_en."""
         return self.prompt_vi or self.prompt_en or ""
     
     @prompt.setter
     def prompt(self, value: str) -> None:
-        """Backward-compatible setter that updates Vietnamese prompt."""
+        """Backward-compatible setter that updates prompt_vi."""
         self.prompt_vi = value
 
     def get_prompt(self, lang: str = "vi") -> str:
