@@ -35,7 +35,7 @@ const BlogManagementPage = () => {
 
     try {
       await blogService.adminDelete(id);
-      await loadPosts(); // Reload list
+      await loadPosts();
     } catch (e: any) {
       alert('Không thể xóa blog: ' + (e?.response?.data?.detail || e?.message));
     }
@@ -144,13 +144,13 @@ const BlogManagementPage = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-0.5 text-xs font-bold rounded border ${post.status === 'Published'
-                            ? 'bg-indigo-50 text-indigo-900 border-indigo-200 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-800'
-                            : post.status === 'Pending'
-                              ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800'
-                              : post.status === 'Rejected'
-                                ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
-                                : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800'
+                        <span className={`inline-flex px-2.5 py-1 text-xs font-bold rounded-md ${post.status === 'Published'
+                          ? 'bg-[#DBEAFE] text-[#1E40AF] dark:bg-blue-950/20 dark:text-blue-400'
+                          : post.status === 'Pending'
+                            ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                            : post.status === 'Rejected'
+                              ? 'bg-[#FEE2E2] text-[#DC2626] dark:bg-red-900/20 dark:text-red-400'
+                              : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
                           }`}>
                           {post.status || 'Draft'}
                         </span>

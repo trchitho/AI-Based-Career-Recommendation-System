@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Question, QuestionResponse } from '../../types/assessment';
 import { assessmentService } from '../../services/assessmentService';
 import { useAuth } from '../../contexts/AuthContext';
+import './CareerTestButtons.css';
 
 // LocalStorage key for auto-save - now includes userId for per-user storage
 const AUTOSAVE_KEY_PREFIX = 'assessment_autosave_';
@@ -581,30 +582,90 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
                   {/* Answer Options */}
                   <div className="flex items-center justify-between md:justify-end gap-3 md:gap-6 w-full md:w-auto mt-4 md:mt-0">
-                    {[
-                      { value: 1, color: 'bg-red-200', active: 'bg-red-500', ring: 'ring-red-200' },
-                      { value: 2, color: 'bg-orange-200', active: 'bg-orange-400', ring: 'ring-orange-200' },
-                      { value: 3, color: 'bg-gray-300', active: 'bg-gray-500', ring: 'ring-gray-300' },
-                      { value: 4, color: 'bg-indigo-200', active: 'bg-indigo-700', ring: 'ring-indigo-200' },
-                      { value: 5, color: 'bg-indigo-300', active: 'bg-indigo-800', ring: 'ring-indigo-300' }
-                    ].map(({ value, color, active, ring }) => (
-                      <button
-                        key={value}
-                        onClick={() => handleAnswer(question.id, value)}
-                        className={`
-                                    relative w-10 h-10 md:w-12 md:h-12 rounded-full transition-all duration-300 flex items-center justify-center
-                                    ${answer === value
-                            ? `${active} text-white scale-110 shadow-lg ring-4 ${ring}`
-                            : `${color} dark:bg-gray-700 text-transparent hover:scale-110`
-                          }
-                                `}
-                        aria-label={`Rate ${value}`}
-                      >
-                        {answer === value && (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                        )}
-                      </button>
-                    ))}
+                    {/* Option 1 - Rất không đồng ý */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 1)}
+                      className={`answer-btn answer-btn-1 ${answer === 1 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 1 ? '#ef4444' : '#fca5a5',
+                        color: answer === 1 ? 'white' : 'transparent',
+                        transform: answer === 1 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 1 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 1"
+                    >
+                      {answer === 1 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+
+                    {/* Option 2 - Không đồng ý */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 2)}
+                      className={`answer-btn answer-btn-2 ${answer === 2 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 2 ? '#f97316' : '#fdba74',
+                        color: answer === 2 ? 'white' : 'transparent',
+                        transform: answer === 2 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 2 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 2"
+                    >
+                      {answer === 2 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+
+                    {/* Option 3 - Trung lập */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 3)}
+                      className={`answer-btn answer-btn-3 ${answer === 3 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 3 ? '#6b7280' : '#d1d5db',
+                        color: answer === 3 ? 'white' : 'transparent',
+                        transform: answer === 3 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 3 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 3"
+                    >
+                      {answer === 3 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+
+                    {/* Option 4 - Đồng ý */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 4)}
+                      className={`answer-btn answer-btn-4 ${answer === 4 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 4 ? '#4f46e5' : '#a5b4fc',
+                        color: answer === 4 ? 'white' : 'transparent',
+                        transform: answer === 4 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 4 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 4"
+                    >
+                      {answer === 4 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+
+                    {/* Option 5 - Rất đồng ý */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 5)}
+                      className={`answer-btn answer-btn-5 ${answer === 5 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 5 ? '#4338ca' : '#6366f1',
+                        color: answer === 5 ? 'white' : 'transparent',
+                        transform: answer === 5 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 5 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 5"
+                    >
+                      {answer === 5 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -622,27 +683,36 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
             ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
             : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
+          style={{ color: currentPage === 0 ? '#d1d5db' : '#4b5563' }}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          Trước
+          <svg style={{ color: 'inherit' }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          <span style={{ color: 'inherit' }}>Previous</span>
         </button>
 
         {!isLastPage ? (
           <button
             onClick={handleNext}
             disabled={!areCurrentPageQuestionsAnswered()}
-            className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition-all flex items-center gap-2"
+            className="px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:transform-none transition-all flex items-center gap-2"
+            style={{
+              backgroundColor: areCurrentPageQuestionsAnswered() ? '#111827' : '#e5e7eb',
+              color: areCurrentPageQuestionsAnswered() ? '#60a5fa' : '#3b82f6',
+              borderWidth: '2px',
+              borderStyle: 'solid',
+              borderColor: areCurrentPageQuestionsAnswered() ? '#60a5fa' : '#3b82f6',
+            }}
           >
-            Tiếp theo
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            <span style={{ color: 'inherit', opacity: 1, fontWeight: 'bold' }}>Next Step</span>
+            <svg style={{ color: 'inherit', opacity: 1 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         ) : (
           <button
             onClick={handleSubmit}
-            className="px-10 py-3 bg-indigo-800 hover:bg-indigo-900 text-white rounded-xl font-bold shadow-xl shadow-indigo-800/30 hover:shadow-indigo-800/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+            style={{ color: '#ffffff' }}
+            className="px-10 py-3 bg-indigo-800 dark:bg-indigo-600 hover:bg-indigo-900 dark:hover:bg-indigo-700 rounded-xl font-bold shadow-xl shadow-indigo-800/30 dark:shadow-indigo-600/30 hover:shadow-indigo-800/50 dark:hover:shadow-indigo-600/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
           >
-            Hoàn thành đánh giá
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <span style={{ color: '#ffffff' }}>Complete Assessment</span>
+            <svg style={{ color: '#ffffff' }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
           </button>
         )}
       </div>
