@@ -40,7 +40,13 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
   const [gamificationSessionId, setGamificationSessionId] = useState<number | null>(null);
   const [isLoadingProgress, setIsLoadingProgress] = useState(false);
 
-  const SAVE_KEY = 'puzzle_game_progress';
+  // LocalStorage keys — scoped by assessmentSessionId
+  const SAVE_KEY = assessmentSessionId
+    ? `puzzle_game_progress_${assessmentSessionId}`
+    : 'puzzle_game_progress';
+  const GAM_SESSION_KEY = assessmentSessionId
+    ? `puzzle_gam_session_${assessmentSessionId}`
+    : 'puzzle_gam_session';
 
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
@@ -49,23 +55,29 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
   useEffect(() => {
     const initGamificationSession = async () => {
       if (assessmentSessionId && !gamificationSessionId) {
+        // Reuse cached session if available
+        const cachedId = localStorage.getItem(GAM_SESSION_KEY);
+        if (cachedId) {
+          const parsedId = parseInt(cachedId, 10);
+          if (!isNaN(parsedId)) {
+            setGamificationSessionId(parsedId);
+            await loadProgressFromDatabase(parsedId);
+            return;
+          }
+        }
         try {
           const session = await gamificationService.startSession(assessmentSessionId, 'game');
           setGamificationSessionId(session.gamification_session_id);
-          
-          // Try to load saved progress
+          localStorage.setItem(GAM_SESSION_KEY, String(session.gamification_session_id));
           await loadProgressFromDatabase(session.gamification_session_id);
         } catch (error) {
           console.error('Failed to start gamification session:', error);
-          // Fallback to localStorage
           loadProgressFromLocalStorage();
         }
       } else if (!assessmentSessionId) {
-        // No assessment session, use localStorage
         loadProgressFromLocalStorage();
       }
     };
-
     initGamificationSession();
   }, [assessmentSessionId]);
 
@@ -74,16 +86,18 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
     setIsLoadingProgress(true);
     try {
       const savedData = await gamificationService.loadGameProgress(sessionId);
-      
       if (savedData && Object.keys(savedData).length > 0) {
         setCurrentIndex(savedData.currentIndex || 0);
-        setResponses(new Map(savedData.responses || []));
+        setResponses(new Map(Array.isArray(savedData.responses) ? savedData.responses : []));
         setXp(savedData.xp || 0);
         setLevel(savedData.level || 1);
-        setPlacedPieces(savedData.placedPieces || []);
+        setPlacedPieces(Array.isArray(savedData.placedPieces) ? savedData.placedPieces : []);
+      } else {
+        loadProgressFromLocalStorage();
       }
     } catch (error) {
       console.error('Failed to load progress from database:', error);
+      loadProgressFromLocalStorage();
     } finally {
       setIsLoadingProgress(false);
     }
@@ -92,25 +106,32 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
   // Load progress from localStorage (fallback)
   const loadProgressFromLocalStorage = () => {
     const savedData = localStorage.getItem(SAVE_KEY);
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        setCurrentIndex(parsed.currentIndex || 0);
-        setResponses(new Map(parsed.responses || []));
-        setXp(parsed.xp || 0);
-        setLevel(parsed.level || 1);
-        setPlacedPieces(parsed.placedPieces || []);
-      } catch (e) {
-        console.error('Failed to load saved progress from localStorage:', e);
-      }
+    if (!savedData) return;
+    try {
+      const parsed = JSON.parse(savedData);
+      setCurrentIndex(parsed.currentIndex || 0);
+      setResponses(new Map(Array.isArray(parsed.responses) ? parsed.responses : []));
+      setXp(parsed.xp || 0);
+      setLevel(parsed.level || 1);
+      setPlacedPieces(Array.isArray(parsed.placedPieces) ? parsed.placedPieces : []);
+    } catch (e) {
+      console.error('Failed to load saved progress from localStorage:', e);
     }
   };
 
   // Handle browser back button and page close
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Auto-save when user tries to leave
-      saveProgress();
+      // Sync save to localStorage (browser doesn't support async in beforeunload)
+      const dataToSave = {
+        currentIndex,
+        responses: Array.from(responses.entries()),
+        xp,
+        level,
+        placedPieces,
+        timestamp: Date.now(),
+      };
+      try { localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave)); } catch (_) {}
       e.preventDefault();
       e.returnValue = 'Bạn có muốn lưu tiến trình không?';
       return e.returnValue;
@@ -119,13 +140,10 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
     const handlePopState = (e: PopStateEvent) => {
       e.preventDefault();
       setShowExitConfirm(true);
-      // Push state back to prevent immediate navigation
       window.history.pushState(null, '', window.location.href);
     };
 
-    // Add state to history to catch back button
     window.history.pushState(null, '', window.location.href);
-    
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
 
@@ -146,7 +164,6 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
       timestamp: Date.now(),
     };
 
-    // Try database first
     if (gamificationSessionId) {
       try {
         await gamificationService.saveGameProgress({
@@ -154,9 +171,11 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
           currentIndex,
           xp,
           level,
-          score: 0, // PuzzleGameMode doesn't have score
+          score: placedPieces.length,
           responses: Array.from(responses.entries()),
         });
+        // Also sync to localStorage as backup
+        localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
         console.log('Progress saved to database');
         return;
       } catch (error) {
@@ -164,7 +183,6 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
       }
     }
 
-    // Fallback to localStorage
     localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
     console.log('Progress saved to localStorage');
   };
@@ -172,7 +190,7 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
   // Clear saved progress
   const clearProgress = () => {
     localStorage.removeItem(SAVE_KEY);
-    // Note: Database progress is kept for history
+    localStorage.removeItem(GAM_SESSION_KEY);
   };
 
   // Handle exit with confirmation
@@ -180,13 +198,10 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
     setShowExitConfirm(true);
   };
 
-  // Save and exit
-  const handleSaveAndExit = () => {
-    saveProgress();
+  // Save and exit — must await saveProgress
+  const handleSaveAndExit = async () => {
+    try { await saveProgress(); } catch (_) {}
     setShowExitConfirm(false);
-    // Allow navigation
-    window.removeEventListener('beforeunload', () => {});
-    window.removeEventListener('popstate', () => {});
     onCancel();
   };
 
@@ -194,9 +209,6 @@ const PuzzleGameMode = ({ questions, onComplete, onCancel, assessmentSessionId }
   const handleExitWithoutSave = () => {
     clearProgress();
     setShowExitConfirm(false);
-    // Allow navigation
-    window.removeEventListener('beforeunload', () => {});
-    window.removeEventListener('popstate', () => {});
     onCancel();
   };
 

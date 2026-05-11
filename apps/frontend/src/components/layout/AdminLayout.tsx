@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, CreditCard, Settings, FileText,
   Briefcase, Zap, HelpCircle, Activity, ChevronLeft,
-  ChevronRight, LogOut, ArrowLeft, Menu, X,
+  ChevronRight, LogOut, ArrowLeft, Menu, X, MessageSquare,
 } from 'lucide-react';
 import { removeAccessToken } from '../../utils/auth';
 
@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { path: '/admin/data-sync',      label: 'Data Sync',      icon: Zap },
   { path: '/admin/notifications',  label: 'Notifications',  icon: Users },
   { path: '/admin/cv-documents',   label: 'CV Docs',        icon: FileText },
+  { path: '/admin/interview',      label: 'Interview',      icon: MessageSquare },
   { path: '/admin/settings',       label: 'Settings',       icon: Settings },
 ];
 

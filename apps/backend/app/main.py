@@ -714,6 +714,15 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("[ERR] AI Mock Interview API:", str(e)[:50])
 
+    # Admin Interview Management API
+    try:
+        from .modules.interview import routes_admin as interview_admin_router
+
+        app.include_router(interview_admin_router.router, prefix="/api/admin", tags=["admin-interview"])
+        print("[OK] Admin Interview Management API")
+    except Exception as e:
+        print("[ERR] Admin Interview Management API:", str(e)[:80])
+
     # Voice Interview API Routes
     try:
         from .api import voice_interview as voice_interview_router

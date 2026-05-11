@@ -166,12 +166,15 @@ const AssessmentPage = () => {
     if (quizMode === 'standard' || quizMode === 'game') {
       try {
         setLoading(true);
-        const sessionId = Date.now();
-        
+
         // BOTH game modes (Puzzle Game and Personality Garden) use 33 questions (3 per dimension)
         // Only traditional test uses 44 questions (4 per dimension)
         const perDim = 3; // Always 3 for game modes
-        
+
+        // Create a real assessment session in DB first — required for gamification FK
+        const sessionRes = await api.post('/api/assessments/session/start');
+        const realSessionId: number = sessionRes.data.session_id;
+
         // Fetch with specific per_dim parameter
         const riasecRes = await api.get('/api/assessments/questions/RIASEC', {
           params: { shuffle: true, seed: Date.now(), per_dim: perDim },
@@ -179,9 +182,9 @@ const AssessmentPage = () => {
         const bigFiveRes = await api.get('/api/assessments/questions/BIGFIVE', {
           params: { shuffle: true, seed: Date.now(), per_dim: perDim },
         });
-        
+
         setQuestions([...riasecRes.data, ...bigFiveRes.data]);
-        setAssessmentSessionId(sessionId);
+        setAssessmentSessionId(realSessionId);
       } catch (err) {
         console.error('Failed to load questions:', err);
         setError('Failed to load questions. Please try again.');

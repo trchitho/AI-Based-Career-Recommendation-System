@@ -23,6 +23,7 @@ import DataSyncPage from "./DataSyncPage";
 import AdminNotificationsPage from "./AdminNotificationsPage";
 import CVDocumentsPage from "./CVDocumentsPage";
 import AdminCourseManagementPage from "./AdminCourseManagementPage";
+import AdminInterviewPage from "./AdminInterviewPage";
 
 const AdminDashboardPage = () => {
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
@@ -144,6 +145,7 @@ const AdminDashboardPage = () => {
             <NavItem to="/admin/notifications" label="Notifications" active={isActive("/admin/notifications")} />
             <NavItem to="/admin/cv-documents" label="CV Docs" active={isActive("/admin/cv-documents")} />
             <NavItem to="/admin/courses" label="Courses" active={isActive("/admin/courses")} />
+            <NavItem to="/admin/interview" label="Interview" active={isActive("/admin/interview")} />
           </div>
         </div>
       </nav>
@@ -178,6 +180,7 @@ const AdminDashboardPage = () => {
           <Route path="notifications" element={<AdminNotificationsPage />} />
           <Route path="cv-documents" element={<CVDocumentsPage />} />
           <Route path="courses" element={<AdminCourseManagementPage />} />
+          <Route path="interview" element={<AdminInterviewPage />} />
         </Routes>
       </div>
     </div>

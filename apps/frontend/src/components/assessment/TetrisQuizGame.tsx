@@ -29,6 +29,28 @@ interface CompletedAnswer {
 type PieceShape = 'I' | 'O' | 'T' | 'L' | 'Z';
 type PowerUpType = 'bomb' | 'rocket' | 'nuclear';
 
+const getErrorDetails = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const errorWithResponse = error as {
+      response?: {
+        data?: unknown;
+      };
+    };
+
+    if (errorWithResponse.response?.data !== undefined) {
+      return typeof errorWithResponse.response.data === 'string'
+        ? errorWithResponse.response.data
+        : JSON.stringify(errorWithResponse.response.data);
+    }
+  }
+
+  return 'Unknown error';
+};
+
 const PIECE_SHAPES: Record<PieceShape, { coords: [number, number][]; width: number; height: number }> = {
   I: { coords: [[0, 0], [0, 1], [0, 2], [0, 3]], width: 4, height: 1 }, // Horizontal line: 4 wide, 1 tall
   O: { coords: [[0, 0], [0, 1], [1, 0], [1, 1]], width: 2, height: 2 }, // Square: 2x2
@@ -138,8 +160,13 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
   const [gamificationSessionId, setGamificationSessionId] = useState<number | null>(null);
   const [isLoadingProgress, setIsLoadingProgress] = useState(false);
 
-  // LocalStorage fallback key
-  const SAVE_KEY = 'tetris_quiz_progress';
+  // LocalStorage keys — scoped by assessmentSessionId to avoid cross-session collisions
+  const SAVE_KEY = assessmentSessionId
+    ? `tetris_quiz_progress_${assessmentSessionId}`
+    : 'tetris_quiz_progress';
+  const GAM_SESSION_KEY = assessmentSessionId
+    ? `tetris_gam_session_${assessmentSessionId}`
+    : 'tetris_gam_session';
 
   const currentQuestion = questions[currentIndex];
   const progress = currentQuestion ? ((currentIndex + 1) / questions.length) * 100 : 0;
@@ -171,14 +198,26 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
       });
 
       if (assessmentSessionId && !gamificationSessionId) {
+        // Check if we already have a gamification session cached for this assessment
+        const cachedGamSessionId = localStorage.getItem(GAM_SESSION_KEY);
+        if (cachedGamSessionId) {
+          const parsedId = parseInt(cachedGamSessionId, 10);
+          if (!isNaN(parsedId)) {
+            console.log('[TetrisQuizGame] Reusing cached gamification session:', parsedId);
+            setGamificationSessionId(parsedId);
+            await loadProgressFromDatabase(parsedId);
+            return;
+          }
+        }
+
+        // No cached session — create a new one
         try {
-          console.log('[TetrisQuizGame] Starting gamification session...');
+          console.log('[TetrisQuizGame] Starting new gamification session...');
           const session = await gamificationService.startSession(assessmentSessionId, 'game');
           console.log('[TetrisQuizGame] Session started:', session);
           setGamificationSessionId(session.gamification_session_id);
-          
-          // Try to load saved progress
-          console.log('[TetrisQuizGame] Loading saved progress...');
+          // Cache the gamification session ID so we can reuse it on remount
+          localStorage.setItem(GAM_SESSION_KEY, String(session.gamification_session_id));
           await loadProgressFromDatabase(session.gamification_session_id);
         } catch (error) {
           console.error('[TetrisQuizGame] Failed to start gamification session:', error);
@@ -187,7 +226,6 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         }
       } else if (!assessmentSessionId) {
         console.log('[TetrisQuizGame] No assessmentSessionId, using localStorage');
-        // No assessment session, use localStorage
         loadProgressFromLocalStorage();
       }
     };
@@ -200,11 +238,13 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
     setIsLoadingProgress(true);
     try {
       const savedData = await gamificationService.loadGameProgress(sessionId);
-      
+
       if (savedData && Object.keys(savedData).length > 0) {
+        console.log('[TetrisQuizGame] 📦 Restoring progress from database');
         setCurrentIndex(savedData.currentIndex || 0);
-        setResponses(new Map(savedData.responses || []));
-        setCompletedAnswers(savedData.completedAnswers || []);
+        // responses is stored as Array<[string, string|number]> entries
+        setResponses(new Map(Array.isArray(savedData.responses) ? savedData.responses : []));
+        setCompletedAnswers(Array.isArray(savedData.completedAnswers) ? savedData.completedAnswers : []);
         setXp(savedData.xp || 0);
         setLevel(savedData.level || 1);
         setScore(savedData.score || 0);
@@ -213,13 +253,18 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         setNuclear(savedData.nuclear || 0);
         setCombo(savedData.combo || 0);
         setMaxCombo(savedData.maxCombo || 0);
-        
-        if (savedData.grid) {
+        if (Array.isArray(savedData.grid)) {
           setGrid(savedData.grid);
         }
+      } else {
+        // DB has no progress yet — try localStorage as secondary fallback
+        console.log('[TetrisQuizGame] No DB progress, checking localStorage...');
+        loadProgressFromLocalStorage();
       }
     } catch (error) {
       console.error('Failed to load progress from database:', error);
+      // Fallback to localStorage on error
+      loadProgressFromLocalStorage();
     } finally {
       setIsLoadingProgress(false);
     }
@@ -228,35 +273,55 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
   // Load progress from localStorage (fallback)
   const loadProgressFromLocalStorage = () => {
     const savedData = localStorage.getItem(SAVE_KEY);
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        setCurrentIndex(parsed.currentIndex || 0);
-        setResponses(new Map(parsed.responses || []));
-        setCompletedAnswers(parsed.completedAnswers || []);
-        setXp(parsed.xp || 0);
-        setLevel(parsed.level || 1);
-        setScore(parsed.score || 0);
-        setBombs(parsed.bombs || 0);
-        setRockets(parsed.rockets || 0);
-        setNuclear(parsed.nuclear || 0);
-        setCombo(parsed.combo || 0);
-        setMaxCombo(parsed.maxCombo || 0);
-        
-        if (parsed.grid) {
-          setGrid(parsed.grid);
-        }
-      } catch (e) {
-        console.error('Failed to load saved progress from localStorage:', e);
+    if (!savedData) return;
+    try {
+      const parsed = JSON.parse(savedData);
+      console.log('[TetrisQuizGame] 📦 Restoring progress from localStorage');
+      setCurrentIndex(parsed.currentIndex || 0);
+      setResponses(new Map(Array.isArray(parsed.responses) ? parsed.responses : []));
+      setCompletedAnswers(Array.isArray(parsed.completedAnswers) ? parsed.completedAnswers : []);
+      setXp(parsed.xp || 0);
+      setLevel(parsed.level || 1);
+      setScore(parsed.score || 0);
+      setBombs(parsed.bombs || 0);
+      setRockets(parsed.rockets || 0);
+      setNuclear(parsed.nuclear || 0);
+      setCombo(parsed.combo || 0);
+      setMaxCombo(parsed.maxCombo || 0);
+      if (Array.isArray(parsed.grid)) {
+        setGrid(parsed.grid);
       }
+    } catch (e) {
+      console.error('Failed to load saved progress from localStorage:', e);
     }
   };
 
   // Handle browser back button and page close
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Auto-save when user tries to leave
-      saveProgress();
+      // Browser does NOT support async in beforeunload.
+      // Sync-save to localStorage immediately as a reliable fallback.
+      // The async DB save is triggered separately via the exit dialog.
+      const dataToSave = {
+        currentIndex,
+        responses: Array.from(responses.entries()),
+        completedAnswers,
+        xp,
+        level,
+        score,
+        bombs,
+        rockets,
+        nuclear,
+        combo,
+        maxCombo,
+        grid,
+        timestamp: Date.now(),
+      };
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
+      } catch (_) {
+        // ignore storage errors
+      }
       e.preventDefault();
       e.returnValue = 'Bạn có muốn lưu tiến trình không?';
       return e.returnValue;
@@ -327,10 +392,12 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
           maxCombo,
         });
         console.log('[TetrisQuizGame] ✅ Progress saved to database');
+        // Also sync to localStorage as backup
+        localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
         return;
       } catch (error) {
         console.error('[TetrisQuizGame] ❌ Failed to save to database:', error);
-        console.error('[TetrisQuizGame] Error details:', error.response?.data || error.message);
+        console.error('[TetrisQuizGame] Error details:', getErrorDetails(error));
       }
     } else {
       console.log('[TetrisQuizGame] No gamificationSessionId, skipping database save');
@@ -341,10 +408,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
     console.log('[TetrisQuizGame] ✅ Progress saved to localStorage');
   };
 
-  // Clear saved progress
+  // Clear saved progress — xóa cả localStorage key và gamification session cache
   const clearProgress = () => {
     localStorage.removeItem(SAVE_KEY);
-    // Note: Database progress is kept for history
+    localStorage.removeItem(GAM_SESSION_KEY);
+    // Note: Database records are kept for history
   };
 
   // Handle exit with confirmation
@@ -352,13 +420,14 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
     setShowExitConfirm(true);
   };
 
-  // Save and exit
-  const handleSaveAndExit = () => {
-    saveProgress();
+  // Save and exit — must await saveProgress before navigating
+  const handleSaveAndExit = async () => {
+    try {
+      await saveProgress();
+    } catch (e) {
+      console.error('[TetrisQuizGame] Save failed on exit:', e);
+    }
     setShowExitConfirm(false);
-    // Allow navigation
-    window.removeEventListener('beforeunload', () => {});
-    window.removeEventListener('popstate', () => {});
     onCancel();
   };
 
@@ -366,9 +435,6 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
   const handleExitWithoutSave = () => {
     clearProgress();
     setShowExitConfirm(false);
-    // Allow navigation
-    window.removeEventListener('beforeunload', () => {});
-    window.removeEventListener('popstate', () => {});
     onCancel();
   };
 
@@ -945,6 +1011,8 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             {/* Continue Button */}
             <button
               onClick={() => {
+                // Game completed — clear saved progress so next game starts fresh
+                clearProgress();
                 setShowVictoryModal(false);
                 onComplete(finalResponses);
               }}
@@ -1191,84 +1259,87 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
                     })}
                   </div>
                 )}
-
-          {/* Available Pieces - Below grid */}
-          <div className="w-full mt-4 pt-4 pb-6 border-t-2 border-gray-300 dark:border-gray-600 space-y-3">
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
-              <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider px-2">
-                🎮 Kéo Mảnh Ghép Để Trả Lời
-              </p>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
+              </div>
             </div>
-            
-            {/* Horizontal pieces layout */}
-            <div className="flex justify-center items-end gap-5 flex-wrap py-2 pb-4 mb-2">
-              {pieces.map((piece, index) => {
-                const rotation = pieceRotations[index] || 0;
-                const shapeData = getRotatedPieceShape(piece.shape, rotation);
-                const cellSize = 20;
-                const gap = 2;
-                const totalWidth = shapeData.width * cellSize + (shapeData.width - 1) * gap;
-                const totalHeight = shapeData.height * cellSize + (shapeData.height - 1) * gap;
-                
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center gap-2"
-                  >
-                    {/* Piece container with rotation button */}
-                    <div className="relative">
-                      {/* Rotate button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPieceRotations(prev => ({
-                            ...prev,
-                            [index]: ((prev[index] || 0) + 1) % 4
-                          }));
-                        }}
-                        className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg transform hover:scale-110 transition-all duration-200 border-2 border-white dark:border-gray-700"
-                        title="Xoay mảnh ghép (Chuột phải cũng hoạt động)"
-                      >
-                        ↻
-                      </button>
-                      
-                      <div
-                        draggable
-                        onDragStart={() => handleDragStart(piece, index)}
-                        onDragEnd={handleDragEnd}
-                        onContextMenu={(e) => {
-                          e.preventDefault();
-                          setPieceRotations(prev => ({
-                            ...prev,
-                            [index]: ((prev[index] || 0) + 1) % 4
-                          }));
-                        }}
-                        className={`flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-105 transition-all duration-200 bg-gray-200 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg border-2 border-gray-300 dark:border-gray-700 hover:border-cyan-500 shadow-lg p-3 ${
-                          draggedPiece?.value === piece.value ? 'opacity-20' : 'opacity-100'
-                        }`}
-                      >
-                        <div className="flex items-center justify-center" style={{ width: `${totalWidth}px`, height: `${totalHeight}px` }}>
-                          {renderTetrisPiece(piece.shape, piece.color, cellSize, gap, rotation)}
-                        </div>
-                      </div>
 
-                      {/* Text below */}
-                      <div className={`text-center w-[100px] bg-gray-200 dark:bg-gray-800/90 backdrop-blur-sm rounded-md p-1 border border-gray-300 dark:border-gray-700 hover:border-cyan-500 shadow-md transition-all duration-200 ${draggedPiece?.value === piece.value ? 'opacity-20' : 'opacity-100'
+            {/* Available Pieces - Below grid */}
+            <div className="w-full mt-4 pt-4 pb-6 border-t-2 border-gray-300 dark:border-gray-600 space-y-3">
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
+                <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider px-2">
+                  🎮 Kéo Mảnh Ghép Để Trả Lời
+                </p>
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
+              </div>
+
+              {/* Horizontal pieces layout */}
+              <div className="flex justify-center items-end gap-5 flex-wrap py-2 pb-4 mb-2">
+                {pieces.map((piece, index) => {
+                  const rotation = pieceRotations[index] || 0;
+                  const shapeData = getRotatedPieceShape(piece.shape, rotation);
+                  const cellSize = 20;
+                  const gap = 2;
+                  const totalWidth = shapeData.width * cellSize + (shapeData.width - 1) * gap;
+                  const totalHeight = shapeData.height * cellSize + (shapeData.height - 1) * gap;
+
+                  return (
+                    <div
+                      key={index}
+                      className="flex flex-col items-center gap-2"
+                    >
+                      {/* Piece container with rotation button */}
+                      <div className="relative">
+                        {/* Rotate button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPieceRotations(prev => ({
+                              ...prev,
+                              [index]: ((prev[index] || 0) + 1) % 4
+                            }));
+                          }}
+                          className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg transform hover:scale-110 transition-all duration-200 border-2 border-white dark:border-gray-700"
+                          title="Xoay mảnh ghép (Chuột phải cũng hoạt động)"
+                        >
+                          ↻
+                        </button>
+
+                        <div
+                          draggable
+                          onDragStart={() => handleDragStart(piece, index)}
+                          onDragEnd={handleDragEnd}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            setPieceRotations(prev => ({
+                              ...prev,
+                              [index]: ((prev[index] || 0) + 1) % 4
+                            }));
+                          }}
+                          className={`flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-105 transition-all duration-200 bg-gray-200 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg border-2 border-gray-300 dark:border-gray-700 hover:border-cyan-500 shadow-lg p-3 ${
+                            draggedPiece?.value === piece.value ? 'opacity-20' : 'opacity-100'
+                          }`}
+                        >
+                          <div className="flex items-center justify-center" style={{ width: `${totalWidth}px`, height: `${totalHeight}px` }}>
+                            {renderTetrisPiece(piece.shape, piece.color, cellSize, gap, rotation)}
+                          </div>
+                        </div>
+
+                        {/* Text below */}
+                        <div className={`text-center w-[100px] bg-gray-200 dark:bg-gray-800/90 backdrop-blur-sm rounded-md p-1 border border-gray-300 dark:border-gray-700 hover:border-cyan-500 shadow-md transition-all duration-200 ${
+                          draggedPiece?.value === piece.value ? 'opacity-20' : 'opacity-100'
                         }`}>
-                        {piece.emoji && <div className="text-lg">{piece.emoji}</div>}
-                        <div className="text-gray-900 dark:text-white font-bold text-xs leading-tight">
-                          {piece.text}
+                          {piece.emoji && <div className="text-lg">{piece.emoji}</div>}
+                          <div className="text-gray-900 dark:text-white font-bold text-xs leading-tight">
+                            {piece.text}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Right Column - Question & Power-ups */}
         <div className="col-span-3 space-y-3 flex flex-col min-h-0">
@@ -1307,10 +1378,8 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
                 <div className="text-gray-900 dark:text-white font-semibold text-xs">Bom</div>
                 <div className="text-gray-500 dark:text-gray-400 text-xs">2x2</div>
               </div>
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-5 border-2 border-blue-300 dark:border-blue-600 shadow-lg">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-relaxed">
-                  {currentQuestion.question_text}
-                </h3>
+              <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
+                {bombs}
               </div>
             </div>
 
@@ -1331,83 +1400,80 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
                 {rockets}
               </div>
+            </div>
 
-              {/* Rocket */}
-              <div
-                draggable={rockets > 0}
-                onDragStart={() => handlePowerUpDragStart('rocket')}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700 shadow-md ${rockets > 0 ? 'cursor-grab hover:border-blue-400 dark:hover:border-blue-500' : 'opacity-40 cursor-not-allowed'
-                  } transition-all duration-200`}
-              >
-                <span className="text-2xl"></span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-white font-bold text-xs">Hạt Nhân</div>
-                  <div className="text-purple-100 text-xs">TẤT CẢ!</div>
-                </div>
-                <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
-                  {rockets}
-                </div>
+            {/* Nuclear */}
+            <div
+              draggable={nuclear > 0}
+              onDragStart={() => handlePowerUpDragStart('nuclear')}
+              onDragEnd={handleDragEnd}
+              className={`flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-2 border-2 ${
+                nuclear > 0 ? 'border-purple-400 cursor-grab hover:scale-105' : 'border-purple-800 opacity-40 cursor-not-allowed'
+              } transition-all duration-200 shadow-xl`}
+            >
+              <span className="text-2xl">☢️</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-white font-bold text-xs">Hạt Nhân</div>
+                <div className="text-purple-100 text-xs">TẤT CẢ!</div>
               </div>
+              <div className="bg-white/30 rounded-full w-7 h-7 flex items-center justify-center text-white font-black text-xs">
+                {nuclear}
+              </div>
+            </div>
+          </div>
 
-      {/* Completed Answers - Bottom Center */}
-      <div className="mt-16 pt-6" style={{ marginTop: '4rem', paddingTop: '1.5rem' }}>
-        <div className="max-w-4xl mx-auto bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 shadow-2xl border-2 border-gray-300 dark:border-gray-700">
-          <h3 className="text-lg font-black text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-            <span className="text-2xl">🏆</span>
-            <span className="flex-1">Câu Trả Lời Đã Hoàn Thành</span>
-            <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/50 px-3 py-1 rounded-full">
-              {completedAnswers.length}/{questions.length}
-            </span>
-          </h3>
-          
-          <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
-            {completedAnswers.length === 0 ? (
-              <div className="col-span-3 text-center py-4">
-                <div className="text-4xl mb-2 animate-bounce">🎯</div>
-                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                  Kéo mảnh ghép để trả lời!
-                </p>
-              </div>
-            ) : (
-              completedAnswers.map((answer, index) => (
-                <div
-                  draggable={nuclear > 0}
-                  onDragStart={() => handlePowerUpDragStart('nuclear')}
-                  onDragEnd={handleDragEnd}
-                  className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-2 border-2 border-purple-400 shadow-xl cursor-grab hover:scale-105 transition-all duration-200 animate-pulse"
-                >
-                  <span className="text-2xl"></span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-white font-bold text-xs">Nuclear</div>
-                    <div className="text-purple-100 text-xs">ALL!</div>
-                  </div>
-                  <div className="bg-white/30 rounded-full w-7 h-7 flex items-center justify-center text-white font-black text-xs">
-                    {nuclear}
-                  </div>
+          {/* Completed Answers */}
+          <div className="flex-1 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-3 shadow-xl border-2 border-gray-300 dark:border-gray-700 overflow-hidden flex flex-col">
+            <h3 className="text-sm font-black text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+              <span className="text-lg">🏆</span>
+              <span className="flex-1">Đã Trả Lời</span>
+              <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/50 px-2 py-0.5 rounded-full">
+                {completedAnswers.length}/{questions.length}
+              </span>
+            </h3>
+
+            <div className="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar flex-1">
+              {completedAnswers.length === 0 ? (
+                <div className="text-center py-4">
+                  <div className="text-3xl mb-1 animate-bounce">🎯</div>
+                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                    Kéo mảnh ghép để trả lời!
+                  </p>
                 </div>
+              ) : (
+                completedAnswers.map((answer, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-1.5 bg-white dark:bg-gray-700 rounded-lg p-1.5 border border-gray-200 dark:border-gray-600 shadow-sm"
+                  >
+                    {answer.emoji && <span className="text-base">{answer.emoji}</span>}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-gray-900 dark:text-white font-semibold text-xs truncate">
+                        {answer.answer}
+                      </div>
+                      <div className="text-gray-500 dark:text-gray-400 text-xs truncate">
+                        {answer.questionText.length > 30
+                          ? answer.questionText.slice(0, 30) + '…'
+                          : answer.questionText}
+                      </div>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
-        </div>
 
-        <button
-          onClick={handleExitClick}
-          className="w-full max-w-4xl mx-auto block mt-8 px-4 py-3 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 hover:from-gray-400 hover:to-gray-500 dark:hover:from-gray-600 dark:hover:to-gray-700 text-gray-900 dark:text-white rounded-lg font-bold text-sm transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-gray-400 dark:border-gray-600"
-        >
-          ← Quay Lại Menu
-        </button>
-      </div>
-
+          {/* Exit Button */}
           <button
-            onClick={onCancel}
-            className="w-full max-w-4xl mx-auto block mt-3 px-4 py-3 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 hover:from-gray-400 hover:to-gray-500 dark:hover:from-gray-600 dark:hover:to-gray-700 text-gray-900 dark:text-white rounded-lg font-bold text-sm transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-gray-400 dark:border-gray-600"
+            onClick={handleExitClick}
+            className="w-full mt-2 px-4 py-2.5 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 hover:from-gray-400 hover:to-gray-500 dark:hover:from-gray-600 dark:hover:to-gray-700 text-gray-900 dark:text-white rounded-lg font-bold text-sm transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-gray-400 dark:border-gray-600"
           >
-            ← Back to Menu
+            ← Quay Lại Menu
           </button>
         </div>
+      </div>
 
-        <style>{`
+      <style>{`
         @keyframes slide-in {
           0% { opacity: 0; transform: translateX(20px); }
           100% { opacity: 1; transform: translateX(0); }
@@ -1431,7 +1497,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
       {/* Exit Confirmation Dialog */}
       {showExitConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8 transform animate-bounce-in">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">💾</div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -1443,23 +1509,18 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             </div>
 
             <div className="space-y-3">
-              {/* Save and Exit */}
               <button
                 onClick={handleSaveAndExit}
                 className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Có, lưu lại
               </button>
-
-              {/* Exit without Save */}
               <button
                 onClick={handleExitWithoutSave}
                 className="w-full px-6 py-4 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Không, reset kết quả
               </button>
-
-              {/* Cancel */}
               <button
                 onClick={handleCancelExit}
                 className="w-full px-6 py-4 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-xl font-bold text-lg transition-all duration-200"
@@ -1475,7 +1536,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
           </div>
         </div>
       )}
-    </div>
+      </div>
     </div>
   );
 };

@@ -397,7 +397,12 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
             xp: natureEnergy,
             level: growthLevel,
             score: bloomChain,
-            responses: Array.from(responses.entries())
+            responses: Array.from(responses.entries()),
+            completedAnswers: answeredQuestions.map(aq => ({
+              questionText: aq.question.question_text,
+              answer: aq.selectedElement?.name || '',
+              timestamp: Date.now(),
+            })),
           });
           console.log('[PersonalityGarden] ✅ Also saved to database');
         } catch (dbError) {
