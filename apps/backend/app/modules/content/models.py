@@ -261,24 +261,32 @@ class CareerKSA(Base):
     __tablename__ = "career_ksas"
     __table_args__ = (
         {"schema": "core"},
-        # Thêm unique constraint để tránh trùng lặp
-        # UniqueConstraint('onet_code', 'ksa_type', 'name', name='unique_career_ksa')
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     onet_code = Column(Text, nullable=False)
     ksa_type = Column(Text, nullable=False)
-    name = Column(Text, nullable=False)
+    name_en = Column(Text, nullable=False)   # tên thực trong DB
+    name_vn = Column(Text)                   # tên tiếng Việt
     category = Column(Text)
     level = Column(Numeric(5, 2))
     importance = Column(Numeric(5, 2))
     source = Column(Text)
     fetched_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    description_en = Column(Text)
+    description_vn = Column(Text)
+
+    # property tương thích ngược – trả về name_en để không cần sửa hết code cũ
+    @property
+    def name(self) -> str:
+        return self.name_en or ""
 
     def to_skill(self) -> dict:
         return {
             "id": str(self.id),
-            "name": self.name,
-            "description": self.category or "",
+            "name": self.name_en or "",
+            "name_vi": self.name_vn or "",
+            "description": self.description_en or self.category or "",
+            "description_vi": self.description_vn or "",
             "category": self.ksa_type,
             "proficiency_levels": [],
             "learning_resources": [],
@@ -323,10 +331,40 @@ class CareerOverview(Base):
     __table_args__ = {"schema": "core"}
     id = Column(BigInteger, primary_key=True)
     career_id = Column(BigInteger, nullable=False)
-    experience_text = Column(Text)
-    degree_text = Column(Text)
-    salary_min = Column(Numeric(12, 2))
-    salary_max = Column(Numeric(12, 2))
-    salary_avg = Column(Numeric(12, 2))
-    salary_currency = Column(Text, default="VND")
+    experience_text_en = Column("experience_text_en", Text)
+    experience_text_vn = Column("experience_text_vn", Text)
+    degree_text_en = Column("degree_text_en", Text)
+    degree_text_vn = Column("degree_text_vn", Text)
+    salary_min_en = Column("salary_min_en", Numeric(12, 2))
+    salary_min_vn = Column("salary_min_vn", Numeric(12, 2))
+    salary_max_en = Column("salary_max_en", Numeric(12, 2))
+    salary_max_vn = Column("salary_max_vn", Numeric(12, 2))
+    salary_avg_en = Column("salary_avg_en", Numeric(12, 2))
+    salary_avg_vn = Column("salary_avg_vn", Numeric(12, 2))
+    salary_currency_en = Column("salary_currency_en", Text, default="USD")
+    salary_currency_vn = Column("salary_currency_vn", Text, default="VND")
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    @property
+    def experience_text(self) -> Optional[str]:
+        return self.experience_text_vn or self.experience_text_en
+
+    @property
+    def degree_text(self) -> Optional[str]:
+        return self.degree_text_vn or self.degree_text_en
+
+    @property
+    def salary_min(self):
+        return self.salary_min_vn or self.salary_min_en
+
+    @property
+    def salary_max(self):
+        return self.salary_max_vn or self.salary_max_en
+
+    @property
+    def salary_avg(self):
+        return self.salary_avg_vn or self.salary_avg_en
+
+    @property
+    def salary_currency(self) -> Optional[str]:
+        return self.salary_currency_vn or self.salary_currency_en

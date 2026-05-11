@@ -92,7 +92,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
   }, [assessmentHistory]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -131,13 +131,18 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
     if (!topEntry || !topEntry[0]) return 'N/A';
     const trait = topEntry[0];
     const value = topEntry[1] as number;
-    return `${trait.charAt(0).toUpperCase() + trait.slice(1)} (${value.toFixed(0)})`;
+    const BIG5_VI: Record<string, string> = {
+      openness: 'Cởi Mở', conscientiousness: 'Tận Tâm',
+      extraversion: 'Hướng Ngoại', agreeableness: 'Dễ Chịu', neuroticism: 'Nhạy Cảm',
+    };
+    const displayName = BIG5_VI[trait.toLowerCase()] || (trait.charAt(0).toUpperCase() + trait.slice(1));
+    return `${displayName} (${value.toFixed(0)})`;
   };
 
   const getSessionTestTypes = (session: GroupedSession) => {
     const types: string[] = [];
     if (session.riasec_assessment) types.push('RIASEC');
-    if (session.bigfive_assessment) types.push('BigFive');
+    if (session.bigfive_assessment) types.push('Big Five');
     return types.join(' + ') || 'N/A';
   };
 
@@ -170,10 +175,10 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h3 className="text-2xl font-extrabold text-white mb-1 tracking-tight">
-              Assessment History
+              Lịch Sử Đánh Giá
             </h3>
             <p className="text-indigo-100 text-sm font-medium">
-              Track your career development journey
+              Theo dõi hành trình phát triển nghề nghiệp của bạn
             </p>
           </div>
 
@@ -186,7 +191,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              Compare ({selectedSessions.length}/2)
+              So Sánh ({selectedSessions.length}/2)
             </button>
           )}
         </div>
@@ -202,16 +207,16 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
               </svg>
             </div>
             <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              No assessments yet
+              Chưa có bài đánh giá nào
             </h4>
             <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto text-sm font-medium">
-              Take your first assessment to start your career development journey.
+              Làm bài đánh giá đầu tiên để bắt đầu hành trình phát triển nghề nghiệp.
             </p>
             <button
               onClick={() => navigate('/assessment')}
               className="px-6 py-3 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-xl transition-colors shadow-lg"
             >
-              Start Assessment
+              Bắt Đầu Đánh Giá
             </button>
           </div>
         ) : (
@@ -224,7 +229,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                   </svg>
                 </div>
                 <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                  Select 2 tests to compare your progress over time.
+                  Chọn 2 bài test để so sánh tiến trình của bạn theo thời gian.
                 </p>
               </div>
             )}
@@ -262,13 +267,13 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                           if (testMode === 'story') {
                             return (
                               <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-semibold rounded-full">
-                                 Story Mode
+                                 Chế Độ Câu Chuyện
                               </span>
                             );
                           } else if (testMode === 'traditional') {
                             return (
                               <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full">
-                                 Traditional
+                                 Truyền Thống
                               </span>
                             );
                           }
@@ -289,7 +294,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                             <span className="text-gray-600 dark:text-gray-400">
-                              BigFive: <span className="font-medium text-gray-900 dark:text-white">{getBigFiveSummary(session.big_five_scores)}</span>
+                              Big Five: <span className="font-medium text-gray-900 dark:text-white">{getBigFiveSummary(session.big_five_scores)}</span>
                             </span>
                           </div>
                         )}
@@ -318,7 +323,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                         }}
                         className="px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-bold rounded-lg transition-colors"
                       >
-                        View Results
+                        Xem Kết Quả
                       </button>
                     </div>
                   </div>
@@ -327,10 +332,10 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                   {expandedSession === session.session_id && (
                     <div className="px-5 pb-5 pt-0 border-t border-gray-200 dark:border-gray-700">
                       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
-                        {/* RIASEC Score Details */}
+                        {/* Chi Tiết Điểm RIASEC */}
                         {session.riasec_scores && (
                           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                            <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Score Details</h5>
+                            <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Chi Tiết Điểm</h5>
                             <div className="space-y-3">
                               {(() => {
                                 const riasecColors: Record<string, string> = {
@@ -342,12 +347,12 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                                   conventional: '#EC4899'
                                 };
                                 const riasecNames: Record<string, string> = {
-                                  realistic: 'Realistic',
-                                  investigative: 'Investigative',
-                                  artistic: 'Artistic',
-                                  social: 'Social',
-                                  enterprising: 'Enterprising',
-                                  conventional: 'Conventional'
+                                  realistic: 'Kỹ Thuật',
+                                  investigative: 'Nghiên Cứu',
+                                  artistic: 'Nghệ Thuật',
+                                  social: 'Xã Hội',
+                                  enterprising: 'Kinh Doanh',
+                                  conventional: 'Nghiệp Vụ'
                                 };
                                 return Object.entries(session.riasec_scores)
                                   .sort((a: any, b: any) => b[1] - a[1])
@@ -378,10 +383,10 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                           </div>
                         )}
 
-                        {/* BigFive Score Details */}
+                        {/* Chi Tiết Điểm Big Five */}
                         {session.big_five_scores && (
                           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                            <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Score Details</h5>
+                            <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Chi Tiết Điểm</h5>
                             <div className="space-y-3">
                               {(() => {
                                 const traitColors: Record<string, string> = {
@@ -395,7 +400,7 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                                   .sort((a: any, b: any) => b[1] - a[1])
                                   .map(([key, value]: [string, any]) => (
                                     <div key={key} className="flex items-center gap-3">
-                                      <span className="text-xs text-gray-600 dark:text-gray-400 w-24 capitalize truncate font-medium">{key}</span>
+                                      <span className="text-xs text-gray-600 dark:text-gray-400 w-24 truncate font-medium">{({openness:"Cởi Mở",conscientiousness:"Tận Tâm",extraversion:"Hướng Ngoại",agreeableness:"Dễ Chịu",neuroticism:"Nhạy Cảm"} as Record<string,string>)[key] || key}</span>
                                       <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden min-w-0">
                                         <div
                                           className="h-full rounded-full transition-all duration-300"

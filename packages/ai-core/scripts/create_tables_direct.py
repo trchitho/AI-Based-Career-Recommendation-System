@@ -32,7 +32,8 @@ def create_tables():
             element_id VARCHAR(20),
             iwa_id VARCHAR(30),
             dwa_id VARCHAR(50) NOT NULL,
-            dwa_title TEXT NOT NULL,
+            dwa_title_en TEXT NOT NULL,
+            dwa_title_vn TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )

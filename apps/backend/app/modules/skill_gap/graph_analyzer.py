@@ -150,7 +150,7 @@ class SkillGraphAnalyzer:
                 importance = float(ksa.importance) / 100.0 if ksa.importance else 0.5
                 
                 skills.append({
-                    'name': ksa.name,
+                    'name': ksa.name_en or "",
                     'category': ksa.category or 'Other',
                     'importance': importance,
                     'proficiency_level': 'intermediate',  # Default

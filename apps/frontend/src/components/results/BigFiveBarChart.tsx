@@ -22,11 +22,11 @@ const BigFiveBarChart = ({ scores, compact = false }: BigFiveBarChartProps) => {
   const hasRealData = scores && Object.values(scores).some(score => score > 0);
 
   const data = [
-    { trait: 'Openness', score: scores?.openness || (hasRealData ? 0 : 75), color: '#8B5CF6' }, // Violet
-    { trait: 'Conscientiousness', score: scores?.conscientiousness || (hasRealData ? 0 : 68), color: '#3B82F6' }, // Blue
-    { trait: 'Extraversion', score: scores?.extraversion || (hasRealData ? 0 : 82), color: '#10B981' }, // Emerald
-    { trait: 'Agreeableness', score: scores?.agreeableness || (hasRealData ? 0 : 71), color: '#F59E0B' }, // Amber
-    { trait: 'Neuroticism', score: scores?.neuroticism || (hasRealData ? 0 : 45), color: '#EF4444' }, // Red
+    { trait: 'Cởi Mở', score: scores?.openness || (hasRealData ? 0 : 75), color: '#8B5CF6' }, // Violet
+    { trait: 'Tận Tâm', score: scores?.conscientiousness || (hasRealData ? 0 : 68), color: '#3B82F6' }, // Blue
+    { trait: 'Hướng Ngoại', score: scores?.extraversion || (hasRealData ? 0 : 82), color: '#10B981' }, // Emerald
+    { trait: 'Dễ Chịu', score: scores?.agreeableness || (hasRealData ? 0 : 71), color: '#F59E0B' }, // Amber
+    { trait: 'Nhạy Cảm', score: scores?.neuroticism || (hasRealData ? 0 : 45), color: '#EF4444' }, // Red
   ];
 
   const CustomTooltip = ({ active, payload }: any) => {

@@ -7,7 +7,6 @@ import CareerTestComponent from '../components/assessment/CareerTestComponent';
 import TetrisQuizGame from '../components/assessment/TetrisQuizGame';
 import GameQuizMode from '../components/assessment/GameQuizMode';
 import EssayModalComponent from '../components/assessment/EssayModalComponent';
-import VoiceAssessmentComponent from '../components/assessment/VoiceAssessmentComponent';
 import EnhancedAssessmentFlow from '../components/assessment/EnhancedAssessmentFlow';
 import { assessmentService } from '../services/assessmentService';
 import MainLayout from '../components/layout/MainLayout';
@@ -22,7 +21,7 @@ import { getAccessToken } from '../utils/auth';
 
 
 type QuizMode = 'standard' | 'game' | 'legacy';
-type AssessmentStep = 'intro' | 'enhanced' | 'test' | 'essay' | 'voice' | 'processing';
+type AssessmentStep = 'intro' | 'enhanced' | 'test' | 'essay' | 'processing';
 
 const AssessmentPage = () => {
   // ==========================================
@@ -280,7 +279,7 @@ const AssessmentPage = () => {
     const fetchPrompt = async () => {
       try {
         setLoading(true);
-        const prompt = await assessmentService.getEssayPrompt('en');
+        const prompt = await assessmentService.getEssayPrompt('vi');
         if (isMounted) {
           setEssayPrompt(prompt);
         }
@@ -320,8 +319,8 @@ const AssessmentPage = () => {
 
       await assessmentService.submitEssay(payload);
 
-      // After essay, offer optional voice analysis
-      setStep('voice');
+      // Sau essay → chuyển thẳng sang processing (bỏ voice step)
+      setStep('processing');
     } catch (err) {
       console.error('Error submitting essay:', err);
       setError('Failed to submit essay. Redirecting to results...');
@@ -334,25 +333,12 @@ const AssessmentPage = () => {
   };
 
   /**
-   * Nếu user bỏ qua essay → chuyển sang voice (optional)
+   * Nếu user bỏ qua essay → chuyển thẳng sang processing
    */
   const handleEssaySkip = () => {
-    setStep('voice');
-  };
-
-  /**
-   * After voice analysis (complete or skip) → processing → results (if we have an ID)
-   * If voice was launched standalone (no assessmentId), go back to intro
-   */
-  const handleVoiceComplete = () => {
+    // Bỏ qua essay → chuyển thẳng sang processing
     if (!assessmentId) { setStep('intro'); return; }
     setStep('processing');
-    setTimeout(() => navigate(`/results/${assessmentId}`), 2000);
-  };
-
-  const handleVoiceSkip = () => {
-    if (!assessmentId) { setStep('intro'); return; }
-    navigate(`/results/${assessmentId}`);
   };
 
   // ==========================================
@@ -667,16 +653,7 @@ const AssessmentPage = () => {
             />
           )}
 
-          {/* --- STEP 4: VOICE ANALYSIS (OPTIONAL) --- */}
-          {step === 'voice' && (
-            <VoiceAssessmentComponent
-              assessmentId={assessmentId ?? ''}
-              onComplete={handleVoiceComplete}
-              onSkip={handleVoiceSkip}
-            />
-          )}
-
-          {/* --- STEP 5: PROCESSING (SINGLE CARD) --- */}
+          {/* --- STEP 4: PROCESSING (SINGLE CARD) --- */}
           {step === 'processing' && (
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-[32px] shadow-2xl p-16 w-full max-w-2xl text-center animate-fade-in-up border border-white/50 dark:border-gray-700">
               <div className="relative mb-8 flex justify-center">

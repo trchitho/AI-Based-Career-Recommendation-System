@@ -92,7 +92,8 @@ class RecService:
                 "job_onet": onet_code,  # giữ O*NET để log / debug
                 "title_vi": meta.get("title_vi"),
                 "title_en": meta.get("title_en"),
-                "description": (meta.get("short_desc_en") or meta.get("short_desc_vi") or meta.get("description") or ""),
+                # Ưu tiên mô tả tiếng Việt
+                "description": (meta.get("short_desc_vi") or meta.get("short_desc_en") or meta.get("description") or ""),
                 "tags": riasec_codes,  # ["R", "RI", ...]
                 "job_zone": meta.get("job_zone"),
                 "match_score": float(score),

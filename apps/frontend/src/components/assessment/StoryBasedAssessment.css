@@ -244,9 +244,27 @@
   touch-action: auto !important;
 }
 
-.essay-page * {
+/* Override page user-select: none cho essay */
+.essay-page .page-content {
   user-select: text !important;
+  overflow: visible !important;
+}
+
+.essay-page textarea {
   pointer-events: auto !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  cursor: text !important;
+  touch-action: auto !important;
+  position: relative !important;
+  z-index: 9999 !important;
+}
+
+.essay-page button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 9999 !important;
 }
 
 /* Page spine shadow - lighter */
@@ -594,7 +612,7 @@
 
 .context-text {
   font-size: 1.1rem;
-  color: #555;
+  color: #374151;
   font-style: italic;
   margin: 0;
   line-height: 1.6;
@@ -718,7 +736,7 @@
 .response-label {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: #1e293b;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -728,13 +746,12 @@
 
 .continue-hint {
   text-align: center;
-  padding: 1rem;
-  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   color: white;
-  border-radius: 15px;
+  border-radius: 12px;
   font-weight: 600;
-  font-size: 1rem;
-  animation: pulse 2s infinite;
+  font-size: 0.9rem;
   margin-top: 0.75rem;
   flex-shrink: 0;
 }
@@ -1007,20 +1024,38 @@
 
 /* Essay Page Styles */
 .essay-page {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #0d9488 100%);
+  background: linear-gradient(160deg, #1a237e 0%, #0d9488 100%);
   touch-action: auto !important;
   user-select: text !important;
   pointer-events: auto !important;
 }
 
-.essay-page * {
-  user-select: text !important;
+/* KHÔNG dùng wildcard * - chỉ target cụ thể */
+.essay-page .essay-page-content {
   pointer-events: auto !important;
 }
 
 .essay-page .scenario-content {
   pointer-events: auto !important;
-  user-select: text !important;
+}
+
+/* Essay page content: chữ trắng trên nền tối */
+.essay-page-content .scenario-number {
+  color: rgba(255,255,255,0.9) !important;
+}
+
+.essay-page-content .label-badge {
+  background-color: rgba(255,255,255,0.15) !important;
+  border-color: rgba(255,255,255,0.5) !important;
+  color: white !important;
+}
+
+.essay-page-content h3 {
+  color: white !important;
+}
+
+.essay-page-content p {
+  color: rgba(255,255,255,0.85) !important;
 }
 
 .essay-intro {

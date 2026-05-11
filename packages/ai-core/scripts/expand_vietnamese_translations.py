@@ -105,10 +105,10 @@ def expand_dwa_translations():
     # Get untranslated DWA titles
     cur.execute(
         """
-        SELECT DISTINCT dwa_title 
+        SELECT DISTINCT dwa_title_en 
         FROM core.career_dwas 
-        WHERE dwa_title_vi IS NULL 
-        ORDER BY dwa_title
+        WHERE dwa_title_vn IS NULL 
+        ORDER BY dwa_title_en
         LIMIT 500;
     """
     )
@@ -139,8 +139,8 @@ def expand_dwa_translations():
             cur.execute(
                 """
                 UPDATE core.career_dwas 
-                SET dwa_title_vi = %s
-                WHERE dwa_title = %s AND dwa_title_vi IS NULL;
+                SET dwa_title_vn = %s
+                WHERE dwa_title_en = %s AND dwa_title_vn IS NULL;
             """,
                 (translated_title, title),
             )
@@ -395,7 +395,7 @@ def main():
         cur.execute("SELECT COUNT(*) FROM core.careers;")
         career_total = cur.fetchone()[0]
 
-        cur.execute("SELECT COUNT(*) FROM core.career_dwas WHERE dwa_title_vi IS NOT NULL;")
+        cur.execute("SELECT COUNT(*) FROM core.career_dwas WHERE dwa_title_vn IS NOT NULL;")
         dwa_translated = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM core.career_dwas;")
         dwa_total = cur.fetchone()[0]

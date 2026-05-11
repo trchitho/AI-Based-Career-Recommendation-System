@@ -91,7 +91,7 @@ ON CONFLICT (onet_code) DO UPDATE SET
 
 UPSERT_KSAS = """
 INSERT INTO core.career_ksas(
-    onet_code, ksa_type, name, category, level, importance, source, fetched_at
+    onet_code, ksa_type, name_en, category, level, importance, source, fetched_at
 )
 VALUES (%s, %s, %s, %s, %s, %s, 'ONET', %s)
 ON CONFLICT DO NOTHING;
