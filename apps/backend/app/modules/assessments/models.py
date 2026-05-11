@@ -31,6 +31,16 @@ class AssessmentQuestion(Base):
     reverse_score = Column(Boolean, default=False)
     created_at    = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
+    @property
+    def prompt(self) -> str:
+        """Backward-compatible property that returns Vietnamese prompt by default."""
+        return self.prompt_vi or self.prompt_en or ""
+    
+    @prompt.setter
+    def prompt(self, value: str) -> None:
+        """Backward-compatible setter that updates Vietnamese prompt."""
+        self.prompt_vi = value
+
     def get_prompt(self, lang: str = "vi") -> str:
         return self.prompt_vi if lang == "vi" else self.prompt_en
 

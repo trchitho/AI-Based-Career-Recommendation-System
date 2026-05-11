@@ -169,7 +169,7 @@ class TraitEvidenceService:
                     text(
                         """
                     SELECT
-                        q.prompt AS question_text,
+                        COALESCE(q.prompt_vi, q.prompt_en) AS question_text,
                         r.answer_raw,
                         r.score_value
                     FROM core.assessment_responses r
