@@ -177,7 +177,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         // Set both together so render sees consistent state
         setStoryGroups(groups);
 
-        // Add essay as scenario 45
+        // Add essay as scenario 34
         const essayScenario: StoryScenario = {
           emoji: '',
           title: 'Chia Sẻ Câu Chuyện Của Bạn',
@@ -748,7 +748,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
             );
           })}
 
-          {/* Essay Page - Scenario 45 */}
+          {/* Essay Page - Scenario 34 */}
           <Page className="essay-page">
             <div
               className="scenario-content"

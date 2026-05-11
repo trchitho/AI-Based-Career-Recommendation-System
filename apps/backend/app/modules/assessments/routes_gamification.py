@@ -142,8 +142,7 @@ def complete_session(
     try:
         result = GamificationService.complete_gamification_session(
             db=db,
-            gamification_session_id=body.gamification_session_id,
-            user_id=user_id,
+            gamification_session_id=body.gamification_session_id
         )
         db.commit()
 
@@ -215,4 +214,73 @@ def get_gamification_profile(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get gamification profile"
+        )
+
+
+class SaveProgressRequest(BaseModel):
+    gamification_session_id: int
+    extra_data: dict
+
+
+@router.post("/save-progress")
+def save_game_progress(
+    body: SaveProgressRequest,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Save game progress to database
+    Stores current game state in extra_data field
+    """
+    try:
+        result = GamificationService.save_game_progress(
+            db=db,
+            gamification_session_id=body.gamification_session_id,
+            user_id=user_id,
+            extra_data=body.extra_data
+        )
+        db.commit()
+        return result
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        db.rollback()
+        print(f"[gamification] save_progress error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save game progress"
+        )
+
+
+@router.get("/load-progress/{gamification_session_id}")
+def load_game_progress(
+    gamification_session_id: int,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Load game progress from database
+    Returns saved game state from extra_data field
+    """
+    try:
+        progress = GamificationService.load_game_progress(
+            db=db,
+            gamification_session_id=gamification_session_id,
+            user_id=user_id
+        )
+        return progress or {}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        print(f"[gamification] load_progress error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to load game progress"
         )

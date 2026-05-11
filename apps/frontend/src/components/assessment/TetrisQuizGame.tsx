@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Question, QuestionResponse } from '../../types/assessment';
 import PuzzleGameIntro from './PuzzleGameIntro';
+import gamificationService from '../../services/gamificationService';
 
 interface TetrisQuizGameProps {
   questions: Question[];
   onComplete: (responses: QuestionResponse[]) => void;
   onCancel: () => void;
+  assessmentSessionId?: number; // Add this prop
 }
 
 interface GridCell {
@@ -35,9 +37,9 @@ const PIECE_SHAPES: Record<PieceShape, { coords: [number, number][]; width: numb
   Z: { coords: [[0, 0], [0, 1], [1, 1], [1, 2]], width: 3, height: 2 }, // Z-shape: 3 wide, 2 tall
 };
 
-const GRID_ROWS = 18; // Balanced height
-const GRID_COLS = 28; // Balanced width  
-const CELL_SIZE = 28; // Good visibility
+const GRID_ROWS = 12; // Increased rows for more gameplay space
+const GRID_COLS = 11; // Increased to 11 columns (added 3 more)
+const CELL_SIZE = 50; // Balanced cell size - not too big, not too small
 
 // Sound Effects using Web Audio API
 const playLineClearSound = () => {
@@ -96,7 +98,7 @@ const playPowerUpSound = () => {
   }
 };
 
-const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps) => {
+const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }: TetrisQuizGameProps) => {
   const [showIntro, setShowIntro] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [grid, setGrid] = useState<(GridCell | null)[][]>(
@@ -107,15 +109,14 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
   const [xp, setXp] = useState(0);
   const [level, setLevel] = useState(1);
   const [score, setScore] = useState(0);
-  const [bombs, setBombs] = useState(0); // Start with 0
-  const [rockets, setRockets] = useState(0); // Start with 0
-  const [nuclear, setNuclear] = useState(0); // Easter egg item
-  const [combo, setCombo] = useState(0); // Combo counter
-  const [maxCombo, setMaxCombo] = useState(0); // Track max combo
-  const [easterEggCount, setEasterEggCount] = useState(0); // Track how many times earned (max 2)
-  const [nextEasterEggCombo, setNextEasterEggCombo] = useState(3); // First at 3, then 4
-  const [showEasterEggNotif, setShowEasterEggNotif] = useState(false); // Notification
-  const [usedPieceIndex, setUsedPieceIndex] = useState<number | null>(null); // Track which piece was used
+  const [bombs, setBombs] = useState(0);
+  const [rockets, setRockets] = useState(0);
+  const [nuclear, setNuclear] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
+  const [easterEggCount, setEasterEggCount] = useState(0);
+  const [nextEasterEggCombo, setNextEasterEggCombo] = useState(3);
+  const [showEasterEggNotif, setShowEasterEggNotif] = useState(false);
   const [draggedPiece, setDraggedPiece] = useState<{
     text: string;
     emoji?: string | undefined;
@@ -126,11 +127,19 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
   } | null>(null);
   const [draggedPowerUp, setDraggedPowerUp] = useState<PowerUpType | null>(null);
   const [hoveredCell, setHoveredCell] = useState<[number, number] | null>(null);
-  const [clearingCells, setClearingCells] = useState<Set<string>>(new Set()); // For explosion effect
-  const [showVictoryModal, setShowVictoryModal] = useState(false); // Victory modal
-  const [finalResponses, setFinalResponses] = useState<QuestionResponse[]>([]); // Store final responses
-  const [pieceRotations, setPieceRotations] = useState<Record<number, number>>({}); // Track rotation for each piece (0-3)
-  const [currentQuestionShapes, setCurrentQuestionShapes] = useState<PieceShape[]>([]); // Store shapes for current question
+  const [clearingCells, setClearingCells] = useState<Set<string>>(new Set());
+  const [showVictoryModal, setShowVictoryModal] = useState(false);
+  const [finalResponses, setFinalResponses] = useState<QuestionResponse[]>([]);
+  const [pieceRotations, setPieceRotations] = useState<Record<number, number>>({});
+  const [currentQuestionShapes, setCurrentQuestionShapes] = useState<PieceShape[]>([]);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  
+  // Gamification state
+  const [gamificationSessionId, setGamificationSessionId] = useState<number | null>(null);
+  const [isLoadingProgress, setIsLoadingProgress] = useState(false);
+
+  // LocalStorage fallback key
+  const SAVE_KEY = 'tetris_quiz_progress';
 
   const currentQuestion = questions[currentIndex];
   const progress = currentQuestion ? ((currentIndex + 1) / questions.length) * 100 : 0;
@@ -151,7 +160,222 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
       const shuffledShapes = [...shapes].sort(() => Math.random() - 0.5);
       setCurrentQuestionShapes(shuffledShapes);
     }
-  }, [currentQuestion?.id]); // Only re-run when question ID changes
+  }, [currentQuestion?.id]);
+
+  // Initialize gamification session on mount
+  useEffect(() => {
+    const initGamificationSession = async () => {
+      console.log('[TetrisQuizGame] Initializing gamification session...', {
+        assessmentSessionId,
+        gamificationSessionId
+      });
+
+      if (assessmentSessionId && !gamificationSessionId) {
+        try {
+          console.log('[TetrisQuizGame] Starting gamification session...');
+          const session = await gamificationService.startSession(assessmentSessionId, 'game');
+          console.log('[TetrisQuizGame] Session started:', session);
+          setGamificationSessionId(session.gamification_session_id);
+          
+          // Try to load saved progress
+          console.log('[TetrisQuizGame] Loading saved progress...');
+          await loadProgressFromDatabase(session.gamification_session_id);
+        } catch (error) {
+          console.error('[TetrisQuizGame] Failed to start gamification session:', error);
+          // Fallback to localStorage
+          loadProgressFromLocalStorage();
+        }
+      } else if (!assessmentSessionId) {
+        console.log('[TetrisQuizGame] No assessmentSessionId, using localStorage');
+        // No assessment session, use localStorage
+        loadProgressFromLocalStorage();
+      }
+    };
+
+    initGamificationSession();
+  }, [assessmentSessionId]);
+
+  // Load progress from database
+  const loadProgressFromDatabase = async (sessionId: number) => {
+    setIsLoadingProgress(true);
+    try {
+      const savedData = await gamificationService.loadGameProgress(sessionId);
+      
+      if (savedData && Object.keys(savedData).length > 0) {
+        setCurrentIndex(savedData.currentIndex || 0);
+        setResponses(new Map(savedData.responses || []));
+        setCompletedAnswers(savedData.completedAnswers || []);
+        setXp(savedData.xp || 0);
+        setLevel(savedData.level || 1);
+        setScore(savedData.score || 0);
+        setBombs(savedData.bombs || 0);
+        setRockets(savedData.rockets || 0);
+        setNuclear(savedData.nuclear || 0);
+        setCombo(savedData.combo || 0);
+        setMaxCombo(savedData.maxCombo || 0);
+        
+        if (savedData.grid) {
+          setGrid(savedData.grid);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load progress from database:', error);
+    } finally {
+      setIsLoadingProgress(false);
+    }
+  };
+
+  // Load progress from localStorage (fallback)
+  const loadProgressFromLocalStorage = () => {
+    const savedData = localStorage.getItem(SAVE_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setCurrentIndex(parsed.currentIndex || 0);
+        setResponses(new Map(parsed.responses || []));
+        setCompletedAnswers(parsed.completedAnswers || []);
+        setXp(parsed.xp || 0);
+        setLevel(parsed.level || 1);
+        setScore(parsed.score || 0);
+        setBombs(parsed.bombs || 0);
+        setRockets(parsed.rockets || 0);
+        setNuclear(parsed.nuclear || 0);
+        setCombo(parsed.combo || 0);
+        setMaxCombo(parsed.maxCombo || 0);
+        
+        if (parsed.grid) {
+          setGrid(parsed.grid);
+        }
+      } catch (e) {
+        console.error('Failed to load saved progress from localStorage:', e);
+      }
+    }
+  };
+
+  // Handle browser back button and page close
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Auto-save when user tries to leave
+      saveProgress();
+      e.preventDefault();
+      e.returnValue = 'Bạn có muốn lưu tiến trình không?';
+      return e.returnValue;
+    };
+
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      setShowExitConfirm(true);
+      // Push state back to prevent immediate navigation
+      window.history.pushState(null, '', window.location.href);
+    };
+
+    // Add state to history to catch back button
+    window.history.pushState(null, '', window.location.href);
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [currentIndex, responses, xp, level, score, bombs, rockets, nuclear, combo, maxCombo, completedAnswers, grid]);
+
+  // Save progress function - try database first, fallback to localStorage
+  const saveProgress = async () => {
+    console.log('[TetrisQuizGame] Saving progress...', {
+      gamificationSessionId,
+      currentIndex,
+      xp,
+      level,
+      score
+    });
+
+    const dataToSave = {
+      currentIndex,
+      responses: Array.from(responses.entries()),
+      completedAnswers,
+      xp,
+      level,
+      score,
+      bombs,
+      rockets,
+      nuclear,
+      combo,
+      maxCombo,
+      grid,
+      timestamp: Date.now(),
+    };
+
+    // Try database first
+    if (gamificationSessionId) {
+      try {
+        console.log('[TetrisQuizGame] Saving to database...');
+        await gamificationService.saveGameProgress({
+          gamificationSessionId,
+          currentIndex,
+          xp,
+          level,
+          score,
+          grid,
+          responses: Array.from(responses.entries()),
+          completedAnswers,
+          bombs,
+          rockets,
+          nuclear,
+          combo,
+          maxCombo,
+        });
+        console.log('[TetrisQuizGame] ✅ Progress saved to database');
+        return;
+      } catch (error) {
+        console.error('[TetrisQuizGame] ❌ Failed to save to database:', error);
+        console.error('[TetrisQuizGame] Error details:', error.response?.data || error.message);
+      }
+    } else {
+      console.log('[TetrisQuizGame] No gamificationSessionId, skipping database save');
+    }
+
+    // Fallback to localStorage
+    localStorage.setItem(SAVE_KEY, JSON.stringify(dataToSave));
+    console.log('[TetrisQuizGame] ✅ Progress saved to localStorage');
+  };
+
+  // Clear saved progress
+  const clearProgress = () => {
+    localStorage.removeItem(SAVE_KEY);
+    // Note: Database progress is kept for history
+  };
+
+  // Handle exit with confirmation
+  const handleExitClick = () => {
+    setShowExitConfirm(true);
+  };
+
+  // Save and exit
+  const handleSaveAndExit = () => {
+    saveProgress();
+    setShowExitConfirm(false);
+    // Allow navigation
+    window.removeEventListener('beforeunload', () => {});
+    window.removeEventListener('popstate', () => {});
+    onCancel();
+  };
+
+  // Exit without saving
+  const handleExitWithoutSave = () => {
+    clearProgress();
+    setShowExitConfirm(false);
+    // Allow navigation
+    window.removeEventListener('beforeunload', () => {});
+    window.removeEventListener('popstate', () => {});
+    onCancel();
+  };
+
+  // Cancel exit
+  const handleCancelExit = () => {
+    setShowExitConfirm(false);
+  };
 
   // Rotate piece coordinates 90 degrees clockwise
   const rotatePieceCoords = (coords: [number, number][], times: number = 1): [number, number][] => {
@@ -534,12 +758,8 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
     const shuffledShapes = currentQuestionShapes;
 
     if (currentQuestion.question_type === 'SCALE') {
-      // Dùng options từ API nếu có (đã là VI), fallback về VI hardcode
-      const viLabels = currentQuestion.options && currentQuestion.options.length === 5
-        ? currentQuestion.options
-        : ['Rất không đồng ý', 'Không đồng ý', 'Trung lập', 'Đồng ý', 'Rất đồng ý'];
-      const labels = viLabels;
-      const emojis = ['', '', '', '', ''];
+      const labels = ['Rất không đồng ý', 'Không đồng ý', 'Trung lập', 'Đồng ý', 'Rất đồng ý'];
+      const emojis = ['😟', '🙁', '😐', '🙂', '😊'];
       return [1, 2, 3, 4, 5].map((value, index) => {
         const shape = shuffledShapes[index % shuffledShapes.length] || 'O';
         return {
@@ -550,33 +770,29 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
           shape: shape,
         };
       });
-    } else if (currentQuestion.options && currentQuestion.options.length > 0) {
-      console.log('Original options:', currentQuestion.options);
-
-      // Remove duplicates from options using both text and value
-      const seen = new Set<string>();
-      const uniqueOptions = currentQuestion.options.filter(option => {
-        if (!option || typeof option !== 'string') return false;
-        const key = option.toLowerCase().trim();
-        if (seen.has(key)) {
-          console.log('Duplicate found:', option);
-          return false;
-        }
-        seen.add(key);
-        return true;
-      });
-
-      console.log('Unique options:', uniqueOptions);
-
-      // Limit to maximum 6 options to prevent UI overflow
-      const limitedOptions = uniqueOptions.slice(0, 6);
-
-      return limitedOptions.map((option, index) => {
+    } else if (currentQuestion.options) {
+      // Translation map for English options to Vietnamese
+      const optionTranslations: Record<string, string> = {
+        'Strongly Dislike': 'Rất không thích',
+        'Dislike': 'Không thích',
+        'Unsure': 'Không chắc',
+        'Like': 'Thích',
+        'Strongly Like': 'Rất thích',
+        'Strongly Disagree': 'Rất không đồng ý',
+        'Disagree': 'Không đồng ý',
+        'Neutral': 'Trung lập',
+        'Agree': 'Đồng ý',
+        'Strongly Agree': 'Rất đồng ý'
+      };
+      
+      return currentQuestion.options.map((option, index) => {
         const shape = shuffledShapes[index % shuffledShapes.length] || 'O';
+        // Translate option if it exists in translation map, otherwise use original
+        const translatedText = optionTranslations[option] || option;
         return {
-          text: option,
+          text: translatedText,
           emoji: undefined,
-          value: option,
+          value: option, // Keep original value for backend
           color: tetrisColors[shape],
           shape: shape,
         };
@@ -657,10 +873,10 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
             {/* Completion Message */}
             <div className="mb-3">
               <p className="text-sm font-bold text-gray-800 dark:text-white mb-1">
-                You've Completed All {questions.length} Questions!
+                🎮 Bạn Đã Hoàn Thành Tất Cả {questions.length} Câu Hỏi! 🎮
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                Amazing job! Let's see your achievements!
+                Tuyệt vời! Hãy xem thành tích của bạn!
               </p>
             </div>
 
@@ -675,21 +891,21 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
 
               {/* Final Level */}
               <div className="bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg p-2.5 shadow-xl border-2 border-cyan-300 transform hover:scale-105 transition-all">
-                <div className="text-lg mb-0.5"></div>
-                <div className="text-[10px] font-bold text-cyan-900 uppercase mb-0.5">Final Level</div>
+                <div className="text-lg mb-0.5">🎯</div>
+                <div className="text-[10px] font-bold text-cyan-900 uppercase mb-0.5">Cấp Độ Cuối</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{level}</div>
               </div>
 
               {/* Total XP */}
               <div className="bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg p-2.5 shadow-xl border-2 border-purple-300 transform hover:scale-105 transition-all">
-                <div className="text-lg mb-0.5"></div>
-                <div className="text-[10px] font-bold text-purple-900 uppercase mb-0.5">Total XP</div>
+                <div className="text-lg mb-0.5">💎</div>
+                <div className="text-[10px] font-bold text-purple-900 uppercase mb-0.5">Tổng KN</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{xp}</div>
               </div>
 
               {/* Max Combo */}
               <div className="bg-gradient-to-br from-red-400 to-orange-500 rounded-lg p-2.5 shadow-xl border-2 border-red-300 transform hover:scale-105 transition-all">
-                <div className="text-lg mb-0.5"></div>
+                <div className="text-lg mb-0.5">🔥</div>
                 <div className="text-[10px] font-bold text-red-900 uppercase mb-0.5">Combo Tối Đa</div>
                 <div className="text-xl font-black text-white drop-shadow-lg">{maxCombo}x</div>
               </div>
@@ -699,27 +915,27 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
             {(maxCombo >= 5 || level >= 5 || nuclear > 0 || score >= 5000) && (
               <div className="mb-3 bg-white/50 dark:bg-gray-800/50 rounded-lg p-2 backdrop-blur-sm">
                 <div className="text-xs font-bold text-gray-800 dark:text-white mb-1.5">
-                  Special Achievements
+                  🌟 Thành Tích Đặc Biệt 🌟
                 </div>
                 <div className="flex flex-wrap justify-center gap-1.5">
                   {maxCombo >= 5 && (
                     <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg">
-                      Combo Master ({maxCombo}x)
+                      🔥 Bậc Thầy Combo ({maxCombo}x)
                     </div>
                   )}
                   {level >= 5 && (
                     <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg">
-                      Level Champion (Lv.{level})
+                      🎯 Nhà Vô Địch Cấp Độ (Lv.{level})
                     </div>
                   )}
                   {nuclear > 0 && (
                     <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg animate-pulse">
-                      Nuclear Unlocked!
+                      ☢️ Đã Mở Khóa Hạt Nhân!
                     </div>
                   )}
                   {score >= 5000 && (
                     <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg">
-                      High Scorer ({score})
+                      💰 Điểm Số Cao ({score})
                     </div>
                   )}
                 </div>
@@ -734,11 +950,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
               }}
               className="w-full bg-gradient-to-r from-indigo-700 via-indigo-500 to-indigo-600 hover:from-indigo-800 hover:via-emerald-600 hover:to-violet-600 text-white font-black text-sm py-2.5 px-4 rounded-lg shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-indigo-400 hover:border-indigo-300"
             >
-              View My Analysis
+              ✨ Xem Phân Tích Của Tôi ✨
             </button>
 
             <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-2">
-              Click to see your detailed personality and career analysis
+              Nhấp để xem phân tích chi tiết về tính cách và nghề nghiệp
             </p>
           </div>
         </div>
@@ -747,22 +963,22 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
   }
 
   if (!currentQuestion) {
-    return <div className="text-white text-center p-8">Loading questions...</div>;
+    return <div className="text-white text-center p-8">Đang tải câu hỏi...</div>;
   }
 
   return (
-    <div className="w-full h-screen mx-auto overflow-hidden px-2 py-2 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-full h-full mx-auto flex flex-col gap-2">
+    <div className="w-full h-screen mx-auto overflow-y-auto px-2 py-2 bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-full mx-auto flex flex-col gap-2">
         {/* Stats Bar - Top */}
         <div className="w-full flex items-center justify-between bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-2xl p-4 shadow-2xl border-2 border-gray-300 dark:border-gray-700 mb-4">
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-center">
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Level</div>
+              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Cấp Độ</div>
               <div className="text-3xl font-black text-cyan-600 dark:text-cyan-400 drop-shadow-lg">{level}</div>
             </div>
             <div className="w-px h-12 bg-gray-400 dark:bg-gray-700"></div>
             <div className="flex flex-col">
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">XP Progress</div>
+              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Tiến Trình KN</div>
               <div className="w-40 h-3 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-400 dark:border-gray-600">
                 <div
                   className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
@@ -781,20 +997,20 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                 {combo}x
               </div>
               {maxCombo > 0 && (
-                <div className="text-xs text-gray-500 dark:text-gray-400">Max: {maxCombo}x</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Tối đa: {maxCombo}x</div>
               )}
             </div>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="text-center">
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Score</div>
+              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Điểm Số</div>
               <div className="text-3xl font-black text-yellow-600 dark:text-yellow-400 drop-shadow-lg">{score}</div>
             </div>
             <div className="w-px h-12 bg-gray-400 dark:bg-gray-700"></div>
             <div className="text-center">
-              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Progress</div>
-              <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-400">{currentIndex + 1}/{questions.length}</div>
+              <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Tiến Trình</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{currentIndex + 1}/{questions.length}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400">{Math.round(progress)}%</div>
             </div>
           </div>
@@ -806,8 +1022,8 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-xl shadow-2xl border-2 border-purple-400 flex items-center gap-3">
               <span className="text-4xl animate-bounce"></span>
               <div>
-                <div className="font-bold text-lg">Easter Egg Unlocked!</div>
-                <div className="text-sm text-purple-100">Nuclear Power obtained!</div>
+                <div className="font-bold text-lg">Đã Mở Khóa Trứng Phục Sinh!</div>
+                <div className="text-sm text-purple-100">Đã nhận Năng Lượng Hạt Nhân!</div>
               </div>
             </div>
           </div>
@@ -820,19 +1036,19 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
             {/* Stats Vertical */}
             <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 shadow-xl border-2 border-gray-300 dark:border-gray-700 space-y-4">
               <div className="text-center">
-                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Level</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Cấp Độ</div>
                 <div className="text-4xl font-black text-cyan-600 dark:text-cyan-400 drop-shadow-lg">{level}</div>
               </div>
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div>
-                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 text-center">XP Progress</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 text-center">Tiến Trình KN</div>
                 <div className="w-full h-3 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-400 dark:border-gray-600">
                   <div
                     className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
                     style={{ width: `${((xp % 400) / 400) * 100}%` }}
                   ></div>
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">{xp % 400} / 400 XP</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">{xp % 400} / 400 KN</div>
               </div>
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div className="text-center">
@@ -844,25 +1060,25 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                   {combo}x
                 </div>
                 {maxCombo > 0 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Max: {maxCombo}x</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Tối đa: {maxCombo}x</div>
                 )}
               </div>
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div className="text-center">
-                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Score</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Điểm Số</div>
                 <div className="text-4xl font-black text-yellow-600 dark:text-yellow-400 drop-shadow-lg">{score}</div>
               </div>
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div className="text-center">
-                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Progress</div>
-                <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-400">{currentIndex + 1}/{questions.length}</div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Tiến Trình</div>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{currentIndex + 1}/{questions.length}</div>
                 <div className="text-xs text-gray-600 dark:text-gray-400">{Math.round(progress)}%</div>
               </div>
             </div>
           </div>
 
           {/* Center Column - Grid & Pieces */}
-          <div className="col-span-7 space-y-3 flex flex-col min-h-0">
+          <div className="col-span-7 space-y-4 flex flex-col min-h-0">
             {/* Tetris Grid */}
             <div className="flex justify-center relative">
               <div className="absolute -top-3 right-4 bg-gradient-to-br from-yellow-400 to-orange-500 px-3 py-1 rounded-lg shadow-xl border-2 border-yellow-300 z-30">
@@ -976,96 +1192,65 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                   </div>
                 )}
 
-                {/* Power-up preview overlay */}
-                {hoveredCell && draggedPowerUp && (
-                  <div className="absolute inset-0 pointer-events-none z-20">
-                    {Array.from({ length: draggedPowerUp === 'bomb' ? 2 : 4 }).map((_, r) =>
-                      Array.from({ length: draggedPowerUp === 'bomb' ? 2 : 4 }).map((_, c) => {
-                        const previewRow = hoveredCell[0] + r;
-                        const previewCol = hoveredCell[1] + c;
-
-                        if (previewRow < 0 || previewRow >= GRID_ROWS || previewCol < 0 || previewCol >= GRID_COLS) {
-                          return null;
-                        }
-
-                        return (
-                          <div
-                            key={`${r}-${c}`}
-                            className="absolute bg-orange-400/70 border-2 border-orange-300 rounded shadow-lg"
-                            style={{
-                              width: `${CELL_SIZE}px`,
-                              height: `${CELL_SIZE}px`,
-                              top: `${previewRow * CELL_SIZE}px`,
-                              left: `${previewCol * CELL_SIZE}px`,
-                            }}
-                          />
-                        );
-                      })
-                    )}
-                  </div>
-                )}
-              </div>
+          {/* Available Pieces - Below grid */}
+          <div className="w-full mt-4 pt-4 pb-6 border-t-2 border-gray-300 dark:border-gray-600 space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
+              <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider px-2">
+                🎮 Kéo Mảnh Ghép Để Trả Lời
+              </p>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
             </div>
-
-            {/* Available Pieces - Below grid */}
-            <div className="w-full space-y-2">
-              <div className="flex items-center justify-center gap-2">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
-                <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Drag a Piece to Answer
-                </p>
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-400 dark:via-gray-600 to-transparent"></div>
-              </div>
-
-              {/* Horizontal pieces layout */}
-              <div className="flex justify-center items-center gap-3 flex-wrap">
-                {pieces.map((piece, index) => {
-                  const rotation = pieceRotations[index] || 0;
-                  const shapeData = getRotatedPieceShape(piece.shape, rotation);
-                  const cellSize = 20;
-                  const gap = 2;
-                  const totalWidth = shapeData.width * cellSize + (shapeData.width - 1) * gap;
-                  const totalHeight = shapeData.height * cellSize + (shapeData.height - 1) * gap;
-
-                  return (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center gap-1"
-                    >
-                      {/* Piece container with rotation button */}
-                      <div className="relative">
-                        {/* Rotate button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPieceRotations(prev => ({
-                              ...prev,
-                              [index]: ((prev[index] || 0) + 1) % 4
-                            }));
-                          }}
-                          className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg transform hover:scale-110 transition-all duration-200 border-2 border-white dark:border-gray-700"
-                          title="Rotate piece (Right-click also works)"
-                        >
-                          ↻
-                        </button>
-
-                        <div
-                          draggable
-                          onDragStart={() => handleDragStart(piece, index)}
-                          onDragEnd={handleDragEnd}
-                          onContextMenu={(e) => {
-                            e.preventDefault();
-                            setPieceRotations(prev => ({
-                              ...prev,
-                              [index]: ((prev[index] || 0) + 1) % 4
-                            }));
-                          }}
-                          className={`flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-105 transition-all duration-200 bg-gray-200 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg border-2 border-gray-300 dark:border-gray-700 hover:border-cyan-500 shadow-lg p-3 ${draggedPiece?.value === piece.value ? 'opacity-20' : 'opacity-100'
-                            }`}
-                        >
-                          <div className="flex items-center justify-center" style={{ width: `${totalWidth}px`, height: `${totalHeight}px` }}>
-                            {renderTetrisPiece(piece.shape, piece.color, cellSize, gap, rotation)}
-                          </div>
+            
+            {/* Horizontal pieces layout */}
+            <div className="flex justify-center items-end gap-5 flex-wrap py-2 pb-4 mb-2">
+              {pieces.map((piece, index) => {
+                const rotation = pieceRotations[index] || 0;
+                const shapeData = getRotatedPieceShape(piece.shape, rotation);
+                const cellSize = 20;
+                const gap = 2;
+                const totalWidth = shapeData.width * cellSize + (shapeData.width - 1) * gap;
+                const totalHeight = shapeData.height * cellSize + (shapeData.height - 1) * gap;
+                
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-col items-center gap-2"
+                  >
+                    {/* Piece container with rotation button */}
+                    <div className="relative">
+                      {/* Rotate button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPieceRotations(prev => ({
+                            ...prev,
+                            [index]: ((prev[index] || 0) + 1) % 4
+                          }));
+                        }}
+                        className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg transform hover:scale-110 transition-all duration-200 border-2 border-white dark:border-gray-700"
+                        title="Xoay mảnh ghép (Chuột phải cũng hoạt động)"
+                      >
+                        ↻
+                      </button>
+                      
+                      <div
+                        draggable
+                        onDragStart={() => handleDragStart(piece, index)}
+                        onDragEnd={handleDragEnd}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          setPieceRotations(prev => ({
+                            ...prev,
+                            [index]: ((prev[index] || 0) + 1) % 4
+                          }));
+                        }}
+                        className={`flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-105 transition-all duration-200 bg-gray-200 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg border-2 border-gray-300 dark:border-gray-700 hover:border-cyan-500 shadow-lg p-3 ${
+                          draggedPiece?.value === piece.value ? 'opacity-20' : 'opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-center" style={{ width: `${totalWidth}px`, height: `${totalHeight}px` }}>
+                          {renderTetrisPiece(piece.shape, piece.color, cellSize, gap, rotation)}
                         </div>
                       </div>
 
@@ -1078,25 +1263,49 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Question & Power-ups */}
+        <div className="col-span-3 space-y-3 flex flex-col min-h-0">
+          {/* Question Card - Large and prominent */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-6 border-2 border-blue-200 dark:border-blue-700 shadow-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
+                <span className="text-2xl">❓</span>
+                <span>Câu Hỏi {currentIndex + 1} / {questions.length}</span>
               </div>
+              <span className="text-gray-400 dark:text-gray-600">•</span>
+              <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                {currentQuestion.test_type === 'RIASEC' ? '🎯 Nghề Nghiệp' : '🧠 Tính Cách'}
+              </span>
+            </div>
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-5 border-2 border-blue-300 dark:border-blue-600 shadow-lg">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-relaxed">
+                {currentQuestion.question_text}
+              </h3>
             </div>
           </div>
 
-          {/* Right Column - Question & Power-ups */}
-          <div className="col-span-3 space-y-3 flex flex-col min-h-0">
-            {/* Question Card - Large and prominent */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-6 border-2 border-blue-200 dark:border-blue-700 shadow-xl">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
-                  <span className="text-2xl"></span>
-                  <span>Question {currentIndex + 1} / {questions.length}</span>
-                </div>
-                <span className="text-gray-400 dark:text-gray-600">•</span>
-                <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                  {currentQuestion.test_type === 'RIASEC' ? ' Career' : ' Personality'}
-                </span>
+          {/* Power-ups */}
+          <div className="space-y-2">
+            {/* Bomb */}
+            <div
+              draggable={bombs > 0}
+              onDragStart={() => handlePowerUpDragStart('bomb')}
+              onDragEnd={handleDragEnd}
+              className={`flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700 shadow-md ${
+                bombs > 0 ? 'cursor-grab hover:border-orange-400 dark:hover:border-orange-500' : 'opacity-40 cursor-not-allowed'
+              } transition-all duration-200`}
+            >
+              <span className="text-2xl">💣</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-gray-900 dark:text-white font-semibold text-xs">Bom</div>
+                <div className="text-gray-500 dark:text-gray-400 text-xs">2x2</div>
               </div>
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-5 border-2 border-blue-300 dark:border-blue-600 shadow-lg">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-relaxed">
@@ -1105,24 +1314,22 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
               </div>
             </div>
 
-            {/* Power-ups */}
-            <div className="space-y-2">
-              {/* Bomb */}
-              <div
-                draggable={bombs > 0}
-                onDragStart={() => handlePowerUpDragStart('bomb')}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700 shadow-md ${bombs > 0 ? 'cursor-grab hover:border-orange-400 dark:hover:border-orange-500' : 'opacity-40 cursor-not-allowed'
-                  } transition-all duration-200`}
-              >
-                <span className="text-2xl"></span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-gray-900 dark:text-white font-semibold text-xs">Bomb</div>
-                  <div className="text-gray-500 dark:text-gray-400 text-xs">2x2</div>
-                </div>
-                <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
-                  {bombs}
-                </div>
+            {/* Rocket */}
+            <div
+              draggable={rockets > 0}
+              onDragStart={() => handlePowerUpDragStart('rocket')}
+              onDragEnd={handleDragEnd}
+              className={`flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700 shadow-md ${
+                rockets > 0 ? 'cursor-grab hover:border-blue-400 dark:hover:border-blue-500' : 'opacity-40 cursor-not-allowed'
+              } transition-all duration-200`}
+            >
+              <span className="text-2xl">🚀</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-gray-900 dark:text-white font-semibold text-xs">Tên Lửa</div>
+                <div className="text-gray-500 dark:text-gray-400 text-xs">4x4</div>
+              </div>
+              <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
+                {rockets}
               </div>
 
               {/* Rocket */}
@@ -1135,16 +1342,35 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
               >
                 <span className="text-2xl"></span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-gray-900 dark:text-white font-semibold text-xs">Rocket</div>
-                  <div className="text-gray-500 dark:text-gray-400 text-xs">4x4</div>
+                  <div className="text-white font-bold text-xs">Hạt Nhân</div>
+                  <div className="text-purple-100 text-xs">TẤT CẢ!</div>
                 </div>
                 <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
                   {rockets}
                 </div>
               </div>
 
-              {/* Nuclear Power - Easter Egg */}
-              {nuclear > 0 && (
+      {/* Completed Answers - Bottom Center */}
+      <div className="mt-16 pt-6" style={{ marginTop: '4rem', paddingTop: '1.5rem' }}>
+        <div className="max-w-4xl mx-auto bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 shadow-2xl border-2 border-gray-300 dark:border-gray-700">
+          <h3 className="text-lg font-black text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+            <span className="text-2xl">🏆</span>
+            <span className="flex-1">Câu Trả Lời Đã Hoàn Thành</span>
+            <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/50 px-3 py-1 rounded-full">
+              {completedAnswers.length}/{questions.length}
+            </span>
+          </h3>
+          
+          <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+            {completedAnswers.length === 0 ? (
+              <div className="col-span-3 text-center py-4">
+                <div className="text-4xl mb-2 animate-bounce">🎯</div>
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                  Kéo mảnh ghép để trả lời!
+                </p>
+              </div>
+            ) : (
+              completedAnswers.map((answer, index) => (
                 <div
                   draggable={nuclear > 0}
                   onDragStart={() => handlePowerUpDragStart('nuclear')}
@@ -1165,49 +1391,13 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
           </div>
         </div>
 
-        {/* Completed Answers - Bottom Center */}
-        <div className="mt-3">
-          <div className="max-w-4xl mx-auto bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 shadow-2xl border-2 border-gray-300 dark:border-gray-700">
-            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-              <span className="text-2xl"></span>
-              <span className="flex-1">Completed Answers</span>
-              <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/50 px-3 py-1 rounded-full">
-                {completedAnswers.length}/{questions.length}
-              </span>
-            </h3>
-
-            <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
-              {completedAnswers.length === 0 ? (
-                <div className="col-span-3 text-center py-4">
-                  <div className="text-4xl mb-2 animate-bounce"></div>
-                  <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                    Drag pieces to answer!
-                  </p>
-                </div>
-              ) : (
-                completedAnswers.map((answer, index) => (
-                  <div
-                    key={index}
-                    className="bg-gradient-to-r from-indigo-100 to-indigo-100 dark:from-indigo-950/50 dark:to-emerald-900/50 border-2 border-indigo-400 dark:border-indigo-600/30 rounded-lg p-2 animate-slide-in shadow-md hover:shadow-lg transition-all duration-200"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-indigo-700 to-indigo-700 rounded flex items-center justify-center text-white font-black text-xs shadow-md">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        {answer.emoji && <span className="text-base">{answer.emoji}</span>}
-                        <span className="font-bold text-gray-900 dark:text-white text-xs ml-1">
-                          {answer.answer}
-                        </span>
-                      </div>
-                      <div className="text-indigo-800 dark:text-indigo-400 text-sm"></div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+        <button
+          onClick={handleExitClick}
+          className="w-full max-w-4xl mx-auto block mt-8 px-4 py-3 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 hover:from-gray-400 hover:to-gray-500 dark:hover:from-gray-600 dark:hover:to-gray-700 text-gray-900 dark:text-white rounded-lg font-bold text-sm transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-gray-400 dark:border-gray-600"
+        >
+          ← Quay Lại Menu
+        </button>
+      </div>
 
           <button
             onClick={onCancel}
@@ -1237,7 +1427,55 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel }: TetrisQuizGameProps
           border-radius: 10px;
         }
       `}</style>
-      </div>
+
+      {/* Exit Confirmation Dialog */}
+      {showExitConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8 transform animate-bounce-in">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">💾</div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Lưu tiến trình?
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Bạn có muốn lưu lại tiến trình hiện tại không? Bạn có thể tiếp tục chơi sau.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {/* Save and Exit */}
+              <button
+                onClick={handleSaveAndExit}
+                className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                Có, lưu lại
+              </button>
+
+              {/* Exit without Save */}
+              <button
+                onClick={handleExitWithoutSave}
+                className="w-full px-6 py-4 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-xl font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                Không, reset kết quả
+              </button>
+
+              {/* Cancel */}
+              <button
+                onClick={handleCancelExit}
+                className="w-full px-6 py-4 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-xl font-bold text-lg transition-all duration-200"
+              >
+                Tiếp tục chơi
+              </button>
+            </div>
+
+            <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+              <p>Tiến trình hiện tại: {currentIndex + 1}/{questions.length} câu</p>
+              <p>XP: {xp} | Score: {score}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
     </div>
   );
 };
