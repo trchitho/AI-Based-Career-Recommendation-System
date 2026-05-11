@@ -31,9 +31,9 @@
     /* red-500 */
     color: white;
     transform: scale(1.1);
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    ring: 4px;
-    --tw-ring-color: rgb(254 202 202);
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 0 0 4px rgb(254 202 202);
     /* red-200 */
 }
 
