@@ -289,6 +289,10 @@ async def lifespan(_: FastAPI):
     # Pre-load faster-whisper model in background so first STT call is fast
     def _preload_whisper():
         try:
+            import importlib.util
+            if importlib.util.find_spec("faster_whisper") is None:
+                print("[INFO] faster-whisper not installed — STT will use fallback. Install with: pip install faster-whisper")
+                return
             from app.modules.interview.faster_stt_service import _get_model
             model = _get_model()
             if model:
