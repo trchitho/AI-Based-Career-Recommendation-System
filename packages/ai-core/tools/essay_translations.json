@@ -1,0 +1,302 @@
+{
+  "1": {
+    "title_vi": "Nghề nghiệp lý tưởng",
+    "title_en": "Ideal career",
+    "prompt_text_vi": "Hãy mô tả nghề nghiệp lý tưởng của bạn trong tương lai. Những kỹ năng và phẩm chất cá nhân nào khiến bạn phù hợp với công việc đó, và tại sao nó thu hút bạn?",
+    "prompt_text_en": "Please describe your ideal future career.What skills and personal qualities make you suitable for that job, and why does it appeal to you?"
+  },
+  "2": {
+    "title_vi": "Mục tiêu 5 năm tới",
+    "title_en": "Goals for the next 5 years",
+    "prompt_text_vi": "Bạn muốn đạt được điều gì trong sự nghiệp sau 5 năm nữa? Hãy mô tả kế hoạch cụ thể và những bước bạn sẽ thực hiện để đạt được mục tiêu đó.",
+    "prompt_text_en": "What do you want to achieve in your career in 5 years?Describe your specific plan and the steps you will take to achieve that goal."
+  },
+  "3": {
+    "title_vi": "Ý nghĩa của thành công",
+    "title_en": "The meaning of success",
+    "prompt_text_vi": "Thành công có ý nghĩa gì với bạn? Hãy chia sẻ quan điểm của bạn và những yếu tố nào bạn cho là quan trọng nhất để đạt được nó.",
+    "prompt_text_en": "What does success mean to you?Please share your views and what factors you consider most important to achieve it."
+  },
+  "4": {
+    "title_vi": "Nguồn động lực làm việc",
+    "title_en": "Source of work motivation",
+    "prompt_text_vi": "Điều gì thúc đẩy bạn làm việc chăm chỉ mỗi ngày? Hãy mô tả những nguồn động lực chính trong cuộc sống và công việc của bạn.",
+    "prompt_text_en": "What motivates you to work hard every day?Describe the main sources of motivation in your life and work."
+  },
+  "5": {
+    "title_vi": "Ước mơ từ thuở nhỏ",
+    "title_en": "Dream since childhood",
+    "prompt_text_vi": "Khi còn nhỏ, bạn từng mơ ước trở thành gì? Ước mơ đó có thay đổi không và tại sao? Nó ảnh hưởng như thế nào đến lựa chọn hiện tại của bạn?",
+    "prompt_text_en": "When you were a child, what did you dream of becoming?Has that dream changed and why?How does it influence your current choices?"
+  },
+  "6": {
+    "title_vi": "Môi trường làm việc lý tưởng",
+    "title_en": "Ideal working environment",
+    "prompt_text_vi": "Mô tả môi trường làm việc mà bạn cảm thấy thoải mái và hiệu quả nhất. Bạn thích làm việc một mình hay theo nhóm? Tại sao?",
+    "prompt_text_en": "Describe the work environment in which you feel most comfortable and productive.Do you like working alone or in a group?Why?"
+  },
+  "7": {
+    "title_vi": "Kỹ năng muốn phát triển",
+    "title_en": "Skills you want to develop",
+    "prompt_text_vi": "Bạn muốn phát triển kỹ năng gì nhất trong thời gian tới? Tại sao kỹ năng đó quan trọng với bạn và bạn có kế hoạch gì để cải thiện nó?",
+    "prompt_text_en": "What skills do you want to develop most in the near future?Why is that skill important to you and what are your plans to improve it?"
+  },
+  "8": {
+    "title_vi": "Đóng góp cho xã hội",
+    "title_en": "Contribute to society",
+    "prompt_text_vi": "Bạn muốn đóng góp gì cho xã hội thông qua công việc của mình? Hãy chia sẻ về tác động tích cực mà bạn mong muốn tạo ra.",
+    "prompt_text_en": "What do you want to contribute to society through your work?Share about the positive impact you hope to create."
+  },
+  "9": {
+    "title_vi": "Cân bằng công việc và cuộc sống",
+    "title_en": "Work and life balance",
+    "prompt_text_vi": "Làm thế nào bạn định cân bằng giữa sự nghiệp và cuộc sống cá nhân? Điều gì quan trọng nhất với bạn trong việc duy trì sự cân bằng này?",
+    "prompt_text_en": "How do you plan to balance your career and personal life?What is most important to you in maintaining this balance?"
+  },
+  "10": {
+    "title_vi": "Nếu được chọn lại nghề nghiệp",
+    "title_en": "If I could choose my career again",
+    "prompt_text_vi": "Nếu có cơ hội thay đổi hoàn toàn nghề nghiệp, bạn sẽ chọn làm gì? Tại sao lựa chọn đó hấp dẫn bạn và bạn sẵn sàng đối mặt với những thách thức gì?",
+    "prompt_text_en": "If you had the opportunity to completely change your career, what would you choose to do?Why does that option appeal to you and what challenges are you willing to face?"
+  },
+  "11": {
+    "title_vi": "Vượt qua thử thách lớn",
+    "title_en": "Overcome great challenges",
+    "prompt_text_vi": "Hãy kể về một lần bạn đối mặt với thử thách khó khăn. Bạn đã vượt qua nó như thế nào và học được gì về bản thân từ trải nghiệm đó?",
+    "prompt_text_en": "Tell me about a time when you faced a difficult challenge.How did you overcome it and what did you learn about yourself from the experience?"
+  },
+  "12": {
+    "title_vi": "Thất bại và bài học",
+    "title_en": "Failure and lessons",
+    "prompt_text_vi": "Thất bại lớn nhất trong cuộc đời bạn là gì? Bạn đã học được gì từ nó và nó thay đổi bạn như thế nào?",
+    "prompt_text_en": "What is the biggest failure in your life?What did you learn from it and how did it change you?"
+  },
+  "13": {
+    "title_vi": "Quản lý áp lực",
+    "title_en": "Pressure management",
+    "prompt_text_vi": "Khi gặp áp lực lớn trong học tập hoặc công việc, bạn thường phản ứng như thế nào? Những phương pháp nào giúp bạn quản lý stress hiệu quả?",
+    "prompt_text_en": "When you encounter great pressure in study or work, how do you usually react?What methods help you manage stress effectively?"
+  },
+  "14": {
+    "title_vi": "Quyết định khó khăn nhất",
+    "title_en": "The hardest decision",
+    "prompt_text_vi": "Hãy mô tả một quyết định khó khăn mà bạn đã phải đưa ra. Bạn đã cân nhắc những yếu tố gì và cảm thấy thế nào về quyết định đó hiện tại?",
+    "prompt_text_en": "Describe a difficult decision you had to make.What factors did you consider and how do you feel about that decision now?"
+  },
+  "15": {
+    "title_vi": "Giải quyết xung đột",
+    "title_en": "Resolve conflicts",
+    "prompt_text_vi": "Kể về một lần bạn có xung đột với ai đó. Bạn đã giải quyết tình huống đó như thế nào và học được gì từ kinh nghiệm này?",
+    "prompt_text_en": "Tell about a time you had a conflict with someone.How did you handle that situation and what did you learn from the experience?"
+  },
+  "16": {
+    "title_vi": "Khi muốn bỏ cuộc",
+    "title_en": "When you want to give up",
+    "prompt_text_vi": "Có lúc nào bạn muốn bỏ cuộc không? Điều gì đã giúp bạn tiếp tục và vượt qua giai đoạn khó khăn đó?",
+    "prompt_text_en": "Was there ever a time when you wanted to give up?What helped you keep going and get through that difficult period?"
+  },
+  "17": {
+    "title_vi": "Thích ứng với thay đổi bất ngờ",
+    "title_en": "Adapt to unexpected changes",
+    "prompt_text_vi": "Bạn thích ứng với những thay đổi bất ngờ như thế nào? Hãy chia sẻ một ví dụ cụ thể về cách bạn đối phó với sự thay đổi.",
+    "prompt_text_en": "How do you adapt to unexpected changes?Please share a specific example of how you cope with change."
+  },
+  "18": {
+    "title_vi": "Học hỏi từ sai lầm",
+    "title_en": "Learn from mistakes",
+    "prompt_text_vi": "Hãy kể về một sai lầm mà bạn đã mắc phải và cách bạn học hỏi từ nó. Sai lầm đó đã giúp bạn trở nên tốt hơn như thế nào?",
+    "prompt_text_en": "Tell me about a mistake you made and how you learned from it.How did that mistake help you become better?"
+  },
+  "19": {
+    "title_vi": "Vượt qua nỗi sợ hãi",
+    "title_en": "Overcome fear",
+    "prompt_text_vi": "Bạn đã từng vượt qua nỗi sợ hãi nào của mình chưa? Hãy mô tả trải nghiệm đó và cảm giác của bạn sau khi vượt qua nó.",
+    "prompt_text_en": "Have you ever overcome any of your fears?Describe that experience and how you felt after going through it."
+  },
+  "20": {
+    "title_vi": "Tìm kiếm sự hỗ trợ",
+    "title_en": "Seek support",
+    "prompt_text_vi": "Khi gặp khó khăn, bạn thường tìm kiếm sự hỗ trợ từ đâu? Vai trò của gia đình, bạn bè trong việc giúp bạn vượt qua thử thách là gì?",
+    "prompt_text_en": "When you encounter difficulties, where do you usually look for support?What is the role of family and friends in helping you overcome challenges?"
+  },
+  "21": {
+    "title_vi": "Dự án sáng tạo yêu thích",
+    "title_en": "Favorite creative project",
+    "prompt_text_vi": "Hãy mô tả một dự án sáng tạo mà bạn đã thực hiện hoặc muốn thực hiện. Điều gì truyền cảm hứng cho bạn và bạn đã tiếp cận nó như thế nào?",
+    "prompt_text_en": "Describe a creative project you have worked on or would like to work on.What inspires you and how did you approach it?"
+  },
+  "22": {
+    "title_vi": "Giải quyết vấn đề theo cách mới",
+    "title_en": "Solve problems in new ways",
+    "prompt_text_vi": "Kể về một lần bạn giải quyết vấn đề theo cách sáng tạo, khác với cách thông thường. Ý tưởng đó đến từ đâu và kết quả như thế nào?",
+    "prompt_text_en": "Tell about a time when you solved a problem in a creative, unconventional way.Where did that idea come from and what was the result?"
+  },
+  "23": {
+    "title_vi": "Sở thích nghệ thuật",
+    "title_en": "Artistic hobbies",
+    "prompt_text_vi": "Bạn có sở thích nghệ thuật hoặc sáng tạo nào không? Hãy chia sẻ về nó và cách nó ảnh hưởng đến cuộc sống và công việc của bạn.",
+    "prompt_text_en": "Do you have any artistic or creative interests?Share about it and how it affects your life and work."
+  },
+  "24": {
+    "title_vi": "Kết hợp ý tưởng từ nhiều lĩnh vực",
+    "title_en": "Combine ideas from many fields",
+    "prompt_text_vi": "Hãy mô tả một lần bạn kết hợp ý tưởng từ các lĩnh vực khác nhau để tạo ra điều gì đó mới. Quá trình đó diễn ra như thế nào?",
+    "prompt_text_en": "Describe a time when you combined ideas from different fields to create something new.How does that process happen?"
+  },
+  "25": {
+    "title_vi": "Trải nghiệm văn hóa mới",
+    "title_en": "Experience new culture",
+    "prompt_text_vi": "Hãy kể về một trải nghiệm văn hóa hoặc nghệ thuật đã thay đổi cách bạn nhìn nhận thế giới. Nó ảnh hưởng đến bạn như thế nào?",
+    "prompt_text_en": "Tell me about a cultural or artistic experience that changed the way you see the world.How does it affect you?"
+  },
+  "26": {
+    "title_vi": "Tư duy phản biện",
+    "title_en": "Critical thinking",
+    "prompt_text_vi": "Hãy mô tả một tình huống bạn đã đặt câu hỏi về một quan điểm phổ biến. Bạn đã tiếp cận vấn đề đó như thế nào và kết luận của bạn là gì?",
+    "prompt_text_en": "Describe a situation in which you questioned a commonly held opinion.How did you approach that problem and what were your conclusions?"
+  },
+  "27": {
+    "title_vi": "Ý tưởng kinh doanh sáng tạo",
+    "title_en": "Creative business idea",
+    "prompt_text_vi": "Nếu bạn có thể tạo ra một sản phẩm hoặc dịch vụ hoàn toàn mới, đó sẽ là gì? Hãy mô tả ý tưởng và lý do bạn nghĩ nó có giá trị.",
+    "prompt_text_en": "If you could create a completely new product or service, what would it be?Describe your idea and why you think it has value."
+  },
+  "28": {
+    "title_vi": "Học hỏi qua trải nghiệm",
+    "title_en": "Learn through experience",
+    "prompt_text_vi": "Hãy mô tả một trải nghiệm học hỏi không chính thức (ngoài trường lớp) đã có tác động lớn đến bạn. Bạn học được gì và nó thay đổi bạn như thế nào?",
+    "prompt_text_en": "Describe an informal learning experience (outside of school) that had a major impact on you.What did you learn and how did it change you?"
+  },
+  "29": {
+    "title_vi": "Dẫn dắt nhóm",
+    "title_en": "Lead the group",
+    "prompt_text_vi": "Hãy kể về một lần bạn dẫn dắt một nhóm. Bạn đã tiếp cận vai trò lãnh đạo như thế nào và học được gì từ trải nghiệm đó?",
+    "prompt_text_en": "Tell me about a time you led a group.How did you approach your leadership role and what did you learn from the experience?"
+  },
+  "30": {
+    "title_vi": "Làm việc nhóm hiệu quả",
+    "title_en": "Work effectively in groups",
+    "prompt_text_vi": "Mô tả một dự án nhóm thành công mà bạn đã tham gia. Vai trò của bạn là gì và nhóm đã vượt qua những thách thức nào?",
+    "prompt_text_en": "Describe a successful group project in which you participated.What was your role and what challenges did the team overcome?"
+  },
+  "31": {
+    "title_vi": "Xử lý thành viên khó tính",
+    "title_en": "Handling difficult members",
+    "prompt_text_vi": "Bạn đã từng làm việc với một thành viên nhóm khó hợp tác chưa? Bạn đã xử lý tình huống đó như thế nào?",
+    "prompt_text_en": "Have you ever worked with a team member who was difficult to work with?How did you handle that situation?"
+  },
+  "32": {
+    "title_vi": "Truyền cảm hứng cho người khác",
+    "title_en": "Inspire others",
+    "prompt_text_vi": "Hãy kể về một lần bạn truyền cảm hứng hoặc động viên người khác. Bạn đã làm gì và tác động của nó là gì?",
+    "prompt_text_en": "Tell me about a time when you inspired or motivated someone.What did you do and what was its impact?"
+  },
+  "33": {
+    "title_vi": "Phân công công việc nhóm",
+    "title_en": "Assign group work",
+    "prompt_text_vi": "Khi làm việc nhóm, bạn thường tiếp cận việc phân công nhiệm vụ như thế nào? Hãy chia sẻ một ví dụ cụ thể.",
+    "prompt_text_en": "When working in groups, how do you usually approach assigning tasks?Please share a specific example."
+  },
+  "34": {
+    "title_vi": "Nhận và đưa ra phản hồi",
+    "title_en": "Receive and give feedback",
+    "prompt_text_vi": "Bạn cảm thấy thế nào khi nhận phản hồi tiêu cực? Bạn đã học cách đưa ra phản hồi mang tính xây dựng như thế nào?",
+    "prompt_text_en": "How do you feel when you receive negative feedback?How did you learn to give constructive feedback?"
+  },
+  "35": {
+    "title_vi": "Quyết định trong nhóm",
+    "title_en": "Decisions within the group",
+    "prompt_text_vi": "Hãy mô tả một tình huống nhóm bạn phải đưa ra quyết định quan trọng dưới áp lực thời gian. Quá trình đó diễn ra như thế nào?",
+    "prompt_text_en": "Describe a situation where your group had to make an important decision under time pressure.How does that process happen?"
+  },
+  "36": {
+    "title_vi": "Đa dạng trong nhóm",
+    "title_en": "Diversity within the group",
+    "prompt_text_vi": "Bạn đã từng làm việc trong một nhóm có sự đa dạng về văn hóa hoặc quan điểm chưa? Điều đó ảnh hưởng đến công việc như thế nào?",
+    "prompt_text_en": "Have you ever worked in a team with cultural or perspective diversity?How does that affect work?"
+  },
+  "37": {
+    "title_vi": "Kế hoạch học tập dài hạn",
+    "title_en": "Long-term study plan",
+    "prompt_text_vi": "Bạn có kế hoạch học tập hoặc phát triển chuyên môn trong 3-5 năm tới không? Hãy mô tả lộ trình và lý do bạn chọn hướng đó.",
+    "prompt_text_en": "Do you have plans for study or professional development in the next 3-5 years?Describe your route and why you chose that direction."
+  },
+  "38": {
+    "title_vi": "Xây dựng thương hiệu cá nhân",
+    "title_en": "Build a personal brand",
+    "prompt_text_vi": "Bạn muốn người khác nhớ đến bạn như thế nào trong sự nghiệp? Bạn đang làm gì để xây dựng hình ảnh chuyên nghiệp của mình?",
+    "prompt_text_en": "How do you want others to remember you in your career?What are you doing to build your professional image?"
+  },
+  "39": {
+    "title_vi": "Xu hướng ngành nghề tương lai",
+    "title_en": "Future industry trends",
+    "prompt_text_vi": "Bạn nghĩ ngành nghề của mình sẽ thay đổi như thế nào trong 10 năm tới? Bạn đang chuẩn bị gì để thích ứng với những thay đổi đó?",
+    "prompt_text_en": "How do you think your industry will change in the next 10 years?What are you preparing to adapt to those changes?"
+  },
+  "40": {
+    "title_vi": "Mạng lưới quan hệ nghề nghiệp",
+    "title_en": "Network of professional relationships",
+    "prompt_text_vi": "Bạn tiếp cận việc xây dựng mạng lưới quan hệ nghề nghiệp như thế nào? Những mối quan hệ nào bạn cho là quan trọng nhất?",
+    "prompt_text_en": "How do you approach building your professional network?Which relationships do you consider most important?"
+  },
+  "41": {
+    "title_vi": "Học hỏi liên tục",
+    "title_en": "Learn continuously",
+    "prompt_text_vi": "Trong thế giới thay đổi nhanh chóng, bạn duy trì việc học hỏi liên tục như thế nào? Hãy chia sẻ phương pháp và thói quen học tập của bạn.",
+    "prompt_text_en": "In a rapidly changing world, how do you maintain continuous learning?Please share your study methods and habits."
+  },
+  "42": {
+    "title_vi": "Quản lý tài chính cá nhân",
+    "title_en": "Personal financial management",
+    "prompt_text_vi": "Bạn có kế hoạch tài chính cá nhân không? Hãy chia sẻ cách bạn tiếp cận việc quản lý tài chính để đạt được mục tiêu nghề nghiệp.",
+    "prompt_text_en": "Do you have a personal financial plan?Please share how you approach financial management to achieve your career goals."
+  },
+  "43": {
+    "title_vi": "Khởi nghiệp hay làm thuê",
+    "title_en": "Start a business or work for hire",
+    "prompt_text_vi": "Bạn có muốn khởi nghiệp trong tương lai không? Hãy phân tích ưu và nhược điểm của việc khởi nghiệp so với làm việc cho tổ chức.",
+    "prompt_text_en": "Do you want to start a business in the future?Let's analyze the pros and cons of starting a business versus working for an organization."
+  },
+  "44": {
+    "title_vi": "Phát triển kỹ năng số",
+    "title_en": "Develop digital skills",
+    "prompt_text_vi": "Công nghệ số đang thay đổi mọi ngành nghề. Bạn đang phát triển những kỹ năng số nào và tại sao bạn cho chúng là quan trọng?",
+    "prompt_text_en": "Digital technology is changing every industry.What digital skills are you developing and why do you think they are important?"
+  },
+  "45": {
+    "title_vi": "Giá trị cốt lõi trong công việc",
+    "title_en": "Core values ​​at work",
+    "prompt_text_vi": "Những giá trị nào quan trọng nhất với bạn trong công việc? Hãy mô tả một tình huống bạn đã hành động theo những giá trị đó dù gặp khó khăn.",
+    "prompt_text_en": "What values ​​are most important to you at work?Describe a situation in which you acted on those values ​​despite difficulties."
+  },
+  "46": {
+    "title_vi": "Đạo đức nghề nghiệp",
+    "title_en": "Professional ethics",
+    "prompt_text_vi": "Hãy mô tả một tình huống bạn phải đối mặt với vấn đề đạo đức trong công việc hoặc học tập. Bạn đã xử lý nó như thế nào?",
+    "prompt_text_en": "Describe a situation in which you faced an ethical issue at work or study.How did you handle it?"
+  },
+  "47": {
+    "title_vi": "Trách nhiệm xã hội",
+    "title_en": "Social responsibility",
+    "prompt_text_vi": "Bạn nghĩ doanh nghiệp và cá nhân có trách nhiệm gì với xã hội? Hãy chia sẻ quan điểm của bạn và cách bạn thực hiện trách nhiệm đó.",
+    "prompt_text_en": "What responsibility do you think businesses and individuals have to society?Please share your perspective and how you carry out that responsibility."
+  },
+  "48": {
+    "title_vi": "Công bằng và bình đẳng",
+    "title_en": "Fairness and equality",
+    "prompt_text_vi": "Bạn đã từng chứng kiến hoặc trải qua sự bất công chưa? Bạn đã phản ứng như thế nào và điều đó ảnh hưởng đến quan điểm của bạn ra sao?",
+    "prompt_text_en": "Have you ever witnessed or experienced injustice?How did you react and how did it influence your perspective?"
+  },
+  "49": {
+    "title_vi": "Tính trung thực trong công việc",
+    "title_en": "Honesty at work",
+    "prompt_text_vi": "Hãy kể về một lần bạn phải lựa chọn giữa sự trung thực và lợi ích cá nhân. Bạn đã quyết định như thế nào và tại sao?",
+    "prompt_text_en": "Tell me about a time when you had to choose between honesty and personal gain.How did you decide and why?"
+  },
+  "50": {
+    "title_vi": "Tác động môi trường",
+    "title_en": "Environmental impact",
+    "prompt_text_vi": "Bạn nghĩ thế hệ của mình có trách nhiệm gì với môi trường? Bạn đang làm gì hoặc muốn làm gì để đóng góp cho sự bền vững?",
+    "prompt_text_en": "What responsibility do you think your generation has towards the environment?What are you doing or want to do to contribute to sustainability?"
+  }
+}

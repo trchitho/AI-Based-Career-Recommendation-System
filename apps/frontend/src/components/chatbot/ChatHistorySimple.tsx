@@ -99,8 +99,8 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
         const sessionsList = data.sessions || [];
 
         // Debug log để xem dữ liệu thực tế
-        console.log('📋 Sessions API Response:', data);
-        console.log('📋 Sessions List:', sessionsList);
+        console.log(' Sessions API Response:', data);
+        console.log(' Sessions List:', sessionsList);
 
         // Ensure each session has complete data
         const safeSessions = sessionsList.map((session: any, index: number) => ({
@@ -233,7 +233,7 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
               </button>
               <button
                 onClick={onNewSession}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-4 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900"
               >
                 New Chat
               </button>
@@ -282,7 +282,7 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
                           {formatDate(session.updated_at)}
                         </span>
                         {session.is_active && (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                          <span className="px-2 py-1 bg-indigo-50 text-indigo-900 rounded-full text-xs">
                             Active
                           </span>
                         )}

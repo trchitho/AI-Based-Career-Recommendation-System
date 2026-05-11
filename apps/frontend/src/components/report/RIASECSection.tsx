@@ -18,7 +18,7 @@ const DIMENSION_COLORS: Record<string, string> = {
     realistic: 'bg-amber-500',
     investigative: 'bg-blue-500',
     artistic: 'bg-purple-500',
-    social: 'bg-green-500',
+    social: 'bg-indigo-700',
     enterprising: 'bg-red-500',
     conventional: 'bg-gray-500',
 };
@@ -64,7 +64,7 @@ const RIASECSection = ({ scores, pattern }: RIASECSectionProps) => {
                                 <span className={`font-semibold ${isTop ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                                     {getRIASECFullName(key)}
                                     {isTop && (
-                                        <span className="ml-2 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">
+                                        <span className="ml-2 text-xs bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 px-2 py-0.5 rounded-full">
                                             Top Interest
                                         </span>
                                     )}

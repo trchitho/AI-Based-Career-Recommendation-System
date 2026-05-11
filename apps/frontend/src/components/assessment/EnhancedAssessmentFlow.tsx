@@ -13,7 +13,7 @@ type FlowStep = 'intro' | 'assessment' | 'processing' | 'complete';
 
 const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlowProps) => {
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState<FlowStep>('intro');
+  const [currentStep, setCurrentStep] = useState<FlowStep>('assessment');
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
 
   const handleAssessmentComplete = async (responses: QuestionResponse[], essayText?: string) => {
@@ -28,7 +28,7 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
       
       // Submit to backend API
       console.log('[EnhancedAssessmentFlow] Submitting to backend...');
-      console.log('[EnhancedAssessmentFlow] 🔥 SENDING test_mode: story');
+      console.log('[EnhancedAssessmentFlow]  SENDING test_mode: story');
       const submitResponse = await fetch('/api/assessments/submit', {
         method: 'POST',
         headers: {
@@ -399,7 +399,7 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white flex items-center justify-center">
         <div className="max-w-4xl mx-auto p-8 text-center">
-          <div className="text-8xl mb-8 animate-bounce">🚀</div>
+          <div className="text-8xl mb-8 animate-bounce"></div>
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-yellow-400 to-pink-500 bg-clip-text text-transparent">
             Enhanced Career Discovery
           </h1>
@@ -410,17 +410,17 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
           
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl mb-4">🎭</div>
+              <div className="text-4xl mb-4"></div>
               <h3 className="font-bold mb-2 text-yellow-300">Interactive Stories</h3>
               <p className="text-sm text-white/70">Câu chuyện tương tác thay vì câu hỏi khô khan</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl mb-4">🤖</div>
+              <div className="text-4xl mb-4"></div>
               <h3 className="font-bold mb-2 text-pink-300">AI-Powered Analysis</h3>
               <p className="text-sm text-white/70">Phân tích sâu với Gemini AI</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl mb-4">📊</div>
+              <div className="text-4xl mb-4"></div>
               <h3 className="font-bold mb-2 text-blue-300">Personalized Results</h3>
               <p className="text-sm text-white/70">Kết quả và lời khuyên cá nhân hóa</p>
             </div>
@@ -431,7 +431,7 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
               onClick={() => setCurrentStep('assessment')}
               className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-lg text-lg"
             >
-              Bắt đầu hành trình khám phá 🎯
+              Bắt đầu hành trình khám phá 
             </button>
             <div>
               <button
@@ -459,7 +459,7 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-4 text-gray-600">
-          <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-indigo-200 border-t-green-600 rounded-full animate-spin"></div>
           <p className="text-base font-medium">Đang xử lý kết quả...</p>
         </div>
       </div>

@@ -13,11 +13,11 @@ class GeminiChatbotService:
         self.stream_manager = multi_stream_manager.get_chatbot_stream()
         
         if not self.stream_manager.is_available():
-            logger.warning("⚠️ Chatbot Gemini stream not available")
+            logger.warning("[WARN] Chatbot Gemini stream not available")
             self.model = None
         else:
             self.model = self.stream_manager.model
-            logger.info(f"✅ Gemini chatbot initialized with model: {self.stream_manager.model_name}")
+            logger.info(f"[OK] Gemini chatbot initialized with model: {self.stream_manager.model_name}")
         
         # Keep these for compatibility
         self.api_key = self.stream_manager.api_key

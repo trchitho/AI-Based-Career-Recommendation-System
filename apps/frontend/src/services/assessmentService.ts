@@ -8,10 +8,10 @@ import {
 
 export const assessmentService = {
   async getQuestions(testType: 'RIASEC' | 'BIGFIVE'): Promise<Question[]> {
-    // Total 44 questions mixed between 11 dimensions (6 RIASEC + 5 Big Five)
-    // Each dimension gets 4 questions: 6 × 4 = 24 RIASEC, 5 × 4 = 20 Big Five
-    // Total: 24 + 20 = 44 questions (for traditional test)
-    const perDim = 4;
+    // Total 33 questions mixed between 11 dimensions (6 RIASEC + 5 Big Five)
+    // Each dimension gets 3 questions: 6 × 3 = 18 RIASEC, 5 × 3 = 15 Big Five
+    // Total: 18 + 15 = 33 questions
+    const perDim = 3;
     const seed = Date.now();
 
     const response = await api.get<Question[]>(
@@ -21,6 +21,7 @@ export const assessmentService = {
           shuffle: true,
           seed,
           per_dim: perDim,
+          lang: 'vi',
         },
       },
     );

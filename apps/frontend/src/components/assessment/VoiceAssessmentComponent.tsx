@@ -276,7 +276,7 @@ const VoiceAssessmentComponent = ({
           <div className="flex justify-between items-start gap-4">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 text-xs font-bold uppercase tracking-wider mb-3 border border-violet-200 dark:border-violet-800">
-                🎙️ {t('assessment.voice.title')}
+                 {t('assessment.voice.title')}
               </div>
               <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed text-sm">
                 {t('assessment.voice.subtitle')}
@@ -304,7 +304,7 @@ const VoiceAssessmentComponent = ({
                   recordingState === 'recording'
                     ? 'bg-gradient-to-t from-violet-600 to-indigo-400'
                     : recordingState === 'done'
-                      ? 'bg-green-500'
+                      ? 'bg-indigo-700'
                       : 'bg-gray-300 dark:bg-gray-600'
                 }`}
                 style={{ height: `${h}px` }}
@@ -352,7 +352,7 @@ const VoiceAssessmentComponent = ({
           {/* Tip */}
           {recordingState === 'recording' && (
             <p className="text-xs text-center text-violet-600 dark:text-violet-400 px-4 italic">
-              💡 {t('assessment.voice.tip')}
+               {t('assessment.voice.tip')}
             </p>
           )}
 
@@ -429,7 +429,7 @@ const VoiceAssessmentComponent = ({
                 </div>
                 {voiceSummary && (
                   <p className="text-sm text-center text-gray-500 dark:text-gray-400 italic px-2">
-                    🎙️ {voiceSummary}
+                     {voiceSummary}
                   </p>
                 )}
                 <div className="flex items-center justify-center gap-3">
@@ -452,7 +452,7 @@ const VoiceAssessmentComponent = ({
               </div>
             ) : recordingState === 'done' ? (
               <div className="flex flex-col items-center gap-3 w-full">
-                <div className="flex items-center gap-2 px-8 py-3 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold rounded-2xl">
+                <div className="flex items-center gap-2 px-8 py-3 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 font-bold rounded-2xl">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>

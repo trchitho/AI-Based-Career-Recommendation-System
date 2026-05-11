@@ -1,8 +1,7 @@
 import React from 'react';
 import {
   CheckCircle, XCircle, BarChart2, AlertCircle, AlertTriangle,
-  Star, Bot, BookOpen, GraduationCap, Tv, Book, Lightbulb,
-  Monitor, Mic, Download, Target, Circle
+  Star, Bot, BookOpen, Mic, Download, Target, Circle
 } from 'lucide-react';
 import { SkillGapAnalysis } from '../../types/skillGap';
 import './SkillGapResult.css';
@@ -14,16 +13,16 @@ interface SkillGapResultProps {
 
 const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterview }) => {
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 80) return '#10b981';
-    if (percentage >= 60) return '#f59e0b';
-    return '#ef4444';
+    if (percentage >= 80) return '10b981';
+    if (percentage >= 60) return 'f59e0b';
+    return 'ef4444';
   };
 
   const getMatchLabel = (percentage: number) => {
-    if (percentage >= 80) return 'Excellent Match';
-    if (percentage >= 60) return 'Good Match';
-    if (percentage >= 40) return 'Fair Match';
-    return 'Needs Improvement';
+    if (percentage >= 80) return 'Xuất sắc';
+    if (percentage >= 60) return 'Tốt';
+    if (percentage >= 40) return 'Khá';
+    return 'Cần cải thiện';
   };
 
   const getPriorityIcon = (importance?: number) => {
@@ -31,6 +30,11 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
     if (importance && importance >= 0.5) return <Circle size={12} fill="#ea580c" color="#ea580c" />;
     return <Circle size={12} fill="#ca8a04" color="#ca8a04" />;
   };
+
+  // Deduplicate matched_skills by name (keep first occurrence = highest importance)
+  const uniqueMatchedSkills = analysis.matched_skills.filter(
+    (skill, index, self) => index === self.findIndex(s => s.name.toLowerCase() === skill.name.toLowerCase())
+  );
 
   return (
     <div className="skill-gap-result">
@@ -67,12 +71,12 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
             ))}
             {(analysis.cv_skills?.length || analysis.matched_skills?.length || 0) > 20 && (
               <span className="skill-tag more">
-                +{(analysis.cv_skills?.length || analysis.matched_skills?.length || 0) - 20} more
+                +{(analysis.cv_skills?.length || analysis.matched_skills?.length || 0) - 20} thêm
               </span>
             )}
             {(!analysis.cv_skills || analysis.cv_skills.length === 0) &&
              (!analysis.matched_skills || analysis.matched_skills.length === 0) && (
-              <span className="skill-tag">No skills detected</span>
+              <span className="skill-tag">Không phát hiện kỹ năng nào</span>
             )}
           </div>
         </div>
@@ -84,7 +88,7 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           Đánh giá theo các tiêu chí của JD
         </h3>
         <div className="criteria-grid">
-          {analysis.matched_skills.slice(0, 8).map((skill, index) => {
+          {uniqueMatchedSkills.slice(0, 8).map((skill, index) => {
             const confidence = (skill as any).confidence || 0.9;
             const score = Math.round(confidence * 100);
             return (
@@ -102,12 +106,7 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
                   />
                 </div>
                 <p className="criteria-description">
-                  {skill.category === 'Programming' && `Kinh nghiệm thực tế với ${skill.name} thông qua các dự án.`}
-                  {skill.category === 'Web Development' && `Khả năng phát triển RESTful API và bảo mật API.`}
-                  {skill.category === 'Database' && `Kinh nghiệm làm việc với ${skill.name} và tối ưu hóa truy vấn.`}
-                  {skill.category === 'DevOps' && `Sử dụng thành thạo ${skill.name} trong các dự án.`}
-                  {skill.category === 'Soft Skills' && `Mục tiêu nghề nghiệp và phần tóm tắt bản thân thể hiện rõ tính sẵn sàng học hỏi.`}
-                  {!['Programming', 'Web Development', 'Database', 'DevOps', 'Soft Skills'].includes(skill.category) && `Ứng viên có kinh nghiệm thực tế với ${skill.name}.`}
+                  {`Ứng viên có ${score >= 90 ? 'kỹ năng xuất sắc' : score >= 75 ? 'kỹ năng tốt' : 'kinh nghiệm'} về ${skill.name}${(skill as any).onet_skill && (skill as any).onet_skill !== skill.name ? ` (khớp với yêu cầu: ${(skill as any).onet_skill})` : ''}.`}
                 </p>
               </div>
             );
@@ -128,32 +127,32 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           <div className="stat-card">
             <span className="stat-icon"><CheckCircle size={22} color="#10b981" /></span>
             <span className="stat-value">{analysis.matched_skills_count}</span>
-            <span className="stat-label">Skills Matched</span>
+            <span className="stat-label">Kỹ năng phù hợp</span>
           </div>
 
           <div className="stat-card">
             <span className="stat-icon"><XCircle size={22} color="#ef4444" /></span>
             <span className="stat-value">{analysis.missing_skills_count}</span>
-            <span className="stat-label">Skills Missing</span>
+            <span className="stat-label">Kỹ năng còn thiếu</span>
           </div>
 
           <div className="stat-card">
             <span className="stat-icon"><BarChart2 size={22} color="#6366f1" /></span>
             <span className="stat-value">{analysis.total_required_skills}</span>
-            <span className="stat-label">Total Required</span>
+            <span className="stat-label">Tổng yêu cầu</span>
           </div>
         </div>
       </div>
 
       {/* Matched Skills */}
-      {analysis.matched_skills.length > 0 && (
+      {uniqueMatchedSkills.length > 0 && (
         <div className="skills-section strengths-section">
           <h3 className="section-title">
             <span className="title-icon"><CheckCircle size={18} color="#10b981" /></span>
-            Điểm mạnh ({analysis.matched_skills.length})
+            Điểm mạnh ({uniqueMatchedSkills.length})
           </h3>
           <div className="skills-grid">
-            {analysis.matched_skills.map((skill, index) => (
+            {uniqueMatchedSkills.map((skill, index) => (
               <div key={index} className="skill-badge matched">
                 <span className="skill-name">{skill.name}</span>
                 <span className="skill-category">{skill.category}</span>
@@ -176,7 +175,7 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
               <div key={index} className="skill-badge critical">
                 <span className="skill-name">{skill.name}</span>
                 <span className="skill-category">{skill.category}</span>
-                <span className="skill-importance">{(skill.importance! * 100).toFixed(0)}% importance</span>
+                <span className="skill-importance">{(skill.importance! * 100).toFixed(0)}% mức độ quan trọng</span>
               </div>
             ))}
           </div>
@@ -188,15 +187,15 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
         <div className="skills-section">
           <h3 className="section-title important">
             <span className="title-icon"><AlertTriangle size={18} color="#ea580c" /></span>
-            Important Skill Gaps ({analysis.skill_gaps.important.length})
+            Khoảng cách kỹ năng quan trọng ({analysis.skill_gaps.important.length})
           </h3>
-          <p className="section-description">These skills will significantly improve your candidacy.</p>
+          <p className="section-description">Những kỹ năng này sẽ cải thiện đáng kể cơ hội ứng tuyển của bạn.</p>
           <div className="skills-grid">
             {analysis.skill_gaps.important.map((skill, index) => (
               <div key={index} className="skill-badge important">
                 <span className="skill-name">{skill.name}</span>
                 <span className="skill-category">{skill.category}</span>
-                <span className="skill-importance">{(skill.importance! * 100).toFixed(0)}% importance</span>
+                <span className="skill-importance">{(skill.importance! * 100).toFixed(0)}% mức độ quan trọng</span>
               </div>
             ))}
           </div>
@@ -208,9 +207,9 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
         <div className="skills-section">
           <h3 className="section-title nice-to-have">
             <span className="title-icon"><Target size={18} color="#ca8a04" /></span>
-            Nice-to-Have Skills ({analysis.skill_gaps.nice_to_have.length})
+            Kỹ năng nên có ({analysis.skill_gaps.nice_to_have.length})
           </h3>
-          <p className="section-description">These skills are beneficial but not critical.</p>
+          <p className="section-description">Những kỹ năng này có ích nhưng không bắt buộc.</p>
           <div className="skills-grid">
             {analysis.skill_gaps.nice_to_have.map((skill, index) => (
               <div key={index} className="skill-badge nice-to-have">
@@ -227,9 +226,9 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
         <div className="skills-section">
           <h3 className="section-title extra">
             <span className="title-icon"><Star size={18} color="#f59e0b" /></span>
-            Additional Skills ({analysis.extra_skills.length})
+            Kỹ năng bổ sung ({analysis.extra_skills.length})
           </h3>
-          <p className="section-description">Skills you have that aren't required but add value.</p>
+          <p className="section-description">Những kỹ năng bạn có nhưng không bắt buộc, tuy nhiên vẫn tạo thêm giá trị.</p>
           <div className="skills-grid">
             {analysis.extra_skills.map((skill, index) => (
               <div key={index} className="skill-badge extra">
@@ -258,7 +257,7 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
             <h4>{analysis.cv_name || 'Ứng viên'}</h4>
             <p className="ai-description">
               {analysis.match_percentage >= 80 &&
-                `Là người điểm tĩnh, thích nghỉ nhanh với môi trường mới, không ngại khó khăn, quan tâm đến việc tìm kiếm giải pháp cho vấn đề. Với kiến thức cơ bản về ${analysis.matched_skills.slice(0, 3).map(s => s.name).join(', ')} cùng kinh nghiệm triển khai một số dự án web cá nhân, ứng viên mong muốn học hỏi và phát triển trong lĩnh vực phát triển web backend sử dụng ${analysis.matched_skills[0]?.name || 'công nghệ hiện đại'}, sẵn sàng khám phá công nghệ mới và đóng góp vào đội ngũ kỹ thuật.`
+                `Là người điểm tĩnh, thích nghỉ nhanh với môi trường mới, không ngại khó khăn, quan tâm đến việc tìm kiếm giải pháp cho vấn đề. Với kiến thức cơ bản về ${uniqueMatchedSkills.slice(0, 3).map(s => s.name).join(', ')} cùng kinh nghiệm triển khai một số dự án web cá nhân, ứng viên mong muốn học hỏi và phát triển trong lĩnh vực phát triển web backend sử dụng ${uniqueMatchedSkills[0]?.name || 'công nghệ hiện đại'}, sẵn sàng khám phá công nghệ mới và đóng góp vào đội ngũ kỹ thuật.`
               }
               {analysis.match_percentage >= 60 && analysis.match_percentage < 80 &&
                 `Ứng viên có nền tảng tốt với ${analysis.matched_skills_count} kỹ năng phù hợp. Cần bổ sung thêm ${analysis.missing_skills_count} kỹ năng quan trọng để đạt mức độ phù hợp cao hơn với vị trí này.`
@@ -274,15 +273,13 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           <div className="sw-card strengths-card">
             <h4 className="sw-title">Điểm mạnh</h4>
             <ul className="sw-list">
-              {analysis.matched_skills && analysis.matched_skills.length > 0 ? (
-                analysis.matched_skills.slice(0, 5).map((skill, index) => (
+              {uniqueMatchedSkills.length > 0 ? (
+                uniqueMatchedSkills.slice(0, 5).map((skill, index) => (
                   <li key={index}>
-                    {skill.category === 'Programming' && `Kinh nghiệm thực tế vững chắc với ${skill.name} thông qua các dự án cá nhân phức tạp.`}
-                    {skill.category === 'Web Development' && `Khả năng phát triển RESTful API và bảo mật API.`}
-                    {skill.category === 'Database' && `Kinh nghiệm làm việc với ${skill.name} và tối ưu hóa truy vấn.`}
-                    {skill.category === 'DevOps' && `Sử dụng thành thạo ${skill.name} trong các dự án cá nhân.`}
-                    {skill.category === 'Soft Skills' && `Tinh thần học hỏi và sẵn sàng thích nghỉ cao.`}
-                    {!['Programming', 'Web Development', 'Database', 'DevOps', 'Soft Skills'].includes(skill.category) && `Kinh nghiệm triển khai dự án thực tế từ đầu đến cuối.`}
+                    {`${skill.name}`}
+                    {skill.importance && skill.importance >= 0.8 && ` — kỹ năng cốt lõi (${Math.round(skill.importance * 100)}% quan trọng)`}
+                    {skill.importance && skill.importance >= 0.5 && skill.importance < 0.8 && ` — kỹ năng quan trọng (${Math.round(skill.importance * 100)}% quan trọng)`}
+                    {(!skill.importance || skill.importance < 0.5) && ` — kỹ năng bổ sung hữu ích`}
                   </li>
                 ))
               ) : (
@@ -334,111 +331,18 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
         </div>
       </div>
 
-      {/* Recommended Learning Path */}
-      {analysis.match_percentage < 100 && (
-        <div className="learning-path-section">
-          <h3 className="section-title-main">
-            <span className="title-icon"><BookOpen size={20} color="#16a34a" /></span>
-            Recommended Learning Path
-          </h3>
-          <p className="section-description">
-            Lộ trình học tập được AI đề xuất dựa trên kỹ năng bạn cần bổ sung
-          </p>
-
-          <div className="learning-path-grid">
-            {(() => {
-              const allGaps = [
-                ...(analysis.skill_gaps?.critical || []),
-                ...(analysis.skill_gaps?.important || []),
-                ...(analysis.skill_gaps?.nice_to_have || [])
-              ];
-
-              if (allGaps.length > 0) {
-                return allGaps.slice(0, 6).map((skill, index) => (
-                  <div key={index} className="learning-card">
-                    <div className="learning-header">
-                      <span className="learning-icon">{getPriorityIcon(skill.importance)}</span>
-                      <h4 className="learning-skill">{skill.name}</h4>
-                    </div>
-                    <p className="learning-category">{skill.category}</p>
-                    <div className="learning-resources">
-                      <a href={`https://www.udemy.com/courses/search/?q=${encodeURIComponent(skill.name)}`}
-                         target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <GraduationCap size={14} /> Udemy Courses
-                      </a>
-                      <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(skill.name + ' tutorial')}`}
-                         target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <Tv size={14} /> YouTube Tutorials
-                      </a>
-                      <a href={`https://www.google.com/search?q=${encodeURIComponent(skill.name + ' documentation')}`}
-                         target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <Book size={14} /> Documentation
-                      </a>
-                    </div>
-                    <div className="learning-priority">
-                      {skill.importance && skill.importance >= 0.8 && (
-                        <span className="priority-badge critical">Ưu tiên cao</span>
-                      )}
-                      {skill.importance && skill.importance >= 0.5 && skill.importance < 0.8 && (
-                        <span className="priority-badge important">Ưu tiên trung bình</span>
-                      )}
-                      {skill.importance && skill.importance < 0.5 && (
-                        <span className="priority-badge nice">Nên học</span>
-                      )}
-                    </div>
-                  </div>
-                ));
-              } else {
-                return (
-                  <div className="learning-card generic">
-                    <div className="learning-header">
-                      <span className="learning-icon"><Lightbulb size={18} color="#f59e0b" /></span>
-                      <h4 className="learning-skill">Tiếp tục phát triển</h4>
-                    </div>
-                    <p className="learning-description">
-                      Tham gia các khóa học và dự án thực tế để nâng cao kỹ năng hiện có.
-                    </p>
-                    <div className="learning-resources">
-                      <a href="https://www.coursera.org/" target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <GraduationCap size={14} /> Coursera
-                      </a>
-                      <a href="https://www.udemy.com/" target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <GraduationCap size={14} /> Udemy
-                      </a>
-                      <a href="https://www.freecodecamp.org/" target="_blank" rel="noopener noreferrer" className="resource-link">
-                        <Monitor size={14} /> FreeCodeCamp
-                      </a>
-                    </div>
-                  </div>
-                );
-              }
-            })()}
-          </div>
-
-          {analysis.missing_skills_count > 0 && (
-            <div className="learning-summary">
-              <p>
-                <BarChart2 size={16} style={{ display: 'inline', marginRight: 4 }} />
-                Tổng quan: Bạn cần học thêm <strong>{analysis.missing_skills_count} kỹ năng</strong> để đạt mức độ phù hợp cao hơn.
-                Ước tính thời gian: <strong>{Math.ceil(analysis.missing_skills_count * 2)} - {Math.ceil(analysis.missing_skills_count * 4)} tuần</strong>.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Action Buttons */}
       <div className="action-buttons">
         {onStartInterview && (
           <button className="action-btn primary" onClick={onStartInterview}>
-            <Mic size={16} /> Start AI Interview
+            <Mic size={16} /> Bắt đầu phỏng vấn AI
           </button>
         )}
         <button className="action-btn secondary">
-          <BookOpen size={16} /> Get Learning Resources
+          <BookOpen size={16} /> Tài nguyên học tập
         </button>
         <button className="action-btn secondary">
-          <Download size={16} /> Download Report
+          <Download size={16} /> Tải xuống báo cáo
         </button>
       </div>
     </div>

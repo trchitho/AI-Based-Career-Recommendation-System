@@ -21,12 +21,12 @@ def test_backend_interview_api():
         response = requests.get(f"{BASE_URL}/api/interview/health", timeout=10)
         if response.status_code == 200:
             health_data = response.json()
-            print(f"✅ Health check: {health_data}")
+            print(f"[OK] Health check: {health_data}")
         else:
-            print(f"❌ Health check failed: {response.status_code}")
+            print(f"[ERR] Health check failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"❌ Health check error: {e}")
+        print(f"[ERR] Health check error: {e}")
         return False
     
     # Test job search
@@ -34,15 +34,15 @@ def test_backend_interview_api():
         response = requests.get(f"{BASE_URL}/api/interview/jobs/search?limit=5&random=true", timeout=10)
         if response.status_code == 200:
             jobs_data = response.json()
-            print(f"✅ Job search: Found {len(jobs_data.get('jobs', []))} jobs")
+            print(f"[OK] Job search: Found {len(jobs_data.get('jobs', []))} jobs")
             if jobs_data.get('jobs'):
                 sample_job = jobs_data['jobs'][0]
                 print(f"   Sample job: {sample_job.get('id')} - {sample_job.get('title')}")
         else:
-            print(f"❌ Job search failed: {response.status_code}")
+            print(f"[ERR] Job search failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"❌ Job search error: {e}")
+        print(f"[ERR] Job search error: {e}")
         return False
     
     # Test specific job info
@@ -50,11 +50,11 @@ def test_backend_interview_api():
         response = requests.get(f"{BASE_URL}/api/interview/jobs/15-1252.00", timeout=10)
         if response.status_code == 200:
             job_info = response.json()
-            print(f"✅ Job info: {job_info.get('title')} with {len(job_info.get('soft_skills', []))} soft skills")
+            print(f"[OK] Job info: {job_info.get('title')} with {len(job_info.get('soft_skills', []))} soft skills")
         else:
-            print(f"❌ Job info failed: {response.status_code}")
+            print(f"[ERR] Job info failed: {response.status_code}")
     except Exception as e:
-        print(f"⚠️ Job info error (may be expected): {e}")
+        print(f"[WARN] Job info error (may be expected): {e}")
     
     return True
 
@@ -73,11 +73,11 @@ def check_frontend_routes():
             response = requests.get(f"{FRONTEND_URL}{route}", timeout=5, allow_redirects=False)
             # Frontend routes may redirect to login, which is expected behavior
             if response.status_code in [200, 302, 401]:
-                print(f"✅ Route {route}: Accessible (status {response.status_code})")
+                print(f"[OK] Route {route}: Accessible (status {response.status_code})")
             else:
-                print(f"❌ Route {route}: Unexpected status {response.status_code}")
+                print(f"[ERR] Route {route}: Unexpected status {response.status_code}")
         except Exception as e:
-            print(f"⚠️ Route {route}: Connection error (frontend may not be running)")
+            print(f"[WARN] Route {route}: Connection error (frontend may not be running)")
 
 def verify_navigation_fixes():
     """Verify the specific navigation fixes mentioned in the context"""
@@ -90,18 +90,18 @@ def verify_navigation_fixes():
             
         # Check for correct "Xem thêm" navigation
         if "navigate('/interview/history')" in content:
-            print("✅ 'Xem thêm' button correctly navigates to /interview/history")
+            print("[OK] 'Xem thêm' button correctly navigates to /interview/history")
         else:
-            print("❌ 'Xem thêm' button navigation not found or incorrect")
+            print("[ERR] 'Xem thêm' button navigation not found or incorrect")
             
         # Check for correct "Phỏng vấn" navigation  
         if "navigate(`/interview/selection/${job.id}`)" in content:
-            print("✅ 'Phỏng vấn' button correctly navigates to /interview/selection/{jobId}")
+            print("[OK] 'Phỏng vấn' button correctly navigates to /interview/selection/{jobId}")
         else:
-            print("❌ 'Phỏng vấn' button navigation not found or incorrect")
+            print("[ERR] 'Phỏng vấn' button navigation not found or incorrect")
             
     except Exception as e:
-        print(f"❌ Error reading InterviewListPage.tsx: {e}")
+        print(f"[ERR] Error reading InterviewListPage.tsx: {e}")
     
     # Check dashboard interview card removal
     try:
@@ -110,12 +110,12 @@ def verify_navigation_fixes():
             
         # Check if InterviewActionCard is commented out
         if "// import InterviewActionCard" in content or "InterviewActionCard" not in content:
-            print("✅ Interview card removed from dashboard as requested")
+            print("[OK] Interview card removed from dashboard as requested")
         else:
-            print("❌ Interview card still present in dashboard")
+            print("[ERR] Interview card still present in dashboard")
             
     except Exception as e:
-        print(f"❌ Error reading DashboardPage.tsx: {e}")
+        print(f"[ERR] Error reading DashboardPage.tsx: {e}")
 
 def verify_routes_configuration():
     """Verify that all interview routes are properly configured"""
@@ -134,12 +134,12 @@ def verify_routes_configuration():
         
         for route in required_routes:
             if route in content:
-                print(f"✅ Route configured: {route}")
+                print(f"[OK] Route configured: {route}")
             else:
-                print(f"❌ Route missing: {route}")
+                print(f"[ERR] Route missing: {route}")
                 
     except Exception as e:
-        print(f"❌ Error reading App.tsx: {e}")
+        print(f"[ERR] Error reading App.tsx: {e}")
 
 def main():
     """Run all verification tests"""
@@ -160,7 +160,7 @@ def main():
     
     print("\n" + "=" * 60)
     if backend_ok:
-        print("✅ VERIFICATION COMPLETE: All critical fixes have been implemented")
+        print("[OK] VERIFICATION COMPLETE: All critical fixes have been implemented")
         print("\n📋 Summary of fixes verified:")
         print("   • 'Xem thêm' button now navigates to /interview/history")
         print("   • 'Phỏng vấn' button now navigates to /interview/selection/{jobId}")
@@ -168,7 +168,7 @@ def main():
         print("   • All interview routes properly configured")
         print("   • Backend API endpoints working")
     else:
-        print("❌ VERIFICATION FAILED: Some issues detected")
+        print("[ERR] VERIFICATION FAILED: Some issues detected")
         return 1
     
     return 0

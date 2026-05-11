@@ -49,7 +49,7 @@ async def lifespan(_: FastAPI):
     try:
         test_connection()
     except Exception as e:
-        print("⚠️  DB connection check failed:", repr(e))
+        print("[WARN]  DB connection check failed:", repr(e))
 
     # Best-effort lightweight migration for email verification columns
     try:
@@ -77,22 +77,245 @@ async def lifespan(_: FastAPI):
     except Exception as e:
         print("Skip email verification auto-migration:", repr(e))
 
+    # Auto-migrate course recommendation tables
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS core.course_catalog (
+                    id           SERIAL PRIMARY KEY,
+                    external_id  VARCHAR(255) UNIQUE NOT NULL,
+                    title        VARCHAR(500) NOT NULL,
+                    description  TEXT,
+                    url          VARCHAR(1000),
+                    platform     VARCHAR(50),
+                    instructor   VARCHAR(255),
+                    rating       FLOAT DEFAULT 0.0,
+                    num_reviews  INTEGER DEFAULT 0,
+                    price        FLOAT DEFAULT 0.0,
+                    is_free      BOOLEAN DEFAULT FALSE,
+                    level        VARCHAR(50),
+                    duration_hrs FLOAT,
+                    thumbnail    VARCHAR(1000),
+                    language     VARCHAR(20) DEFAULT 'en',
+                    tags         TEXT[] DEFAULT '{}',
+                    embedding    FLOAT[],
+                    is_embedded  BOOLEAN DEFAULT FALSE,
+                    created_at   TIMESTAMPTZ DEFAULT NOW(),
+                    updated_at   TIMESTAMPTZ DEFAULT NOW()
+                )
+            """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS core.course_skill_map (
+                    id               SERIAL PRIMARY KEY,
+                    course_id        INTEGER NOT NULL REFERENCES core.course_catalog(id) ON DELETE CASCADE,
+                    skill_name       VARCHAR(255) NOT NULL,
+                    similarity_score FLOAT NOT NULL,
+                    created_at       TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE(course_id, skill_name)
+                )
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS ix_csm_skill_score
+                ON core.course_skill_map(skill_name, similarity_score DESC)
+            """))
+            conn.commit()
+        print("✅ Course tables ready")
+    except Exception as e:
+        print("Skip course auto-migration:", repr(e))
+
+    # Auto-seed + embed courses in background on startup (gated by env flag)
+    # Set RUN_COURSE_PIPELINE_ON_STARTUP=true to enable (disabled by default in production)
+    if _bool_env("RUN_COURSE_PIPELINE_ON_STARTUP", default=False):
+        import threading
+
+        def _course_startup_pipeline():
+            """
+            Runs once in background thread after server starts:
+            1. Seed static courses (idempotent — skips already-inserted rows)
+            2. Embed any un-embedded courses with SBERT
+            3. Build skill ↔ course similarity map
+            4. Sync to Neo4j (if available)
+            """
+            try:
+                from sqlalchemy.orm import sessionmaker as _sm
+                _Session = _sm(bind=engine, autocommit=False, autoflush=False)
+                db = _Session()
+                try:
+                    from app.modules.courses import service as _cs
+                    from app.modules.courses.models import CourseCatalog as _CC
+
+                    # Step 1: Seed (fast, skips duplicates)
+                    seed_result = _cs.seed_courses(db)
+                    print(f"📚 Courses seed: {seed_result['inserted']} inserted, {seed_result['skipped']} skipped")
+
+                    # Step 2: Embed only if there are un-embedded courses
+                    need_embed = db.query(_CC).filter(_CC.is_embedded == False).count()
+                    if need_embed > 0:
+                        print(f"🔄 Embedding {need_embed} courses with SBERT…")
+                        embed_result = _cs.run_embedding_pipeline(db)
+                        print(f"✅ Embedded {embed_result['embedded']}/{embed_result['total']} courses")
+                    else:
+                        print("✅ All courses already embedded")
+
+                    # Step 3: Build skill map if not yet populated
+                    from app.modules.courses.models import CourseSkillMap as _CSM
+                    map_count = db.query(_CSM).count()
+                    if map_count == 0:
+                        print("🗺️  Building skill-course similarity map…")
+                        map_result = _cs.build_skill_course_map(db)
+                        print(f"✅ Skill map: {map_result['mapped']} pairs")
+                    else:
+                        print(f"✅ Skill map already exists ({map_count} pairs)")
+
+                    # Step 4: Web crawl (Coursera only on startup — reliable, no auth)
+                    try:
+                        from app.modules.courses.crawler import run_crawl
+                        # Only crawl if we have few/no web-sourced courses already
+                        existing_web = db.query(_CC).filter(
+                            _CC.external_id.like("coursera-%")
+                        ).count()
+                        if existing_web < 30:
+                            print("🌐 Crawling Coursera for fresh course data…")
+                            crawl_kws = [
+                                "Python", "Machine Learning", "Data Science",
+                                "SQL", "React", "Docker", "AWS",
+                            ]
+                            crawl_result = run_crawl(db, keywords=crawl_kws, platforms=["coursera"], page_size=10)
+                            print(f"🌐 Crawl: {crawl_result['inserted']} new, {crawl_result['updated']} updated")
+                            # Re-embed and rebuild map if new data arrived
+                            if crawl_result["inserted"] > 0:
+                                _cs.run_embedding_pipeline(db)
+                                _cs.build_skill_course_map(db)
+                        else:
+                            print(f"✅ Coursera already crawled ({existing_web} courses), skipping startup crawl")
+                    except Exception as crawl_err:
+                        print(f"⚠️  Startup crawl skipped: {crawl_err}")
+
+                    # Step 5: Sync to Neo4j (best-effort)
+                    try:
+                        from app.modules.courses.neo4j_sync import sync_courses_to_neo4j
+                        neo_result = sync_courses_to_neo4j(db)
+                        print(f"✅ Neo4j synced: {neo_result['synced_courses']} courses, {neo_result['synced_mappings']} mappings")
+                    except Exception as neo_err:
+                        print(f"⚠️  Neo4j sync skipped: {neo_err}")
+
+                finally:
+                    db.close()
+            except Exception as e:
+                print(f"⚠️  Course startup pipeline error: {e}")
+
+        # Delay 3 s to let the server finish booting before heavy work
+        def _delayed_start():
+            import time
+            time.sleep(3)
+            _course_startup_pipeline()
+
+        threading.Thread(target=_delayed_start, daemon=True, name="course-pipeline").start()
+        print("🚀 Course pipeline scheduled (runs in background after 3 s)")
+    else:
+        print("ℹ️  Course startup pipeline disabled (set RUN_COURSE_PIPELINE_ON_STARTUP=true to enable)")
+    # Auto-migration: tạo bảng interview.job_descriptions nếu chưa có
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS interview.job_descriptions (
+                    id          SERIAL PRIMARY KEY,
+                    user_id     INTEGER NOT NULL,
+                    career_id   VARCHAR,
+                    raw_text    TEXT NOT NULL,
+                    extracted_data JSONB,
+                    source      VARCHAR DEFAULT 'manual',
+                    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_jd_user_id ON interview.job_descriptions(user_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_jd_career_id ON interview.job_descriptions(career_id)"))
+            conn.commit()
+            print("✅ interview.job_descriptions table ready")
+    except Exception as e:
+        print("Skip job_descriptions migration:", repr(e))
+
+    # Auto-migration: thêm cột question_count và question_distribution vào interview_sessions
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE interview.interview_sessions ADD COLUMN IF NOT EXISTS question_count INTEGER DEFAULT 5"))
+            conn.commit()
+            print("✅ interview_sessions.question_count ready")
+    except Exception as e:
+        print("Skip question_count migration:", repr(e))
+
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE interview.interview_sessions ADD COLUMN IF NOT EXISTS question_distribution JSONB"))
+            conn.commit()
+            print("✅ interview_sessions.question_distribution ready")
+    except Exception as e:
+        print("Skip question_distribution migration:", repr(e))
+    # Start company update scheduler
+    try:
+        from app.modules.companies.scheduler import start_scheduler, stop_scheduler
+        start_scheduler()
+        print("[OK] Company update scheduler started")
+    except Exception as e:
+        print(f"[WARN]  Company scheduler failed to start: {e}")
+
+    # Session reminder job — chay moi 5 phut, gui WS truoc 30 phut
+    try:
+        from app.modules.companies.scheduler import _scheduler
+        import asyncio as _asyncio
+
+        def _reminder_sync():
+            loop = _asyncio.new_event_loop()
+            _asyncio.set_event_loop(loop)
+            try:
+                from app.modules.chat.schedule_routes import _send_session_reminders
+                loop.run_until_complete(_send_session_reminders())
+            finally:
+                loop.close()
+
+        if _scheduler and _scheduler.running:
+            from apscheduler.triggers.interval import IntervalTrigger as _IT
+            _scheduler.add_job(
+                _reminder_sync,
+                trigger=_IT(minutes=5),
+                id="session_reminder",
+                name="Session reminders (30min before)",
+                replace_existing=True,
+            )
+            print("[OK] Session reminder job registered (every 5min)")
+    except Exception as e:
+        print(f"[WARN]  Session reminder job failed: {e}")
+
     yield
+
+    # Shutdown scheduler on app stop
+    try:
+        from app.modules.companies.scheduler import stop_scheduler
+        stop_scheduler()
+    except Exception:
+        pass
 
 
 def create_app() -> FastAPI:
-    # Initialize error tracking first
+    import sys
+    if hasattr(sys.stdout, 'reconfigure'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except Exception:
+            pass
     try:
-        print("✅ Error tracking initialized")
+        print("OK Error tracking initialized")
     except Exception as e:
-        print(f"⚠️ Error tracking initialization failed: {e}")
+        print(f"WARN Error tracking initialization failed: {e}")
 
+    from app.core.serialization import ORJSONResponse
     app = FastAPI(
         title="NCKH API",
         version=os.getenv("API_VERSION", "0.1.0"),
         docs_url=os.getenv("DOCS_URL", "/docs"),
         redoc_url=os.getenv("REDOC_URL", "/redoc"),
         lifespan=lifespan,
+        default_response_class=ORJSONResponse,   # orjson for all JSON responses
     )
 
     # CORS - Fix for payment issues
@@ -116,18 +339,30 @@ def create_app() -> FastAPI:
                 set_performance_monitor(self)
 
         app.add_middleware(RegisteredPerformanceMonitoringMiddleware)
-        print("✅ Performance monitoring enabled")
+        print("[OK] Performance monitoring enabled")
     except Exception as e:
-        print(f"⚠️ Performance monitoring disabled: {e}")
+        print(f"[WARN] Performance monitoring disabled: {e}")
 
     # Rate limiting middleware
     try:
         from .core.rate_limiter import RateLimitMiddleware
 
         app.add_middleware(RateLimitMiddleware, default_limit=100, default_window=60)
-        print("✅ Rate limiting enabled")
+        print("[OK] Rate limiting enabled")
     except Exception as e:
-        print(f"⚠️ Rate limiting disabled: {e}")
+        print(f"[WARN] Rate limiting disabled: {e}")
+
+    # Ensure UTF-8 charset in responses (fix Vietnamese encoding)
+    @app.middleware("http")
+    async def ensure_utf8_response(request: Request, call_next):
+        response = await call_next(request)
+        
+        # Ensure UTF-8 charset for JSON responses
+        content_type = response.headers.get("content-type", "")
+        if content_type.startswith("application/json") and "charset" not in content_type:
+            response.headers["content-type"] = "application/json; charset=utf-8"
+        
+        return response
 
     # DB session per-request
     @app.middleware("http")
@@ -205,16 +440,16 @@ def create_app() -> FastAPI:
 
         app.include_router(bff_router.router)
     except Exception as e:
-        print("ℹ️  Skip BFF router:", repr(e))
+        print("[INFO]  Skip BFF router:", repr(e))
 
     # BFF Career API (career details from 5 tables)
     try:
         from .api import bff_career
 
         app.include_router(bff_career.router)
-        print("✅ BFF Career API")
+        print("[OK] BFF Career API")
     except Exception as e:
-        print("❌ BFF Career API:", str(e)[:50])
+        print("[ERR] BFF Career API:", str(e)[:50])
 
     # Auth / Users
     from .modules.users.router_auth import router as auth_router
@@ -240,17 +475,17 @@ def create_app() -> FastAPI:
     try:
         from .modules.assessments import routes_assessments as assess_router
         app.include_router(assess_router.router, prefix="/api/assessments", tags=["assessments"])
-        print("✅ Assessments router registered")
+        print("[OK] Assessments router registered")
     except Exception as e:
-        print("ℹ️  Skip assessments router:", repr(e))
+        print("[INFO]  Skip assessments router:", repr(e))
     
     # Gamification (optional - can be enabled after assessments work)
     try:
         from .modules.assessments import routes_gamification as gamification_router
         app.include_router(gamification_router.router, prefix="/api/assessments", tags=["gamification"])
-        print("✅ Gamification router registered")
+        print("[OK] Gamification router registered")
     except Exception as e:
-        print("ℹ️  Skip gamification router:", repr(e))
+        print("[INFO]  Skip gamification router:", repr(e))
 
     # Admin (dashboard, careers, questions, skills)
     try:
@@ -397,13 +632,64 @@ def create_app() -> FastAPI:
     # Skill Gap Analysis
     try:
         from .modules.skill_gap import routes as skill_gap_router
-
         app.include_router(skill_gap_router.router, prefix="/api/skill-gap", tags=["skill-gap"])
-        print("✅ Skill Gap Analysis router registered")
+        print("[OK] Skill Gap Analysis router registered")
     except Exception as e:
         print("??  Skip skill gap router:", repr(e))
+
+    # Skill Gap SSE (streaming AI responses)
+    try:
+        from .modules.skill_gap.sse_routes import router as sse_router
+        app.include_router(sse_router)
+        print("[OK] Skill Gap SSE router registered")
+    except Exception as e:
+        print("??  Skip skill gap SSE router:", repr(e))
+
+    # Companies (job listings by career group)
+    try:
+        from .modules.companies.routes import router as companies_router
+        app.include_router(companies_router)
+        print("[OK] Companies router registered")
+    except Exception as e:
+        print("??  Skip companies router:", repr(e))
+
+    # Mentor Matching
+    try:
+        from .modules.mentor_matching import routes as mentor_matching_router
+
+        app.include_router(mentor_matching_router.router)
+        print("[OK] Mentor Matching router registered")
+    except Exception as e:
+        print("??  Skip mentor matching router:", repr(e))
+
+    # Chat (real-time messaging)
+    try:
+        from .modules.chat import routes as chat_router
+
+        app.include_router(chat_router.router)
+        print("[OK] Chat router registered")
+    except Exception as e:
+        print("??  Skip chat router:", repr(e))
+
+    # Schedule (mentor session booking)
+    try:
+        from .modules.chat import schedule_routes as schedule_router
+
+        app.include_router(schedule_router.router)
+        print("[OK] Schedule router registered")
+    except Exception as e:
+        print("??  Skip schedule router:", repr(e))
     
-    # Career
+    # Career Groups & Levels (NEW)
+    try:
+        from .modules.careers.routes import router as career_groups_router
+
+        app.include_router(career_groups_router, prefix="/api/career-system", tags=["career-groups"])
+        print("✅ Career Groups & Levels router registered")
+    except Exception as e:
+        print("??  Skip career groups router:", repr(e))
+
+    # Career Trait Evidence (EXISTING)
     try:
         from .modules.careers import routes_trait_evidence as career_router
 
@@ -424,18 +710,54 @@ def create_app() -> FastAPI:
         from .modules.interview import routes as interview_router
 
         app.include_router(interview_router.router, prefix="/api/interview", tags=["interview"])
-        print("✅ AI Mock Interview API")
+        print("[OK] AI Mock Interview API")
     except Exception as e:
-        print("❌ AI Mock Interview API:", str(e)[:50])
+        print("[ERR] AI Mock Interview API:", str(e)[:50])
+
+    # Voice Interview API Routes
+    try:
+        from .api import voice_interview as voice_interview_router
+
+        app.include_router(voice_interview_router.router, tags=["voice-interview"])
+        print("✅ Voice Interview API")
+    except Exception as e:
+        print("❌ Voice Interview API:", str(e)[:50])
+
+    # Voice Interview Streaming API Routes
+    try:
+        from .api import voice_interview_streaming as voice_streaming_router
+
+        app.include_router(voice_streaming_router.router, tags=["voice-interview-streaming"])
+        print("✅ Voice Interview Streaming API")
+    except Exception as e:
+        print("❌ Voice Interview Streaming API:", str(e)[:50])
+
+    # Voice Preferences API Routes
+    try:
+        from .api import voice_preferences as voice_preferences_router
+
+        app.include_router(voice_preferences_router.router, tags=["voice-preferences"])
+        print("✅ Voice Preferences API")
+    except Exception as e:
+        print("❌ Voice Preferences API:", str(e)[:50])
 
     # NLP — PB32 essay analysis, PB33 career embeddings, PB34 pgvector search
     try:
         from .modules.nlp import routes_nlp as nlp_router
 
         app.include_router(nlp_router.router, prefix="/api/nlp", tags=["nlp"])
-        print("✅ NLP router registered at /api/nlp")
+        print("[OK] NLP router registered at /api/nlp")
     except Exception as e:
         print("??  Skip NLP router:", repr(e))
+
+    # Course Recommendation — Embedding + Neo4j (Cap2)
+    try:
+        from .modules.courses.router import router as courses_router
+
+        app.include_router(courses_router, prefix="/api/courses", tags=["courses"])
+        print("✅ Course Recommendation API registered at /api/courses")
+    except Exception as e:
+        print("❌ Course Recommendation API:", str(e)[:80])
 
     # CV Documents admin endpoint (direct registration - guaranteed)
     from fastapi import Depends as _Depends

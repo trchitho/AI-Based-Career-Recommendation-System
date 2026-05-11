@@ -126,12 +126,12 @@ const AnomalyDetectionPage = () => {
   const formatDate = (dateStr: string) => new Date(dateStr).toLocaleString("en-US");
 
   return (
-    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
+    <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             Anomaly Detection
@@ -162,7 +162,7 @@ const AnomalyDetectionPage = () => {
       </div>
 
       {detectMsg && (
-        <div className={`p-4 rounded-lg text-sm font-medium ${detectMsg.type === "success" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : detectMsg.type === "error" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"}`}>
+        <div className={`p-4 rounded-lg text-sm font-medium ${detectMsg.type === "success" ? "bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200" : detectMsg.type === "error" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"}`}>
           {detectMsg.text}
         </div>
       )}
@@ -261,7 +261,7 @@ const AnomalyDetectionPage = () => {
                         {getTypeLabel(anomaly.type)}
                       </span>
                       {anomaly.resolved && (
-                        <span className="px-2 py-0.5 text-xs font-medium rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                        <span className="px-2 py-0.5 text-xs font-medium rounded bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-300">
                           Resolved
                         </span>
                       )}
@@ -279,7 +279,7 @@ const AnomalyDetectionPage = () => {
                   {!anomaly.resolved && (
                     <button
                       onClick={() => resolveAnomaly(anomaly.id)}
-                      className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                      className="px-3 py-1 text-sm bg-indigo-800 text-white rounded hover:bg-indigo-900"
                     >
                       Mark Resolved
                     </button>

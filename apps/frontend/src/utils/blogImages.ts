@@ -111,13 +111,13 @@ export const getBlogGradient = (category?: string): string => {
     const gradients: Record<string, string> = {
         'career-advice': 'from-blue-400 to-purple-500',
         'career-development': 'from-emerald-400 to-blue-500',
-        'career-tips': 'from-green-400 to-teal-500',
-        'interview-tips': 'from-green-400 to-blue-500',
+        'career-tips': 'from-indigo-600 to-violet-600',
+        'interview-tips': 'from-indigo-600 to-blue-500',
         'resume-writing': 'from-purple-400 to-pink-500',
         'workplace-culture': 'from-yellow-400 to-orange-500',
         'industry-insights': 'from-indigo-400 to-purple-500',
-        'job-search': 'from-teal-400 to-blue-500',
-        'skill-development': 'from-emerald-400 to-teal-500',
+        'job-search': 'from-violet-500 to-blue-500',
+        'skill-development': 'from-emerald-400 to-violet-600',
         'technology': 'from-cyan-400 to-blue-500',
         'leadership': 'from-orange-400 to-red-500',
         'remote-work': 'from-pink-400 to-purple-500',
@@ -125,14 +125,14 @@ export const getBlogGradient = (category?: string): string => {
     };
 
     if (!category) {
-        return 'from-green-400 to-blue-500';
+        return 'from-indigo-600 to-blue-500';
     }
 
     const normalizedCategory = category.toLowerCase().trim();
     const dashCategory = normalizedCategory.replace(/\s+/g, '-');
 
     // Try dash format first, then original format
-    return gradients[dashCategory] || gradients[normalizedCategory] || 'from-green-400 to-blue-500';
+    return gradients[dashCategory] || gradients[normalizedCategory] || 'from-indigo-600 to-blue-500';
 };
 
 /**

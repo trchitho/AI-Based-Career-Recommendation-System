@@ -215,7 +215,7 @@ def get_questions(
         .scalars()
         .all()
     )
-    out = [q.to_client() | {"test_type": test_type} for q in rows]
+    out = [q.to_client(lang=lang or "vi") | {"test_type": test_type} for q in rows]
 
     if shuffle:
         rng = random.Random(seed)
@@ -1014,20 +1014,11 @@ def save_essay(
 
         resolved_prompt_id = pid
 
-    # 4) Nếu FE **không** gửi prompt_id → random theo lang (giữ logic cũ)
+    # 4) Nếu FE **không** gửi prompt_id → random toàn bảng (tất cả prompts đều bilingual)
     if resolved_prompt_id is None:
         prompt_obj = None
         try:
-            q = session.query(EssayPrompt)
-
-            # ưu tiên random trong đúng lang
-            q_lang = q.filter(EssayPrompt.lang == effective_lang)
-            prompt_obj = q_lang.order_by(func.random()).first()
-
-            if not prompt_obj:
-                # không có cùng lang -> random toàn bảng
-                prompt_obj = q.order_by(func.random()).first()
-
+            prompt_obj = session.query(EssayPrompt).order_by(func.random()).first()
             if prompt_obj:
                 resolved_prompt_id = int(prompt_obj.id)
         except Exception as e:
@@ -1212,7 +1203,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
         try:
             rec_query = text(
                 f"""
-                SELECT c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vn, c.short_desc_en
+                SELECT c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vi, c.short_desc_en
                 FROM core.careers c
                 JOIN core.career_interests ci ON c.onet_code = ci.onet_code
                 WHERE ci.{interest_col} IS NOT NULL
@@ -1249,7 +1240,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
                     Career.slug,
                     Career.title_vi,
                     Career.title_en,
-                    Career.short_desc_vn,
+                    Career.short_desc_vi,
                     Career.short_desc_en,
                 )
                 .order_by(func.random())

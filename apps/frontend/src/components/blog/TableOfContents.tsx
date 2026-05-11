@@ -57,7 +57,7 @@ const TableOfContents = ({ content }: TableOfContentsProps) => {
     return (
         <nav className="sticky top-24 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-lg">
             <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
                 </svg>
                 Table of Contents
@@ -69,10 +69,10 @@ const TableOfContents = ({ content }: TableOfContentsProps) => {
                         style={{ paddingLeft: `${(heading.level - 1) * 12}px` }}
                     >
                         <a
-                            href={`#${heading.id}`}
+                            href={`${heading.id}`}
                             className={`block text-sm py-1.5 px-3 rounded-lg transition-all ${activeId === heading.id
-                                ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-semibold border-l-2 border-green-600'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                                ? 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-800 dark:text-indigo-400 font-semibold border-l-2 border-indigo-700'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-indigo-800 dark:hover:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                                 }`}
                             onClick={(e) => {
                                 e.preventDefault();

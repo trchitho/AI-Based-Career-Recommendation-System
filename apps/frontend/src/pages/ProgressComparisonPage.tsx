@@ -5,7 +5,7 @@ import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useSubscription } from '../hooks/useSubscription';
 import { assessmentService } from '../services/assessmentService';
 import api from '../lib/api';
-import '../styles/progress-comparison.css';
+/* progress-comparison.css removed — styles migrated to Tailwind/inline */
 
 interface AssessmentHistory {
   id: number;
@@ -127,7 +127,7 @@ const CareerTooltip: React.FC<{ career: CareerRecommendation; children: React.Re
             <p className="text-gray-600 dark:text-gray-400 text-xs mb-3 line-clamp-3">{career.career_description || 'No description available'}</p>
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">Match Score</span>
-              <span className="font-bold text-green-600">{career.score.toFixed(1)}%</span>
+              <span className="font-bold text-indigo-800">{career.score.toFixed(1)}%</span>
             </div>
             <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">Click to view details →</div>
           </div>
@@ -330,7 +330,7 @@ const ProgressComparisonPage: React.FC = () => {
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
               <div
-                className={`h-2 rounded-full ${diff.isPositive ? 'bg-green-500' : diff.isNegative ? 'bg-red-500' : 'bg-blue-500'}`}
+                className={`h-2 rounded-full ${diff.isPositive ? 'bg-indigo-700' : diff.isNegative ? 'bg-red-500' : 'bg-blue-500'}`}
                 style={{ width: animateScores ? `${Math.min(normalizedNew, 100)}%` : '0%', transition: 'width 1.5s ease-out 0.3s' }}
               ></div>
             </div>
@@ -338,7 +338,7 @@ const ProgressComparisonPage: React.FC = () => {
         </div>
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
           <span className="text-sm text-gray-600 dark:text-gray-400">Change</span>
-          <span className={`font-semibold flex items-center gap-1 ${diff.isPositive ? 'text-green-600' : diff.isNegative ? 'text-red-600' : 'text-gray-600'}`}>
+          <span className={`font-semibold flex items-center gap-1 ${diff.isPositive ? 'text-indigo-800' : diff.isNegative ? 'text-red-600' : 'text-gray-600'}`}>
             {diff.isPositive && '↗'}{diff.isNegative && '↘'}{!diff.isPositive && !diff.isNegative && '→'}
             {diff.isPositive ? '+' : ''}{diff.value.toFixed(0)}%
           </span>
@@ -405,7 +405,7 @@ const ProgressComparisonPage: React.FC = () => {
                     <div className="text-sm text-gray-500">Time Gap</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-indigo-800">
                       {(comparisonData.first.bigFiveScores && comparisonData.second.bigFiveScores ? 5 : 0) + (comparisonData.first.riasecScores && comparisonData.second.riasecScores ? 6 : 0)}
                     </div>
                     <div className="text-sm text-gray-500">Metrics Compared</div>
@@ -439,11 +439,11 @@ const ProgressComparisonPage: React.FC = () => {
               {comparisonData.first.riasecScores && comparisonData.second.riasecScores && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    <div className="w-8 h-8 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                     </div>
                     RIASEC Comparison
-                    <span className="text-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">6 metrics</span>
+                    <span className="text-sm bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 px-2 py-1 rounded-full">6 metrics</span>
                   </h2>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {renderScoreComparison('Realistic', comparisonData.first.riasecScores.realistic, comparisonData.second.riasecScores.realistic)}
@@ -488,7 +488,7 @@ const ProgressComparisonPage: React.FC = () => {
                                 <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-medium whitespace-nowrap overflow-hidden text-ellipsis">
                                   {career.career_title}
                                 </span>
-                                <span className="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
+                                <span className="text-xs font-bold text-indigo-800 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
                               </Link>
                             </CareerTooltip>
                           ))
@@ -503,7 +503,7 @@ const ProgressComparisonPage: React.FC = () => {
                     {/* After */}
                     <div className="flex flex-col">
                       <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-5 flex items-center justify-center gap-2 pb-3 border-b border-gray-200 dark:border-gray-700">
-                        <span className="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                        <span className="w-2.5 h-2.5 bg-indigo-700 rounded-full"></span>
                         After ({comparisonData.second.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
                       </h3>
                       <div className="flex flex-col gap-4 flex-1">
@@ -517,24 +517,24 @@ const ProgressComparisonPage: React.FC = () => {
                               <CareerTooltip key={career.career_id} career={career}>
                                 <Link
                                   to={`/careers/${career.career_slug || career.career_id}`}
-                                  className="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group border border-transparent hover:border-green-200 dark:hover:border-green-800"
+                                  className="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all duration-200 group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-900"
                                 >
-                                  <span className="w-6 h-6 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                  <span className="w-6 h-6 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                                     {idx + 1}
                                   </span>
-                                  <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                                  <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors font-medium whitespace-nowrap overflow-hidden text-ellipsis">
                                     {career.career_title}
                                   </span>
                                   {!wasInPrevious && (
                                     <span className="px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-[10px] font-semibold rounded flex-shrink-0">New</span>
                                   )}
                                   {rankChange !== null && rankChange > 0 && (
-                                    <span className="text-green-600 text-[10px] font-bold flex-shrink-0">↑{rankChange}</span>
+                                    <span className="text-indigo-800 text-[10px] font-bold flex-shrink-0">↑{rankChange}</span>
                                   )}
                                   {rankChange !== null && rankChange < 0 && (
                                     <span className="text-red-600 text-[10px] font-bold flex-shrink-0">↓{Math.abs(rankChange)}</span>
                                   )}
-                                  <span className="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
+                                  <span className="text-xs font-bold text-indigo-800 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
                                 </Link>
                               </CareerTooltip>
                             );
@@ -560,13 +560,13 @@ const ProgressComparisonPage: React.FC = () => {
                 {/* Dynamic insights */}
                 <div className="space-y-4 mb-6">
                   {summaryMessages.improved.length > 0 && (
-                    <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
-                      <h4 className="font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-2">
+                    <div className="bg-indigo-50 dark:bg-indigo-950/20 rounded-xl p-4 border border-indigo-200 dark:border-indigo-800">
+                      <h4 className="font-semibold text-indigo-900 dark:text-indigo-400 mb-2 flex items-center gap-2">
                         <span>↗</span> Areas of Improvement ({summaryMessages.improved.length})
                       </h4>
                       <ul className="space-y-2">
                         {summaryMessages.improved.slice(0, 5).map((msg, idx) => (
-                          <li key={idx} className="text-sm text-green-600 dark:text-green-300 flex items-start gap-2">
+                          <li key={idx} className="text-sm text-indigo-800 dark:text-indigo-300 flex items-start gap-2">
                             <span className="mt-1">•</span>
                             <span>{msg}</span>
                           </li>
@@ -613,7 +613,7 @@ const ProgressComparisonPage: React.FC = () => {
 
                 {/* Legend */}
                 <div className="flex flex-wrap gap-3 mb-6">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm rounded-full">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 text-sm rounded-full">
                     <span>↗</span> Improved
                   </div>
                   <div className="flex items-center gap-2 px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm rounded-full">

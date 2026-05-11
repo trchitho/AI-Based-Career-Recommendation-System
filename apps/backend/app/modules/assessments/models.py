@@ -21,23 +21,33 @@ class AssessmentQuestion(Base):
     __tablename__ = "assessment_questions"
     __table_args__ = {"schema": "core"}
 
-    id = Column(BigInteger, primary_key=True)
-    form_id = Column(BigInteger)
-    question_no = Column(Integer)
-    question_key = Column(Text)
-    prompt_en = Column(Text, nullable=True)
-    prompt_vi = Column(Text, nullable=True)
-    options_json = Column(JSONB)
+    id            = Column(BigInteger, primary_key=True)
+    form_id       = Column(BigInteger)
+    question_no   = Column(Integer)
+    question_key  = Column(Text)
+    prompt_en     = Column(Text, nullable=False)
+    prompt_vi     = Column(Text, nullable=False)
+    options_json  = Column(JSONB)
     reverse_score = Column(Boolean, default=False)
-    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    created_at    = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
-    def to_client(self) -> dict:
+    def get_prompt(self, lang: str = "vi") -> str:
+        return self.prompt_vi if lang == "vi" else self.prompt_en
+
+    def to_client(self, lang: str = "vi") -> dict:
         opts_src = self.options_json or {}
-        opts = None
-        if isinstance(opts_src, list):
+        # Chọn options theo lang
+        if isinstance(opts_src, dict):
+            if lang == "vi" and "options_vi" in opts_src:
+                opts = opts_src["options_vi"]
+            elif "options" in opts_src:
+                opts = opts_src["options"]
+            else:
+                opts = None
+        elif isinstance(opts_src, list):
             opts = opts_src
-        elif isinstance(opts_src, dict) and "options" in opts_src:
-            opts = opts_src["options"]
+        else:
+            opts = None
 
         qtype = "MULTIPLE_CHOICE" if opts else "SCALE"
         
@@ -45,13 +55,14 @@ class AssessmentQuestion(Base):
         question_text = self.prompt_vi or self.prompt_en or ""
 
         return {
-            "id": str(self.id),
-            "test_type": None,  # fill ở service
-            "question_text": question_text,
+            "id":            str(self.id),
+            "test_type":     None,   # fill ở service
+            "question_text": self.get_prompt(lang),
             "question_type": qtype,
-            "options": opts,
-            "dimension": self.question_key,
-            "order_index": self.question_no or 0,
+            "options":       opts,
+            "dimension":     self.question_key,
+            "order_index":   self.question_no or 0,
+            "reverse_score": self.reverse_score,
         }
 
 

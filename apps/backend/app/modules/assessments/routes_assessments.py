@@ -20,7 +20,7 @@ from .service import (
     get_questions,
     save_assessment,
     save_essay,
-    save_feedback,  # ✅ thêm
+    save_feedback,  # [OK] thêm
 )
 
 # KHÔNG thêm "/api" ở đây vì main.py đã prefix="/api/assessments"
@@ -159,8 +159,13 @@ class EssaySubmitIn(BaseModel):
 
 class EssayPromptOut(BaseModel):
     id: int
-    title: str
-    prompt_text: str
+    title_en: str
+    title_vi: str
+    prompt_text_en: str
+    prompt_text_vi: str
+    # Convenience fields: trả về đúng lang FE yêu cầu
+    title: str        # = title_vi hoặc title_en tuỳ lang param
+    prompt_text: str  # = prompt_text_vi hoặc prompt_text_en tuỳ lang param
     lang: str
 
 
@@ -355,16 +360,10 @@ def api_get_essay_prompt(
 ):
     """
     Trả về 1 prompt essay cho FE.
-
-    - Nếu có lang: random 1 prompt đúng lang đó; nếu không có thì random toàn bảng.
-    - Nếu không truyền lang: random toàn bộ prompts.
+    - Random 1 prompt từ bảng (tất cả đều có cả VI + EN).
+    - Trả về đủ cả 4 cột bilingual + convenience fields (title, prompt_text) theo lang.
     """
-    if lang:
-        prompt = db.query(EssayPrompt).filter(EssayPrompt.lang == lang).order_by(func.random()).first()
-        if prompt is None:
-            prompt = db.query(EssayPrompt).order_by(func.random()).first()
-    else:
-        prompt = db.query(EssayPrompt).order_by(func.random()).first()
+    prompt = db.query(EssayPrompt).order_by(func.random()).first()
 
     if prompt is None:
         raise HTTPException(
@@ -372,11 +371,17 @@ def api_get_essay_prompt(
             detail="No essay prompt configured",
         )
 
+    effective_lang = lang if lang in ("vi", "en") else "vi"
+
     return EssayPromptOut(
         id=int(prompt.id),
-        title=prompt.title,
-        prompt_text=prompt.prompt_text,
-        lang=prompt.lang or "vi",
+        title_en=prompt.title_en,
+        title_vi=prompt.title_vi,
+        prompt_text_en=prompt.prompt_text_en,
+        prompt_text_vi=prompt.prompt_text_vi,
+        title=prompt.get_title(effective_lang),
+        prompt_text=prompt.get_prompt_text(effective_lang),
+        lang=effective_lang,
     )
 
 

@@ -1,0 +1,53 @@
+-- Table: core.assessment_questions
+
+-- DROP TABLE IF EXISTS core.assessment_questions;
+
+CREATE TABLE IF NOT EXISTS core.assessment_questions
+(
+    id bigint NOT NULL DEFAULT nextval('core.assessment_questions_id_seq'::regclass),
+    form_id bigint,
+    question_no integer,
+    question_key text COLLATE pg_catalog."default",
+    prompt text COLLATE pg_catalog."default" NOT NULL,
+    options_json jsonb,
+    reverse_score boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT assessment_questions_pkey PRIMARY KEY (id),
+    CONSTRAINT assessment_questions_form_id_fkey FOREIGN KEY (form_id)
+        REFERENCES core.assessment_forms (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS core.assessment_questions
+    OWNER to postgres;
+-- Index: idx_core_assessment_questions_form
+
+-- DROP INDEX IF EXISTS core.idx_core_assessment_questions_form;
+
+CREATE INDEX IF NOT EXISTS idx_core_assessment_questions_form
+    ON core.assessment_questions USING btree
+    (form_id ASC NULLS LAST)
+    TABLESPACE pg_default;
+
+
+-- Table: core.essay_prompts
+
+-- DROP TABLE IF EXISTS core.essay_prompts;
+
+CREATE TABLE IF NOT EXISTS core.essay_prompts
+(
+    id bigint NOT NULL DEFAULT nextval('core.essay_prompts_id_seq'::regclass),
+    title text COLLATE pg_catalog."default" NOT NULL,
+    prompt_text text COLLATE pg_catalog."default" NOT NULL,
+    lang text COLLATE pg_catalog."default" DEFAULT 'vi'::text,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT essay_prompts_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS core.essay_prompts
+    OWNER to postgres;

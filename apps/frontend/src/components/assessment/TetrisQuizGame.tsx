@@ -47,18 +47,18 @@ const playLineClearSound = () => {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
-    
+
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    
+
     // Create a satisfying "pop" sound with rising pitch
     oscillator.type = 'square';
     oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
     oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
-    
+
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-    
+
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.15);
   } catch (e) {
@@ -69,26 +69,26 @@ const playLineClearSound = () => {
 const playPowerUpSound = () => {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
+
     // Create explosion sound with multiple frequencies
     const createExplosion = (freq: number, delay: number) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       oscillator.type = 'sawtooth';
       oscillator.frequency.setValueAtTime(freq, audioContext.currentTime + delay);
       oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + delay + 0.3);
-      
+
       gainNode.gain.setValueAtTime(0.4, audioContext.currentTime + delay);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + delay + 0.3);
-      
+
       oscillator.start(audioContext.currentTime + delay);
       oscillator.stop(audioContext.currentTime + delay + 0.3);
     };
-    
+
     // Create layered explosion effect
     createExplosion(200, 0);
     createExplosion(150, 0.05);
@@ -384,7 +384,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
       // Rotate 90 degrees clockwise: (x, y) -> (y, -x)
       // But we need to normalize to keep in positive space
       rotated = rotated.map(([row, col]) => [col, -row] as [number, number]);
-      
+
       // Normalize to start from (0, 0)
       const minRow = Math.min(...rotated.map(([r]) => r));
       const minCol = Math.min(...rotated.map(([, c]) => c));
@@ -397,11 +397,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
   const getRotatedPieceShape = (shape: PieceShape, rotation: number) => {
     const originalShape = PIECE_SHAPES[shape];
     const rotatedCoords = rotatePieceCoords(originalShape.coords, rotation);
-    
+
     // Calculate new width and height
     const maxRow = Math.max(...rotatedCoords.map(([r]) => r));
     const maxCol = Math.max(...rotatedCoords.map(([, c]) => c));
-    
+
     return {
       coords: rotatedCoords,
       width: maxCol + 1,
@@ -413,7 +413,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
   const checkAndClearRows = (currentGrid: (GridCell | null)[][]) => {
     const completedRows: number[] = [];
     const completedCols: number[] = [];
-    
+
     // Find all completed rows
     currentGrid.forEach((row, rowIndex) => {
       if (row.every(cell => cell !== null)) {
@@ -433,10 +433,10 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
 
     if (totalCleared > 0) {
       console.log('Completed rows:', completedRows, 'Completed cols:', completedCols);
-      
+
       // Play line clear sound effect
       playLineClearSound();
-      
+
       // Increment combo streak (each clear adds to combo)
       const newCombo = combo + 1;
       setCombo(newCombo);
@@ -449,16 +449,16 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         setNuclear(prev => prev + 1);
         setEasterEggCount(prev => prev + 1);
         setShowEasterEggNotif(true);
-        
+
         // Next easter egg requires higher combo (4 after first one at 3)
         if (easterEggCount === 0) {
           setNextEasterEggCombo(4); // Second one needs combo 4
         }
-        
+
         // Hide notification after 3 seconds
         setTimeout(() => setShowEasterEggNotif(false), 3000);
       }
-      
+
       // Award bonus points for clearing (150 per line)
       const bonusPoints = totalCleared * 150;
       const bonusXP = totalCleared * 80;
@@ -482,35 +482,35 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
       // Clear after animation
       setTimeout(() => {
         setClearingCells(new Set());
-        
+
         // Clear rows
         let newGrid = currentGrid.filter((_, index) => !completedRows.includes(index));
-        
+
         // Add empty rows at the top
         const emptyRows = Array(completedRows.length)
           .fill(null)
           .map(() => Array(GRID_COLS).fill(null));
-        
+
         newGrid = [...emptyRows, ...newGrid];
 
         // Clear columns
         if (completedCols.length > 0) {
-          newGrid = newGrid.map(row => 
-            row.map((cell, colIndex) => 
+          newGrid = newGrid.map(row =>
+            row.map((cell, colIndex) =>
               completedCols.includes(colIndex) ? null : cell
             )
           );
         }
-        
+
         setGrid(newGrid);
       }, 500);
     }
   };
 
-  const handleDragStart = (piece: { 
-    text: string; 
-    emoji?: string | undefined; 
-    value: string | number; 
+  const handleDragStart = (piece: {
+    text: string;
+    emoji?: string | undefined;
+    value: string | number;
     color: string;
     shape: PieceShape;
   }, index: number) => {
@@ -532,9 +532,9 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
 
   const handleDragOver = (e: React.DragEvent, rowIndex: number, colIndex: number) => {
     e.preventDefault();
-    
+
     if (!draggedPiece && !draggedPowerUp) return;
-    
+
     // Simple approach: just use the hovered cell directly
     // canPlacePiece will validate if it's valid
     setHoveredCell([rowIndex, colIndex]);
@@ -542,29 +542,29 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
 
   const canPlacePiece = (rowIndex: number, colIndex: number, shape: PieceShape, rotation: number = 0): boolean => {
     const shapeData = getRotatedPieceShape(shape, rotation);
-    
+
     // Check all cells of the piece
     for (const [dr, dc] of shapeData.coords) {
       const newRow = rowIndex + dr;
       const newCol = colIndex + dc;
-      
+
       // Check if out of bounds
       if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLS) {
         return false;
       }
-      
+
       // Check if cell is already filled
       const row = grid[newRow];
       if (!row) {
         return false;
       }
-      
+
       const cell = row[newCol];
       if (cell !== null && cell !== undefined) {
         return false;
       }
     }
-    
+
     return true;
   };
 
@@ -577,7 +577,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
     playPowerUpSound();
 
     const newGrid: (GridCell | null)[][] = grid.map(row => [...row]);
-    
+
     if (type === 'nuclear') {
       // Nuclear clears EVERYTHING with massive explosion
       const allCells = new Set<string>();
@@ -588,22 +588,22 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
           }
         }
       }
-      
+
       // Show massive explosion effect
       setClearingCells(allCells);
-      
+
       setTimeout(() => {
         setClearingCells(new Set());
         // Clear entire grid
         const emptyGrid = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
         setGrid(emptyGrid);
       }, 800); // Longer animation for nuclear
-      
+
       setNuclear(prev => prev - 1);
     } else {
       // Regular bomb/rocket logic with explosion effect
       const size = type === 'bomb' ? 2 : 4;
-      
+
       // Show explosion effect first
       const cellsToExplode = new Set<string>();
       for (let r = rowIndex; r < Math.min(rowIndex + size, GRID_ROWS); r++) {
@@ -612,11 +612,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         }
       }
       setClearingCells(cellsToExplode);
-      
+
       // Clear area after explosion animation
       setTimeout(() => {
         setClearingCells(new Set());
-        
+
         setGrid(prev => {
           const updatedGrid: (GridCell | null)[][] = prev.map(row => [...row]);
           for (let r = rowIndex; r < Math.min(rowIndex + size, GRID_ROWS); r++) {
@@ -651,13 +651,13 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
     }
 
     if (!draggedPiece || !currentQuestion) return;
-    
+
     // Use the adjusted hover position (from snap-to-grid)
     const dropRow = hoveredCell ? hoveredCell[0] : rowIndex;
     const dropCol = hoveredCell ? hoveredCell[1] : colIndex;
-    
+
     const rotation = draggedPiece.rotation || 0;
-    
+
     if (!canPlacePiece(dropRow, dropCol, draggedPiece.shape, rotation)) {
       setDraggedPiece(null);
       setHoveredCell(null);
@@ -666,11 +666,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
 
     const shapeData = getRotatedPieceShape(draggedPiece.shape, rotation);
     const newGrid: (GridCell | null)[][] = grid.map(row => [...row]);
-    
+
     for (const [dr, dc] of shapeData.coords) {
       const newRow = dropRow + dr;
       const newCol = dropCol + dc;
-      
+
       if (newRow >= 0 && newRow < GRID_ROWS && newCol >= 0 && newCol < GRID_COLS) {
         const targetRow = newGrid[newRow];
         if (targetRow) {
@@ -714,11 +714,11 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
     const newXp = xp + points;
     setScore(prev => prev + points);
     setXp(newXp);
-    
+
     // Level up every 400 XP (balanced progression)
     const oldLevel = Math.floor(xp / 400) + 1;
     const newLevel = Math.floor(newXp / 400) + 1;
-    
+
     if (newLevel > oldLevel) {
       setLevel(newLevel);
       // Award power-ups on level up: 2 bombs + 1 rocket
@@ -745,10 +745,10 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
     }, 1000);
   };
 
-  const getPieces = (): Array<{ 
-    text: string; 
-    emoji?: string | undefined; 
-    value: string | number; 
+  const getPieces = (): Array<{
+    text: string;
+    emoji?: string | undefined;
+    value: string | number;
     color: string;
     shape: PieceShape;
   }> => {
@@ -805,13 +805,13 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
 
   const renderTetrisPiece = (shape: PieceShape, color: string, cellSize: number = 28, cellGap: number = 3, rotation: number = 0) => {
     const shapeData = getRotatedPieceShape(shape, rotation);
-    
+
     // Calculate total dimensions
     const totalWidth = shapeData.width * cellSize + (shapeData.width - 1) * cellGap;
     const totalHeight = shapeData.height * cellSize + (shapeData.height - 1) * cellGap;
-    
+
     return (
-      <div 
+      <div
         className="relative inline-block"
         style={{
           width: `${totalWidth}px`,
@@ -852,19 +852,19 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         <div className="relative max-w-md w-full bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-xl shadow-2xl border-4 border-yellow-400 dark:border-yellow-600 overflow-hidden">
           {/* Confetti Background Effect */}
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-3 left-3 text-2xl animate-bounce">🎉</div>
-            <div className="absolute top-5 right-5 text-xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎊</div>
+            <div className="absolute top-3 left-3 text-2xl animate-bounce"></div>
+            <div className="absolute top-5 right-5 text-xl animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             <div className="absolute bottom-5 left-5 text-xl animate-bounce" style={{ animationDelay: '0.4s' }}>⭐</div>
-            <div className="absolute bottom-3 right-3 text-2xl animate-bounce" style={{ animationDelay: '0.6s' }}>🏆</div>
-            <div className="absolute top-1/2 left-1/4 text-lg animate-spin" style={{ animationDuration: '3s' }}>✨</div>
-            <div className="absolute top-1/3 right-1/4 text-lg animate-spin" style={{ animationDuration: '4s' }}>💫</div>
+            <div className="absolute bottom-3 right-3 text-2xl animate-bounce" style={{ animationDelay: '0.6s' }}></div>
+            <div className="absolute top-1/2 left-1/4 text-lg animate-spin" style={{ animationDuration: '3s' }}></div>
+            <div className="absolute top-1/3 right-1/4 text-lg animate-spin" style={{ animationDuration: '4s' }}></div>
           </div>
 
           {/* Content */}
           <div className="relative z-10 p-4 text-center">
             {/* Trophy Icon */}
             <div className="mb-2 animate-bounce">
-              <div className="text-3xl mb-1">🏆</div>
+              <div className="text-3xl mb-1"></div>
               <div className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 dark:from-yellow-400 dark:via-orange-400 dark:to-red-400 drop-shadow-lg">
                 CHÚC MỪNG!
               </div>
@@ -948,7 +948,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
                 setShowVictoryModal(false);
                 onComplete(finalResponses);
               }}
-              className="w-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white font-black text-sm py-2.5 px-4 rounded-lg shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-green-400 hover:border-green-300"
+              className="w-full bg-gradient-to-r from-indigo-700 via-indigo-500 to-indigo-600 hover:from-indigo-800 hover:via-emerald-600 hover:to-violet-600 text-white font-black text-sm py-2.5 px-4 rounded-lg shadow-2xl transform hover:scale-105 transition-all duration-200 border-4 border-indigo-400 hover:border-indigo-300"
             >
               ✨ Xem Phân Tích Của Tôi ✨
             </button>
@@ -980,7 +980,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             <div className="flex flex-col">
               <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Tiến Trình KN</div>
               <div className="w-40 h-3 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-400 dark:border-gray-600">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
                   style={{ width: `${((xp % 400) / 400) * 100}%` }}
                 ></div>
@@ -990,11 +990,10 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             <div className="w-px h-12 bg-gray-400 dark:bg-gray-700"></div>
             <div className="flex flex-col items-center">
               <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Combo</div>
-              <div className={`text-3xl font-black drop-shadow-lg transition-all duration-300 ${
-                combo >= 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 
-                combo >= 3 ? 'text-orange-600 dark:text-orange-400' : 
-                'text-gray-600 dark:text-gray-400'
-              }`}>
+              <div className={`text-3xl font-black drop-shadow-lg transition-all duration-300 ${combo >= 5 ? 'text-red-600 dark:text-red-400 animate-pulse' :
+                combo >= 3 ? 'text-orange-600 dark:text-orange-400' :
+                  'text-gray-600 dark:text-gray-400'
+                }`}>
                 {combo}x
               </div>
               {maxCombo > 0 && (
@@ -1002,7 +1001,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center gap-6">
             <div className="text-center">
               <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Điểm Số</div>
@@ -1021,7 +1020,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         {showEasterEggNotif && (
           <div className="fixed top-20 right-6 z-50 animate-slide-in">
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-xl shadow-2xl border-2 border-purple-400 flex items-center gap-3">
-              <span className="text-4xl animate-bounce">☢️</span>
+              <span className="text-4xl animate-bounce"></span>
               <div>
                 <div className="font-bold text-lg">Đã Mở Khóa Trứng Phục Sinh!</div>
                 <div className="text-sm text-purple-100">Đã nhận Năng Lượng Hạt Nhân!</div>
@@ -1044,7 +1043,7 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               <div>
                 <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 text-center">Tiến Trình KN</div>
                 <div className="w-full h-3 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-400 dark:border-gray-600">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
                     style={{ width: `${((xp % 400) / 400) * 100}%` }}
                   ></div>
@@ -1054,11 +1053,10 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               <div className="h-px bg-gray-400 dark:bg-gray-700"></div>
               <div className="text-center">
                 <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Combo</div>
-                <div className={`text-4xl font-black drop-shadow-lg transition-all duration-300 ${
-                  combo >= 5 ? 'text-red-600 dark:text-red-400 animate-pulse' : 
-                  combo >= 3 ? 'text-orange-600 dark:text-orange-400' : 
-                  'text-gray-600 dark:text-gray-400'
-                }`}>
+                <div className={`text-4xl font-black drop-shadow-lg transition-all duration-300 ${combo >= 5 ? 'text-red-600 dark:text-red-400 animate-pulse' :
+                  combo >= 3 ? 'text-orange-600 dark:text-orange-400' :
+                    'text-gray-600 dark:text-gray-400'
+                  }`}>
                   {combo}x
                 </div>
                 {maxCombo > 0 && (
@@ -1086,146 +1084,113 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               <div className="absolute -top-3 right-4 bg-gradient-to-br from-yellow-400 to-orange-500 px-3 py-1 rounded-lg shadow-xl border-2 border-yellow-300 z-30">
                 <div className="text-white font-black text-sm drop-shadow-lg">⭐ {score}</div>
               </div>
-            <div 
-              className="relative bg-black rounded-lg shadow-2xl"
-              style={{
-                width: `${GRID_COLS * CELL_SIZE}px`,
-                height: `${GRID_ROWS * CELL_SIZE}px`,
-                border: '4px solid #2a2a2a',
-                boxShadow: 'inset 0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.5)',
-              }}
-            >
-              <div 
-                className="relative bg-gray-900/50 dark:bg-black/80"
+              <div
+                className="relative bg-black rounded-lg shadow-2xl"
                 style={{
                   width: `${GRID_COLS * CELL_SIZE}px`,
                   height: `${GRID_ROWS * CELL_SIZE}px`,
-                  display: 'grid',
-                  gridTemplateColumns: `repeat(${GRID_COLS}, ${CELL_SIZE}px)`,
-                  gridTemplateRows: `repeat(${GRID_ROWS}, ${CELL_SIZE}px)`,
-                  gap: '0px',
+                  border: '4px solid #2a2a2a',
+                  boxShadow: 'inset 0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.5)',
                 }}
               >
-                {grid.map((row, rowIndex) =>
-                  row.map((cell, colIndex) => {
-                    const cellKey = `${rowIndex}-${colIndex}`;
-                    const isClearing = clearingCells.has(cellKey);
-                    
-                    return (
-                      <div
-                        key={cellKey}
-                        onDragOver={(e) => handleDragOver(e, rowIndex, colIndex)}
-                        onDrop={() => handleDrop(rowIndex, colIndex)}
-                        className={`relative transition-all duration-200 ${
-                          cell ? `bg-gradient-to-br ${cell.color}` : 'bg-gray-800/50 dark:bg-gray-900/50'
-                        } ${isClearing ? 'animate-pulse bg-yellow-400' : ''}`}
-                        style={{
-                          width: `${CELL_SIZE}px`,
-                          height: `${CELL_SIZE}px`,
-                          border: cell ? '2px solid rgba(255,255,255,0.4)' : '1px solid rgba(100,116,139,0.3)',
-                          boxShadow: isClearing 
-                            ? '0 0 20px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.8)' 
-                            : cell ? 'inset 0 0 10px rgba(255,255,255,0.3)' : 'none',
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        {/* Cell content - stays within bounds */}
-                        {cell && !isClearing && (
-                          <>
-                            <div className="absolute inset-1 bg-white/30 rounded-sm"></div>
-                            {cell.emoji && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="text-lg drop-shadow-lg">{cell.emoji}</div>
-                              </div>
-                            )}
-                          </>
-                        )}
-                        {/* Explosion effect */}
-                        {isClearing && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-2xl animate-ping">💥</div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-              
-              {/* Preview overlay - Show at exact placement position with outline style */}
-              {hoveredCell && draggedPiece && (
-                <div className="absolute inset-0 pointer-events-none z-20">
-                  {getRotatedPieceShape(draggedPiece.shape, draggedPiece.rotation || 0).coords.map(([dr, dc], idx) => {
-                    // Show preview at EXACT placement position
-                    const previewRow = hoveredCell[0] + dr;
-                    const previewCol = hoveredCell[1] + dc;
-                    
-                    // Skip if preview would be out of bounds
-                    if (previewRow < 0 || previewRow >= GRID_ROWS || previewCol < 0 || previewCol >= GRID_COLS) {
-                      return null;
-                    }
-                    
-                    // Check if can place with rotation
-                    const canPlace = canPlacePiece(hoveredCell[0], hoveredCell[1], draggedPiece.shape, draggedPiece.rotation || 0);
-                    
-                    return (
-                      <div
-                        key={idx}
-                        className={`absolute rounded-lg transition-all duration-100 ${
-                          canPlace
-                            ? 'border-4 border-green-400 bg-green-400/30'
-                            : 'border-4 border-red-400 bg-red-400/30'
-                        }`}
-                        style={{
-                          width: `${CELL_SIZE}px`,
-                          height: `${CELL_SIZE}px`,
-                          top: `${previewRow * CELL_SIZE}px`,
-                          left: `${previewCol * CELL_SIZE}px`,
-                          boxShadow: canPlace 
-                            ? '0 0 30px rgba(74, 222, 128, 1), inset 0 0 20px rgba(74, 222, 128, 0.5)' 
-                            : '0 0 30px rgba(248, 113, 113, 1), inset 0 0 20px rgba(248, 113, 113, 0.5)',
-                        }}
-                      >
-                        {/* Animated pulse ring */}
-                        <div className={`absolute inset-0 rounded-lg animate-ping ${canPlace ? 'bg-green-400/40' : 'bg-red-400/40'}`}></div>
-                        {/* Inner bright center */}
-                        <div className={`absolute inset-2 rounded ${canPlace ? 'bg-green-300/60' : 'bg-red-300/60'}`}></div>
-                      </div>
-                    );
-                  })}
+                <div
+                  className="relative bg-gray-900/50 dark:bg-black/80"
+                  style={{
+                    width: `${GRID_COLS * CELL_SIZE}px`,
+                    height: `${GRID_ROWS * CELL_SIZE}px`,
+                    display: 'grid',
+                    gridTemplateColumns: `repeat(${GRID_COLS}, ${CELL_SIZE}px)`,
+                    gridTemplateRows: `repeat(${GRID_ROWS}, ${CELL_SIZE}px)`,
+                    gap: '0px',
+                  }}
+                >
+                  {grid.map((row, rowIndex) =>
+                    row.map((cell, colIndex) => {
+                      const cellKey = `${rowIndex}-${colIndex}`;
+                      const isClearing = clearingCells.has(cellKey);
+
+                      return (
+                        <div
+                          key={cellKey}
+                          onDragOver={(e) => handleDragOver(e, rowIndex, colIndex)}
+                          onDrop={() => handleDrop(rowIndex, colIndex)}
+                          className={`relative transition-all duration-200 ${cell ? `bg-gradient-to-br ${cell.color}` : 'bg-gray-800/50 dark:bg-gray-900/50'
+                            } ${isClearing ? 'animate-pulse bg-yellow-400' : ''}`}
+                          style={{
+                            width: `${CELL_SIZE}px`,
+                            height: `${CELL_SIZE}px`,
+                            border: cell ? '2px solid rgba(255,255,255,0.4)' : '1px solid rgba(100,116,139,0.3)',
+                            boxShadow: isClearing
+                              ? '0 0 20px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.8)'
+                              : cell ? 'inset 0 0 10px rgba(255,255,255,0.3)' : 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        >
+                          {/* Cell content - stays within bounds */}
+                          {cell && !isClearing && (
+                            <>
+                              <div className="absolute inset-1 bg-white/30 rounded-sm"></div>
+                              {cell.emoji && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="text-lg drop-shadow-lg">{cell.emoji}</div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {/* Explosion effect */}
+                          {isClearing && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="text-2xl animate-ping"></div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
-              )}
-              
-              {/* Power-up preview overlay */}
-              {hoveredCell && draggedPowerUp && (
-                <div className="absolute inset-0 pointer-events-none z-20">
-                  {Array.from({ length: draggedPowerUp === 'bomb' ? 2 : 4 }).map((_, r) =>
-                    Array.from({ length: draggedPowerUp === 'bomb' ? 2 : 4 }).map((_, c) => {
-                      const previewRow = hoveredCell[0] + r;
-                      const previewCol = hoveredCell[1] + c;
-                      
+
+                {/* Preview overlay - Show at exact placement position with outline style */}
+                {hoveredCell && draggedPiece && (
+                  <div className="absolute inset-0 pointer-events-none z-20">
+                    {getRotatedPieceShape(draggedPiece.shape, draggedPiece.rotation || 0).coords.map(([dr, dc], idx) => {
+                      // Show preview at EXACT placement position
+                      const previewRow = hoveredCell[0] + dr;
+                      const previewCol = hoveredCell[1] + dc;
+
+                      // Skip if preview would be out of bounds
                       if (previewRow < 0 || previewRow >= GRID_ROWS || previewCol < 0 || previewCol >= GRID_COLS) {
                         return null;
                       }
-                      
+
+                      // Check if can place with rotation
+                      const canPlace = canPlacePiece(hoveredCell[0], hoveredCell[1], draggedPiece.shape, draggedPiece.rotation || 0);
+
                       return (
                         <div
-                          key={`${r}-${c}`}
-                          className="absolute bg-orange-400/70 border-2 border-orange-300 rounded shadow-lg"
+                          key={idx}
+                          className={`absolute rounded-lg transition-all duration-100 ${canPlace
+                            ? 'border-4 border-indigo-400 bg-indigo-400/30'
+                            : 'border-4 border-red-400 bg-red-400/30'
+                            }`}
                           style={{
                             width: `${CELL_SIZE}px`,
                             height: `${CELL_SIZE}px`,
                             top: `${previewRow * CELL_SIZE}px`,
                             left: `${previewCol * CELL_SIZE}px`,
+                            boxShadow: canPlace
+                              ? '0 0 30px rgba(74, 222, 128, 1), inset 0 0 20px rgba(74, 222, 128, 0.5)'
+                              : '0 0 30px rgba(248, 113, 113, 1), inset 0 0 20px rgba(248, 113, 113, 0.5)',
                           }}
-                        />
+                        >
+                          {/* Animated pulse ring */}
+                          <div className={`absolute inset-0 rounded-lg animate-ping ${canPlace ? 'bg-indigo-400/40' : 'bg-red-400/40'}`}></div>
+                          {/* Inner bright center */}
+                          <div className={`absolute inset-2 rounded ${canPlace ? 'bg-indigo-300/60' : 'bg-red-300/60'}`}></div>
+                        </div>
                       );
-                    })
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+                    })}
+                  </div>
+                )}
 
           {/* Available Pieces - Below grid */}
           <div className="w-full mt-4 pt-4 pb-6 border-t-2 border-gray-300 dark:border-gray-600 space-y-3">
@@ -1288,15 +1253,14 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
                           {renderTetrisPiece(piece.shape, piece.color, cellSize, gap, rotation)}
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* Text below */}
-                    <div className={`text-center w-[100px] bg-gray-200 dark:bg-gray-800/90 backdrop-blur-sm rounded-md p-1 border border-gray-300 dark:border-gray-700 hover:border-cyan-500 shadow-md transition-all duration-200 ${
-                      draggedPiece?.value === piece.value ? 'opacity-20' : 'opacity-100'
-                    }`}>
-                      {piece.emoji && <div className="text-lg">{piece.emoji}</div>}
-                      <div className="text-gray-900 dark:text-white font-bold text-xs leading-tight">
-                        {piece.text}
+
+                      {/* Text below */}
+                      <div className={`text-center w-[100px] bg-gray-200 dark:bg-gray-800/90 backdrop-blur-sm rounded-md p-1 border border-gray-300 dark:border-gray-700 hover:border-cyan-500 shadow-md transition-all duration-200 ${draggedPiece?.value === piece.value ? 'opacity-20' : 'opacity-100'
+                        }`}>
+                        {piece.emoji && <div className="text-lg">{piece.emoji}</div>}
+                        <div className="text-gray-900 dark:text-white font-bold text-xs leading-tight">
+                          {piece.text}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1343,8 +1307,10 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
                 <div className="text-gray-900 dark:text-white font-semibold text-xs">Bom</div>
                 <div className="text-gray-500 dark:text-gray-400 text-xs">2x2</div>
               </div>
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
-                {bombs}
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-5 border-2 border-blue-300 dark:border-blue-600 shadow-lg">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-relaxed">
+                  {currentQuestion.question_text}
+                </h3>
               </div>
             </div>
 
@@ -1365,29 +1331,24 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
               <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
                 {rockets}
               </div>
-            </div>
 
-            {/* Nuclear Power - Easter Egg */}
-            {nuclear > 0 && (
+              {/* Rocket */}
               <div
-                draggable={nuclear > 0}
-                onDragStart={() => handlePowerUpDragStart('nuclear')}
+                draggable={rockets > 0}
+                onDragStart={() => handlePowerUpDragStart('rocket')}
                 onDragEnd={handleDragEnd}
-                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-2 border-2 border-purple-400 shadow-xl cursor-grab hover:scale-105 transition-all duration-200 animate-pulse"
+                className={`flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700 shadow-md ${rockets > 0 ? 'cursor-grab hover:border-blue-400 dark:hover:border-blue-500' : 'opacity-40 cursor-not-allowed'
+                  } transition-all duration-200`}
               >
-                <span className="text-2xl">☢️</span>
+                <span className="text-2xl"></span>
                 <div className="flex-1 min-w-0">
                   <div className="text-white font-bold text-xs">Hạt Nhân</div>
                   <div className="text-purple-100 text-xs">TẤT CẢ!</div>
                 </div>
-                <div className="bg-white/30 rounded-full w-7 h-7 flex items-center justify-center text-white font-black text-xs">
-                  {nuclear}
+                <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center text-gray-900 dark:text-white font-bold text-xs">
+                  {rockets}
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Completed Answers - Bottom Center */}
       <div className="mt-16 pt-6" style={{ marginTop: '4rem', paddingTop: '1.5rem' }}>
@@ -1411,25 +1372,22 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
             ) : (
               completedAnswers.map((answer, index) => (
                 <div
-                  key={index}
-                  className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 border-2 border-green-400 dark:border-green-500/30 rounded-lg p-2 animate-slide-in shadow-md hover:shadow-lg transition-all duration-200"
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  draggable={nuclear > 0}
+                  onDragStart={() => handlePowerUpDragStart('nuclear')}
+                  onDragEnd={handleDragEnd}
+                  className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-2 border-2 border-purple-400 shadow-xl cursor-grab hover:scale-105 transition-all duration-200 animate-pulse"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-500 rounded flex items-center justify-center text-white font-black text-xs shadow-md">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      {answer.emoji && <span className="text-base">{answer.emoji}</span>}
-                      <span className="font-bold text-gray-900 dark:text-white text-xs ml-1">
-                        {answer.answer}
-                      </span>
-                    </div>
-                    <div className="text-green-600 dark:text-green-400 text-sm">✓</div>
+                  <span className="text-2xl"></span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white font-bold text-xs">Nuclear</div>
+                    <div className="text-purple-100 text-xs">ALL!</div>
+                  </div>
+                  <div className="bg-white/30 rounded-full w-7 h-7 flex items-center justify-center text-white font-black text-xs">
+                    {nuclear}
                   </div>
                 </div>
-              ))
-            )}
+              )}
+            </div>
           </div>
         </div>
 
@@ -1441,7 +1399,15 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         </button>
       </div>
 
-      <style>{`
+          <button
+            onClick={onCancel}
+            className="w-full max-w-4xl mx-auto block mt-3 px-4 py-3 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 hover:from-gray-400 hover:to-gray-500 dark:hover:from-gray-600 dark:hover:to-gray-700 text-gray-900 dark:text-white rounded-lg font-bold text-sm transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-gray-400 dark:border-gray-600"
+          >
+            ← Back to Menu
+          </button>
+        </div>
+
+        <style>{`
         @keyframes slide-in {
           0% { opacity: 0; transform: translateX(20px); }
           100% { opacity: 1; transform: translateX(0); }

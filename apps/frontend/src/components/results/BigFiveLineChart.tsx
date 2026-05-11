@@ -72,7 +72,7 @@ const BigFiveLineChart = ({ scores }: BigFiveLineChartProps) => {
             dataKey="score"
             stroke="#8B5CF6"
             strokeWidth={3}
-            fill="url(#bigfiveGradient)"
+            fill="url(bigfiveGradient)"
             dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 5, stroke: '#fff' }}
             activeDot={{ r: 7, stroke: '#8B5CF6', strokeWidth: 2, fill: '#fff' }}
           />

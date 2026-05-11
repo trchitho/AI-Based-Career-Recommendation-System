@@ -74,7 +74,7 @@ const RIASECLineChart = ({ scores }: RIASECLineChartProps) => {
             dataKey="score"
             stroke="#3B82F6"
             strokeWidth={3}
-            fill="url(#riasecGradient)"
+            fill="url(riasecGradient)"
             dot={{ fill: '#3B82F6', strokeWidth: 2, r: 5, stroke: '#fff' }}
             activeDot={{ r: 7, stroke: '#3B82F6', strokeWidth: 2, fill: '#fff' }}
           />

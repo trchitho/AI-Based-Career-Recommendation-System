@@ -32,10 +32,10 @@ const AppFooter = () => {
         { title: 'Pháp lý', items: [{ label: 'Chính sách bảo mật', href: '/privacy' }, { label: 'Điều khoản', href: '/terms' }] },
     ];
     const social_links = config?.social_links || [
-        { label: 'Twitter', href: '#' },
-        { label: 'GitHub', href: '#' },
-        { label: 'LinkedIn', href: '#' },
-        { label: 'Discord', href: '#' },
+        { label: 'Twitter', href: '' },
+        { label: 'GitHub', href: '' },
+        { label: 'LinkedIn', href: '' },
+        { label: 'Discord', href: '' },
     ];
     const copyright = config?.copyright || `© ${new Date().getFullYear()} CareerBridge AI. Bảo lưu mọi quyền.`;
 
@@ -59,12 +59,12 @@ const AppFooter = () => {
                             <ul className="space-y-3 text-sm text-gray-500 dark:text-gray-400">
                                 {(col.items || []).map((item, j) => (
                                     <li key={j}>
-                                        {item.href && item.href !== '#' && !item.href.startsWith('http') ? (
-                                            <Link to={item.href} className="hover:text-green-500 transition-colors">
+                                        {item.href && item.href !== '' && !item.href.startsWith('http') ? (
+                                            <Link to={item.href} className="hover:text-indigo-700 transition-colors">
                                                 {item.label}
                                             </Link>
                                         ) : item.href ? (
-                                            <a href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-green-500 transition-colors">
+                                            <a href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-700 transition-colors">
                                                 {item.label}
                                             </a>
                                         ) : (
@@ -85,10 +85,10 @@ const AppFooter = () => {
                             {social_links.map((s, i) => (
                                 <a
                                     key={i}
-                                    href={s.href || '#'}
-                                    target={s.href && s.href !== '#' ? '_blank' : undefined}
+                                    href={s.href || ''}
+                                    target={s.href && s.href !== '' ? '_blank' : undefined}
                                     rel="noopener noreferrer"
-                                    className="text-gray-400 hover:text-green-500 hover:scale-110 transition-all text-sm font-medium"
+                                    className="text-gray-400 hover:text-indigo-700 hover:scale-110 transition-all text-sm font-medium"
                                 >
                                     {s.label}
                                 </a>

@@ -58,9 +58,9 @@ class Neo4jService:
             # Test connection
             with self.driver.session() as s:
                 s.run("RETURN 1").consume()
-            print("✅ Neo4j connection successful")
+            print("[OK] Neo4j connection successful")
         except Exception as e:
-            print(f"⚠️ Neo4j connection failed: {e}")
+            print(f"[WARN] Neo4j connection failed: {e}")
             self.driver = None
 
     def _get_session(self):
@@ -77,7 +77,7 @@ class Neo4jService:
             return self.driver.session()
 
         except Exception as e:
-            print(f"⚠️ Neo4j session error: {e}")
+            print(f"[WARN] Neo4j session error: {e}")
             # Mark driver as invalid and try to reconnect
             self.driver = None
             self._connect()
@@ -92,13 +92,13 @@ class Neo4jService:
     def get_job_skills(self, job_id: str, limit: int = 8, use_fallback: bool = True) -> List[Dict]:
         """Lấy top skills quan trọng nhất cho một nghề nghiệp từ Work Activities"""
         if not self.driver:
-            print("⚠️ Neo4j driver not available")
+            print("[WARN] Neo4j driver not available")
             return self._get_fallback_skills(job_id, limit) if use_fallback else []
 
         try:
             neo4j_session = self._get_session()
             if not neo4j_session:
-                print("⚠️ Neo4j session not available")
+                print("[WARN] Neo4j session not available")
                 return self._get_fallback_skills(job_id, limit) if use_fallback else []
 
             with neo4j_session as session:
@@ -124,25 +124,25 @@ class Neo4jService:
                 for record in result:
                     skills.append(
                         {
-                            "skill_name": record["skill_name"],
-                            "skill_type": record["skill_type"],
-                            "importance": float(record["importance"]) if record["importance"] else 3.0,
-                            "level": float(record["level"]) if record["level"] else 3.0,
-                            "rank": int(record["rank"]) if record["rank"] else 999,
-                            "combined_score": float(record["combined_score"]) if record["combined_score"] else 3.0,
+                            "skill_name": record.get("skill_name", ""),
+                            "skill_type": record.get("skill_type", "Kỹ năng"),
+                            "importance": float(record.get("importance", 0)) if record.get("importance") else 3.0,
+                            "level": float(record.get("level", 0)) if record.get("level") else 3.0,
+                            "rank": int(record.get("rank", 999)) if record.get("rank") else 999,
+                            "combined_score": float(record.get("combined_score", 0)) if record.get("combined_score") else 3.0,
                         }
                     )
 
-                print(f"✅ Neo4j returned {len(skills)} skills for job {job_id}")
+                print(f"[OK] Neo4j returned {len(skills)} skills for job {job_id}")
 
                 if skills:
                     return skills[:limit]
 
         except Exception as e:
-            print(f"⚠️ Neo4j skills query failed: {e}")
+            print(f"[WARN] Neo4j skills query failed: {e}")
             return self._get_fallback_skills(job_id, limit) if use_fallback else []
 
-        print(f"⚠️ Neo4j returned no skills for job {job_id}")
+        print(f"[WARN] Neo4j returned no skills for job {job_id}")
         return self._get_fallback_skills(job_id, limit) if use_fallback else []
 
     def _get_fallback_skills(self, job_id: str, limit: int = 8) -> List[Dict]:
@@ -262,7 +262,7 @@ class Neo4jService:
                     skills = [dict(record) for record in result]
                 return skills
         except Exception as e:
-            print(f"⚠️ Neo4j query failed: {e}")
+            print(f"[WARN] Neo4j query failed: {e}")
             return self._get_fallback_skills(job_id, 20)
 
     def get_job_info(self, job_id: str) -> Optional[Dict]:
@@ -278,7 +278,7 @@ class Neo4jService:
                 record = result.single()
                 return dict(record) if record else self._get_fallback_job_info(job_id)
         except Exception as e:
-            print(f"⚠️ Neo4j query failed: {e}")
+            print(f"[WARN] Neo4j query failed: {e}")
             return self._get_fallback_job_info(job_id)
 
     def _get_fallback_job_info(self, job_id: str) -> Dict:
@@ -305,14 +305,21 @@ class GeminiService:
 
     def __init__(self):
         self.stream_manager = multi_stream_manager.get_interview_stream()
-        print(f"✅ Interview Gemini service initialized with stream: {self.stream_manager.stream_type.value}")
+        print(f"[OK] Interview Gemini service initialized with stream: {self.stream_manager.stream_type.value}")
 
-    def generate_interview_start(self, job_title: str, skills_context: List[Dict]) -> Dict:
+    def generate_interview_start(self, job_title: str, skills_context: List[Dict], level_context: Optional[Dict] = None) -> Dict:
         """Tạo lời chào và câu hỏi đầu tiên với prompt cải tiến - dài hơn và chuyên nghiệp hơn"""
+        # Thêm level context vào prompt
+        level_info = ""
+        if level_context:
+            level_info = f" cho cấp bậc {level_context['name']} ({level_context['experience']})"
+        
         # Prompt cải tiến - dài hơn, chuyên nghiệp và thân thiện hơn
-        prompt = f"""Bạn là một HR Manager chuyên nghiệp và giàu kinh nghiệm đang thực hiện buổi phỏng vấn quan trọng cho vị trí {job_title}. 
+        prompt = f"""Bạn là một HR Manager chuyên nghiệp và giàu kinh nghiệm đang thực hiện buổi phỏng vấn quan trọng cho vị trí {job_title}{level_info}. 
 
 Hãy tạo ra một lời chào ấm áp, chuyên nghiệp và một câu hỏi mở đầu thú vị để tạo không khí thoải mái cho ứng viên. Lời chào nên thể hiện sự chào đón, giới thiệu bản thân và tạo cảm giác thoải mái. Câu hỏi đầu tiên nên khuyến khích ứng viên chia sẻ về động lực và mục tiêu nghề nghiệp của họ.
+
+{f"Lưu ý: Đây là vị trí {level_context['name']} với {level_context['focus']}. Câu hỏi nên phù hợp với level này." if level_context else ""}
 
 Yêu cầu:
 - Lời chào: 3-4 câu, ấm áp và chuyên nghiệp, giới thiệu vai trò HR Manager
@@ -334,7 +341,7 @@ Trả về JSON chính xác:
                 if match:
                     return json.loads(match.group())
         except Exception as e:
-            print(f"⚠️ Interview Gemini API failed: {e}")
+            print(f"[WARN] Interview Gemini API failed: {e}")
 
         return {
             "greeting": f"Xin chào và chào mừng bạn đến với buổi phỏng vấn hôm nay! Tôi là HR Manager và rất vui được gặp gỡ bạn. Chúng ta sẽ có một cuộc trò chuyện thú vị và thoải mái khoảng 15-20 phút về vị trí {job_title}. Tôi hy vọng bạn sẽ cảm thấy thoải mái để chia sẻ những kinh nghiệm và suy nghĩ của mình một cách tự nhiên nhất. Hãy coi đây như một cuộc trò chuyện giữa hai người bạn về nghề nghiệp nhé!",
@@ -342,17 +349,33 @@ Trả về JSON chính xác:
         }
 
     def generate_question(
-        self, job_title: str, skills_context: List[Dict], question_history: List[str], question_type: str = "technical"
+        self, job_title: str, skills_context: List[Dict], question_history: List[str], question_type: str = "technical", 
+        session_context: Optional[Dict] = None
     ) -> str:
-        """Tạo câu hỏi phỏng vấn với prompt cải tiến - dài hơn và chuyên nghiệp hơn"""
-        skills_list = ", ".join([s["skill_name"] for s in skills_context[:3]])  # Giới hạn 3 skills
+        """Tạo câu hỏi phỏng vấn với prompt cải tiến - hỗ trợ JD và level"""
+        skills_list = ", ".join([s.get("skill_name", "") for s in skills_context[:3] if isinstance(s, dict) and s.get("skill_name")])  # Giới hạn 3 skills
+        
+        # Xử lý JD questions
+        if question_type == "jd_specific" and session_context:
+            jd_data = session_context.get("jd_data")
+            if jd_data:
+                return self._generate_jd_question(job_title, jd_data, question_history)
+        
+        # Lấy level context
+        level_context = session_context.get("level_context") if session_context else None
+        level_info = ""
+        difficulty_info = ""
+        if level_context:
+            level_info = f" cho cấp bậc {level_context['name']} ({level_context['experience']})"
+            difficulty_info = f"Độ khó: {level_context['difficulty']}. Tập trung vào: {level_context['focus']}."
         
         # Prompt cải tiến - dài hơn, chi tiết hơn và chuyên nghiệp hơn
-        prompt = f"""Bạn là một HR Manager chuyên nghiệp và giàu kinh nghiệm đang thực hiện buổi phỏng vấn cho vị trí {job_title}.
+        prompt = f"""Bạn là một HR Manager chuyên nghiệp và giàu kinh nghiệm đang thực hiện buổi phỏng vấn cho vị trí {job_title}{level_info}.
 
 Thông tin ngữ cảnh:
 - Kỹ năng cần đánh giá: {skills_list}
 - Loại câu hỏi cần tạo: {question_type}
+- {difficulty_info}
 - Các câu hỏi đã được hỏi trước đó: {'; '.join(question_history[-2:]) if question_history else 'Chưa có câu hỏi nào'}
 
 Yêu cầu tạo câu hỏi:
@@ -361,6 +384,7 @@ Yêu cầu tạo câu hỏi:
 3. Khuyến khích ứng viên chia sẻ kinh nghiệm thực tế và suy nghĩ của họ
 4. Phù hợp với vị trí {job_title} và các kỹ năng cần đánh giá
 5. Tạo cơ hội để ứng viên thể hiện năng lực và kinh nghiệm
+{f"6. Độ khó phù hợp với level {level_context['name']}" if level_context else ""}
 
 Lưu ý:
 - Câu hỏi nên rõ ràng, dễ hiểu và không quá phức tạp
@@ -378,10 +402,12 @@ Chỉ trả về câu hỏi, không cần giải thích thêm."""
             if response_text:
                 return response_text.strip()
         except Exception as e:
-            print(f"⚠️ Interview Gemini API failed: {e}")
+            print(f"[WARN] Interview Gemini API failed: {e}")
 
         # Fallback questions cải tiến - dài hơn và chuyên nghiệp hơn
-        session_skills = skills_context[0]["skill_name"] if skills_context else "kỹ năng chuyên môn"
+        session_skills = (skills_context[0].get("skill_name", "kỹ năng chuyên môn") 
+                         if skills_context and len(skills_context) > 0 and isinstance(skills_context[0], dict) 
+                         else "kỹ năng chuyên môn")
 
         fallback_questions = {
             "technical": [
@@ -404,6 +430,53 @@ Chỉ trả về câu hỏi, không cần giải thích thêm."""
         questions_for_type = fallback_questions.get(question_type, fallback_questions["behavioral"])
         idx = len(question_history) % len(questions_for_type)
         return questions_for_type[idx]
+
+    def _generate_jd_question(self, job_title: str, jd_data: Dict, question_history: List[str]) -> str:
+        """Tạo câu hỏi dựa trên Job Description"""
+        # Lấy thông tin quan trọng từ JD
+        required_skills = jd_data.get("required_skills", [])[:5]
+        tools = jd_data.get("tools", [])[:3]
+        responsibilities = jd_data.get("responsibilities", [])[:3]
+        experience_level = jd_data.get("experience_level", "Junior")
+        
+        skills_text = ", ".join(required_skills) if required_skills else "các kỹ năng được yêu cầu"
+        tools_text = ", ".join(tools) if tools else "các công cụ cần thiết"
+        
+        prompt = f"""Bạn là HR Manager đang phỏng vấn cho vị trí {job_title} cấp độ {experience_level}.
+
+Dựa trên Job Description, hãy tạo một câu hỏi cụ thể về:
+- Kỹ năng yêu cầu: {skills_text}
+- Công cụ/Công nghệ: {tools_text}
+- Trách nhiệm công việc: {'; '.join(responsibilities) if responsibilities else 'các nhiệm vụ chính'}
+
+Yêu cầu:
+1. Câu hỏi phải liên quan trực tiếp đến JD này
+2. Tập trung vào kinh nghiệm thực tế với các công nghệ/kỹ năng cụ thể
+3. Phù hợp với level {experience_level}
+4. Khuyến khích chia sẻ ví dụ cụ thể
+
+Chỉ trả về câu hỏi, không giải thích."""
+
+        try:
+            response_text = self.stream_manager.generate_content_with_retry(
+                prompt, 
+                max_output_tokens=150,
+                temperature=0.4
+            )
+            if response_text:
+                return response_text.strip()
+        except Exception as e:
+            print(f"⚠️ JD question generation failed: {e}")
+
+        # Fallback JD questions
+        fallback_jd_questions = [
+            f"Trong JD có đề cập đến {skills_text}. Bạn có kinh nghiệm thực tế nào với những kỹ năng này? Hãy chia sẻ một dự án cụ thể.",
+            f"JD yêu cầu sử dụng {tools_text}. Bạn đã từng làm việc với những công cụ này chưa? Mức độ thành thạo của bạn như thế nào?",
+            f"Một trong những trách nhiệm chính là {responsibilities[0] if responsibilities else 'thực hiện các nhiệm vụ được giao'}. Bạn có kinh nghiệm tương tự không? Hãy mô tả cách bạn sẽ tiếp cận.",
+        ]
+        
+        idx = len(question_history) % len(fallback_jd_questions)
+        return fallback_jd_questions[idx]
 
     def evaluate_answer(
         self, question: str, user_answer: str, job_title: str, skills_tested: List[str] = None, question_type: str = None
@@ -446,7 +519,7 @@ JSON:
                     return self._normalize_evaluation_result(result)
                 return result
         except Exception as e:
-            print(f"⚠️ Interview Gemini API failed: {e}")
+            print(f"[WARN] Interview Gemini API failed: {e}")
 
         # Fallback evaluation
         answer_len = len(user_answer.strip())
@@ -524,7 +597,7 @@ Trả về JSON (chỉ JSON, không có text khác):
                     result["overall_score"] = avg_score
                     return result
         except Exception as e:
-            print(f"⚠️ Interview Gemini API failed: {e}")
+            print(f"[WARN] Interview Gemini API failed: {e}")
 
         # Fallback summary
         if avg_score >= 7.5:
@@ -641,6 +714,12 @@ Trả về JSON (chỉ JSON, không có text khác):
 # Module-level cache để tránh gọi Gemini lặp lại cho cùng job_id
 _task_selection_cache: Dict[str, List[Dict]] = {}
 
+def clear_task_cache():
+    """Clear task selection cache - for testing"""
+    global _task_selection_cache
+    _task_selection_cache.clear()
+    print("🧹 Task cache cleared")
+
 # Singleton instances - tránh tạo lại mỗi request
 _neo4j_instance: Optional["Neo4jService"] = None
 _gemini_instance: Optional["GeminiService"] = None
@@ -671,9 +750,19 @@ class InterviewService:
         self.neo4j = get_neo4j_service()
         self.gemini = get_gemini_service()
 
-    def _get_question_distribution(self, question_count: int) -> Dict[str, int]:
-        """Tính toán phân bố loại câu hỏi dựa trên tổng số câu hỏi"""
-        distributions = {
+    def _get_question_distribution(self, question_count: int, jd_questions_count: int = 0) -> Dict[str, int]:
+        """Tính toán phân bố loại câu hỏi. Luôn thêm 1 câu closing ở cuối."""
+        # Validate inputs
+        question_count = max(1, question_count)
+        jd_questions_count = max(0, min(jd_questions_count, 3))
+        
+        if jd_questions_count >= question_count:
+            jd_questions_count = max(0, question_count - 1)
+        
+        base_question_count = question_count - jd_questions_count
+        
+        # Base distributions (không tính closing - sẽ thêm sau)
+        base_distributions = {
             5: {"warm_up": 1, "technical": 2, "behavioral": 1, "situational": 1},
             7: {"warm_up": 1, "technical": 3, "behavioral": 2, "situational": 1},
             8: {"warm_up": 1, "technical": 3, "behavioral": 2, "situational": 2},
@@ -681,31 +770,29 @@ class InterviewService:
             12: {"warm_up": 1, "technical": 5, "behavioral": 3, "situational": 3},
         }
 
-        # Fallback for other counts - proportional distribution
-        if question_count not in distributions:
-            # Handle edge cases: negative or zero counts
-            if question_count <= 0:
-                return {"warm_up": 0, "technical": 0, "behavioral": 0, "situational": 0}
-            
-            warm_up = 1
-            remaining = question_count - 1
-            
-            # Ensure non-negative values
-            if remaining <= 0:
-                return {"warm_up": 1, "technical": 0, "behavioral": 0, "situational": 0}
-            elif remaining == 1:  # count = 2
-                return {"warm_up": 1, "technical": 1, "behavioral": 0, "situational": 0}
-            
-            technical = max(1, remaining // 2)  # At least 1 technical
-            behavioral = max(1, remaining // 3)  # At least 1 behavioral  
-            situational = max(0, remaining - technical - behavioral)  # Ensure non-negative
-            
-            # Special adjustment for count=3 to ensure total=3
-            if question_count == 3:
-                return {"warm_up": 1, "technical": 1, "behavioral": 1, "situational": 0}
-            return {"warm_up": warm_up, "technical": technical, "behavioral": behavioral, "situational": situational}
+        if base_question_count not in base_distributions:
+            if base_question_count <= 1:
+                distribution = {"warm_up": 1}
+            elif base_question_count == 2:
+                distribution = {"warm_up": 1, "technical": 1}
+            elif base_question_count == 3:
+                distribution = {"warm_up": 1, "technical": 1, "behavioral": 1}
+            else:
+                remaining = base_question_count - 1
+                technical = max(1, remaining // 2)
+                behavioral = max(1, remaining // 3)
+                situational = max(0, remaining - technical - behavioral)
+                distribution = {"warm_up": 1, "technical": technical, "behavioral": behavioral, "situational": situational}
+        else:
+            distribution = base_distributions[base_question_count].copy()
 
-        return distributions[question_count]
+        if jd_questions_count > 0:
+            distribution["jd_specific"] = jd_questions_count
+
+        # Luôn thêm 1 câu closing ở cuối
+        distribution["closing"] = 1
+
+        return {k: v for k, v in distribution.items() if v > 0}
 
     # ── Postgres-based skill lookup ────────────────────────────────────────────
     def _get_skills_from_postgres(self, job_id: str, limit: int = 8) -> List[Dict]:
@@ -742,8 +829,43 @@ class InterviewService:
                     for r in rows
                 ]
         except Exception as e:
-            print(f"⚠️ Postgres skills query failed: {e}")
+            print(f"[WARN] Postgres skills query failed: {e}")
         return []
+
+    def _get_soft_skills_total_count(self, job_id: str) -> int:
+        """Lấy tổng số soft skills có sẵn trong DB"""
+        try:
+            from sqlalchemy import text
+            
+            # Đếm từ PostgreSQL work activities
+            count_sql = """
+                SELECT COUNT(*)
+                FROM core.career_work_activity_summary s
+                JOIN core.career_work_activities_master m ON m.element_id = s.element_id
+                WHERE s.onet_code = :onet_code
+                  AND s.is_top_activity = true
+            """
+            
+            result = self.db.execute(text(count_sql), {"onet_code": job_id}).scalar()
+            if result and result > 0:
+                return int(result)
+                
+            # Fallback: đếm từ career_ksas
+            fallback_sql = """
+                SELECT COUNT(*)
+                FROM core.career_ksas
+                WHERE onet_code = :onet_code
+                  AND ksa_type IN ('ability', 'knowledge')
+                  AND level IS NOT NULL
+                  AND importance IS NOT NULL
+            """
+            
+            result = self.db.execute(text(fallback_sql), {"onet_code": job_id}).scalar()
+            return int(result) if result else 0
+            
+        except Exception as e:
+            print(f"⚠️ Get soft skills total count failed: {e}")
+            return 0
 
     def _get_ksas_from_postgres(self, job_id: str, limit: int = 5) -> List[Dict]:
         """Lấy top abilities và knowledge từ core.career_ksas (không lấy skills)"""
@@ -771,7 +893,7 @@ class InterviewService:
 
             rows = self.db.execute(text(sql), {"onet_code": job_id, "limit": limit}).fetchall()
             if rows:
-                print(f"✅ PostgreSQL KSAs returned {len(rows)} abilities/knowledge for job {job_id}")
+                print(f"[OK] PostgreSQL KSAs returned {len(rows)} abilities/knowledge for job {job_id}")
                 return [
                     {
                         "skill_name": r.skill_name,
@@ -785,9 +907,9 @@ class InterviewService:
                     for i, r in enumerate(rows)
                 ]
             else:
-                print(f"⚠️ PostgreSQL KSAs returned 0 abilities/knowledge for job {job_id}")
+                print(f"[WARN] PostgreSQL KSAs returned 0 abilities/knowledge for job {job_id}")
         except Exception as e:
-            print(f"⚠️ Postgres KSAs query failed: {e}")
+            print(f"[WARN] Postgres KSAs query failed: {e}")
         return []
 
     def _get_job_title_from_postgres(self, job_id: str) -> Optional[str]:
@@ -801,7 +923,7 @@ class InterviewService:
             if row:
                 return row.title_vi
         except Exception as e:
-            print(f"⚠️ Postgres job title query failed: {e}")
+            print(f"[WARN] Postgres job title query failed: {e}")
         return None
 
     def _get_hard_skills_fast(self, job_id: str) -> tuple:
@@ -817,17 +939,27 @@ class InterviewService:
             rows = self.db.execute(
                 text(
                     """
-                SELECT task_en, task_vi, importance
+                SELECT task_en, task_vi, importance, task_type, incumbents_responding, task_id
                 FROM core.career_tasks
                 WHERE onet_code = :onet_code
-                ORDER BY importance DESC LIMIT 5
+                ORDER BY importance DESC, incumbents_responding DESC, task_id ASC
+                LIMIT 5
             """
                 ),
                 {"onet_code": job_id},
             ).fetchall()
 
             if rows:
-                all_tasks = [{"task_en": r.task_en, "task_vi": r.task_vi, "importance": float(r.importance or 0)} for r in rows]
+                all_tasks = [
+                    {
+                        "task_en": r.task_en, 
+                        "task_vi": r.task_vi, 
+                        "importance": float(r.importance or 0), 
+                        "task_type": r.task_type or "Kỹ năng chuyên ngành",  # Sử dụng task_type từ DB
+                        "incumbents_responding": r.incumbents_responding or 0, 
+                        "task_id": r.task_id
+                    } for r in rows
+                ]
             else:
                 rows2 = self.db.execute(
                     text(
@@ -839,22 +971,44 @@ class InterviewService:
                     ),
                     {"onet_code": job_id},
                 ).fetchall()
-                all_tasks = [{"task_en": r.dwa_title, "task_vi": r.dwa_title_vi or r.dwa_title, "importance": 3.5} for r in rows2]
+                all_tasks = [
+                    {
+                        "task_en": r.dwa_title, 
+                        "task_vi": r.dwa_title_vi or r.dwa_title, 
+                        "importance": 3.5,
+                        "task_type": "Kỹ năng chuyên ngành"  # Fallback default
+                    } for r in rows2
+                ]
 
             def skill_name(t):
                 vi = t.get("task_vi", "")
-                if vi and vi != t.get("task_en") and not vi.startswith("Thực hiện các nhiệm vụ"):
-                    return vi
-                return t.get("task_en", "")
+                en = t.get("task_en", "")
+                
+                # Kiểm tra nếu task_vi có trộn lẫn tiếng Anh (có từ tiếng Anh dài)
+                if vi:
+                    # Nếu task_vi chứa nhiều từ tiếng Anh, ưu tiên task_en
+                    english_words = ['and', 'or', 'with', 'the', 'to', 'of', 'in', 'on', 'for', 'by', 'from', 'into', 'onto', 'under', 'after', 'before', 'during', 'using', 'providing']
+                    english_count = sum(1 for word in english_words if word in vi.lower())
+                    
+                    # Nếu có quá nhiều từ tiếng Anh (>2), dùng task_en
+                    if english_count > 2:
+                        return en if en else vi
+                    
+                    # Nếu task_vi không bắt đầu bằng "Thực hiện các nhiệm vụ" và khác task_en
+                    if vi != en and not vi.startswith("Thực hiện các nhiệm vụ"):
+                        return vi
+                
+                # Fallback to English
+                return en if en else vi
 
             top5 = [
                 {
                     "skill_name": skill_name(t),
-                    "skill_type": "Kỹ năng chuyên ngành",
-                    "importance": t["importance"],
-                    "level": t["importance"],
+                    "skill_type": t.get("task_type", "Kỹ năng chuyên ngành"),  # Sử dụng task_type từ data
+                    "importance": t.get("importance", 3.0),
+                    "level": t.get("importance", 3.0),
                     "rank": i + 1,
-                    "combined_score": t["importance"],
+                    "combined_score": t.get("importance", 3.0),
                     "is_hard_skill": True,
                 }
                 for i, t in enumerate(all_tasks[:5])
@@ -863,7 +1017,7 @@ class InterviewService:
             _task_selection_cache[job_id] = top5
             return top5, all_tasks
         except Exception as e:
-            print(f"⚠️ _get_hard_skills_fast failed: {e}")
+            print(f"[WARN] _get_hard_skills_fast failed: {e}")
             return [], []
 
     def _gemini_select_top_tasks(self, tasks: List[Dict], job_id: str) -> List[Dict]:
@@ -901,14 +1055,38 @@ Respond with ONLY a JSON object, no explanation:
         _task_selection_cache[job_id] = result
         return result
 
-    def start_interview(self, user_id: int, job_id: str, question_count: int = 5) -> InterviewSession:
-        """Bắt đầu phiên phỏng vấn mới với số lượng câu hỏi tùy chỉnh"""
+    def start_interview(self, user_id: int, job_id: str, question_count: int = 5, jd_id: Optional[int] = None, level_slug: Optional[str] = None) -> InterviewSession:
+        """Bắt đầu phiên phỏng vấn mới với số lượng câu hỏi tùy chỉnh, JD và level"""
         # Validate question count
         if question_count not in [5, 7, 8, 10, 12]:
             question_count = 5  # Default fallback
 
-        # Get question distribution
-        question_distribution = self._get_question_distribution(question_count)
+        # Xử lý JD nếu có
+        jd_questions_count = 0
+        jd_data = None
+        if jd_id:
+            try:
+                from .models import JobDescription
+                from .jd_service import JDService
+                jd = self.db.query(JobDescription).filter(
+                    JobDescription.id == jd_id,
+                    JobDescription.user_id == user_id
+                ).first()
+                if jd and jd.extracted_data:
+                    jd_data = jd.extracted_data
+                    jd_svc = JDService(self.db)
+                    jd_questions_count = jd_svc.calc_jd_questions_count(jd.extracted_data)
+                    print(f"✅ JD loaded: {jd_questions_count} JD questions will be added")
+            except Exception as e:
+                print(f"⚠️ JD loading failed: {e}")
+
+        # CRITICAL FIX: Tính total questions = sum của distribution (bao gồm closing)
+        question_distribution = self._get_question_distribution(question_count, jd_questions_count)
+        total_questions = sum(question_distribution.values())
+        print(f"✅ InterviewService total questions: {question_count} base + {jd_questions_count} JD + 1 closing = {total_questions}")
+
+        # Get question distribution (bao gồm cả JD questions)
+        question_distribution = self._get_question_distribution(total_questions, jd_questions_count)
 
         # Lấy thông tin job - Postgres trước, Neo4j fallback
         job_title = self._get_job_title_from_postgres(job_id)
@@ -916,7 +1094,7 @@ Respond with ONLY a JSON object, no explanation:
             job_info = self.neo4j.get_job_info(job_id)
             if not job_info:
                 raise ValueError(f"Không tìm thấy nghề nghiệp với ID: {job_id}")
-            job_title = job_info["title"]
+            job_title = job_info.get("title", f"Job {job_id}")
 
         # LUỒNG MỚI: 4 bước xử lý soft skills
         soft_skills_context = []
@@ -951,35 +1129,53 @@ Respond with ONLY a JSON object, no explanation:
         # Get hard skills (tasks) for technical questions
         hard_skills_context, _ = self._get_hard_skills_fast(job_id)
 
-        # Combine skills context with type indicators
+        # Combine skills context with type indicators - CHUẨN HÓA thứ tự field
         all_skills_context = []
         for skill in soft_skills_context:
-            skill_copy = skill.copy()
-            skill_copy["is_soft_skill"] = True
-            all_skills_context.append(skill_copy)
+            all_skills_context.append({
+                "skill_name": skill.get("skill_name", ""),
+                "skill_type": skill.get("skill_type", "Kỹ năng mềm"),
+                "importance": skill.get("importance", 0.0),
+                "level": skill.get("level", 0.0),
+                "is_hard_skill": False,
+                "source": "career"
+            })
 
         for skill in hard_skills_context[:5]:  # Limit hard skills
-            skill_copy = skill.copy()
-            skill_copy["is_soft_skill"] = False
-            all_skills_context.append(skill_copy)
+            all_skills_context.append({
+                "skill_name": skill.get("skill_name", ""),
+                "skill_type": skill.get("skill_type", "Kỹ năng chuyên ngành"),
+                "importance": skill.get("importance", 0.0),
+                "level": skill.get("level", 0.0),
+                "is_hard_skill": True,
+                "source": "career"
+            })
 
-        # Tạo session mới
+        # Tạo session mới với thông tin JD và level
         session = InterviewSession(
             user_id=user_id,
             job_id=job_id,
             job_title=job_title,
             skills_context=all_skills_context,
             status="active",
-            question_count=question_count,
+            question_count=total_questions,  # Tổng số câu hỏi bao gồm JD
             question_distribution=question_distribution,
+            market_context={  # Lưu thông tin JD và level
+                "jd_data": jd_data,
+                "jd_questions_count": jd_questions_count,
+                "level_slug": level_slug,
+                "has_jd": jd_data is not None,
+                "has_level": level_slug is not None
+            }
         )
 
         self.db.add(session)
         self.db.commit()
         self.db.refresh(session)
 
-        # Tạo lời chào và câu hỏi đầu tiên
-        start_content = self.gemini.generate_interview_start(job_title, soft_skills_context)
+        # Tạo lời chào và câu hỏi đầu tiên với level context
+        level_context = self._get_level_context(level_slug) if level_slug else None
+        start_content = self.gemini.generate_interview_start(job_title, soft_skills_context, level_context)
 
         # Lưu lời chào
         greeting_msg = InterviewMessage(
@@ -1121,42 +1317,43 @@ Trả về JSON (chỉ JSON):
         if is_skipped:
             # Enhanced skip handling with better guidance
             return self._handle_skipped_question(session, last_question)
-        else:
-            # Đánh giá câu trả lời bình thường với context kỹ năng
-            evaluation = self.gemini.evaluate_answer(
-                last_question.content,
-                user_answer,
-                session.job_title,
-                skills_tested=last_question.skills_tested,
-                question_type=last_question.question_type,
-            )
-            
-            # Validate evaluation data to prevent database errors
-            safe_evaluation = {
-                "score": float(evaluation.get("score", 0)) if evaluation.get("score") is not None else 0.0,
-                "detailed_scores": evaluation.get("detailed_scores") if isinstance(evaluation.get("detailed_scores"), dict) else {},
-                "feedback": str(evaluation.get("feedback", "")) if evaluation.get("feedback") else "",
-                "strengths": evaluation.get("strengths") if isinstance(evaluation.get("strengths"), list) else [],
-                "weaknesses": evaluation.get("weaknesses") if isinstance(evaluation.get("weaknesses"), list) else [],
-                "suggestion": str(evaluation.get("suggestion", "")) if evaluation.get("suggestion") else "",
-            }
-            
-            answer_msg = InterviewMessage(
-                session_id=session_id,
-                role="candidate",
-                content=user_answer,
-                question_type=f"answer_{last_question.question_type}" if last_question.question_type else "answer",
-                question_number=last_question.question_number,
-                score=safe_evaluation["score"],
-                detailed_scores=safe_evaluation["detailed_scores"],
-                feedback=safe_evaluation["feedback"],
-                strengths=safe_evaluation["strengths"],
-                weaknesses=safe_evaluation["weaknesses"],
-                suggestion=safe_evaluation["suggestion"],
-                has_audio=has_audio,
-                audio_duration=audio_duration,
-            )
+
+        # Đánh giá câu trả lời bình thường với context kỹ năng
+        evaluation = self.gemini.evaluate_answer(
+            last_question.content,
+            user_answer,
+            session.job_title,
+            skills_tested=last_question.skills_tested,
+            question_type=last_question.question_type,
+        )
+        
+        # Validate evaluation data to prevent database errors
+        safe_evaluation = {
+            "score": float(evaluation.get("score", 0)) if evaluation.get("score") is not None else 0.0,
+            "detailed_scores": evaluation.get("detailed_scores") if isinstance(evaluation.get("detailed_scores"), dict) else {},
+            "feedback": str(evaluation.get("feedback", "")) if evaluation.get("feedback") else "",
+            "strengths": evaluation.get("strengths") if isinstance(evaluation.get("strengths"), list) else [],
+            "weaknesses": evaluation.get("weaknesses") if isinstance(evaluation.get("weaknesses"), list) else [],
+            "suggestion": str(evaluation.get("suggestion", "")) if evaluation.get("suggestion") else "",
+        }
+        
+        answer_msg = InterviewMessage(
+            session_id=session_id,
+            role="candidate",
+            content=user_answer,
+            question_type=f"answer_{last_question.question_type}" if last_question.question_type else "answer",
+            question_number=last_question.question_number,
+            score=safe_evaluation["score"],
+            detailed_scores=safe_evaluation["detailed_scores"],
+            feedback=safe_evaluation["feedback"],
+            strengths=safe_evaluation["strengths"],
+            weaknesses=safe_evaluation["weaknesses"],
+            suggestion=safe_evaluation["suggestion"],
+            has_audio=has_audio,
+            audio_duration=audio_duration,
+        )
         self.db.add(answer_msg)
+        self.db.flush()  # Flush để answer_msg có ID và visible trong session, nhưng chưa commit
 
         # Kiểm tra xem có cần câu hỏi tiếp theo không
         question_count = (
@@ -1173,12 +1370,14 @@ Trả về JSON (chỉ JSON):
         max_questions = session.question_count or 5
 
         if question_count >= max_questions:
-            # Kết thúc phỏng vấn
+            # Kết thúc phỏng vấn - commit answer trước rồi mới finish
+            self.db.commit()
             finish_result = self._finish_interview(session)
             finish_result["evaluation"] = evaluation
             return finish_result
         else:
             # Tạo câu hỏi tiếp theo
+            self.db.commit()
             next_result = self._generate_next_question(session)
             next_result["evaluation"] = evaluation
             return next_result
@@ -1311,7 +1510,7 @@ Trả về JSON:
         ).count()
 
     def _generate_next_question(self, session: InterviewSession, suggested_question: str = None) -> Dict:
-        """Tạo câu hỏi tiếp theo dựa trên phân bố động"""
+        """Tạo câu hỏi tiếp theo dựa trên phân bố động với JD và level support"""
         # Lấy lịch sử câu hỏi
         previous_questions = (
             self.db.query(InterviewMessage)
@@ -1327,10 +1526,31 @@ Trả về JSON:
 
         # Chọn skills phù hợp với loại câu hỏi
         skills_context = session.skills_context or []
-        skills_for_question = self._select_skills_for_question(skills_context, question_type, question_number)
+        skills_for_question = self._select_skills_for_question(skills_context, question_type, question_number, session.id)
 
-        # Generate câu hỏi từ Gemini
-        next_question = self.gemini.generate_question(session.job_title, skills_for_question, question_history, question_type)
+        # Chuẩn bị session context cho Gemini với null safety
+        market_context = session.market_context or {}
+        level_slug = market_context.get("level_slug")
+        jd_data = market_context.get("jd_data")
+        
+        # Đảm bảo không null
+        session_context = {
+            "jd_data": jd_data if jd_data else None,
+            "level_context": self._get_level_context(level_slug) if level_slug else None
+        }
+
+        # Generate câu hỏi từ Gemini với context
+        if question_type == "closing":
+            # Generate closing question
+            next_question = f"Cảm ơn bạn đã tham gia buổi phỏng vấn hôm nay! Bạn có câu hỏi nào muốn hỏi về vị trí {session.job_title} hoặc công ty không?"
+        else:
+            next_question = self.gemini.generate_question(
+                session.job_title, 
+                skills_for_question, 
+                question_history, 
+                question_type,
+                session_context
+            )
 
         # Lưu câu hỏi mới
         question_msg = InterviewMessage(
@@ -1339,7 +1559,7 @@ Trả về JSON:
             content=next_question,
             question_type=question_type,
             question_number=question_number,
-            skills_tested=[s.get("skill_name", "") for s in skills_for_question[:3]],
+            skills_tested=[s.get("skill_name", "") for s in skills_for_question if s.get("skill_name")] if question_type != "closing" else [],
         )
         self.db.add(question_msg)
         self.db.commit()
@@ -1350,11 +1570,13 @@ Trả về JSON:
             "next_question": next_question,  # Keep both for compatibility
             "question_number": question_number,
             "question_type": question_type,
+            "skills_tested": [s.get("skill_name", "") for s in skills_for_question if s.get("skill_name")],
+            "skills_details": skills_for_question,
         }
 
     def _get_next_question_type(self, session: InterviewSession, question_number: int) -> str:
-        """Xác định loại câu hỏi tiếp theo dựa trên phân bố"""
-        distribution = session.question_distribution or self._get_question_distribution(session.question_count or 5)
+        """Xác định loại câu hỏi tiếp theo dựa trên distribution - nhất quán với ai_pipeline_service"""
+        distribution = session.question_distribution or self._get_question_distribution(session.question_count or 5, 0)
 
         # Count existing questions by type (excluding greeting)
         existing_questions = (
@@ -1367,43 +1589,116 @@ Trả về JSON:
             .all()
         )
 
-        type_counts = {}
+        type_counts: dict = {}
         for q in existing_questions:
             qtype = q.question_type or "technical"
             type_counts[qtype] = type_counts.get(qtype, 0) + 1
 
-        # Determine next type based on what's needed
-        for qtype in ["warm_up", "technical", "behavioral", "situational"]:
+        # Dùng distribution-based logic: theo thứ tự warm_up → jd_specific → technical → behavioral → situational → closing
+        # Đảm bảo nhất quán với _create_question_distribution trong ai_pipeline_service
+        order = ["warm_up", "jd_specific", "technical", "behavioral", "situational", "closing"]
+        for qtype in order:
             needed = distribution.get(qtype, 0)
             current = type_counts.get(qtype, 0)
             if current < needed:
                 return qtype
 
-        # Fallback to technical if all quotas are met
+        # Fallback
         return "technical"
 
-    def _select_skills_for_question(self, skills_context: List[Dict], question_type: str, question_number: int) -> List[Dict]:
-        """Chọn skills phù hợp cho từng loại câu hỏi"""
+    def _select_skills_for_question(self, skills_context: List[Dict], question_type: str, question_number: int, session_id: int = None) -> List[Dict]:
+        """
+        Chọn skills phù hợp cho từng loại câu hỏi theo độ ưu tiên.
+        Mỗi câu hỏi trả đúng 1 skill.
+        - technical   → career hard skills (source != 'jd'), rotate by DB count
+        - jd_specific → JD skills (source == 'jd'), rotate by DB count
+        - behavioral  → soft skills, rotate by DB count
+        - situational → soft skills, rotate with offset +1 vs behavioral
+        - warm_up     → soft[0] or hard[0] fallback
+        - closing     → []
+        """
         if not skills_context:
             return []
 
-        # Separate soft and hard skills
-        soft_skills = [s for s in skills_context if s.get("is_soft_skill", True)]
-        hard_skills = [s for s in skills_context if not s.get("is_soft_skill", True)]
+        def is_hard_skill_safe(skill):
+            is_hard = skill.get("is_hard_skill", False)
+            if isinstance(is_hard, bool):
+                return is_hard
+            if isinstance(is_hard, str):
+                return is_hard.lower() in ['true', 'yes', '1']
+            if isinstance(is_hard, (int, float)):
+                return bool(is_hard)
+            return False
+
+        def safe_importance(skill):
+            importance = skill.get("importance")
+            if importance is None:
+                return 0
+            try:
+                value = float(importance)
+                if value in (float('inf'), float('-inf')) or value != value:
+                    return 0
+                return value
+            except (ValueError, TypeError):
+                return 0
+
+        soft_skills = sorted(
+            [s for s in skills_context if not is_hard_skill_safe(s)],
+            key=safe_importance, reverse=True
+        )
+        hard_skills = sorted(
+            [s for s in skills_context if is_hard_skill_safe(s) and s.get("source") != "jd"],
+            key=safe_importance, reverse=True
+        )
+
+        def db_count(qtype: str) -> int:
+            if session_id is None:
+                return 0
+            return self.db.query(InterviewMessage).filter(
+                InterviewMessage.session_id == session_id,
+                InterviewMessage.role == "interviewer",
+                InterviewMessage.question_type == qtype
+            ).count()
 
         if question_type == "technical":
-            # Technical questions focus on hard skills (tasks)
-            return hard_skills[:3] if hard_skills else soft_skills[:3]
-        elif question_type in ["behavioral", "situational"]:
-            # Behavioral/situational questions focus on soft skills
-            return soft_skills[:3] if soft_skills else []
-        else:
-            # Warm-up questions use general skills
-            return (soft_skills + hard_skills)[:2]
+            if not hard_skills:
+                return []
+            idx = db_count("technical") % len(hard_skills)
+            return [hard_skills[idx]]
+
+        elif question_type == "jd_specific":
+            jd_skills = sorted(
+                [s for s in skills_context if s.get("source") == "jd"],
+                key=safe_importance, reverse=True
+            )
+            if not jd_skills:
+                return []
+            idx = db_count("jd_specific") % len(jd_skills)
+            return [jd_skills[idx]]
+
+        elif question_type == "behavioral":
+            if not soft_skills:
+                return []
+            idx = db_count("behavioral") % len(soft_skills)
+            return [soft_skills[idx]]
+
+        elif question_type == "situational":
+            if not soft_skills:
+                return []
+            sit_count = db_count("situational")
+            offset = 1 if len(soft_skills) >= 2 else 0
+            idx = (sit_count + offset) % len(soft_skills)
+            return [soft_skills[idx]]
+
+        elif question_type == "closing":
+            return []
+
+        else:  # warm_up
+            return soft_skills[:1] if soft_skills else hard_skills[:1]
 
     def _finish_interview(self, session: InterviewSession) -> Dict:
-        """Kết thúc phỏng vấn và tạo báo cáo"""
-        # Lấy tất cả câu trả lời và điểm số
+        """Kết thúc phỏng vấn và tạo báo cáo - chỉ mark completed khi có closing question"""
+        # Lấy tất cả messages
         messages = (
             self.db.query(InterviewMessage)
             .filter(InterviewMessage.session_id == session.id)
@@ -1411,24 +1706,41 @@ Trả về JSON:
             .all()
         )
 
-        # Tạo lịch sử phỏng vấn
+        # Check if there's a closing question - this determines true completion
+        has_closing = any(
+            m.question_type == 'closing' and m.role == 'interviewer'
+            for m in messages
+        )
+
+        # Tạo lịch sử phỏng vấn - ghép đúng cặp question/answer theo question_number
         interview_history = []
         scores_history = []
 
-        for i in range(0, len(messages), 2):  # Mỗi cặp question-answer
-            if i + 1 < len(messages):
-                question = messages[i]
-                answer = messages[i + 1]
-                if question.role == "interviewer" and answer.role == "candidate":
-                    interview_history.append({"question": question.content, "answer": answer.content, "score": answer.score or 0})
-                    if answer.score:
-                        scores_history.append(answer.score)
+        # Lấy tất cả interviewer questions (không phải greeting)
+        questions = [m for m in messages if m.role == 'interviewer' and m.question_type != 'greeting']
+        # Lấy tất cả candidate answers
+        answers = [m for m in messages if m.role == 'candidate']
+
+        for q in questions:
+            # Tìm answer tương ứng theo question_number
+            matching_answer = next(
+                (a for a in answers if a.question_number == q.question_number),
+                None
+            )
+            if matching_answer:
+                interview_history.append({
+                    "question": q.content,
+                    "answer": matching_answer.content,
+                    "score": matching_answer.score or 0
+                })
+                if matching_answer.score:
+                    scores_history.append(matching_answer.score)
 
         # Tạo báo cáo tổng kết
         summary = self.gemini.generate_final_summary(interview_history, scores_history, session.job_title)
 
-        # Cập nhật session
-        session.status = "completed"
+        # Cập nhật session - chỉ mark completed nếu có closing question
+        session.status = "completed" if has_closing else "abandoned"
         session.completed_at = datetime.utcnow()
         session.overall_score = summary["overall_score"]
         session.recommendation = summary["recommendation"]
@@ -1441,7 +1753,6 @@ Trả về JSON:
         # Tính điểm chi tiết từ detailed_scores của từng câu trả lời
         candidate_messages = [m for m in messages if m.role == "candidate" and m.detailed_scores]
         if candidate_messages:
-
             def avg_dim(dim):
                 vals = [m.detailed_scores.get(dim, 0) for m in candidate_messages if m.detailed_scores.get(dim) is not None]
                 return sum(vals) / len(vals) if vals else None
@@ -1489,6 +1800,8 @@ Trả về JSON:
                 "skill_gaps": session.skill_gaps,
                 "learning_recommendations": session.learning_recommendations,
                 "skills_context": session.skills_context,
+                "question_count": session.question_count,
+                "question_distribution": session.question_distribution,
             },
             "messages": [
                 {
@@ -1512,18 +1825,69 @@ Trả về JSON:
             ],
         }
 
-    def get_user_interviews(self, user_id: int, limit: int = 10) -> List[Dict]:
-        """Lấy danh sách phỏng vấn của user"""
+    def abandon_interview(self, session_id: int, user_id: int) -> bool:
+        """Mark interview session as abandoned"""
+        try:
+            session = (
+                self.db.query(InterviewSession)
+                .filter(InterviewSession.id == session_id)
+                .filter(InterviewSession.user_id == user_id)
+                .first()
+            )
+            
+            if not session:
+                return False
+                
+            session.status = 'abandoned'
+            session.completed_at = datetime.utcnow()
+            self.db.commit()
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    def get_user_interviews(self, user_id: int, limit: int = 20, offset: int = 0) -> Dict:
+        """Lấy danh sách phỏng vấn của user với pagination - exclude active sessions"""
+        # Get paginated sessions (exclude active sessions from history)
         sessions = (
             self.db.query(InterviewSession)
             .filter(InterviewSession.user_id == user_id)
+            .filter(InterviewSession.status != 'active')
             .order_by(InterviewSession.started_at.desc())
             .limit(limit)
+            .offset(offset)
             .all()
         )
 
-        return [
-            {
+        # Re-classify completed sessions that don't have closing question
+        needs_commit = False
+        for s in sessions:
+            if s.status == 'completed':
+                has_closing = (
+                    self.db.query(InterviewMessage)
+                    .filter(InterviewMessage.session_id == s.id)
+                    .filter(InterviewMessage.question_type == 'closing')
+                    .first() is not None
+                )
+                if not has_closing:
+                    s.status = 'abandoned'
+                    needs_commit = True
+
+        if needs_commit:
+            self.db.commit()
+
+        # Get total count AFTER re-classification (exclude active)
+        total_count = (
+            self.db.query(InterviewSession)
+            .filter(InterviewSession.user_id == user_id)
+            .filter(InterviewSession.status != 'active')
+            .count()
+        )
+
+        interviews = []
+        for s in sessions:
+            interviews.append({
                 "id": s.id,
                 "job_title": s.job_title,
                 "status": s.status,
@@ -1531,11 +1895,61 @@ Trả về JSON:
                 "completed_at": s.completed_at.isoformat() if s.completed_at else None,
                 "overall_score": s.overall_score,
                 "recommendation": s.recommendation,
+                "question_count": s.question_count,
+            })
+
+        return {
+            "interviews": interviews,
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+            "has_more": offset + limit < total_count
+        }
+
+    def _get_level_context(self, level_slug: str) -> Optional[Dict]:
+        """Lấy thông tin về cấp bậc nghề nghiệp"""
+        if not level_slug:
+            return None
+            
+        level_mapping = {
+            "fresher": {
+                "name": "Fresher",
+                "experience": "0-1 năm",
+                "difficulty": "cơ bản",
+                "focus": "kiến thức nền tảng, thái độ học hỏi, tiềm năng phát triển"
+            },
+            "junior": {
+                "name": "Junior", 
+                "experience": "1-3 năm",
+                "difficulty": "trung bình",
+                "focus": "kỹ năng thực hành, kinh nghiệm dự án, khả năng làm việc nhóm"
+            },
+            "middle": {
+                "name": "Middle",
+                "experience": "3-5 năm", 
+                "difficulty": "trung bình khá",
+                "focus": "giải quyết vấn đề phức tạp, mentoring, thiết kế hệ thống"
+            },
+            "senior": {
+                "name": "Senior",
+                "experience": "5+ năm",
+                "difficulty": "khó",
+                "focus": "kiến trúc hệ thống, leadership, ra quyết định kỹ thuật"
+            },
+            "lead": {
+                "name": "Lead",
+                "experience": "7+ năm",
+                "difficulty": "rất khó", 
+                "focus": "quản lý team, chiến lược kỹ thuật, mentoring nhiều người"
             }
-            for s in sessions
-        ]
+        }
+        
+        return level_mapping.get(level_slug.lower())
 
     def __del__(self):
         """Cleanup khi service bị destroy"""
-        if hasattr(self, "neo4j") and self.neo4j:
-            self.neo4j.close()
+        try:
+            if hasattr(self, "neo4j") and self.neo4j:
+                self.neo4j.close()
+        except Exception:
+            pass

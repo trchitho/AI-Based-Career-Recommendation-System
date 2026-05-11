@@ -55,15 +55,15 @@
   },
   "nav": {
     "home": "Trang chủ",
-    "dashboard": "Bảng điều khiển",
-    "assessment": "Bài đánh giá",
+    "dashboard": "Tổng quan",
+    "assessment": "Đánh giá",
     "interview": "Phỏng vấn",
     "results": "Kết quả",
     "roadmap": "Lộ trình",
     "profile": "Hồ sơ",
     "admin": "Quản trị",
     "recommendations": "Gợi ý nghề nghiệp",
-    "careers": "Nghề nghiệp",
+    "careers": "Xu hướng",
     "blogs": "Bài viết",
     "skillGap": "Khoảng cách kỹ năng",
     "pricing": "Bảng giá",
@@ -156,6 +156,7 @@
     "hero": {
       "title": "Xây dựng tương lai với",
       "titleHighlight": "Định hướng nghề nghiệp thông minh",
+      "titleSuffix": "một cách chính xác.",
       "subtitle": "Khám phá con đường sự nghiệp lý tưởng với đánh giá tính cách bằng AI, gợi ý cá nhân hóa và lộ trình chi tiết.",
       "cta": "Bắt đầu đánh giá",
       "exploreBtn": "Khám phá nghề nghiệp"
@@ -174,15 +175,20 @@
       "sectionSubtitle": "Nền tảng kết hợp AI tiên tiến với chiến lược nghề nghiệp đã được kiểm chứng để mang lại lợi thế cạnh tranh.",
       "assessment": {
         "title": "Đánh giá nghề nghiệp bằng AI",
-        "desc": "Khám phá con đường nghề nghiệp lý tưởng với bài đánh giá toàn diện RIASEC & Big Five được hỗ trợ bởi phân tích AI tiên tiến."
+        "desc": "Khám phá con đường nghề nghiệp lý tưởng với bài đánh giá toàn diện RIASEC & Big Five được hỗ trợ bởi phân tích AI tiên tiến.",
+        "shortDesc": "Đánh giá nhận thức và kỹ thuật sâu để khám phá lợi thế cạnh tranh ẩn của bạn."
       },
       "skillGap": {
         "title": "Phân tích khoảng cách kỹ năng",
-        "desc": "Xác định các kỹ năng còn thiếu cho nghề nghiệp mơ ước của bạn."
+        "desc": "Xác định các kỹ năng còn thiếu cho nghề nghiệp mơ ước của bạn.",
+        "shortDesc": "Thu thập dữ liệu thời gian thực từ các lĩnh vực toàn cầu để xác định khoảng trống nhân tài mới nổi."
       },
       "roadmap": {
         "title": "Lộ trình nghề nghiệp",
         "desc": "Lộ trình học tập cá nhân hóa dẫn đến thành công."
+      },
+      "mentor": {
+        "shortDesc": "Truy cập trực tiếp các chuyên gia ngành đã đi qua con đường bạn đang tìm kiếm."
       }
     },
     "howItWorks": {
@@ -265,7 +271,7 @@
     }
   },
   "dashboard": {
-    "title": "Bảng điều khiển",
+    "title": "Tổng quan",
     "welcome": "Chào mừng trở lại",
     "overview": "Theo dõi hành trình phát triển nghề nghiệp",
     "loading": "Đang tải dữ liệu...",
@@ -728,5 +734,117 @@
     "target": "Mục tiêu",
     "successRate": "Tỷ lệ thành công",
     "successRateMessage": "Tỷ lệ thành công nằm trong ngưỡng mong đợi."
+  },
+  "careerDetail": {
+    "back": "Quay lại",
+    "onetCode": "Mã O*NET",
+    "viewLearningRoadmap": "Xem Lộ Trình Học Tập",
+    "aboutTheRole": "Về Vai Trò Này",
+    "keyResponsibilities": "Trách Nhiệm Chính",
+    "technologyStack": "Công Nghệ Sử Dụng",
+    "competenciesProfile": "Hồ Sơ Năng Lực",
+    "competenciesProfileLocked": "Hồ Sơ Năng Lực Bị Khóa",
+    "upgradeToUnlock": "Nâng cấp lên {{plan}} để mở khóa phân tích chi tiết về Kiến thức, Kỹ năng và Khả năng.",
+    "upgradeNow": "Nâng Cấp Ngay",
+    "knowledge": "Kiến Thức",
+    "skills": "Kỹ Năng",
+    "abilities": "Khả Năng",
+    "level": "Mức Độ",
+    "importance": "Quan Trọng",
+    "detailedWorkActivities": "Hoạt Động Công Việc Chi Tiết",
+    "topWorkActivities": "Hoạt Động Công Việc Hàng Đầu",
+    "topActivity": "Hoạt Động Hàng Đầu",
+    "combinedScore": "Điểm Tổng Hợp",
+    "workEnvironment": "Môi Trường Làm Việc",
+    "requirements": "Yêu Cầu",
+    "experience": "Kinh Nghiệm",
+    "education": "Học Vấn",
+    "jobZone": "Vùng Công Việc",
+    "zone": "Vùng",
+    "educationBreakdown": "Phân Tích Học Vấn",
+    "salaryInformation": "Thông Tin Lương",
+    "monthlyMedianVN": "Lương Trung Vị Hàng Tháng (VN)",
+    "annualMedianUS": "Lương Trung Vị Hàng Năm (Mỹ)",
+    "annual": "Hàng Năm",
+    "hourly": "Theo Giờ",
+    "byRegion": "Theo Vùng",
+    "hoChiMinh": "TP. Hồ Chí Minh",
+    "hanoi": "Hà Nội",
+    "daNang": "Đà Nẵng",
+    "salaryRange": "Khoảng Lương",
+    "percentile10th": "Phần trăm thứ 10",
+    "percentile90th": "Phần trăm thứ 90",
+    "averageSalary": "Lương Trung Bình",
+    "min": "Tối Thiểu",
+    "max": "Tối Đa",
+    "jobOutlook": "Triển Vọng Nghề Nghiệp",
+    "projectedOpenings": "Cơ Hội Việc Làm Dự Kiến",
+    "year": "năm",
+    "declining": "Giảm",
+    "excellentOutlook": "Triển Vọng Tươi Sáng",
+    "muchFasterThanAverage": "Nhanh Hơn Nhiều So Với Mức Trung Bình",
+    "fasterThanAverage": "Nhanh Hơn Mức Trung Bình",
+    "averageGrowth": "Trung Bình",
+    "decliningGrowth": "Giảm",
+    "upgradeToProUnlock": "Nâng cấp lên Pro để mở khóa",
+    "unlockFullAccess": "Mở Khóa Toàn Bộ Quyền Truy Cập",
+    "unlockFullAccessDesc": "Nhận thông tin lương, triển vọng nghề nghiệp và yêu cầu chi tiết với gói Pro.",
+    "viewPlans": "Xem Các Gói",
+    "loadingCareerDetails": "Đang tải thông tin nghề nghiệp...",
+    "noTaskData": "Không có dữ liệu nhiệm vụ.",
+    "noTechnologyData": "Không có dữ liệu công nghệ.",
+    "noKnowledgeData": "Không có dữ liệu kiến thức.",
+    "noSkillsData": "Không có dữ liệu kỹ năng.",
+    "noAbilitiesData": "Không có dữ liệu khả năng.",
+    "noDetailedWorkActivitiesData": "Không có dữ liệu hoạt động công việc chi tiết.",
+    "noWorkActivitiesData": "Không có dữ liệu hoạt động công việc.",
+    "noWorkContextData": "Không có dữ liệu môi trường làm việc.",
+    "variesByPosition": "Tùy theo vị trí",
+    "alternativeTitles": "Tên Nghề Tương Tự",
+    "showMore": "Xem thêm",
+    "showLess": "Ẩn bớt",
+    "moreTasks": "nhiệm vụ khác"
+  },
+  "quizMode": {
+    "chooseYourGame": "Chọn chế độ chơi",
+    "selectGameMode": "Chọn một chế độ chơi cho bài đánh giá của bạn. Tất cả các chế độ đều cung cấp kết quả định hướng nghề nghiệp chính xác.",
+    "sameResults": "Cùng kết quả, trải nghiệm khác nhau",
+    "sameResultsDesc": "Cả hai chế độ đều sử dụng phương pháp đánh giá khoa học giống nhau và cung cấp gợi ý nghề nghiệp chính xác như nhau.",
+    "puzzleGame": "Trò chơi ghép hình",
+    "interactiveFun": "Tương tác & Vui nhộn",
+    "puzzleGameDesc": "Hoàn thành các câu đố sở thích nghề nghiệp bằng cách ghép các mảnh. Mỗi mảnh tiết lộ những hiểu biết về tính cách của bạn!",
+    "dragDropPieces": "Kéo thả các mảnh ghép",
+    "progressiveDifficulty": "Độ khó tăng dần",
+    "xpRewards": "Phần thưởng XP mỗi câu đố",
+    "animatedQuiz": "Trò chơi hoạt hình",
+    "engagingVisual": "Hấp dẫn & Trực quan",
+    "animatedQuizDesc": "Trải nghiệm bài đánh giá theo câu chuyện hoạt hình với hình ảnh đẹp mắt và chuyển tiếp mượt mà.",
+    "storyDriven": "Kịch bản theo câu chuyện",
+    "beautifulAnimations": "Hoạt hình đẹp mắt",
+    "levelProgression": "Tiến trình cấp độ",
+    "startAssessment": "Bắt đầu đánh giá"
+  },
+  "gameMode": {
+    "level": "Cấp độ",
+    "greatAnswer": "Câu trả lời tuyệt vời!"
+  },
+  "storyAssessment": {
+    "welcomeAdventurer": "Chào Mừng, Nhà Thám Hiểm!",
+    "yourCareerJourney": "Hành Trình Nghề Nghiệp Của Bạn",
+    "interactiveAdventure": "Cuộc Phiêu Lưu Tương Tác",
+    "howItWorks": "Cách Thức Hoạt Động",
+    "readScenario": "Đọc kỹ từng tình huống",
+    "imagineYourself": "Tưởng tượng bạn trong tình huống đó",
+    "chooseResponse": "Chọn cách bạn sẽ phản ứng tự nhiên",
+    "interactiveScenarios": "Kịch Bản Tương Tác",
+    "honestResponses": "Phản Hồi Trung Thực",
+    "careerInsights": "Hiểu Biết Nghề Nghiệp",
+    "careerInsightsReady": "Hiểu Biết Nghề Nghiệp Sẵn Sàng",
+    "responseGuide": "Hướng Dẫn Trả Lời:"
+  },
+  "tetrisGame": {
+    "congratulations": "CHÚC MỪNG!",
+    "finalScore": "Điểm Cuối",
+    "maxCombo": "Combo Tối Đa"
   }
 }

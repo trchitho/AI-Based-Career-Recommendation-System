@@ -12,11 +12,15 @@ export interface BlogPost {
   view_count?: number;
   like_count?: number;
   dislike_count?: number;
+  comment_count?: number;
+  user_reaction?: 'like' | 'dislike' | null;
   is_published?: boolean;
   status?: string;
   published_at?: string;
   created_at?: string;
   updated_at?: string;
+  author_name?: string;
+  author_id?: string;
 }
 
 export interface CreateBlogData {
@@ -102,6 +106,11 @@ export const blogService = {
 
   async adminDelete(id: string): Promise<void> {
     await api.delete(`/api/admin/blog/${id}`);
+  },
+
+  async adminGet(id: string): Promise<BlogPost> {
+    const res = await api.get(`/api/admin/blog/${id}`);
+    return res.data as BlogPost;
   },
 
   /**

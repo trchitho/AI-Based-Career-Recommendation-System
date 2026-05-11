@@ -22,7 +22,7 @@ const QuizModeSelectorPage = () => {
   return (
     <MainLayout>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white relative overflow-hidden flex flex-col">
-        
+
         {/* Background Styles */}
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -40,13 +40,13 @@ const QuizModeSelectorPage = () => {
 
         {/* Background Layers */}
         <div className="absolute inset-0 bg-grid-pattern pointer-events-none z-0"></div>
-        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-green-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
         {/* Main Container */}
         <div className="flex-1 flex items-center justify-center p-4 md:p-8 relative z-10">
           <div className="w-full max-w-6xl">
-            
+
             {/* Header */}
             <div className="text-center mb-12 animate-fade-in-up">
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-400 text-xs font-bold uppercase tracking-wider mb-6 border border-purple-200 dark:border-purple-800">
@@ -66,15 +66,14 @@ const QuizModeSelectorPage = () => {
 
             {/* Game Mode Cards */}
             <div className="grid md:grid-cols-2 gap-8 mb-12">
-              
+
               {/* Puzzle Game */}
-              <div 
+              <div
                 onClick={() => handleModeSelect('standard')}
-                className={`group relative bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-2xl ${
-                  selectedMode === 'standard' 
-                    ? 'border-blue-500 dark:border-blue-400 ring-4 ring-blue-500/20' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
-                }`}
+                className={`group relative bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-xl border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-2xl ${selectedMode === 'standard'
+                  ? 'border-blue-500 dark:border-blue-400 ring-4 ring-blue-500/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                  }`}
               >
                 {selectedMode === 'standard' && (
                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg">
@@ -237,11 +236,10 @@ const QuizModeSelectorPage = () => {
               <button
                 onClick={handleStart}
                 disabled={!selectedMode}
-                className={`group relative px-12 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${
-                  selectedMode
-                    ? 'bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-2 cursor-pointer'
-                    : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                }`}
+                className={`group relative px-12 py-5 rounded-2xl font-bold text-xl shadow-2xl transition-all duration-300 overflow-hidden ${selectedMode
+                  ? 'bg-gradient-to-r from-indigo-800 via-emerald-600 to-violet-600 hover:from-indigo-900 hover:via-emerald-700 hover:to-violet-700 text-white shadow-indigo-800/30 hover:shadow-indigo-800/50 hover:-translate-y-2 cursor-pointer'
+                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  }`}
               >
                 {selectedMode && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>

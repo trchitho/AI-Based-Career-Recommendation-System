@@ -14,11 +14,11 @@ def test_backend_api():
         # Test health endpoint
         response = requests.get("http://127.0.0.1:8000/api/interview/health", timeout=5)
         if response.ok:
-            print("✅ Interview API Health: OK")
+            print("[OK] Interview API Health: OK")
             health_data = response.json()
             print(f"   Services: {health_data.get('services', {})}")
         else:
-            print(f"❌ Interview API Health: {response.status_code}")
+            print(f"[ERR] Interview API Health: {response.status_code}")
             return False
             
         # Test job search
@@ -26,20 +26,20 @@ def test_backend_api():
         if response.ok:
             jobs_data = response.json()
             job_count = len(jobs_data.get('jobs', []))
-            print(f"✅ Job Search API: {job_count} jobs found")
+            print(f"[OK] Job Search API: {job_count} jobs found")
             if job_count > 0:
                 first_job = jobs_data['jobs'][0]
                 print(f"   Sample job: {first_job.get('id')} - {first_job.get('title', '')[:50]}...")
         else:
-            print(f"❌ Job Search API: {response.status_code}")
+            print(f"[ERR] Job Search API: {response.status_code}")
             
         return True
         
     except requests.exceptions.ConnectionError:
-        print("❌ Backend not running on http://127.0.0.1:8000")
+        print("[ERR] Backend not running on http://127.0.0.1:8000")
         return False
     except Exception as e:
-        print(f"❌ Backend test error: {e}")
+        print(f"[ERR] Backend test error: {e}")
         return False
 
 def test_frontend_server():
@@ -49,16 +49,16 @@ def test_frontend_server():
     try:
         response = requests.get("http://localhost:3001/", timeout=5)
         if response.ok:
-            print("✅ Frontend Server: Running on port 3001")
+            print("[OK] Frontend Server: Running on port 3001")
             return True
         else:
-            print(f"❌ Frontend Server: {response.status_code}")
+            print(f"[ERR] Frontend Server: {response.status_code}")
             return False
     except requests.exceptions.ConnectionError:
-        print("❌ Frontend not running on http://localhost:3001")
+        print("[ERR] Frontend not running on http://localhost:3001")
         return False
     except Exception as e:
-        print(f"❌ Frontend test error: {e}")
+        print(f"[ERR] Frontend test error: {e}")
         return False
 
 def check_file_structure():
@@ -90,15 +90,15 @@ def check_file_structure():
         if not os.path.exists(file_path):
             missing_files.append(file_path)
         else:
-            print(f"✅ {file_path}")
+            print(f"[OK] {file_path}")
     
     if missing_files:
-        print(f"\n❌ Missing files:")
+        print(f"\n[ERR] Missing files:")
         for file_path in missing_files:
             print(f"   - {file_path}")
         return False
     else:
-        print(f"\n✅ All {len(required_files)} required files exist")
+        print(f"\n[OK] All {len(required_files)} required files exist")
         return True
 
 def check_routes_registration():
@@ -123,18 +123,18 @@ def check_routes_registration():
             if route not in app_content:
                 missing_routes.append(route)
             else:
-                print(f"✅ Route registered: {route}")
+                print(f"[OK] Route registered: {route}")
         
         if missing_routes:
-            print(f"❌ Missing routes in App.tsx:")
+            print(f"[ERR] Missing routes in App.tsx:")
             for route in missing_routes:
                 print(f"   - {route}")
             return False
         else:
-            print("✅ All interview routes registered in App.tsx")
+            print("[OK] All interview routes registered in App.tsx")
             
     except Exception as e:
-        print(f"❌ Error checking App.tsx: {e}")
+        print(f"[ERR] Error checking App.tsx: {e}")
         return False
     
     # Check MainLayout.tsx for navigation
@@ -143,13 +143,13 @@ def check_routes_registration():
             layout_content = f.read()
             
         if 'to: "/interview"' in layout_content and "t('nav.interview')" in layout_content:
-            print("✅ Interview navigation added to MainLayout.tsx")
+            print("[OK] Interview navigation added to MainLayout.tsx")
         else:
-            print("❌ Interview navigation missing from MainLayout.tsx")
+            print("[ERR] Interview navigation missing from MainLayout.tsx")
             return False
             
     except Exception as e:
-        print(f"❌ Error checking MainLayout.tsx: {e}")
+        print(f"[ERR] Error checking MainLayout.tsx: {e}")
         return False
         
     return True
@@ -164,9 +164,9 @@ def check_translations():
             en_data = json.load(f)
             
         if en_data.get("nav", {}).get("interview") == "Interview":
-            print("✅ English translation: nav.interview = 'Interview'")
+            print("[OK] English translation: nav.interview = 'Interview'")
         else:
-            print("❌ Missing English translation for nav.interview")
+            print("[ERR] Missing English translation for nav.interview")
             return False
             
         # Check Vietnamese translations  
@@ -174,15 +174,15 @@ def check_translations():
             vi_data = json.load(f)
             
         if vi_data.get("nav", {}).get("interview") == "Phỏng vấn":
-            print("✅ Vietnamese translation: nav.interview = 'Phỏng vấn'")
+            print("[OK] Vietnamese translation: nav.interview = 'Phỏng vấn'")
         else:
-            print("❌ Missing Vietnamese translation for nav.interview")
+            print("[ERR] Missing Vietnamese translation for nav.interview")
             return False
             
         return True
         
     except Exception as e:
-        print(f"❌ Error checking translations: {e}")
+        print(f"[ERR] Error checking translations: {e}")
         return False
 
 def main():
@@ -208,7 +208,7 @@ def main():
     total = len(results)
     
     for test_name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[ERR] FAIL"
         print(f"{status} {test_name}")
         if result:
             passed += 1
@@ -223,7 +223,7 @@ def main():
         print("   • Navigation: Click 'Interview' in main menu")
         print("   • Dashboard: Interview action card")
     else:
-        print(f"\n⚠️  {total - passed} tests failed. Please fix the issues above.")
+        print(f"\n[WARN]  {total - passed} tests failed. Please fix the issues above.")
     
     return passed == total
 

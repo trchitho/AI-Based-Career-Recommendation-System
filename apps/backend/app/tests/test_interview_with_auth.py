@@ -25,12 +25,12 @@ def get_auth_token():
                 data = response.json()
                 token = data.get("access_token")
                 if token:
-                    print(f"✅ Authenticated with {creds['email']}")
+                    print(f"[OK] Authenticated with {creds['email']}")
                     return token
         except Exception as e:
-            print(f"❌ Login failed for {creds['email']}: {e}")
+            print(f"[ERR] Login failed for {creds['email']}: {e}")
     
-    print("❌ Could not authenticate with any test credentials")
+    print("[ERR] Could not authenticate with any test credentials")
     return None
 
 def test_interview_flow_with_auth():
@@ -41,7 +41,7 @@ def test_interview_flow_with_auth():
     
     token = get_auth_token()
     if not token:
-        print("❌ Cannot proceed without authentication")
+        print("[ERR] Cannot proceed without authentication")
         return
     
     headers = {
@@ -70,19 +70,19 @@ def test_interview_flow_with_auth():
         )
         
         if response.status_code != 200:
-            print(f"❌ Start interview failed: {response.status_code}")
+            print(f"[ERR] Start interview failed: {response.status_code}")
             print(f"Response: {response.text}")
             return
         
         start_data = response.json()
         session_id = start_data["session_id"]
-        print(f"✅ Interview started! Session ID: {session_id}")
+        print(f"[OK] Interview started! Session ID: {session_id}")
         print(f"🎯 Job: {start_data['job_title']}")
         print(f"👋 Greeting: {start_data['greeting'][:100]}...")
         print(f"❓ First question: {start_data['first_question'][:100]}...")
         
     except Exception as e:
-        print(f"❌ Error starting interview: {e}")
+        print(f"[ERR] Error starting interview: {e}")
         return
     
     # Step 2: Test different answer types
@@ -133,7 +133,7 @@ def test_interview_flow_with_auth():
             if response.status_code == 200:
                 result = response.json()
                 status = result.get("status", "unknown")
-                print(f"✅ Status: {status}")
+                print(f"[OK] Status: {status}")
                 
                 if status == "guidance_needed":
                     print(f"🎯 Guidance triggered!")
@@ -167,12 +167,12 @@ def test_interview_flow_with_auth():
                         print(f"🎯 Recommendation: {summary.get('recommendation', 'N/A')}")
                 
             else:
-                print(f"❌ Error: {response.status_code}")
+                print(f"[ERR] Error: {response.status_code}")
                 error_detail = response.json().get("detail", "Unknown error") if response.headers.get("content-type", "").startswith("application/json") else response.text
                 print(f"📄 Details: {error_detail}")
                 
         except Exception as e:
-            print(f"❌ Request failed: {e}")
+            print(f"[ERR] Request failed: {e}")
         
         # Small delay between requests
         time.sleep(1)
@@ -192,16 +192,16 @@ def test_interview_flow_with_auth():
             session_info = history.get("session", {})
             messages = history.get("messages", [])
             
-            print(f"✅ Session history retrieved")
+            print(f"[OK] Session history retrieved")
             print(f"📋 Status: {session_info.get('status', 'unknown')}")
             print(f"📊 Overall score: {session_info.get('overall_score', 'N/A')}")
             print(f"💬 Total messages: {len(messages)}")
             
         else:
-            print(f"❌ Failed to get history: {response.status_code}")
+            print(f"[ERR] Failed to get history: {response.status_code}")
             
     except Exception as e:
-        print(f"❌ History request failed: {e}")
+        print(f"[ERR] History request failed: {e}")
 
 def test_validation_logic_only():
     """Test validation logic without full interview"""
@@ -249,7 +249,7 @@ def test_validation_logic_only():
                     matched_pattern = f"pattern_{i+1}"
                     break
         
-        status = "❌ IRRELEVANT" if is_irrelevant else "✅ RELEVANT"
+        status = "[ERR] IRRELEVANT" if is_irrelevant else "[OK] RELEVANT"
         print(f"   '{answer}' → {status} (Rule: {matched_pattern or 'none'})")
 
 if __name__ == "__main__":
@@ -262,5 +262,5 @@ if __name__ == "__main__":
     # Test with authentication
     test_interview_flow_with_auth()
     
-    print(f"\n✅ TEST COMPLETED")
+    print(f"\n[OK] TEST COMPLETED")
     print("=" * 80)
