@@ -67,7 +67,7 @@ const UserManagementPage = () => {
       load();
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
-      setCreateError(typeof detail === 'object' ? detail?.message : (detail || err?.message || "Failed to create user"));
+      setCreateError(typeof detail === 'object' ? detail?.message : (detail || err?.message || "Không thể tạo người dùng"));
     } finally {
       setCreating(false);
     }
@@ -80,7 +80,7 @@ const UserManagementPage = () => {
       setDeleteConfirm(null);
       load();
     } catch {
-      alert("Failed to delete user");
+      alert("Không thể xóa người dùng");
     } finally {
       setDeleting(false);
     }
@@ -97,7 +97,7 @@ const UserManagementPage = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert("Export failed");
+      alert("Xuất dữ liệu thất bại");
     } finally {
       setExporting(false);
     }
@@ -134,7 +134,7 @@ const UserManagementPage = () => {
             <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            User Management
+            Quản lý người dùng
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Quản lý {total} người dùng trong hệ thống</p>
         </div>
@@ -153,12 +153,12 @@ const UserManagementPage = () => {
           <button onClick={handleExport} disabled={exporting}
             className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-            {exporting ? "Exporting..." : "Export CSV"}
+            {exporting ? "Đang xuất..." : "Xuất CSV"}
           </button>
           <button onClick={() => { setShowCreate(true); setCreateError(null); }}
             className="flex items-center gap-1.5 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            New User
+            + Thêm người dùng
           </button>
         </div>
       </div>
@@ -286,7 +286,7 @@ const UserManagementPage = () => {
                     className="w-full mt-1 px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border-2 border-red-100 dark:border-red-900/30 hover:border-red-300 transition-all flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    Delete
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -334,17 +334,17 @@ const UserManagementPage = () => {
                   className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Full Name</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Họ và tên</label>
                 <input type="text" value={createForm.full_name} onChange={e => setCreateForm(f => ({ ...f, full_name: e.target.value }))}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Password *</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Mật khẩu *</label>
                 <input type="password" required value={createForm.password} onChange={e => setCreateForm(f => ({ ...f, password: e.target.value }))}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Role</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Vai trò</label>
                 <select value={createForm.role} onChange={e => setCreateForm(f => ({ ...f, role: e.target.value as "admin" | "user" }))}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600">
                   <option value="user">User</option>

@@ -25,7 +25,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
@@ -49,8 +49,8 @@ api.interceptors.response.use(
           const newAccess = resp.data?.access_token;
           if (newAccess) {
             localStorage.setItem('accessToken', newAccess);
-            originalRequest.headers = originalRequest.headers || {};
-            originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+            // Set the new token directly - request interceptor will see it's already set
+            originalRequest.headers['Authorization'] = `Bearer ${newAccess}`;
             return api(originalRequest);
           }
         }

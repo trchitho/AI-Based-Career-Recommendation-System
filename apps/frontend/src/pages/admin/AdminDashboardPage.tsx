@@ -5,6 +5,7 @@ import { adminService } from "../../services/adminService";
 import { AdminDashboardMetrics, AIMetrics } from "../../types/admin";
 import AdminLayout from "../../components/layout/AdminLayout";
 import ThemeToggle from "../../components/ThemeToggle";
+import { useAuth } from "../../contexts/AuthContext";
 
 // Admin pages
 import CareerManagementPage from "./CareerManagementPage";
@@ -143,16 +144,16 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
 
   // Color configs for cards
   const userMetricCards = [
-    { title: "Total Users", value: metrics.totalUsers, subtitle: `${metrics.activeUsers} active`, gradient: "from-blue-500 to-cyan-500" },
-    { title: "Completed Assessments", value: metrics.completedAssessments, subtitle: `${metrics.completionRate}% rate`, gradient: "from-indigo-700 to-indigo-700" },
-    { title: "Users with Roadmaps", value: metrics.usersWithRoadmaps, subtitle: `${metrics.avgRoadmapProgress.toFixed(1)}% progress`, gradient: "from-purple-500 to-pink-500" },
-    { title: "Recent Activity", value: metrics.recentAssessments, subtitle: "Last 7 days", gradient: "from-orange-500 to-amber-500" },
+    { title: "Tổng người dùng", value: metrics.totalUsers, subtitle: `${metrics.activeUsers} đang hoạt động`, gradient: "from-blue-500 to-cyan-500" },
+    { title: "Bài đánh giá", value: metrics.completedAssessments, subtitle: `${metrics.completionRate}% tỷ lệ`, gradient: "from-indigo-700 to-indigo-700" },
+    { title: "Có lộ trình", value: metrics.usersWithRoadmaps, subtitle: `${metrics.avgRoadmapProgress.toFixed(1)}% tiến độ`, gradient: "from-purple-500 to-pink-500" },
+    { title: "Hoạt động gần đây", value: metrics.recentAssessments, subtitle: "7 ngày qua", gradient: "from-orange-500 to-amber-500" },
   ];
 
   const aiMetricCards = [
-    { title: "Total Recommendations", value: aiMetrics.totalRecommendations, subtitle: `${aiMetrics.avgRecommendationsPerAssessment.toFixed(1)} per assessment`, gradient: "from-indigo-500 to-blue-500" },
-    { title: "Essay Analysis", value: aiMetrics.assessmentsWithEssay, subtitle: "Assessments with essay", gradient: "from-teal-500 to-indigo-700" },
-    { title: "Avg Processing Time", value: `${aiMetrics.avgProcessingTime}s`, subtitle: "Per assessment", gradient: "from-rose-500 to-pink-500" },
+    { title: "Tổng gợi ý", value: aiMetrics.totalRecommendations, subtitle: `${aiMetrics.avgRecommendationsPerAssessment.toFixed(1)} mỗi bài`, gradient: "from-indigo-500 to-blue-500" },
+    { title: "Phân tích bài luận", value: aiMetrics.assessmentsWithEssay, subtitle: "Bài có essay", gradient: "from-teal-500 to-indigo-700" },
+    { title: "Thời gian xử lý TB", value: `${aiMetrics.avgProcessingTime}s`, subtitle: "Mỗi bài đánh giá", gradient: "from-rose-500 to-pink-500" },
   ];
 
   const riasecColors: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
@@ -174,11 +175,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
 
   return (
     <div className="space-y-8">
-      {/* USER METRICS */}
+      {/* Thống kê người dùng */}
       <section>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
           <span className="w-1 h-5 bg-indigo-700 rounded-full"></span>
-          User Metrics
+          Thống kê người dùng
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {userMetricCards.map((card, idx) => (
@@ -196,7 +197,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
       <section>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
           <span className="w-1 h-5 bg-purple-500 rounded-full"></span>
-          AI Performance
+          Hiệu suất AI
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {aiMetricCards.map((card, idx) => (
@@ -210,11 +211,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
         </div>
       </section>
 
-      {/* RIASEC Distribution */}
+      {/* Phân bố RIASEC */}
       <section>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
           <span className="w-1 h-5 bg-indigo-700 rounded-full"></span>
-          RIASEC Distribution
+          Phân bố RIASEC
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="grid grid-cols-3 gap-3">
@@ -230,7 +231,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
             })}
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
-            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-4">Distribution Chart</p>
+            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-4">Biểu đồ phân bố</p>
             <div className="space-y-3">
               {Object.entries(aiMetrics.riasecDistribution).map(([key, value]) => {
                 const pct = parseFloat(String(value)) || 0;
@@ -252,11 +253,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
         </div>
       </section>
 
-      {/* Big Five Distribution */}
+      {/* Phân bố Big Five */}
       <section>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
           <span className="w-1 h-5 bg-violet-500 rounded-full"></span>
-          Big Five Distribution
+          Phân bố Big Five
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="grid grid-cols-3 gap-3">
@@ -272,7 +273,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
             })}
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
-            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-4">Distribution Chart</p>
+            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-4">Biểu đồ phân bố</p>
             <div className="space-y-3">
               {Object.entries(aiMetrics.bigFiveDistribution).map(([key, value]) => {
                 const pct = parseFloat(String(value)) || 0;
@@ -294,11 +295,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ metrics, aiMetric
         </div>
       </section>
 
-      {/* System Health */}
+      {/* Tình trạng hệ thống */}
       <section>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
           <span className="w-1 h-5 bg-indigo-600 rounded-full"></span>
-          System Health
+          Tình trạng hệ thống
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[

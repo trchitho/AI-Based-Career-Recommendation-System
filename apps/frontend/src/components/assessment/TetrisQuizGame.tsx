@@ -256,6 +256,10 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         if (Array.isArray(savedData.grid)) {
           setGrid(savedData.grid);
         }
+        // Skip intro if we have saved progress
+        if ((savedData.currentIndex || 0) > 0 || (Array.isArray(savedData.responses) && savedData.responses.length > 0)) {
+          setShowIntro(false);
+        }
       } else {
         // DB has no progress yet — try localStorage as secondary fallback
         console.log('[TetrisQuizGame] No DB progress, checking localStorage...');
@@ -290,6 +294,10 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
       setMaxCombo(parsed.maxCombo || 0);
       if (Array.isArray(parsed.grid)) {
         setGrid(parsed.grid);
+      }
+      // Skip intro if we have saved progress
+      if ((parsed.currentIndex || 0) > 0 || (Array.isArray(parsed.responses) && parsed.responses.length > 0)) {
+        setShowIntro(false);
       }
     } catch (e) {
       console.error('Failed to load saved progress from localStorage:', e);
@@ -412,6 +420,13 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
   const clearProgress = () => {
     localStorage.removeItem(SAVE_KEY);
     localStorage.removeItem(GAM_SESSION_KEY);
+    // Also clear the assessment session key so a new session is created next time
+    if (assessmentSessionId) {
+      localStorage.removeItem(`assessment_session_standard`);
+      localStorage.removeItem(`assessment_session_game`);
+      localStorage.removeItem(`assessment_seed_standard`);
+      localStorage.removeItem(`assessment_seed_game`);
+    }
     // Note: Database records are kept for history
   };
 

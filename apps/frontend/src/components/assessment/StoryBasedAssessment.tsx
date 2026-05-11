@@ -107,7 +107,7 @@ const EssayPageContent = ({
         }}
       >
         {essayText ? (
-          <p style={{ margin: 0, fontSize: '0.9rem', color: '#1a202c', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+          <p className="essay-preview-text" style={{ margin: 0, fontSize: '0.9rem', color: '#1a202c', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
             {essayText.slice(0, 200)}{essayText.length > 200 ? '...' : ''}
           </p>
         ) : (

@@ -435,7 +435,14 @@ const ResultsPage = () => {
                     {[1,2,3,4,5].map((v) => (
                       <button
                         key={v}
-                        className={`res-rating-btn${fbRating === v ? ' active' : ''}`}
+                        className="res-rating-btn"
+                        style={{
+                          background: fbRating === v ? '#6366f1' : '#ffffff',
+                          color: fbRating === v ? '#ffffff' : '#374151',
+                          border: fbRating === v ? '2px solid #6366f1' : '2px solid #e5e7eb',
+                          transform: fbRating === v ? 'scale(1.1)' : 'scale(1)',
+                          boxShadow: fbRating === v ? '0 4px 12px rgba(99,102,241,0.3)' : '0 2px 4px rgba(0,0,0,0.05)',
+                        }}
                         onClick={() => setFbRating(v)}
                       >
                         {v}

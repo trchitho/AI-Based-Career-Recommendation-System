@@ -170,16 +170,36 @@ const AssessmentPage = () => {
         // Only traditional test uses 44 questions (4 per dimension)
         const perDim = 3; // Always 3 for game modes
 
-        // Create a real assessment session in DB first — required for gamification FK
-        const sessionRes = await api.post('/api/assessments/session/start');
-        const realSessionId: number = sessionRes.data.session_id;
+        // Check if there's an existing incomplete session in localStorage
+        const SAVED_SESSION_KEY = `assessment_session_${quizMode}`;
+        const SAVED_SEED_KEY = `assessment_seed_${quizMode}`;
+        const savedSessionId = localStorage.getItem(SAVED_SESSION_KEY);
+        const savedSeed = localStorage.getItem(SAVED_SEED_KEY);
+        let realSessionId: number;
+        let questionSeed: number;
 
-        // Fetch with specific per_dim parameter
+        if (savedSessionId) {
+          // Reuse existing session to preserve gamification progress
+          realSessionId = parseInt(savedSessionId, 10);
+          questionSeed = savedSeed ? parseInt(savedSeed, 10) : Date.now();
+          console.log('[AssessmentPage] Reusing existing session:', realSessionId, 'seed:', questionSeed);
+        } else {
+          // Create a real assessment session in DB first — required for gamification FK
+          const sessionRes = await api.post('/api/assessments/session/start');
+          realSessionId = sessionRes.data.session_id;
+          questionSeed = Date.now();
+          // Save session ID and seed to localStorage for future reuse
+          localStorage.setItem(SAVED_SESSION_KEY, String(realSessionId));
+          localStorage.setItem(SAVED_SEED_KEY, String(questionSeed));
+          console.log('[AssessmentPage] Created new session:', realSessionId, 'seed:', questionSeed);
+        }
+
+        // Fetch with specific per_dim parameter — use consistent seed for same question order
         const riasecRes = await api.get('/api/assessments/questions/RIASEC', {
-          params: { shuffle: true, seed: Date.now(), per_dim: perDim },
+          params: { shuffle: true, seed: questionSeed, per_dim: perDim },
         });
         const bigFiveRes = await api.get('/api/assessments/questions/BIGFIVE', {
-          params: { shuffle: true, seed: Date.now(), per_dim: perDim },
+          params: { shuffle: true, seed: questionSeed, per_dim: perDim },
         });
 
         setQuestions([...riasecRes.data, ...bigFiveRes.data]);
@@ -270,6 +290,11 @@ const AssessmentPage = () => {
       if (currentLimit > 0) { // Has a limit (not unlimited)
         incrementUsage('assessment');
       }
+
+      // Clear saved session from localStorage on successful completion
+      const SAVED_SESSION_KEY = `assessment_session_${quizMode}`;
+      localStorage.removeItem(SAVED_SESSION_KEY);
+      localStorage.removeItem(`assessment_seed_${quizMode}`);
 
       setStep('essay');
     } catch (err: any) {
@@ -371,6 +396,34 @@ const AssessmentPage = () => {
         onComplete={handleEnhancedAssessmentComplete}
         onCancel={handleEnhancedAssessmentCancel}
       />
+    );
+  }
+
+  // For game modes in test step, render fullscreen without MainLayout
+  if (step === 'test' && (quizMode === 'standard' || quizMode === 'game')) {
+    return (
+      <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 overflow-auto">
+        {error && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-3 rounded-xl text-center text-red-600 dark:text-red-300 font-medium text-sm">
+            {error}
+          </div>
+        )}
+        {quizMode === 'standard' ? (
+          <TetrisQuizGame
+            questions={questions}
+            onComplete={handleTestComplete}
+            onCancel={handleCancel}
+            assessmentSessionId={assessmentSessionId ?? undefined}
+          />
+        ) : (
+          <GameQuizMode
+            questions={questions}
+            onComplete={handleTestComplete}
+            onCancel={handleCancel}
+            assessmentSessionId={assessmentSessionId ?? undefined}
+          />
+        )}
+      </div>
     );
   }
 

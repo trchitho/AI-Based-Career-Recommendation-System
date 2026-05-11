@@ -55,6 +55,8 @@ import SkillGapPage from './pages/SkillGapPage';
 import CourseRecommendationPage from './pages/CourseRecommendationPage';
 import CVHistoryPage from './pages/CVHistoryPage';
 import RecommendationsPage from './pages/RecommendationsPage';
+import RecommendationsLearnMorePage from './pages/RecommendationsLearnMorePage';
+import MentorLearnMorePage from './pages/MentorLearnMorePage';
 import MentorMatchingPage from './pages/MentorMatchingPage';
 import InterviewPage from './pages/InterviewPage';
 import InterviewSelectionPage from './pages/InterviewSelectionPage';
@@ -168,6 +170,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <RecommendationsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/recommendations/learn-more"
+                    element={
+                      <ProtectedRoute>
+                        <RecommendationsLearnMorePage />
                       </ProtectedRoute>
                     }
                   />
@@ -404,6 +414,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <MentorMatchingPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/mentor-matching/learn-more"
+                    element={
+                      <ProtectedRoute>
+                        <MentorLearnMorePage />
                       </ProtectedRoute>
                     }
                   />

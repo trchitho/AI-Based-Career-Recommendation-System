@@ -85,7 +85,7 @@ const EssayModalComponent = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 pt-20 font-['Plus_Jakarta_Sans'] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-6 md:p-10 font-['Plus_Jakarta_Sans'] overflow-y-auto">
 
       <style>{`
         @keyframes modal-pop {
@@ -95,10 +95,10 @@ const EssayModalComponent = ({
         .animate-modal-pop { animation: modal-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       `}</style>
 
-      <div className="w-full max-w-3xl bg-white dark:bg-gray-800 rounded-[32px] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-modal-pop">
+      <div className="w-full max-w-2xl max-h-[85vh] bg-white dark:bg-gray-800 rounded-[32px] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-modal-pop flex flex-col">
 
         {/* Header */}
-        <div className="relative p-8 md:p-10 border-b border-gray-100 dark:border-gray-700">
+        <div className="relative p-6 md:p-8 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-700 to-indigo-600"></div>
 
           <div className="flex justify-between items-start gap-4">
@@ -125,12 +125,12 @@ const EssayModalComponent = ({
         </div>
 
         {/* Body */}
-        <div className="p-8 md:p-10 bg-gray-50/50 dark:bg-gray-900/50">
+        <div className="p-6 md:p-8 bg-gray-50/50 dark:bg-gray-900/50 overflow-y-auto flex-1">
           <div className="relative">
             <textarea
               value={essayText}
               onChange={handleChange}
-              rows={10}
+              rows={6}
               className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 py-4 pr-14 text-base text-gray-900 dark:text-white shadow-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 outline-none transition-all resize-none placeholder-gray-400 font-medium"
               placeholder={t('assessment.essay.placeholder')}
               disabled={loading}

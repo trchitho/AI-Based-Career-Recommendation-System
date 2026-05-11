@@ -138,11 +138,12 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
   // Initialize gamification session
   useEffect(() => {
     const initSession = async () => {
-      // ALWAYS try to load from localStorage first, regardless of backend
-      // Use a FIXED key so it persists across sessions
-      const BACKUP_KEY = 'pg_backup_current'; // Fixed key for current user
+      // Use session-scoped key if available, fallback to fixed key for backward compat
+      const BACKUP_KEY = assessmentSessionId
+        ? `pg_backup_${assessmentSessionId}`
+        : 'pg_backup_current';
       
-      console.log('[PersonalityGarden] 🔍 Checking localStorage for saved progress...');
+      console.log('[PersonalityGarden] 🔍 Checking localStorage for saved progress...', { key: BACKUP_KEY });
       const backupData = localStorage.getItem(BACKUP_KEY);
       
       if (backupData) {
@@ -150,18 +151,19 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
         try {
           const dataToRestore = JSON.parse(backupData);
           
-          // Check if we have valid saved progress
+          // Check if we have valid saved progress that is NOT already completed
+          const savedResponses = dataToRestore.responses || [];
           const hasProgress = dataToRestore && 
-                             dataToRestore.responses && 
-                             dataToRestore.responses.length > 0;
+                             savedResponses.length > 0 &&
+                             savedResponses.length < questions.length; // NOT completed
           
           if (hasProgress) {
             // Restore state
             const savedIndex = dataToRestore.currentIndex || 0;
-            const savedResponses = new Map<string, string | number>(dataToRestore.responses || []);
+            const restoredResponses = new Map<string, string | number>(savedResponses);
             
             setCurrentIndex(savedIndex);
-            setResponses(savedResponses);
+            setResponses(restoredResponses);
             setNatureEnergy(dataToRestore.xp || 0);
             setGrowthLevel(dataToRestore.level || 1);
             setBloomChain(dataToRestore.score || 0);
@@ -182,7 +184,7 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
             }
             
             // Restore tree growth based on actual responses count
-            const restoredProgress = (savedResponses.size / questions.length) * 100;
+            const restoredProgress = (restoredResponses.size / questions.length) * 100;
             growTree(restoredProgress);
             
             // IMPORTANT: Skip tutorial and seed selection - go straight to nurturing
@@ -191,18 +193,67 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
             
             console.log('[PersonalityGarden] ✅ Progress restored from localStorage:', {
               currentIndex: savedIndex,
-              responsesCount: savedResponses.size,
+              responsesCount: restoredResponses.size,
               xp: dataToRestore.xp,
               level: dataToRestore.level,
               seed: dataToRestore.selectedSeed?.id,
               phase: 'nurturing'
             });
+          } else if (savedResponses.length >= questions.length) {
+            // Progress is already completed — clear it so user starts fresh
+            console.log('[PersonalityGarden] ℹ️ Previous progress was completed, starting fresh');
+            localStorage.removeItem(BACKUP_KEY);
+            // Also clear the old fixed key if it exists
+            if (assessmentSessionId) {
+              localStorage.removeItem('pg_backup_current');
+            }
           }
         } catch (error) {
           console.error('[PersonalityGarden] ❌ Failed to parse localStorage data:', error);
         }
       } else {
         console.log('[PersonalityGarden] ℹ️ No saved progress in localStorage');
+        // Also check old fixed key and clear if completed
+        if (assessmentSessionId) {
+          const oldBackup = localStorage.getItem('pg_backup_current');
+          if (oldBackup) {
+            try {
+              const oldData = JSON.parse(oldBackup);
+              if (oldData.responses && oldData.responses.length >= questions.length) {
+                // Old completed progress — remove it
+                localStorage.removeItem('pg_backup_current');
+              } else if (oldData.responses && oldData.responses.length > 0) {
+                // Old incomplete progress — migrate to new key and restore
+                localStorage.setItem(BACKUP_KEY, oldBackup);
+                localStorage.removeItem('pg_backup_current');
+                // Restore from migrated data
+                const savedIndex = oldData.currentIndex || 0;
+                const restoredResponses = new Map<string, string | number>(oldData.responses || []);
+                setCurrentIndex(savedIndex);
+                setResponses(restoredResponses);
+                setNatureEnergy(oldData.xp || 0);
+                setGrowthLevel(oldData.level || 1);
+                setBloomChain(oldData.score || 0);
+                if (oldData.selectedSeed) {
+                  setSelectedSeed(oldData.selectedSeed);
+                  const colorPalettes: Record<string, string[]> = {
+                    oak: ['#8D6E63', '#A1887F', '#BCAAA4'],
+                    maple: ['#D32F2F', '#F44336', '#EF5350'],
+                    cherry: ['#EC407A', '#F06292', '#F48FB1'],
+                    pine: ['#388E3C', '#4CAF50', '#66BB6A'],
+                    willow: ['#7CB342', '#9CCC65', '#AED581']
+                  };
+                  setColorPalette(colorPalettes[oldData.selectedSeed.id] || colorPalettes.oak);
+                }
+                const restoredProgress = (restoredResponses.size / questions.length) * 100;
+                growTree(restoredProgress);
+                setShowTutorial(false);
+                setPhase('nurturing');
+                console.log('[PersonalityGarden] ✅ Migrated old progress to new key');
+              }
+            } catch { /* ignore */ }
+          }
+        }
       }
       
       // OPTIONAL: Try to create backend session (but don't block on it)
@@ -377,11 +428,13 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
         timestamp: new Date().toISOString()
       };
       
-      // PRIMARY: Save to localStorage (works without backend)
-      // Use FIXED key so it persists across sessions
-      const BACKUP_KEY = 'pg_backup_current';
+      // PRIMARY: Save to localStorage with session-scoped key
+      const BACKUP_KEY = assessmentSessionId
+        ? `pg_backup_${assessmentSessionId}`
+        : 'pg_backup_current';
       localStorage.setItem(BACKUP_KEY, JSON.stringify(progressData));
       console.log('[PersonalityGarden] ✅ Progress saved to localStorage:', {
+        key: BACKUP_KEY,
         currentIndex,
         responses: responses.size,
         xp: natureEnergy,
@@ -530,6 +583,13 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
 
   // Handle completion
   const handleComplete = () => {
+    // Clear saved progress on completion
+    const BACKUP_KEY = assessmentSessionId
+      ? `pg_backup_${assessmentSessionId}`
+      : 'pg_backup_current';
+    localStorage.removeItem(BACKUP_KEY);
+    localStorage.removeItem('pg_backup_current'); // Also clear old fixed key
+    
     const responseArray: QuestionResponse[] = Array.from(responses.entries()).map(
       ([questionId, answer]) => ({ questionId, answer })
     );
@@ -553,15 +613,24 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
 
   // Exit without save
   const handleExitWithoutSave = () => {
-    // Clear saved progress with FIXED key
-    const BACKUP_KEY = 'pg_backup_current';
+    // Clear saved progress - both session-scoped and fixed keys
+    const BACKUP_KEY = assessmentSessionId
+      ? `pg_backup_${assessmentSessionId}`
+      : 'pg_backup_current';
     localStorage.removeItem(BACKUP_KEY);
+    localStorage.removeItem('pg_backup_current'); // Also clear old fixed key
     
     // Also clear session key if exists
     if (assessmentSessionId) {
       const savedSessionKey = `pg_session_${assessmentSessionId}`;
       localStorage.removeItem(savedSessionKey);
     }
+    
+    // Clear assessment session keys so a new session is created next time
+    localStorage.removeItem('assessment_session_standard');
+    localStorage.removeItem('assessment_session_game');
+    localStorage.removeItem('assessment_seed_standard');
+    localStorage.removeItem('assessment_seed_game');
     
     console.log('[PersonalityGarden] Cleared saved progress');
     

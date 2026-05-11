@@ -3,6 +3,34 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ThumbsUp, ThumbsDown, ChevronRight, ChevronLeft, Lock, Briefcase, ArrowRight } from "lucide-react";
 import MainLayout from "../components/layout/MainLayout";
+
+/* ── Career group icon mapping ── */
+const getCareerIcon = (title: string, slug: string): string => {
+  const text = (title + ' ' + slug).toLowerCase();
+  if (text.match(/giáo viên|teacher|education|dạy|training|đào tạo/)) return '📚';
+  if (text.match(/y tế|health|medical|bác sĩ|doctor|nurse|điều dưỡng|dược/)) return '🏥';
+  if (text.match(/kỹ thuật|engineer|technical|cơ khí|điện|electronic/)) return '⚙️';
+  if (text.match(/máy tính|computer|software|developer|lập trình|IT|tech/)) return '💻';
+  if (text.match(/kiến trúc|architect|xây dựng|construction|building/)) return '🏗️';
+  if (text.match(/bán hàng|sales|marketing|quảng cáo|advertising/)) return '📈';
+  if (text.match(/tài chính|finance|ngân hàng|bank|kế toán|accounting/)) return '💰';
+  if (text.match(/luật|law|legal|pháp/)) return '⚖️';
+  if (text.match(/nghệ thuật|art|design|thiết kế|creative|đồ họa/)) return '🎨';
+  if (text.match(/truyền thông|media|journalist|báo chí|communication/)) return '📡';
+  if (text.match(/vận tải|transport|logistics|giao hàng|delivery|lái xe/)) return '🚛';
+  if (text.match(/nông nghiệp|agriculture|farm|trồng|chăn nuôi/)) return '🌾';
+  if (text.match(/ẩm thực|food|cook|đầu bếp|nhà hàng|restaurant/)) return '🍳';
+  if (text.match(/quản lý|management|giám đốc|director|admin/)) return '👔';
+  if (text.match(/khoa học|science|research|nghiên cứu|lab/)) return '🔬';
+  if (text.match(/bảo vệ|security|police|cảnh sát|quân đội|military/)) return '🛡️';
+  if (text.match(/du lịch|travel|tourism|khách sạn|hotel/)) return '✈️';
+  if (text.match(/thể thao|sport|fitness|gym/)) return '⚽';
+  if (text.match(/môi trường|environment|ecology|sinh thái/)) return '🌿';
+  if (text.match(/sản xuất|production|manufacturing|nhà máy|factory/)) return '🏭';
+  if (text.match(/bảo trì|maintenance|sửa chữa|repair|thợ/)) return '🔧';
+  if (text.match(/xã hội|social|community|cộng đồng/)) return '🤝';
+  return '💼';
+};
 import {
   recommendationService,
   CareerRecommendationDTO,
@@ -26,15 +54,6 @@ const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
 };
 const CIRC = 2 * Math.PI * 20; // r=20
 
-const GRADIENTS = [
-  "from-indigo-700 to-violet-600",
-  "from-blue-500 to-indigo-600",
-  "from-orange-400 to-pink-500",
-  "from-purple-500 to-violet-600",
-  "from-violet-500 to-cyan-500",
-  "from-rose-400 to-red-500",
-];
-
 const RecommendationsPage = () => {
   const navigate = useNavigate();
   const { hasFeature, currentPlan, getPlanInfo } = useFeatureAccess();
@@ -52,14 +71,10 @@ const RecommendationsPage = () => {
   /* ── Career browse (bottom grid) ── */
   const [items, setItems] = useState<CareerItem[]>([]);
   const [careerLoading, setCareerLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(9);
-  const [total, setTotal] = useState(0);
   const [q, setQ] = useState("");
 
   const recItems = recData?.items ?? [];
   const requestId = recData?.request_id ?? null;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   /* fetch AI recs — same pattern as dashboard */
   useEffect(() => {
@@ -109,17 +124,27 @@ const RecommendationsPage = () => {
     })();
   }, []);
 
-  /* fetch career browse */
+  /* fetch career browse — random 9 careers each time */
   const fetchCareers = useCallback(async () => {
     setCareerLoading(true);
     try {
-      const resp = await careerService.list({ page, pageSize, ...(q.trim() && { q: q.trim() }) });
-      setItems(resp.items);
-      setTotal(resp.total);
+      if (q.trim()) {
+        // If searching, use normal search
+        const resp = await careerService.list({ page: 1, pageSize: 9, q: q.trim() });
+        setItems(resp.items);
+      } else {
+        // Random page for discovery - fetch from a random offset
+        const totalResp = await careerService.list({ page: 1, pageSize: 1 });
+        const totalCareers = totalResp.total || 100;
+        const maxPage = Math.max(1, Math.floor(totalCareers / 9));
+        const randomPage = Math.floor(Math.random() * maxPage) + 1;
+        const resp = await careerService.list({ page: randomPage, pageSize: 9 });
+        setItems(resp.items);
+      }
     } catch { /* ignore */ } finally {
       setCareerLoading(false);
     }
-  }, [page, pageSize, q]);
+  }, [q]);
 
   useEffect(() => { fetchCareers(); }, [fetchCareers]);
 
@@ -180,9 +205,9 @@ const RecommendationsPage = () => {
                 <Link to="/assessment" className="hero-btn-primary">
                   Bắt đầu đánh giá →
                 </Link>
-                <span className="hero-btn-secondary">
+                <Link to="/recommendations/learn-more" className="hero-btn-secondary">
                   Tìm hiểu thêm
-                </span>
+                </Link>
               </div>
             </div>
             <div className="rec-hero-right">
@@ -256,7 +281,7 @@ const RecommendationsPage = () => {
               {recItems.map((it, index) => {
                 const { level, label } = getMatchLevel(it.match_score);
                 const pct = Math.round(it.match_score * 100);
-                const title = it.title_en || it.title_vi || it.career_id || "Unknown";
+                const title = it.title_vi || it.title_en || it.career_id || "Unknown";
                 const offset = CIRC - (CIRC * pct) / 100;
                 const fb = feedback[it.career_id];
 
@@ -362,7 +387,7 @@ const RecommendationsPage = () => {
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--neu-text-muted)", flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} /></svg>
                 <input
                   value={q}
-                  onChange={(e) => { setPage(1); setQ(e.target.value); }}
+                  onChange={(e) => { setQ(e.target.value); }}
                   placeholder="Tìm theo tên nghề, ngành, từ khóa..."
                   style={{
                     flex: 1, border: "none", outline: "none", background: "transparent",
@@ -370,7 +395,7 @@ const RecommendationsPage = () => {
                   }}
                 />
                 {q && (
-                  <button onClick={() => { setQ(""); setPage(1); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--neu-text-muted)", padding: 2, display: "flex", alignItems: "center" }}>
+                  <button onClick={() => { setQ(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--neu-text-muted)", padding: 2, display: "flex", alignItems: "center" }}>
                     <ArrowRight size={14} style={{ transform: "rotate(45deg)" }} />
                   </button>
                 )}
@@ -399,86 +424,60 @@ const RecommendationsPage = () => {
 
                 const requiredPlan = !isLocked ? null : currentPlan === "basic" ? "premium" : "basic";
                 const requiredPlanInfo = requiredPlan ? getPlanInfo(requiredPlan) : null;
-                const gradientClass = `gradient-${index % 6}`;
+
+                const gradients = [
+                  'from-emerald-500 to-teal-600',
+                  'from-blue-500 to-indigo-600',
+                  'from-orange-400 to-rose-500',
+                  'from-purple-500 to-violet-600',
+                  'from-cyan-500 to-blue-600',
+                  'from-pink-500 to-rose-600',
+                  'from-amber-500 to-orange-600',
+                  'from-indigo-500 to-purple-600',
+                  'from-teal-500 to-emerald-600',
+                ];
+                const gradient = gradients[index % gradients.length];
 
                 const CardContent = (
-                  <div className={`career-card${isLocked ? " locked" : ""}`}>
-                    {/* Blur overlay for locked cards */}
-                    {isLocked && <div className="card-blur-overlay" />}
-
-                    {/* Premium badge for locked cards */}
+                  <div className="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 h-full flex flex-col">
+                    {/* Locked overlay */}
                     {isLocked && (
-                      <div style={{ position: "absolute", top: 12, right: 12, zIndex: 5 }}>
-                        <span style={{
-                          padding: "0.2rem 0.6rem",
-                          background: "linear-gradient(to right,#a855f7,ec4899)",
-                          color: "#fff", borderRadius: 999,
-                          fontSize: "0.68rem", fontWeight: 700,
-                          display: "flex", alignItems: "center", gap: 4,
-                        }}>
-                          {requiredPlanInfo?.name || "PRO"}
-                        </span>
+                      <div className="absolute inset-0 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm z-10 flex items-center justify-center">
+                        <div className="text-center p-4">
+                          <Lock size={24} className="mx-auto mb-2 text-gray-400" />
+                          <span className="text-xs font-bold text-gray-500 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                            {requiredPlanInfo?.name || 'PRO'}
+                          </span>
+                        </div>
                       </div>
                     )}
 
-                    {/* Card top — gradient banner */}
-                    <div style={{
-                      height: 120,
-                      background: `linear-gradient(135deg, ${index % 6 === 0 ? "#10b981, #14b8a6" :
-                          index % 6 === 1 ? "#3b82f6, #6366f1" :
-                            index % 6 === 2 ? "#f97316, #ec4899" :
-                              index % 6 === 3 ? "#a855f7, #7c3aed" :
-                                index % 6 === 4 ? "#34d399, #06b6d4" :
-                                  "#fb7185, #ef4444"
-                        })`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <div style={{
-                        width: 48, height: 48, borderRadius: 14,
-                        background: "rgba(255,255,255,0.2)", backdropFilter: "blur(4px)",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                        display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
-                      }}>
-                        {isLocked
-                          ? <Lock size={22} />
-                          : <Briefcase size={22} />
-                        }
+                    {/* Card header with gradient */}
+                    <div className={`h-32 bg-gradient-to-br ${gradient} relative flex items-center justify-center`}>
+                      <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 text-3xl">
+                        {isLocked ? <Lock size={24} className="text-white" /> : getCareerIcon(c.title, (c as any).slug || c.id)}
                       </div>
+                      {/* Decorative circles */}
+                      <div className="absolute top-3 right-3 w-16 h-16 bg-white/10 rounded-full" />
+                      <div className="absolute bottom-2 left-4 w-8 h-8 bg-white/10 rounded-full" />
                     </div>
 
                     {/* Card body */}
-                    <div className="card-body">
-                      <h3 className="card-title">
+                    <div className="p-5 flex-1 flex flex-col">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                         {c.title}
                       </h3>
-                      <p className="card-desc">
-                        {isLocked
-                          ? "You have used all free career views. Upgrade to Basic Plan (99k) to view more careers or Premium Plan (199k) for unlimited access."
-                          : (c.short_desc || c.description || "Khám phá lộ trình nghề nghiệp này.")}
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1">
+                        {c.short_desc || c.description || 'Khám phá lộ trình nghề nghiệp này.'}
                       </p>
 
-                      <div className="card-bottom">
-                        <span style={{
-                          color: isLocked ? '#9ca3af' : undefined,
-                          textTransform: 'uppercase',
-                          fontSize: '0.75rem',
-                          fontWeight: 700
-                        }}>
-                          {isLocked ? "LOCKED" : "Full Time"}
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                          {isLocked ? 'Khóa' : 'Có sẵn'}
                         </span>
-                        <span className={isLocked ? "upgrade-link" : "view-career-btn"} style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          {isLocked ? (
-                            <>
-                              <span>Upgrade</span>
-                              <Lock size={14} />
-                            </>
-                          ) : (
-                            "Chi tiết →"
-                          )}
+                        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:gap-2 transition-all">
+                          Chi tiết <ArrowRight size={14} />
                         </span>
                       </div>
                     </div>
@@ -499,7 +498,7 @@ const RecommendationsPage = () => {
               <p>Thử tìm với từ khóa khác.</p>
               <button
                 className="rec-empty-link"
-                onClick={() => { setQ(""); setPage(1); }}
+                onClick={() => { setQ(""); }}
                 style={{ border: "none", cursor: "pointer" }}
               >
                 Xoá tìm kiếm
@@ -507,26 +506,26 @@ const RecommendationsPage = () => {
             </div>
           )}
 
-          {/* Pagination */}
+          {/* Refresh button instead of pagination */}
           {
-            !careerLoading && total > pageSize && (
-              <div className="pagination-container">
+            !careerLoading && items.length > 0 && !q.trim() && (
+              <div style={{ textAlign: "center", padding: "2rem 0" }}>
                 <button
-                  className="pagination-btn"
-                  disabled={page <= 1}
-                  onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  onClick={() => fetchCareers()}
+                  style={{
+                    padding: "0.75rem 2rem",
+                    background: "var(--neu-bg)",
+                    boxShadow: "var(--neu-raised)",
+                    border: "none",
+                    borderRadius: 14,
+                    cursor: "pointer",
+                    fontSize: "0.9rem",
+                    fontWeight: 700,
+                    color: "var(--neu-accent)",
+                    transition: "all 0.2s",
+                  }}
                 >
-                  <ChevronLeft size={18} />
-                </button>
-                <span className="pagination-info">
-                  {page} / {totalPages}
-                </span>
-                <button
-                  className="pagination-btn"
-                  disabled={page >= totalPages}
-                  onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                >
-                  <ChevronRight size={18} />
+                  🔄 Xem nghề khác
                 </button>
               </div>
             )

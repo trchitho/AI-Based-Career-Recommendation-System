@@ -245,18 +245,17 @@ const InterviewListPage: React.FC = () => {
                         {/* Popular Career Suggestions */}
                         <div className="mt-4">
                             <p className="text-sm text-gray-500 mb-3 text-center">
-                                Kỹ năng của bạn
+                                Nghề nghiệp phổ biến
                             </p>
                             <div className="flex flex-wrap justify-center gap-2">
                                 {[
-                                    { name: "React", query: "kỹ sư phần mềm" },
-                                    { name: "JavaScript", query: "bác sĩ" },
-                                    { name: "TypeScript", query: "giáo viên" },
-                                    { name: "Node.js", query: "kế toán" },
-                                    { name: "SQL", query: "marketing" },
-                                    { name: "Git", query: "thiết kế" },
-                                    { name: "System Design", query: "luật sư" },
-                                    { name: "+ Thêm kỹ năng", query: "nhân sự" }
+                                    { name: "Kỹ sư", query: "kỹ sư" },
+                                    { name: "Nhân viên kinh doanh", query: "nhân viên kinh doanh" },
+                                    { name: "Kế toán", query: "kế toán" },
+                                    { name: "Giáo viên", query: "giáo viên" },
+                                    { name: "Bác sĩ", query: "bác sĩ" },
+                                    { name: "Thợ điện", query: "thợ điện" },
+                                    { name: "Thiết kế đồ họa", query: "thiết kế" },
                                 ].map((career) => (
                                     <button
                                         key={career.name}

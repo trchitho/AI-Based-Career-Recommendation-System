@@ -258,6 +258,7 @@
   touch-action: auto !important;
   position: relative !important;
   z-index: 9999 !important;
+  color: #1a202c !important;
 }
 
 .essay-page button {
@@ -1058,6 +1059,19 @@
   color: rgba(255,255,255,0.85) !important;
 }
 
+.essay-page-content p.essay-preview-text {
+  color: #1a202c !important;
+}
+
+.essay-page-content textarea {
+  color: #1a202c !important;
+}
+
+/* Đảm bảo text preview trong essay box hiển thị chữ đen trên nền trắng */
+.essay-page-content div[style*="background"] p {
+  color: #1a202c !important;
+}
+
 .essay-intro {
   background: rgba(255, 255, 255, 0.95);
   padding: 1.5rem;
@@ -1119,6 +1133,7 @@
   min-height: 200px;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.95);
+  color: #1a202c !important;
   user-select: text !important;
   pointer-events: auto !important;
   z-index: 9999 !important;

@@ -41,53 +41,44 @@ const GardenScenery: React.FC<GardenSceneryProps> = ({ timeOfDay, isAnswering, t
     <>
       {/* Clouds and Birds - IN MIDDLE OF SCREEN */}
       <div className="absolute top-0 left-0 right-0 h-screen pointer-events-none z-5">
-        {/* Clouds - IN MIDDLE AREA (25%-35% from top) */}
-        <div className="absolute top-1/4 left-12 text-6xl animate-float filter drop-shadow-lg" style={{ animationDuration: '20s', opacity: 0.9 }}>
+        {/* Clouds - HIGH IN SKY (8%-18% from top) */}
+        <div className="absolute top-[8%] left-12 text-5xl animate-float filter drop-shadow-lg" style={{ animationDuration: '20s', opacity: 0.7 }}>
           ☁️
         </div>
-        <div className="absolute top-[28%] right-24 text-7xl animate-float filter drop-shadow-lg" style={{ animationDuration: '25s', animationDelay: '5s', opacity: 0.85 }}>
+        <div className="absolute top-[10%] right-24 text-6xl animate-float filter drop-shadow-lg" style={{ animationDuration: '25s', animationDelay: '5s', opacity: 0.65 }}>
           ☁️
         </div>
-        <div className="absolute top-[30%] left-1/3 text-5xl animate-float filter drop-shadow-lg" style={{ animationDuration: '30s', animationDelay: '10s', opacity: 0.8 }}>
+        <div className="absolute top-[12%] left-1/3 text-4xl animate-float filter drop-shadow-lg" style={{ animationDuration: '30s', animationDelay: '10s', opacity: 0.6 }}>
           ☁️
         </div>
-        <div className="absolute top-[32%] right-1/3 text-6xl animate-float filter drop-shadow-lg" style={{ animationDuration: '22s', animationDelay: '3s', opacity: 0.88 }}>
+        <div className="absolute top-[14%] right-1/3 text-5xl animate-float filter drop-shadow-lg" style={{ animationDuration: '22s', animationDelay: '3s', opacity: 0.68 }}>
           ☁️
         </div>
-        <div className="absolute top-[35%] left-2/3 text-5xl animate-float filter drop-shadow-lg" style={{ animationDuration: '28s', animationDelay: '7s', opacity: 0.82 }}>
-          ☁️
-        </div>
-        <div className="absolute top-[27%] right-1/2 text-6xl animate-float filter drop-shadow-lg" style={{ animationDuration: '24s', animationDelay: '12s', opacity: 0.86 }}>
-          ☁️
-        </div>
-        <div className="absolute top-[33%] left-1/2 text-5xl animate-float filter drop-shadow-lg" style={{ animationDuration: '26s', animationDelay: '15s', opacity: 0.84 }}>
+        <div className="absolute top-[16%] left-2/3 text-4xl animate-float filter drop-shadow-lg" style={{ animationDuration: '28s', animationDelay: '7s', opacity: 0.62 }}>
           ☁️
         </div>
 
-        {/* Birds flying - SLIGHTLY BELOW CLOUDS (38%-45% from top) */}
-        <div className="absolute top-[38%] left-1/4 text-4xl animate-bird-fly z-20 filter drop-shadow-lg" style={{ animationDuration: '15s' }}>
+        {/* Birds flying - HIGH IN SKY (15%-22% from top) */}
+        <div className="absolute top-[15%] left-1/4 text-3xl animate-bird-fly z-20 filter drop-shadow-lg" style={{ animationDuration: '15s' }}>
           🐦
         </div>
-        <div className="absolute top-[40%] right-1/3 text-3xl animate-bird-fly z-20 filter drop-shadow-lg" style={{ animationDuration: '18s', animationDelay: '3s' }}>
+        <div className="absolute top-[18%] right-1/3 text-2xl animate-bird-fly z-20 filter drop-shadow-lg" style={{ animationDuration: '18s', animationDelay: '3s' }}>
           🕊️
         </div>
-        <div className="absolute top-[42%] left-1/2 text-3xl animate-bird-fly z-20 filter drop-shadow-lg" style={{ animationDuration: '20s', animationDelay: '6s' }}>
+        <div className="absolute top-[20%] left-1/2 text-2xl animate-bird-fly z-20 filter drop-shadow-lg" style={{ animationDuration: '20s', animationDelay: '6s' }}>
           🐦
         </div>
-        <div className="absolute top-[45%] left-2/3 text-2xl animate-bird-fly z-20 filter drop-shadow-lg" style={{ animationDuration: '16s', animationDelay: '9s' }}>
+        <div className="absolute top-[22%] left-2/3 text-xl animate-bird-fly z-20 filter drop-shadow-lg" style={{ animationDuration: '16s', animationDelay: '9s' }}>
           🕊️
         </div>
 
-        {/* Butterflies - LOWER than birds (55%-70% from top) */}
+        {/* Butterflies - ABOVE TREE AREA (30%-40% from top) */}
         {timeOfDay !== 'evening' && (
           <>
-            <div className="absolute top-[55%] left-1/4 text-4xl animate-butterfly z-15 filter drop-shadow-xl" style={{ animationDuration: '8s' }}>
+            <div className="absolute top-[30%] left-1/4 text-3xl animate-butterfly z-15 filter drop-shadow-xl" style={{ animationDuration: '8s' }}>
               🦋
             </div>
-            <div className="absolute top-[65%] right-1/3 text-3xl animate-butterfly z-15 filter drop-shadow-xl" style={{ animationDuration: '10s', animationDelay: '2s' }}>
-              🦋
-            </div>
-            <div className="absolute top-[60%] left-1/2 text-3xl animate-butterfly z-15 filter drop-shadow-xl" style={{ animationDuration: '9s', animationDelay: '4s' }}>
+            <div className="absolute top-[35%] right-1/3 text-2xl animate-butterfly z-15 filter drop-shadow-xl" style={{ animationDuration: '10s', animationDelay: '2s' }}>
               🦋
             </div>
           </>

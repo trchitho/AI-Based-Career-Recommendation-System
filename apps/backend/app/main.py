@@ -383,7 +383,13 @@ def create_app() -> FastAPI:
         
         return response
 
-    # DB session per-request
+    # JWT Auth middleware — sets request.state.user (TC02 session management)
+    # Added FIRST (inner) so db_session_middleware (outer) sets db BEFORE auth runs
+    from .core.auth_middleware import jwt_auth_middleware
+    app.middleware("http")(jwt_auth_middleware)
+
+    # DB session per-request — added AFTER auth (outer) so it runs FIRST
+    # This ensures request.state.db is available when jwt_auth_middleware executes
     @app.middleware("http")
     async def db_session_middleware(request: Request, call_next):
         db = SessionLocal()
@@ -397,10 +403,6 @@ def create_app() -> FastAPI:
             raise
         finally:
             db.close()
-
-    # JWT Auth middleware — sets request.state.user (TC02 session management)
-    from .core.auth_middleware import jwt_auth_middleware
-    app.middleware("http")(jwt_auth_middleware)
 
     # Health & root
     @app.get("/health", tags=["system"])

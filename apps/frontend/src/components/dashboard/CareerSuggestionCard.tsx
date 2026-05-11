@@ -74,7 +74,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
       {/* Footer Action */}
       <div className="mt-auto pt-5 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <span className="text-sm font-semibold text-indigo-800 dark:text-indigo-400 group-hover:underline transition-colors">
-          View Career Details
+          Xem chi tiết nghề nghiệp
         </span>
         <div className="w-9 h-9 rounded-full bg-indigo-800 text-white flex items-center justify-center shadow-md group-hover:bg-indigo-900 transition-all duration-200">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
