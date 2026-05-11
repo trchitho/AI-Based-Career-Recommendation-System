@@ -179,7 +179,9 @@ const CVHistoryPage = () => {
         const ids = [...new Set(data.map(d => d.career_id).filter(Boolean))];
         const map: Record<string, string> = {};
         await Promise.all(ids.map(id =>
-          careerService.get(id).then(c => { map[id] = c.title || id; }).catch(() => { map[id] = id; })
+          careerService.get(id)
+            .then(c => { map[id] = c.title_vi || c.title_en || c.title || id; })
+            .catch(() => { map[id] = id; })
         ));
         setCareerNames(map);
       })

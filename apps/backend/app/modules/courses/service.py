@@ -176,12 +176,86 @@ def recommend_courses_for_skills(
 
     # 3️⃣  Fallback: on-the-fly embedding similarity (no pre-computed map)
     recs = _on_the_fly(db, missing_skills, top_k_per_skill)
+    if recs:
+        return CourseRecommendationsResponse(
+            missing_skills=missing_skills,
+            recommendations=recs,
+            total=len(recs),
+            source="fallback",
+        )
+
+    # 4️⃣  Online search links — when no local courses found, generate search URLs
+    recs = _build_online_search_recs(missing_skills, top_k_per_skill)
     return CourseRecommendationsResponse(
         missing_skills=missing_skills,
         recommendations=recs,
         total=len(recs),
-        source="fallback",
+        source="online_search",
     )
+
+
+# ── Online search fallback ────────────────────────────────────────
+
+def _build_online_search_recs(skills: list[str], top_k: int) -> list[CourseRecommendation]:
+    """
+    Generate search URL cards for major course platforms.
+    Used when no local courses are found — lets users search online directly.
+    """
+    import urllib.parse
+
+    PLATFORMS = [
+        {
+            "name": "Coursera",
+            "url_tpl": "https://www.coursera.org/search?query={q}",
+            "platform": "coursera",
+            "is_free": False,
+            "score": 0.90,
+        },
+        {
+            "name": "Udemy",
+            "url_tpl": "https://www.udemy.com/courses/search/?q={q}",
+            "platform": "udemy",
+            "is_free": False,
+            "score": 0.87,
+        },
+        {
+            "name": "YouTube",
+            "url_tpl": "https://www.youtube.com/results?search_query={q}+tutorial",
+            "platform": "youtube",
+            "is_free": True,
+            "score": 0.80,
+        },
+    ]
+
+    recs: list[CourseRecommendation] = []
+    for skill in skills[:top_k * 2]:  # limit skills
+        for p in PLATFORMS[:top_k]:
+            q = urllib.parse.quote_plus(f"{skill} course")
+            url = p["url_tpl"].format(q=q)
+            recs.append(CourseRecommendation(
+                course=CourseOut(
+                    id=0,
+                    external_id=f"online_{p['platform']}_{skill}",
+                    title=f"{skill} — Tìm khóa học trên {p['name']}",
+                    description=f"Tìm kiếm khóa học về {skill} trực tiếp trên {p['name']}",
+                    url=url,
+                    platform=p["platform"],
+                    instructor=None,
+                    rating=4.5,
+                    num_reviews=0,
+                    price=0.0,
+                    is_free=p["is_free"],
+                    level="beginner",
+                    duration_hrs=None,
+                    thumbnail=None,
+                    language="vi",
+                    tags=[skill],
+                ),
+                skill_name=skill,
+                similarity_score=p["score"],
+                relevance_label="Highly Relevant",
+            ))
+    return recs
 
 
 # ── Internal helpers ──────────────────────────────────────────────

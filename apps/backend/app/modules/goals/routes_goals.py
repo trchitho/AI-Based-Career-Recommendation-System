@@ -399,9 +399,9 @@ def _get_gemini_models():
     # NOTE: Gemma models require OAuth (not API key) → excluded
     return [
         "models/gemini-2.5-flash",       # Fast and efficient (2025)
-        "models/gemini-2.0-flash",       # Stable alternative
         "models/gemini-flash-latest",    # Always latest
-        "models/gemini-2.0-flash-lite",
+        "models/gemini-2.0-flash",       # Stable alternative
+        "models/gemini-2.0-flash-lite",  # Lightweight fallback
     ]
 
 

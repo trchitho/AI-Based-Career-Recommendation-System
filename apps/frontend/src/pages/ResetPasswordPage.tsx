@@ -173,7 +173,7 @@ const ResetPasswordPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 px-4 bg-indigo-700 hover:bg-indigo-800 text-white rounded-full font-bold text-[16px] shadow-lg shadow-green-500/20 hover:shadow-indigo-700/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-bold text-[16px] shadow-lg shadow-indigo-500/25 hover:shadow-indigo-600/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

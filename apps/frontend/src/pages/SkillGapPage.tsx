@@ -151,7 +151,9 @@ const SkillGapPage: React.FC = () => {
       const ids = [...new Set(data.map(d => d.career_id).filter(Boolean))];
       const map: Record<string, string> = {};
       await Promise.all(ids.map(id =>
-        careerService.get(id).then(c => { map[id] = c.title || id; }).catch(() => { map[id] = id; })
+        careerService.get(id)
+          .then(c => { map[id] = c.title_vi || c.title_en || c.title || id; })
+          .catch(() => { map[id] = id; })
       ));
       setHistoryCareerNames(map);
     } catch { }
@@ -187,7 +189,7 @@ const SkillGapPage: React.FC = () => {
       setCurrentStep('result');
       if (analysisData.career_id) {
         careerService.get(analysisData.career_id)
-          .then(c => setCareerName(c.title || analysisData.career_id))
+          .then(c => setCareerName(c.title_vi || c.title_en || c.title || analysisData.career_id))
           .catch(() => setCareerName(analysisData.career_id));
       }
       if (autoLoadPlan) {
@@ -212,10 +214,18 @@ const SkillGapPage: React.FC = () => {
 
   const handleStartInterview = () => {
     if (analysis) {
-      // Convert career_id format from "27-2099-00" to "27-2099.00" for URL
       const formattedCareerId = analysis.career_id.replace(/-(\d{2})$/, '.$1');
-      // Navigate to interview selection page with the formatted career ID
-      navigate(`/interview/selection/${formattedCareerId}`);
+      // Navigate to interview selection with CV analysis context
+      // InterviewSelectionPage will use skill_gap_analysis_id for CV-based personalized interview
+      navigate(`/interview/selection/${formattedCareerId}`, {
+        state: {
+          skill_gap_analysis_id: analysis.id,
+          cv_skills: analysis.cv_skills || [],
+          skill_gaps: analysis.skill_gaps || {},
+          match_percentage: analysis.match_percentage || 0,
+          cv_based: true,
+        }
+      });
     }
   };
 

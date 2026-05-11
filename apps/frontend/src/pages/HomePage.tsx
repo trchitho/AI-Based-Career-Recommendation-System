@@ -53,15 +53,9 @@ const useCounter = (end: number, duration: number = 2000) => {
 };
 
 const CounterItem = ({ value, label, suffix = '' }: { value: string, label: string, suffix?: string }) => {
-    const parseValue = (val: string) => {
-        if (val.includes('k')) return { num: parseFloat(val) * 1000, suf: 'k+' };
-        if (val.includes('M')) return { num: parseFloat(val) * 1000000, suf: 'M+' };
-        if (val.includes('%')) return { num: parseFloat(val), suf: '%' };
-        if (val.includes('<')) return { num: 2, suf: 'min' };
-        return { num: parseFloat(val), suf: suffix };
-    };
+    const num = parseFloat(value);
+    const { count, countRef } = useCounter(isNaN(num) ? 0 : num);
 
-    const { num, suf } = parseValue(value);
     if (isNaN(num)) return (
         <div className="text-white">
             <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono">{value}</div>
@@ -69,12 +63,10 @@ const CounterItem = ({ value, label, suffix = '' }: { value: string, label: stri
         </div>
     );
 
-    const { count, countRef } = useCounter(num);
-
     return (
         <div ref={countRef} className="text-white group hover:-translate-y-1 transition-transform duration-300">
             <div className="text-4xl md:text-5xl font-extrabold mb-2 font-mono tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-indigo-50">
-                {value.includes('<') ? '< ' : ''}{count.toLocaleString()}{suf}
+                {count.toLocaleString()}{suffix}
             </div>
             <div className="text-indigo-100 font-medium group-hover:text-white transition-colors">{label}</div>
         </div>
@@ -173,19 +165,17 @@ const HomePage = () => {
     ];
 
     return (
-        <div className="selection:bg-indigo-50 selection:text-indigo-900 overflow-x-hidden">
+        <div className="w-full">
 
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
                 @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 @keyframes scroll-reverse { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
                 @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
                 @keyframes blob {
-                    0% { transform: translate(0px, 0px) scale(1); }
-                    33% { transform: translate(30px, -50px) scale(1.1); }
-                    66% { transform: translate(-20px, 20px) scale(0.9); }
-                    100% { transform: translate(0px, 0px) scale(1); }
+                    0% { transform: scale(1); }
+                    33% { transform: scale(1.15); }
+                    66% { transform: scale(0.9); }
+                    100% { transform: scale(1); }
                 }
                 @keyframes shimmer {
                     0% { background-position: 200% 0; }
@@ -194,8 +184,8 @@ const HomePage = () => {
 
                 .animate-scroll { animation: scroll 40s linear infinite; }
                 .animate-scroll-reverse { animation: scroll-reverse 40s linear infinite; }
-                .animate-fade-in-up { animation: fade-in-up 0.8s ease-out forwards; opacity: 0; }
-                .animate-blob { animation: blob 7s infinite; }
+                .animate-fade-in-up { animation: fade-in-up 0.8s ease-out both; }
+                .animate-blob { animation: blob 7s ease-in-out infinite; }
                 .animation-delay-2000 { animation-delay: 2s; }
                 .animation-delay-4000 { animation-delay: 4s; }
 
@@ -223,10 +213,9 @@ const HomePage = () => {
 
                 .bg-grid-pattern {
                     background-image:
-                        linear-gradient(to right, rgba(34, 197, 94, 0.05) 1px, transparent 1px),
-                        linear-gradient(to bottom, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
+                        linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
                     background-size: 40px 40px;
-                    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
                 }
                 .glass-card {
                     background: rgba(255, 255, 255, 0.6);
@@ -241,26 +230,27 @@ const HomePage = () => {
                 }
             `}</style>
 
-            <main>
+            <main className="w-full">
                 {/* --- HERO SECTION --- */}
-                <section className="relative pt-16 pb-20 overflow-hidden" style={{ background: 'var(--neu-bg)' }}>
-                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                        <div className="bg-grid-pattern absolute w-full h-full opacity-[0.6]"></div>
-                        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob"></div>
-                        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 dark:bg-yellow-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-                        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-300 dark:bg-indigo-950 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+                <section className="relative pt-24 pb-20" style={{ background: 'var(--neu-bg)', overflow: 'clip' }}>
+                    {/* Background blobs — contained strictly inside section */}
+                    <div className="absolute inset-0 pointer-events-none z-0" style={{ overflow: 'hidden' }}>
+                        <div className="bg-grid-pattern absolute inset-0 opacity-[0.6]"></div>
+                        <div className="absolute top-0 left-0 w-64 h-64 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-2xl opacity-50 animate-blob"></div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-300 dark:bg-yellow-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-2xl opacity-50 animate-blob animation-delay-2000"></div>
+                        <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-indigo-300 dark:bg-indigo-950 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-2xl opacity-50 animate-blob animation-delay-4000"></div>
                     </div>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
                             {/* LEFT — text */}
-                            <div className="flex-1 animate-fade-in-up">
-                                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "10px 18px", borderRadius: "999px", fontSize: "14px", fontWeight: 600, lineHeight: "20px", color: "#4f46e5", background: "rgba(255,255,255,0.92)", border: "1px solid rgba(99,102,241,0.35)", boxShadow: "0 8px 20px rgba(99,102,241,0.12)", position: "relative", zIndex: 20, opacity: 1, visibility: "visible", whiteSpace: "nowrap", marginBottom: "24px" }} className="hover:scale-105 transition-transform cursor-default">
+                            <div>
+                                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold text-indigo-700 bg-white border border-indigo-200 shadow-sm mb-6">
                                     {t('home.badge')}
                                 </span>
 
-                                <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-[1.1]">
+                                <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-6 leading-tight">
                                     {t('home.hero.title')}{' '}
                                     <em className="not-italic text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600">
                                         {t('home.hero.titleHighlight')}
@@ -268,23 +258,23 @@ const HomePage = () => {
                                     {t('home.hero.titleSuffix', 'trajectory with precision.')}
                                 </h1>
 
-                                <p className="text-lg text-gray-500 dark:text-gray-400 mb-10 leading-relaxed max-w-xl font-medium">
+                                <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 mb-10 leading-relaxed">
                                     {t('home.hero.subtitle')}
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row items-start gap-4">
-                                    <Link to="/assessment" className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 relative overflow-hidden group uppercase tracking-wide">
+                                    <Link to="/assessment" className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 relative overflow-hidden group uppercase tracking-wide">
                                         {t('home.hero.cta')}
-                                        <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                        <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                     </Link>
-                                    <Link to="/careers" className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm uppercase tracking-wide">
+                                    <Link to="/careers" className="inline-flex items-center justify-center px-6 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm uppercase tracking-wide">
                                         {t('home.hero.exploreBtn')}
                                     </Link>
                                 </div>
                             </div>
 
                             {/* RIGHT — dashboard mockup */}
-                            <div className="flex-1 w-full max-w-lg lg:max-w-none animate-fade-in-up relative" style={{ animationDelay: '0.2s' }}>
+                            <div className="relative">
                                 <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(135deg,#0f172a 0%, #1e2d4a 100%)' }}>
                                     <div className="flex items-center gap-2 px-5 py-3 border-b border-white/10">
                                         <span className="w-2.5 h-2.5 rounded-full bg-red-400 opacity-80"></span>
@@ -306,19 +296,20 @@ const HomePage = () => {
                                     </div>
                                 </div>
 
-                                <div className="absolute -bottom-5 -right-4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl border border-gray-100 dark:border-gray-700 min-w-[180px]">
-                                    <div className="flex items-center gap-1.5 mb-1.5">
+                                {/* Floating badge — only on larger screens */}
+                                <div className="hidden md:block absolute -bottom-4 right-4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl border border-gray-100 dark:border-gray-700">
+                                    <div className="flex items-center gap-1.5 mb-1">
                                         <svg className="w-3.5 h-3.5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Market Pulse</span>
                                     </div>
-                                    <div className="text-2xl font-extrabold text-gray-900 dark:text-white">+12.4%</div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Demand for AI Ethics roles</div>
+                                    <div className="text-xl font-extrabold text-gray-900 dark:text-white">+12.4%</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">AI Ethics roles demand</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* 3 feature mini-cards */}
-                        <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="mt-16 pb-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
                             {[
                                 {
                                     icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
@@ -352,14 +343,14 @@ const HomePage = () => {
                 </section>
 
                 {/* --- FEATURE CLOUD --- */}
-                <div className="border-y border-gray-200 dark:border-gray-700/50 py-10 overflow-hidden relative" style={{ background: 'var(--neu-bg)' }}>
-                    <div className="absolute inset-y-0 left-0 w-32 z-10" style={{ background: 'linear-gradient(to right, var(--neu-bg), transparent)' }}></div>
-                    <div className="absolute inset-y-0 right-0 w-32 z-10" style={{ background: 'linear-gradient(to left, var(--neu-bg), transparent)' }}></div>
-                    <div className="flex w-max animate-scroll">
+                <div className="border-y border-gray-200 dark:border-gray-700/50 py-10 relative" style={{ background: 'var(--neu-bg)', overflow: 'hidden' }}>
+                    <div className="absolute inset-y-0 left-0 w-24 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, var(--neu-bg), transparent)' }}></div>
+                    <div className="absolute inset-y-0 right-0 w-24 z-10 pointer-events-none" style={{ background: 'linear-gradient(to left, var(--neu-bg), transparent)' }}></div>
+                    <div className="flex animate-scroll" style={{ width: 'max-content' }}>
                         {[...Array(2)].map((_, i) => (
-                            <div key={i} className="flex gap-20 px-12 items-center">
+                            <div key={i} className="flex gap-16 px-8 items-center">
                                 {['Đánh Giá RIASEC', 'Phân Tích Big Five', 'Gợi Ý Nghề Nghiệp AI', 'Lộ Trình Học Tập', '900+ Nghề Nghiệp', 'Phân Tích Khoảng Cách Kỹ Năng', 'Trợ Lý AI', 'Báo Cáo PDF'].map((text, idx) => (
-                                    <span key={idx} className="text-xl font-bold tracking-wide text-gray-400 hover:text-indigo-800 dark:text-gray-500 dark:hover:text-indigo-400 select-none transition-colors duration-300 whitespace-nowrap uppercase">
+                                    <span key={idx} className="text-base font-bold tracking-wide text-gray-400 hover:text-indigo-700 dark:text-gray-500 dark:hover:text-indigo-400 select-none transition-colors duration-300 whitespace-nowrap uppercase">
                                         {text}
                                     </span>
                                 ))}
@@ -381,9 +372,9 @@ const HomePage = () => {
                             <p className="text-lg text-gray-500 dark:text-gray-400">{t('home.features.sectionSubtitle')}</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-2 gap-6 h-auto md:h-[650px]">
+                        <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
                             {/* Feature 1: Large */}
-                            <div className="md:col-span-4 md:row-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+                            <div className="md:col-span-4 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
                                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-700/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-indigo-700/20 transition-colors duration-500"></div>
                                 <div className="relative z-10 h-full flex flex-col">
                                     <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
@@ -478,12 +469,15 @@ const HomePage = () => {
                                 { title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc'), icon: "3", align: "left", gradient: "linear-gradient(135deg, #10b981, #14b8a6)" },
                                 { title: t('home.howItWorks.step4.title'), desc: t('home.howItWorks.step4.desc'), icon: "4", align: "right", gradient: "linear-gradient(135deg, #fb923c, #f59e0b)" }
                             ].map((step, idx) => (
-                                <div key={idx} className={`relative flex items-center justify-between mb-16 ${step.align === 'right' ? 'flex-row-reverse' : ''} group`}>
-                                    <div className="hidden md:block w-5/12"></div>
-                                    <div className="absolute left-0 md:left-1/2 top-0 md:-translate-x-1/2 z-10" style={{ width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontWeight: 700, fontSize: "16px", border: "3px solid rgba(255,255,255,0.95)", boxShadow: "0 0 24px rgba(0,0,0,0.15)", flexShrink: 0, background: step.gradient }}>
+                                <div key={idx} className={`relative flex items-start md:items-center gap-6 mb-12 ${step.align === 'right' ? 'md:flex-row-reverse' : ''} group`}>
+                                    {/* Step number */}
+                                    <div className="flex-shrink-0 relative z-10 md:absolute md:left-1/2 md:-translate-x-1/2" style={{ width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontWeight: 700, fontSize: "16px", border: "3px solid rgba(255,255,255,0.95)", boxShadow: "0 0 24px rgba(0,0,0,0.15)", background: step.gradient }}>
                                         {step.icon}
                                     </div>
-                                    <div className={`w-full md:w-5/12 pl-16 md:pl-0 ${step.align === 'left' ? 'md:pr-10 md:text-right' : 'md:pl-10'}`}>
+                                    {/* Spacer for desktop centering */}
+                                    <div className="hidden md:block w-5/12"></div>
+                                    {/* Card */}
+                                    <div className={`flex-1 md:w-5/12 ${step.align === 'left' ? 'md:pr-10 md:text-right' : 'md:pl-10'}`}>
                                         <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
                                             <div className={`absolute top-0 w-1 h-full bg-indigo-700 ${step.align === 'left' ? 'right-0' : 'left-0'} transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom`}></div>
                                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{step.title}</h3>
@@ -503,28 +497,28 @@ const HomePage = () => {
                     <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                            <CounterItem value={`${stats?.totalAssessments ?? 0}+`} label={t('home.stats.assessments')} />
-                            <CounterItem value={`${stats?.totalCareerPaths ?? 0}+`} label={t('home.stats.careerPaths')} />
-                            <CounterItem value={`${Math.round((stats?.totalCareerInfo ?? 20000) / 1000)}K+`} label={t('home.stats.careerData')} />
+                            <CounterItem value={`${stats?.totalAssessments ?? 150}`} suffix="+" label={t('home.stats.assessments')} />
+                            <CounterItem value={`${stats?.totalCareerPaths ?? 50}`} suffix="+" label={t('home.stats.careerPaths')} />
+                            <CounterItem value={`${Math.round((stats?.totalCareerInfo ?? 20000) / 1000)}`} suffix="K+" label={t('home.stats.careerData')} />
                         </div>
                     </div>
                 </section>
 
                 {/* --- TESTIMONIALS --- */}
-                <section className="py-24 overflow-hidden" style={{ background: 'var(--neu-bg)' }}>
+                <section className="py-24" style={{ background: 'var(--neu-bg)', overflow: 'hidden' }}>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center">
                         <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">{t('home.testimonials.title')}</h2>
                     </div>
                     <div className="relative">
-                        <div className="absolute top-0 left-0 h-full w-24 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
-                        <div className="absolute top-0 right-0 h-full w-24 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
-                        <div className="flex w-max animate-scroll gap-6 mb-6">
+                        <div className="absolute top-0 left-0 h-full w-16 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 h-full w-16 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
+                        <div className="flex animate-scroll gap-6 mb-6" style={{ width: 'max-content' }}>
                             {row1.map((item, idx) => (
-                                <div key={`r1-${idx}`} className="w-[380px] bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg transition-all duration-300">
+                                <div key={`r1-${idx}`} className="w-80 bg-gray-50 dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg transition-all duration-300">
                                     <div className="flex items-center mb-4">
-                                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#ffffff", fontWeight: 700, fontSize: "16px", background: item.gradient, boxShadow: "0 8px 20px rgba(0,0,0,.18)" }}>{item.initial}</div>
+                                        <div style={{ width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#ffffff", fontWeight: 700, fontSize: "14px", background: item.gradient }}>{item.initial}</div>
                                         <div className="ml-3">
-                                            <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
+                                            <div className="font-bold text-gray-900 dark:text-white text-sm">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
                                         <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>
@@ -533,13 +527,13 @@ const HomePage = () => {
                                 </div>
                             ))}
                         </div>
-                        <div className="flex w-max animate-scroll-reverse gap-6">
+                        <div className="flex animate-scroll-reverse gap-6" style={{ width: 'max-content' }}>
                             {row2.map((item, idx) => (
-                                <div key={`r2-${idx}`} className="w-[380px] bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg transition-all duration-300">
+                                <div key={`r2-${idx}`} className="w-80 bg-gray-50 dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 flex-shrink-0 hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg transition-all duration-300">
                                     <div className="flex items-center mb-4">
-                                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#ffffff", fontWeight: 700, fontSize: "16px", background: item.gradient, boxShadow: "0 8px 20px rgba(0,0,0,.18)" }}>{item.initial}</div>
+                                        <div style={{ width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#ffffff", fontWeight: 700, fontSize: "14px", background: item.gradient }}>{item.initial}</div>
                                         <div className="ml-3">
-                                            <div className="font-bold text-gray-900 dark:text-white">{item.name}</div>
+                                            <div className="font-bold text-gray-900 dark:text-white text-sm">{item.name}</div>
                                             <div className="text-xs text-gray-500">{item.role}</div>
                                         </div>
                                         <div className="ml-auto flex gap-0.5 text-yellow-400 text-xs">{[...Array(5)].map((_, i) => <span key={i}>★</span>)}</div>

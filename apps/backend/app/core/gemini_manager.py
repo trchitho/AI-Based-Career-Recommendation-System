@@ -80,13 +80,13 @@ class GeminiStreamManager:
         # NOTE: Gemma models (gemma-3-*) require OAuth, NOT API key → excluded
         seen = set()
         candidates = [
-            self.model_name,               # Primary from env
-            "gemini-flash-latest",         # Always-latest alias (works for all keys)
-            "gemini-2.5-flash",            # Newer stable
-            "gemini-2.0-flash-exp",        # Experimental (different quota)
-            "gemini-2.0-flash",            # Stable 2.0
-            "gemini-1.5-flash",            # Older but reliable
-            "models/gemini-flash-latest",  # With models/ prefix
+            self.model_name,           # Primary from env
+            "gemini-flash-latest",     # Always-latest alias (works for all keys)
+            "gemini-2.5-flash",        # Newer stable
+            "gemini-2.0-flash-exp",    # Experimental (different quota)
+            "gemini-2.0-flash",        # Stable 2.0
+            "gemini-1.5-flash",        # Older but reliable
+            "models/gemini-flash-latest",
             "models/gemini-2.5-flash",
             "models/gemini-2.0-flash",
         ]
@@ -379,24 +379,35 @@ class GeminiStreamManager:
     def _try_fallback_model(self) -> bool:
         """Try to switch to a fallback model"""
         current_index = -1
-        
-        # Find current model index
+
+        # Normalize helper: strip 'models/' or 'model/' prefix for comparison
+        def _clean(name: str) -> str:
+            return name.replace('models/', '').replace('model/', '').strip()
+
+        active_clean = _clean(self.active_model_name)
+
+        # Find current model index — compare normalized names
         for i, model_name in enumerate(self.fallback_models):
-            clean_name = model_name.replace('models/', '').replace('model/', '')
-            if clean_name == self.active_model_name:
+            if _clean(model_name) == active_clean:
                 current_index = i
                 break
-        
-        # Try remaining models
-        for model_name in self.fallback_models[current_index + 1:]:
+
+        # Try remaining models (everything after current)
+        candidates = self.fallback_models[current_index + 1:]
+        if not candidates:
+            # Two cases where candidates is empty:
+            # 1. current_index == -1: active model not in list → try ALL
+            # 2. active model is last in list → also try ALL (wrap around)
+            candidates = self.fallback_models
+
+        for model_name in candidates:
             try:
                 print(f"  [reload] Trying fallback model: {model_name}")
-                
-                # Clean model name
-                clean_model_name = model_name.replace('models/', '').replace('model/', '')
+
+                clean_model_name = _clean(model_name)
                 model = genai.GenerativeModel(clean_model_name)
-                
-                # Test the model
+
+                # Test the model with a minimal prompt
                 test_response = model.generate_content(
                     "Test",
                     generation_config=genai.types.GenerationConfig(
@@ -404,17 +415,16 @@ class GeminiStreamManager:
                         temperature=0.1,
                     )
                 )
-                
-                # If successful, switch to this model
+
                 self.model = model
                 self.active_model_name = clean_model_name
                 print(f"  [ok] Successfully switched to: {clean_model_name}")
                 return True
-                
+
             except Exception as e:
                 print(f"  [warn] Fallback model {model_name} also failed: {e}")
                 continue
-        
+
         return False
 
 

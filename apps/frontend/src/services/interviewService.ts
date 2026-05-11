@@ -239,12 +239,19 @@ export interface InterviewStats {
 class InterviewService {
     private baseUrl = '/api/interview';
 
-    async startInterview(jobId: string, questionCount: number = 7, jdId?: number, levelSlug?: string): Promise<StartInterviewResponse> {
+    async startInterview(
+        jobId: string,
+        questionCount: number = 7,
+        jdId?: number,
+        levelSlug?: string,
+        skillGapAnalysisId?: number,  // CV-based personalized interview
+    ): Promise<StartInterviewResponse> {
         const response = await api.post<StartInterviewResponse>(`${this.baseUrl}/start`, {
             job_id: jobId,
             question_count: questionCount,
             ...(jdId ? { jd_id: jdId } : {}),
-            ...(levelSlug ? { level_slug: levelSlug } : {})
+            ...(levelSlug ? { level_slug: levelSlug } : {}),
+            ...(skillGapAnalysisId ? { skill_gap_analysis_id: skillGapAnalysisId } : {}),
         }, { timeout: 30000 });
         return response.data;
     }
@@ -284,6 +291,30 @@ class InterviewService {
         const response = await api.get<{ interviews: InterviewSession[]; total: number; limit: number; offset: number; has_more: boolean }>(
             `${this.baseUrl}/my-interviews?limit=${limit}&offset=${offset}`
         );
+        return response.data;
+    }
+
+    async getConversation(sessionId: number): Promise<{
+        success: boolean;
+        session_id: number;
+        interview_mode: string;
+        voice_type: string;
+        status: string;
+        total_messages: number;
+        conversation: Array<{
+            id: number;
+            role: 'ai' | 'user';
+            content: string;
+            audio_url: string | null;
+            duration_seconds: number | null;
+            transcript: string | null;
+            question_type: string | null;
+            question_number: number | null;
+            score: number | null;
+            feedback: string | null;
+        }>;
+    }> {
+        const response = await api.get(`/api/interview/voice/conversation/${sessionId}`);
         return response.data;
     }
 

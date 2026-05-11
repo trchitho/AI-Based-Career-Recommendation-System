@@ -5,6 +5,7 @@ Orchestrator tích hợp TTS, STT và Audio Storage services.
 Lưu metadata vào bảng interview.interview_audio.
 """
 
+import asyncio
 import logging
 import uuid
 from typing import Optional
@@ -12,11 +13,63 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.modules.interview.edge_tts_service import edge_tts_service
-from app.modules.interview.whisper_stt_service import whisper_stt_service
 from app.modules.interview.audio_storage_service import audio_storage_service
 from app.modules.interview.models import InterviewAudio
 
 logger = logging.getLogger(__name__)
+
+
+def _transcribe_audio(audio_data: bytes, language: str, content_type: str) -> str:
+    """
+    Transcribe audio bytes to text (sync).
+    Priority: faster-whisper (CTranslate2, no PyTorch meta tensor issue)
+              → openai-whisper _run_whisper (sync, bypasses async wrapper).
+    """
+    # 1. Try faster-whisper first
+    try:
+        from app.modules.interview.faster_stt_service import transcribe_audio_bytes
+        result = transcribe_audio_bytes(audio_data, content_type=content_type, language=language)
+        if result:
+            logger.info(f"[AudioPipeline] faster-whisper transcript: {result[:80]}")
+            return result
+        logger.debug("[AudioPipeline] faster-whisper returned empty, trying openai-whisper")
+    except Exception as e:
+        logger.warning(f"[AudioPipeline] faster-whisper failed: {e}, falling back to openai-whisper")
+
+    # 2. Fallback: openai-whisper via sync _run_whisper (avoids meta tensor issue
+    #    by passing numpy array directly instead of calling model.to(device))
+    import os
+    import tempfile
+    from app.modules.interview.whisper_stt_service import (
+        whisper_stt_service,
+        CONTENT_TYPE_TO_EXT,
+        STTNoSpeechError,
+    )
+
+    ext = CONTENT_TYPE_TO_EXT.get(
+        (content_type or "").lower().split(";")[0].strip(), "webm"
+    )
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            delete=False, suffix=f".{ext}", prefix="stt_ap_"
+        ) as f:
+            f.write(audio_data)
+            tmp_path = f.name
+
+        transcript, _ = whisper_stt_service._run_whisper(tmp_path, language)
+        return transcript.strip() if transcript else ""
+    except STTNoSpeechError:
+        return ""
+    except Exception as e:
+        logger.error(f"[AudioPipeline] openai-whisper fallback failed: {e}")
+        return ""
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
 
 
 class AudioPipelineService:
@@ -58,20 +111,22 @@ class AudioPipelineService:
             }
         """
         try:
-            # Use Whisper STT service
-            transcript = await whisper_stt_service.transcribe(
-                audio_data=audio_content,
-                language="vi",
-                content_type=content_type,
+            # Use faster-whisper first, fallback to openai-whisper
+            transcript = await asyncio.get_event_loop().run_in_executor(
+                None,
+                _transcribe_audio,
+                audio_content,
+                "vi",
+                content_type,
             )
-            
+
             return {
                 "success": True,
                 "transcript": transcript,
-                "confidence": 0.95,  # Default confidence
+                "confidence": 0.95,
                 "error": None
             }
-            
+
         except Exception as e:
             logger.error(f"[AudioPipeline] STT processing failed: {str(e)}")
             return {
@@ -92,6 +147,7 @@ class AudioPipelineService:
         message_id: Optional[int],
         content_type: str,
         audio_duration: Optional[float] = None,
+        skip_stt: bool = False,  # set True when text_answer already provided
     ) -> dict:
         """
         Xử lý audio từ user: upload → transcribe → lưu metadata.
@@ -130,12 +186,19 @@ class AudioPipelineService:
             # Yêu cầu 7.5: storage failure không block flow
             logger.warning(f"[AudioPipeline] Storage upload failed (non-blocking): {exc}")
 
-        # 2. Transcribe via Whisper STT
-        transcript = await whisper_stt_service.transcribe(
-            audio_data=audio_data,
-            language="vi",
-            content_type=content_type,
-        )
+        # 2. Transcribe (skip if text_answer already provided)
+        transcript = ""
+        if not skip_stt:
+            try:
+                transcript = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    _transcribe_audio,
+                    audio_data,
+                    "vi",
+                    content_type,
+                )
+            except Exception as stt_exc:
+                logger.warning(f"[AudioPipeline] STT failed (non-blocking): {stt_exc}")
 
         # 3. Save metadata to interview_audio
         audio_record_id: Optional[str] = None

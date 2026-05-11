@@ -276,6 +276,8 @@ npm install
 npm run dev
 npm install page-flip
 npm install react-pageflip
+cd "d:\test_capston\Capstone\AI-Based-Career-Recommendation-System\apps\backend" && pip install edge-tts 2>&1 | tail -5
+pip install edge-tts 
 ```
 
 Sau khi chạy xong, truy cập http://localhost:3000 để sử dụng ứng dụng.

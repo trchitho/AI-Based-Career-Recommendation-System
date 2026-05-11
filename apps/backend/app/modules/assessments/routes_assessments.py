@@ -179,6 +179,32 @@ class FeedbackIn(BaseModel):
 # -------------------------------------------------------------------
 
 
+@router.post("/session/start")
+def api_start_assessment_session(
+    req: Request,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Tạo một AssessmentSession mới trong DB và trả về session_id thực.
+    Dùng cho game modes (standard/game) trước khi bắt đầu gamification session.
+    """
+    try:
+        session = AssessmentSession(user_id=user_id)
+        db.add(session)
+        db.flush()
+        db.commit()
+        db.refresh(session)
+        return {"session_id": session.id, "user_id": session.user_id}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"[assessments] start_session error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create assessment session",
+        )
+
+
 @router.get("/questions/{test_type}")
 def api_get_questions(
     test_type: str,

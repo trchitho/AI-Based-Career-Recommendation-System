@@ -13,6 +13,7 @@ class InterviewStatus(str, Enum):
     ACTIVE = "active"
     COMPLETED = "completed"
     ABANDONED = "abandoned"
+    TERMINATED = "terminated"
 
 
 class QuestionType(str, Enum):
@@ -43,6 +44,8 @@ class StartInterviewRequest(BaseModel):
     question_count: int = Field(default=5, ge=5, le=12, description="Số lượng câu hỏi phỏng vấn (5, 7, 8, 10, 12)")
     jd_id: Optional[int] = Field(None, description="ID của JD đã upload (tùy chọn)")
     level_slug: Optional[str] = Field(None, description="Cấp bậc nghề nghiệp (fresher, junior, middle, senior, lead)")
+    # CV-based personalized interview
+    skill_gap_analysis_id: Optional[int] = Field(None, description="ID của phân tích CV (skill gap) để tạo phỏng vấn dựa trên CV")
 
     model_config = {"json_schema_extra": {"example": {"job_id": "15-1252.00", "question_count": 7, "level_slug": "junior"}}}
 

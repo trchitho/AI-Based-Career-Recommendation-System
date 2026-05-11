@@ -48,14 +48,17 @@ class Career(Base):
     industry_category: Mapped[Optional[str]] = mapped_column(Text)
 
     def to_dict(self) -> dict:
-        # Fallback title from slug if localized titles are missing
         fallback = (self.slug or "").replace("-", " ").title() if getattr(self, "slug", None) else ""
-        display_title = self.title_vi or self.title_en or fallback
+        title_vi = self.title_vi or ""
+        title_en = self.title_en or ""
+        display_title = title_vi or title_en or fallback
         short_desc = self.short_desc_vi or self.short_desc_en or ""
         return {
             "id": self.id,
             "slug": self.slug,
-            "title": display_title,
+            "title":    display_title,   # ưu tiên tiếng Việt
+            "title_vi": title_vi,
+            "title_en": title_en,
             "short_desc": short_desc,
             "description": short_desc,
             "onet_code": self.onet_code,

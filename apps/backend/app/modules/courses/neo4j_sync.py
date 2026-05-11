@@ -109,13 +109,31 @@ def _upsert_teaches(neo_session, mappings, course_map):
             logger.warning(f"Failed to upsert TEACHES {course.external_id} → {m.skill_name}: {e}")
 
 
+def _neo4j_has_courses() -> bool:
+    """Check if Neo4j has Course nodes — skip query if not synced yet."""
+    driver = _get_driver()
+    if driver is None:
+        return False
+    try:
+        with driver.session() as s:
+            count = s.run("MATCH (c:Course) RETURN count(c) AS n").single()["n"]
+            return count > 0
+    except Exception:
+        return False
+
+
 def query_courses_for_skills(skills: list[str], top_k: int = 5) -> list[dict]:
     """
     Query Neo4j: find courses that TEACH any of the given skills.
-    Returns list of {title, url, platform, score, skill_name}.
+    Returns empty list (skip Neo4j) if Course nodes not synced yet.
     """
     driver = _get_driver()
     if driver is None or not skills:
+        return []
+
+    # Skip Neo4j entirely if Course nodes don't exist — avoids warning spam
+    if not _neo4j_has_courses():
+        logger.info("[CourseRec] Neo4j has no Course nodes — using PostgreSQL fallback")
         return []
 
     try:

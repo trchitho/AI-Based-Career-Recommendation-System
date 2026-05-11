@@ -119,6 +119,12 @@ class SkillGapService:
         print("[5/5] Saving to database...")
         db_start = time.time()
 
+        # Reset any aborted transaction from earlier queries before saving
+        try:
+            self.db.rollback()
+        except Exception:
+            pass
+
         # Extract personal info
         personal_info = cv_data.get('personal_info', {})
 
