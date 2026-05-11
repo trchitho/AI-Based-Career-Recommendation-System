@@ -5,7 +5,6 @@ import { adminService } from "../../services/adminService";
 import { AdminDashboardMetrics, AIMetrics } from "../../types/admin";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { useTheme } from "../../contexts/ThemeContext";
-import ThemeToggle from "../../components/ThemeToggle";
 import { useAuth } from "../../contexts/AuthContext";
 
 // Admin pages
