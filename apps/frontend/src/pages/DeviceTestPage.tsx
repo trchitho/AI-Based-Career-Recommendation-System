@@ -267,6 +267,7 @@ const DeviceTestPage: React.FC = () => {
         let resolvedQuestionCount = questionCount;
         let resolvedJdId = jdId;
         let resolvedLevelSlug = levelSlug;
+        let resolvedSkillGapAnalysisId: string | null = null;
 
         if (!resolvedJobId) {
             try {
@@ -277,6 +278,7 @@ const DeviceTestPage: React.FC = () => {
                     resolvedQuestionCount = p.question_count ? String(p.question_count) : null;
                     resolvedJdId = p.jd_id ? String(p.jd_id) : null;
                     resolvedLevelSlug = p.level_slug || null;
+                    resolvedSkillGapAnalysisId = p.skill_gap_analysis_id ? String(p.skill_gap_analysis_id) : null;
                 }
             } catch {
                 // non-blocking
@@ -289,6 +291,7 @@ const DeviceTestPage: React.FC = () => {
         if (resolvedQuestionCount) params.set('question_count', resolvedQuestionCount);
         if (resolvedJdId) params.set('jd_id', resolvedJdId);
         if (resolvedLevelSlug) params.set('level_slug', resolvedLevelSlug);
+        if (resolvedSkillGapAnalysisId) params.set('skill_gap_analysis_id', resolvedSkillGapAnalysisId);
 
         navigate(`/interview/voice?${params.toString()}`);
     };

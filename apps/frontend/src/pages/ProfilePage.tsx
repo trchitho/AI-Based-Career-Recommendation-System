@@ -21,9 +21,9 @@ function displayName(profile: ProfileData['profile']) {
 }
 
 const RIASEC_LABELS: Record<string, string> = {
-  realistic: 'Realistic', investigative: 'Investigative',
-  artistic: 'Artistic', social: 'Social',
-  enterprising: 'Enterprising', conventional: 'Conventional',
+  realistic: 'Kỹ Thuật', investigative: 'Nghiên Cứu',
+  artistic: 'Nghệ Thuật', social: 'Xã Hội',
+  enterprising: 'Kinh Doanh', conventional: 'Nghiệp Vụ',
 };
 
 const RIASEC_COLORS: Record<string, string> = {
@@ -36,16 +36,15 @@ const RIASEC_COLORS: Record<string, string> = {
 };
 
 const BIG5_LABELS: Record<string, string> = {
-  openness: 'Openness', conscientiousness: 'Conscientiousness',
-  extraversion: 'Extraversion', agreeableness: 'Agreeableness', neuroticism: 'Neuroticism',
+  openness: 'Cởi Mở', conscientiousness: 'Tận Tâm',
+  extraversion: 'Hướng Ngoại', agreeableness: 'Dễ Chịu', neuroticism: 'Nhạy Cảm',
 };
 
 function big5Level(score: number) {
-  // score is 0-100
-  if (score >= 75) return 'High';
-  if (score >= 55) return 'Moderate';
-  if (score >= 40) return 'Balanced';
-  return 'Low';
+  if (score >= 75) return 'Cao';
+  if (score >= 55) return 'Trung Bình';
+  if (score >= 40) return 'Cân Bằng';
+  return 'Thấp';
 }
 
 function big5Color(score: number) {
@@ -58,8 +57,8 @@ function big5Color(score: number) {
 /* ── Assessment card mini ─────────────────────────────── */
 function AssessmentCard({ item }: { item: AssessmentHistoryItem }) {
   const navigate = useNavigate();
-  const date = new Date(item.completed_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  const mode = item.test_mode || 'Standard';
+  const date = new Date(item.completed_at).toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' });
+  const mode = item.test_mode || 'Tiêu Chuẩn';
   const topType = item.top_interest || (item.riasec_scores
     ? Object.entries(item.riasec_scores).sort((a, b) => b[1] - a[1])[0]?.[0]
     : '');
@@ -102,14 +101,14 @@ function AssessmentCard({ item }: { item: AssessmentHistoryItem }) {
       </div>
       <div style={{ marginBottom: 6, color: 'var(--neu-accent)' }}>{icon}</div>
       <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--neu-text, #111)', marginBottom: 2 }}>
-        {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode
+        {mode === 'traditional' ? 'Truyền Thống' : mode === 'story' ? 'Câu Chuyện' : mode.charAt(0).toUpperCase() + mode.slice(1)} Chế Độ
       </div>
       {topType && (
         <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: 8 }}>
-          Top: <strong style={{ color: 'var(--neu-text, #111)' }}>{RIASEC_LABELS[topType] || topType}</strong>
+          Hàng đầu: <strong style={{ color: 'var(--neu-text, #111)' }}>{RIASEC_LABELS[topType] || topType}</strong>
         </div>
       )}
-      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 2 }}>Score</div>
+      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 2 }}>Điểm</div>
       <div style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--neu-accent)' }}>{topScore}/100</div>
     </div>
   );
@@ -192,7 +191,7 @@ const ProfilePage = () => {
                       background: 'rgba(165,243,252,0.15)', padding: '0.2rem 0.6rem',
                       borderRadius: 99, border: '1px solid rgba(165,243,252,0.3)',
                     }}>
-                       Verified Career DNA
+                       DNA Nghề Nghiệp Đã Xác Minh
                     </span>
                   </div>
                   <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.1 }}>
@@ -201,7 +200,7 @@ const ProfilePage = () => {
                   <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', marginTop: '0.3rem' }}>
                     {profileData.profile.email}
                     {latestAssessment?.top_interest && (
-                      <span> · Top interest: <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{RIASEC_LABELS[latestAssessment.top_interest] || latestAssessment.top_interest}</strong></span>
+                      <span> · Sở thích hàng đầu: <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{RIASEC_LABELS[latestAssessment.top_interest] || latestAssessment.top_interest}</strong></span>
                     )}
                   </div>
                 </div>
@@ -212,32 +211,32 @@ const ProfilePage = () => {
                 <div style={{ display: 'flex', gap: '0.6rem' }}>
                   <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.5rem 0.9rem' }}>
                     <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff' }}>{assessmentCount}</div>
-                    <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tests</div>
+                    <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Bài Test</div>
                   </div>
                   <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.5rem 0.9rem' }}>
                     <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff' }}>{completedRoadmaps}</div>
-                    <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Roadmaps</div>
+                    <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Lộ Trình</div>
                   </div>
                   {topRiasecCode && (
                     <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.5rem 0.9rem' }}>
                       <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#bbf7d0' }}>{topRiasecCode}</div>
-                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Type</div>
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Loại</div>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* ── ROW 1: RIASEC + Big Five ── */}
+            {/* ── HÀNG 1: RIASEC + Big Five ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px,100%), 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
 
-              {/* Career DNA (RIASEC) */}
+              {/* DNA Nghề Nghiệp (RIASEC) */}
               <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)' }}>Career DNA (RIASEC)</div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)' }}>DNA Nghề Nghiệp (RIASEC)</div>
                   {latestAssessment && (
                     <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
-                      Last updated {new Date(latestAssessment.completed_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      Cập nhật lần cuối {new Date(latestAssessment.completed_at).toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' })}
                     </div>
                   )}
                 </div>
@@ -258,7 +257,7 @@ const ProfilePage = () => {
                             <div style={{ height: '100%', width: `${pct}%`, background: RIASEC_COLORS[key], borderRadius: 99, transition: 'width 1s ease' }} />
                           </div>
                           <div style={{ fontSize: '0.68rem', color: '#9ca3af', marginTop: 2 }}>
-                            {key === 'artistic' ? 'Creative expression' : key === 'investigative' ? 'Analytical thinking' : key === 'social' ? 'People-oriented' : key === 'realistic' ? 'Hands-on work' : key === 'enterprising' ? 'Leadership' : 'Detail-oriented'}
+                            {key === 'artistic' ? 'Sáng tạo & biểu cảm' : key === 'investigative' ? 'Phân tích & nghiên cứu' : key === 'social' ? 'Hỗ trợ & xã hội' : key === 'realistic' ? 'Kỹ thuật & thực tế' : key === 'enterprising' ? 'Kinh doanh & lãnh đạo' : 'Dữ liệu & nghiệp vụ'}
                           </div>
                         </div>
                       );
@@ -272,10 +271,10 @@ const ProfilePage = () => {
                 )}
               </div>
 
-              {/* Big Five Personality */}
+              {/* Tính Cách Big Five */}
               <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
                 <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
-                  Big Five Personality
+                  Tính Cách Big Five
                 </div>
 
                 {big5 ? (
@@ -348,10 +347,10 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* ── ROW 3: Assessment History ── */}
+            {/* ── ROW 3: Lịch Sử Đánh Giá ── */}
             <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', marginBottom: '1.25rem' }}>
               <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
-                Assessment History
+                Lịch Sử Đánh Giá
               </div>
               {profileData.assessmentHistory.length > 0 ? (
                 <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>

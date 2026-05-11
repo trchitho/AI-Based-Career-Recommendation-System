@@ -286,6 +286,25 @@ async def lifespan(_: FastAPI):
     except Exception as e:
         print(f"[WARN]  Session reminder job failed: {e}")
 
+    # Pre-load faster-whisper model in background so first STT call is fast
+    def _preload_whisper():
+        try:
+            import importlib.util
+            if importlib.util.find_spec("faster_whisper") is None:
+                print("[INFO] faster-whisper not installed — STT will use fallback. Install with: pip install faster-whisper")
+                return
+            from app.modules.interview.faster_stt_service import _get_model
+            model = _get_model()
+            if model:
+                print("[OK] faster-whisper model preloaded and ready")
+            else:
+                print("[WARN] faster-whisper model failed to load at startup")
+        except Exception as e:
+            print(f"[WARN] faster-whisper preload skipped: {e}")
+
+    import threading as _threading
+    _threading.Thread(target=_preload_whisper, daemon=True, name="whisper-preload").start()
+
     yield
 
     # Shutdown scheduler on app stop
@@ -364,7 +383,13 @@ def create_app() -> FastAPI:
         
         return response
 
-    # DB session per-request
+    # JWT Auth middleware — sets request.state.user (TC02 session management)
+    # Added FIRST (inner) so db_session_middleware (outer) sets db BEFORE auth runs
+    from .core.auth_middleware import jwt_auth_middleware
+    app.middleware("http")(jwt_auth_middleware)
+
+    # DB session per-request — added AFTER auth (outer) so it runs FIRST
+    # This ensures request.state.db is available when jwt_auth_middleware executes
     @app.middleware("http")
     async def db_session_middleware(request: Request, call_next):
         db = SessionLocal()
@@ -378,10 +403,6 @@ def create_app() -> FastAPI:
             raise
         finally:
             db.close()
-
-    # JWT Auth middleware — sets request.state.user (TC02 session management)
-    from .core.auth_middleware import jwt_auth_middleware
-    app.middleware("http")(jwt_auth_middleware)
 
     # Health & root
     @app.get("/health", tags=["system"])
@@ -714,12 +735,36 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("[ERR] AI Mock Interview API:", str(e)[:50])
 
+    # Admin Interview Management API
+    try:
+        from .modules.interview import routes_admin as interview_admin_router
+
+        app.include_router(interview_admin_router.router, prefix="/api/admin", tags=["admin-interview"])
+        print("[OK] Admin Interview Management API")
+    except Exception as e:
+        print("[ERR] Admin Interview Management API:", str(e)[:80])
+    # Interview Answer Analysis (dedicated API key, SSE streaming, DB storage)
+    try:
+        from .api import interview_analysis as ia_router
+        app.include_router(ia_router.router, tags=["interview-analysis"])
+        print("[OK] Interview Analysis API (SSE streaming)")
+    except Exception as e:
+        print("[ERR] Interview Analysis API:", str(e)[:60])
+
+    # WebSocket STT (faster-whisper realtime)
+    try:
+        from .api import ws_stt as ws_stt_router
+        app.include_router(ws_stt_router.router, tags=["ws-stt"])
+        print("[OK] WebSocket STT (faster-whisper)")
+    except Exception as e:
+        print("[ERR] WebSocket STT:", str(e)[:60])
+
     # Voice Interview API Routes
     try:
         from .api import voice_interview as voice_interview_router
 
         app.include_router(voice_interview_router.router, tags=["voice-interview"])
-        print("✅ Voice Interview API")
+        print("[OK] Voice Interview API")
     except Exception as e:
         print("❌ Voice Interview API:", str(e)[:50])
 

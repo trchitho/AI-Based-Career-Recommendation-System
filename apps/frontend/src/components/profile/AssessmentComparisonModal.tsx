@@ -15,7 +15,7 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
   console.log('Assessment 2:', assessment2);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -77,8 +77,8 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
         {/* Header */}
         <div className="p-6 md:p-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start bg-white dark:bg-gray-900 sticky top-0 z-10">
           <div>
-            <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">Compare Results</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">See how your profile has evolved over time.</p>
+            <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">So Sánh Kết Quả</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">Xem hồ sơ của bạn đã thay đổi như thế nào theo thời gian.</p>
           </div>
           <button
             onClick={onClose}
@@ -93,11 +93,11 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
 
           {/* Comparison Header Grid */}
           <div className="grid grid-cols-12 gap-4 mb-6 pb-4 border-b-2 border-gray-100 dark:border-gray-800 text-xs font-bold uppercase tracking-wider text-gray-400">
-            <div className="col-span-5">Metric</div>
+            <div className="col-span-5">Chỉ Số</div>
             <div className="col-span-2 text-center">
               {formatDate(assessment1.completed_at)}
             </div>
-            <div className="col-span-3 text-center">Change</div>
+            <div className="col-span-3 text-center">Thay Đổi</div>
             <div className="col-span-2 text-center text-indigo-800 dark:text-indigo-700">
               {formatDate(assessment2.completed_at)}
             </div>
@@ -108,15 +108,15 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
             <div className="mb-8">
               <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span className="w-1.5 h-4 bg-blue-500 rounded-full"></span>
-                RIASEC Scores
+                Điểm RIASEC
               </h4>
               <div className="space-y-1">
-                {renderScoreComparison("Realistic", assessment1.riasec_scores?.realistic, assessment2.riasec_scores?.realistic)}
-                {renderScoreComparison("Investigative", assessment1.riasec_scores?.investigative, assessment2.riasec_scores?.investigative)}
-                {renderScoreComparison("Artistic", assessment1.riasec_scores?.artistic, assessment2.riasec_scores?.artistic)}
-                {renderScoreComparison("Social", assessment1.riasec_scores?.social, assessment2.riasec_scores?.social)}
-                {renderScoreComparison("Enterprising", assessment1.riasec_scores?.enterprising, assessment2.riasec_scores?.enterprising)}
-                {renderScoreComparison("Conventional", assessment1.riasec_scores?.conventional, assessment2.riasec_scores?.conventional)}
+                {renderScoreComparison("Kỹ Thuật", assessment1.riasec_scores?.realistic, assessment2.riasec_scores?.realistic)}
+                {renderScoreComparison("Nghiên Cứu", assessment1.riasec_scores?.investigative, assessment2.riasec_scores?.investigative)}
+                {renderScoreComparison("Nghệ Thuật", assessment1.riasec_scores?.artistic, assessment2.riasec_scores?.artistic)}
+                {renderScoreComparison("Xã Hội", assessment1.riasec_scores?.social, assessment2.riasec_scores?.social)}
+                {renderScoreComparison("Kinh Doanh", assessment1.riasec_scores?.enterprising, assessment2.riasec_scores?.enterprising)}
+                {renderScoreComparison("Nghiệp Vụ", assessment1.riasec_scores?.conventional, assessment2.riasec_scores?.conventional)}
               </div>
             </div>
           )}
@@ -126,14 +126,14 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
             <div className="mb-8">
               <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span className="w-1.5 h-4 bg-purple-500 rounded-full"></span>
-                Big Five Traits
+                Đặc Điểm Big Five
               </h4>
               <div className="space-y-1">
-                {renderScoreComparison("Openness", assessment1.big_five_scores?.openness, assessment2.big_five_scores?.openness)}
-                {renderScoreComparison("Conscientiousness", assessment1.big_five_scores?.conscientiousness, assessment2.big_five_scores?.conscientiousness)}
-                {renderScoreComparison("Extraversion", assessment1.big_five_scores?.extraversion, assessment2.big_five_scores?.extraversion)}
-                {renderScoreComparison("Agreeableness", assessment1.big_five_scores?.agreeableness, assessment2.big_five_scores?.agreeableness)}
-                {renderScoreComparison("Neuroticism", assessment1.big_five_scores?.neuroticism, assessment2.big_five_scores?.neuroticism)}
+                {renderScoreComparison("Cởi Mở", assessment1.big_five_scores?.openness, assessment2.big_five_scores?.openness)}
+                {renderScoreComparison("Tận Tâm", assessment1.big_five_scores?.conscientiousness, assessment2.big_five_scores?.conscientiousness)}
+                {renderScoreComparison("Hướng Ngoại", assessment1.big_five_scores?.extraversion, assessment2.big_five_scores?.extraversion)}
+                {renderScoreComparison("Dễ Chịu", assessment1.big_five_scores?.agreeableness, assessment2.big_five_scores?.agreeableness)}
+                {renderScoreComparison("Nhạy Cảm", assessment1.big_five_scores?.neuroticism, assessment2.big_five_scores?.neuroticism)}
               </div>
             </div>
           )}
@@ -145,8 +145,8 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
                 <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <p className="text-lg font-medium">No assessment data available</p>
-                <p className="text-sm">The selected assessments don't contain score data for comparison.</p>
+                <p className="text-lg font-medium">Không có dữ liệu đánh giá</p>
+                <p className="text-sm">Các bài đánh giá đã chọn không có dữ liệu điểm để so sánh.</p>
               </div>
             </div>
           )}
@@ -157,9 +157,9 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <div>
-              <h4 className="font-bold text-blue-900 dark:text-blue-300 text-sm mb-1">Interpretation</h4>
+              <h4 className="font-bold text-blue-900 dark:text-blue-300 text-sm mb-1">Diễn Giải</h4>
               <p className="text-sm text-blue-700 dark:text-blue-200 leading-relaxed">
-                Changes in your scores may reflect personal growth, new experiences, or shifts in your interests over time. Small fluctuations are normal.
+                Sự thay đổi trong điểm số có thể phản ánh sự phát triển cá nhân, trải nghiệm mới hoặc sự thay đổi trong sở thích của bạn theo thời gian. Những biến động nhỏ là hoàn toàn bình thường.
               </p>
             </div>
           </div>
@@ -171,7 +171,7 @@ const AssessmentComparisonModal = ({ assessments, onClose }: AssessmentCompariso
             onClick={onClose}
             className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold hover:opacity-90 transition-opacity shadow-lg"
           >
-            Close Comparison
+            Đóng So Sánh
           </button>
         </div>
 

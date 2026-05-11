@@ -125,7 +125,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             if (recData.items && recData.items.length > 0) {
               const careers = recData.items.map((career: any) => ({
                 id: career.slug || career.career_id,
-                title: career.title_en || career.title_vi || 'Nghề nghiệp chưa xác định',
+                title: career.title_vi || career.title_en || 'Nghề nghiệp chưa xác định',
                 match: Math.round(career.display_match || career.match_score || 0)
               }));
 
@@ -616,19 +616,21 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             >
               {cvFile ? (
                 <div className="file-info">
-                  <span className="file-icon"></span>
+                  <span className="file-icon">📄</span>
                   <span className="file-name">{cvFile.name}</span>
                   <button
                     type="button"
                     className="remove-file"
-                    onClick={() => setCvFile(null)}
+                    onClick={() => { setCvFile(null); setError(null); }}
+                    title="Xóa và thêm CV khác"
+                    style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: '600' }}
                   >
-                    
+                    ✕
                   </button>
                 </div>
               ) : (
                 <>
-                  <span className="upload-icon"></span>
+                  <span className="upload-icon">📁</span>
                   <p>Kéo và thả CV của bạn vào đây</p>
                   <p className="text-sm text-gray-500">Hỗ trợ: PDF, JPG, PNG</p>
                   <p className="or-text">hoặc</p>
@@ -648,40 +650,57 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
           </div>
 
           {error && (
-            <div className="error-message" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="error-message" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Error text + close */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ whiteSpace: 'pre-line' }}> {error}</span>
-                <button
-                  onClick={() => setError(null)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, color: 'inherit', flexShrink: 0, padding: '0 2px' }}
-                  aria-label="Đóng thông báo lỗi"
-                >
-                  
-                </button>
-              </div>
-
-              {/* Show upgrade button if payment required */}
-              {error.includes('') && (
+                <span style={{ whiteSpace: 'pre-line', fontSize: '13px' }}>{error}</span>
                 <button
                   type="button"
-                  onClick={() => window.location.href = '/pricing'}
+                  onClick={() => setError(null)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, color: 'inherit', flexShrink: 0, padding: '0 2px', fontWeight: 'bold' }}
+                  aria-label="Đóng thông báo lỗi"
+                >✕</button>
+              </div>
+
+              {/* Replace CV button */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <label
+                  htmlFor="file-input-retry"
                   style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    transition: 'background-color 0.2s',
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 16px', backgroundColor: '#1A237E', color: 'white',
+                    border: 'none', borderRadius: '8px', cursor: 'pointer',
+                    fontSize: '13px', fontWeight: '600',
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
                 >
-                  Nâng cấp tài khoản
-                </button>
-              )}
+                  ↑ Thêm CV khác vào
+                  <input
+                    id="file-input-retry"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) { setCvFile(f); setError(null); }
+                      e.target.value = '';
+                    }}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                {cvFile && (
+                  <button
+                    type="button"
+                    onClick={() => { setCvFile(null); setError(null); }}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      padding: '8px 14px', backgroundColor: 'transparent', color: '#ef4444',
+                      border: '1.5px solid #ef4444', borderRadius: '8px', cursor: 'pointer',
+                      fontSize: '13px', fontWeight: '600',
+                    }}
+                  >
+                    ✕ Xóa CV
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

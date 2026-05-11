@@ -262,8 +262,8 @@ const HomePage = () => {
                                     {t('home.hero.subtitle')}
                                 </p>
 
-                                <div className="flex flex-wrap gap-4">
-                                    <Link to="/assessment" className="inline-flex items-center justify-center px-6 py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-lg hover:-translate-y-0.5 uppercase tracking-wide">
+                                <div className="flex flex-col sm:flex-row items-start gap-4">
+                                    <Link to="/assessment" className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 relative overflow-hidden group uppercase tracking-wide">
                                         {t('home.hero.cta')}
                                         <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                     </Link>

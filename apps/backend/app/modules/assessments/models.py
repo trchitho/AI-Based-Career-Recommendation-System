@@ -31,6 +31,16 @@ class AssessmentQuestion(Base):
     reverse_score = Column(Boolean, default=False)
     created_at    = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
+    @property
+    def prompt(self) -> str:
+        """Backward-compatible property that returns prompt_vi if available, otherwise prompt_en."""
+        return self.prompt_vi or self.prompt_en or ""
+    
+    @prompt.setter
+    def prompt(self, value: str) -> None:
+        """Backward-compatible setter that updates prompt_vi."""
+        self.prompt_vi = value
+
     def get_prompt(self, lang: str = "vi") -> str:
         return self.prompt_vi if lang == "vi" else self.prompt_en
 
@@ -50,6 +60,9 @@ class AssessmentQuestion(Base):
             opts = None
 
         qtype = "MULTIPLE_CHOICE" if opts else "SCALE"
+        
+        # Use Vietnamese prompt by default, fallback to English
+        question_text = self.prompt_vi or self.prompt_en or ""
 
         return {
             "id":            str(self.id),

@@ -150,31 +150,23 @@ const InterviewListPage: React.FC = () => {
         });
     };
 
-    // Get status color for interview status
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'completed':
-                return 'bg-indigo-50 text-indigo-950';
-            case 'active':
-                return 'bg-blue-100 text-blue-800';
-            case 'abandoned':
-                return 'bg-gray-100 text-gray-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
+            case 'completed':  return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+            case 'active':     return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+            case 'abandoned':  return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400';
+            case 'terminated': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
+            default:           return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400';
         }
     };
 
-    // Get status label in Vietnamese
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'completed':
-                return 'Hoàn thành';
-            case 'active':
-                return 'Đang diễn ra';
-            case 'abandoned':
-                return 'Đã hủy';
-            default:
-                return 'Không xác định';
+            case 'completed':  return 'Hoàn thành';
+            case 'active':     return 'Đang diễn ra';
+            case 'abandoned':  return 'Đã hủy';
+            case 'terminated': return 'Đã thoát';
+            default:           return 'Không xác định';
         }
     };
 
@@ -253,18 +245,17 @@ const InterviewListPage: React.FC = () => {
                         {/* Popular Career Suggestions */}
                         <div className="mt-4">
                             <p className="text-sm text-gray-500 mb-3 text-center">
-                                Kỹ năng của bạn
+                                Nghề nghiệp phổ biến
                             </p>
                             <div className="flex flex-wrap justify-center gap-2">
                                 {[
-                                    { name: "React", query: "kỹ sư phần mềm" },
-                                    { name: "JavaScript", query: "bác sĩ" },
-                                    { name: "TypeScript", query: "giáo viên" },
-                                    { name: "Node.js", query: "kế toán" },
-                                    { name: "SQL", query: "marketing" },
-                                    { name: "Git", query: "thiết kế" },
-                                    { name: "System Design", query: "luật sư" },
-                                    { name: "+ Thêm kỹ năng", query: "nhân sự" }
+                                    { name: "Kỹ sư", query: "kỹ sư" },
+                                    { name: "Nhân viên kinh doanh", query: "nhân viên kinh doanh" },
+                                    { name: "Kế toán", query: "kế toán" },
+                                    { name: "Giáo viên", query: "giáo viên" },
+                                    { name: "Bác sĩ", query: "bác sĩ" },
+                                    { name: "Thợ điện", query: "thợ điện" },
+                                    { name: "Thiết kế đồ họa", query: "thiết kế" },
                                 ].map((career) => (
                                     <button
                                         key={career.name}
@@ -423,11 +414,11 @@ const InterviewListPage: React.FC = () => {
                                                 {(showAllInterviews ? allInterviews : recentInterviews).map((interview) => (
                                                     <div
                                                         key={interview.id}
-                                                        className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                                                        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 sm:p-5 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md transition-all duration-200 cursor-pointer group"
                                                         onClick={() => navigate(`/interview/results/${interview.id}`)}
                                                     >
                                                         <div className="flex items-center justify-between mb-3">
-                                                            <h4 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-sm leading-tight">
+                                                            <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors text-sm leading-tight">
                                                                 {interview.job_title}
                                                             </h4>
                                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(interview.status)}`}>
@@ -444,7 +435,7 @@ const InterviewListPage: React.FC = () => {
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-2">
                                                                         <span className="text-xs text-gray-400">Điểm:</span>
-                                                                        <span className="text-sm font-bold text-blue-600">
+                                                                        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
                                                                             {interview.overall_score.toFixed(1)}/10
                                                                         </span>
                                                                     </div>
@@ -461,7 +452,7 @@ const InterviewListPage: React.FC = () => {
                                                                 </div>
                                                             )}
 
-                                                            <div className="text-xs text-blue-600 group-hover:text-blue-700 transition-colors">
+                                                            <div className="text-xs text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
                                                                 Nhấn để xem chi tiết →
                                                             </div>
                                                         </div>
@@ -474,7 +465,7 @@ const InterviewListPage: React.FC = () => {
                                                 <div className="mt-6 text-center">
                                                     <button
                                                         onClick={() => navigate('/interview/history')}
-                                                        className="w-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl font-semibold hover:from-blue-100 hover:to-purple-100 transition-all duration-200 flex items-center justify-center gap-2"
+                                                        className="w-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 px-4 py-3 rounded-xl font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all duration-200 flex items-center justify-center gap-2"
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                         Xem thêm ({interviewStats.total_interviews - 5} phỏng vấn)
@@ -487,7 +478,7 @@ const InterviewListPage: React.FC = () => {
                                                 <div className="mt-6 text-center">
                                                     <button
                                                         onClick={() => setShowAllInterviews(false)}
-                                                        className="w-full bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-200 flex items-center justify-center gap-2"
+                                                        className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 flex items-center justify-center gap-2"
                                                     >
                                                         Thu gọn
                                                     </button>

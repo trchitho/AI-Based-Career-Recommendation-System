@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Loader2, FileText, Upload, X, CheckCircle, ChevronDown, ChevronUp, Mic } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, Play, Loader2, FileText, Upload, X, CheckCircle, ChevronDown, ChevronUp, Mic, Briefcase } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { interviewService, CareerLevel } from '../services/interviewService';
 import QuestionCountSelector from '../components/interview/QuestionCountSelector';
@@ -30,7 +30,25 @@ interface JobInfo {
 const InterviewSelectionPage: React.FC = () => {
     const { jobId } = useParams<{ jobId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
+
+    // CV-based interview context from SkillGapPage navigation
+    const cvState = (location.state as any) || {};
+    const skillGapAnalysisId: number | null = cvState.skill_gap_analysis_id || null;
+    const hasCvData: boolean = !!cvState.cv_based && !!skillGapAnalysisId;
+    // Normalize cv_skills: may be string[] or {name, category}[]
+    const cvSkills: string[] = (cvState.cv_skills || []).map((s: any) =>
+        typeof s === 'string' ? s : (s?.name || s?.skill_name || '')
+    ).filter(Boolean);
+    const matchPct: number = cvState.match_percentage || 0;
+    const cvGaps = cvState.skill_gaps || {};
+    const criticalGaps: string[] = ((cvGaps?.critical || []).map((s: any) => typeof s === 'string' ? s : s?.name).filter(Boolean)).slice(0, 5);
+    const importantGaps: string[] = ((cvGaps?.important || []).map((s: any) => typeof s === 'string' ? s : s?.name).filter(Boolean)).slice(0, 3);
+
+    // Interview direction: 'job' = Hướng 1 (tiêu chuẩn), 'cv' = Hướng 2 (từ CV)
+    const [interviewDirection, setInterviewDirection] = useState<'job' | 'cv'>(hasCvData ? 'cv' : 'job');
+    const isCvBased = interviewDirection === 'cv' && hasCvData;
 
     const [jobInfo, setJobInfo] = useState<JobInfo | null>(null);
     const [selectedQuestionCount, setSelectedQuestionCount] = useState(7);
@@ -48,6 +66,8 @@ const InterviewSelectionPage: React.FC = () => {
 
     // Interview mode state
     const [interviewMode, setInterviewMode] = useState<'text' | 'voice'>('text');
+    // Interviewer gender
+    const [interviewerGender, setInterviewerGender] = useState<'female' | 'male'>('female');
 
     // JD state
     const [jdExpanded, setJdExpanded] = useState(false);
@@ -190,24 +210,33 @@ const InterviewSelectionPage: React.FC = () => {
                     job_id: jobId,
                     question_count: selectedQuestionCount,
                     jd_id: jdId,
-                    level_slug: selectedLevel?.slug
+                    level_slug: selectedLevel?.slug,
+                    // CV-based interview: pass skill_gap_analysis_id if Hướng 2 was selected
+                    skill_gap_analysis_id: isCvBased ? (skillGapAnalysisId ?? null) : null,
                 }));
+                // Save gender for VoiceInterviewPage to use as voice preference
+                sessionStorage.setItem('interviewerGender', interviewerGender);
                 navigate('/interview/device-test');
                 return;
             }
 
+            // Only send skillGapAnalysisId when user explicitly chose Hướng 2 (CV-based)
             const response = await interviewService.startInterview(
                 jobId,
                 selectedQuestionCount,
                 jdId ?? undefined,
-                selectedLevel?.slug
+                selectedLevel?.slug,
+                isCvBased ? (skillGapAnalysisId ?? undefined) : undefined,
             );
-            // Pass session data để InterviewPage không cần gọi startInterview lại
             navigate(`/interview/${jobId}?questions=${selectedQuestionCount}`, {
                 state: {
                     sessionData: response,
                     jdId: jdId ?? undefined,
-                    levelSlug: selectedLevel?.slug
+                    levelSlug: selectedLevel?.slug,
+                    interviewerGender,
+                    // CV-based context pass-through
+                    isCvBased,
+                    skillGapAnalysisId,
                 }
             });
         } catch (err: any) {
@@ -331,10 +360,10 @@ const InterviewSelectionPage: React.FC = () => {
     if (error || !jobInfo) {
         return (
             <MainLayout>
-                <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                    <div className="text-center max-w-md">
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                            <p className="text-red-800 mb-4">{error || 'Không thể tải thông tin nghề nghiệp. Vui lòng thử lại.'}</p>
+                <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                    <div className="text-center max-w-md px-4">
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+                            <p className="text-red-800 dark:text-red-300 mb-4">{error || 'Không thể tải thông tin nghề nghiệp. Vui lòng thử lại.'}</p>
                             <div className="flex gap-3 justify-center">
                                 <button
                                     onClick={() => {
@@ -342,15 +371,15 @@ const InterviewSelectionPage: React.FC = () => {
                                         loadingRef.current = false;
                                         loadJobInfo();
                                     }}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-semibold"
                                 >
                                     Thử lại
                                 </button>
                                 <button
                                     onClick={() => navigate('/interview')}
-                                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-semibold"
                                 >
-                                    Quay lại danh sách phỏng vấn
+                                    Quay lại
                                 </button>
                             </div>
                         </div>
@@ -377,6 +406,99 @@ const InterviewSelectionPage: React.FC = () => {
                             <p className="interview-selection-subtitle">{jobInfo.title}</p>
                         </div>
                     </div>
+
+                    {/* ── 2-Direction Selector ── */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        {/* Hướng 1: Job-based */}
+                        <button
+                            type="button"
+                            onClick={() => setInterviewDirection('job')}
+                            className={`text-left p-5 rounded-2xl border-2 transition-all ${interviewDirection === 'job'
+                                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 shadow-md'
+                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-600'
+                            }`}
+                        >
+                            <div className="flex items-start gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${interviewDirection === 'job' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
+                                    <Briefcase className={`h-5 w-5 ${interviewDirection === 'job' ? 'text-white' : 'text-gray-500'}`} />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${interviewDirection === 'job' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>Hướng 1</span>
+                                    </div>
+                                    <p className={`font-bold text-sm ${interviewDirection === 'job' ? 'text-indigo-900' : 'text-gray-800'}`}>Phỏng vấn theo Nghề nghiệp</p>
+                                    <p className="text-xs text-gray-500 mt-1">Câu hỏi tiêu chuẩn theo ngành nghề. AI kiểm tra kiến thức nền tảng và quy trình làm việc.</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        {/* Hướng 2: CV-based */}
+                        <button
+                            type="button"
+                            onClick={() => hasCvData ? setInterviewDirection('cv') : undefined}
+                            className={`text-left p-5 rounded-2xl border-2 transition-all relative ${
+                                !hasCvData ? 'opacity-60 cursor-not-allowed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'
+                                : interviewDirection === 'cv' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20 shadow-md'
+                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-cyan-300 dark:hover:border-cyan-600 cursor-pointer'
+                            }`}
+                        >
+                            <div className="flex items-start gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${interviewDirection === 'cv' && hasCvData ? 'bg-cyan-600' : 'bg-gray-100'}`}>
+                                    <FileText className={`h-5 w-5 ${interviewDirection === 'cv' && hasCvData ? 'text-white' : 'text-gray-500'}`} />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${interviewDirection === 'cv' && hasCvData ? 'bg-cyan-100 text-cyan-700' : 'bg-gray-100 text-gray-500'}`}>Hướng 2</span>
+                                        {hasCvData && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">✓ Có CV</span>}
+                                    </div>
+                                    <p className={`font-bold text-sm ${interviewDirection === 'cv' && hasCvData ? 'text-cyan-900' : 'text-gray-800'}`}>Phỏng vấn từ CV cá nhân</p>
+                                    {hasCvData ? (
+                                        <div className="mt-1.5">
+                                            <p className="text-xs text-gray-500 mb-1.5">AI hỏi "xoáy" vào kỹ năng đã có trong CV và kỹ năng cần bổ sung.</p>
+                                            <div className="flex flex-wrap gap-1 mb-1">
+                                                {cvSkills.slice(0, 3).map(s => <span key={s} className="text-[10px] bg-cyan-100 text-cyan-700 px-1.5 py-0.5 rounded-full font-medium">✓ {s}</span>)}
+                                                {criticalGaps.slice(0, 2).map(s => <span key={s} className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-medium">+ {s}</span>)}
+                                            </div>
+                                            <p className="text-[10px] text-cyan-600 font-semibold">Phù hợp: {matchPct.toFixed(0)}%</p>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-gray-400 mt-1">Cần phân tích CV trước. Vào <strong>Phân tích Kỹ năng</strong> để upload CV.</p>
+                                    )}
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* ── CV-based Detail (shown when direction=cv) ── */}
+                    {isCvBased && (criticalGaps.length > 0 || importantGaps.length > 0) && (
+                        <div className="mb-6 rounded-2xl p-5 border border-cyan-200" style={{ background: 'linear-gradient(135deg,#f0fdfa,#ecfdf5)' }}>
+                            <p className="text-xs font-bold text-cyan-700 uppercase tracking-wider mb-3">AI sẽ hỏi về:</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-600 mb-2">Kỹ năng đã có → Câu hỏi xoáy sâu</p>
+                                    <div className="space-y-1">
+                                        {cvSkills.slice(0, 4).map(s => (
+                                            <div key={s} className="flex items-center gap-2 text-xs text-gray-700">
+                                                <span className="w-4 h-4 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</span>
+                                                <span>{s}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-gray-600 mb-2">Kỹ năng còn thiếu → Câu hỏi bổ sung</p>
+                                    <div className="space-y-1">
+                                        {[...criticalGaps, ...importantGaps].slice(0, 4).map(s => (
+                                            <div key={s} className="flex items-center gap-2 text-xs text-gray-700">
+                                                <span className="w-4 h-4 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center text-[10px] font-bold flex-shrink-0">+</span>
+                                                <span>{s}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Main Content */}
@@ -697,30 +819,55 @@ const InterviewSelectionPage: React.FC = () => {
                                         </div>
                                     </button>
                                 </div>
+
+                                {/* Gender selector */}
+                                <div className="mt-5">
+                                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Chọn hình ảnh người phỏng vấn</h4>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {(['female', 'male'] as const).map(g => (
+                                      <button key={g} onClick={() => setInterviewerGender(g)}
+                                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${interviewerGender === g ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                                        <img
+                                          src={`https://pub-8df5715d271b42d6bf03e5ecd279f612.r2.dev/interview/avatars/${g === 'female' ? 'anhNu' : 'anhNam'}.png`}
+                                          alt={g} className="w-16 h-16 rounded-full object-cover border-2 border-white shadow"
+                                        />
+                                        <span className={`text-xs font-semibold ${interviewerGender === g ? 'text-indigo-700' : 'text-gray-500'}`}>
+                                          {g === 'female' ? 'Nữ' : 'Nam'}
+                                        </span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
                             </div>
 
                             {/* Start Button */}
                             <div className="interview-card">
                                 <div className="text-center">
-                                    <h3 className="interview-card-title mb-2">
-                                        Sẵn sàng bắt đầu?
-                                    </h3>
+                                    <div className="flex items-center justify-center gap-2 mb-2">
+                                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${isCvBased ? 'bg-cyan-100 text-cyan-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                                            {isCvBased ? '📄 Hướng 2: CV cá nhân' : '💼 Hướng 1: Theo nghề nghiệp'}
+                                        </span>
+                                    </div>
+                                    <h3 className="interview-card-title mb-2">Sẵn sàng bắt đầu?</h3>
                                     <p className="text-gray-600 mb-2">
-                                        {(() => {
-                                            const total = selectedQuestionCount + (jdId ? jdQuestionsCount : 0) + 1; // +1 cho closing
-                                            const duration = total <= 5 ? '10-15' : total <= 7 ? '15-20' : total <= 9 ? '20-25' : total <= 11 ? '25-30' : '30-40';
-                                            const levelText = selectedLevel ? ` cho cấp ${selectedLevel.name}` : '';
-                                            return jdId
-                                                ? `Phỏng vấn sẽ có ${total} câu hỏi (${selectedQuestionCount} cơ bản + ${jdQuestionsCount} từ JD + 1 kết thúc)${levelText}, khoảng ${duration} phút.`
-                                                : `Phỏng vấn sẽ có ${total} câu hỏi (${selectedQuestionCount} cơ bản + 1 kết thúc)${levelText}, khoảng ${duration} phút.`;
-                                        })()}
+                                        {isCvBased
+                                            ? `AI sẽ đặt ${selectedQuestionCount + 1} câu hỏi dựa trên CV của bạn: hỏi sâu về kỹ năng đã có và kỹ năng cần bổ sung${selectedLevel ? ` (cấp ${selectedLevel.name})` : ''}.`
+                                            : (() => {
+                                                const total = selectedQuestionCount + (jdId ? jdQuestionsCount : 0) + 1;
+                                                const duration = total <= 5 ? '10-15' : total <= 7 ? '15-20' : total <= 9 ? '20-25' : total <= 11 ? '25-30' : '30-40';
+                                                const levelText = selectedLevel ? ` cho cấp ${selectedLevel.name}` : '';
+                                                return jdId
+                                                    ? `Phỏng vấn sẽ có ${total} câu hỏi (${selectedQuestionCount} cơ bản + ${jdQuestionsCount} từ JD + 1 kết thúc)${levelText}, khoảng ${duration} phút.`
+                                                    : `Phỏng vấn sẽ có ${total} câu hỏi (${selectedQuestionCount} cơ bản + 1 kết thúc)${levelText}, khoảng ${duration} phút.`;
+                                            })()
+                                        }
                                     </p>
-                                    {selectedLevel && (
+                                    {selectedLevel && !isCvBased && (
                                         <p className="text-xs text-blue-600 mb-2">
                                             Câu hỏi được điều chỉnh cho cấp bậc: <strong>{selectedLevel.name}</strong>
                                         </p>
                                     )}
-                                    {jdId && (
+                                    {jdId && !isCvBased && (
                                         <p className="text-xs text-purple-600 mb-4">
                                             Câu hỏi sẽ được cá nhân hóa theo JD bạn đã cung cấp.
                                         </p>
@@ -728,7 +875,7 @@ const InterviewSelectionPage: React.FC = () => {
                                     <button
                                         onClick={handleStartInterview}
                                         disabled={isStarting || !selectedLevel}
-                                        className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto"
+                                        className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg flex items-center gap-2 mx-auto"
                                     >
                                         {isStarting ? (
                                             <>

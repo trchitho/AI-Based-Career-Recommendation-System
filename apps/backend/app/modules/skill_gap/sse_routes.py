@@ -6,14 +6,46 @@ import re
 from app.core.serialization import dumps_str as _to_json, loads as _from_json
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.core.db import get_db
 from app.core.auth_deps import get_current_user_from_token
 from app.modules.auth.models import User
 from app.modules.skill_gap.service import SkillGapService
+
+
+def _get_user_id_from_request(
+    request: Request,
+    token: Optional[str] = Query(None, description="JWT token (for EventSource which cannot set headers)"),
+    db: Session = Depends(get_db),
+) -> int:
+    """
+    Lấy user_id từ Authorization header HOẶC ?token= query param.
+    EventSource API của browser không hỗ trợ custom headers, nên cần query param.
+    """
+    # 1. Try query param first (EventSource)
+    raw_token = token
+    # 2. Fallback to Authorization header
+    if not raw_token:
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            raw_token = auth[7:]
+    if not raw_token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        from app.core.jwt import decode_token
+        payload = decode_token(raw_token)
+        sub = payload.get("sub")
+        if not sub:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        return int(sub)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 router = APIRouter(prefix="/api/skill-gap", tags=["skill-gap-sse"])
 
@@ -136,19 +168,22 @@ Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
 @router.get("/learning-plan-stream/{analysis_id}")
 async def stream_learning_plan(
     analysis_id: int,
-    current_user: User = Depends(get_current_user_from_token),
+    request: Request,
+    token: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     """
     SSE endpoint — streams AI learning plan generation.
+    Supports both Authorization header and ?token= query param (for browser EventSource).
     Events: start | chunk | cached | done | error
     """
+    user_id = _get_user_id_from_request(request, token, db)
     return StreamingResponse(
-        _stream_learning_plan(analysis_id, current_user.id, db),
+        _stream_learning_plan(analysis_id, user_id, db),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",      # Disable nginx buffering
+            "X-Accel-Buffering": "no",
             "Connection": "keep-alive",
         },
     )

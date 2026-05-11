@@ -34,7 +34,8 @@ def seed_ksas(session, ksas_file: Path):
         obj = CareerKSA(
             onet_code=k.get("onet_code") or "custom",
             ksa_type=k.get("ksa_type") or "skill",
-            name=k.get("name"),
+            name_en=k.get("name_en") or k.get("name"),   # hỗ trợ cả 2 format
+            name_vn=k.get("name_vn") or k.get("name_vi"),
             category=k.get("category"),
             level=k.get("level"),
             importance=k.get("importance"),

@@ -37,10 +37,21 @@ class FallbackTTSService:
     Fallback TTS service when Edge TTS fails
     Priority: gTTS > pyttsx3 > text-only
     """
-    
+
     def __init__(self):
-        self.gtts_available = GTTS_AVAILABLE
-        self.pyttsx3_available = PYTTSX3_AVAILABLE
+        # Re-check availability at init time (not just module import time)
+        try:
+            import gtts as _gtts_check  # noqa
+            self.gtts_available = True
+        except ImportError:
+            self.gtts_available = GTTS_AVAILABLE
+
+        try:
+            import pyttsx3 as _px3_check  # noqa
+            self.pyttsx3_available = True
+        except ImportError:
+            self.pyttsx3_available = PYTTSX3_AVAILABLE
+
         logger.info(f"[FallbackTTS] Initialized - gTTS: {self.gtts_available}, pyttsx3: {self.pyttsx3_available}")
     
     async def synthesize_text_fallback(
@@ -228,9 +239,15 @@ class FallbackTTSService:
             else:
                 duration = max(1.0, len(cleaned_text.split()) / 2.5)
             
+            # Build base64 data URL so frontend can play directly
+            import base64 as _b64
+            data_url = (
+                f"data:audio/mp3;base64,{_b64.b64encode(audio_data).decode()}"
+                if audio_data else None
+            )
             return {
                 "audio_data": audio_data,
-                "audio_url": None,
+                "audio_url": data_url,
                 "duration_seconds": duration,
                 "voice_used": f"gtts-{language}-enhanced-v2",
                 "question_text": text,

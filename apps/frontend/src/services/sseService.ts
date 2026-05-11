@@ -22,17 +22,19 @@ export type SSEOptions = {
  * Stream an SSE endpoint and dispatch typed events.
  */
 export async function streamSSE(url: string, options: SSEOptions = {}): Promise<void> {
-  const token = localStorage.getItem('accessToken');
+  // Try both storage keys (accessToken = new, token = legacy)
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+
+  // Build headers — only add Authorization if token exists
+  const headers: Record<string, string> = { Accept: 'text/event-stream' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  // Also append token as query param as fallback (for stricter proxies)
+  const fullUrl = token ? `${url}${url.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}` : url;
 
   let response: Response;
   try {
-    response = await fetch(url, {
-      headers: {
-        Authorization: token ? `Bearer ${token}` : '',
-        Accept: 'text/event-stream',
-      },
-      signal: options.signal,
-    });
+    response = await fetch(fullUrl, { headers, signal: options.signal });
   } catch (err: any) {
     options.onError?.(err?.message || 'Network error');
     return;

@@ -20,7 +20,7 @@ const BlogManagementPage = () => {
       const resp: BlogListResponse = await blogService.adminList({ page: 1, pageSize: 50 });
       setPosts(resp.items || []);
     } catch (e: any) {
-      setError(e?.response?.data?.detail || e?.message || 'Failed to load posts');
+      setError(e?.response?.data?.detail || e?.message || 'Không thể tải bài viết');
     } finally {
       setLoading(false);
     }
@@ -31,23 +31,23 @@ const BlogManagementPage = () => {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this blog?')) return;
+    if (!confirm('Bạn có chắc muốn xóa bài viết này không?')) return;
 
     try {
       await blogService.adminDelete(id);
       await loadPosts();
     } catch (e: any) {
-      alert('Cannot delete blog: ' + (e?.response?.data?.detail || e?.message));
+      alert('Không thể xóa blog: ' + (e?.response?.data?.detail || e?.message));
     }
   };
 
   const handleApprove = async (id: string) => {
     try {
       await blogService.adminUpdate(id, { status: 'Published' });
-      await loadPosts();
-      showSuccessToast('Blog approved successfully!');
+      await loadPosts(); // Reload list
+      showSuccessToast('Duyệt blog thành công!');
     } catch (e: any) {
-      alert('Cannot approve blog: ' + (e?.response?.data?.detail || e?.message));
+      alert('Không thể duyệt blog: ' + (e?.response?.data?.detail || e?.message));
     }
   };
 
@@ -70,10 +70,10 @@ const BlogManagementPage = () => {
   const handleReject = async (id: string) => {
     try {
       await blogService.adminUpdate(id, { status: 'Rejected' });
-      await loadPosts();
-      showSuccessToast('Blog rejected successfully!');
+      await loadPosts(); // Reload list
+      showSuccessToast('Từ chối blog thành công!');
     } catch (e: any) {
-      alert('Cannot reject blog: ' + (e?.response?.data?.detail || e?.message));
+      alert('Không thể từ chối blog: ' + (e?.response?.data?.detail || e?.message));
     }
   };
 
@@ -86,7 +86,7 @@ const BlogManagementPage = () => {
             <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Blog Management
+            Quản lý Blog
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Tạo, chỉnh sửa và quản lý bài viết blog</p>
         </div>
@@ -124,11 +124,11 @@ const BlogManagementPage = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Title</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Category</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Status</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Created At</th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Actions</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Tiêu đề</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Danh mục</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Trạng thái</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Ngày tạo</th>
+                    <th className="text-right px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Hành động</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
@@ -161,25 +161,25 @@ const BlogManagementPage = () => {
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-2">
                           <button onClick={() => navigate(`/blog/${post.slug}`)}
-                            className="px-2.5 py-1.5 text-xs font-semibold bg-white text-gray-600 border border-[#E2E8F0] dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#CBD5E1] dark:hover:bg-gray-700 transition-all shadow-sm">View</button>
+                            className="px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Xem</button>
                           {post.status === 'Pending' && (<>
                             <button onClick={() => handleApprove(post.id)}
-                              className="px-2.5 py-1.5 text-xs font-semibold text-white bg-[#6366F1] rounded-lg hover:bg-[#5558E3] shadow-lg shadow-[#6366F1]/40 hover:shadow-[#6366F1]/60 transition-all">Approve</button>
+                              className="px-2.5 py-1 text-xs font-semibold text-indigo-900 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-50 transition-colors">Duyệt</button>
                             <button onClick={() => handleReject(post.id)}
-                              className="px-2.5 py-1.5 text-xs font-semibold text-white bg-[#EF4444] rounded-lg hover:bg-[#DC2626] dark:bg-[#DC2626] dark:hover:bg-[#B91C1C] shadow-lg shadow-[#EF4444]/40 hover:shadow-[#EF4444]/60 transition-all">Reject</button>
+                              className="px-2.5 py-1 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 transition-colors">Từ chối</button>
                           </>)}
                           {post.status === 'Draft' && (
                             <button onClick={() => handleApprove(post.id)}
-                              className="px-2.5 py-1.5 text-xs font-semibold text-white bg-[#6366F1] rounded-lg hover:bg-[#5558E3] shadow-lg shadow-[#6366F1]/40 hover:shadow-[#6366F1]/60 transition-all">Publish</button>
+                              className="px-2.5 py-1 text-xs font-semibold text-indigo-900 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-50 transition-colors">Xuất bản</button>
                           )}
                           {post.status === 'Published' && (
                             <button onClick={() => blogService.adminUpdate(post.id, { status: 'Draft' }).then(() => loadPosts())}
-                              className="px-2.5 py-1.5 text-xs font-semibold bg-white text-gray-600 border border-[#E2E8F0] dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#CBD5E1] transition-all shadow-sm">Unpublish</button>
+                              className="px-2.5 py-1 text-xs font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 transition-colors">Gỡ xuất bản</button>
                           )}
                           <button onClick={() => navigate(`/admin/blog/edit/${post.id}`)}
-                            className="px-2.5 py-1.5 text-xs font-semibold text-white bg-[#6366F1] rounded-lg hover:bg-[#5558E3] shadow-lg shadow-[#6366F1]/40 hover:shadow-[#6366F1]/60 transition-all">Edit</button>
+                            className="px-2.5 py-1 text-xs font-semibold text-indigo-900 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-50 transition-colors">Sửa</button>
                           <button onClick={() => handleDelete(post.id)}
-                            className="px-2.5 py-1.5 text-xs font-semibold bg-[#EF4444] text-white rounded-lg hover:bg-[#DC2626] dark:bg-[#DC2626] dark:hover:bg-[#B91C1C] shadow-lg shadow-[#EF4444]/40 hover:shadow-[#EF4444]/60 transition-all">Delete</button>
+                            className="px-2.5 py-1 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 transition-colors">Xóa</button>
                         </div>
                       </td>
                     </tr>

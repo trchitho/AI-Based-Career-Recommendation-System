@@ -44,8 +44,9 @@ const CareerDetailPage = () => {
           hasTrackedUsageRef.current = true;
         }
         // Load companies hiring for this career (background)
-        if (idOrSlug) {
-          companyService.getForCareer(idOrSlug)
+        // Use careerIdentifier (= careerIdOrSlug || idOrSlug) — not raw idOrSlug which may be undefined
+        if (careerIdentifier) {
+          companyService.getForCareer(careerIdentifier)
             .then(list => setCompanies(list.slice(0, 8)))
             .catch(() => { });
         }

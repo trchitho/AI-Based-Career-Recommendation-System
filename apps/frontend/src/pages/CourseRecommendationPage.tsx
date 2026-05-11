@@ -62,7 +62,17 @@ const CourseRecommendationPage = ({ missingSkills: propSkills }: Props) => {
       setData(result);
       setActiveSkill(null);
     } catch (e: any) {
-      setError(e?.response?.data?.detail ?? "Failed to load recommendations");
+      // On any error, build online search links as fallback
+      const onlineRecs = parsed.flatMap(skill => [
+        { platform: 'coursera', name: 'Coursera', urlTpl: `https://www.coursera.org/search?query=${encodeURIComponent(skill + ' course')}`, free: false },
+        { platform: 'udemy',    name: 'Udemy',    urlTpl: `https://www.udemy.com/courses/search/?q=${encodeURIComponent(skill)}`, free: false },
+        { platform: 'youtube',  name: 'YouTube',  urlTpl: `https://www.youtube.com/results?search_query=${encodeURIComponent(skill + ' tutorial')}`, free: true },
+      ].slice(0, 3).map(p => ({
+        course: { id: 0, external_id: `online_${p.platform}_${skill}`, title: `${skill} — Tìm trên ${p.name}`, url: p.urlTpl, platform: p.platform, rating: 4.5, num_reviews: 0, price: 0, is_free: p.free, language: 'vi', tags: [skill] },
+        skill_name: skill, similarity_score: 0.85, relevance_label: 'Highly Relevant',
+      })));
+      setData({ missing_skills: parsed, recommendations: onlineRecs as any, total: onlineRecs.length, source: 'online_search' });
+      setActiveSkill(null);
     } finally {
       setLoading(false);
     }
@@ -158,10 +168,12 @@ const CourseRecommendationPage = ({ missingSkills: propSkills }: Props) => {
           {/* Summary bar */}
           <div className="flex items-center justify-between flex-wrap gap-2">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Found <span className="font-semibold text-gray-900 dark:text-white">{data.total}</span> courses
-              for <span className="font-semibold text-gray-900 dark:text-white">{data.missing_skills.length}</span> skills
-              <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500">
-                via {data.source}
+              {data.source === 'online_search'
+                ? <>Tìm thấy <span className="font-semibold text-indigo-700">{data.total}</span> link tìm kiếm trực tuyến cho {data.missing_skills.length} kỹ năng</>
+                : <>Found <span className="font-semibold text-gray-900 dark:text-white">{data.total}</span> courses for <span className="font-semibold text-gray-900 dark:text-white">{data.missing_skills.length}</span> skills</>
+              }
+              <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${data.source === 'online_search' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                {data.source === 'online_search' ? '🌐 Online Search' : `via ${data.source}`}
               </span>
             </p>
           </div>
@@ -245,11 +257,26 @@ const CourseCard = ({ rec }: { rec: CourseRecommendation }) => {
           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
         />
       ) : (
-        <div className="w-full h-36 rounded-t-xl bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 flex items-center justify-center">
-          <svg className="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
+        <div className={`w-full h-36 rounded-t-xl flex flex-col items-center justify-center gap-2 ${
+          course.external_id?.startsWith('online_')
+            ? 'bg-gradient-to-br from-indigo-50 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30'
+            : 'bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20'
+        }`}>
+          {course.external_id?.startsWith('online_') ? (
+            <>
+              <span className="text-3xl">
+                {course.platform === 'youtube' ? '▶️' : course.platform === 'coursera' ? '🎓' : '🎯'}
+              </span>
+              <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
+                {course.platform === 'youtube' ? 'YouTube Tutorial' : course.platform === 'coursera' ? 'Coursera' : 'Udemy'}
+              </span>
+            </>
+          ) : (
+            <svg className="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          )}
         </div>
       )}
 
@@ -330,15 +357,16 @@ const CourseCard = ({ rec }: { rec: CourseRecommendation }) => {
               href={course.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full text-center py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+              className={`block w-full text-center py-2 rounded-lg text-sm font-medium transition-colors ${
+                course.external_id?.startsWith('online_')
+                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                  : 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
             >
-              View Course →
+              {course.external_id?.startsWith('online_') ? '🔍 Tìm kiếm ngay →' : 'View Course →'}
             </a>
           ) : (
-            <button
-              disabled
-              className="block w-full text-center py-2 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-lg text-sm"
-            >
+            <button disabled className="block w-full text-center py-2 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-lg text-sm">
               No link available
             </button>
           )}

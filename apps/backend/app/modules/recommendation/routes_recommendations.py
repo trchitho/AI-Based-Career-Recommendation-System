@@ -85,8 +85,8 @@ def get_saved_recommendations(
                 c.slug,
                 c.title_vi,
                 c.title_en,
-                c.short_desc_en,
-                c.short_desc_vi
+                c.description_vi,
+                c.description_en
             FROM core.career_recommendations cr
             JOIN core.careers c ON c.id = cr.career_id
             WHERE cr.assessment_id = :assessment_id
@@ -105,7 +105,7 @@ def get_saved_recommendations(
                 "slug": row[3],
                 "title_vi": row[4],
                 "title_en": row[5],
-                "description": row[6] or row[7] or ""
+                "description": row[6] or row[7] or ""  # Ưu tiên description_vi
             })
         
         return {
@@ -233,3 +233,46 @@ def like_career(
 
     result = ts_svc.record_like(db=db, user_id=current_user.id, job_onet=job_onet)
     return result
+
+
+# ===== FEEDBACK (like/dislike from recommendations page) =====
+
+class FeedbackPayload(BaseModel):
+    career_id: str
+    rating: int  # 5 = like, 1 = dislike
+    comment: Optional[str] = None
+
+
+@router.post("/feedback")
+def submit_feedback(
+    request: Request,
+    payload: FeedbackPayload,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    POST /api/recommendations/feedback
+    Body: {"career_id": "...", "rating": 5, "comment": "..."}
+
+    Records user feedback (like/dislike) for a career recommendation.
+    Uses Thompson Sampling: rating >= 4 counts as a like (reward=1),
+    otherwise counts as a dislike (reward=0).
+    """
+    db = _db(request)
+
+    # Resolve slug/career_id → O*NET code
+    job_onet = svc.get_onet_code_by_slug(db, payload.career_id)
+    if not job_onet:
+        job_onet = payload.career_id
+
+    reward = 1 if payload.rating >= 4 else 0
+
+    # Use Thompson Sampling to record the feedback
+    ts_svc._upsert_feedback(db=db, user_id=current_user.id, job_onet=job_onet, reward=reward)
+
+    # Log event for ML training (use 'save' for like, 'click' for dislike to match DB constraint)
+    event_type = "save" if reward == 1 else "click"
+    ts_svc._log_career_event(db=db, user_id=current_user.id, job_onet=job_onet, event_type=event_type)
+
+    db.commit()
+
+    return {"status": "ok", "career_id": payload.career_id, "rating": payload.rating}

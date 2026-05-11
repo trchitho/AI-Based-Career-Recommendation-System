@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Eye, Briefcase, Calendar, TrendingUp, Search } from 'lucide-react';
+import { ArrowLeft, Users, Eye, Briefcase, Calendar, TrendingUp, Search, MessageSquare } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { interviewService } from '../services/interviewService';
 import { toast } from 'react-hot-toast';
@@ -179,38 +179,30 @@ const InterviewHistoryPage: React.FC = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'completed':
-                return 'bg-indigo-50 text-indigo-950 border-indigo-200';
-            case 'active':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
-            case 'abandoned':
-                return 'bg-red-100 text-red-800 border-red-200';
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
+            case 'completed':  return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
+            case 'active':     return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+            case 'abandoned':  return 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600';
+            case 'terminated': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
+            default:           return 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600';
         }
     };
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'completed':
-                return 'Hoàn thành';
-            case 'abandoned':
-                return 'Đã hủy';
-            default:
-                return 'Không xác định';
+            case 'completed':  return 'Hoàn thành';
+            case 'active':     return 'Đang diễn ra';
+            case 'abandoned':  return 'Đã hủy';
+            case 'terminated': return 'Đã thoát';
+            default:           return 'Không xác định';
         }
     };
 
     const getRecommendationColor = (recommendation?: string) => {
         switch (recommendation) {
-            case 'PASS':
-                return 'text-indigo-800';
-            case 'CONDITIONAL_PASS':
-                return 'text-yellow-600';
-            case 'FAIL':
-                return 'text-red-600';
-            default:
-                return 'text-gray-600';
+            case 'PASS':             return 'text-green-700 dark:text-green-400';
+            case 'CONDITIONAL_PASS': return 'text-amber-600 dark:text-amber-400';
+            case 'FAIL':             return 'text-red-600 dark:text-red-400';
+            default:                 return 'text-gray-500 dark:text-gray-400';
         }
     };
 
@@ -242,42 +234,41 @@ const InterviewHistoryPage: React.FC = () => {
 
     return (
         <MainLayout>
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-                <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
-                <div className="relative z-10 py-8">
-                    <div className="max-w-6xl mx-auto px-4">
+                <div className="py-8">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6">
                         {/* Header */}
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center space-x-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                            <div className="flex items-center gap-4">
                                 <button
                                     onClick={() => navigate('/interview')}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+                                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm text-sm font-medium"
                                 >
                                     <ArrowLeft className="h-4 w-4" />
                                     <span>Quay lại</span>
                                 </button>
                                 <div>
-                                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                                         Lịch sử phỏng vấn
                                     </h1>
-                                    <p className="text-gray-600">
+                                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
                                         Xem lại tất cả các buổi phỏng vấn AI của bạn
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-3xl font-bold text-blue-600">{totalInterviews}</div>
-                                <div className="text-sm text-gray-500">Tổng phỏng vấn</div>
+                                <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{totalInterviews}</div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">Tổng phỏng vấn</div>
                             </div>
                         </div>
 
                         {/* Filters */}
-                        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 mb-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                                 {/* Search */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                         Tìm kiếm nghề nghiệp
                                     </label>
                                     <div className="relative">
@@ -287,14 +278,14 @@ const InterviewHistoryPage: React.FC = () => {
                                             placeholder="Nhập tên nghề nghiệp..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-sm"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Status Filter */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                         Trạng thái
                                     </label>
                                     <select
@@ -491,7 +482,15 @@ const InterviewHistoryPage: React.FC = () => {
                                                             <div className="text-xs text-gray-500">điểm</div>
                                                         </div>
                                                     )}
-                                                    <Eye className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <Eye className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); navigate(`/interview/conversation/${interview.id}`); }}
+                                                            className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 whitespace-nowrap flex items-center gap-0.5"
+                                                            title="Xem lịch sử trò chuyện">
+                                                            <MessageSquare size={11} /> Chat
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

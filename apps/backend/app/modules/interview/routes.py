@@ -425,7 +425,11 @@ async def start_interview(
             )
         
         # CRITICAL FIX: Chỉ sử dụng AI Pipeline Service, không có fallback để tránh double initialization
-        result = await ai_service.start_interview(current_user.id, request.job_id, request.question_count, request.jd_id, request.level_slug)
+        result = await ai_service.start_interview(
+            current_user.id, request.job_id, request.question_count,
+            request.jd_id, request.level_slug,
+            skill_gap_analysis_id=request.skill_gap_analysis_id,
+        )
         print(f"🔧 Interview started successfully: session_id={result['session_id']}, question_count={result['question_count']}")
         
         return StartInterviewResponse(
@@ -1075,6 +1079,276 @@ async def get_interview_stats(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Lỗi khi lấy thống kê: {str(e)}")
 
 
+# ── Admin: Danh sách tất cả phiên phỏng vấn ──────────────────────────────────
+@router.get("/admin/sessions")
+async def admin_get_all_sessions(
+    page: int = 1,
+    page_size: int = 20,
+    search: Optional[str] = None,
+    status_filter: Optional[str] = None,
+    mode_filter: Optional[str] = None,
+    current_user: User = Depends(get_current_user_from_token),
+    service: InterviewService = Depends(get_interview_service),
+):
+    """Admin: Lấy danh sách tất cả phiên phỏng vấn (có phân trang, lọc, tìm kiếm)"""
+    if not hasattr(current_user, "role") or current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền truy cập")
+
+    try:
+        from sqlalchemy import func, or_
+        from ..auth.models import User as UserModel
+
+        offset = (page - 1) * page_size
+
+        # Base query với JOIN user
+        query = (
+            service.db.query(
+                InterviewSession,
+                UserModel.email.label("user_email"),
+                UserModel.first_name.label("user_first_name"),
+                UserModel.last_name.label("user_last_name"),
+            )
+            .join(UserModel, InterviewSession.user_id == UserModel.id)
+        )
+
+        # Filters
+        if search:
+            like = f"%{search}%"
+            query = query.filter(
+                or_(
+                    InterviewSession.job_title.ilike(like),
+                    UserModel.email.ilike(like),
+                    UserModel.first_name.ilike(like),
+                    UserModel.last_name.ilike(like),
+                )
+            )
+        if status_filter and status_filter != "all":
+            query = query.filter(InterviewSession.status == status_filter)
+        if mode_filter and mode_filter != "all":
+            query = query.filter(InterviewSession.interview_mode == mode_filter)
+
+        total = query.count()
+        rows = query.order_by(InterviewSession.started_at.desc()).offset(offset).limit(page_size).all()
+
+        items = []
+        for session, email, first_name, last_name in rows:
+            full_name = f"{first_name or ''} {last_name or ''}".strip() or email
+            items.append({
+                "id": session.id,
+                "user_id": session.user_id,
+                "user_email": email,
+                "user_name": full_name,
+                "job_id": session.job_id,
+                "job_title": session.job_title,
+                "status": session.status,
+                "interview_mode": session.interview_mode,
+                "voice_type": session.voice_type,
+                "overall_score": session.overall_score,
+                "technical_score": session.technical_score,
+                "communication_score": session.communication_score,
+                "logic_score": session.logic_score,
+                "experience_score": session.experience_score,
+                "attitude_score": session.attitude_score,
+                "recommendation": session.recommendation,
+                "question_count": session.question_count,
+                "tab_switch_count": session.tab_switch_count,
+                "started_at": session.started_at.isoformat() if session.started_at else None,
+                "completed_at": session.completed_at.isoformat() if session.completed_at else None,
+                "summary": session.summary,
+            })
+
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total + page_size - 1) // page_size,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi: {str(e)}")
+
+
+# ── Admin: Chi tiết 1 phiên phỏng vấn ────────────────────────────────────────
+@router.get("/admin/sessions/{session_id}")
+async def admin_get_session_detail(
+    session_id: int,
+    current_user: User = Depends(get_current_user_from_token),
+    service: InterviewService = Depends(get_interview_service),
+):
+    """Admin: Lấy chi tiết 1 phiên phỏng vấn bất kỳ"""
+    if not hasattr(current_user, "role") or current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền truy cập")
+
+    try:
+        from ..auth.models import User as UserModel
+
+        session = service.db.query(InterviewSession).filter(InterviewSession.id == session_id).first()
+        if not session:
+            raise HTTPException(status_code=404, detail="Không tìm thấy phiên phỏng vấn")
+
+        user = service.db.query(UserModel).filter(UserModel.id == session.user_id).first()
+        messages = (
+            service.db.query(InterviewMessage)
+            .filter(InterviewMessage.session_id == session_id)
+            .order_by(InterviewMessage.order_index.asc(), InterviewMessage.id.asc())
+            .all()
+        )
+
+        msgs = []
+        for m in messages:
+            msgs.append({
+                "id": m.id,
+                "role": m.role,
+                "content": m.content,
+                "timestamp": m.timestamp.isoformat() if m.timestamp else None,
+                "question_type": m.question_type,
+                "question_number": m.question_number,
+                "score": m.score,
+                "feedback": m.feedback,
+                "strengths": m.strengths,
+                "weaknesses": m.weaknesses,
+                "suggestion": m.suggestion,
+                "has_audio": m.has_audio,
+                "audio_url": m.audio_url,
+                "order_index": m.order_index,
+            })
+
+        return {
+            "session": {
+                "id": session.id,
+                "user_id": session.user_id,
+                "user_email": user.email if user else None,
+                "user_name": f"{user.first_name or ''} {user.last_name or ''}".strip() if user else None,
+                "job_id": session.job_id,
+                "job_title": session.job_title,
+                "status": session.status,
+                "interview_mode": session.interview_mode,
+                "voice_type": session.voice_type,
+                "overall_score": session.overall_score,
+                "technical_score": session.technical_score,
+                "communication_score": session.communication_score,
+                "logic_score": session.logic_score,
+                "experience_score": session.experience_score,
+                "attitude_score": session.attitude_score,
+                "recommendation": session.recommendation,
+                "summary": session.summary,
+                "key_strengths": session.key_strengths,
+                "key_weaknesses": session.key_weaknesses,
+                "skill_gaps": session.skill_gaps,
+                "learning_recommendations": session.learning_recommendations,
+                "question_count": session.question_count,
+                "question_distribution": session.question_distribution,
+                "tab_switch_count": session.tab_switch_count,
+                "started_at": session.started_at.isoformat() if session.started_at else None,
+                "completed_at": session.completed_at.isoformat() if session.completed_at else None,
+            },
+            "messages": msgs,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi: {str(e)}")
+
+
+# ── Admin: Thống kê nâng cao ──────────────────────────────────────────────────
+@router.get("/admin/analytics")
+async def admin_get_analytics(
+    current_user: User = Depends(get_current_user_from_token),
+    service: InterviewService = Depends(get_interview_service),
+):
+    """Admin: Thống kê nâng cao về phỏng vấn"""
+    if not hasattr(current_user, "role") or current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền truy cập")
+
+    try:
+        from sqlalchemy import func, case
+        from datetime import datetime, timedelta
+
+        db = service.db
+
+        # Tổng quan
+        total = db.query(InterviewSession).count()
+        completed = db.query(InterviewSession).filter(InterviewSession.status == "completed").count()
+        abandoned = db.query(InterviewSession).filter(InterviewSession.status == "abandoned").count()
+        active = db.query(InterviewSession).filter(InterviewSession.status == "active").count()
+
+        avg_score = db.query(func.avg(InterviewSession.overall_score)).filter(
+            InterviewSession.overall_score.isnot(None)
+        ).scalar() or 0.0
+
+        pass_count = db.query(InterviewSession).filter(InterviewSession.recommendation == "PASS").count()
+        fail_count = db.query(InterviewSession).filter(InterviewSession.recommendation == "FAIL").count()
+        conditional_count = db.query(InterviewSession).filter(
+            InterviewSession.recommendation == "CONDITIONAL_PASS"
+        ).count()
+
+        # Theo chế độ
+        text_count = db.query(InterviewSession).filter(InterviewSession.interview_mode == "text").count()
+        voice_count = db.query(InterviewSession).filter(InterviewSession.interview_mode == "voice").count()
+
+        # Top 10 nghề phổ biến
+        top_jobs = (
+            db.query(InterviewSession.job_title, func.count(InterviewSession.id).label("cnt"))
+            .group_by(InterviewSession.job_title)
+            .order_by(func.count(InterviewSession.id).desc())
+            .limit(10)
+            .all()
+        )
+
+        # 7 ngày gần nhất
+        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        daily_counts = (
+            db.query(
+                func.date(InterviewSession.started_at).label("date"),
+                func.count(InterviewSession.id).label("cnt"),
+            )
+            .filter(InterviewSession.started_at >= seven_days_ago)
+            .group_by(func.date(InterviewSession.started_at))
+            .order_by(func.date(InterviewSession.started_at))
+            .all()
+        )
+
+        # Phân bố điểm
+        score_dist = {
+            "excellent": db.query(InterviewSession).filter(InterviewSession.overall_score >= 8.5).count(),
+            "good": db.query(InterviewSession).filter(
+                InterviewSession.overall_score >= 7.0, InterviewSession.overall_score < 8.5
+            ).count(),
+            "average": db.query(InterviewSession).filter(
+                InterviewSession.overall_score >= 5.0, InterviewSession.overall_score < 7.0
+            ).count(),
+            "poor": db.query(InterviewSession).filter(
+                InterviewSession.overall_score.isnot(None), InterviewSession.overall_score < 5.0
+            ).count(),
+        }
+
+        return {
+            "overview": {
+                "total": total,
+                "completed": completed,
+                "abandoned": abandoned,
+                "active": active,
+                "avg_score": round(float(avg_score), 2),
+                "pass_rate": round(pass_count / completed * 100, 1) if completed > 0 else 0,
+                "completion_rate": round(completed / total * 100, 1) if total > 0 else 0,
+            },
+            "recommendations": {
+                "pass": pass_count,
+                "fail": fail_count,
+                "conditional": conditional_count,
+            },
+            "modes": {"text": text_count, "voice": voice_count},
+            "top_jobs": [{"job_title": j[0], "count": j[1]} for j in top_jobs],
+            "daily_trend": [{"date": str(d[0]), "count": d[1]} for d in daily_counts],
+            "score_distribution": score_dist,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi: {str(e)}")
+
+
 @router.get("/health")
 async def health_check(
     service: InterviewService = Depends(get_interview_service),
@@ -1348,5 +1622,64 @@ async def get_career_levels(job_id: str, service: InterviewService = Depends(get
         raise HTTPException(status_code=500, detail=f"Lỗi khi lấy career levels: {str(e)}")
 
 
-# Import models để tránh circular import
-# from .models import InterviewSession, InterviewMessage
+# ── Interview Assets (avatar & video by gender) ──────────────────
+
+@router.get("/assets", summary="Lay avatar va video URL theo gender")
+def get_interview_assets(
+    gender: str = "female",
+    db: Session = Depends(get_db),
+):
+    """
+    Tra ve avatar_url va video_url cho AI interviewer theo gioi tinh.
+    gender: 'male' | 'female'
+    """
+    from sqlalchemy import text as _t
+
+    gender = gender.lower()
+    if gender not in ("male", "female"):
+        gender = "female"
+
+    try:
+        rows = db.execute(_t("""
+            SELECT asset_type, url
+            FROM interview.interview_assets
+            WHERE gender = :g
+        """), {"g": gender}).fetchall()
+    except Exception:
+        rows = []
+
+    result = {"gender": gender, "avatar_url": None, "video_url": None}
+    for row in rows:
+        if row.asset_type == "avatar":
+            result["avatar_url"] = row.url
+        elif row.asset_type == "video":
+            result["video_url"] = row.url
+
+    # Hard-coded fallback if DB not seeded yet
+    base = "https://pub-8df5715d271b42d6bf03e5ecd279f612.r2.dev"
+    if not result["avatar_url"]:
+        result["avatar_url"] = f"{base}/interview/avatars/anh{'Nam' if gender == 'male' else 'Nu'}.png"
+    if not result["video_url"]:
+        result["video_url"] = f"{base}/interview/videos/{'nam' if gender == 'male' else 'nu'}.mp4"
+
+    return result
+
+
+@router.patch("/sessions/{session_id}/gender", summary="Cap nhat gender cho phien phong van")
+def update_session_gender(
+    session_id: int,
+    gender: str,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
+    """Cap nhat voice_type (gender) cho session: 'male' | 'female'"""
+    from sqlalchemy import text as _t
+    if gender not in ("male", "female"):
+        raise HTTPException(400, "gender must be 'male' or 'female'")
+    db.execute(_t("""
+        UPDATE interview.interview_sessions
+        SET voice_type = :g
+        WHERE id = :sid AND user_id = :uid
+    """), {"g": gender, "sid": session_id, "uid": current_user.id})
+    db.commit()
+    return {"session_id": session_id, "gender": gender}

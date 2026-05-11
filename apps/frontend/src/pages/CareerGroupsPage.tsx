@@ -278,13 +278,13 @@ const CareerGroupsPage = () => {
                     {/* Header */}
                     <div className="text-center mb-16 animate-fade-in-up">
                         <span className="inline-block py-1.5 px-4 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold tracking-widest uppercase mb-6 border border-blue-200 dark:border-blue-800">
-                            Career Categories
+                            Danh Mục Nghề Nghiệp
                         </span>
                         <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
-                            Explore <span className="text-blue-600 dark:text-blue-500">Career Fields</span>
+                            Khám Phá <span className="text-blue-600 dark:text-blue-500">Lĩnh Vực Nghề Nghiệp</span>
                         </h1>
                         <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed mb-10">
-                            Discover career opportunities across 22 major industry groups. Find the perfect field that matches your interests and skills.
+                            Khám phá cơ hội nghề nghiệp trong 22 nhóm ngành lớn. Tìm lĩnh vực phù hợp nhất với sở thích và kỹ năng của bạn.
                         </p>
                     </div>
 
@@ -292,7 +292,7 @@ const CareerGroupsPage = () => {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-32 animate-pulse">
                             <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-blue-600 mb-4 animate-spin"></div>
-                            <p className="text-gray-500 font-medium">Loading career fields...</p>
+                            <p className="text-gray-500 font-medium">Đang tải lĩnh vực nghề nghiệp...</p>
                         </div>
                     ) : (groups && groups.length > 0) ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up">
@@ -341,7 +341,7 @@ const CareerGroupsPage = () => {
                                             </div>
 
                                             <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 flex-grow mb-6 leading-relaxed">
-                                                {group.description || `Explore career opportunities in ${group.name.toLowerCase()}. Discover roles that match your skills and interests.`}
+                                                {group.description || `Khám phá cơ hội nghề nghiệp trong lĩnh vực ${group.name.toLowerCase()}. Tìm kiếm vai trò phù hợp với kỹ năng và sở thích của bạn.`}
                                             </p>
 
                                             {/* Stats */}
@@ -352,7 +352,7 @@ const CareerGroupsPage = () => {
                                                             {group.career_count || 0}
                                                         </div>
                                                         <div className="text-xs text-gray-400 uppercase tracking-wider">
-                                                            Careers
+                                                            Nghề nghiệp
                                                         </div>
                                                     </div>
                                                     <div className="text-center">
@@ -360,7 +360,7 @@ const CareerGroupsPage = () => {
                                                             {group.level_count || 0}
                                                         </div>
                                                         <div className="text-xs text-gray-400 uppercase tracking-wider">
-                                                            Levels
+                                                            Cấp độ
                                                         </div>
                                                     </div>
                                                 </div>
@@ -369,10 +369,10 @@ const CareerGroupsPage = () => {
                                             {/* CTA */}
                                             <div className="flex items-center justify-between mt-auto">
                                                 <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                                    Explore Field
+                                                    Khám Phá Lĩnh Vực
                                                 </span>
                                                 <div className="flex items-center text-sm font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
-                                                    View Careers
+                                                    Xem Nghề Nghiệp
                                                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                                     </svg>
@@ -390,13 +390,13 @@ const CareerGroupsPage = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                             </div>
-                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No career fields found</h3>
-                            <p className="text-gray-500 dark:text-gray-400 mb-8">We couldn't load the career fields. Please try again later.</p>
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Không tìm thấy lĩnh vực nghề nghiệp</h3>
+                            <p className="text-gray-500 dark:text-gray-400 mb-8">Không thể tải lĩnh vực nghề nghiệp. Vui lòng thử lại sau.</p>
                             <button
                                 onClick={fetchGroups}
                                 className="px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                             >
-                                Retry
+                                Thử lại
                             </button>
                         </div>
                     )}
@@ -418,7 +418,7 @@ const CareerGroupsPage = () => {
 
                             <div className="px-6 py-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
                                 <span className="text-sm font-bold text-gray-600 dark:text-gray-300">
-                                    Page <span className="text-gray-900 dark:text-white">{page}</span> of {totalPages}
+                                    Trang <span className="text-gray-900 dark:text-white">{page}</span> / {totalPages}
                                 </span>
                             </div>
 

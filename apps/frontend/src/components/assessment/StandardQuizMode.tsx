@@ -65,12 +65,12 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
             </div>
             <div>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {answeredCount} of {questions.length} questions answered
+                {answeredCount} / {questions.length} câu đã trả lời
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {unansweredQuestions.length > 0
-                  ? `${unansweredQuestions.length} questions remaining`
-                  : 'All questions completed!'}
+                  ? `Còn ${unansweredQuestions.length} câu chưa trả lời`
+                  : 'Đã hoàn thành tất cả câu hỏi!'}
               </p>
             </div>
           </div>

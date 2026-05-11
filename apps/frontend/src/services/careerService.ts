@@ -3,7 +3,9 @@ import api from '../lib/api';
 export interface CareerItem {
   id: string;
   slug: string;
-  title: string;
+  title: string;      // display title (vi preferred)
+  title_vi?: string;  // tiếng Việt
+  title_en?: string;  // tiếng Anh
   short_desc?: string;
   description?: string;
   skills?: string[];

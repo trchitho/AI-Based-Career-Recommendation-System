@@ -77,16 +77,16 @@ class GeminiStreamManager:
         self.fast_fail = os.getenv('AI_FAST_FAIL', 'false').lower() == 'true'
         
         # Fallback models list (in priority order, deduped)
+        # NOTE: Gemma models (gemma-3-*) require OAuth, NOT API key → excluded
         seen = set()
         candidates = [
-            self.model_name,        # Primary from env
-            "models/gemma-3-4b-it", # Free model that works well
-            "gemini-flash-latest",  # Always-latest alias (works for all keys)
-            "gemini-2.5-flash",     # Newer stable
-            "gemini-2.0-flash-exp", # Experimental (different quota)
-            "gemini-2.0-flash",     # Stable 2.0
-            "gemini-1.5-flash",     # Older but reliable
-            "models/gemini-flash-latest",  # With models/ prefix
+            self.model_name,           # Primary from env
+            "gemini-flash-latest",     # Always-latest alias (works for all keys)
+            "gemini-2.5-flash",        # Newer stable
+            "gemini-2.0-flash-exp",    # Experimental (different quota)
+            "gemini-2.0-flash",        # Stable 2.0
+            "gemini-1.5-flash",        # Older but reliable
+            "models/gemini-flash-latest",
             "models/gemini-2.5-flash",
             "models/gemini-2.0-flash",
         ]
@@ -144,13 +144,23 @@ class GeminiStreamManager:
                 error_msg = str(e).lower()
                 print(f"[warn] Model {model_name} failed: {e}")
                 
-                # Check if it's a quota/auth issue (don't try other models)
-                if any(keyword in error_msg for keyword in ['api key', 'expired', 'invalid', 'authentication', 'not valid']):
-                    print("[err] API authentication issue detected, stopping fallback attempts")
+                # ACCESS_TOKEN_TYPE_UNSUPPORTED = model requires OAuth, not API key
+                # → skip this model but continue trying others
+                if 'access_token_type_unsupported' in error_msg:
+                    print(f"[warn] Model {model_name} requires OAuth (not API key), skipping")
+                    continue
+                
+                # Hard auth failure = the API key itself is invalid → stop all attempts
+                if any(keyword in error_msg for keyword in ['api key not valid', 'api_key_invalid', 'expired']):
+                    print("[err] API key is invalid, stopping fallback attempts")
                     break
+                
+                # Soft auth / quota issues → continue trying other models
+                if any(keyword in error_msg for keyword in ['authentication', 'invalid', 'not valid']):
+                    print(f"[warn] Auth issue with {model_name}, trying next model...")
+                    continue
                 elif any(keyword in error_msg for keyword in ['quota', '429', 'rate limit', 'exceeded']):
-                    print("[warn] Quota exceeded - will try fallback models with different endpoints")
-                    # Continue to try other models which might use different quotas
+                    print("[warn] Quota exceeded - trying fallback models with different endpoints")
                     continue
                 
                 # Continue to next model for other errors
@@ -369,24 +379,35 @@ class GeminiStreamManager:
     def _try_fallback_model(self) -> bool:
         """Try to switch to a fallback model"""
         current_index = -1
-        
-        # Find current model index
+
+        # Normalize helper: strip 'models/' or 'model/' prefix for comparison
+        def _clean(name: str) -> str:
+            return name.replace('models/', '').replace('model/', '').strip()
+
+        active_clean = _clean(self.active_model_name)
+
+        # Find current model index — compare normalized names
         for i, model_name in enumerate(self.fallback_models):
-            clean_name = model_name.replace('models/', '').replace('model/', '')
-            if clean_name == self.active_model_name:
+            if _clean(model_name) == active_clean:
                 current_index = i
                 break
-        
-        # Try remaining models
-        for model_name in self.fallback_models[current_index + 1:]:
+
+        # Try remaining models (everything after current)
+        candidates = self.fallback_models[current_index + 1:]
+        if not candidates:
+            # Two cases where candidates is empty:
+            # 1. current_index == -1: active model not in list → try ALL
+            # 2. active model is last in list → also try ALL (wrap around)
+            candidates = self.fallback_models
+
+        for model_name in candidates:
             try:
                 print(f"  [reload] Trying fallback model: {model_name}")
-                
-                # Clean model name
-                clean_model_name = model_name.replace('models/', '').replace('model/', '')
+
+                clean_model_name = _clean(model_name)
                 model = genai.GenerativeModel(clean_model_name)
-                
-                # Test the model
+
+                # Test the model with a minimal prompt
                 test_response = model.generate_content(
                     "Test",
                     generation_config=genai.types.GenerationConfig(
@@ -394,17 +415,16 @@ class GeminiStreamManager:
                         temperature=0.1,
                     )
                 )
-                
-                # If successful, switch to this model
+
                 self.model = model
                 self.active_model_name = clean_model_name
                 print(f"  [ok] Successfully switched to: {clean_model_name}")
                 return True
-                
+
             except Exception as e:
                 print(f"  [warn] Fallback model {model_name} also failed: {e}")
                 continue
-        
+
         return False
 
 

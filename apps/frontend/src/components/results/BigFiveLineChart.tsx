@@ -20,11 +20,11 @@ interface BigFiveLineChartProps {
 
 const BigFiveLineChart = ({ scores }: BigFiveLineChartProps) => {
   const data = [
-    { name: 'O', fullName: 'Openness', score: scores?.openness || 0, color: '#8B5CF6' },
-    { name: 'C', fullName: 'Conscientiousness', score: scores?.conscientiousness || 0, color: '#3B82F6' },
-    { name: 'E', fullName: 'Extraversion', score: scores?.extraversion || 0, color: '#10B981' },
-    { name: 'A', fullName: 'Agreeableness', score: scores?.agreeableness || 0, color: '#F59E0B' },
-    { name: 'N', fullName: 'Neuroticism', score: scores?.neuroticism || 0, color: '#EF4444' },
+    { name: 'O', fullName: 'Cởi Mở', score: scores?.openness || 0, color: '#8B5CF6' },
+    { name: 'C', fullName: 'Tận Tâm', score: scores?.conscientiousness || 0, color: '#3B82F6' },
+    { name: 'E', fullName: 'Hướng Ngoại', score: scores?.extraversion || 0, color: '#10B981' },
+    { name: 'A', fullName: 'Dễ Chịu', score: scores?.agreeableness || 0, color: '#F59E0B' },
+    { name: 'N', fullName: 'Nhạy Cảm', score: scores?.neuroticism || 0, color: '#EF4444' },
   ];
 
   const CustomTooltip = ({ active, payload }: any) => {

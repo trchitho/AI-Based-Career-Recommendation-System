@@ -46,6 +46,7 @@ PyPDF2==3.0.1
 # Voice Interview System
 edge-tts==6.1.9
 openai-whisper>=20231117
+faster-whisper>=1.0.0   # 4-5x faster STT via CTranslate2 (optional, falls back gracefully)
 pydub==0.25.1
 aiofiles==23.2.1
 

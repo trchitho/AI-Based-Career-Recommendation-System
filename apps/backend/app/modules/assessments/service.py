@@ -407,11 +407,23 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             "neutral": 3.0,
             "like": 4.0,
             "strongly like": 5.0,
+            # Vietnamese RIASEC style
+            "rất không thích": 1.0,
+            "không thích": 2.0,
+            "không chắc": 3.0,
+            "trung lập": 3.0,
+            "thích": 4.0,
+            "rất thích": 5.0,
             # Big Five style
             "strongly disagree": 1.0,
             "disagree": 2.0,
             "agree": 4.0,
             "strongly agree": 5.0,
+            # Vietnamese Big Five style
+            "rất không đồng ý": 1.0,
+            "không đồng ý": 2.0,
+            "đồng ý": 4.0,
+            "rất đồng ý": 5.0,
         }
 
         return likert_map.get(sl)

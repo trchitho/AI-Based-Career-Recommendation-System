@@ -3,17 +3,65 @@
    ========================================== */
 
 :root {
-  /* Light Mode Colors */
-  --neu-bg: #eef0f5;
-  --neu-bg-card: rgba(255, 255, 255, 0.95);
-  --neu-text: #1a1a1a;
-  --neu-text-secondary: #4a5568;
-  --neu-shadow-dark: rgba(0, 0, 0, 0.15);
-  --neu-shadow-light: rgba(255, 255, 255, 0.9);
+  /* ── Light Mode Colors ── */
+  --neu-bg:             #f8fafc;
+  --neu-bg-card:        #ffffff;
+  --neu-text:           #0f172a;
+  --neu-text-secondary: #475569;
+  --neu-text-muted:     #94a3b8;
+  --neu-border:         #e2e8f0;
+  --neu-shadow-dark:    rgba(0, 0, 0, 0.10);
+  --neu-shadow-light:   rgba(255, 255, 255, 0.90);
 
-  /* Button Colors - SUPER VIBRANT & EYE-CATCHING */
-  --btn-game-bg: linear-gradient(135deg, #FF3B3B 0%, #FF6B35 25%, #FF8E53 50%, #FFB84D 75%, #FFA500 100%);
-  --btn-interactive-bg: linear-gradient(135deg, #00D9FF 0%, #4ECDC4 25%, #44A08D 50%, #3DBE7C 75%, #2ECC71 100%);
+  /* ── Brand Colors ── */
+  --color-primary:       #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-primary-dark:  #3730a3;
+  --color-primary-light: #eef2ff;
+  --color-primary-muted: rgba(99,102,241,0.12);
+  --color-secondary:     #8b5cf6;
+  --color-secondary-hover: #7c3aed;
+  --color-tertiary:      #06b6d4;
+  --color-tertiary-hover: #0891b2;
+  --color-error:         #dc2626;
+  --color-warning:       #d97706;
+  --color-success:       #16a34a;
+
+  /* ── Neumorphic Shadows (light bg) ── */
+  --neu-raised:    0 4px 16px rgba(148,163,184,0.12), 0 2px 4px rgba(148,163,184,0.08);
+  --neu-raised-sm: 0 2px 8px  rgba(148,163,184,0.10), 0 1px 2px rgba(148,163,184,0.06);
+  --neu-raised-lg: 0 8px 24px rgba(148,163,184,0.15), 0 4px 8px rgba(148,163,184,0.10);
+  --neu-pressed:   inset 3px 3px 8px rgba(148,163,184,0.15), inset -2px -2px 6px rgba(255,255,255,0.8);
+  --neu-pressed-sm:inset 2px 2px 5px rgba(148,163,184,0.12), inset -1px -1px 4px rgba(255,255,255,0.7);
+
+  /* ── Border radius ── */
+  --neu-radius:    12px;
+  --neu-radius-sm: 8px;
+  --neu-radius-lg: 20px;
+
+  /* ── Accent alias ── */
+  --neu-accent:      var(--color-primary);
+  --neu-accent-hover:var(--color-primary-hover);
+
+  /* ── Special button gradients ── */
+  --btn-game-bg:        linear-gradient(135deg, #FF3B3B 0%, #FF6B35 50%, #FFA500 100%);
+  --btn-interactive-bg: linear-gradient(135deg, #00D9FF 0%, #4ECDC4 50%, #2ECC71 100%);
+}
+
+.dark {
+  --neu-bg:             #0f172a;
+  --neu-bg-card:        #1e293b;
+  --neu-text:           #f1f5f9;
+  --neu-text-secondary: #94a3b8;
+  --neu-text-muted:     #64748b;
+  --neu-border:         #334155;
+  --neu-shadow-dark:    #0a0f1e;
+  --neu-shadow-light:   rgba(255,255,255,0.04);
+  --neu-raised:    0 4px 16px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.25);
+  --neu-raised-sm: 0 2px 8px  rgba(0,0,0,0.30), 0 1px 2px rgba(0,0,0,0.20);
+  --neu-raised-lg: 0 8px 24px rgba(0,0,0,0.40), 0 4px 8px rgba(0,0,0,0.30);
+  --color-primary-light: #1e1b4b;
+  --color-primary-muted: rgba(99,102,241,0.20);
 }
 
 .dark {
@@ -29,7 +77,7 @@
 }
 
 /* ── 1. Page backgrounds ──────────────────────────────────────── */
-/* Only sets the background — does NOT touch text or child elements */
+/* Use `background` (not background-color) so gradient values work */
 
 body,
 .bg-gray-50,
@@ -296,8 +344,9 @@ html body button.btn-interactive * {
 
 /* ── 6. Modals ────────────────────────────────────────────────── */
 
-[class*="rounded-2xl"][class*="shadow-2xl"]:not([class*="bg-green"]):not([class*="from-"]):not(.btn-game):not(.btn-interactive),
-[class*="rounded-xl"][class*="shadow-xl"]:not([class*="bg-green"]):not([class*="from-"]):not(.btn-game):not(.btn-interactive) {
+/* Modal card enhancement — only targets actual modal/card elements, not hero sections */
+.neu-modal,
+.neu-card-raised {
   background: var(--neu-bg-card) !important;
   box-shadow: var(--neu-raised-lg) !important;
   border: none !important;

@@ -7,9 +7,9 @@ import CareerTestComponent from '../components/assessment/CareerTestComponent';
 import TetrisQuizGame from '../components/assessment/TetrisQuizGame';
 import GameQuizMode from '../components/assessment/GameQuizMode';
 import EssayModalComponent from '../components/assessment/EssayModalComponent';
-import VoiceAssessmentComponent from '../components/assessment/VoiceAssessmentComponent';
 import EnhancedAssessmentFlow from '../components/assessment/EnhancedAssessmentFlow';
 import { assessmentService } from '../services/assessmentService';
+import api from '../lib/api';
 import MainLayout from '../components/layout/MainLayout';
 import UsageStatus from '../components/subscription/UsageStatus';
 import { LimitExceededModal } from '../components/assessment/LimitExceededModal';
@@ -22,7 +22,7 @@ import { getAccessToken } from '../utils/auth';
 
 
 type QuizMode = 'standard' | 'game' | 'legacy';
-type AssessmentStep = 'intro' | 'enhanced' | 'test' | 'essay' | 'voice' | 'processing';
+type AssessmentStep = 'intro' | 'enhanced' | 'test' | 'essay' | 'processing';
 
 const AssessmentPage = () => {
   // ==========================================
@@ -44,6 +44,7 @@ const AssessmentPage = () => {
 
   const [step, setStep] = useState<AssessmentStep>('intro');
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const [assessmentSessionId, setAssessmentSessionId] = useState<number | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
 
   const [loading, setLoading] = useState(false);
@@ -164,9 +165,45 @@ const AssessmentPage = () => {
     if (quizMode === 'standard' || quizMode === 'game') {
       try {
         setLoading(true);
-        const riasecQuestions = await assessmentService.getQuestions('RIASEC');
-        const bigFiveQuestions = await assessmentService.getQuestions('BIGFIVE');
-        setQuestions([...riasecQuestions, ...bigFiveQuestions]);
+
+        // BOTH game modes (Puzzle Game and Personality Garden) use 33 questions (3 per dimension)
+        // Only traditional test uses 44 questions (4 per dimension)
+        const perDim = 3; // Always 3 for game modes
+
+        // Check if there's an existing incomplete session in localStorage
+        const SAVED_SESSION_KEY = `assessment_session_${quizMode}`;
+        const SAVED_SEED_KEY = `assessment_seed_${quizMode}`;
+        const savedSessionId = localStorage.getItem(SAVED_SESSION_KEY);
+        const savedSeed = localStorage.getItem(SAVED_SEED_KEY);
+        let realSessionId: number;
+        let questionSeed: number;
+
+        if (savedSessionId) {
+          // Reuse existing session to preserve gamification progress
+          realSessionId = parseInt(savedSessionId, 10);
+          questionSeed = savedSeed ? parseInt(savedSeed, 10) : Date.now();
+          console.log('[AssessmentPage] Reusing existing session:', realSessionId, 'seed:', questionSeed);
+        } else {
+          // Create a real assessment session in DB first — required for gamification FK
+          const sessionRes = await api.post('/api/assessments/session/start');
+          realSessionId = sessionRes.data.session_id;
+          questionSeed = Date.now();
+          // Save session ID and seed to localStorage for future reuse
+          localStorage.setItem(SAVED_SESSION_KEY, String(realSessionId));
+          localStorage.setItem(SAVED_SEED_KEY, String(questionSeed));
+          console.log('[AssessmentPage] Created new session:', realSessionId, 'seed:', questionSeed);
+        }
+
+        // Fetch with specific per_dim parameter — use consistent seed for same question order
+        const riasecRes = await api.get('/api/assessments/questions/RIASEC', {
+          params: { shuffle: true, seed: questionSeed, per_dim: perDim },
+        });
+        const bigFiveRes = await api.get('/api/assessments/questions/BIGFIVE', {
+          params: { shuffle: true, seed: questionSeed, per_dim: perDim },
+        });
+
+        setQuestions([...riasecRes.data, ...bigFiveRes.data]);
+        setAssessmentSessionId(realSessionId);
       } catch (err) {
         console.error('Failed to load questions:', err);
         setError('Failed to load questions. Please try again.');
@@ -254,6 +291,11 @@ const AssessmentPage = () => {
         incrementUsage('assessment');
       }
 
+      // Clear saved session from localStorage on successful completion
+      const SAVED_SESSION_KEY = `assessment_session_${quizMode}`;
+      localStorage.removeItem(SAVED_SESSION_KEY);
+      localStorage.removeItem(`assessment_seed_${quizMode}`);
+
       setStep('essay');
     } catch (err: any) {
       console.error('Error submitting assessment:', err);
@@ -280,7 +322,7 @@ const AssessmentPage = () => {
     const fetchPrompt = async () => {
       try {
         setLoading(true);
-        const prompt = await assessmentService.getEssayPrompt('en');
+        const prompt = await assessmentService.getEssayPrompt('vi');
         if (isMounted) {
           setEssayPrompt(prompt);
         }
@@ -320,8 +362,8 @@ const AssessmentPage = () => {
 
       await assessmentService.submitEssay(payload);
 
-      // After essay, offer optional voice analysis
-      setStep('voice');
+      // Sau essay → chuyển thẳng sang processing (bỏ voice step)
+      setStep('processing');
     } catch (err) {
       console.error('Error submitting essay:', err);
       setError('Failed to submit essay. Redirecting to results...');
@@ -334,25 +376,12 @@ const AssessmentPage = () => {
   };
 
   /**
-   * Nếu user bỏ qua essay → chuyển sang voice (optional)
+   * Nếu user bỏ qua essay → chuyển thẳng sang processing
    */
   const handleEssaySkip = () => {
-    setStep('voice');
-  };
-
-  /**
-   * After voice analysis (complete or skip) → processing → results (if we have an ID)
-   * If voice was launched standalone (no assessmentId), go back to intro
-   */
-  const handleVoiceComplete = () => {
+    // Bỏ qua essay → chuyển thẳng sang processing
     if (!assessmentId) { setStep('intro'); return; }
     setStep('processing');
-    setTimeout(() => navigate(`/results/${assessmentId}`), 2000);
-  };
-
-  const handleVoiceSkip = () => {
-    if (!assessmentId) { setStep('intro'); return; }
-    navigate(`/results/${assessmentId}`);
   };
 
   // ==========================================
@@ -367,6 +396,34 @@ const AssessmentPage = () => {
         onComplete={handleEnhancedAssessmentComplete}
         onCancel={handleEnhancedAssessmentCancel}
       />
+    );
+  }
+
+  // For game modes in test step, render fullscreen without MainLayout
+  if (step === 'test' && (quizMode === 'standard' || quizMode === 'game')) {
+    return (
+      <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 overflow-auto">
+        {error && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-3 rounded-xl text-center text-red-600 dark:text-red-300 font-medium text-sm">
+            {error}
+          </div>
+        )}
+        {quizMode === 'standard' ? (
+          <TetrisQuizGame
+            questions={questions}
+            onComplete={handleTestComplete}
+            onCancel={handleCancel}
+            assessmentSessionId={assessmentSessionId ?? undefined}
+          />
+        ) : (
+          <GameQuizMode
+            questions={questions}
+            onComplete={handleTestComplete}
+            onCancel={handleCancel}
+            assessmentSessionId={assessmentSessionId ?? undefined}
+          />
+        )}
+      </div>
     );
   }
 
@@ -623,7 +680,7 @@ const AssessmentPage = () => {
                       t('assessment.title')}
                 </h2>
                 <button onClick={handleCancel} className="text-sm font-semibold text-gray-500 hover:text-red-500 transition-colors">
-                  {t('common.cancel')}
+                  Hủy
                 </button>
               </div>
 
@@ -639,12 +696,14 @@ const AssessmentPage = () => {
                     questions={questions}
                     onComplete={handleTestComplete}
                     onCancel={handleCancel}
+                    assessmentSessionId={assessmentSessionId ?? undefined}
                   />
                 ) : quizMode === 'game' ? (
                   <GameQuizMode
                     questions={questions}
                     onComplete={handleTestComplete}
                     onCancel={handleCancel}
+                    assessmentSessionId={assessmentSessionId ?? undefined}
                   />
                 ) : (
                   <CareerTestComponent
@@ -667,16 +726,7 @@ const AssessmentPage = () => {
             />
           )}
 
-          {/* --- STEP 4: VOICE ANALYSIS (OPTIONAL) --- */}
-          {step === 'voice' && (
-            <VoiceAssessmentComponent
-              assessmentId={assessmentId ?? ''}
-              onComplete={handleVoiceComplete}
-              onSkip={handleVoiceSkip}
-            />
-          )}
-
-          {/* --- STEP 5: PROCESSING (SINGLE CARD) --- */}
+          {/* --- STEP 4: PROCESSING (SINGLE CARD) --- */}
           {step === 'processing' && (
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-[32px] shadow-2xl p-16 w-full max-w-2xl text-center animate-fade-in-up border border-white/50 dark:border-gray-700">
               <div className="relative mb-8 flex justify-center">

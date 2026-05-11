@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Target, ClipboardList, Users, Calendar, Star, MessageCircle,
-  Info, Check, X, Pin, BookOpen, CheckCheck, Sparkles, HelpCircle
+  Info, Check, X, Pin, BookOpen, CheckCheck, Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MainLayout from '../components/layout/MainLayout';
@@ -350,7 +350,7 @@ const MentorMatchingPage = () => {
               <strong style={{ color: 'var(--neu-text)' }}>Tính năng hỗ trợ:&nbsp;</strong>
               Gửi yêu cầu kết nối, nhắn tin và đặt lịch gặp với mentor. Hệ thống <strong>không</strong> bao gồm gọi video trực tuyến.
             </div>
-            <a href="#" className="cta-link">Tìm hiểu thêm →</a>
+            <a href="/mentor-matching/learn-more" className="cta-link">Tìm hiểu thêm →</a>
           </div>
 
           {/* Tabs */}
@@ -882,16 +882,6 @@ const MentorMatchingPage = () => {
       {chatTarget && (
         <ChatModal otherUserId={chatTarget.userId} otherName={chatTarget.name} onClose={() => setChatTarget(null)} />
       )}
-
-      {/* Floating Action Buttons */}
-      <div className="mm-fab-container">
-        <button className="mm-fab purple" title="Trò chuyện" onClick={() => {/* Open chat */ }}>
-          <MessageCircle size={22} />
-        </button>
-        <button className="mm-fab blue" title="Trợ giúp" onClick={() => {/* Open help */ }}>
-          <HelpCircle size={22} />
-        </button>
-      </div>
     </MainLayout>
   );
 };

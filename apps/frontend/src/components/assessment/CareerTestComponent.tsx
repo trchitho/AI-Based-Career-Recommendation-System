@@ -359,7 +359,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     const unansweredQuestions = allQuestions.filter(q => !responses.has(String(q.id)));
 
     if (unansweredQuestions.length > 0) {
-      setError(`Please answer all questions. ${unansweredQuestions.length} question(s) remaining.`);
+      setError(`Vui lòng trả lời tất cả câu hỏi. Còn ${unansweredQuestions.length} câu chưa trả lời.`);
       return;
     }
 
@@ -397,7 +397,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 border-t-green-600 rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-500 dark:text-gray-400 font-medium">Loading questions...</p>
+        <p className="text-gray-500 dark:text-gray-400 font-medium">Đang tải câu hỏi...</p>
       </div>
     );
   }
@@ -417,11 +417,11 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
               </svg>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Continue Assessment?
+              Tiếp tục bài đánh giá?
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              You have an incomplete assessment ({savedProgress.responses.length} questions answered).
-              Would you like to continue or start fresh?
+              Bạn có bài đánh giá chưa hoàn thành ({savedProgress.responses.length} câu đã trả lời).
+              Bạn muốn tiếp tục hay bắt đầu lại?
             </p>
           </div>
 
@@ -434,13 +434,13 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Continue ({savedProgress.responses.length} answers)
+              Tiếp tục ({savedProgress.responses.length} câu trả lời)
             </button>
             <button
               onClick={handleStartFresh}
               className="w-full px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-bold transition-all"
             >
-              Start Fresh
+              Bắt đầu lại
             </button>
           </div>
         </div>
@@ -454,13 +454,13 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Failed to load questions</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Không thể tải câu hỏi</h3>
         <p className="text-red-600 dark:text-red-300 mb-6">{error}</p>
         <button
           onClick={fetchQuestions}
           className="px-6 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg"
         >
-          Retry
+          Thử lại
         </button>
       </div>
     );
@@ -473,10 +473,10 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       <div className="mb-10">
         <div className="flex justify-between items-center mb-3">
           <span className="text-sm font-bold text-indigo-900 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full">
-            {getProgress().toFixed(0)}% Completed
+            {getProgress().toFixed(0)}% Hoàn thành
           </span>
           <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-            Page {currentPage + 1} / {totalPages}
+            Trang {currentPage + 1} / {totalPages}
           </span>
         </div>
 
@@ -494,7 +494,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Saved ({responses.size} answers)
+              Đã lưu ({responses.size} câu trả lời)
             </div>
           </div>
         )}
@@ -533,14 +533,14 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
           // Label descriptions
           const labelDescriptions: { [key: string]: { name: string; description: string; color: string } } = {
-            'R': { name: 'Realistic', description: 'Hands-on, practical, mechanical work', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700' },
-            'I': { name: 'Investigative', description: 'Research, analysis, problem-solving', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' },
-            'A': { name: 'Artistic', description: 'Creative, expressive, innovative work', color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-700' },
-            'S': { name: 'Social', description: 'Helping, teaching, caring for others', color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800' },
-            'E': { name: 'Enterprising', description: 'Leadership, persuasion, business', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
-            'C': { name: 'Conventional', description: 'Organization, detail-oriented, structured', color: 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' },
-            'O': { name: 'Openness', description: 'Curiosity, imagination, creativity', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700' },
-            'N': { name: 'Neuroticism', description: 'Emotional stability, stress management', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700' },
+            'R': { name: 'Thực tế', description: 'Công việc thực hành, kỹ thuật, cơ khí', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700' },
+            'I': { name: 'Nghiên cứu', description: 'Nghiên cứu, phân tích, giải quyết vấn đề', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' },
+            'A': { name: 'Nghệ thuật', description: 'Sáng tạo, biểu đạt, đổi mới', color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-700' },
+            'S': { name: 'Xã hội', description: 'Giúp đỡ, giảng dạy, chăm sóc người khác', color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800' },
+            'E': { name: 'Doanh nhân', description: 'Lãnh đạo, thuyết phục, kinh doanh', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
+            'C': { name: 'Quy ước', description: 'Tổ chức, chi tiết, có cấu trúc', color: 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' },
+            'O': { name: 'Cởi mở', description: 'Tò mò, trí tưởng tượng, sáng tạo', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700' },
+            'N': { name: 'Nhạy cảm', description: 'Ổn định cảm xúc, quản lý căng thẳng', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700' },
           };
 
           // Debug log
@@ -574,7 +574,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
                 <div className="flex flex-col md:flex-row md:items-center gap-6">
                   {/* Question Text */}
                   <div className="flex-1">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1 block">Question {(currentPage * questionsPerPage) + index + 1}</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1 block">Câu hỏi {(currentPage * questionsPerPage) + index + 1}</span>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-snug">
                       {question.question_text}
                     </h3>

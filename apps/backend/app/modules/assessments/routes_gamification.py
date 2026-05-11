@@ -3,6 +3,10 @@ Gamification API routes
 Separate from assessment routes to maintain clear separation
 """
 
+import base64
+import json
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -23,15 +27,54 @@ def _db(req: Request) -> Session:
     return db
 
 
+def _decode_jwt_payload(token: str) -> dict[str, Any]:
+    """Decode JWT payload without signature verification."""
+    try:
+        parts = token.split(".")
+        if len(parts) != 3:
+            raise ValueError("invalid jwt format")
+
+        payload_b64 = parts[1]
+        padding = "=" * (-len(payload_b64) % 4)
+        payload_b64 += padding
+
+        raw = base64.urlsafe_b64decode(payload_b64.encode("utf-8"))
+        data = json.loads(raw.decode("utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError("jwt payload not object")
+        return data
+    except Exception as e:
+        raise ValueError(f"cannot decode jwt: {e!r}") from e
+
+
 def _current_user_id(req: Request) -> int:
-    """Get current user ID from request state"""
+    """Get current user ID from request state, headers, or JWT payload."""
     uid = getattr(req.state, "user_id", None)
-    
+
     if uid is None:
         user_obj = getattr(req.state, "user", None)
         if user_obj is not None:
             uid = getattr(user_obj, "id", None) or getattr(user_obj, "user_id", None)
-    
+
+    if uid is None:
+        hdr = req.headers.get("X-User-Id")
+        if hdr:
+            try:
+                uid = int(hdr)
+            except ValueError:
+                uid = None
+
+    if uid is None:
+        auth = req.headers.get("Authorization")
+        if auth and auth.startswith("Bearer "):
+            token = auth[len("Bearer ") :].strip()
+            if token:
+                try:
+                    payload = _decode_jwt_payload(token)
+                    uid = payload.get("user_id") or payload.get("sub") or payload.get("id")
+                except ValueError:
+                    uid = None
+
     if uid is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -69,29 +112,51 @@ def start_gamification_session(
     user_id: int = Depends(_current_user_id),
 ):
     """
-    Start a new gamification session
-    Called when user starts an assessment with game mode
+    Start a new gamification session — idempotent.
+    If an incomplete session already exists for (assessment_session_id, user_id, quiz_mode),
+    return that session instead of creating a duplicate.
     """
     try:
+        from .gamification_models import AssessmentGamificationSession
+
+        # Check for existing incomplete session first (idempotent)
+        existing = db.query(AssessmentGamificationSession).filter(
+            AssessmentGamificationSession.assessment_session_id == body.assessment_session_id,
+            AssessmentGamificationSession.user_id == user_id,
+            AssessmentGamificationSession.quiz_mode == body.quiz_mode,
+            AssessmentGamificationSession.completed_at.is_(None),
+        ).order_by(AssessmentGamificationSession.id.desc()).first()
+
+        if existing:
+            # Return existing session — no duplicate created
+            return {
+                "gamification_session_id": existing.id,
+                "quiz_mode": existing.quiz_mode,
+                "xp_earned": existing.xp_earned,
+                "reused": True,
+            }
+
+        # No existing session — create new one
         session = GamificationService.start_gamification_session(
             db=db,
             user_id=user_id,
             assessment_session_id=body.assessment_session_id,
-            quiz_mode=body.quiz_mode
+            quiz_mode=body.quiz_mode,
         )
         db.commit()
-        
+
         return {
             "gamification_session_id": session.id,
             "quiz_mode": session.quiz_mode,
-            "xp_earned": session.xp_earned
+            "xp_earned": session.xp_earned,
+            "reused": False,
         }
     except Exception as e:
         db.rollback()
         print(f"[gamification] start_session error: {repr(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to start gamification session"
+            detail="Failed to start gamification session",
         )
 
 
@@ -142,8 +207,7 @@ def complete_session(
     try:
         result = GamificationService.complete_gamification_session(
             db=db,
-            gamification_session_id=body.gamification_session_id,
-            user_id=user_id,
+            gamification_session_id=body.gamification_session_id
         )
         db.commit()
 
@@ -215,4 +279,73 @@ def get_gamification_profile(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get gamification profile"
+        )
+
+
+class SaveProgressRequest(BaseModel):
+    gamification_session_id: int
+    extra_data: dict
+
+
+@router.post("/save-progress")
+def save_game_progress(
+    body: SaveProgressRequest,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Save game progress to database
+    Stores current game state in extra_data field
+    """
+    try:
+        result = GamificationService.save_game_progress(
+            db=db,
+            gamification_session_id=body.gamification_session_id,
+            user_id=user_id,
+            extra_data=body.extra_data
+        )
+        db.commit()
+        return result
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        db.rollback()
+        print(f"[gamification] save_progress error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save game progress"
+        )
+
+
+@router.get("/load-progress/{gamification_session_id}")
+def load_game_progress(
+    gamification_session_id: int,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Load game progress from database
+    Returns saved game state from extra_data field
+    """
+    try:
+        progress = GamificationService.load_game_progress(
+            db=db,
+            gamification_session_id=gamification_session_id,
+            user_id=user_id
+        )
+        return progress or {}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        print(f"[gamification] load_progress error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to load game progress"
         )

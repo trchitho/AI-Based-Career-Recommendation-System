@@ -314,4 +314,89 @@ export const adminService = {
     const response = await api.get('/api/admin/cv-documents', { params });
     return response.data;
   },
+
+  // ── Interview Admin ──────────────────────────────────────────────────────────
+
+  /** Tổng quan stats phỏng vấn */
+  async getInterviewAdminStats() {
+    const res = await api.get('/api/admin/interview/stats');
+    return res.data;
+  },
+
+  /** Danh sách sessions với filter */
+  async getInterviewSessions(params?: {
+    page?: number; page_size?: number; search?: string;
+    status?: string; mode?: string; from_date?: string; to_date?: string;
+  }) {
+    const res = await api.get('/api/admin/interview/sessions', { params });
+    return res.data;
+  },
+
+  /** Chi tiết session + messages */
+  async getInterviewSessionDetail(sessionId: number) {
+    const res = await api.get(`/api/admin/interview/sessions/${sessionId}`);
+    return res.data;
+  },
+
+  /** Xóa session */
+  async deleteInterviewSession(sessionId: number) {
+    await api.delete(`/api/admin/interview/sessions/${sessionId}`);
+  },
+
+  /** Danh sách templates */
+  async getInterviewTemplates(params?: { page?: number; page_size?: number; search?: string }) {
+    const res = await api.get('/api/admin/interview/templates', { params });
+    return res.data;
+  },
+
+  /** Xóa template */
+  async deleteInterviewTemplate(templateId: number) {
+    await api.delete(`/api/admin/interview/templates/${templateId}`);
+  },
+
+  /** Thư viện JD */
+  async getInterviewJDLibrary(params?: { page?: number; page_size?: number; search?: string }) {
+    const res = await api.get('/api/admin/interview/jd-library', { params });
+    return res.data;
+  },
+
+  /** Xóa JD */
+  async deleteInterviewJD(jdId: number) {
+    await api.delete(`/api/admin/interview/jd/${jdId}`);
+  },
+
+  /** Voice performance metrics */
+  async getVoiceMetrics(params?: { from_date?: string; to_date?: string }) {
+    const res = await api.get('/api/admin/interview/voice-metrics', { params });
+    return res.data;
+  },
+
+  /** Audio cache list */
+  async getAudioCache(params?: { page?: number; page_size?: number }) {
+    const res = await api.get('/api/admin/interview/audio-cache', { params });
+    return res.data;
+  },
+
+  /** Xóa toàn bộ audio cache */
+  async clearAudioCache() {
+    await api.delete('/api/admin/interview/audio-cache');
+  },
+
+  /** Feedback list */
+  async getInterviewFeedback(params?: { page?: number; page_size?: number }) {
+    const res = await api.get('/api/admin/interview/feedback', { params });
+    return res.data;
+  },
+
+  /** Export sessions CSV */
+  async exportInterviewSessions(params?: {
+    search?: string; status?: string; mode?: string;
+    from_date?: string; to_date?: string;
+  }): Promise<Blob> {
+    const res = await api.get('/api/admin/interview/export/sessions', {
+      responseType: 'blob',
+      params,
+    });
+    return res.data;
+  },
 };

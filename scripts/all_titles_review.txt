@@ -1,0 +1,3836 @@
+id=1
+  EN: Chief Executives
+  VI: Giám đốc điều hành (CEO)
+
+id=2
+  EN: Chief Sustainability Officers
+  VI: Giám đốc phát triển bền vững
+
+id=3
+  EN: General and Operations Managers
+  VI: Quản lý vận hành tổng hợp
+
+id=4
+  EN: Legislators
+  VI: Nhà lập pháp
+
+id=5
+  EN: Advertising and Promotions Managers
+  VI: Quản lý quảng cáo và khuyến mãi
+
+id=6
+  EN: Marketing Managers
+  VI: Quản lý marketing
+
+id=7
+  EN: Sales Managers
+  VI: Quản lý kinh doanh
+
+id=8
+  EN: Public Relations Managers
+  VI: Quản lý quan hệ công chúng
+
+id=9
+  EN: Fundraising Managers
+  VI: Quản lý gây quỹ
+
+id=10
+  EN: Administrative Services Managers
+  VI: Quản lý dịch vụ hành chính
+
+id=11
+  EN: Facilities Managers
+  VI: Quản lý cơ sở vật chất
+
+id=12
+  EN: Security Managers
+  VI: Quản lý an ninh
+
+id=13
+  EN: Computer and Information Systems Managers
+  VI: Quản lý hệ thống công nghệ thông tin
+
+id=14
+  EN: Financial Managers
+  VI: Quản lý tài chính
+
+id=15
+  EN: Treasurers and Controllers
+  VI: Thủ quỹ và kiểm soát viên tài chính
+
+id=16
+  EN: Investment Fund Managers
+  VI: Quản lý quỹ đầu tư
+
+id=17
+  EN: Industrial Production Managers
+  VI: Quản lý sản xuất công nghiệp
+
+id=18
+  EN: Quality Control Systems Managers
+  VI: Quản lý hệ thống kiểm soát chất lượng
+
+id=19
+  EN: Geothermal Production Managers
+  VI: Quản lý sản xuất địa nhiệt
+
+id=20
+  EN: Biofuels Production Managers
+  VI: Quản lý sản xuất nhiên liệu sinh học
+
+id=21
+  EN: Biomass Power Plant Managers
+  VI: Quản lý nhà máy điện sinh khối
+
+id=22
+  EN: Hydroelectric Production Managers
+  VI: Quản lý sản xuất thủy điện
+
+id=23
+  EN: Purchasing Managers
+  VI: Quản lý mua hàng
+
+id=24
+  EN: Transportation, Storage, and Distribution Managers
+  VI: Quản lý vận tải, kho bãi và phân phối
+
+id=25
+  EN: Supply Chain Managers
+  VI: Quản lý chuỗi cung ứng
+
+id=26
+  EN: Compensation and Benefits Managers
+  VI: Quản lý lương thưởng và phúc lợi
+
+id=27
+  EN: Human Resources Managers
+  VI: Quản lý nhân sự
+
+id=28
+  EN: Training and Development Managers
+  VI: Quản lý đào tạo và phát triển
+
+id=29
+  EN: Farmers, Ranchers, and Other Agricultural Managers
+  VI: Nông dân, chủ trang trại và quản lý nông nghiệp
+
+id=30
+  EN: Construction Managers
+  VI: Quản lý xây dựng
+
+id=31
+  EN: Education and Childcare Administrators, Preschool and Daycare
+  VI: Quản lý giáo dục và chăm sóc trẻ em (mầm non và nhà trẻ)
+
+id=32
+  EN: Education Administrators, Kindergarten through Secondary
+  VI: Quản lý giáo dục phổ thông
+
+id=33
+  EN: Education Administrators, Postsecondary
+  VI: Quản lý giáo dục đại học
+
+id=34
+  EN: Education Administrators, All Other
+  VI: Quản lý giáo dục (khác)
+
+id=35
+  EN: Architectural and Engineering Managers
+  VI: Quản lý kiến trúc và kỹ thuật
+
+id=36
+  EN: Biofuels/Biodiesel Technology and Product Development Managers
+  VI: Quản lý phát triển công nghệ và sản phẩm nhiên liệu sinh học
+
+id=37
+  EN: Food Service Managers
+  VI: Quản lý dịch vụ ăn uống
+
+id=38
+  EN: Gambling Managers
+  VI: Quản lý cơ sở cờ bạc
+
+id=39
+  EN: Entertainment and Recreation Managers, Except Gambling
+  VI: Quản lý giải trí và vui chơi (trừ cờ bạc)
+
+id=40
+  EN: Lodging Managers
+  VI: Quản lý cơ sở lưu trú
+
+id=41
+  EN: Medical and Health Services Managers
+  VI: Quản lý dịch vụ y tế
+
+id=42
+  EN: Natural Sciences Managers
+  VI: Quản lý khoa học tự nhiên
+
+id=43
+  EN: Clinical Research Coordinators
+  VI: Điều phối viên nghiên cứu lâm sàng
+
+id=44
+  EN: Water Resource Specialists
+  VI: Chuyên gia tài nguyên nước
+
+id=45
+  EN: Postmasters and Mail Superintendents
+  VI: Trưởng bưu cục
+
+id=46
+  EN: Property, Real Estate, and Community Association Managers
+  VI: Quản lý bất động sản và cộng đồng
+
+id=47
+  EN: Social and Community Service Managers
+  VI: Quản lý dịch vụ xã hội và cộng đồng
+
+id=48
+  EN: Emergency Management Directors
+  VI: Giám đốc quản lý khẩn cấp
+
+id=49
+  EN: Funeral Home Managers
+  VI: Quản lý nhà tang lễ
+
+id=50
+  EN: Fitness and Wellness Coordinators
+  VI: Điều phối viên thể dục và sức khỏe
+
+id=51
+  EN: Spa Managers
+  VI: Quản lý spa
+
+id=52
+  EN: Managers, All Other
+  VI: Quản lý (khác)
+
+id=53
+  EN: Regulatory Affairs Managers
+  VI: Quản lý các vấn đề pháp lý
+
+id=54
+  EN: Compliance Managers
+  VI: Quản lý tuân thủ
+
+id=55
+  EN: Loss Prevention Managers
+  VI: Quản lý phòng chống tổn thất
+
+id=56
+  EN: Wind Energy Operations Managers
+  VI: Quản lý vận hành năng lượng gió
+
+id=57
+  EN: Wind Energy Development Managers
+  VI: Quản lý phát triển năng lượng gió
+
+id=58
+  EN: Brownfield Redevelopment Specialists and Site Managers
+  VI: Chuyên gia tái phát triển khu đất ô nhiễm và quản lý địa điểm
+
+id=59
+  EN: Agents and Business Managers of Artists, Performers, and Athletes
+  VI: Đại lý và quản lý nghệ sĩ, diễn viên và vận động viên
+
+id=60
+  EN: Buyers and Purchasing Agents, Farm Products
+  VI: Nhân viên thu mua nông sản
+
+id=61
+  EN: Wholesale and Retail Buyers, Except Farm Products
+  VI: Nhân viên thu mua bán buôn và bán lẻ
+
+id=62
+  EN: Purchasing Agents, Except Wholesale, Retail, and Farm Products
+  VI: Nhân viên thu mua (trừ bán buôn, bán lẻ, nông sản)
+
+id=63
+  EN: Claims Adjusters, Examiners, and Investigators
+  VI: Chuyên viên giải quyết bồi thường bảo hiểm
+
+id=64
+  EN: Insurance Appraisers, Auto Damage
+  VI: Thẩm định viên bảo hiểm thiệt hại ô tô
+
+id=65
+  EN: Compliance Officers
+  VI: Chuyên viên tuân thủ
+
+id=66
+  EN: Environmental Compliance Inspectors
+  VI: Thanh tra tuân thủ môi trường
+
+id=67
+  EN: Equal Opportunity Representatives and Officers
+  VI: Đại diện và cán bộ cơ hội bình đẳng
+
+id=68
+  EN: Government Property Inspectors and Investigators
+  VI: Thanh tra và điều tra tài sản chính phủ
+
+id=69
+  EN: Coroners
+  VI: Điều tra viên pháp y (giám định tử thi)
+
+id=70
+  EN: Regulatory Affairs Specialists
+  VI: Chuyên gia về pháp lý
+
+id=71
+  EN: Customs Brokers
+  VI: Đại lý hải quan
+
+id=72
+  EN: Cost Estimators
+  VI: Chuyên viên dự toán chi phí
+
+id=73
+  EN: Human Resources Specialists
+  VI: Chuyên viên nhân sự
+
+id=74
+  EN: Farm Labor Contractors
+  VI: Nhà thầu lao động trang trại
+
+id=75
+  EN: Labor Relations Specialists
+  VI: Chuyên viên quan hệ lao động
+
+id=76
+  EN: Logisticians
+  VI: Chuyên viên logistics
+
+id=77
+  EN: Logistics Engineers
+  VI: Kỹ sư hậu cần
+
+id=78
+  EN: Logistics Analysts
+  VI: Nhà phân tích hậu cần
+
+id=79
+  EN: Project Management Specialists
+  VI: Chuyên viên quản lý dự án
+
+id=80
+  EN: Management Analysts
+  VI: Chuyên viên phân tích quản lý
+
+id=81
+  EN: Meeting, Convention, and Event Planners
+  VI: Chuyên viên tổ chức sự kiện và hội nghị
+
+id=82
+  EN: Fundraisers
+  VI: Chuyên viên gây quỹ
+
+id=83
+  EN: Compensation, Benefits, and Job Analysis Specialists
+  VI: Chuyên viên lương thưởng, phúc lợi và phân tích công việc
+
+id=84
+  EN: Training and Development Specialists
+  VI: Chuyên viên đào tạo và phát triển
+
+id=85
+  EN: Market Research Analysts and Marketing Specialists
+  VI: Chuyên viên nghiên cứu thị trường và marketing
+
+id=86
+  EN: Search Marketing Strategists
+  VI: Chuyên gia chiến lược marketing tìm kiếm
+
+id=87
+  EN: Business Operations Specialists, All Other
+  VI: Chuyên viên vận hành kinh doanh (khác)
+
+id=88
+  EN: Business Continuity Planners
+  VI: Chuyên gia lập kế hoạch kinh doanh liên tục
+
+id=89
+  EN: Sustainability Specialists
+  VI: Chuyên gia bền vững
+
+id=90
+  EN: Online Merchants
+  VI: Người bán trực tuyến
+
+id=91
+  EN: Security Management Specialists
+  VI: Chuyên gia quản lý an ninh
+
+id=92
+  EN: Accountants and Auditors
+  VI: Kế toán và kiểm toán viên
+
+id=93
+  EN: Appraisers of Personal and Business Property
+  VI: Thẩm định viên tài sản cá nhân và doanh nghiệp
+
+id=94
+  EN: Appraisers and Assessors of Real Estate
+  VI: Thẩm định viên bất động sản
+
+id=95
+  EN: Budget Analysts
+  VI: Chuyên viên phân tích ngân sách
+
+id=96
+  EN: Credit Analysts
+  VI: Chuyên viên phân tích tín dụng
+
+id=97
+  EN: Financial and Investment Analysts
+  VI: Chuyên viên phân tích tài chính và đầu tư
+
+id=98
+  EN: Personal Financial Advisors
+  VI: Tư vấn tài chính cá nhân
+
+id=99
+  EN: Insurance Underwriters
+  VI: Chuyên viên bảo lãnh bảo hiểm
+
+id=100
+  EN: Financial Risk Specialists
+  VI: Chuyên viên rủi ro tài chính
+
+id=101
+  EN: Financial Examiners
+  VI: Thanh tra tài chính
+
+id=102
+  EN: Credit Counselors
+  VI: Tư vấn tín dụng
+
+id=103
+  EN: Loan Officers
+  VI: Cán bộ cho vay
+
+id=104
+  EN: Tax Examiners and Collectors, and Revenue Agents
+  VI: Nhân viên kiểm tra thuế, thu thuế và đại lý doanh thu
+
+id=105
+  EN: Tax Preparers
+  VI: Người khai thuế
+
+id=106
+  EN: Financial Specialists, All Other
+  VI: Chuyên viên tài chính (khác)
+
+id=107
+  EN: Financial Quantitative Analysts
+  VI: Chuyên viên phân tích định lượng tài chính
+
+id=108
+  EN: Fraud Examiners, Investigators and Analysts
+  VI: Chuyên viên kiểm tra, điều tra và phân tích gian lận
+
+id=109
+  EN: Computer Systems Analysts
+  VI: Chuyên viên phân tích hệ thống máy tính
+
+id=110
+  EN: Health Informatics Specialists
+  VI: Chuyên gia tin học y tế
+
+id=111
+  EN: Information Security Analysts
+  VI: Chuyên viên an toàn thông tin
+
+id=112
+  EN: Computer and Information Research Scientists
+  VI: Nhà khoa học nghiên cứu máy tính và thông tin
+
+id=113
+  EN: Computer Network Support Specialists
+  VI: Chuyên viên hỗ trợ mạng máy tính
+
+id=114
+  EN: Computer User Support Specialists
+  VI: Chuyên viên hỗ trợ người dùng máy tính
+
+id=115
+  EN: Computer Network Architects
+  VI: Kiến trúc sư mạng máy tính
+
+id=116
+  EN: Telecommunications Engineering Specialists
+  VI: Chuyên gia kỹ thuật viễn thông
+
+id=117
+  EN: Database Administrators
+  VI: Quản trị viên cơ sở dữ liệu
+
+id=118
+  EN: Database Architects
+  VI: Kiến trúc sư cơ sở dữ liệu
+
+id=119
+  EN: Data Warehousing Specialists
+  VI: Chuyên gia lưu trữ dữ liệu
+
+id=120
+  EN: Network and Computer Systems Administrators
+  VI: Quản trị viên mạng và hệ thống máy tính
+
+id=121
+  EN: Computer Programmers
+  VI: Lập trình viên máy tính
+
+id=122
+  EN: Software Developers
+  VI: Kỹ sư phát triển phần mềm
+
+id=123
+  EN: Software Quality Assurance Analysts and Testers
+  VI: Chuyên viên kiểm thử và đảm bảo chất lượng phần mềm
+
+id=124
+  EN: Web Developers
+  VI: Lập trình viên web
+
+id=125
+  EN: Web and Digital Interface Designers
+  VI: Nhà thiết kế giao diện web và kỹ thuật số
+
+id=126
+  EN: Video Game Designers
+  VI: Nhà thiết kế trò chơi điện tử
+
+id=127
+  EN: Web Administrators
+  VI: Quản trị viên web
+
+id=128
+  EN: Geographic Information Systems Technologists and Technicians
+  VI: Kỹ thuật viên hệ thống thông tin địa lý
+
+id=129
+  EN: Document Management Specialists
+  VI: Chuyên gia quản lý tài liệu
+
+id=130
+  EN: Penetration Testers
+  VI: Chuyên gia kiểm thử xâm nhập (pentest)
+
+id=131
+  EN: Information Security Engineers
+  VI: Kỹ sư bảo mật thông tin
+
+id=132
+  EN: Digital Forensics Analysts
+  VI: Nhà phân tích pháp y kỹ thuật số
+
+id=133
+  EN: Blockchain Engineers
+  VI: Kỹ sư chuỗi khối
+
+id=134
+  EN: Computer Systems Engineers/Architects
+  VI: Kỹ sư/Kiến trúc sư hệ thống máy tính
+
+id=135
+  EN: Information Technology Project Managers
+  VI: Quản lý dự án công nghệ thông tin
+
+id=136
+  EN: Actuaries
+  VI: Chuyên gia tính toán bảo hiểm
+
+id=137
+  EN: Mathematicians
+  VI: Nhà toán học
+
+id=138
+  EN: Operations Research Analysts
+  VI: Nhà phân tích nghiên cứu hoạt động
+
+id=139
+  EN: Statisticians
+  VI: Nhà thống kê học
+
+id=140
+  EN: Biostatisticians
+  VI: Nhà thống kê sinh học
+
+id=141
+  EN: Data Scientists
+  VI: Nhà khoa học dữ liệu
+
+id=142
+  EN: Business Intelligence Analysts
+  VI: Chuyên viên phân tích kinh doanh thông minh
+
+id=143
+  EN: Clinical Data Managers
+  VI: Quản lý dữ liệu lâm sàng
+
+id=144
+  EN: Mathematical Science Occupations, All Other
+  VI: Các nghề khoa học toán học (khác)
+
+id=145
+  EN: Bioinformatics Technicians
+  VI: Kỹ thuật viên tin sinh học
+
+id=146
+  EN: Architects, Except Landscape and Naval
+  VI: Kiến trúc sư (trừ cảnh quan và hải quân)
+
+id=147
+  EN: Landscape Architects
+  VI: Kiến trúc sư cảnh quan
+
+id=148
+  EN: Cartographers and Photogrammetrists
+  VI: Người vẽ bản đồ và nhà đo ảnh
+
+id=149
+  EN: Surveyors
+  VI: Người khảo sát
+
+id=150
+  EN: Geodetic Surveyors
+  VI: Nhà khảo sát trắc địa
+
+id=151
+  EN: Aerospace Engineers
+  VI: Kỹ sư hàng không vũ trụ
+
+id=152
+  EN: Agricultural Engineers
+  VI: Kỹ sư nông nghiệp
+
+id=153
+  EN: Bioengineers and Biomedical Engineers
+  VI: Kỹ sư sinh học và y sinh
+
+id=154
+  EN: Chemical Engineers
+  VI: Kỹ sư hóa học
+
+id=155
+  EN: Civil Engineers
+  VI: Kỹ sư xây dựng
+
+id=156
+  EN: Transportation Engineers
+  VI: Kỹ sư vận tải
+
+id=157
+  EN: Water/Wastewater Engineers
+  VI: Kỹ sư nước/nước thải
+
+id=158
+  EN: Computer Hardware Engineers
+  VI: Kỹ sư phần cứng máy tính
+
+id=159
+  EN: Electrical Engineers
+  VI: Kỹ sư điện
+
+id=160
+  EN: Electronics Engineers, Except Computer
+  VI: Kỹ sư điện tử (trừ máy tính)
+
+id=161
+  EN: Radio Frequency Identification Device Specialists
+  VI: Chuyên gia về thiết bị nhận dạng tần số vô tuyến
+
+id=162
+  EN: Environmental Engineers
+  VI: Kỹ sư môi trường
+
+id=163
+  EN: Health and Safety Engineers, Except Mining Safety Engineers and Inspectors
+  VI: Kỹ sư về sức khỏe và an toàn, ngoại trừ kỹ sư và thanh tra viên an toàn khai thác mỏ
+
+id=164
+  EN: Fire-Prevention and Protection Engineers
+  VI: Kỹ sư phòng cháy và bảo vệ
+
+id=165
+  EN: Industrial Engineers
+  VI: Kỹ sư công nghiệp
+
+id=166
+  EN: Human Factors Engineers and Ergonomists
+  VI: Kỹ sư yếu tố con người và chuyên gia công thái học
+
+id=167
+  EN: Validation Engineers
+  VI: Kỹ sư xác nhận
+
+id=168
+  EN: Manufacturing Engineers
+  VI: Kỹ sư sản xuất
+
+id=169
+  EN: Marine Engineers and Naval Architects
+  VI: Kỹ sư hàng hải và kiến trúc sư tàu thủy
+
+id=170
+  EN: Materials Engineers
+  VI: Kỹ sư vật liệu
+
+id=171
+  EN: Mechanical Engineers
+  VI: Kỹ sư cơ khí
+
+id=172
+  EN: Fuel Cell Engineers
+  VI: Kỹ sư pin nhiên liệu
+
+id=173
+  EN: Automotive Engineers
+  VI: Kỹ sư ô tô
+
+id=174
+  EN: Mining and Geological Engineers, Including Mining Safety Engineers
+  VI: Kỹ sư khai thác mỏ và địa chất (bao gồm kỹ sư an toàn mỏ)
+
+id=175
+  EN: Nuclear Engineers
+  VI: Kỹ sư hạt nhân
+
+id=176
+  EN: Petroleum Engineers
+  VI: Kỹ sư dầu khí
+
+id=177
+  EN: Engineers, All Other
+  VI: Kỹ sư (khác)
+
+id=178
+  EN: Energy Engineers, Except Wind and Solar
+  VI: Kỹ sư năng lượng, ngoại trừ gió và mặt trời
+
+id=179
+  EN: Mechatronics Engineers
+  VI: Kỹ sư cơ điện tử
+
+id=180
+  EN: Microsystems Engineers
+  VI: Kỹ sư hệ thống vi mô
+
+id=181
+  EN: Photonics Engineers
+  VI: Kỹ sư quang tử
+
+id=182
+  EN: Robotics Engineers
+  VI: Kỹ sư robot
+
+id=183
+  EN: Nanosystems Engineers
+  VI: Kỹ sư hệ thống nano
+
+id=184
+  EN: Wind Energy Engineers
+  VI: Kỹ sư năng lượng gió
+
+id=185
+  EN: Solar Energy Systems Engineers
+  VI: Kỹ sư hệ thống năng lượng mặt trời
+
+id=186
+  EN: Architectural and Civil Drafters
+  VI: Họa viên kiến trúc và dân dụng
+
+id=187
+  EN: Electrical and Electronics Drafters
+  VI: Họa viên điện và điện tử
+
+id=188
+  EN: Mechanical Drafters
+  VI: Họa viên cơ khí
+
+id=189
+  EN: Aerospace Engineering and Operations Technologists and Technicians
+  VI: Kỹ thuật viên kỹ thuật và vận hành hàng không vũ trụ
+
+id=190
+  EN: Civil Engineering Technologists and Technicians
+  VI: Kỹ thuật viên và chuyên gia công nghệ xây dựng dân dụng
+
+id=191
+  EN: Electrical and Electronic Engineering Technologists and Technicians
+  VI: Kỹ thuật viên và công nghệ kỹ thuật điện và điện tử
+
+id=192
+  EN: Electro-Mechanical and Mechatronics Technologists and Technicians
+  VI: Kỹ thuật viên và kỹ thuật viên cơ điện và cơ điện tử
+
+id=193
+  EN: Robotics Technicians
+  VI: Kỹ thuật viên robot
+
+id=194
+  EN: Environmental Engineering Technologists and Technicians
+  VI: Kỹ thuật viên và công nghệ kỹ thuật môi trường
+
+id=195
+  EN: Industrial Engineering Technologists and Technicians
+  VI: Kỹ thuật viên và kỹ thuật viên kỹ thuật công nghiệp
+
+id=196
+  EN: Nanotechnology Engineering Technologists and Technicians
+  VI: Kỹ thuật viên và công nghệ kỹ thuật công nghệ nano
+
+id=197
+  EN: Mechanical Engineering Technologists and Technicians
+  VI: Kỹ sư công nghệ và kỹ thuật viên cơ khí
+
+id=198
+  EN: Automotive Engineering Technicians
+  VI: Kỹ thuật viên kỹ thuật ô tô
+
+id=199
+  EN: Calibration Technologists and Technicians
+  VI: Kỹ thuật viên và công nghệ hiệu chuẩn
+
+id=200
+  EN: Engineering Technologists and Technicians, Except Drafters, All Other
+  VI: Kỹ thuật viên và công nghệ kỹ thuật, ngoại trừ người soạn thảo (khác)
+
+id=201
+  EN: Non-Destructive Testing Specialists
+  VI: Chuyên gia kiểm tra không phá hủy
+
+id=202
+  EN: Photonics Technicians
+  VI: Kỹ thuật viên quang tử
+
+id=203
+  EN: Surveying and Mapping Technicians
+  VI: Kỹ thuật viên đo đạc và bản đồ
+
+id=204
+  EN: Animal Scientists
+  VI: Nhà khoa học động vật
+
+id=205
+  EN: Food Scientists and Technologists
+  VI: Nhà khoa học và công nghệ thực phẩm
+
+id=206
+  EN: Soil and Plant Scientists
+  VI: Nhà khoa học về đất và thực vật
+
+id=207
+  EN: Biochemists and Biophysicists
+  VI: Nhà hóa sinh và nhà sinh lý học
+
+id=208
+  EN: Microbiologists
+  VI: Nhà vi trùng học
+
+id=209
+  EN: Zoologists and Wildlife Biologists
+  VI: Nhà động vật học và sinh vật học hoang dã
+
+id=210
+  EN: Bioinformatics Scientists
+  VI: Nhà khoa học tin sinh học
+
+id=211
+  EN: Molecular and Cellular Biologists
+  VI: Nhà sinh học phân tử và tế bào
+
+id=212
+  EN: Geneticists
+  VI: Nhà di truyền học
+
+id=213
+  EN: Biologists
+  VI: Nhà sinh vật học
+
+id=214
+  EN: Conservation Scientists
+  VI: Nhà khoa học bảo tồn
+
+id=215
+  EN: Range Managers
+  VI: Quản lý đồng cỏ và chăn thả
+
+id=216
+  EN: Park Naturalists
+  VI: Nhà tự nhiên học công viên
+
+id=217
+  EN: Foresters
+  VI: Kiểm lâm viên
+
+id=218
+  EN: Epidemiologists
+  VI: Nhà dịch tễ học
+
+id=219
+  EN: Medical Scientists, Except Epidemiologists
+  VI: Nhà khoa học y tế, ngoại trừ các nhà dịch tễ học
+
+id=220
+  EN: Astronomers
+  VI: Nhà thiên văn học
+
+id=221
+  EN: Physicists
+  VI: Nhà vật lý học
+
+id=222
+  EN: Atmospheric and Space Scientists
+  VI: Nhà khoa học khí quyển và vũ trụ
+
+id=223
+  EN: Chemists
+  VI: Nhà hóa học
+
+id=224
+  EN: Materials Scientists
+  VI: Nhà khoa học vật liệu
+
+id=225
+  EN: Environmental Scientists and Specialists, Including Health
+  VI: Nhà khoa học và chuyên gia môi trường, bao gồm cả sức khỏe
+
+id=226
+  EN: Climate Change Policy Analysts
+  VI: Nhà phân tích chính sách về biến đổi khí hậu
+
+id=227
+  EN: Environmental Restoration Planners
+  VI: Người lập kế hoạch phục hồi môi trường
+
+id=228
+  EN: Industrial Ecologists
+  VI: Nhà sinh thái công nghiệp
+
+id=229
+  EN: Geoscientists, Except Hydrologists and Geographers
+  VI: Nhà địa chất học, ngoại trừ các nhà thủy văn và địa lý
+
+id=230
+  EN: Hydrologists
+  VI: Nhà thủy văn học
+
+id=231
+  EN: Remote Sensing Scientists and Technologists
+  VI: Nhà khoa học và công nghệ viễn thám
+
+id=232
+  EN: Economists
+  VI: Nhà kinh tế học
+
+id=233
+  EN: Environmental Economists
+  VI: Nhà kinh tế môi trường
+
+id=234
+  EN: Survey Researchers
+  VI: Nhà nghiên cứu khảo sát
+
+id=235
+  EN: Industrial-Organizational Psychologists
+  VI: Nhà tâm lý học tổ chức-công nghiệp
+
+id=236
+  EN: Clinical and Counseling Psychologists
+  VI: Nhà tâm lý học lâm sàng và tư vấn
+
+id=237
+  EN: School Psychologists
+  VI: Nhà tâm lý học trường học
+
+id=238
+  EN: Neuropsychologists
+  VI: Nhà tâm lý học thần kinh
+
+id=239
+  EN: Clinical Neuropsychologists
+  VI: Nhà tâm lý học thần kinh lâm sàng
+
+id=240
+  EN: Sociologists
+  VI: Nhà xã hội học
+
+id=241
+  EN: Urban and Regional Planners
+  VI: Nhà quy hoạch đô thị và khu vực
+
+id=242
+  EN: Anthropologists and Archeologists
+  VI: Nhà nhân chủng học và khảo cổ học
+
+id=243
+  EN: Geographers
+  VI: Nhà địa lý
+
+id=244
+  EN: Historians
+  VI: Nhà sử học
+
+id=245
+  EN: Political Scientists
+  VI: Nhà khoa học chính trị
+
+id=246
+  EN: Social Scientists and Related Workers, All Other
+  VI: Nhà khoa học xã hội và nhân viên liên quan (khác)
+
+id=247
+  EN: Transportation Planners
+  VI: Nhà quy hoạch giao thông
+
+id=248
+  EN: Agricultural Technicians
+  VI: Kỹ thuật viên nông nghiệp
+
+id=249
+  EN: Precision Agriculture Technicians
+  VI: Kỹ thuật viên nông nghiệp chính xác
+
+id=250
+  EN: Food Science Technicians
+  VI: Kỹ thuật viên khoa học thực phẩm
+
+id=251
+  EN: Biological Technicians
+  VI: Kỹ thuật viên sinh học
+
+id=252
+  EN: Chemical Technicians
+  VI: Kỹ thuật viên hóa học
+
+id=253
+  EN: Environmental Science and Protection Technicians, Including Health
+  VI: Kỹ thuật viên khoa học và bảo vệ môi trường, bao gồm cả sức khỏe
+
+id=254
+  EN: Geological Technicians, Except Hydrologic Technicians
+  VI: Kỹ thuật viên địa chất, trừ kỹ thuật viên thủy văn
+
+id=255
+  EN: Hydrologic Technicians
+  VI: Kỹ thuật viên thủy văn
+
+id=256
+  EN: Nuclear Technicians
+  VI: Kỹ thuật viên hạt nhân
+
+id=257
+  EN: Nuclear Monitoring Technicians
+  VI: Kỹ thuật viên giám sát hạt nhân
+
+id=258
+  EN: Social Science Research Assistants
+  VI: Trợ lý nghiên cứu khoa học xã hội
+
+id=259
+  EN: Forest and Conservation Technicians
+  VI: Kỹ thuật viên bảo tồn và rừng
+
+id=260
+  EN: Forensic Science Technicians
+  VI: Kỹ thuật viên khoa học pháp y
+
+id=261
+  EN: Quality Control Analysts
+  VI: Nhà phân tích kiểm soát chất lượng
+
+id=262
+  EN: Remote Sensing Technicians
+  VI: Kỹ thuật viên viễn thám
+
+id=263
+  EN: Occupational Health and Safety Specialists
+  VI: Chuyên gia về an toàn và sức khỏe nghề nghiệp
+
+id=264
+  EN: Occupational Health and Safety Technicians
+  VI: Kỹ thuật viên an toàn và sức khỏe nghề nghiệp
+
+id=265
+  EN: Substance Abuse and Behavioral Disorder Counselors
+  VI: Cố vấn lạm dụng chất gây nghiện và rối loạn hành vi
+
+id=266
+  EN: Educational, Guidance, and Career Counselors and Advisors
+  VI: Cố vấn giáo dục, hướng nghiệp và nghề nghiệp
+
+id=267
+  EN: Marriage and Family Therapists
+  VI: Nhà trị liệu hôn nhân và gia đình
+
+id=268
+  EN: Mental Health Counselors
+  VI: Cố vấn sức khỏe tâm thần
+
+id=269
+  EN: Rehabilitation Counselors
+  VI: Cố vấn phục hồi chức năng
+
+id=270
+  EN: Counselors, All Other
+  VI: Cố vấn (khác)
+
+id=271
+  EN: Child, Family, and School Social Workers
+  VI: Nhân viên xã hội trẻ em, gia đình và trường học
+
+id=272
+  EN: Healthcare Social Workers
+  VI: Nhân viên xã hội chăm sóc sức khỏe
+
+id=273
+  EN: Mental Health and Substance Abuse Social Workers
+  VI: Nhân viên xã hội về sức khỏe tâm thần và lạm dụng dược chất
+
+id=274
+  EN: Social Workers, All Other
+  VI: Nhân viên xã hội (khác)
+
+id=275
+  EN: Health Education Specialists
+  VI: Chuyên gia giáo dục sức khỏe
+
+id=276
+  EN: Probation Officers and Correctional Treatment Specialists
+  VI: Cán bộ quản chế và chuyên gia điều trị cải huấn
+
+id=277
+  EN: Social and Human Service Assistants
+  VI: Trợ lý dịch vụ xã hội và hỗ trợ cộng đồng
+
+id=278
+  EN: Community Health Workers
+  VI: Nhân viên y tế cộng đồng
+
+id=279
+  EN: Community and Social Service Specialists, All Other
+  VI: Chuyên gia dịch vụ cộng đồng và xã hội (khác)
+
+id=280
+  EN: Clergy
+  VI: Giáo sĩ
+
+id=281
+  EN: Directors, Religious Activities and Education
+  VI: Giám đốc hoạt động tôn giáo và giáo dục
+
+id=282
+  EN: Lawyers
+  VI: Luật sư
+
+id=283
+  EN: Judicial Law Clerks
+  VI: Thư ký luật tư pháp
+
+id=284
+  EN: Administrative Law Judges, Adjudicators, and Hearing Officers
+  VI: Thẩm phán luật hành chính, người xét xử và viên chức điều trần
+
+id=285
+  EN: Arbitrators, Mediators, and Conciliators
+  VI: Trọng tài, hòa giải viên và người dàn xếp
+
+id=286
+  EN: Judges, Magistrate Judges, and Magistrates
+  VI: Thẩm phán
+
+id=287
+  EN: Paralegals and Legal Assistants
+  VI: Trợ lý pháp lý
+
+id=288
+  EN: Title Examiners, Abstractors, and Searchers
+  VI: Chuyên viên kiểm tra quyền sở hữu
+
+id=289
+  EN: Legal Support Workers, All Other
+  VI: Nhân viên hỗ trợ pháp lý (khác)
+
+id=290
+  EN: Business Teachers, Postsecondary
+  VI: Giảng viên Kinh doanh (Đại học)
+
+id=291
+  EN: Computer Science Teachers, Postsecondary
+  VI: Giảng viên Khoa học Máy tính (Đại học)
+
+id=292
+  EN: Mathematical Science Teachers, Postsecondary
+  VI: Giảng viên Khoa học Toán học (Đại học)
+
+id=293
+  EN: Architecture Teachers, Postsecondary
+  VI: Giảng viên Kiến trúc (Đại học)
+
+id=294
+  EN: Engineering Teachers, Postsecondary
+  VI: Giảng viên Kỹ thuật (Đại học)
+
+id=295
+  EN: Agricultural Sciences Teachers, Postsecondary
+  VI: Giảng viên Khoa học Nông nghiệp (Đại học)
+
+id=296
+  EN: Biological Science Teachers, Postsecondary
+  VI: Giảng viên Khoa học Sinh học (Đại học)
+
+id=297
+  EN: Forestry and Conservation Science Teachers, Postsecondary
+  VI: Giảng viên Lâm nghiệp và Khoa học Bảo tồn (Đại học)
+
+id=298
+  EN: Atmospheric, Earth, Marine, and Space Sciences Teachers, Postsecondary
+  VI: Giảng viên Khoa học Khí quyển, Trái đất, Biển và Vũ trụ (Đại học)
+
+id=299
+  EN: Chemistry Teachers, Postsecondary
+  VI: Giảng viên Hóa học (Đại học)
+
+id=300
+  EN: Environmental Science Teachers, Postsecondary
+  VI: Giảng viên Khoa học Môi trường (Đại học)
+
+id=301
+  EN: Physics Teachers, Postsecondary
+  VI: Giảng viên Vật lý (Đại học)
+
+id=302
+  EN: Anthropology and Archeology Teachers, Postsecondary
+  VI: Giảng viên Nhân chủng học và Khảo cổ học (Đại học)
+
+id=303
+  EN: Area, Ethnic, and Cultural Studies Teachers, Postsecondary
+  VI: Giảng viên Nghiên cứu Khu vực, Dân tộc và Văn hóa (Đại học)
+
+id=304
+  EN: Economics Teachers, Postsecondary
+  VI: Giảng viên Kinh tế (Đại học)
+
+id=305
+  EN: Geography Teachers, Postsecondary
+  VI: Giảng viên Địa lý (Đại học)
+
+id=306
+  EN: Political Science Teachers, Postsecondary
+  VI: Giảng viên Khoa học Chính trị (Đại học)
+
+id=307
+  EN: Psychology Teachers, Postsecondary
+  VI: Giảng viên Tâm lý học (Đại học)
+
+id=308
+  EN: Sociology Teachers, Postsecondary
+  VI: Giảng viên Xã hội học (Đại học)
+
+id=309
+  EN: Health Specialties Teachers, Postsecondary
+  VI: Giảng viên Chuyên ngành Sức khỏe (Đại học)
+
+id=310
+  EN: Nursing Instructors and Teachers, Postsecondary
+  VI: Giảng viên Điều dưỡng (Đại học)
+
+id=311
+  EN: Education Teachers, Postsecondary
+  VI: Giảng viên Giáo dục học (Đại học)
+
+id=312
+  EN: Library Science Teachers, Postsecondary
+  VI: Giảng viên Khoa học Thư viện (Đại học)
+
+id=313
+  EN: Criminal Justice and Law Enforcement Teachers, Postsecondary
+  VI: Giảng viên Tư pháp Hình sự và Thực thi Pháp luật (Đại học)
+
+id=314
+  EN: Law Teachers, Postsecondary
+  VI: Giảng viên Luật (Đại học)
+
+id=315
+  EN: Social Work Teachers, Postsecondary
+  VI: Giảng viên Công tác Xã hội (Đại học)
+
+id=316
+  EN: Art, Drama, and Music Teachers, Postsecondary
+  VI: Giảng viên Nghệ thuật, Kịch nghệ và Âm nhạc (Đại học)
+
+id=317
+  EN: Communications Teachers, Postsecondary
+  VI: Giảng viên Truyền thông (Đại học)
+
+id=318
+  EN: English Language and Literature Teachers, Postsecondary
+  VI: Giảng viên Ngôn ngữ và Văn học Anh (Đại học)
+
+id=319
+  EN: Foreign Language and Literature Teachers, Postsecondary
+  VI: Giảng viên Ngoại ngữ và Văn học (Đại học)
+
+id=320
+  EN: History Teachers, Postsecondary
+  VI: Giảng viên Lịch sử (Đại học)
+
+id=321
+  EN: Philosophy and Religion Teachers, Postsecondary
+  VI: Giảng viên Triết học và Tôn giáo (Đại học)
+
+id=322
+  EN: Family and Consumer Sciences Teachers, Postsecondary
+  VI: Giảng viên Khoa học Gia đình và Tiêu dùng (Đại học)
+
+id=323
+  EN: Recreation and Fitness Studies Teachers, Postsecondary
+  VI: Giảng viên Giải trí và Thể dục (Đại học)
+
+id=324
+  EN: Career/Technical Education Teachers, Postsecondary
+  VI: Giảng viên Giáo dục Nghề nghiệp và Kỹ thuật (Đại học)
+
+id=325
+  EN: Postsecondary Teachers, All Other
+  VI: Giảng viên đại học (khác)
+
+id=326
+  EN: Preschool Teachers, Except Special Education
+  VI: Giáo viên mầm non, ngoại trừ giáo dục đặc biệt
+
+id=327
+  EN: Kindergarten Teachers, Except Special Education
+  VI: Giáo viên mẫu giáo (trừ giáo dục đặc biệt)
+
+id=328
+  EN: Elementary School Teachers, Except Special Education
+  VI: Giáo viên tiểu học (trừ giáo dục đặc biệt)
+
+id=329
+  EN: Middle School Teachers, Except Special and Career/Technical Education
+  VI: Giáo viên trung học cơ sở (trừ giáo dục đặc biệt và dạy nghề)
+
+id=330
+  EN: Career/Technical Education Teachers, Middle School
+  VI: Giáo viên dạy nghề/kỹ thuật, trường trung học cơ sở
+
+id=331
+  EN: Secondary School Teachers, Except Special and Career/Technical Education
+  VI: Giáo viên trung học phổ thông (trừ giáo dục đặc biệt và dạy nghề)
+
+id=332
+  EN: Career/Technical Education Teachers, Secondary School
+  VI: Giáo viên dạy nghề/kỹ thuật, trường trung học
+
+id=333
+  EN: Special Education Teachers, Preschool
+  VI: Giáo viên giáo dục đặc biệt bậc mầm non
+
+id=334
+  EN: Special Education Teachers, Kindergarten
+  VI: Giáo viên giáo dục đặc biệt bậc mẫu giáo
+
+id=335
+  EN: Special Education Teachers, Elementary School
+  VI: Giáo viên giáo dục đặc biệt bậc tiểu học
+
+id=336
+  EN: Special Education Teachers, Middle School
+  VI: Giáo viên giáo dục đặc biệt bậc trung học cơ sở
+
+id=337
+  EN: Special Education Teachers, Secondary School
+  VI: Giáo viên giáo dục đặc biệt bậc trung học phổ thông
+
+id=338
+  EN: Adapted Physical Education Specialists
+  VI: Chuyên gia giáo dục thể chất thích ứng
+
+id=339
+  EN: Adult Basic Education, Adult Secondary Education, and English as a Second Language Instructors
+  VI: Giảng viên Giáo dục cơ bản, Giáo dục trung học dành cho người lớn và Tiếng Anh như ngôn ngữ thứ hai
+
+id=340
+  EN: Self-Enrichment Teachers
+  VI: Giáo viên phát triển bản thân
+
+id=341
+  EN: Substitute Teachers, Short-Term
+  VI: Giáo viên dạy thay, ngắn hạn
+
+id=342
+  EN: Tutors
+  VI: Gia sư
+
+id=343
+  EN: Teachers and Instructors, All Other
+  VI: Giáo viên và người hướng dẫn (khác)
+
+id=344
+  EN: Archivists
+  VI: Nhà lưu trữ
+
+id=345
+  EN: Curators
+  VI: Người phụ trách bảo tàng
+
+id=346
+  EN: Museum Technicians and Conservators
+  VI: Kỹ thuật viên bảo tàng và chuyên gia bảo tồn
+
+id=347
+  EN: Librarians and Media Collections Specialists
+  VI: Thủ thư và chuyên viên quản lý tài liệu
+
+id=348
+  EN: Library Technicians
+  VI: Kỹ thuật viên thư viện
+
+id=349
+  EN: Farm and Home Management Educators
+  VI: Nhà giáo dục quản lý trang trại và nhà ở
+
+id=350
+  EN: Instructional Coordinators
+  VI: Điều phối viên giảng dạy
+
+id=351
+  EN: Teaching Assistants, Preschool, Elementary, Middle, and Secondary School, Except Special Education
+  VI: Trợ giảng bậc mầm non, tiểu học, trung học cơ sở và trung học phổ thông (trừ giáo dục đặc biệt)
+
+id=352
+  EN: Teaching Assistants, Special Education
+  VI: Trợ giảng giáo dục đặc biệt
+
+id=353
+  EN: Teaching Assistants, Postsecondary
+  VI: Trợ giảng (Đại học)
+
+id=354
+  EN: Art Directors
+  VI: Giám đốc nghệ thuật
+
+id=355
+  EN: Craft Artists
+  VI: Nghệ nhân thủ công
+
+id=356
+  EN: Fine Artists, Including Painters, Sculptors, and Illustrators
+  VI: Nghệ sĩ mỹ thuật (họa sĩ, nhà điêu khắc và minh họa viên)
+
+id=357
+  EN: Special Effects Artists and Animators
+  VI: Nghệ sĩ và họa sĩ hoạt hình hiệu ứng đặc biệt
+
+id=358
+  EN: Artists and Related Workers, All Other
+  VI: Nghệ sĩ và nhân viên liên quan (khác)
+
+id=359
+  EN: Commercial and Industrial Designers
+  VI: Nhà thiết kế thương mại và công nghiệp
+
+id=360
+  EN: Fashion Designers
+  VI: Nhà thiết kế thời trang
+
+id=361
+  EN: Floral Designers
+  VI: Nhà thiết kế hoa
+
+id=362
+  EN: Graphic Designers
+  VI: Nhà thiết kế đồ họa
+
+id=363
+  EN: Interior Designers
+  VI: Nhà thiết kế nội thất
+
+id=364
+  EN: Merchandise Displayers and Window Trimmers
+  VI: Nhân viên trưng bày hàng hóa và trang trí cửa sổ
+
+id=365
+  EN: Set and Exhibit Designers
+  VI: Nhà thiết kế bối cảnh và triển lãm
+
+id=366
+  EN: Designers, All Other
+  VI: Nhà thiết kế (khác)
+
+id=367
+  EN: Actors
+  VI: Diễn viên
+
+id=368
+  EN: Producers and Directors
+  VI: Nhà sản xuất và đạo diễn
+
+id=369
+  EN: Media Programming Directors
+  VI: Giám đốc lập trình truyền thông
+
+id=370
+  EN: Talent Directors
+  VI: Giám đốc tài năng
+
+id=371
+  EN: Media Technical Directors/Managers
+  VI: Giám đốc/Quản lý kỹ thuật truyền thông
+
+id=372
+  EN: Athletes and Sports Competitors
+  VI: Vận động viên và đối thủ thể thao
+
+id=373
+  EN: Coaches and Scouts
+  VI: Huấn luyện viên và hướng đạo viên thể thao
+
+id=374
+  EN: Umpires, Referees, and Other Sports Officials
+  VI: Trọng tài và cán bộ thể thao
+
+id=375
+  EN: Dancers
+  VI: Vũ công
+
+id=376
+  EN: Choreographers
+  VI: Biên đạo múa
+
+id=377
+  EN: Music Directors and Composers
+  VI: Giám đốc âm nhạc và nhà soạn nhạc
+
+id=378
+  EN: Musicians and Singers
+  VI: Nhạc sĩ và ca sĩ
+
+id=379
+  EN: Disc Jockeys, Except Radio
+  VI: DJ (trừ đài phát thanh)
+
+id=380
+  EN: Entertainers and Performers, Sports and Related Workers, All Other
+  VI: Nghệ sĩ biểu diễn, vận động viên và nhân viên liên quan (khác)
+
+id=381
+  EN: Broadcast Announcers and Radio Disc Jockeys
+  VI: Phát thanh viên và DJ đài phát thanh
+
+id=382
+  EN: News Analysts, Reporters, and Journalists
+  VI: Nhà phân tích tin tức, phóng viên và nhà báo
+
+id=383
+  EN: Public Relations Specialists
+  VI: Chuyên viên quan hệ công chúng
+
+id=384
+  EN: Editors
+  VI: Biên tập viên
+
+id=385
+  EN: Technical Writers
+  VI: Nhà văn kỹ thuật
+
+id=386
+  EN: Writers and Authors
+  VI: Nhà văn và tác giả
+
+id=387
+  EN: Poets, Lyricists and Creative Writers
+  VI: Nhà thơ, nhà viết lời và nhà văn sáng tạo
+
+id=388
+  EN: Interpreters and Translators
+  VI: Thông dịch viên và biên dịch viên
+
+id=389
+  EN: Court Reporters and Simultaneous Captioners
+  VI: Thư ký tòa án
+
+id=390
+  EN: Media and Communication Workers, All Other
+  VI: Nhân viên truyền thông (khác)
+
+id=391
+  EN: Audio and Video Technicians
+  VI: Kỹ thuật viên âm thanh và video
+
+id=392
+  EN: Broadcast Technicians
+  VI: Kỹ thuật viên phát sóng
+
+id=393
+  EN: Sound Engineering Technicians
+  VI: Kỹ thuật viên kỹ thuật âm thanh
+
+id=394
+  EN: Lighting Technicians
+  VI: Kỹ thuật viên chiếu sáng
+
+id=395
+  EN: Photographers
+  VI: Nhiếp ảnh gia
+
+id=396
+  EN: Camera Operators, Television, Video, and Film
+  VI: Người vận hành máy ảnh, truyền hình, video và phim
+
+id=397
+  EN: Film and Video Editors
+  VI: Biên tập viên phim và video
+
+id=398
+  EN: Media and Communication Equipment Workers, All Other
+  VI: Công nhân thiết bị truyền thông (khác)
+
+id=399
+  EN: Chiropractors
+  VI: Bác sĩ chỉnh hình
+
+id=400
+  EN: Dentists, General
+  VI: Nha sĩ tổng quát
+
+id=401
+  EN: Oral and Maxillofacial Surgeons
+  VI: Bác sĩ phẫu thuật miệng và hàm mặt
+
+id=402
+  EN: Orthodontists
+  VI: Bác sĩ chỉnh răng
+
+id=403
+  EN: Prosthodontists
+  VI: Bác sĩ chỉnh nha
+
+id=404
+  EN: Dietitians and Nutritionists
+  VI: Chuyên gia dinh dưỡng
+
+id=405
+  EN: Optometrists
+  VI: Bác sĩ đo thị lực
+
+id=406
+  EN: Pharmacists
+  VI: Dược sĩ
+
+id=407
+  EN: Physician Assistants
+  VI: Trợ lý bác sĩ
+
+id=408
+  EN: Anesthesiologist Assistants
+  VI: Trợ lý bác sĩ gây mê
+
+id=409
+  EN: Podiatrists
+  VI: Bác sĩ chuyên khoa chân
+
+id=410
+  EN: Occupational Therapists
+  VI: Chuyên viên trị liệu nghề nghiệp
+
+id=411
+  EN: Low Vision Therapists, Orientation and Mobility Specialists, and Vision Rehabilitation Therapists
+  VI: Nhà trị liệu thị lực kém, chuyên gia định hướng và vận động, và nhà trị liệu phục hồi thị giác
+
+id=412
+  EN: Physical Therapists
+  VI: Chuyên viên vật lý trị liệu
+
+id=413
+  EN: Radiation Therapists
+  VI: Nhà trị liệu bức xạ
+
+id=414
+  EN: Recreational Therapists
+  VI: Nhà trị liệu giải trí
+
+id=415
+  EN: Respiratory Therapists
+  VI: Nhà trị liệu hô hấp
+
+id=416
+  EN: Speech-Language Pathologists
+  VI: Chuyên viên ngôn ngữ trị liệu
+
+id=417
+  EN: Exercise Physiologists
+  VI: Nhà sinh lý học thể dục
+
+id=418
+  EN: Therapists, All Other
+  VI: Nhà trị liệu (khác)
+
+id=419
+  EN: Art Therapists
+  VI: Nhà trị liệu nghệ thuật
+
+id=420
+  EN: Music Therapists
+  VI: Nhà trị liệu âm nhạc
+
+id=421
+  EN: Veterinarians
+  VI: Bác sĩ thú y
+
+id=422
+  EN: Registered Nurses
+  VI: Điều dưỡng viên
+
+id=423
+  EN: Acute Care Nurses
+  VI: Y tá chăm sóc cấp tính
+
+id=424
+  EN: Advanced Practice Psychiatric Nurses
+  VI: Y tá tâm thần thực hành nâng cao
+
+id=425
+  EN: Critical Care Nurses
+  VI: Điều dưỡng chăm sóc tích cực
+
+id=426
+  EN: Clinical Nurse Specialists
+  VI: Chuyên gia y tá lâm sàng
+
+id=427
+  EN: Nurse Anesthetists
+  VI: Y tá gây mê
+
+id=428
+  EN: Nurse Midwives
+  VI: Y tá hộ sinh
+
+id=429
+  EN: Nurse Practitioners
+  VI: Y tá thực hành nâng cao
+
+id=430
+  EN: Audiologists
+  VI: Nhà thính học
+
+id=431
+  EN: Anesthesiologists
+  VI: Bác sĩ gây mê
+
+id=432
+  EN: Cardiologists
+  VI: Bác sĩ tim mạch
+
+id=433
+  EN: Dermatologists
+  VI: Bác sĩ da liễu
+
+id=434
+  EN: Emergency Medicine Physicians
+  VI: Bác sĩ cấp cứu
+
+id=435
+  EN: Family Medicine Physicians
+  VI: Bác sĩ y học gia đình
+
+id=436
+  EN: General Internal Medicine Physicians
+  VI: Bác sĩ nội tổng quát
+
+id=437
+  EN: Neurologists
+  VI: Nhà thần kinh học
+
+id=438
+  EN: Obstetricians and Gynecologists
+  VI: Bác sĩ sản khoa và phụ khoa
+
+id=439
+  EN: Pediatricians, General
+  VI: Bác sĩ nhi khoa tổng quát
+
+id=440
+  EN: Physicians, Pathologists
+  VI: Bác sĩ bệnh lý học
+
+id=441
+  EN: Psychiatrists
+  VI: Bác sĩ tâm thần
+
+id=442
+  EN: Radiologists
+  VI: Bác sĩ X-quang
+
+id=443
+  EN: Allergists and Immunologists
+  VI: Nhà dị ứng và miễn dịch học
+
+id=444
+  EN: Hospitalists
+  VI: Bác sĩ bệnh viện
+
+id=445
+  EN: Urologists
+  VI: Bác sĩ tiết niệu
+
+id=446
+  EN: Physical Medicine and Rehabilitation Physicians
+  VI: Bác sĩ y học vật lý và phục hồi chức năng
+
+id=447
+  EN: Preventive Medicine Physicians
+  VI: Bác sĩ y tế dự phòng
+
+id=448
+  EN: Sports Medicine Physicians
+  VI: Bác sĩ y học thể thao
+
+id=449
+  EN: Ophthalmologists, Except Pediatric
+  VI: Bác sĩ nhãn khoa, ngoại trừ nhi khoa
+
+id=450
+  EN: Orthopedic Surgeons, Except Pediatric
+  VI: Bác sĩ phẫu thuật chỉnh hình, ngoại trừ nhi khoa
+
+id=451
+  EN: Pediatric Surgeons
+  VI: Bác sĩ phẫu thuật nhi khoa
+
+id=452
+  EN: Acupuncturists
+  VI: Bác sĩ châm cứu
+
+id=453
+  EN: Dental Hygienists
+  VI: Chuyên viên vệ sinh răng miệng
+
+id=454
+  EN: Naturopathic Physicians
+  VI: Bác sĩ thiên nhiên
+
+id=455
+  EN: Orthoptists
+  VI: Chuyên gia chỉnh thị
+
+id=456
+  EN: Medical and Clinical Laboratory Technologists
+  VI: Kỹ thuật viên phòng thí nghiệm y tế và lâm sàng
+
+id=457
+  EN: Cytogenetic Technologists
+  VI: Nhà công nghệ tế bào học
+
+id=458
+  EN: Cytotechnologists
+  VI: Nhà công nghệ tế bào
+
+id=459
+  EN: Histotechnologists
+  VI: Nhà công nghệ mô học
+
+id=460
+  EN: Medical and Clinical Laboratory Technicians
+  VI: Kỹ thuật viên phòng thí nghiệm y tế và lâm sàng
+
+id=461
+  EN: Histology Technicians
+  VI: Kỹ thuật viên mô học
+
+id=462
+  EN: Cardiovascular Technologists and Technicians
+  VI: Kỹ thuật viên và công nghệ tim mạch
+
+id=463
+  EN: Diagnostic Medical Sonographers
+  VI: Kỹ thuật viên siêu âm chẩn đoán
+
+id=464
+  EN: Nuclear Medicine Technologists
+  VI: Kỹ thuật viên y học hạt nhân
+
+id=465
+  EN: Radiologic Technologists and Technicians
+  VI: Kỹ thuật viên X-quang
+
+id=466
+  EN: Magnetic Resonance Imaging Technologists
+  VI: Kỹ thuật viên chụp ảnh cộng hưởng từ
+
+id=467
+  EN: Medical Dosimetrists
+  VI: Chuyên gia đo liều xạ trị
+
+id=468
+  EN: Emergency Medical Technicians
+  VI: Kỹ thuật viên y tế khẩn cấp
+
+id=469
+  EN: Paramedics
+  VI: Nhân viên y tế cấp cứu
+
+id=470
+  EN: Dietetic Technicians
+  VI: Kỹ thuật viên ăn kiêng
+
+id=471
+  EN: Pharmacy Technicians
+  VI: Kỹ thuật viên Dược
+
+id=472
+  EN: Psychiatric Technicians
+  VI: Kỹ thuật viên tâm thần
+
+id=473
+  EN: Surgical Technologists
+  VI: Kỹ thuật viên phẫu thuật
+
+id=474
+  EN: Veterinary Technologists and Technicians
+  VI: Kỹ thuật viên và kỹ sư thú y
+
+id=475
+  EN: Ophthalmic Medical Technicians
+  VI: Kỹ thuật viên y tế nhãn khoa
+
+id=476
+  EN: Licensed Practical and Licensed Vocational Nurses
+  VI: Y tá thực hành và y tá dạy nghề được cấp phép
+
+id=477
+  EN: Medical Records Specialists
+  VI: Chuyên gia hồ sơ y tế
+
+id=478
+  EN: Opticians, Dispensing
+  VI: Chuyên gia nhãn khoa và pha chế kính
+
+id=479
+  EN: Orthotists and Prosthetists
+  VI: Bác sĩ chỉnh hình và chân tay giả
+
+id=480
+  EN: Hearing Aid Specialists
+  VI: Chuyên gia trợ thính
+
+id=481
+  EN: Neurodiagnostic Technologists
+  VI: Kỹ thuật viên chẩn đoán thần kinh
+
+id=482
+  EN: Ophthalmic Medical Technologists
+  VI: Kỹ thuật viên y tế nhãn khoa
+
+id=483
+  EN: Patient Representatives
+  VI: Đại diện bệnh nhân
+
+id=484
+  EN: Health Information Technologists and Medical Registrars
+  VI: Nhà công nghệ thông tin y tế và nhà đăng ký y tế
+
+id=485
+  EN: Athletic Trainers
+  VI: Huấn luyện viên thể thao
+
+id=486
+  EN: Genetic Counselors
+  VI: Cố vấn di truyền
+
+id=487
+  EN: Surgical Assistants
+  VI: Trợ lý phẫu thuật
+
+id=488
+  EN: Midwives
+  VI: Nữ hộ sinh
+
+id=489
+  EN: Home Health Aides
+  VI: Trợ lý sức khỏe tại nhà
+
+id=490
+  EN: Personal Care Aides
+  VI: Trợ lý chăm sóc cá nhân
+
+id=491
+  EN: Nursing Assistants
+  VI: Trợ lý điều dưỡng
+
+id=492
+  EN: Orderlies
+  VI: Hộ lý bệnh viện
+
+id=493
+  EN: Psychiatric Aides
+  VI: Trợ lý tâm thần
+
+id=494
+  EN: Occupational Therapy Assistants
+  VI: Trợ lý trị liệu nghề nghiệp
+
+id=495
+  EN: Occupational Therapy Aides
+  VI: Trợ lý trị liệu nghề nghiệp
+
+id=496
+  EN: Physical Therapist Assistants
+  VI: Trợ lý vật lý trị liệu
+
+id=497
+  EN: Physical Therapist Aides
+  VI: Trợ lý vật lý trị liệu
+
+id=498
+  EN: Massage Therapists
+  VI: Nhà trị liệu mát-xa
+
+id=499
+  EN: Dental Assistants
+  VI: Trợ lý nha khoa
+
+id=500
+  EN: Medical Assistants
+  VI: Trợ lý y tế
+
+id=501
+  EN: Medical Equipment Preparers
+  VI: Người chuẩn bị thiết bị y tế
+
+id=502
+  EN: Medical Transcriptionists
+  VI: Nhân viên phiên âm hồ sơ y tế
+
+id=503
+  EN: Pharmacy Aides
+  VI: Trợ lý dược phẩm
+
+id=504
+  EN: Veterinary Assistants and Laboratory Animal Caretakers
+  VI: Trợ lý thú y và người chăm sóc động vật thí nghiệm
+
+id=505
+  EN: Phlebotomists
+  VI: Kỹ thuật viên lấy máu
+
+id=506
+  EN: Speech-Language Pathology Assistants
+  VI: Trợ lý ngôn ngữ trị liệu
+
+id=507
+  EN: Endoscopy Technicians
+  VI: Kỹ thuật viên nội soi
+
+id=508
+  EN: First-Line Supervisors of Correctional Officers
+  VI: Giám sát trực tiếp cán bộ cải huấn
+
+id=509
+  EN: First-Line Supervisors of Police and Detectives
+  VI: Giám sát trực tiếp cảnh sát và thám tử
+
+id=510
+  EN: First-Line Supervisors of Firefighting and Prevention Workers
+  VI: Giám sát trực tiếp nhân viên phòng cháy chữa cháy
+
+id=511
+  EN: First-Line Supervisors of Security Workers
+  VI: Giám sát trực tiếp nhân viên an ninh
+
+id=512
+  EN: First-Line Supervisors of Protective Service Workers, All Other
+  VI: Giám sát trực tiếp nhân viên dịch vụ bảo vệ (khác)
+
+id=513
+  EN: Firefighters
+  VI: Lính cứu hỏa
+
+id=514
+  EN: Fire Inspectors and Investigators
+  VI: Thanh tra và điều tra hỏa hoạn
+
+id=515
+  EN: Forest Fire Inspectors and Prevention Specialists
+  VI: Thanh tra và chuyên gia phòng chống cháy rừng
+
+id=516
+  EN: Bailiffs
+  VI: Thừa phát lại
+
+id=517
+  EN: Correctional Officers and Jailers
+  VI: Cán bộ cải huấn và cai ngục
+
+id=518
+  EN: Detectives and Criminal Investigators
+  VI: Thám tử và điều tra hình sự
+
+id=519
+  EN: Police Identification and Records Officers
+  VI: Cảnh sát nhận dạng và lưu trữ hồ sơ
+
+id=520
+  EN: Intelligence Analysts
+  VI: Nhà phân tích tình báo
+
+id=521
+  EN: Fish and Game Wardens
+  VI: Kiểm lâm và bảo vệ động vật hoang dã
+
+id=522
+  EN: Parking Enforcement Workers
+  VI: Nhân viên thực thi bãi đậu xe
+
+id=523
+  EN: Police and Sheriff's Patrol Officers
+  VI: Cảnh sát và nhân viên tuần tra của cảnh sát trưởng
+
+id=524
+  EN: Customs and Border Protection Officers
+  VI: Cán bộ hải quan và bảo vệ biên giới
+
+id=525
+  EN: Transit and Railroad Police
+  VI: Cảnh sát giao thông và đường sắt
+
+id=526
+  EN: Animal Control Workers
+  VI: Công nhân kiểm soát động vật
+
+id=527
+  EN: Private Detectives and Investigators
+  VI: Thám tử tư và điều tra viên
+
+id=528
+  EN: Gambling Surveillance Officers and Gambling Investigators
+  VI: Cán bộ giám sát cờ bạc và điều tra viên cờ bạc
+
+id=529
+  EN: Security Guards
+  VI: Nhân viên bảo vệ
+
+id=530
+  EN: Crossing Guards and Flaggers
+  VI: Nhân viên hướng dẫn giao thông và cắm cờ
+
+id=531
+  EN: Lifeguards, Ski Patrol, and Other Recreational Protective Service Workers
+  VI: Nhân viên cứu hộ, tuần tra trượt tuyết và dịch vụ bảo vệ giải trí
+
+id=532
+  EN: Transportation Security Screeners
+  VI: Nhân viên kiểm tra an ninh vận tải
+
+id=533
+  EN: School Bus Monitors
+  VI: Giám sát xe buýt trường học
+
+id=534
+  EN: Retail Loss Prevention Specialists
+  VI: Chuyên gia ngăn ngừa tổn thất bán lẻ
+
+id=535
+  EN: Chefs and Head Cooks
+  VI: Bếp trưởng
+
+id=536
+  EN: First-Line Supervisors of Food Preparation and Serving Workers
+  VI: Giám sát trực tiếp nhân viên chuẩn bị và phục vụ thực phẩm
+
+id=537
+  EN: Cooks, Fast Food
+  VI: Đầu bếp thức ăn nhanh
+
+id=538
+  EN: Cooks, Institution and Cafeteria
+  VI: Đầu bếp tổ chức và căng tin
+
+id=539
+  EN: Cooks, Private Household
+  VI: Đầu bếp gia đình
+
+id=540
+  EN: Cooks, Restaurant
+  VI: Đầu bếp nhà hàng
+
+id=541
+  EN: Cooks, Short Order
+  VI: Đầu bếp món ăn nhanh
+
+id=542
+  EN: Food Preparation Workers
+  VI: Công nhân chuẩn bị thực phẩm
+
+id=543
+  EN: Bartenders
+  VI: Pha chế đồ uống (Bartender)
+
+id=544
+  EN: Fast Food and Counter Workers
+  VI: Nhân viên bán đồ ăn nhanh và quầy tính tiền
+
+id=545
+  EN: Baristas
+  VI: Nhân viên pha chế
+
+id=546
+  EN: Waiters and Waitresses
+  VI: Nhân viên phục vụ bàn
+
+id=547
+  EN: Food Servers, Nonrestaurant
+  VI: Nhân viên phục vụ thức ăn (ngoài nhà hàng)
+
+id=548
+  EN: Dining Room and Cafeteria Attendants and Bartender Helpers
+  VI: Nhân viên phục vụ phòng ăn, căng tin và trợ lý pha chế
+
+id=549
+  EN: Dishwashers
+  VI: Nhân viên rửa bát
+
+id=550
+  EN: Hosts and Hostesses, Restaurant, Lounge, and Coffee Shop
+  VI: Nhân viên đón khách nhà hàng, phòng chờ và quán cà phê
+
+id=551
+  EN: Food Preparation and Serving Related Workers, All Other
+  VI: Nhân viên chuẩn bị và phục vụ thực phẩm (khác)
+
+id=552
+  EN: First-Line Supervisors of Housekeeping and Janitorial Workers
+  VI: Giám sát trực tiếp nhân viên dọn phòng và vệ sinh
+
+id=553
+  EN: First-Line Supervisors of Landscaping, Lawn Service, and Groundskeeping Workers
+  VI: Giám sát trực tiếp nhân viên cảnh quan và chăm sóc sân vườn
+
+id=554
+  EN: Janitors and Cleaners, Except Maids and Housekeeping Cleaners
+  VI: Lao công và nhân viên vệ sinh (trừ giúp việc và dọn phòng)
+
+id=555
+  EN: Maids and Housekeeping Cleaners
+  VI: Nhân viên giúp việc và dọn dẹp
+
+id=556
+  EN: Pest Control Workers
+  VI: Nhân viên diệt côn trùng và kiểm soát dịch hại
+
+id=557
+  EN: Landscaping and Groundskeeping Workers
+  VI: Nhân viên cảnh quan và chăm sóc sân vườn
+
+id=558
+  EN: Pesticide Handlers, Sprayers, and Applicators, Vegetation
+  VI: Nhân viên xử lý và phun thuốc trừ sâu thực vật
+
+id=559
+  EN: Tree Trimmers and Pruners
+  VI: Thợ cắt tỉa và chăm sóc cây
+
+id=560
+  EN: First-Line Supervisors of Gambling Services Workers
+  VI: Giám sát trực tiếp nhân viên dịch vụ cờ bạc
+
+id=561
+  EN: First-Line Supervisors of Entertainment and Recreation Workers, Except Gambling Services
+  VI: Giám sát trực tiếp nhân viên giải trí và vui chơi (trừ dịch vụ cờ bạc)
+
+id=562
+  EN: First-Line Supervisors of Personal Service Workers
+  VI: Giám sát trực tiếp nhân viên dịch vụ cá nhân
+
+id=563
+  EN: Animal Trainers
+  VI: Huấn luyện viên động vật
+
+id=564
+  EN: Animal Caretakers
+  VI: Người chăm sóc động vật
+
+id=565
+  EN: Gambling Dealers
+  VI: Nhân viên chia bài
+
+id=566
+  EN: Gambling and Sports Book Writers and Runners
+  VI: Nhân viên ghi cược và chạy lệnh cờ bạc và thể thao
+
+id=567
+  EN: Motion Picture Projectionists
+  VI: Nhân viên chiếu phim
+
+id=568
+  EN: Ushers, Lobby Attendants, and Ticket Takers
+  VI: Người dẫn chỗ, nhân viên sảnh và người soát vé
+
+id=569
+  EN: Amusement and Recreation Attendants
+  VI: Nhân viên phục vụ khu vui chơi và giải trí
+
+id=570
+  EN: Costume Attendants
+  VI: Nhân viên phục trang
+
+id=571
+  EN: Locker Room, Coatroom, and Dressing Room Attendants
+  VI: Nhân viên phòng thay đồ và phòng để đồ
+
+id=572
+  EN: Embalmers
+  VI: Thợ ướp xác
+
+id=573
+  EN: Crematory Operators
+  VI: Nhân viên vận hành lò hỏa táng
+
+id=574
+  EN: Funeral Attendants
+  VI: Nhân viên phục vụ tang lễ
+
+id=575
+  EN: Morticians, Undertakers, and Funeral Arrangers
+  VI: Nhân viên tổ chức và điều hành tang lễ
+
+id=576
+  EN: Barbers
+  VI: Thợ cắt tóc
+
+id=577
+  EN: Hairdressers, Hairstylists, and Cosmetologists
+  VI: Thợ làm tóc và chuyên gia thẩm mỹ
+
+id=578
+  EN: Makeup Artists, Theatrical and Performance
+  VI: Nghệ sĩ trang điểm sân khấu và biểu diễn
+
+id=579
+  EN: Manicurists and Pedicurists
+  VI: Thợ làm móng tay và chân
+
+id=580
+  EN: Shampooers
+  VI: Nhân viên gội đầu
+
+id=581
+  EN: Skincare Specialists
+  VI: Chuyên gia chăm sóc da
+
+id=582
+  EN: Baggage Porters and Bellhops
+  VI: Nhân viên khuân vác hành lý và phục vụ phòng
+
+id=583
+  EN: Concierges
+  VI: Nhân viên hỗ trợ khách (Concierge)
+
+id=584
+  EN: Tour Guides and Escorts
+  VI: Hướng dẫn viên du lịch và hộ tống
+
+id=585
+  EN: Travel Guides
+  VI: Hướng dẫn du lịch
+
+id=586
+  EN: Childcare Workers
+  VI: Nhân viên chăm sóc trẻ em
+
+id=587
+  EN: Nannies
+  VI: Bảo mẫu
+
+id=588
+  EN: Exercise Trainers and Group Fitness Instructors
+  VI: Huấn luyện viên thể dục và hướng dẫn viên thể hình nhóm
+
+id=589
+  EN: Recreation Workers
+  VI: Nhân viên hoạt động giải trí
+
+id=590
+  EN: Residential Advisors
+  VI: Cố vấn dân cư
+
+id=591
+  EN: First-Line Supervisors of Retail Sales Workers
+  VI: Giám sát trực tiếp nhân viên bán lẻ
+
+id=592
+  EN: First-Line Supervisors of Non-Retail Sales Workers
+  VI: Giám sát trực tiếp nhân viên kinh doanh (không bán lẻ)
+
+id=593
+  EN: Cashiers
+  VI: Thu ngân
+
+id=594
+  EN: Gambling Change Persons and Booth Cashiers
+  VI: Nhân viên đổi tiền và thu ngân quầy cờ bạc
+
+id=595
+  EN: Counter and Rental Clerks
+  VI: Nhân viên quầy và cho thuê
+
+id=596
+  EN: Parts Salespersons
+  VI: Nhân viên bán phụ tùng
+
+id=597
+  EN: Retail Salespersons
+  VI: Nhân viên bán lẻ
+
+id=598
+  EN: Advertising Sales Agents
+  VI: Nhân viên kinh doanh quảng cáo
+
+id=599
+  EN: Insurance Sales Agents
+  VI: Nhân viên kinh doanh bảo hiểm
+
+id=600
+  EN: Securities, Commodities, and Financial Services Sales Agents
+  VI: Nhân viên kinh doanh chứng khoán và dịch vụ tài chính
+
+id=601
+  EN: Travel Agents
+  VI: Nhân viên tư vấn du lịch
+
+id=602
+  EN: Sales Representatives of Services, Except Advertising, Insurance, Financial Services, and Travel
+  VI: Đại diện bán hàng các dịch vụ, ngoại trừ quảng cáo, bảo hiểm, dịch vụ tài chính và du lịch
+
+id=603
+  EN: Sales Representatives, Wholesale and Manufacturing, Technical and Scientific Products
+  VI: Đại diện bán hàng, Bán buôn và sản xuất, Sản phẩm kỹ thuật và khoa học
+
+id=604
+  EN: Solar Sales Representatives and Assessors
+  VI: Đại diện bán hàng năng lượng mặt trời và đánh giá viên
+
+id=605
+  EN: Sales Representatives, Wholesale and Manufacturing, Except Technical and Scientific Products
+  VI: Đại diện bán hàng, bán buôn và sản xuất, ngoại trừ các sản phẩm kỹ thuật và khoa học
+
+id=606
+  EN: Demonstrators and Product Promoters
+  VI: Nhân viên trình diễn và quảng bá sản phẩm
+
+id=607
+  EN: Models
+  VI: Người mẫu
+
+id=608
+  EN: Real Estate Brokers
+  VI: Môi giới bất động sản
+
+id=609
+  EN: Real Estate Sales Agents
+  VI: Nhân viên kinh doanh bất động sản
+
+id=610
+  EN: Sales Engineers
+  VI: Kỹ sư kinh doanh
+
+id=611
+  EN: Telemarketers
+  VI: Nhân viên bán hàng qua điện thoại
+
+id=612
+  EN: Door-to-Door Sales Workers, News and Street Vendors, and Related Workers
+  VI: Nhân viên bán hàng tận nhà, người bán báo và hàng rong
+
+id=613
+  EN: Sales and Related Workers, All Other
+  VI: Nhân viên kinh doanh (khác)
+
+id=614
+  EN: First-Line Supervisors of Office and Administrative Support Workers
+  VI: Giám sát trực tiếp nhân viên hỗ trợ văn phòng và hành chính
+
+id=615
+  EN: Switchboard Operators, Including Answering Service
+  VI: Nhân viên vận hành tổng đài, bao gồm cả dịch vụ trả lời
+
+id=616
+  EN: Telephone Operators
+  VI: Nhân viên tổng đài điện thoại
+
+id=617
+  EN: Bill and Account Collectors
+  VI: Nhân viên thu hồi hóa đơn và tài khoản
+
+id=618
+  EN: Billing and Posting Clerks
+  VI: Nhân viên thanh toán và đăng bài
+
+id=619
+  EN: Bookkeeping, Accounting, and Auditing Clerks
+  VI: Nhân viên kế toán, ghi sổ và kiểm toán
+
+id=620
+  EN: Gambling Cage Workers
+  VI: Nhân viên quầy thu ngân cờ bạc
+
+id=621
+  EN: Payroll and Timekeeping Clerks
+  VI: Nhân viên tính lương và chấm công
+
+id=622
+  EN: Procurement Clerks
+  VI: Thư ký mua sắm
+
+id=623
+  EN: Tellers
+  VI: Giao dịch viên
+
+id=624
+  EN: Brokerage Clerks
+  VI: Nhân viên môi giới
+
+id=625
+  EN: Correspondence Clerks
+  VI: Thư ký thư tín
+
+id=626
+  EN: Court, Municipal, and License Clerks
+  VI: Thư ký tòa án, thành phố và cấp phép
+
+id=627
+  EN: Credit Authorizers, Checkers, and Clerks
+  VI: Người ủy quyền tín dụng, người kiểm tra và thư ký
+
+id=628
+  EN: Customer Service Representatives
+  VI: Đại diện dịch vụ khách hàng
+
+id=629
+  EN: Eligibility Interviewers, Government Programs
+  VI: Nhân viên phỏng vấn xét duyệt chương trình chính phủ
+
+id=630
+  EN: File Clerks
+  VI: Nhân viên lưu trữ hồ sơ
+
+id=631
+  EN: Hotel, Motel, and Resort Desk Clerks
+  VI: Nhân viên lễ tân khách sạn
+
+id=632
+  EN: Interviewers, Except Eligibility and Loan
+  VI: Nhân viên phỏng vấn (trừ xét duyệt và vay vốn)
+
+id=633
+  EN: Library Assistants, Clerical
+  VI: Trợ lý thư viện (văn thư)
+
+id=634
+  EN: Loan Interviewers and Clerks
+  VI: Nhân viên phỏng vấn và xử lý hồ sơ vay vốn
+
+id=635
+  EN: New Accounts Clerks
+  VI: Nhân viên mở tài khoản mới
+
+id=636
+  EN: Order Clerks
+  VI: Nhân viên xử lý đơn hàng
+
+id=637
+  EN: Human Resources Assistants, Except Payroll and Timekeeping
+  VI: Trợ lý nhân sự, ngoại trừ tính lương và chấm công
+
+id=638
+  EN: Receptionists and Information Clerks
+  VI: Nhân viên lễ tân và cung cấp thông tin
+
+id=639
+  EN: Reservation and Transportation Ticket Agents and Travel Clerks
+  VI: Nhân viên đặt chỗ, bán vé vận tải và du lịch
+
+id=640
+  EN: Information and Record Clerks, All Other
+  VI: Nhân viên thông tin và hồ sơ (khác)
+
+id=641
+  EN: Cargo and Freight Agents
+  VI: Đại lý hàng hóa và vận chuyển
+
+id=642
+  EN: Freight Forwarders
+  VI: Nhân viên giao nhận hàng hóa
+
+id=643
+  EN: Couriers and Messengers
+  VI: Người đưa thư và người đưa tin
+
+id=644
+  EN: Public Safety Telecommunicators
+  VI: Nhân viên viễn thông an toàn công cộng
+
+id=645
+  EN: Dispatchers, Except Police, Fire, and Ambulance
+  VI: Người điều phối, ngoại trừ cảnh sát, cứu hỏa và xe cứu thương
+
+id=646
+  EN: Meter Readers, Utilities
+  VI: Nhân viên đọc đồng hồ điện nước
+
+id=647
+  EN: Postal Service Clerks
+  VI: Nhân viên Bưu điện
+
+id=648
+  EN: Postal Service Mail Carriers
+  VI: Nhân viên bưu tá
+
+id=649
+  EN: Postal Service Mail Sorters, Processors, and Processing Machine Operators
+  VI: Nhân viên phân loại, xử lý thư và vận hành máy bưu chính
+
+id=650
+  EN: Production, Planning, and Expediting Clerks
+  VI: Nhân viên sản xuất, lập kế hoạch và thúc đẩy tiến độ
+
+id=651
+  EN: Shipping, Receiving, and Inventory Clerks
+  VI: Nhân viên giao nhận và kiểm kê hàng hóa
+
+id=652
+  EN: Weighers, Measurers, Checkers, and Samplers, Recordkeeping
+  VI: Nhân viên cân đo, kiểm tra và lấy mẫu (lưu trữ hồ sơ)
+
+id=653
+  EN: Executive Secretaries and Executive Administrative Assistants
+  VI: Thư ký điều hành và trợ lý hành chính điều hành
+
+id=654
+  EN: Legal Secretaries and Administrative Assistants
+  VI: Thư ký pháp lý
+
+id=655
+  EN: Medical Secretaries and Administrative Assistants
+  VI: Thư ký y tế và trợ lý hành chính
+
+id=656
+  EN: Secretaries and Administrative Assistants, Except Legal, Medical, and Executive
+  VI: Thư ký và Trợ lý Hành chính, Ngoại trừ Pháp lý, Y tế và Điều hành
+
+id=657
+  EN: Data Entry Keyers
+  VI: Nhân viên nhập liệu
+
+id=658
+  EN: Word Processors and Typists
+  VI: Nhân viên xử lý văn bản và đánh máy
+
+id=659
+  EN: Desktop Publishers
+  VI: Nhân viên dàn trang xuất bản
+
+id=660
+  EN: Insurance Claims and Policy Processing Clerks
+  VI: Nhân viên giải quyết yêu cầu bảo hiểm và xử lý chính sách
+
+id=661
+  EN: Mail Clerks and Mail Machine Operators, Except Postal Service
+  VI: Nhân viên thư tín và người vận hành máy thư, ngoại trừ dịch vụ bưu chính
+
+id=662
+  EN: Office Clerks, General
+  VI: Nhân viên văn phòng tổng hợp
+
+id=663
+  EN: Office Machine Operators, Except Computer
+  VI: Người vận hành máy văn phòng, ngoại trừ máy tính
+
+id=664
+  EN: Proofreaders and Copy Markers
+  VI: Nhân viên đọc soát lỗi và đánh dấu bản in
+
+id=665
+  EN: Statistical Assistants
+  VI: Trợ lý thống kê
+
+id=666
+  EN: Office and Administrative Support Workers, All Other
+  VI: Nhân viên hỗ trợ văn phòng và hành chính (khác)
+
+id=667
+  EN: First-Line Supervisors of Farming, Fishing, and Forestry Workers
+  VI: Giám sát trực tiếp công nhân nông nghiệp, đánh cá và lâm nghiệp
+
+id=668
+  EN: Agricultural Inspectors
+  VI: Thanh tra nông nghiệp
+
+id=669
+  EN: Animal Breeders
+  VI: Người chăn nuôi và nhân giống động vật
+
+id=670
+  EN: Graders and Sorters, Agricultural Products
+  VI: Nhân viên phân loại và phân hạng nông sản
+
+id=671
+  EN: Agricultural Equipment Operators
+  VI: Người vận hành thiết bị nông nghiệp
+
+id=672
+  EN: Farmworkers and Laborers, Crop, Nursery, and Greenhouse
+  VI: Công nhân nông nghiệp trồng trọt, vườn ươm và nhà kính
+
+id=673
+  EN: Farmworkers, Farm, Ranch, and Aquacultural Animals
+  VI: Công nhân nông trại, chăn nuôi và nuôi trồng thủy sản
+
+id=674
+  EN: Agricultural Workers, All Other
+  VI: Công nhân nông nghiệp (khác)
+
+id=675
+  EN: Fishing and Hunting Workers
+  VI: Công nhân đánh bắt cá và săn bắn
+
+id=676
+  EN: Forest and Conservation Workers
+  VI: Công nhân lâm nghiệp và bảo tồn
+
+id=677
+  EN: Fallers
+  VI: Thợ chặt cây
+
+id=678
+  EN: Logging Equipment Operators
+  VI: Thợ vận hành thiết bị khai thác gỗ
+
+id=679
+  EN: Log Graders and Scalers
+  VI: Nhân viên phân loại và đo lường gỗ tròn
+
+id=680
+  EN: First-Line Supervisors of Construction Trades and Extraction Workers
+  VI: Giám sát trực tiếp công nhân xây dựng và khai thác mỏ
+
+id=681
+  EN: Solar Energy Installation Managers
+  VI: Quản lý lắp đặt năng lượng mặt trời
+
+id=682
+  EN: Boilermakers
+  VI: Thợ chế tạo và sửa chữa nồi hơi
+
+id=683
+  EN: Brickmasons and Blockmasons
+  VI: Thợ nề và thợ xây gạch khối
+
+id=684
+  EN: Stonemasons
+  VI: Thợ đá
+
+id=685
+  EN: Carpenters
+  VI: Thợ mộc
+
+id=686
+  EN: Carpet Installers
+  VI: Thợ trải thảm
+
+id=687
+  EN: Floor Layers, Except Carpet, Wood, and Hard Tiles
+  VI: Thợ lát sàn (trừ thảm, gỗ và gạch cứng)
+
+id=688
+  EN: Floor Sanders and Finishers
+  VI: Thợ chà nhám và hoàn thiện sàn
+
+id=689
+  EN: Tile and Stone Setters
+  VI: Thợ lát gạch và đá
+
+id=690
+  EN: Cement Masons and Concrete Finishers
+  VI: Thợ xây xi măng và thợ hoàn thiện bê tông
+
+id=691
+  EN: Terrazzo Workers and Finishers
+  VI: Thợ lát và hoàn thiện sàn terrazzo
+
+id=692
+  EN: Construction Laborers
+  VI: Công nhân xây dựng
+
+id=693
+  EN: Paving, Surfacing, and Tamping Equipment Operators
+  VI: Người vận hành thiết bị lát, tạo bề mặt và đầm
+
+id=694
+  EN: Pile Driver Operators
+  VI: Thợ đóng cọc
+
+id=695
+  EN: Operating Engineers and Other Construction Equipment Operators
+  VI: Thợ vận hành thiết bị xây dựng
+
+id=696
+  EN: Drywall and Ceiling Tile Installers
+  VI: Thợ lắp đặt vách thạch cao và trần nhà
+
+id=697
+  EN: Tapers
+  VI: Thợ dán băng thạch cao
+
+id=698
+  EN: Electricians
+  VI: Thợ điện
+
+id=699
+  EN: Glaziers
+  VI: Thợ lắp kính
+
+id=700
+  EN: Insulation Workers, Floor, Ceiling, and Wall
+  VI: Công nhân cách nhiệt sàn, trần và tường
+
+id=701
+  EN: Insulation Workers, Mechanical
+  VI: Công nhân cách nhiệt, cơ khí
+
+id=702
+  EN: Painters, Construction and Maintenance
+  VI: Thợ sơn xây dựng và bảo trì
+
+id=703
+  EN: Paperhangers
+  VI: Thợ dán giấy dán tường
+
+id=704
+  EN: Pipelayers
+  VI: Thợ lắp đặt đường ống
+
+id=705
+  EN: Plumbers, Pipefitters, and Steamfitters
+  VI: Thợ ống nước, ống dẫn và hơi nước
+
+id=706
+  EN: Solar Thermal Installers and Technicians
+  VI: Thợ lắp đặt và kỹ thuật viên nhiệt mặt trời
+
+id=707
+  EN: Plasterers and Stucco Masons
+  VI: Thợ trát tường và xây vữa
+
+id=708
+  EN: Reinforcing Iron and Rebar Workers
+  VI: Công nhân gia cố sắt thép
+
+id=709
+  EN: Roofers
+  VI: Thợ lợp mái nhà
+
+id=710
+  EN: Sheet Metal Workers
+  VI: Công nhân kim loại tấm
+
+id=711
+  EN: Structural Iron and Steel Workers
+  VI: Công nhân kết cấu sắt thép
+
+id=712
+  EN: Solar Photovoltaic Installers
+  VI: Thợ lắp đặt pin năng lượng mặt trời
+
+id=713
+  EN: Helpers--Brickmasons, Blockmasons, Stonemasons, and Tile and Marble Setters
+  VI: Phụ việc thợ nề, thợ đá và thợ lát gạch đá cẩm thạch
+
+id=714
+  EN: Helpers--Carpenters
+  VI: Phụ việc thợ mộc
+
+id=715
+  EN: Helpers--Electricians
+  VI: Phụ việc thợ điện
+
+id=716
+  EN: Helpers--Painters, Paperhangers, Plasterers, and Stucco Masons
+  VI: Phụ việc thợ sơn, dán giấy, trát tường và xây vữa
+
+id=717
+  EN: Helpers--Pipelayers, Plumbers, Pipefitters, and Steamfitters
+  VI: Phụ việc thợ ống nước và hơi nước
+
+id=718
+  EN: Helpers--Roofers
+  VI: Phụ việc thợ lợp mái
+
+id=719
+  EN: Helpers, Construction Trades, All Other
+  VI: Phụ việc xây dựng (khác)
+
+id=720
+  EN: Construction and Building Inspectors
+  VI: Thanh tra xây dựng và công trình
+
+id=721
+  EN: Energy Auditors
+  VI: Kiểm toán viên năng lượng
+
+id=722
+  EN: Elevator and Escalator Installers and Repairers
+  VI: Thợ lắp đặt và sửa chữa thang máy và thang cuốn
+
+id=723
+  EN: Fence Erectors
+  VI: Thợ dựng hàng rào
+
+id=724
+  EN: Hazardous Materials Removal Workers
+  VI: Công nhân xử lý và loại bỏ vật liệu nguy hiểm
+
+id=725
+  EN: Highway Maintenance Workers
+  VI: Công nhân bảo trì đường bộ
+
+id=726
+  EN: Rail-Track Laying and Maintenance Equipment Operators
+  VI: Thợ vận hành thiết bị đặt và bảo trì đường ray
+
+id=727
+  EN: Septic Tank Servicers and Sewer Pipe Cleaners
+  VI: Thợ bảo trì bể tự hoại và thông cống
+
+id=728
+  EN: Segmental Pavers
+  VI: Thợ lát đường phân đoạn
+
+id=729
+  EN: Weatherization Installers and Technicians
+  VI: Thợ lắp đặt và kỹ thuật viên cách nhiệt chống thời tiết
+
+id=730
+  EN: Derrick Operators, Oil and Gas
+  VI: Thợ vận hành giàn khoan dầu khí
+
+id=731
+  EN: Rotary Drill Operators, Oil and Gas
+  VI: Thợ vận hành máy khoan xoay dầu khí
+
+id=732
+  EN: Service Unit Operators, Oil and Gas
+  VI: Thợ vận hành đơn vị dịch vụ dầu khí
+
+id=733
+  EN: Excavating and Loading Machine and Dragline Operators, Surface Mining
+  VI: Thợ vận hành máy xúc và máy kéo cáp khai thác lộ thiên
+
+id=734
+  EN: Earth Drillers, Except Oil and Gas
+  VI: Thợ khoan đất (trừ dầu khí)
+
+id=735
+  EN: Explosives Workers, Ordnance Handling Experts, and Blasters
+  VI: Công nhân chất nổ, chuyên gia xử lý vật liệu nổ và thợ nổ
+
+id=736
+  EN: Continuous Mining Machine Operators
+  VI: Người vận hành máy khai thác liên tục
+
+id=737
+  EN: Roof Bolters, Mining
+  VI: Thợ bắt bu lông mái hầm lò
+
+id=738
+  EN: Loading and Moving Machine Operators, Underground Mining
+  VI: Thợ vận hành máy bốc xếp và vận chuyển khai thác hầm lò
+
+id=739
+  EN: Rock Splitters, Quarry
+  VI: Thợ tách đá mỏ đá
+
+id=740
+  EN: Roustabouts, Oil and Gas
+  VI: Công nhân phổ thông dầu khí
+
+id=741
+  EN: Helpers--Extraction Workers
+  VI: Phụ việc công nhân khai thác
+
+id=742
+  EN: First-Line Supervisors of Mechanics, Installers, and Repairers
+  VI: Giám sát trực tiếp cơ khí, thợ lắp đặt và thợ sửa chữa
+
+id=743
+  EN: Computer, Automated Teller, and Office Machine Repairers
+  VI: Thợ sửa chữa máy tính, máy ATM và máy văn phòng
+
+id=744
+  EN: Radio, Cellular, and Tower Equipment Installers and Repairers
+  VI: Thợ lắp đặt và sửa chữa thiết bị vô tuyến, di động và tháp
+
+id=745
+  EN: Telecommunications Equipment Installers and Repairers, Except Line Installers
+  VI: Thợ lắp đặt và sửa chữa thiết bị viễn thông, ngoại trừ thợ lắp đặt đường dây
+
+id=746
+  EN: Avionics Technicians
+  VI: Kỹ thuật viên điện tử hàng không
+
+id=747
+  EN: Electric Motor, Power Tool, and Related Repairers
+  VI: Thợ sửa chữa động cơ điện và dụng cụ điện
+
+id=748
+  EN: Electrical and Electronics Installers and Repairers, Transportation Equipment
+  VI: Thợ lắp đặt và sửa chữa điện, điện tử, thiết bị vận tải
+
+id=749
+  EN: Electrical and Electronics Repairers, Commercial and Industrial Equipment
+  VI: Thợ sửa chữa điện và điện tử, thiết bị thương mại và công nghiệp
+
+id=750
+  EN: Electrical and Electronics Repairers, Powerhouse, Substation, and Relay
+  VI: Thợ sửa chữa điện, điện tử, nhà máy điện, trạm biến áp và rơle
+
+id=751
+  EN: Electronic Equipment Installers and Repairers, Motor Vehicles
+  VI: Thợ lắp đặt và sửa chữa thiết bị điện tử, xe có động cơ
+
+id=752
+  EN: Audiovisual Equipment Installers and Repairers
+  VI: Thợ lắp đặt và sửa chữa thiết bị nghe nhìn
+
+id=753
+  EN: Security and Fire Alarm Systems Installers
+  VI: Người lắp đặt hệ thống an ninh và báo cháy
+
+id=754
+  EN: Aircraft Mechanics and Service Technicians
+  VI: Kỹ thuật viên bảo dưỡng máy bay
+
+id=755
+  EN: Automotive Body and Related Repairers
+  VI: Thợ sửa chữa thân vỏ xe ô tô
+
+id=756
+  EN: Automotive Glass Installers and Repairers
+  VI: Thợ lắp đặt và sửa chữa kính ô tô
+
+id=757
+  EN: Automotive Service Technicians and Mechanics
+  VI: Kỹ thuật viên sửa chữa ô tô
+
+id=758
+  EN: Bus and Truck Mechanics and Diesel Engine Specialists
+  VI: Thợ cơ khí xe buýt, xe tải và chuyên gia động cơ diesel
+
+id=759
+  EN: Farm Equipment Mechanics and Service Technicians
+  VI: Kỹ thuật viên cơ khí và dịch vụ thiết bị nông nghiệp
+
+id=760
+  EN: Mobile Heavy Equipment Mechanics, Except Engines
+  VI: Thợ cơ khí thiết bị nặng di động (trừ động cơ)
+
+id=761
+  EN: Rail Car Repairers
+  VI: Thợ sửa chữa toa xe lửa
+
+id=762
+  EN: Motorboat Mechanics and Service Technicians
+  VI: Kỹ thuật viên cơ khí và dịch vụ thuyền máy
+
+id=763
+  EN: Motorcycle Mechanics
+  VI: Thợ sửa chữa xe máy
+
+id=764
+  EN: Outdoor Power Equipment and Other Small Engine Mechanics
+  VI: Thợ cơ khí thiết bị điện ngoài trời và động cơ nhỏ
+
+id=765
+  EN: Bicycle Repairers
+  VI: Thợ sửa xe đạp
+
+id=766
+  EN: Recreational Vehicle Service Technicians
+  VI: Kỹ thuật viên dịch vụ xe giải trí
+
+id=767
+  EN: Tire Repairers and Changers
+  VI: Thợ sửa chữa và thay lốp
+
+id=768
+  EN: Mechanical Door Repairers
+  VI: Thợ sửa cửa cơ khí
+
+id=769
+  EN: Control and Valve Installers and Repairers, Except Mechanical Door
+  VI: Thợ lắp đặt và sửa chữa van và điều khiển, ngoại trừ cửa cơ khí
+
+id=770
+  EN: Heating, Air Conditioning, and Refrigeration Mechanics and Installers
+  VI: Thợ cơ khí và lắp đặt hệ thống sưởi, điều hòa không khí và điện lạnh
+
+id=771
+  EN: Home Appliance Repairers
+  VI: Thợ sửa chữa thiết bị gia dụng
+
+id=772
+  EN: Industrial Machinery Mechanics
+  VI: Thợ cơ khí máy công nghiệp
+
+id=773
+  EN: Maintenance Workers, Machinery
+  VI: Công nhân bảo trì máy móc
+
+id=774
+  EN: Millwrights
+  VI: Thợ lắp đặt và bảo trì máy công nghiệp
+
+id=775
+  EN: Refractory Materials Repairers, Except Brickmasons
+  VI: Thợ sửa chữa vật liệu chịu lửa, ngoại trừ thợ nề
+
+id=776
+  EN: Electrical Power-Line Installers and Repairers
+  VI: Thợ lắp đặt và sửa chữa đường dây điện
+
+id=777
+  EN: Telecommunications Line Installers and Repairers
+  VI: Thợ lắp đặt và sửa chữa đường dây viễn thông
+
+id=778
+  EN: Camera and Photographic Equipment Repairers
+  VI: Thợ sửa chữa máy ảnh và thiết bị chụp ảnh
+
+id=779
+  EN: Medical Equipment Repairers
+  VI: Thợ sửa chữa thiết bị y tế
+
+id=780
+  EN: Musical Instrument Repairers and Tuners
+  VI: Thợ sửa chữa và điều chỉnh nhạc cụ
+
+id=781
+  EN: Watch and Clock Repairers
+  VI: Thợ sửa đồng hồ đeo tay và đồng hồ treo tường
+
+id=782
+  EN: Maintenance and Repair Workers, General
+  VI: Công nhân bảo trì và sửa chữa tổng hợp
+
+id=783
+  EN: Wind Turbine Service Technicians
+  VI: Kỹ thuật viên bảo dưỡng tuabin gió
+
+id=784
+  EN: Coin, Vending, and Amusement Machine Servicers and Repairers
+  VI: Người bảo trì và sửa chữa máy bán tiền xu, máy bán hàng tự động và máy giải trí
+
+id=785
+  EN: Commercial Divers
+  VI: Thợ lặn thương mại
+
+id=786
+  EN: Locksmiths and Safe Repairers
+  VI: Thợ khóa và sửa chữa két sắt
+
+id=787
+  EN: Manufactured Building and Mobile Home Installers
+  VI: Thợ lắp đặt nhà lắp ghép và nhà di động
+
+id=788
+  EN: Riggers
+  VI: Thợ lắp đặt và vận hành cáp treo
+
+id=789
+  EN: Signal and Track Switch Repairers
+  VI: Thợ sửa chữa công tắc tín hiệu và đường ray
+
+id=790
+  EN: Helpers--Installation, Maintenance, and Repair Workers
+  VI: Người trợ giúp--Công nhân lắp đặt, bảo trì và sửa chữa
+
+id=791
+  EN: Installation, Maintenance, and Repair Workers, All Other
+  VI: Công nhân lắp đặt, bảo trì và sửa chữa (khác)
+
+id=792
+  EN: Geothermal Technicians
+  VI: Kỹ thuật viên địa nhiệt
+
+id=793
+  EN: First-Line Supervisors of Production and Operating Workers
+  VI: Giám sát trực tiếp công nhân sản xuất và vận hành
+
+id=794
+  EN: Aircraft Structure, Surfaces, Rigging, and Systems Assemblers
+  VI: Thợ lắp ráp cấu trúc, bề mặt và hệ thống máy bay
+
+id=795
+  EN: Coil Winders, Tapers, and Finishers
+  VI: Thợ quấn cuộn dây, dán băng và hoàn thiện
+
+id=796
+  EN: Electrical and Electronic Equipment Assemblers
+  VI: Thợ lắp ráp thiết bị điện và điện tử
+
+id=797
+  EN: Electromechanical Equipment Assemblers
+  VI: Thợ lắp ráp thiết bị cơ điện
+
+id=798
+  EN: Engine and Other Machine Assemblers
+  VI: Thợ lắp ráp động cơ và máy móc khác
+
+id=799
+  EN: Structural Metal Fabricators and Fitters
+  VI: Thợ chế tạo và lắp ráp kết cấu kim loại
+
+id=800
+  EN: Fiberglass Laminators and Fabricators
+  VI: Thợ ép và chế tạo sợi thủy tinh
+
+id=801
+  EN: Timing Device Assemblers and Adjusters
+  VI: Thợ lắp ráp và điều chỉnh thiết bị định giờ
+
+id=802
+  EN: Team Assemblers
+  VI: Công nhân lắp ráp theo nhóm
+
+id=803
+  EN: Assemblers and Fabricators, All Other
+  VI: Thợ lắp ráp và chế tạo (khác)
+
+id=804
+  EN: Bakers
+  VI: Thợ làm bánh
+
+id=805
+  EN: Butchers and Meat Cutters
+  VI: Người bán thịt và thợ pha lóc thịt
+
+id=806
+  EN: Meat, Poultry, and Fish Cutters and Trimmers
+  VI: Thợ pha lóc thịt, gia cầm và cá
+
+id=807
+  EN: Slaughterers and Meat Packers
+  VI: Công nhân giết mổ và đóng gói thịt
+
+id=808
+  EN: Food and Tobacco Roasting, Baking, and Drying Machine Operators and Tenders
+  VI: Thợ vận hành máy rang, nướng và sấy thực phẩm và thuốc lá
+
+id=809
+  EN: Food Batchmakers
+  VI: Thợ pha chế thực phẩm theo mẻ
+
+id=810
+  EN: Food Cooking Machine Operators and Tenders
+  VI: Thợ vận hành máy nấu thực phẩm
+
+id=811
+  EN: Food Processing Workers, All Other
+  VI: Công nhân chế biến thực phẩm (khác)
+
+id=812
+  EN: Extruding and Drawing Machine Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy ép đùn và kéo (kim loại và nhựa)
+
+id=813
+  EN: Forging Machine Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy rèn (kim loại và nhựa)
+
+id=814
+  EN: Rolling Machine Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy cán (kim loại và nhựa)
+
+id=815
+  EN: Cutting, Punching, and Press Machine Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy cắt, đột và ép (kim loại và nhựa)
+
+id=816
+  EN: Drilling and Boring Machine Tool Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy khoan và doa (kim loại và nhựa)
+
+id=817
+  EN: Grinding, Lapping, Polishing, and Buffing Machine Tool Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy mài, đánh bóng và hoàn thiện bề mặt (kim loại và nhựa)
+
+id=818
+  EN: Lathe and Turning Machine Tool Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy tiện (kim loại và nhựa)
+
+id=819
+  EN: Milling and Planing Machine Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy phay và máy bào (kim loại và nhựa)
+
+id=820
+  EN: Machinists
+  VI: Thợ tiện cơ khí
+
+id=821
+  EN: Metal-Refining Furnace Operators and Tenders
+  VI: Thợ vận hành lò luyện kim loại
+
+id=822
+  EN: Pourers and Casters, Metal
+  VI: Thợ rót và đúc kim loại
+
+id=823
+  EN: Model Makers, Metal and Plastic
+  VI: Thợ làm mô hình (kim loại và nhựa)
+
+id=824
+  EN: Patternmakers, Metal and Plastic
+  VI: Thợ làm khuôn mẫu (kim loại và nhựa)
+
+id=825
+  EN: Foundry Mold and Coremakers
+  VI: Thợ làm khuôn và lõi đúc
+
+id=826
+  EN: Molding, Coremaking, and Casting Machine Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy đúc, tạo lõi và đổ khuôn (kim loại và nhựa)
+
+id=827
+  EN: Multiple Machine Tool Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành nhiều máy công cụ (kim loại và nhựa)
+
+id=828
+  EN: Tool and Die Makers
+  VI: Thợ làm khuôn và dụng cụ
+
+id=829
+  EN: Welders, Cutters, Solderers, and Brazers
+  VI: Thợ hàn và cắt kim loại
+
+id=830
+  EN: Welding, Soldering, and Brazing Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy hàn, hàn thiếc và hàn đồng
+
+id=831
+  EN: Heat Treating Equipment Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành thiết bị xử lý nhiệt (kim loại và nhựa)
+
+id=832
+  EN: Layout Workers, Metal and Plastic
+  VI: Công nhân vạch dấu (kim loại và nhựa)
+
+id=833
+  EN: Plating Machine Setters, Operators, and Tenders, Metal and Plastic
+  VI: Thợ vận hành máy mạ (kim loại và nhựa)
+
+id=834
+  EN: Tool Grinders, Filers, and Sharpeners
+  VI: Thợ mài, giũa và mài sắc dụng cụ
+
+id=835
+  EN: Metal Workers and Plastic Workers, All Other
+  VI: Công nhân kim loại và công nhân nhựa (khác)
+
+id=836
+  EN: Prepress Technicians and Workers
+  VI: Kỹ thuật viên và công nhân chế bản
+
+id=837
+  EN: Printing Press Operators
+  VI: Thợ vận hành máy in
+
+id=838
+  EN: Print Binding and Finishing Workers
+  VI: Công nhân đóng sách và hoàn thiện ấn phẩm
+
+id=839
+  EN: Laundry and Dry-Cleaning Workers
+  VI: Công nhân giặt ủi và giặt khô
+
+id=840
+  EN: Pressers, Textile, Garment, and Related Materials
+  VI: Thợ ép dệt may và vật liệu liên quan
+
+id=841
+  EN: Sewing Machine Operators
+  VI: Thợ vận hành máy may
+
+id=842
+  EN: Shoe and Leather Workers and Repairers
+  VI: Thợ giày và thợ sửa đồ da
+
+id=843
+  EN: Shoe Machine Operators and Tenders
+  VI: Thợ vận hành máy giày
+
+id=844
+  EN: Sewers, Hand
+  VI: Thợ may tay
+
+id=845
+  EN: Tailors, Dressmakers, and Custom Sewers
+  VI: Thợ may, thợ may đầm và thợ may theo yêu cầu
+
+id=846
+  EN: Textile Bleaching and Dyeing Machine Operators and Tenders
+  VI: Thợ vận hành máy tẩy và nhuộm vải
+
+id=847
+  EN: Textile Cutting Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy cắt vải
+
+id=848
+  EN: Textile Knitting and Weaving Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy dệt kim và dệt vải
+
+id=849
+  EN: Textile Winding, Twisting, and Drawing Out Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy cuộn, xoắn và kéo sợi dệt
+
+id=850
+  EN: Extruding and Forming Machine Setters, Operators, and Tenders, Synthetic and Glass Fibers
+  VI: Thợ vận hành máy ép đùn và tạo hình sợi tổng hợp và sợi thủy tinh
+
+id=851
+  EN: Fabric and Apparel Patternmakers
+  VI: Người tạo mẫu vải và quần áo
+
+id=852
+  EN: Upholsterers
+  VI: Thợ bọc đệm và nội thất
+
+id=853
+  EN: Textile, Apparel, and Furnishings Workers, All Other
+  VI: Công nhân dệt, may mặc và nội thất (khác)
+
+id=854
+  EN: Cabinetmakers and Bench Carpenters
+  VI: Thợ đóng tủ và thợ mộc bàn
+
+id=855
+  EN: Furniture Finishers
+  VI: Thợ hoàn thiện nội thất
+
+id=856
+  EN: Model Makers, Wood
+  VI: Thợ làm mô hình gỗ
+
+id=857
+  EN: Patternmakers, Wood
+  VI: Thợ làm khuôn mẫu gỗ
+
+id=858
+  EN: Sawing Machine Setters, Operators, and Tenders, Wood
+  VI: Thợ vận hành máy cưa gỗ
+
+id=859
+  EN: Woodworking Machine Setters, Operators, and Tenders, Except Sawing
+  VI: Thợ vận hành máy chế biến gỗ (trừ cưa)
+
+id=860
+  EN: Woodworkers, All Other
+  VI: Thợ mộc (khác)
+
+id=861
+  EN: Nuclear Power Reactor Operators
+  VI: Người vận hành lò phản ứng điện hạt nhân
+
+id=862
+  EN: Power Distributors and Dispatchers
+  VI: Nhà phân phối và điều phối điện
+
+id=863
+  EN: Power Plant Operators
+  VI: Người vận hành nhà máy điện
+
+id=864
+  EN: Biomass Plant Technicians
+  VI: Kỹ thuật viên nhà máy sinh khối
+
+id=865
+  EN: Hydroelectric Plant Technicians
+  VI: Kỹ thuật viên nhà máy thủy điện
+
+id=866
+  EN: Stationary Engineers and Boiler Operators
+  VI: Kỹ sư cố định và vận hành nồi hơi
+
+id=867
+  EN: Water and Wastewater Treatment Plant and System Operators
+  VI: Thợ vận hành nhà máy và hệ thống xử lý nước và nước thải
+
+id=868
+  EN: Chemical Plant and System Operators
+  VI: Người vận hành hệ thống và nhà máy hóa chất
+
+id=869
+  EN: Gas Plant Operators
+  VI: Người vận hành nhà máy khí
+
+id=870
+  EN: Petroleum Pump System Operators, Refinery Operators, and Gaugers
+  VI: Người vận hành hệ thống bơm xăng dầu, người vận hành nhà máy lọc dầu và máy đo
+
+id=871
+  EN: Plant and System Operators, All Other
+  VI: Người vận hành nhà máy và hệ thống (khác)
+
+id=872
+  EN: Biofuels Processing Technicians
+  VI: Kỹ thuật viên chế biến nhiên liệu sinh học
+
+id=873
+  EN: Chemical Equipment Operators and Tenders
+  VI: Người vận hành và đấu thầu thiết bị hóa học
+
+id=874
+  EN: Separating, Filtering, Clarifying, Precipitating, and Still Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy tách, lọc, làm trong và kết tủa
+
+id=875
+  EN: Crushing, Grinding, and Polishing Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy nghiền, mài và đánh bóng
+
+id=876
+  EN: Grinding and Polishing Workers, Hand
+  VI: Công nhân mài và đánh bóng bằng tay
+
+id=877
+  EN: Mixing and Blending Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy trộn và pha trộn
+
+id=878
+  EN: Cutters and Trimmers, Hand
+  VI: Thợ cắt và xén bằng tay
+
+id=879
+  EN: Cutting and Slicing Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy cắt và thái
+
+id=880
+  EN: Extruding, Forming, Pressing, and Compacting Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy ép đùn, tạo hình và nén
+
+id=881
+  EN: Furnace, Kiln, Oven, Drier, and Kettle Operators and Tenders
+  VI: Thợ vận hành lò nung, lò nướng, máy sấy và nồi hơi
+
+id=882
+  EN: Inspectors, Testers, Sorters, Samplers, and Weighers
+  VI: Nhân viên kiểm tra, phân loại, lấy mẫu và cân
+
+id=883
+  EN: Jewelers and Precious Stone and Metal Workers
+  VI: Thợ kim hoàn và thợ đá quý
+
+id=884
+  EN: Gem and Diamond Workers
+  VI: Công nhân đá quý và kim cương
+
+id=885
+  EN: Dental Laboratory Technicians
+  VI: Kỹ thuật viên phòng thí nghiệm nha khoa
+
+id=886
+  EN: Medical Appliance Technicians
+  VI: Kỹ thuật viên thiết bị y tế
+
+id=887
+  EN: Ophthalmic Laboratory Technicians
+  VI: Kỹ thuật viên phòng thí nghiệm nhãn khoa
+
+id=888
+  EN: Packaging and Filling Machine Operators and Tenders
+  VI: Thợ vận hành máy đóng gói và chiết rót
+
+id=889
+  EN: Painting, Coating, and Decorating Workers
+  VI: Công nhân sơn, phủ và trang trí
+
+id=890
+  EN: Coating, Painting, and Spraying Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy phủ, sơn và phun
+
+id=891
+  EN: Semiconductor Processing Technicians
+  VI: Kỹ thuật viên xử lý chất bán dẫn
+
+id=892
+  EN: Photographic Process Workers and Processing Machine Operators
+  VI: Công nhân xử lý ảnh và vận hành máy xử lý ảnh
+
+id=893
+  EN: Computer Numerically Controlled Tool Operators
+  VI: Thợ vận hành máy công cụ CNC (điều khiển số)
+
+id=894
+  EN: Computer Numerically Controlled Tool Programmers
+  VI: Lập trình viên máy công cụ CNC
+
+id=895
+  EN: Adhesive Bonding Machine Operators and Tenders
+  VI: Thợ vận hành máy dán keo
+
+id=896
+  EN: Cleaning, Washing, and Metal Pickling Equipment Operators and Tenders
+  VI: Thợ vận hành thiết bị làm sạch, rửa và tẩy kim loại
+
+id=897
+  EN: Cooling and Freezing Equipment Operators and Tenders
+  VI: Thợ vận hành thiết bị làm lạnh và cấp đông
+
+id=898
+  EN: Etchers and Engravers
+  VI: Thợ khắc axit và thợ khắc chạm
+
+id=899
+  EN: Molders, Shapers, and Casters, Except Metal and Plastic
+  VI: Thợ đúc, tạo hình và đổ khuôn (trừ kim loại và nhựa)
+
+id=900
+  EN: Stone Cutters and Carvers, Manufacturing
+  VI: Thợ cắt và điêu khắc đá (sản xuất)
+
+id=901
+  EN: Glass Blowers, Molders, Benders, and Finishers
+  VI: Thợ thổi, đúc, uốn và hoàn thiện kính
+
+id=902
+  EN: Potters, Manufacturing
+  VI: Thợ gốm (sản xuất)
+
+id=903
+  EN: Paper Goods Machine Setters, Operators, and Tenders
+  VI: Thợ vận hành máy sản xuất đồ giấy
+
+id=904
+  EN: Tire Builders
+  VI: Thợ làm lốp
+
+id=905
+  EN: Helpers--Production Workers
+  VI: Phụ việc công nhân sản xuất
+
+id=906
+  EN: Production Workers, All Other
+  VI: Công nhân sản xuất (khác)
+
+id=907
+  EN: Aircraft Cargo Handling Supervisors
+  VI: Giám sát xử lý hàng hóa máy bay
+
+id=908
+  EN: First-Line Supervisors of Helpers, Laborers, and Material Movers, Hand
+  VI: Giám sát trực tiếp công nhân bốc vác và vận chuyển vật liệu
+
+id=909
+  EN: Recycling Coordinators
+  VI: Điều phối viên tái chế
+
+id=910
+  EN: First-Line Supervisors of Material-Moving Machine and Vehicle Operators
+  VI: Giám sát trực tiếp thợ vận hành máy và phương tiện vận chuyển
+
+id=911
+  EN: First-Line Supervisors of Passenger Attendants
+  VI: Giám sát trực tiếp nhân viên phục vụ hành khách
+
+id=912
+  EN: Airline Pilots, Copilots, and Flight Engineers
+  VI: Phi công và kỹ sư bay
+
+id=913
+  EN: Commercial Pilots
+  VI: Phi công thương mại
+
+id=914
+  EN: Air Traffic Controllers
+  VI: Kiểm soát viên không lưu
+
+id=915
+  EN: Airfield Operations Specialists
+  VI: Chuyên gia điều hành sân bay
+
+id=916
+  EN: Flight Attendants
+  VI: Tiếp viên hàng không
+
+id=917
+  EN: Ambulance Drivers and Attendants, Except Emergency Medical Technicians
+  VI: Tài xế và người phục vụ xe cứu thương, ngoại trừ kỹ thuật viên y tế cấp cứu
+
+id=918
+  EN: Driver/Sales Workers
+  VI: Lái xe/Nhân viên bán hàng
+
+id=919
+  EN: Heavy and Tractor-Trailer Truck Drivers
+  VI: Tài xế xe tải hạng nặng và xe đầu kéo
+
+id=920
+  EN: Light Truck Drivers
+  VI: Tài xế xe tải nhẹ
+
+id=921
+  EN: Bus Drivers, School
+  VI: Tài xế xe buýt trường học
+
+id=922
+  EN: Bus Drivers, Transit and Intercity
+  VI: Tài xế xe buýt
+
+id=923
+  EN: Shuttle Drivers and Chauffeurs
+  VI: Tài xế xe đưa đón và tài xế riêng
+
+id=924
+  EN: Taxi Drivers
+  VI: Tài xế taxi
+
+id=925
+  EN: Locomotive Engineers
+  VI: Lái tàu hỏa
+
+id=926
+  EN: Rail Yard Engineers, Dinkey Operators, and Hostlers
+  VI: Kỹ sư sân đường sắt, thợ vận hành đầu máy nhỏ và nhân viên dồn tàu
+
+id=927
+  EN: Railroad Brake, Signal, and Switch Operators and Locomotive Firers
+  VI: Thợ vận hành phanh, tín hiệu và ghi đường sắt
+
+id=928
+  EN: Railroad Conductors and Yardmasters
+  VI: Trưởng tàu và quản lý sân bãi đường sắt
+
+id=929
+  EN: Subway and Streetcar Operators
+  VI: Lái tàu điện ngầm và xe điện
+
+id=930
+  EN: Sailors and Marine Oilers
+  VI: Thủy thủ và thợ bôi trơn tàu biển
+
+id=931
+  EN: Captains, Mates, and Pilots of Water Vessels
+  VI: Thuyền trưởng, thuyền phó và hoa tiêu tàu thủy
+
+id=932
+  EN: Motorboat Operators
+  VI: Người điều khiển thuyền máy
+
+id=933
+  EN: Ship Engineers
+  VI: Kỹ sư tàu thủy
+
+id=934
+  EN: Bridge and Lock Tenders
+  VI: Nhân viên vận hành cầu và âu thuyền
+
+id=935
+  EN: Parking Attendants
+  VI: Nhân viên giữ xe
+
+id=936
+  EN: Automotive and Watercraft Service Attendants
+  VI: Nhân viên dịch vụ ô tô và tàu thủy
+
+id=937
+  EN: Aircraft Service Attendants
+  VI: Tiếp viên dịch vụ máy bay
+
+id=938
+  EN: Traffic Technicians
+  VI: Kỹ thuật viên giao thông
+
+id=939
+  EN: Transportation Inspectors
+  VI: Thanh tra giao thông vận tải
+
+id=940
+  EN: Aviation Inspectors
+  VI: Thanh tra hàng không
+
+id=941
+  EN: Transportation Vehicle, Equipment and Systems Inspectors, Except Aviation
+  VI: Thanh tra phương tiện, thiết bị và hệ thống vận tải, ngoại trừ hàng không
+
+id=942
+  EN: Passenger Attendants
+  VI: Tiếp viên hành khách
+
+id=943
+  EN: Transportation Workers, All Other
+  VI: Công nhân vận tải (khác)
+
+id=944
+  EN: Conveyor Operators and Tenders
+  VI: Thợ vận hành băng tải
+
+id=945
+  EN: Crane and Tower Operators
+  VI: Người vận hành cần trục và tháp
+
+id=946
+  EN: Dredge Operators
+  VI: Người vận hành nạo vét
+
+id=947
+  EN: Hoist and Winch Operators
+  VI: Thợ vận hành tời và máy kéo
+
+id=948
+  EN: Industrial Truck and Tractor Operators
+  VI: Người vận hành xe tải và máy kéo công nghiệp
+
+id=949
+  EN: Cleaners of Vehicles and Equipment
+  VI: Nhân viên vệ sinh phương tiện và thiết bị
+
+id=950
+  EN: Laborers and Freight, Stock, and Material Movers, Hand
+  VI: Công nhân bốc vác và vận chuyển hàng hóa, kho bãi và vật liệu bằng tay
+
+id=951
+  EN: Recycling and Reclamation Workers
+  VI: Công nhân tái chế và thu hồi
+
+id=952
+  EN: Machine Feeders and Offbearers
+  VI: Công nhân nạp liệu và lấy sản phẩm máy
+
+id=953
+  EN: Packers and Packagers, Hand
+  VI: Thợ đóng gói và bao bì bằng tay
+
+id=954
+  EN: Stockers and Order Fillers
+  VI: Nhân viên bổ sung hàng và xử lý đơn hàng
+
+id=955
+  EN: Gas Compressor and Gas Pumping Station Operators
+  VI: Người vận hành máy nén khí và trạm bơm khí
+
+id=956
+  EN: Pump Operators, Except Wellhead Pumpers
+  VI: Người vận hành máy bơm, ngoại trừ máy bơm đầu giếng
+
+id=957
+  EN: Wellhead Pumpers
+  VI: Thợ vận hành máy bơm đầu giếng
+
+id=958
+  EN: Refuse and Recyclable Material Collectors
+  VI: Công nhân thu gom rác và vật liệu tái chế
+
+id=959
+  EN: Tank Car, Truck, and Ship Loaders
+  VI: Công nhân bốc xếp xe bồn, xe tải và tàu thủy
+

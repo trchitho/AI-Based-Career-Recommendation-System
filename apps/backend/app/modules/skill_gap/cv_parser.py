@@ -43,14 +43,15 @@ class CVParser:
             from sqlalchemy import select
             
             # Query skills with their categories from database
-            stmt = select(CareerKSA.name, CareerKSA.category).distinct()
+            stmt = select(CareerKSA.name_en, CareerKSA.category).distinct()
             result = self.db.execute(stmt)
             
             # Build dict: skill_name (lowercase) -> category
             skills_dict = {}
             for name, category in result:
+                if not name:
+                    continue
                 skill_lower = name.lower()
-                # Use first category found for each skill
                 if skill_lower not in skills_dict:
                     skills_dict[skill_lower] = category or 'Other'
             

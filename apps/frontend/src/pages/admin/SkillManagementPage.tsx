@@ -92,7 +92,7 @@ const SkillManagementPage = () => {
       setDeleteConfirm(null);
     } catch (error) {
       console.error('Error deleting skill:', error);
-      alert('Failed to delete skill');
+      alert('Không thể xóa kỹ năng');
     }
   };
 
@@ -141,10 +141,10 @@ const SkillManagementPage = () => {
             <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
-            Skill Management
+            Quản lý kỹ năng
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Manage skills, knowledge and abilities
+            Quản lý kỹ năng, kiến thức và năng lực
           </p>
         </div>
         <button
@@ -154,7 +154,7 @@ const SkillManagementPage = () => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Add Skill
+          Thêm kỹ năng
         </button>
       </div>
 
@@ -163,48 +163,48 @@ const SkillManagementPage = () => {
         <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Search
+              Tìm kiếm
             </label>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name, category, or ONET code..."
+              placeholder="Tìm theo tên, danh mục hoặc mã ONET..."
               className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 dark:bg-gray-800 dark:text-white transition-colors"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              KSA Type
+              Loại KSA
             </label>
             <select
               value={ksaTypeFilter}
               onChange={(e) => setKsaTypeFilter(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-600 dark:bg-gray-800 dark:text-white transition-colors"
             >
-              <option value="">All Types</option>
-              <option value="knowledge">Knowledge</option>
-              <option value="skill">Skills</option>
-              <option value="ability">Abilities</option>
+              <option value="">Tất cả loại</option>
+              <option value="knowledge">Kiến thức</option>
+              <option value="skill">Kỹ năng</option>
+              <option value="ability">Năng lực</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Sort By
+              Sắp xếp theo
             </label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-600 dark:bg-gray-800 dark:text-white transition-colors"
             >
-              <option value="name">Name</option>
-              <option value="ksa_type">KSA Type</option>
-              <option value="category">Category</option>
-              <option value="onet_code">ONET Code</option>
-              <option value="level">Level</option>
-              <option value="importance">Importance</option>
+              <option value="name">Tên</option>
+              <option value="ksa_type">Loại KSA</option>
+              <option value="category">Danh mục</option>
+              <option value="onet_code">Mã ONET</option>
+              <option value="level">Cấp độ</option>
+              <option value="importance">Độ quan trọng</option>
             </select>
           </div>
 
@@ -213,13 +213,13 @@ const SkillManagementPage = () => {
               type="submit"
               className="flex-1 bg-indigo-800 hover:bg-indigo-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
-              Search
+              Tìm kiếm
             </button>
             <button
               type="button"
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold transition-colors text-sm"
-              title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+              title={`Sắp xếp ${sortOrder === 'asc' ? 'giảm dần' : 'tăng dần'}`}
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
             </button>
@@ -232,10 +232,10 @@ const SkillManagementPage = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4">
           <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
             <span>
-              Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, skillsData.total)} of {skillsData.total} skills
+              Hiển thị {((currentPage - 1) * perPage) + 1} đến {Math.min(currentPage * perPage, skillsData.total)} của {skillsData.total} kỹ năng
             </span>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Page {currentPage} / {skillsData.total_pages}
+              Trang {currentPage} / {skillsData.total_pages}
             </span>
           </div>
         </div>
@@ -245,7 +245,7 @@ const SkillManagementPage = () => {
       {loading ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-center py-16 gap-3 text-gray-500 dark:text-gray-400">
           <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          Loading...
+          Đang tải...
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
@@ -257,7 +257,7 @@ const SkillManagementPage = () => {
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1">
-                    Name
+                    Tên
                     {sortBy === 'name' && (
                       <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
@@ -268,7 +268,7 @@ const SkillManagementPage = () => {
                   onClick={() => handleSort('ksa_type')}
                 >
                   <div className="flex items-center gap-1">
-                    KSA Type
+                    Loại KSA
                     {sortBy === 'ksa_type' && (
                       <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
@@ -279,7 +279,7 @@ const SkillManagementPage = () => {
                   onClick={() => handleSort('category')}
                 >
                   <div className="flex items-center gap-1">
-                    Category
+                    Danh mục
                     {sortBy === 'category' && (
                       <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
@@ -290,20 +290,20 @@ const SkillManagementPage = () => {
                   onClick={() => handleSort('onet_code')}
                 >
                   <div className="flex items-center gap-1">
-                    ONET Code
+                    Mã ONET
                     {sortBy === 'onet_code' && (
                       <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">
-                  Level
+                  Cấp độ
                 </th>
                 <th className="px-6 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">
-                  Importance
+                  Độ quan trọng
                 </th>
                 <th className="px-6 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">
-                  Actions
+                  Hành động
                 </th>
               </tr>
             </thead>
@@ -354,7 +354,7 @@ const SkillManagementPage = () => {
                         onClick={() => handleEdit(skill)}
                         className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                       >
-                        Edit
+                        Sửa
                       </button>
 
                       {deleteConfirm === skill.id ? (
@@ -363,13 +363,13 @@ const SkillManagementPage = () => {
                             onClick={() => handleDelete(skill.id)}
                             className="text-red-600 hover:text-red-900 dark:text-red-400"
                           >
-                            Confirm
+                            Xác nhận
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(null)}
                             className="text-gray-600 hover:text-gray-900 dark:text-gray-300"
                           >
-                            Cancel
+                            Hủy
                           </button>
                         </>
                       ) : (
@@ -377,7 +377,7 @@ const SkillManagementPage = () => {
                           onClick={() => setDeleteConfirm(skill.id)}
                           className="text-red-600 hover:text-red-900 dark:text-red-400"
                         >
-                          Delete
+                          Xóa
                         </button>
                       )}
                     </div>
@@ -389,7 +389,7 @@ const SkillManagementPage = () => {
 
           {skillsData?.items.length === 0 && (
             <div className="text-center py-10 text-sm text-gray-500 dark:text-gray-400">
-              No skills found
+              Không tìm thấy kỹ năng nào
             </div>
           )}
         </div>
@@ -450,7 +450,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
       onSuccess();
     } catch (error) {
       console.error('Error saving skill:', error);
-      alert('Failed to save skill');
+      alert('Không thể lưu kỹ năng');
     } finally {
       setSubmitting(false);
     }
@@ -462,13 +462,13 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-5">
-          {skill ? 'Edit Skill' : 'Add Skill'}
+          {skill ? 'Sửa kỹ năng' : 'Thêm kỹ năng'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              ONET Code *
+              Mã ONET *
             </label>
             <input
               required
@@ -481,7 +481,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              KSA Type *
+              Loại KSA *
             </label>
             <select
               required
@@ -489,41 +489,41 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
               onChange={(e) => setFormData({ ...formData, ksa_type: e.target.value })}
               className={inputClass}
             >
-              <option value="Knowledge">Knowledge</option>
-              <option value="Skills">Skills</option>
-              <option value="Abilities">Abilities</option>
+              <option value="Knowledge">Kiến thức</option>
+              <option value="Skills">Kỹ năng</option>
+              <option value="Abilities">Năng lực</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Name *
+              Tên *
             </label>
             <input
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className={inputClass}
-              placeholder="Skill name"
+              placeholder="Tên kỹ năng"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Category
+              Danh mục
             </label>
             <input
               value={formData.category || ''}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className={inputClass}
-              placeholder="Category"
+              placeholder="Danh mục"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Level (0-100)
+                Cấp độ (0-100)
               </label>
               <input
                 type="number"
@@ -538,7 +538,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Importance (0-100)
+                Độ quan trọng (0-100)
               </label>
               <input
                 type="number"
@@ -554,13 +554,13 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Source
+              Nguồn
             </label>
             <input
               value={formData.source || ''}
               onChange={(e) => setFormData({ ...formData, source: e.target.value })}
               className={inputClass}
-              placeholder="Data source"
+              placeholder="Nguồn dữ liệu"
             />
           </div>
 
@@ -570,14 +570,14 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
               onClick={onClose}
               className="px-4 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              Cancel
+              Hủy
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="px-5 py-2 text-sm bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 disabled:opacity-50 font-medium transition-colors"
             >
-              {submitting ? 'Saving...' : skill ? 'Update' : 'Create'}
+              {submitting ? 'Đang lưu...' : skill ? 'Cập nhật' : 'Tạo mới'}
             </button>
           </div>
         </form>
