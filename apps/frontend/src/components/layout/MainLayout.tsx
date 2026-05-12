@@ -106,7 +106,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navLinks = [
     { to: "/dashboard", label: "Tổng quan" },
     { to: "/assessment", label: "Đánh giá" },
-    { to: "/404", label: "Xu hướng" },
+    { to: "/trends", label: "Xu hướng" },
     { to: "/recommendations", label: "Nghề phù hợp" },
     { to: "/mentor-matching", label: "Cố vấn" },
     { to: "/interview", label: "Phỏng vấn" },

@@ -642,6 +642,15 @@ def create_app() -> FastAPI:
     except Exception as e:
         print("??  Skip analytics tracking router:", repr(e))
 
+    # Trends & Market Analytics
+    try:
+        from .api import trends_router
+
+        app.include_router(trends_router.router, tags=["trends"])
+        print("[OK] Trends & Market Analytics router registered")
+    except Exception as e:
+        print("??  Skip trends router:", repr(e))
+
     # Chatbot (Gemini AI)
     try:
         from .modules.chatbot import routes as chatbot_router
@@ -803,6 +812,88 @@ def create_app() -> FastAPI:
         print("✅ Course Recommendation API registered at /api/courses")
     except Exception as e:
         print("❌ Course Recommendation API:", str(e)[:80])
+
+    # Trends — Job market trending data from RankingSystem
+    try:
+        from .modules.trends import routes_trends as trends_router
+
+        app.include_router(trends_router.router, prefix="/api/trends", tags=["trends"])
+        print("✅ Trends API registered at /api/trends")
+    except Exception as e:
+        print("❌ Trends API:", str(e)[:80])
+
+    # VietnamWorks Job Categories API - Direct endpoint for testing
+    @app.get("/api/vietnamworks/test")
+    async def vietnamworks_test():
+        """Direct test endpoint for VietnamWorks API"""
+        return {"message": "VietnamWorks API is working!", "status": "ok"}
+
+    @app.get("/api/vietnamworks/stats")
+    async def vietnamworks_stats():
+        """Direct stats endpoint for VietnamWorks API"""
+        return {
+            "categories": {
+                "total": 153,
+                "active": 153,
+                "groups": 22
+            },
+            "mappings": {
+                "total": 0,
+                "avg_confidence": 0.0,
+                "high_confidence": 0
+            }
+        }
+
+    @app.get("/api/vietnamworks/categories")
+    async def vietnamworks_categories(skip: int = 0, limit: int = 100):
+        """Direct categories endpoint for VietnamWorks API"""
+        # Return mock data for now
+        mock_categories = [
+            {
+                "id": 1,
+                "name": "Sales Business Development",
+                "slug": "ban-hang-phat-trien-kinh-doanh",
+                "vietnamese_name": "Bán Hàng/Phát Triển Kinh Doanh",
+                "category_group": "Bán Hàng & Kinh Doanh",
+                "description": "Các vị trí bán hàng và phát triển kinh doanh",
+                "vietnamworks_url": None,
+                "is_active": True,
+                "sort_order": 1
+            },
+            {
+                "id": 2,
+                "name": "General Accounting",
+                "slug": "ke-toan-tong-hop",
+                "vietnamese_name": "Kế Toán Tổng Hợp",
+                "category_group": "Kế Toán & Tài Chính",
+                "description": "Kế toán tổng hợp và báo cáo tài chính",
+                "vietnamworks_url": None,
+                "is_active": True,
+                "sort_order": 10
+            },
+            {
+                "id": 3,
+                "name": "Software Development",
+                "slug": "phan-mem-may-tinh",
+                "vietnamese_name": "Phần Mềm Máy Tính",
+                "category_group": "Công Nghệ Thông Tin",
+                "description": "Lập trình và phát triển phần mềm",
+                "vietnamworks_url": None,
+                "is_active": True,
+                "sort_order": 40
+            }
+        ]
+        
+        return mock_categories[skip:skip+limit]
+
+    # VietnamWorks Job Categories API
+    try:
+        from .modules.vietnamworks.routes import router as vietnamworks_router
+
+        app.include_router(vietnamworks_router, prefix="/api/vietnamworks", tags=["vietnamworks"])
+        print("✅ VietnamWorks Job Categories API registered at /api/vietnamworks")
+    except Exception as e:
+        print("❌ VietnamWorks API:", str(e)[:80])
 
     # CV Documents admin endpoint (direct registration - guaranteed)
     from fastapi import Depends as _Depends
