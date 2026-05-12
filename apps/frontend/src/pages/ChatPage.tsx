@@ -170,8 +170,8 @@ const ChatPage = () => {
               <span className="inline-block py-1 px-3 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold tracking-widest uppercase mb-2 border border-indigo-200 dark:border-indigo-800">
                 AI Assistant
               </span>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                Career<span className="text-indigo-800 dark:text-indigo-700">Chat</span>
+              <h1 className="text-2xl md:text-3xl font-extrabold premium-gradient tracking-tight inline-block">
+                CareerChat
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Ask me anything about your career path, skills, or goals.
@@ -182,7 +182,7 @@ const ChatPage = () => {
             <button
               onClick={() => setHistoryOpen(true)}
               title="Lịch sử trò chuyện"
-              className="absolute right-4 sm:right-6 lg:right-8 top-6 flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-800 transition-all shadow-sm text-sm font-medium"
+              className="absolute right-4 sm:right-6 lg:right-8 top-6 flex items-center gap-2 px-3 py-2 rounded-xl glass border border-white/40 text-gray-700 dark:text-gray-300 hover:shadow-md transition-all shadow-sm text-sm font-medium hover:-translate-y-0.5"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -201,7 +201,7 @@ const ChatPage = () => {
           )}
 
           {/* CHAT CONTAINER */}
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-[32px] shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col relative min-h-0">
+          <div className="flex-1 glass rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative min-h-0 border-0">
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
@@ -292,10 +292,10 @@ const ChatPage = () => {
             </div>
 
             {/* Input area */}
-            <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-white/30 dark:bg-gray-900/40 backdrop-blur-md border-t border-white/20 dark:border-gray-700/30">
               <form onSubmit={send} className="relative flex items-center gap-2">
                 <input
-                  className="flex-1 pl-5 pr-4 py-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all font-medium shadow-inner"
+                  className="flex-1 pl-5 pr-4 py-4 bg-white/60 dark:bg-gray-800/60 border border-white/40 dark:border-gray-700/50 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all font-medium shadow-inner"
                   placeholder="Nhập câu hỏi của bạn..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

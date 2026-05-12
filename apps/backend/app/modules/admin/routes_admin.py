@@ -846,7 +846,7 @@ def _career_to_client(c: Career, session: Session) -> dict:
     dominant_code = "N/A"
     if c.onet_code:
         interest = session.execute(
-            select(CareerInterest).where(CareerInterest.onet_code == c.onet_code)
+            select(CareerInterest).where(CareerInterest.onet_code == c.onet_code).limit(1)
         ).scalar_one_or_none()
         if interest:
             riasec_profile = {
@@ -870,7 +870,7 @@ def _career_to_client(c: Career, session: Session) -> dict:
     # Get salary from career_overview
     salary_range = {"min": 0, "max": 0, "currency": "USD"}
     overview = session.execute(
-        select(CareerOverview).where(CareerOverview.career_id == c.id)
+        select(CareerOverview).where(CareerOverview.career_id == c.id).limit(1)
     ).scalar_one_or_none()
     if overview and overview.salary_min and overview.salary_max:
         salary_range = {

@@ -128,8 +128,10 @@ def get_careers_by_group_with_search(
                 "id": str(career.id),
                 "slug": career.slug,
                 "title": career.title,
+                "title_vn": career.title_vn,
+                "title_en": career.title_en,
                 "short_desc": career.short_desc,
-                "description": career.short_desc,
+                "description_vn": career.description_vn,
                 "onet_code": career.onet_code,
                 "industry_category": career.industry_category
             }
@@ -234,6 +236,7 @@ def get_careers(
     query = text(f"""
         SELECT 
             c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vi, c.short_desc_en,
+            c.description_vi, c.description_en,
             c.onet_code, c.industry_category,
             cg.name as group_name, cg.slug as group_slug
         FROM core.careers c
@@ -270,7 +273,10 @@ def get_careers(
             "id": row.id,
             "slug": row.slug,
             "title": display_title,
-            "short_desc": short_desc,
+            "title_vn": row.title_vi,
+            "title_en": row.title_en,
+            "short_desc": row.short_desc_vi or row.short_desc_en or "",
+            "description_vn": row.description_vi or row.description_en or row.short_desc_vi or row.short_desc_en or "",
             "onet_code": row.onet_code,
             "industry_category": row.industry_category,
             "group": group_data,

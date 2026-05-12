@@ -429,24 +429,24 @@ const AssessmentPage = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen text-gray-900 dark:text-white relative overflow-hidden flex flex-col" style={{ background: 'var(--neu-bg)' }}>
+      <div className="min-h-screen text-gray-900 dark:text-white relative overflow-hidden flex flex-col bg-gray-50/50 dark:bg-gray-900/50">
 
         {/* Background Styles */}
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; opacity: 0; }
-          .bg-grid-pattern {
-            background-image: radial-gradient(rgba(74, 124, 89, 0.1) 1px, transparent 1px);
-            background-size: 32px 32px;
+          .bg-dot-pattern {
+            background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px);
+            background-size: 24px 24px;
           }
-          .dark .bg-grid-pattern {
-            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+          .dark .bg-dot-pattern {
+            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
           }
         `}</style>
 
         {/* --- BACKGROUND LAYERS --- */}
-        <div className="absolute inset-0 bg-grid-pattern pointer-events-none z-0"></div>
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60"></div>
         <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
@@ -466,11 +466,7 @@ const AssessmentPage = () => {
 
           {/* --- STEP 1: INTRO (SINGLE CARD) --- */}
           {step === 'intro' && (
-            <div className="relative rounded-[32px] w-full max-w-6xl overflow-hidden flex flex-col md:flex-row animate-fade-in-up min-h-[600px] group transition-all duration-500"
-              style={{
-                background: 'var(--neu-bg-card)',
-                boxShadow: '8px 8px 20px var(--neu-shadow-dark), -8px -8px 20px var(--neu-shadow-light)',
-              }}
+            <div className="relative rounded-[32px] w-full max-w-6xl overflow-hidden flex flex-col md:flex-row animate-fade-in-up min-h-[600px] group transition-all duration-500 glass shadow-xl"
             >
               {/* Animated border gradient */}
               <div className="absolute inset-0 rounded-[32px] bg-gradient-to-r from-indigo-600 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl"></div>
@@ -485,7 +481,7 @@ const AssessmentPage = () => {
                     </span>
                     {t('assessment.aiPowered')}
                   </span>
-                  <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-gray-900 via-indigo-900 to-violet-800 dark:from-white dark:via-indigo-400 dark:to-violet-400 bg-clip-text text-transparent mb-6 leading-tight">
+                  <h1 className="text-4xl md:text-6xl font-extrabold premium-gradient mb-6 leading-tight">
                     {t('assessment.discoverCareer')}
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed mb-8 font-medium">
@@ -579,11 +575,7 @@ const AssessmentPage = () => {
                   <button
                     onClick={() => setStep('test')}
                     disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
-                    className="group flex flex-col items-center justify-center px-6 py-6 rounded-2xl font-bold transition-all duration-300 hover:-translate-y-1 disabled:opacity-60 disabled:cursor-not-allowed"
-                    style={{
-                      background: 'var(--neu-bg-card)',
-                      boxShadow: '6px 6px 14px var(--neu-shadow-dark), -6px -6px 14px var(--neu-shadow-light)',
-                    }}
+                    className="group flex flex-col items-center justify-center px-6 py-6 rounded-2xl font-bold transition-all duration-300 hover:-translate-y-1 disabled:opacity-60 disabled:cursor-not-allowed glass shadow-md hover:shadow-xl"
                   >
                     <div className="text-center">
                       <p className="text-lg font-extrabold text-gray-800 dark:text-gray-100">{t('assessment.modeTraditional')}</p>
@@ -607,9 +599,9 @@ const AssessmentPage = () => {
         {/* --- USAGE STATUS (Moved to bottom) --- */}
         {!upgradeRequired && step === 'intro' && (
           <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 pb-8">
-            <div className={`border rounded-2xl p-6 shadow-lg ${getAssessmentLimit() === -1 // Unlimited
-              ? 'bg-gradient-to-r from-indigo-50 via-indigo-50 to-teal-50 dark:from-indigo-950/20 dark:via-emerald-900/20 dark:to-teal-900/20 border-indigo-200 dark:border-indigo-800'
-              : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800'
+            <div className={`glass border rounded-3xl p-6 shadow-xl ${getAssessmentLimit() === -1 // Unlimited
+              ? 'bg-gradient-to-r from-indigo-50/50 via-indigo-50/50 to-teal-50/50 dark:from-indigo-950/20 dark:via-emerald-900/20 dark:to-teal-900/20 border-indigo-200/50 dark:border-indigo-800/50'
+              : 'bg-gradient-to-r from-blue-50/50 via-indigo-50/50 to-purple-50/50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-blue-200/50 dark:border-blue-800/50'
               }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -672,7 +664,7 @@ const AssessmentPage = () => {
 
           {/* --- STEP 2: TEST INTERFACE (SINGLE CARD) --- */}
           {step === 'test' && (
-            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/50 dark:border-gray-700 w-full max-w-[95vw] p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
+            <div className="glass rounded-[32px] shadow-2xl w-full max-w-[95vw] p-6 md:p-10 animate-fade-in-up min-h-[600px] flex flex-col">
               <div className="flex justify-between items-center mb-8 border-b border-gray-100 dark:border-gray-700 pb-6 px-4">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                   {quizMode === 'game' ? 'Đánh Giá Chế Độ Trò Chơi' :
@@ -728,7 +720,7 @@ const AssessmentPage = () => {
 
           {/* --- STEP 4: PROCESSING (SINGLE CARD) --- */}
           {step === 'processing' && (
-            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-[32px] shadow-2xl p-16 w-full max-w-2xl text-center animate-fade-in-up border border-white/50 dark:border-gray-700">
+            <div className="glass bg-white/90 dark:bg-gray-800/90 rounded-[32px] shadow-2xl p-16 w-full max-w-2xl text-center animate-fade-in-up border border-white/50 dark:border-white/10">
               <div className="relative mb-8 flex justify-center">
                 <div className="w-24 h-24 border-4 border-gray-100 dark:border-gray-700 rounded-full"></div>
                 <div className="absolute w-24 h-24 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>

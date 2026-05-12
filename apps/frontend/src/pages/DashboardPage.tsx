@@ -58,17 +58,17 @@ const DashboardPage = () => {
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; opacity: 0; }
-          .bg-grid-pattern {
-            background-image: radial-gradient(rgba(74, 124, 89, 0.1) 1px, transparent 1px);
-            background-size: 32px 32px;
+          .bg-dot-pattern {
+            background-image: radial-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 24px 24px;
           }
-          .dark .bg-grid-pattern {
+          .dark .bg-dot-pattern {
             background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
           }
         `}</style>
 
         {/* --- BACKGROUND LAYERS --- */}
-        <div className="fixed inset-0 bg-grid-pattern pointer-events-none z-0"></div>
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60"></div>
         <div className="fixed top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="fixed bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
@@ -77,9 +77,9 @@ const DashboardPage = () => {
           {/* --- HEADER DASHBOARD --- */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 animate-fade-in-up">
             <div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight flex items-center gap-3">
+              <h2 className="text-3xl md:text-4xl font-extrabold premium-gradient mb-2 tracking-tight flex items-center gap-3 w-fit">
                 {t('dashboard.title')}
-                <span className="text-sm font-medium px-3 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800">
+                <span className="text-sm font-bold px-3 py-1 bg-indigo-50/80 dark:bg-indigo-950/50 text-indigo-900 dark:text-indigo-400 rounded-full border border-indigo-200/50 dark:border-indigo-800/50 shadow-sm backdrop-blur-sm">
                   {t('dashboard.overview')}
                 </span>
               </h2>
@@ -139,8 +139,8 @@ const DashboardPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                 {/* Profile Summary - Main Card */}
                 <div className="lg:col-span-2 flex flex-col h-full">
-                  <div className="h-full bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 overflow-hidden relative group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-indigo-700/10 to-transparent rounded-bl-[100px] pointer-events-none group-hover:from-indigo-700/20 transition-all"></div>
+                  <div className="h-full glass rounded-[28px] overflow-hidden relative group p-1 transition-all duration-300 hover:shadow-2xl">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-indigo-700/10 to-transparent rounded-bl-[100px] pointer-events-none group-hover:from-indigo-700/20 transition-all duration-500"></div>
                     <ProfileSummaryCard profile={dashboardData.profileSummary} />
                   </div>
                 </div>
@@ -148,7 +148,7 @@ const DashboardPage = () => {
                 {/* Metrics - Side Card */}
                 {dashboardData.hasCompletedAssessment && (
                   <div className="lg:col-span-1 flex flex-col h-full">
-                    <div className="h-full bg-white dark:bg-gray-800 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 p-1">
+                    <div className="h-full glass rounded-[28px] p-1 transition-all duration-300 hover:shadow-2xl">
                       <ProgressMetricsCard metrics={dashboardData.progressMetrics} />
                     </div>
                   </div>
@@ -243,7 +243,7 @@ const DashboardPage = () => {
                 </div>
               ) : (
                 // --- NO ASSESSMENT STATE - Only show if user hasn't completed any assessments ---
-                <div className="bg-white dark:bg-gray-800 rounded-[32px] border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none p-1.5">
+                <div className="glass rounded-[32px] p-1.5 shadow-2xl transition-all duration-500">
                   <NoAssessmentPrompt />
                 </div>
               )}

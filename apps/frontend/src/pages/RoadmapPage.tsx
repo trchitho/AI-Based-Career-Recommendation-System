@@ -231,11 +231,11 @@ const RoadmapPage = () => {
   return (
     <MainLayout>
       <SubscriptionRefresh onUpgradeDetected={handleUpgradeDetected} />
-      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+      <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          .bg-dot-pattern { background-image: radial-gradient(E5E7EB 1px, transparent 1px); background-size: 24px 24px; }
-          .dark .bg-dot-pattern { background-image: radial-gradient(374151 1px, transparent 1px); }
+          .bg-dot-pattern { background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px); background-size: 24px 24px; }
+          .dark .bg-dot-pattern { background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); }
           @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
           .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -268,13 +268,13 @@ const RoadmapPage = () => {
           {!loading && roadmap && (
             <div className="animate-fade-in-up space-y-8">
               {/* Hero Header - Career Title + Stages */}
-              <div className="rounded-card-hero p-8 md:p-10 relative overflow-hidden" style={{ background: 'var(--neu-accent)', boxShadow: '8px 8px 20px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light)' }}>
+              <div className="glass rounded-[32px] p-8 md:p-10 relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.2)', color: 'var(--neu-btn-text, #ffffff)', border: '1px solid rgba(255,255,255,0.3)' }}>Lộ Trình Nghề Nghiệp</span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-100/50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50 shadow-sm backdrop-blur-sm">Lộ Trình Nghề Nghiệp</span>
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8" style={{ color: 'var(--neu-btn-text, #ffffff)' }}>{roadmap.careerTitle}</h1>
+                  <h1 className="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-500 tracking-tight mb-8 w-fit">{roadmap.careerTitle}</h1>
 
                   {/* Dynamic career stages based on milestones count */}
                   {(() => {
@@ -322,7 +322,7 @@ const RoadmapPage = () => {
 
               {/* Overview - Career Description */}
               {(careerDesc || navState.description) && (
-                <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="glass rounded-[24px] p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <span className="w-2 h-6 bg-indigo-700 rounded-full" />Overview
                   </h3>
@@ -339,7 +339,7 @@ const RoadmapPage = () => {
 
               {/* Trait Evidence - Why this career matches */}
               {traitEvidence && (
-                <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+                <div className="glass rounded-[24px] p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <span className="w-2 h-6 bg-blue-500 rounded-full" />How your assessment supports this career match
                   </h3>
@@ -358,7 +358,7 @@ const RoadmapPage = () => {
               )}
 
               {/* Người đã hoàn thành lộ trình */}
-              <div className="bg-white dark:bg-gray-800 rounded-card-feature p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+              <div className="glass rounded-[24px] p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <span className="w-2 h-6 bg-purple-500 rounded-full" />
@@ -425,8 +425,8 @@ const RoadmapPage = () => {
               </div>
 
               {/* Learning Journey Timeline */}
-              <div className="relative bg-white dark:bg-gray-800 rounded-card-hero shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <div className="relative bg-primary-dark dark:bg-gray-900 p-8 md:p-10 overflow-hidden">
+              <div className="relative glass rounded-[32px] shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+                <div className="relative bg-indigo-900/60 dark:bg-gray-900/60 p-8 md:p-10 overflow-hidden border-b border-white/10 backdrop-blur-md">
                   <div className="absolute -right-10 -top-10 w-64 h-64 bg-indigo-700/20 rounded-full blur-3xl" />
 
                   <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -456,7 +456,7 @@ const RoadmapPage = () => {
                   </div>
                 </div>
 
-                <div className="p-8 md:p-10 bg-gray-50/50 dark:bg-gray-800/50">
+                <div className="p-8 md:p-10 bg-white/30 dark:bg-gray-800/30">
                   {upgradeRequired && (
                     <div className="mb-6 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg">
                       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

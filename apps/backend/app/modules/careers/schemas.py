@@ -83,7 +83,10 @@ class CareerOut(BaseModel):
     id: int
     slug: str
     title: str
+    title_vn: Optional[str] = None
+    title_en: Optional[str] = None
     short_desc: Optional[str] = None
+    description_vn: Optional[str] = None
     onet_code: Optional[str] = None
     industry_category: Optional[str] = None
     group: Optional[CareerGroupOut] = None

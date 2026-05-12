@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Play, Loader2, Briefcase, Clock, Users, Eye, Star, TrendingUp, Award, Target, Zap, ChevronRight, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { interviewService } from '../services/interviewService';
 import { useDebounce } from '../hooks/useDebounce';
 import MainLayout from '../components/layout/MainLayout';
-import './InterviewListPage.css';
-
 interface Job {
     id: string;
     title: string;
@@ -198,10 +197,10 @@ const InterviewListPage: React.FC = () => {
     if (isLoading) {
         return (
             <MainLayout>
-                <div className="interview-list-page" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ textAlign: 'center' }}>
-                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" style={{ color: '#6366f1' }} />
-                        <p style={{ color: 'var(--text-secondary)' }}>Đang tải danh sách nghề nghiệp...</p>
+                <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                    <div className="text-center">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-indigo-600" />
+                        <p className="text-gray-500 font-medium">Đang tải danh sách nghề nghiệp...</p>
                     </div>
                 </div>
             </MainLayout>
@@ -210,32 +209,37 @@ const InterviewListPage: React.FC = () => {
 
     return (
         <MainLayout>
-            <div className="interview-list-page py-8">
-                <div className="max-w-6xl mx-auto px-4">
+            <div className="min-h-[calc(100vh-64px)] py-10 px-4 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans'] pb-20">
+                
+                <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+                <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+                <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+
+                <div className="max-w-6xl mx-auto relative z-10">
                     {/* Header */}
                     <div className="text-center mb-12">
-                        <div className="interview-hero-icon">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-[20px] bg-indigo-600 shadow-lg shadow-indigo-500/30 mb-6">
                             <Users className="h-8 w-8 text-white" />
                         </div>
-                        <h1 className="interview-hero-title">
-                            Phỏng vấn AI <span className="interview-hero-title-gradient">thông minh</span>
+                        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-4">
+                            Phỏng vấn AI <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">thông minh</span>
                         </h1>
-                        <p className="interview-hero-subtitle max-w-3xl mx-auto">
+                        <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-medium">
                             Luyện tập phỏng vấn với AI, nhận phản hồi chi tiết
                             và nâng cao cơ hội thành công trong sự nghiệp.
                         </p>
                     </div>
 
                     {/* Search */}
-                    <div className="interview-search-container">
-                        <div style={{ position: 'relative' }}>
-                            <Search className="interview-search-icon h-5 w-5" />
+                    <div className="max-w-3xl mx-auto mb-12">
+                        <div className="relative glass rounded-[24px] overflow-hidden border border-white/40 dark:border-gray-700/50 shadow-xl transition-all focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500">
+                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-indigo-500/70" />
                             <input
                                 type="text"
                                 placeholder="Tìm kiếm kỹ năng, vị trí, công ty..."
                                 value={searchQuery}
                                 onChange={handleSearchChange}
-                                className="interview-search-input"
+                                className="w-full pl-16 pr-12 py-5 bg-transparent border-none focus:outline-none text-gray-900 dark:text-white placeholder-gray-500 text-lg font-medium"
                             />
                             {isSearching && (
                                 <Loader2 className="h-5 w-5 animate-spin" style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -260,7 +264,7 @@ const InterviewListPage: React.FC = () => {
                                     <button
                                         key={career.name}
                                         onClick={() => setSearchQuery(career.query)}
-                                        className="interview-skill-tag"
+                                        className="px-3 py-1.5 text-xs font-semibold bg-white/50 dark:bg-gray-800/50 border border-indigo-100 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900/40 hover:shadow-sm transition-all"
                                     >
                                         {career.name}
                                     </button>
@@ -272,15 +276,15 @@ const InterviewListPage: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Job List */}
                         <div className="lg:col-span-2">
-                            <div className="interview-card">
-                                <div className="interview-card-header">
-                                    <h2 className="interview-card-title">
-                                        <div className="interview-card-icon-wrapper">
-                                            <Briefcase className="h-5 w-5" style={{ color: '#6366f1' }} />
+                            <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl overflow-hidden h-full">
+                                <div className="px-6 py-5 border-b border-white/40 dark:border-gray-700/50 bg-white/30 dark:bg-gray-800/30">
+                                    <h2 className="flex items-center gap-3 text-xl font-bold text-gray-900 dark:text-white">
+                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+                                            <Briefcase className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         {searchQuery ? 'Kết quả tìm kiếm' : 'Nghề nghiệp phổ biến'}
                                     </h2>
-                                    <p className="interview-card-subtitle">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                                         {searchQuery
                                             ? `Tìm thấy ${jobs.length} nghề nghiệp phù hợp`
                                             : 'Được chọn ngẫu nhiên từ 959+ nghề nghiệp trong hệ thống'
@@ -289,14 +293,14 @@ const InterviewListPage: React.FC = () => {
                                 </div>
                                 <div className="p-6">
                                     {jobs.length === 0 ? (
-                                        <div className="interview-empty-state">
-                                            <div className="interview-empty-icon">
-                                                <Briefcase className="h-10 w-10" style={{ color: 'var(--text-muted)' }} />
+                                        <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
+                                                <Briefcase className="h-8 w-8 text-gray-400" />
                                             </div>
-                                            <h3 className="interview-empty-title">
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
                                                 {searchQuery ? 'Không tìm thấy nghề nghiệp phù hợp' : 'Không có dữ liệu nghề nghiệp'}
                                             </h3>
-                                            <p className="interview-empty-text mb-4">
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md">
                                                 {searchQuery
                                                     ? 'Thử tìm kiếm với từ khóa khác hoặc kiểm tra chính tả'
                                                     : 'Vui lòng thử lại sau'
@@ -305,37 +309,49 @@ const InterviewListPage: React.FC = () => {
                                             {searchQuery && (
                                                 <button
                                                     onClick={() => setSearchQuery('')}
-                                                    className="interview-btn-primary"
+                                                    className="px-5 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-semibold rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors text-sm"
                                                 >
                                                     Xóa bộ lọc và xem tất cả
                                                 </button>
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <motion.div 
+                                                initial="hidden" 
+                                                animate="visible" 
+                                                variants={{
+                                                    hidden: { opacity: 0 },
+                                                    visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+                                                }}
+                                                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                                            >
                                             {jobs.map((job) => (
-                                                <div
+                                                <motion.div
+                                                    variants={{
+                                                        hidden: { opacity: 0, y: 20 },
+                                                        visible: { opacity: 1, y: 0 }
+                                                    }}
+                                                    whileHover={{ y: -4, scale: 1.01 }}
+                                                    transition={{ type: "spring", stiffness: 300 }}
                                                     key={job.id}
-                                                    className="interview-job-card"
+                                                    className="glass rounded-2xl p-5 border border-white/40 dark:border-gray-700/50 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all shadow-sm hover:shadow-lg flex flex-col h-full bg-white/50 dark:bg-gray-800/40"
                                                 >
                                                     {/* Header - Fixed height */}
-                                                    <div className="mb-4 h-[100px] flex flex-col justify-between">
-                                                        <div>
-                                                            <h3 className="interview-job-title">
-                                                                <span className="line-clamp-2">
-                                                                    {job.title}
-                                                                </span>
-                                                            </h3>
-                                                            <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                                                                Mã nghề: {job.id}
-                                                            </p>
-                                                        </div>
+                                                    <div className="mb-4 h-[90px] flex flex-col justify-start">
+                                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-snug">
+                                                            <span className="line-clamp-2">
+                                                                {job.title}
+                                                            </span>
+                                                        </h3>
+                                                        <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 w-fit px-2 py-0.5 rounded-md">
+                                                            Mã nghề: {job.id}
+                                                        </p>
                                                     </div>
 
                                                     {/* Description - Fixed height with scroll */}
                                                     <div className="flex-1 mb-6 h-[140px] overflow-hidden">
                                                         {job.description_vi ? (
-                                                            <div className="interview-job-description h-full">
+                                                            <div className="h-full text-sm text-gray-600 dark:text-gray-400">
                                                                 <p className="line-clamp-6">
                                                                     {job.description_vi}
                                                                 </p>
@@ -351,22 +367,22 @@ const InterviewListPage: React.FC = () => {
                                                     <div className="flex gap-3 mt-auto">
                                                         <button
                                                             onClick={() => navigate(`/interview/selection/${job.id}`)}
-                                                            className="interview-btn-primary flex-1 text-sm"
+                                                            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/40"
                                                         >
                                                             <Play className="h-4 w-4" />
                                                             Phỏng vấn
                                                         </button>
                                                         <button
                                                             onClick={() => navigate(`/careers/${job.id.replace(/\./g, '-')}`)}
-                                                            className="interview-btn-secondary flex-1 text-sm"
+                                                            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-700/80 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold transition-colors shadow-sm"
                                                         >
                                                             <Eye className="h-4 w-4" />
                                                             Chi tiết
                                                         </button>
                                                     </div>
-                                                </div>
+                                                </motion.div>
                                             ))}
-                                        </div>
+                                            </motion.div>
                                     )}
                                 </div>
                             </div>
@@ -375,26 +391,26 @@ const InterviewListPage: React.FC = () => {
                         {/* Sidebar */}
                         <div className="space-y-6">
                             {/* Recent Interviews */}
-                            <div className="interview-card">
-                                <div className="interview-card-header">
-                                    <h3 className="interview-card-title">
-                                        <div className="interview-card-icon-wrapper">
-                                            <Clock className="h-5 w-5" style={{ color: '#6366f1' }} />
+                            <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl overflow-hidden">
+                                <div className="px-6 py-5 border-b border-white/40 dark:border-gray-700/50 bg-white/30 dark:bg-gray-800/30">
+                                    <h3 className="flex items-center gap-3 text-lg font-bold text-gray-900 dark:text-white">
+                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+                                            <Clock className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         Phỏng vấn gần đây
                                     </h3>
-                                    <p className="interview-card-subtitle">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                                         Lịch sử phỏng vấn của bạn
                                     </p>
                                 </div>
                                 <div className="p-6">
                                     {recentInterviews.length === 0 ? (
-                                        <div className="interview-empty-state">
-                                            <div className="interview-empty-icon">
-                                                <Clock className="h-8 w-8" style={{ color: 'var(--text-muted)' }} />
+                                        <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
+                                                <Clock className="h-8 w-8 text-gray-400" />
                                             </div>
-                                            <h4 className="interview-empty-title">Chưa có phỏng vấn nào</h4>
-                                            <p className="interview-empty-text mb-4">
+                                            <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Chưa có phỏng vấn nào</h4>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md">
                                                 Bắt đầu phỏng vấn đầu tiên để xem lịch sử tại đây
                                             </p>
                                             <button
@@ -402,10 +418,9 @@ const InterviewListPage: React.FC = () => {
                                                     const firstJob = jobs[0];
                                                     if (firstJob) navigate(`/interview/selection/${firstJob.id}`);
                                                 }}
-                                                className="interview-btn-primary"
-                                                style={{ fontSize: '0.875rem' }}
+                                                className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors text-sm shadow-md shadow-indigo-500/20 flex items-center gap-2"
                                             >
-                                                Bắt đầu phỏng vấn ngay →
+                                                Bắt đầu phỏng vấn ngay <ChevronRight className="w-4 h-4" />
                                             </button>
                                         </div>
                                     ) : (
@@ -414,7 +429,7 @@ const InterviewListPage: React.FC = () => {
                                                 {(showAllInterviews ? allInterviews : recentInterviews).map((interview) => (
                                                     <div
                                                         key={interview.id}
-                                                        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 sm:p-5 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                                                        className="glass bg-white/50 dark:bg-gray-800/40 border border-white/40 dark:border-gray-700/50 rounded-xl p-4 sm:p-5 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
                                                         onClick={() => navigate(`/interview/results/${interview.id}`)}
                                                     >
                                                         <div className="flex items-center justify-between mb-3">
@@ -490,51 +505,51 @@ const InterviewListPage: React.FC = () => {
                             </div>
 
                             {/* Enhanced Stats */}
-                            <div className="interview-card">
-                                <div className="interview-card-header">
-                                    <h3 className="interview-card-title">
-                                        <div className="interview-card-icon-wrapper">
-                                            <Users className="h-5 w-5 interview-icon-accent" />
+                            <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl overflow-hidden">
+                                <div className="px-6 py-5 border-b border-white/40 dark:border-gray-700/50 bg-white/30 dark:bg-gray-800/30">
+                                    <h3 className="flex items-center gap-3 text-lg font-bold text-gray-900 dark:text-white">
+                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+                                            <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         Thống kê của bạn
                                     </h3>
-                                    <p className="interview-card-subtitle">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                                         Tiến độ phỏng vấn và thành tích
                                     </p>
                                 </div>
                                 <div className="p-6">
-                                    <div className="space-y-6">
+                                    <div className="space-y-4">
                                         {/* Total Interviews */}
-                                        <div className="interview-stat-item-blue flex items-center justify-between p-4 rounded-xl">
+                                        <div className="glass bg-white/50 dark:bg-gray-800/40 flex items-center justify-between p-4 rounded-xl border border-white/40 dark:border-gray-700/50">
                                             <div className="flex items-center gap-3">
-                                                <div className="interview-stat-icon-blue w-10 h-10 rounded-full flex items-center justify-center">
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                                                     <Briefcase className="h-5 w-5" />
                                                 </div>
                                                 <div>
-                                                    <p className="interview-stat-label">Tổng phỏng vấn</p>
-                                                    <p className="text-xs interview-card-subtitle">Số lần bạn đã thử</p>
+                                                    <p className="font-semibold text-gray-900 dark:text-white text-sm">Tổng phỏng vấn</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">Số lần bạn đã thử</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="interview-stat-value">{interviewStats.total_interviews}</p>
-                                                <p className="interview-stat-unit">lần</p>
+                                                <p className="text-xl font-bold text-gray-900 dark:text-white">{interviewStats.total_interviews}</p>
+                                                <p className="text-xs text-gray-500">lần</p>
                                             </div>
                                         </div>
 
                                         {/* Completed Interviews */}
-                                        <div className="interview-stat-item-purple flex items-center justify-between p-4 rounded-xl">
+                                        <div className="glass bg-white/50 dark:bg-gray-800/40 flex items-center justify-between p-4 rounded-xl border border-white/40 dark:border-gray-700/50">
                                             <div className="flex items-center gap-3">
-                                                <div className="interview-stat-icon-purple w-10 h-10 rounded-full flex items-center justify-center">
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
                                                     <Clock className="h-5 w-5" />
                                                 </div>
                                                 <div>
-                                                    <p className="interview-stat-label">Hoàn thành</p>
-                                                    <p className="text-xs interview-card-subtitle">Phỏng vấn thành công</p>
+                                                    <p className="font-semibold text-gray-900 dark:text-white text-sm">Hoàn thành</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">Phỏng vấn thành công</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="interview-stat-value">{interviewStats.completed_interviews}</p>
-                                                <p className="interview-stat-unit">
+                                                <p className="text-xl font-bold text-gray-900 dark:text-white">{interviewStats.completed_interviews}</p>
+                                                <p className="text-xs text-gray-500">
                                                     {interviewStats.total_interviews > 0
                                                         ? `${((interviewStats.completed_interviews / interviewStats.total_interviews) * 100).toFixed(0)}%`
                                                         : '0%'
@@ -545,28 +560,28 @@ const InterviewListPage: React.FC = () => {
 
                                         {/* Average Score */}
                                         {interviewStats.completed_interviews > 0 && (
-                                            <div className="interview-stat-item-green flex items-center justify-between p-4 rounded-xl">
+                                            <div className="glass bg-white/50 dark:bg-gray-800/40 flex items-center justify-between p-4 rounded-xl border border-white/40 dark:border-gray-700/50">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="interview-stat-icon-green w-10 h-10 rounded-full flex items-center justify-center">
-                                                        <Users className="h-5 w-5" />
+                                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                                                        <Star className="h-5 w-5" />
                                                     </div>
                                                     <div>
-                                                        <p className="interview-stat-label">Điểm trung bình</p>
-                                                        <p className="text-xs interview-card-subtitle">Thành tích tổng thể</p>
+                                                        <p className="font-semibold text-gray-900 dark:text-white text-sm">Điểm trung bình</p>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">Thành tích tổng thể</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="interview-stat-value">
+                                                    <p className="text-xl font-bold text-gray-900 dark:text-white">
                                                         {interviewStats.average_score.toFixed(1)}
                                                     </p>
-                                                    <p className="interview-stat-unit">/10 điểm</p>
+                                                    <p className="text-xs text-gray-500">/10 điểm</p>
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* Progress Message */}
-                                        <div className="interview-info-box text-center">
-                                            <p className="interview-info-title mb-1">
+                                        <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/50 rounded-xl p-5 text-center">
+                                            <p className="font-bold text-indigo-900 dark:text-indigo-300 text-sm mb-1.5">
                                                 {interviewStats.total_interviews === 0
                                                     ? '🎯 Bắt đầu hành trình phỏng vấn của bạn!'
                                                     : interviewStats.average_score >= 8
@@ -576,7 +591,7 @@ const InterviewListPage: React.FC = () => {
                                                             : '💪 Đừng bỏ cuộc! Mỗi lần thử là một bước tiến'
                                                 }
                                             </p>
-                                            <p className="interview-info-text">
+                                            <p className="text-xs text-indigo-700/70 dark:text-indigo-400/70">
                                                 {interviewStats.total_interviews === 0
                                                     ? 'Chọn nghề nghiệp và bắt đầu phỏng vấn đầu tiên'
                                                     : 'Luyện tập thường xuyên để cải thiện kỹ năng'
@@ -588,40 +603,42 @@ const InterviewListPage: React.FC = () => {
                             </div>
 
                             {/* Enhanced Tips */}
-                            <div className="interview-tips-card">
-                                <h3 className="interview-tips-section-title mb-4">
-                                    <div className="p-2 bg-white dark:bg-opacity-10 rounded-lg shadow-sm">
-                                        <Users className="h-5 w-5 interview-icon-accent" />
-                                    </div>
-                                    Bí quyết phỏng vấn thành công
-                                </h3>
-                                <div className="space-y-3">
-                                    <div className="interview-tips-item">
-                                        <span className="text-lg">📚</span>
-                                        <div>
-                                            <p className="interview-tips-title">Chuẩn bị kỹ lưỡng</p>
-                                            <p className="interview-tips-text">Tìm hiểu về công ty và vị trí ứng tuyển</p>
+                            <div className="glass rounded-[24px] border border-indigo-200/50 dark:border-indigo-700/50 shadow-xl overflow-hidden bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-900/20 dark:to-purple-900/20">
+                                <div className="p-6">
+                                    <h3 className="flex items-center gap-3 text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-6">
+                                        <div className="p-2 bg-white/60 dark:bg-indigo-900/50 rounded-xl shadow-sm">
+                                            <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
-                                    </div>
-                                    <div className="interview-tips-item">
-                                        <span className="text-lg">⭐</span>
-                                        <div>
-                                            <p className="interview-tips-title">Phương pháp STAR</p>
-                                            <p className="interview-tips-text">Situation → Task → Action → Result</p>
+                                        Bí quyết phỏng vấn thành công
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">📚</span>
+                                            <div>
+                                                <p className="font-bold text-gray-900 dark:text-white text-sm">Chuẩn bị kỹ lưỡng</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Tìm hiểu về công ty và vị trí ứng tuyển</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="interview-tips-item">
-                                        <span className="text-lg">💬</span>
-                                        <div>
-                                            <p className="interview-tips-title">Giao tiếp tự tin</p>
-                                            <p className="interview-tips-text">Nói chậm, rõ ràng và duy trì ánh mắt</p>
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">⭐</span>
+                                            <div>
+                                                <p className="font-bold text-gray-900 dark:text-white text-sm">Phương pháp STAR</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Situation → Task → Action → Result</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="interview-tips-item">
-                                        <span className="text-lg">😊</span>
-                                        <div>
-                                            <p className="interview-tips-title">Thái độ tích cực</p>
-                                            <p className="interview-tips-text">Thể hiện sự nhiệt tình và học hỏi</p>
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">💬</span>
+                                            <div>
+                                                <p className="font-bold text-gray-900 dark:text-white text-sm">Giao tiếp tự tin</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Nói chậm, rõ ràng và duy trì ánh mắt</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">😊</span>
+                                            <div>
+                                                <p className="font-bold text-gray-900 dark:text-white text-sm">Thái độ tích cực</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Thể hiện sự nhiệt tình và học hỏi</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -1359,7 +1359,7 @@ CHỈ trả về câu trả lời, không giải thích."""
             InterviewMessage.role == "interviewer",
             InterviewMessage.question_type != "greeting"
         ).all()
-        asked_list = [q.content[:80] for q in asked_questions]
+        asked_list = [q.content[:400] for q in asked_questions]
         asked_context = "\n".join(f"- {q}" for q in asked_list) if asked_list else "Chưa có câu hỏi nào"
 
         # CRITICAL FIX: Lấy JD context từ persisted data thay vì skills_context

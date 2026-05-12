@@ -4,10 +4,11 @@ export interface CareerItem {
   id: string;
   slug: string;
   title: string;      // display title (vi preferred)
-  title_vi?: string;  // tiếng Việt
+  title_vn?: string;  // tiếng Việt
   title_en?: string;  // tiếng Anh
   short_desc?: string;
   description?: string;
+  description_vn?: string;
   skills?: string[];
   education_requirements?: string;
   salary_range?: string;

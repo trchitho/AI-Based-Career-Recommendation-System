@@ -56,9 +56,9 @@ const CareerMatches = ({ careers }: CareerMatchesProps) => {
                                         <h3 className="font-bold text-gray-900 dark:text-white text-lg">
                                             {career.title_en || career.career_id}
                                         </h3>
-                                        {career.title_vi && (
+                                        {career.title_vn && (
                                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                {career.title_vi}
+                                                {career.title_vn}
                                             </p>
                                         )}
                                     </div>

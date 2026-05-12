@@ -223,7 +223,7 @@ const ReportPage = () => {
                 return {
                     career_id: item.career_id,
                     onet_code: detail?.onet_code || onetCode,
-                    title: detail?.title || item.title_en || item.title_vi || item.career_id,
+                    title: detail?.title || item.title_en || item.title_vn || item.career_id,
                     description: detail?.short_desc || item.description,
                     match_score: item.display_match ?? item.match_score * 100,
                     tags: item.tags || [],

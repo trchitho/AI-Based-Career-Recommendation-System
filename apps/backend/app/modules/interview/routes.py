@@ -796,7 +796,8 @@ async def search_jobs(
                     {
                         "id": r.id,
                         "title": r.title,
-                        "description_vi": r.description_vi or f"Tìm hiểu về nghề {r.title} và các cơ hội phát triển sự nghiệp.",
+                        "title_vn": r.title,
+                        "description_vn": r.description_vi or f"Tìm hiểu về nghề {r.title} và các cơ hội phát triển sự nghiệp.",
                     }
                 )
 
@@ -1461,7 +1462,7 @@ async def debug_career_info(job_id: str, service: InterviewService = Depends(get
         return {
             "career": {
                 "id": career_result.id,
-                "title_vi": career_result.title_vi,
+                "title_vn": career_result.title_vi,
                 "title_en": career_result.title_en,
                 "onet_code": career_result.onet_code,
                 "slug": career_result.slug

@@ -75,6 +75,7 @@ class CareerGroupService:
         query = text("""
             SELECT 
                 c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vi, c.short_desc_en,
+                c.description_vi, c.description_en,
                 c.onet_code, c.industry_category
             FROM core.careers c
             JOIN core.career_group_mapping cgm ON c.id = cgm.career_id
@@ -100,7 +101,10 @@ class CareerGroupService:
                 "id": row.id,
                 "slug": row.slug,
                 "title": display_title,
-                "short_desc": short_desc,
+                "title_vn": row.title_vi,
+                "title_en": row.title_en,
+                "short_desc": row.short_desc_vi or row.short_desc_en or "",
+                "description_vn": row.description_vi or row.description_en or row.short_desc_vi or row.short_desc_en or "",
                 "onet_code": row.onet_code,
                 "industry_category": row.industry_category,
                 "group": group

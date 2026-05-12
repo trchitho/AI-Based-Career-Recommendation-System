@@ -150,8 +150,7 @@ class MentorMatchingService:
             except Exception:
                 pass
         if not mentee:
-            # Still no profile → return all active mentors with base score
-            return self._fallback_all_mentors(user_id)
+            return []
 
         mentors = self.get_active_mentors()
         mentors = [m for m in mentors if m.user_id != user_id]
@@ -163,6 +162,10 @@ class MentorMatchingService:
             raw_career = ""  # ONET code, not useful for keyword matching
 
         has_skills = bool(mentee.desired_skills)
+        
+        # Strictly require at least one signal to find mentors
+        if not has_skills and not raw_career and not mentee.riasec_scores:
+            return []
 
         # ── Pre-compute Neo4j GDS graph signals (batch, non-blocking) ──
         graph_score_map: dict = {}
@@ -238,10 +241,6 @@ class MentorMatchingService:
                 has_graph=has_graph and bool(graph_signals),
             ) + pagerank_bonus
 
-            # If mentee has no skills/career → show all mentors (base score from experience)
-            if not has_skills and not raw_career:
-                exp = mentor.experience_years or 0
-                overall = max(overall, 0.15 + min(exp / 100, 0.30))
 
             if overall < MATCH_THRESHOLD:
                 continue
@@ -285,7 +284,7 @@ class MentorMatchingService:
 
             target = (mentee.target_career or "").strip()
 
-            # If mentee has a target career, search matching careers; else use all
+            # Source 2 requires a target career. If none, do not match.
             if target:
                 career_objs = self.db.query(CareerModel).filter(
                     or_(
@@ -301,12 +300,7 @@ class MentorMatchingService:
                     .all()
                 ) if career_ids else []
             else:
-                # No target career — show all users who completed any roadmap
-                progresses = (
-                    self.db.query(UserProgress)
-                    .filter(UserProgress.completed_milestones != None)  # noqa: E711
-                    .all()
-                )
+                progresses = []
 
             for prog in progresses:
                 if prog.user_id in seen_user_ids:
@@ -348,9 +342,13 @@ class MentorMatchingService:
                     progress_pct = float(prog.progress_percentage or 0)
                 except (ValueError, TypeError):
                     progress_pct = 0.0
-                base_score = min(0.5 + progress_pct / 200, 0.95)
-                overall = calculate_overall_compatibility(skill_score, career_score, 0.5, False)
-                score = max(overall, base_score)
+                
+                # Infer skill overlap based on roadmap progress so UI math makes sense
+                inferred_skill = (progress_pct / 100.0) * 0.85
+                final_skill_score = max(skill_score, inferred_skill)
+
+                overall = calculate_overall_compatibility(final_skill_score, career_score, 0.5, False)
+                score = overall
 
                 n_completed = len(completed_orders)
                 seen_user_ids.add(prog.user_id)
@@ -366,7 +364,7 @@ class MentorMatchingService:
                     available_hours_per_week=2,
                     preferred_communication=["chat"],
                     compatibility_score=round(score * 100, 1),
-                    skill_match_score=round(skill_score * 100, 1),
+                    skill_match_score=round(final_skill_score * 100, 1),
                     career_match_score=round(career_score * 100, 1),
                     personality_score=50.0,
                     matching_skills=matching_skills or milestone_skills[:3],
@@ -583,6 +581,10 @@ class MentorMatchingService:
             pass
 
         current_position = career_from_sg or career_from_assessment
+        
+        # Abort if no data found
+        if not expertise_areas and not current_position and not riasec_scores:
+            raise ValueError("Chưa có dữ liệu CV hoặc Assessment để tự động tạo hồ sơ Mentor.")
 
         profile = self.get_mentor_profile(user_id)
         if profile:
@@ -649,6 +651,9 @@ class MentorMatchingService:
         desired_skills = _extract_skill_names(sg.skill_gaps) if sg else []
         if not target_career and sg and sg.career_id:
             target_career = sg.career_id.replace("-", " ").title()
+
+        if not assessment and not sg:
+            raise ValueError("Chưa có dữ liệu CV hoặc Assessment để tự động tạo hồ sơ Mentee.")
 
         profile = self.get_mentee_profile(user_id)
         if profile:

@@ -185,14 +185,18 @@ const BlogPage = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-[calc(100vh-64px)] bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans'] pb-20">
+        
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+        <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
         {/* ── Compact Hero ── */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-800 dark:via-gray-850 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="absolute inset-0 opacity-5 pointer-events-none">
-            <div className="absolute top-0 left-1/4 w-72 h-72 bg-indigo-700 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-blue-500 rounded-full blur-3xl"></div>
-          </div>
+        <section className="relative z-10 border-b border-white/20 dark:border-gray-800/50 overflow-hidden">
+          {/* Hero gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-purple-500/5 to-transparent dark:from-indigo-900/20 dark:via-purple-900/10 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-400/10 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-400/10 rounded-full blur-[60px] pointer-events-none" />
 
           <div className="relative max-w-6xl mx-auto px-6 py-24 text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
@@ -211,7 +215,7 @@ const BlogPage = () => {
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="Search career advice, interview tips..."
-                  className="w-full pl-14 pr-6 py-5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-lg transition-all text-lg"
+                  className="w-full pl-14 pr-6 py-5 rounded-full bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/60 dark:border-gray-600/50 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 shadow-xl transition-all text-lg"
                 />
               </div>
             </div>
@@ -226,7 +230,7 @@ const BlogPage = () => {
                 <button
                   key={topic}
                   onClick={() => handleSearchChange(topic)}
-                  className="px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-indigo-500 hover:text-indigo-600 transition-all"
+                  className="px-4 py-2 rounded-full glass border border-white/40 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-indigo-500 hover:text-indigo-600 transition-all shadow-sm"
                 >
                   {topic}
                 </button>
@@ -246,7 +250,7 @@ const BlogPage = () => {
               {isAdmin && (
                 <button
                   onClick={() => navigate('/admin/blog/manage')}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-full hover:border-indigo-500 transition-all"
+                  className="inline-flex items-center gap-2 px-8 py-4 glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-full hover:border-indigo-500 hover:text-indigo-600 transition-all shadow-md"
                 >
                   <Settings className="w-5 h-5" />
                   Manage
@@ -257,7 +261,7 @@ const BlogPage = () => {
         </section>
 
         {/* Category Filters */}
-        <section className="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-sm">
+        <section className="sticky top-16 z-40 glass border-b border-white/30 dark:border-gray-800/50 shadow-sm backdrop-blur-xl">
           <div className="max-w-6xl mx-auto px-6 py-6">
             <div className="relative flex items-center gap-3">
               {/* Left Arrow - pointing right (inward) */}
@@ -266,7 +270,7 @@ const BlogPage = () => {
                   const container = document.getElementById('category-scroll');
                   if (container) container.scrollBy({ left: -200, behavior: 'smooth' });
                 }}
-                className="flex-shrink-0 w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-all shadow-md"
+                className="flex-shrink-0 w-10 h-10 rounded-full glass border border-white/40 dark:border-gray-700 flex items-center justify-center hover:bg-white/60 dark:hover:bg-gray-700 transition-all shadow-md"
               >
                 <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -280,8 +284,8 @@ const BlogPage = () => {
                     key={category.key}
                     onClick={() => handleCategoryChange(category.key)}
                     className={`px-6 py-3 rounded-full font-semibold whitespace-nowrap transition-all ${selectedCategory === category.key
-                      ? 'bg-indigo-600 text-white shadow-lg'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                      ? 'bg-indigo-600 text-white shadow-lg border-indigo-600'
+                      : 'glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-gray-700'
                       }`}
                   >
                     {category.label}
@@ -295,7 +299,7 @@ const BlogPage = () => {
                   const container = document.getElementById('category-scroll');
                   if (container) container.scrollBy({ left: 200, behavior: 'smooth' });
                 }}
-                className="flex-shrink-0 w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-all shadow-md"
+                className="flex-shrink-0 w-10 h-10 rounded-full glass border border-white/40 dark:border-gray-700 flex items-center justify-center hover:bg-white/60 dark:hover:bg-gray-700 transition-all shadow-md"
               >
                 <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -306,7 +310,7 @@ const BlogPage = () => {
         </section>
 
         {/* Blog Grid */}
-        <section className="py-20">
+        <section className="relative z-10 py-16">
           <div className="max-w-6xl mx-auto px-6">
             {loading && (
               <div className="flex items-center justify-center py-32">
@@ -318,7 +322,7 @@ const BlogPage = () => {
             )}
 
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 text-center max-w-2xl mx-auto">
+              <div className="glass border border-red-200/50 dark:border-red-800/50 rounded-2xl p-8 text-center max-w-2xl mx-auto shadow-xl">
                 <p className="text-red-600 dark:text-red-400 font-semibold text-lg mb-4">{error}</p>
                 <button
                   onClick={() => loadAllPosts()}
@@ -335,7 +339,7 @@ const BlogPage = () => {
                 {featuredPost && (
                   <article
                     onClick={() => navigate(`/blog/${featuredPost.slug}`)}
-                    className={`group cursor-pointer relative rounded-2xl overflow-hidden h-72 lg:h-80 bg-gradient-to-br ${getBlogGradient(featuredPost.category)} shadow-xl hover:shadow-2xl transition-all duration-300`}
+                    className={`group cursor-pointer relative rounded-3xl overflow-hidden h-72 lg:h-96 bg-gradient-to-br ${getBlogGradient(featuredPost.category)} shadow-2xl hover:shadow-indigo-500/20 hover:-translate-y-1 transition-all duration-300 border border-white/20`}
                   >
                     <img
                       src={getBlogImage(featuredPost.category, featuredPost.featured_image)}
@@ -389,7 +393,7 @@ const BlogPage = () => {
                         <article
                           key={post.slug}
                           onClick={() => navigate(`/blog/${post.slug}`)}
-                          className="group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                          className="group cursor-pointer glass rounded-[24px] border border-white/40 dark:border-gray-700 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col"
                         >
                           {/* Image */}
                           <div className={`relative h-44 overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)}`}>
@@ -449,8 +453,8 @@ const BlogPage = () => {
             )}
 
             {!loading && !error && displayedPosts.length === 0 && (
-              <div className="text-center py-32">
-                <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <div className="text-center py-32 glass rounded-3xl max-w-3xl mx-auto border border-white/40 shadow-xl">
+                <div className="w-24 h-24 glass rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                   <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
@@ -477,7 +481,7 @@ const BlogPage = () => {
 
         {/* Pagination */}
         {!loading && !error && totalPages > 1 && displayedPosts.length > 0 && (
-          <section className="pb-20">
+          <section className="relative z-10 pb-20">
             <div className="max-w-6xl mx-auto px-6">
               <Pagination
                 currentPage={currentPage}
@@ -557,7 +561,7 @@ const BlogCard = ({ post, onNavigate, getCategoryDisplayName, calculateReadingTi
   return (
     <article
       onClick={onNavigate}
-      className="group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col border border-gray-100 dark:border-gray-700"
+      className="group cursor-pointer glass rounded-[24px] overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/40 dark:border-gray-700"
     >
       {/* Image */}
       <div className={`relative aspect-video overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)}`}>
@@ -598,7 +602,7 @@ const BlogCard = ({ post, onNavigate, getCategoryDisplayName, calculateReadingTi
         </p>
 
         {/* Interaction Bar */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between pt-4 border-t border-white/30 dark:border-gray-700/50">
           <div className="flex items-center gap-4">
             <button
               onClick={handleLike}
@@ -666,7 +670,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="px-6 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-500 hover:text-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        className="px-6 py-3 rounded-xl glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-500 hover:text-indigo-600 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all"
       >
         Prev
       </button>
@@ -677,8 +681,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
             key={pageNum}
             onClick={() => onPageChange(pageNum)}
             className={`w-12 h-12 rounded-xl font-semibold transition-all ${currentPage === pageNum
-              ? 'bg-indigo-600 text-white shadow-lg'
-              : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-indigo-500'
+              ? 'bg-indigo-600 text-white shadow-lg border-indigo-600'
+              : 'glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-indigo-500 hover:shadow-md'
               }`}
           >
             {pageNum}
@@ -686,14 +690,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
         ))}
       </div>
 
-      <div className="sm:hidden px-6 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold">
+      <div className="sm:hidden px-6 py-3 rounded-xl glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold shadow-sm">
         {currentPage} / {totalPages}
       </div>
 
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="px-6 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-500 hover:text-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        className="px-6 py-3 rounded-xl glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-500 hover:text-indigo-600 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all"
       >
         Next
       </button>

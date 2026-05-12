@@ -1103,15 +1103,14 @@ const VoiceInterviewPage: React.FC = () => {
     // ── Render ────────────────────────────────────────────────────────────────
 
     return (
-        <div className="min-h-screen relative overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)' }}>
+        <div className="min-h-screen flex flex-col bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans']">
 
+            <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+            
             {/* Ambient background orbs */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20"
-                    style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)', filter: 'blur(40px)' }} />
-                <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-20"
-                    style={{ background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)', filter: 'blur(40px)' }} />
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-indigo-400/20 blur-[120px]" />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full bg-purple-400/20 blur-[120px]" />
             </div>
 
             {/* Yêu cầu 6.1, 6.2: Rules Modal */}
@@ -1155,43 +1154,43 @@ const VoiceInterviewPage: React.FC = () => {
             {/* ── Top bar ── */}
             <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-5 py-4">
                 {/* Progress pill */}
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20">
+                <div className="flex items-center gap-2 glass bg-white/60 dark:bg-white/10 rounded-full px-4 py-2 border border-gray-200/50 dark:border-white/20 shadow-sm">
                     <div className="flex gap-1">
                         {Array.from({ length: Math.min(progress.total, 15) }).map((_, i) => (
                             <div key={i}
-                                className={`h-1.5 rounded-full transition-all duration-300 ${i < progress.current ? 'bg-indigo-400 w-4' : 'bg-white/20 w-2'
+                                className={`h-1.5 rounded-full transition-all duration-300 ${i < progress.current ? 'bg-indigo-500 w-4' : 'bg-gray-300 dark:bg-white/20 w-2'
                                     }`} />
                         ))}
                     </div>
-                    <span className="text-white/80 text-xs font-medium ml-1" data-testid="progress-indicator">
+                    <span className="text-gray-700 dark:text-white/80 text-xs font-bold ml-1" data-testid="progress-indicator">
                         {progress.current}/{progress.total}
                     </span>
                 </div>
 
                 {/* Voice selector + question type */}
                 <div className="flex items-center gap-3">
-                    <div className="bg-indigo-500/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-indigo-400/40">
-                        <span className="text-white text-xs font-semibold" data-testid="question-type">
+                    <div className="glass bg-white/80 dark:bg-indigo-500/80 rounded-full px-4 py-1.5 border border-indigo-100 dark:border-indigo-400/40 shadow-sm">
+                        <span className="text-indigo-700 dark:text-white text-xs font-bold uppercase tracking-wide" data-testid="question-type">
                             {currentQuestion?.type || '...'}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md rounded-full px-3 py-2 border border-white/20">
-                        <span className="text-white/50 text-xs">Giọng:</span>
+                    <div className="flex items-center gap-1.5 glass bg-white/60 dark:bg-white/10 rounded-full px-3 py-2 border border-gray-200/50 dark:border-white/20 shadow-sm">
+                        <span className="text-gray-500 dark:text-white/50 text-xs font-semibold uppercase tracking-wider">Giọng:</span>
                         <button
                             onClick={() => handleVoicePreferenceChange('female')}
                             type="button"
-                            className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer ${voicePreference === 'female'
-                                ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/30'
-                                : 'text-white/60 hover:text-white hover:bg-white/10'
+                            className={`px-3 py-0.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${voicePreference === 'female'
+                                ? 'bg-pink-500 text-white shadow-md shadow-pink-500/30'
+                                : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10'
                                 }`}
                             data-testid="voice-female-btn"
                         >Nữ</button>
                         <button
                             onClick={() => handleVoicePreferenceChange('male')}
                             type="button"
-                            className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer ${voicePreference === 'male'
-                                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
-                                : 'text-white/60 hover:text-white hover:bg-white/10'
+                            className={`px-3 py-0.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${voicePreference === 'male'
+                                ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30'
+                                : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10'
                                 }`}
                             data-testid="voice-male-btn"
                         >Nam</button>
@@ -1270,11 +1269,10 @@ const VoiceInterviewPage: React.FC = () => {
                 </div>
 
                 {/* ── User panel: audio-room style ── */}
-                <div className="w-full rounded-3xl overflow-hidden"
-                    style={{ background: '#12162a', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="w-full rounded-3xl overflow-hidden glass bg-white/40 dark:bg-[#12162a]/80 border border-gray-200/50 dark:border-white/10 shadow-xl">
 
                     {/* ── Avatar area ── */}
-                    <div className="relative px-6 pt-5 pb-4" style={{ background: '#1a1f35' }}>
+                    <div className="relative px-6 pt-5 pb-4 bg-gray-50/60 dark:bg-[#1a1f35]/60 border-b border-gray-200/50 dark:border-white/5">
 
                         {/* RECORDING badge top-left */}
                         {isRecording && (
@@ -1331,9 +1329,8 @@ const VoiceInterviewPage: React.FC = () => {
                                         style={{ background: 'radial-gradient(circle, #10b981 0%, transparent 70%)', transform: 'scale(1.8)' }} />
                                 )}
                                 {/* Person silhouette */}
-                                <div className="w-24 h-24 rounded-full flex items-center justify-center"
-                                    style={{ background: 'rgba(255,255,255,0.06)', border: '2px solid rgba(255,255,255,0.1)' }}>
-                                    <svg viewBox="0 0 24 24" className="w-14 h-14" fill="rgba(255,255,255,0.2)">
+                                <div className="w-24 h-24 rounded-full flex items-center justify-center glass bg-white/60 dark:bg-white/10 border border-gray-200/50 dark:border-white/20 shadow-inner">
+                                    <svg viewBox="0 0 24 24" className="w-14 h-14 text-indigo-500 dark:text-white/40" fill="currentColor">
                                         <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
                                     </svg>
                                 </div>
@@ -1367,10 +1364,10 @@ const VoiceInterviewPage: React.FC = () => {
                     <div className="px-5 py-4">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                                <svg viewBox="0 0 24 24" className="w-4 h-4 text-white/50" fill="currentColor">
+                                <svg viewBox="0 0 24 24" className="w-4 h-4 text-gray-500 dark:text-white/50" fill="currentColor">
                                     <path d="M3 18h13v-2H3v2zm0-5h10v-2H3v2zm0-7v2h13V6H3zm18 9.59L17.42 12 21 8.41 19.59 7l-5 5 5 5L21 15.59z" />
                                 </svg>
-                                <span className="text-white/70 text-sm font-semibold">Live Transcript</span>
+                                <span className="text-gray-700 dark:text-white/70 text-sm font-bold uppercase tracking-wider">Live Transcript</span>
                                 {isRecording && (
                                     <span className="flex items-center gap-1 text-[10px] bg-green-500/20 text-green-300 border border-green-500/30 px-2 py-0.5 rounded-full font-semibold">
                                         <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
@@ -1457,41 +1454,34 @@ const VoiceInterviewPage: React.FC = () => {
                                     setLiveTranscript(e.target.value);
                                     liveTranscriptRef.current = e.target.value;
                                 }}
-                                className="w-full min-h-[80px] rounded-xl px-3 py-2.5 text-sm leading-relaxed resize-none outline-none"
-                                style={{
-                                    background: 'rgba(251,191,36,0.08)',
-                                    border: '1px solid rgba(251,191,36,0.4)',
-                                    color: 'rgba(255,255,255,0.9)',
-                                    caretColor: '#fbbf24',
-                                }}
+                                className="w-full min-h-[80px] rounded-xl px-4 py-3 text-sm leading-relaxed resize-none outline-none font-medium glass bg-amber-50/80 dark:bg-amber-900/10 border border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-100 focus:ring-2 focus:ring-amber-400"
                                 placeholder="Nhập lại câu trả lời..."
                             />
                         ) : (
-                        <div className="min-h-[60px] rounded-xl px-3 py-2.5 text-sm leading-relaxed relative"
-                            style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${isRecording ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.07)'}`, transition: 'border-color 0.3s' }}>
+                        <div className={`min-h-[60px] rounded-xl px-4 py-3 text-[15px] leading-relaxed relative glass font-medium transition-all duration-300 ${isRecording ? 'bg-indigo-50/80 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-500/40 shadow-inner' : 'bg-white/60 dark:bg-white/5 border border-gray-200/50 dark:border-white/10'}`}>
                             {(liveTranscript || interimTranscript) ? (
                                 <span>
                                     {liveTranscript && (
-                                        <span style={{ color: 'rgba(255,255,255,0.9)' }}>{liveTranscript}</span>
+                                        <span className="text-gray-900 dark:text-white/90">{liveTranscript}</span>
                                     )}
                                     {interimTranscript && (
-                                        <span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
+                                        <span className="text-gray-500 dark:text-white/40 italic">
                                             {liveTranscript ? ' ' : ''}{interimTranscript}
                                         </span>
                                     )}
                                 </span>
                             ) : isRecording ? (
-                                <span className="flex items-center gap-2 text-white/40 italic">
-                                    <span className="flex gap-0.5">
+                                <span className="flex items-center gap-2 text-indigo-500 dark:text-indigo-400/80 italic font-bold">
+                                    <span className="flex gap-1">
                                         {[0,1,2].map(i => (
-                                            <span key={i} className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce"
+                                            <span key={i} className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-bounce"
                                                 style={{ animationDelay: `${i * 0.15}s` }} />
                                         ))}
                                     </span>
                                     Đang nghe...
                                 </span>
                             ) : (
-                                <span className="text-white/25 italic">
+                                <span className="text-gray-400 dark:text-white/30 italic font-semibold">
                                     {canStartAnswer ? 'Nhấn mic để bắt đầu trả lời.' : 'Chờ AI đọc xong câu hỏi...'}
                                 </span>
                             )}
@@ -1546,7 +1536,7 @@ const VoiceInterviewPage: React.FC = () => {
                 <button
                     onClick={() => setShowExitModal(true)}
                     type="button"
-                    className="flex items-center gap-2 bg-white/8 backdrop-blur-md hover:bg-red-500/20 text-white/50 hover:text-red-300 text-sm font-medium py-2 px-4 rounded-full border border-white/15 hover:border-red-500/40 transition-all duration-200 cursor-pointer"
+                    className="flex items-center gap-2 glass bg-white/60 dark:bg-white/10 hover:bg-red-50 dark:hover:bg-red-500/20 text-gray-700 dark:text-white/60 hover:text-red-600 dark:hover:text-red-400 text-sm font-bold py-2.5 px-5 rounded-full border border-gray-200/50 dark:border-white/20 hover:border-red-200 dark:hover:border-red-500/40 transition-all duration-300 cursor-pointer shadow-sm"
                     data-testid="exit-btn"
                 >
                     ✕ Thoát phòng

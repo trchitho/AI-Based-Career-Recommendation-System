@@ -23,8 +23,11 @@ export interface CareersByGroupResponse {
         id: string;
         slug: string;
         title: string;
+        title_vn?: string;
+        title_en?: string;
         short_desc?: string;
         description?: string;
+        description_vn?: string;
         onet_code?: string;
         industry_category?: string;
     }>;

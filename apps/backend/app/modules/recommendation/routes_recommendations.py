@@ -27,7 +27,7 @@ def _db(req: Request) -> Session:
 class CareerDTO(BaseModel):
     career_id: str
     slug: Optional[str] = None
-    title_vi: Optional[str] = None
+    title_vn: Optional[str] = None
     title_en: Optional[str] = None
     description: Optional[str] = None
     match_score: float
@@ -45,7 +45,7 @@ class RecommendationsRes(BaseModel):
 class SavedCareerDTO(BaseModel):
     career_id: int
     slug: Optional[str] = None
-    title_vi: Optional[str] = None
+    title_vn: Optional[str] = None
     title_en: Optional[str] = None
     description: Optional[str] = None
     score: float
@@ -103,7 +103,7 @@ def get_saved_recommendations(
                 "score": float(row[1]) if row[1] else 0.0,
                 "rank": row[2],
                 "slug": row[3],
-                "title_vi": row[4],
+                "title_vn": row[4],
                 "title_en": row[5],
                 "description": row[6] or row[7] or ""  # Ưu tiên description_vi
             })

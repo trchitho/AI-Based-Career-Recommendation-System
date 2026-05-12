@@ -11,7 +11,7 @@ const NoAssessmentPrompt: React.FC = () => {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-[28px] bg-white dark:bg-gray-800 p-8 md:p-16 text-center">
+    <div className="relative overflow-hidden rounded-[28px] bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm p-8 md:p-16 text-center">
 
       {/* Decorative Background Elements */}
       <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-700 to-indigo-600"></div>
@@ -43,7 +43,7 @@ const NoAssessmentPrompt: React.FC = () => {
             { label: 'Đánh giá Big Five', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
             { label: 'Phân tích bằng AI', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
           ].map((item, idx) => (
-            <div key={idx} className="flex items-center px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm">
+            <div key={idx} className="flex items-center px-4 py-2 bg-white/60 dark:bg-gray-700/40 border border-gray-200/60 dark:border-gray-600/40 backdrop-blur-sm rounded-full text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm">
               <svg className="w-4 h-4 text-indigo-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} /></svg>
               {item.label}
             </div>

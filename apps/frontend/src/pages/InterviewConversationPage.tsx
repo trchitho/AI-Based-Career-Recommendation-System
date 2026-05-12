@@ -130,11 +130,16 @@ const InterviewConversationPage: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen relative overflow-hidden font-['Plus_Jakarta_Sans'] bg-gray-50/50 dark:bg-gray-900/50">
+
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+        <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+
         {/* Header */}
-        <div className="sticky top-0 z-20 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3">
+        <div className="sticky top-0 z-20 glass bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-white/10 px-4 py-3 flex items-center gap-3">
           <button onClick={() => navigate(-1)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300">
+            className="p-2 rounded-xl glass hover:bg-white/50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-300 transition-colors">
             <ArrowLeft size={18} />
           </button>
           <div className="flex-1 min-w-0">
@@ -152,12 +157,12 @@ const InterviewConversationPage: React.FC = () => {
 
           {/* Score summary */}
           {avgScore != null && (
-            <div className={`flex-shrink-0 text-center px-3 py-1.5 rounded-xl border ${
+            <div className={`flex-shrink-0 text-center px-3 py-1.5 rounded-xl border glass ${
               avgScore >= 4
-                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                ? 'bg-green-50/50 dark:bg-green-900/20 border-green-200/50 dark:border-green-800/50'
                 : avgScore >= 3
-                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-                  : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                  ? 'bg-amber-50/50 dark:bg-amber-900/20 border-amber-200/50 dark:border-amber-800/50'
+                  : 'bg-red-50/50 dark:bg-red-900/20 border-red-200/50 dark:border-red-800/50'
             }`}>
               <div className={`text-lg font-black ${
                 avgScore >= 4 ? 'text-green-700 dark:text-green-400'
@@ -195,7 +200,7 @@ const InterviewConversationPage: React.FC = () => {
                       </div>
                     )}
                     {/* Bubble */}
-                    <div className="rounded-2xl rounded-tl-sm px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div className="glass rounded-2xl rounded-tl-sm px-4 py-3 bg-white/60 dark:bg-gray-800/40 border border-gray-200/50 dark:border-white/10 shadow-sm">
                       <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">{msg.content}</p>
                     </div>
                     {/* Audio */}
@@ -244,8 +249,7 @@ const InterviewConversationPage: React.FC = () => {
                           {expandedFeedback.has(msg.id) ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
                         {expandedFeedback.has(msg.id) && (
-                          <div className="mt-1.5 p-3 rounded-xl text-xs text-gray-700 dark:text-gray-300 leading-relaxed"
-                            style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)' }}>
+                          <div className="mt-1.5 p-3 rounded-xl text-xs text-gray-700 dark:text-gray-300 leading-relaxed glass bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-200/50 dark:border-indigo-800/50">
                             {msg.feedback}
                           </div>
                         )}

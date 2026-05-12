@@ -200,8 +200,13 @@ export const PaymentPage: React.FC = () => {
     return (
         <MainLayout>
             <SubscriptionRefresh />
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="min-h-[calc(100vh-64px)] bg-surface-primary dark:bg-gray-900 py-16 relative overflow-hidden font-['Plus_Jakarta_Sans']">
+                
+                <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+                <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
+                <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
+
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                     {/* Notification Banner */}
                     {notification && (
@@ -226,8 +231,8 @@ export const PaymentPage: React.FC = () => {
                     )}
 
                     {/* Header */}
-                    <div className="text-center mb-16">
-                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                    <div className="text-center mb-16 relative z-10">
+                        <h1 className="text-4xl md:text-5xl font-extrabold premium-gradient mb-6 inline-block tracking-tight">
                             Choose Your Plan
                         </h1>
                         <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -242,7 +247,7 @@ export const PaymentPage: React.FC = () => {
 
                         {!planLoading && userPlan === 'Free' && (
                             <div className="mt-8 max-w-md mx-auto">
-                                <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 border-2 border-dashed border-gray-300 dark:border-gray-600">
+                                <div className="glass rounded-[24px] p-6 border-2 border-dashed border-indigo-200 dark:border-indigo-800 hover:shadow-lg transition-all duration-300">
                                     <div className="text-center">
                                         <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                                             <span className="text-lg font-bold text-gray-500">Free</span>
@@ -267,17 +272,17 @@ export const PaymentPage: React.FC = () => {
 
                     {/* Tabs */}
                     {isLoggedIn && (
-                        <div className="flex justify-center mb-8">
-                            <div className="bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div className="flex justify-center mb-8 relative z-10">
+                            <div className="glass p-1.5 rounded-2xl border border-white/20 shadow-md flex gap-1">
                                 <button
                                     onClick={() => setActiveTab('plans')}
-                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${activeTab === 'plans' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
+                                    className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${activeTab === 'plans' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
                                 >
                                     Choose Plan
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('history')}
-                                    className={`px-6 py-2 rounded-md font-medium text-sm transition-all ${activeTab === 'history' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
+                                    className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${activeTab === 'history' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
                                 >
                                     Transaction History
                                 </button>
@@ -289,9 +294,9 @@ export const PaymentPage: React.FC = () => {
                     {activeTab === 'plans' && (
                         <>
                             {planLoading ? (
-                                <div className="grid gap-8 max-w-6xl mx-auto grid-cols-1 md:grid-cols-3">
+                                <div className="grid gap-8 max-w-6xl mx-auto grid-cols-1 md:grid-cols-3 relative z-10">
                                     {[1, 2, 3].map((i) => (
-                                        <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 animate-pulse">
+                                        <div key={i} className="glass rounded-[32px] p-8 animate-pulse">
                                             <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 w-3/4"></div>
                                             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-8 w-full"></div>
                                             <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg mb-8 w-1/2"></div>
@@ -316,11 +321,11 @@ export const PaymentPage: React.FC = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <div className={`grid gap-8 max-w-6xl mx-auto ${availablePlans.length === 1 ? 'grid-cols-1 max-w-md' : availablePlans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-4xl' : 'grid-cols-1 md:grid-cols-3'}`}>
+                                <div className={`grid gap-8 max-w-6xl mx-auto relative z-10 ${availablePlans.length === 1 ? 'grid-cols-1 max-w-md' : availablePlans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-4xl' : 'grid-cols-1 md:grid-cols-3'}`}>
                                     {availablePlans.map((plan) => (
                                         <div
                                             key={plan.id}
-                                            className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border transition-all duration-300 ${plan.popular ? 'border-indigo-600 ring-2 ring-indigo-600/20 scale-105' : 'border-gray-200 dark:border-gray-700 hover:shadow-xl'}`}
+                                            className={`relative glass rounded-[32px] p-8 shadow-xl transition-all duration-300 ${plan.popular ? 'border-2 border-indigo-400/50 shadow-indigo-500/20 md:-translate-y-4 md:scale-105' : 'border border-white/20 hover:shadow-2xl hover:-translate-y-2'}`}
                                         >
                                             {plan.popular && (
                                                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -358,7 +363,7 @@ export const PaymentPage: React.FC = () => {
 
                                             <button
                                                 onClick={() => handleSelectPlan(plan)}
-                                                className={`w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r ${plan.gradient} hover:opacity-90 transition-all`}
+                                                className={`w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r ${plan.gradient} hover:opacity-90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5`}
                                             >
                                                 {userPlan === 'Free' ? 'Choose This Plan' : 'Upgrade'}
                                             </button>
@@ -371,8 +376,8 @@ export const PaymentPage: React.FC = () => {
 
                     {/* History */}
                     {activeTab === 'history' && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                        <div className="glass rounded-[32px] shadow-2xl border border-white/20 overflow-hidden relative z-10">
+                            <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50 flex justify-between items-center backdrop-blur-md bg-white/30 dark:bg-gray-900/40">
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">Transaction History</h3>
                                 <button onClick={loadHistory} className="text-sm font-medium text-blue-600 hover:text-blue-700">Refresh</button>
                             </div>
@@ -390,7 +395,7 @@ export const PaymentPage: React.FC = () => {
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
-                                        <thead className="bg-gray-50 dark:bg-gray-700">
+                                        <thead className="bg-indigo-50/50 dark:bg-indigo-900/20">
                                             <tr>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
@@ -399,9 +404,9 @@ export const PaymentPage: React.FC = () => {
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800/50">
                                             {history.map((payment) => (
-                                                <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                <tr key={payment.id} className="hover:bg-white/40 dark:hover:bg-gray-800/40 transition-colors duration-200">
                                                     <td className="px-6 py-4 text-sm font-mono text-gray-600">{(payment.order_id ?? '').slice(-8)}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{payment.description}</td>
                                                     <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(payment.amount)}</td>

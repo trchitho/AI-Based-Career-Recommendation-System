@@ -152,7 +152,7 @@ const SkillGapPage: React.FC = () => {
       const map: Record<string, string> = {};
       await Promise.all(ids.map(id =>
         careerService.get(id)
-          .then(c => { map[id] = c.title_vi || c.title_en || c.title || id; })
+          .then(c => { map[id] = c.title_vn || c.title_en || c.title || id; })
           .catch(() => { map[id] = id; })
       ));
       setHistoryCareerNames(map);
@@ -189,7 +189,7 @@ const SkillGapPage: React.FC = () => {
       setCurrentStep('result');
       if (analysisData.career_id) {
         careerService.get(analysisData.career_id)
-          .then(c => setCareerName(c.title_vi || c.title_en || c.title || analysisData.career_id))
+          .then(c => setCareerName(c.title_vn || c.title_en || c.title || analysisData.career_id))
           .catch(() => setCareerName(analysisData.career_id));
       }
       if (autoLoadPlan) {
@@ -239,10 +239,10 @@ const SkillGapPage: React.FC = () => {
   if (loading || checkingSubscription) {
     return (
       <MainLayout>
-        <div className="skill-gap-page">
+        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-hidden pb-20 pt-8 px-4 sm:px-6 lg:px-8">
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p>{loading ? 'Đang tải phân tích...' : 'Đang kiểm tra gói dịch vụ...'}</p>
+            <p className="text-gray-500 font-medium">{loading ? 'Đang tải phân tích...' : 'Đang kiểm tra gói dịch vụ...'}</p>
           </div>
         </div>
       </MainLayout>
@@ -253,7 +253,7 @@ const SkillGapPage: React.FC = () => {
   if (!hasAccess) {
     return (
       <MainLayout>
-        <div className="skill-gap-page">
+        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-hidden pb-20 pt-8 px-4 sm:px-6 lg:px-8">
           <div style={{
             background: t.gradient,
             borderRadius: '20px',
@@ -489,12 +489,12 @@ const SkillGapPage: React.FC = () => {
   if (error) {
     return (
       <MainLayout>
-        <div className="skill-gap-page">
+        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-hidden pb-20 pt-8 px-4 sm:px-6 lg:px-8">
           <div className="error-container">
             <AlertTriangle size={48} className="text-red-500 mb-3" />
-            <h2>Error Loading Analysis</h2>
-            <p>{error}</p>
-            <button onClick={handleNewAnalysis} className="retry-button">
+            <h2 className="text-xl font-bold mb-2">Error Loading Analysis</h2>
+            <p className="text-gray-500 mb-4">{error}</p>
+            <button onClick={handleNewAnalysis} className="px-6 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-bold">
               Start New Analysis
             </button>
           </div>
@@ -505,15 +505,24 @@ const SkillGapPage: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="skill-gap-page">
-        <div className="page-header">
-          <h1>Phân Tích Khoảng Cách Kỹ Năng</h1>
-          <p className="page-subtitle">
-            Khám phá khoảng cách kỹ năng và nhận đề xuất học tập được cá nhân hóa bởi AI
-          </p>
-        </div>
+      <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+        <style>{`
+          .bg-dot-pattern { background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px); background-size: 24px 24px; }
+          .dark .bg-dot-pattern { background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); }
+        `}</style>
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60"></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="page-header relative overflow-hidden rounded-[32px] mb-10 shadow-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-10 md:p-14 text-center">
+            <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.1)' }}></div>
+            <div className="relative z-10">
+              <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight text-white">Phân Tích Khoảng Cách Kỹ Năng</h1>
+              <p className="text-indigo-100 text-lg max-w-2xl mx-auto">
+                Khám phá khoảng cách kỹ năng và nhận đề xuất học tập được cá nhân hóa bởi AI
+              </p>
+            </div>
+          </div>
 
-        <div>
+          <div>
           {currentStep === 'upload' && (
             <>
               <CVUploadForm onAnalysisComplete={handleAnalysisComplete} />
@@ -657,6 +666,7 @@ const SkillGapPage: React.FC = () => {
             </>
           )}
         </div>
+      </div>
       </div>
     </MainLayout>
   );

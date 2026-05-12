@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { BookOpen, Search, Sparkles, ExternalLink, PlayCircle, Award, Video } from "lucide-react";
 import courseService, {
   CourseRecommendation,
   CourseRecommendationsResponse,
@@ -13,8 +15,8 @@ const PLATFORM_COLORS: Record<string, string> = {
 };
 
 const RELEVANCE_COLORS: Record<string, string> = {
-  "Highly Relevant": "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-  Relevant: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+  "Highly Relevant": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  Relevant: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
   Related: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
 };
 
@@ -90,55 +92,69 @@ const CourseRecommendationPage = ({ missingSkills: propSkills }: Props) => {
     : [];
 
   return (
-    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
+    <div className="p-4 sm:p-6 bg-transparent min-h-screen space-y-6 relative">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-2">
-        <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-3 mb-4"
+      >
+        <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl shadow-inner">
+          <BookOpen className="w-7 h-7" />
+        </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Course Recommendations</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Course Recommendations</h1>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">
             AI-matched courses for your missing skills
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Skill input */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="glass bg-white/70 dark:bg-gray-800/50 rounded-3xl border border-gray-200/50 dark:border-white/10 shadow-xl p-6 sm:p-8"
+      >
+        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-indigo-500" />
           Enter skills you want to learn (comma-separated)
         </label>
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={inputSkills}
-            onChange={(e) => setInputSkills(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && fetchRecommendations()}
-            placeholder="e.g. Python, Machine Learning, SQL"
-            className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <button
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={inputSkills}
+              onChange={(e) => setInputSkills(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && fetchRecommendations()}
+              placeholder="e.g. Python, Machine Learning, SQL"
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none bg-white dark:bg-gray-900 shadow-inner text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+            />
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => fetchRecommendations()}
             disabled={loading || !inputSkills.trim()}
-            className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors flex items-center gap-2"
+            className="px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
           >
             {loading ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <Search className="w-5 h-5" />
             )}
             Find Courses
-          </button>
+          </motion.button>
         </div>
 
         {/* Quick skill chips */}
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap gap-2.5 mt-5">
           {["Python", "Machine Learning", "SQL", "React", "Docker", "AWS"].map((s) => (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               key={s}
               onClick={() => {
                 const current = inputSkills ? inputSkills.split(",").map(x => x.trim()).filter(Boolean) : [];
@@ -147,92 +163,106 @@ const CourseRecommendationPage = ({ missingSkills: propSkills }: Props) => {
                   setInputSkills(next);
                 }
               }}
-              className="px-2.5 py-1 text-xs rounded-full border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-green-50 hover:border-green-300 hover:text-green-700 dark:hover:bg-green-900/20 transition-colors"
+              className="px-3 py-1.5 text-xs font-bold rounded-full border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
             >
               + {s}
-            </button>
+            </motion.button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-300">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 text-sm font-medium text-red-700 dark:text-red-300 shadow-sm"
+        >
           {error}
-        </div>
+        </motion.div>
       )}
 
       {/* Results */}
       {data && (
-        <>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="space-y-6">
           {/* Summary bar */}
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-between flex-wrap gap-4 glass bg-white/50 dark:bg-gray-800/30 p-4 rounded-2xl border border-gray-200/50 dark:border-white/5">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
               {data.source === 'online_search'
-                ? <>Tìm thấy <span className="font-semibold text-indigo-700">{data.total}</span> link tìm kiếm trực tuyến cho {data.missing_skills.length} kỹ năng</>
-                : <>Found <span className="font-semibold text-gray-900 dark:text-white">{data.total}</span> courses for <span className="font-semibold text-gray-900 dark:text-white">{data.missing_skills.length}</span> skills</>
+                ? <><Sparkles className="w-4 h-4 text-indigo-500" /> Tìm thấy <span className="font-bold text-indigo-600 dark:text-indigo-400">{data.total}</span> link tìm kiếm trực tuyến cho {data.missing_skills.length} kỹ năng</>
+                : <><Award className="w-4 h-4 text-indigo-500" /> Found <span className="font-bold text-indigo-600 dark:text-indigo-400">{data.total}</span> courses for <span className="font-bold text-gray-900 dark:text-white">{data.missing_skills.length}</span> skills</>
               }
-              <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${data.source === 'online_search' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
-                {data.source === 'online_search' ? '🌐 Online Search' : `via ${data.source}`}
+              <span className={`ml-2 text-[10px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full ${data.source === 'online_search' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>
+                {data.source === 'online_search' ? 'Online Search' : `via ${data.source}`}
               </span>
             </p>
-          </div>
 
-          {/* Skill filter tabs */}
-          {uniqueSkills.length > 1 && (
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => setActiveSkill(null)}
-                className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
-                  activeSkill === null
-                    ? "bg-green-600 text-white"
-                    : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }`}
-              >
-                All Skills
-              </button>
-              {uniqueSkills.map((skill) => (
+            {/* Skill filter tabs */}
+            {uniqueSkills.length > 1 && (
+              <div className="flex gap-2 flex-wrap">
                 <button
-                  key={skill}
-                  onClick={() => setActiveSkill(skill === activeSkill ? null : skill)}
-                  className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
-                    activeSkill === skill
-                      ? "bg-green-600 text-white"
-                      : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => setActiveSkill(null)}
+                  className={`px-4 py-2 text-xs rounded-xl font-bold transition-all ${
+                    activeSkill === null
+                      ? "bg-indigo-600 text-white shadow-md"
+                      : "bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
-                  {skill}
+                  All Skills
                 </button>
-              ))}
-            </div>
-          )}
+                {uniqueSkills.map((skill) => (
+                  <button
+                    key={skill}
+                    onClick={() => setActiveSkill(skill === activeSkill ? null : skill)}
+                    className={`px-4 py-2 text-xs rounded-xl font-bold transition-all ${
+                      activeSkill === skill
+                        ? "bg-indigo-600 text-white shadow-md"
+                        : "bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    {skill}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Course cards grid */}
           {displayed.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-10 text-center text-gray-400 text-sm">
+            <div className="glass bg-white/50 dark:bg-gray-800/30 rounded-3xl border border-dashed border-gray-300 dark:border-gray-700 p-12 text-center text-gray-500 font-medium">
               No courses found for the selected skill.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <motion.div 
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: { opacity: 0 },
+                show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+              }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
               {displayed.map((rec, i) => (
                 <CourseCard key={`${rec.course.external_id}-${i}`} rec={rec} />
               ))}
-            </div>
+            </motion.div>
           )}
-        </>
+        </motion.div>
       )}
 
       {/* Empty state */}
       {!data && !loading && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-12 text-center">
-          <svg className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Enter skills above to discover personalized course recommendations
+        <motion.div 
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="glass bg-white/40 dark:bg-gray-800/30 rounded-3xl border border-dashed border-gray-300 dark:border-gray-700 p-16 text-center"
+        >
+          <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-300 dark:text-indigo-700 rounded-3xl flex items-center justify-center mx-auto mb-6 rotate-3">
+            <BookOpen className="w-10 h-10" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Ready to learn?</h3>
+          <p className="text-gray-500 dark:text-gray-400 font-medium max-w-md mx-auto">
+            Enter skills above to discover personalized course recommendations tailored for your career path.
           </p>
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -247,40 +277,47 @@ const CourseCard = ({ rec }: { rec: CourseRecommendation }) => {
     "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300";
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+    <motion.div 
+      variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+      whileHover={{ y: -5 }}
+      className="glass bg-white/70 dark:bg-gray-800/60 rounded-3xl border border-gray-200/50 dark:border-white/10 shadow-lg flex flex-col overflow-hidden transition-all"
+    >
       {/* Thumbnail */}
       {course.thumbnail ? (
-        <img
-          src={course.thumbnail}
-          alt={course.title}
-          className="w-full h-36 object-cover rounded-t-xl"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
+        <div className="relative">
+          <img
+            src={course.thumbnail}
+            alt={course.title}
+            className="w-full h-40 object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent" />
+        </div>
       ) : (
-        <div className={`w-full h-36 rounded-t-xl flex flex-col items-center justify-center gap-2 ${
+        <div className={`w-full h-40 flex flex-col items-center justify-center gap-3 relative overflow-hidden ${
           course.external_id?.startsWith('online_')
-            ? 'bg-gradient-to-br from-indigo-50 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30'
-            : 'bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20'
+            ? 'bg-gradient-to-br from-indigo-500 to-purple-600'
+            : 'bg-gradient-to-br from-blue-500 to-indigo-600'
         }`}>
-          {course.external_id?.startsWith('online_') ? (
-            <>
-              <span className="text-3xl">
-                {course.platform === 'youtube' ? '▶️' : course.platform === 'coursera' ? '🎓' : '🎯'}
-              </span>
-              <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
-                {course.platform === 'youtube' ? 'YouTube Tutorial' : course.platform === 'coursera' ? 'Coursera' : 'Udemy'}
-              </span>
-            </>
-          ) : (
-            <svg className="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          )}
+          {/* subtle pattern overlay */}
+          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent" />
+          
+          <div className="relative z-10 p-4 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-xl text-white">
+            {course.external_id?.startsWith('online_') ? (
+              course.platform === 'youtube' ? <Video className="w-8 h-8" /> : <BookOpen className="w-8 h-8" />
+            ) : (
+              <BookOpen className="w-8 h-8" />
+            )}
+          </div>
+          <span className="relative z-10 text-[10px] font-black text-white/90 uppercase tracking-widest bg-black/20 px-3 py-1 rounded-full">
+            {course.external_id?.startsWith('online_') && course.platform === 'youtube' ? 'YouTube Tutorial' : 
+             course.external_id?.startsWith('online_') && course.platform === 'coursera' ? 'Coursera Search' : 
+             course.platform ? course.platform : 'Course Platform'}
+          </span>
         </div>
       )}
 
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-5 flex flex-col flex-1">
         {/* Badges row */}
         <div className="flex items-center gap-1.5 flex-wrap mb-2">
           <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${platformColor}`}>
@@ -299,7 +336,7 @@ const CourseCard = ({ rec }: { rec: CourseRecommendation }) => {
         </div>
 
         {/* Title */}
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white leading-snug line-clamp-2 mb-1">
+        <h3 className="text-base font-bold text-gray-900 dark:text-white leading-snug line-clamp-2 mb-1">
           {course.title}
         </h3>
 
@@ -311,9 +348,8 @@ const CourseCard = ({ rec }: { rec: CourseRecommendation }) => {
         )}
 
         {/* Skill tag */}
-        <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
-          For skill:{" "}
-          <span className="font-medium text-green-600 dark:text-green-400">{rec.skill_name}</span>
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-4 bg-gray-100 dark:bg-gray-800/50 inline-block px-2.5 py-1 rounded-lg self-start">
+          For skill: <span className="font-bold text-indigo-600 dark:text-indigo-400">{rec.skill_name}</span>
         </p>
 
         {/* Stats */}
@@ -329,7 +365,7 @@ const CourseCard = ({ rec }: { rec: CourseRecommendation }) => {
           {course.duration_hrs && (
             <span>{course.duration_hrs}h</span>
           )}
-          <span className={course.is_free ? "text-green-600 font-medium" : "text-gray-500"}>
+          <span className={course.is_free ? "text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-md" : "text-gray-600 dark:text-gray-400 font-medium"}>
             {course.is_free ? "Free" : `$${course.price}`}
           </span>
         </div>
@@ -342,9 +378,9 @@ const CourseCard = ({ rec }: { rec: CourseRecommendation }) => {
               {(rec.similarity_score * 100).toFixed(0)}%
             </span>
           </div>
-          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
+          <div className="w-full bg-gray-200/50 dark:bg-gray-700/50 rounded-full h-2 overflow-hidden border border-gray-300/30 dark:border-gray-600/30">
             <div
-              className="h-1.5 rounded-full bg-green-500"
+              className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
               style={{ width: `${Math.min(rec.similarity_score * 100, 100)}%` }}
             />
           </div>
@@ -357,22 +393,22 @@ const CourseCard = ({ rec }: { rec: CourseRecommendation }) => {
               href={course.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`block w-full text-center py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg ${
                 course.external_id?.startsWith('online_')
-                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                  : 'bg-green-600 hover:bg-green-700 text-white'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
+                  : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'
               }`}
             >
-              {course.external_id?.startsWith('online_') ? '🔍 Tìm kiếm ngay →' : 'View Course →'}
+              {course.external_id?.startsWith('online_') ? <><Search className="w-4 h-4"/> Tìm kiếm ngay</> : <><ExternalLink className="w-4 h-4"/> View Course</>}
             </a>
           ) : (
-            <button disabled className="block w-full text-center py-2 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-lg text-sm">
+            <button disabled className="block w-full text-center py-3 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 font-bold rounded-xl text-sm">
               No link available
             </button>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Play, Loader2, FileText, Upload, X, CheckCircle, ChevronDown, ChevronUp, Mic, Briefcase } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { interviewService, CareerLevel } from '../services/interviewService';
 import QuestionCountSelector from '../components/interview/QuestionCountSelector';
 import STARMethodGuide from '../components/interview/STARMethodGuide';
 import LevelCard from '../components/interview/LevelCard';
 import MainLayout from '../components/layout/MainLayout';
-import './InterviewSelectionPage.css';
-
 interface JobInfo {
     id: string;
     title: string;
@@ -347,10 +346,10 @@ const InterviewSelectionPage: React.FC = () => {
     if (isLoading) {
         return (
             <MainLayout>
-                <div className="interview-loading-container">
+                <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                     <div className="text-center">
-                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 interview-loading-spinner" />
-                        <p className="interview-loading-text">Đang tải thông tin nghề nghiệp...</p>
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-indigo-600" />
+                        <p className="text-gray-500 font-medium">Đang tải thông tin nghề nghiệp...</p>
                     </div>
                 </div>
             </MainLayout>
@@ -391,31 +390,38 @@ const InterviewSelectionPage: React.FC = () => {
 
     return (
         <MainLayout>
-            <div className="interview-selection-page py-8">
-                <div className="max-w-4xl mx-auto px-4">
+            <div className="min-h-[calc(100vh-64px)] py-10 px-4 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans'] pb-20">
+                
+                <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+                <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+                <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+
+                <div className="max-w-4xl mx-auto relative z-10">
                     {/* Header */}
-                    <div className="flex items-center gap-4 mb-8 interview-selection-header">
+                    <div className="flex items-center gap-4 mb-8">
                         <button
                             onClick={() => navigate(-1)}
-                            className="interview-back-button"
+                            className="p-2.5 rounded-xl glass border border-gray-200 dark:border-gray-700 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all hover:-translate-y-0.5 shadow-sm"
                         >
-                            <ArrowLeft className="h-5 w-5" />
+                            <ArrowLeft className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                         </button>
                         <div>
-                            <h1 className="interview-selection-title">Chuẩn bị phỏng vấn AI</h1>
-                            <p className="interview-selection-subtitle">{jobInfo.title}</p>
+                            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-1">Chuẩn bị phỏng vấn AI</h1>
+                            <p className="text-gray-500 dark:text-gray-400 font-medium">{jobInfo.title}</p>
                         </div>
                     </div>
 
                     {/* ── 2-Direction Selector ── */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         {/* Hướng 1: Job-based */}
-                        <button
+                        <motion.button
+                            whileHover={{ y: -2, scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
                             type="button"
                             onClick={() => setInterviewDirection('job')}
                             className={`text-left p-5 rounded-2xl border-2 transition-all ${interviewDirection === 'job'
-                                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 shadow-md'
-                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-600'
+                                ? 'border-indigo-500 bg-indigo-50/70 dark:bg-indigo-900/20 shadow-lg shadow-indigo-100 dark:shadow-indigo-900/20 ring-1 ring-indigo-400/30'
+                                : 'border-gray-200 dark:border-gray-700/60 bg-white/50 dark:bg-gray-800/40 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-indigo-50/30'
                             }`}
                         >
                             <div className="flex items-start gap-3">
@@ -430,16 +436,18 @@ const InterviewSelectionPage: React.FC = () => {
                                     <p className="text-xs text-gray-500 mt-1">Câu hỏi tiêu chuẩn theo ngành nghề. AI kiểm tra kiến thức nền tảng và quy trình làm việc.</p>
                                 </div>
                             </div>
-                        </button>
+                        </motion.button>
 
                         {/* Hướng 2: CV-based */}
-                        <button
+                        <motion.button
+                            whileHover={hasCvData ? { y: -2, scale: 1.01 } : {}}
+                            whileTap={hasCvData ? { scale: 0.98 } : {}}
                             type="button"
                             onClick={() => hasCvData ? setInterviewDirection('cv') : undefined}
                             className={`text-left p-5 rounded-2xl border-2 transition-all relative ${
-                                !hasCvData ? 'opacity-60 cursor-not-allowed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'
-                                : interviewDirection === 'cv' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20 shadow-md'
-                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-cyan-300 dark:hover:border-cyan-600 cursor-pointer'
+                                !hasCvData ? 'opacity-60 cursor-not-allowed border-gray-200 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/30'
+                                : interviewDirection === 'cv' ? 'border-cyan-500 bg-cyan-50/70 dark:bg-cyan-900/20 shadow-lg shadow-cyan-100 dark:shadow-cyan-900/20 ring-1 ring-cyan-400/30'
+                                : 'border-gray-200 dark:border-gray-700/60 bg-white/50 dark:bg-gray-800/40 hover:border-cyan-300 dark:hover:border-cyan-600 hover:bg-cyan-50/30 cursor-pointer'
                             }`}
                         >
                             <div className="flex items-start gap-3">
@@ -466,7 +474,7 @@ const InterviewSelectionPage: React.FC = () => {
                                     )}
                                 </div>
                             </div>
-                        </button>
+                        </motion.button>
                     </div>
 
                     {/* ── CV-based Detail (shown when direction=cv) ── */}
@@ -504,7 +512,7 @@ const InterviewSelectionPage: React.FC = () => {
                         {/* Main Content */}
                         <div className="lg:col-span-2 space-y-6">
                             {/* Question Count Selection */}
-                            <div className="interview-card">
+                            <div className="glass rounded-[24px] p-6 border border-white/40 dark:border-gray-700/50 shadow-xl">
                                 <QuestionCountSelector
                                     selectedCount={selectedQuestionCount}
                                     onSelect={setSelectedQuestionCount}
@@ -513,9 +521,9 @@ const InterviewSelectionPage: React.FC = () => {
                             </div>
 
                             {/* Level Selection */}
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Chọn cấp bậc nghề nghiệp</h3>
-                                <p className="text-sm text-gray-600 mb-6">
+                            <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl p-6">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Chọn cấp bậc nghề nghiệp</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                                     Chọn cấp bậc phù hợp để AI có thể điều chỉnh độ khó câu hỏi phỏng vấn
                                 </p>
 
@@ -536,16 +544,9 @@ const InterviewSelectionPage: React.FC = () => {
                                     </div>
                                 ) : careerLevels.length > 0 ? (
                                     <div className="w-full">
-                                        {/* Dynamic Grid Layout */}
-                                        <div
-                                            className="level-cards-dynamic-grid"
-                                            data-count={careerLevels.length}
-                                        >
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                             {careerLevels.map((level) => (
-                                                <div
-                                                    key={level.id}
-                                                    className="level-card-wrapper"
-                                                >
+                                                <div key={level.id} className="w-full">
                                                     <LevelCard
                                                         level={level}
                                                         isSelected={selectedLevel?.id === level.id}
@@ -556,14 +557,14 @@ const InterviewSelectionPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                                        <p className="text-gray-600 text-sm">Không tìm thấy cấp bậc cho nghề này</p>
+                                    <div className="bg-gray-50/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center">
+                                        <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Không tìm thấy cấp bậc cho nghề này</p>
                                     </div>
                                 )}
                             </div>
 
                             {/* JD Upload Block */}
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl overflow-hidden">
                                 {/* Header - always visible */}
                                 <button
                                     onClick={() => setJdExpanded(v => !v)}
@@ -725,7 +726,7 @@ const InterviewSelectionPage: React.FC = () => {
                                                         onChange={e => setJdText(e.target.value)}
                                                         placeholder="Dán nội dung Job Description vào đây... (tối thiểu 50 ký tự)"
                                                         rows={6}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                                                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white/60 dark:bg-gray-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 resize-none text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
                                                     />
                                                 )}
 
@@ -777,26 +778,28 @@ const InterviewSelectionPage: React.FC = () => {
                             </div>
 
                             {/* STAR Method Guide */}
-                            <STARMethodGuide />
+                            <div className="glass rounded-[24px] overflow-hidden border border-white/40 dark:border-gray-700/50 shadow-xl">
+                                <STARMethodGuide />
+                            </div>
 
                             {/* Interview Mode Selection */}
                             <div
                                 data-testid="interview-mode-selection"
-                                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                                className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl p-6"
                             >
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Chọn hình thức phỏng vấn</h3>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Chọn hình thức phỏng vấn</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
                                         data-testid="interview-mode-text"
                                         onClick={() => setInterviewMode('text')}
-                                        className={`flex flex-col items-center gap-3 p-4 rounded-lg border-2 transition-colors cursor-pointer ${interviewMode === 'text'
-                                            ? 'border-blue-500 bg-blue-50'
-                                            : 'border-gray-200 bg-white hover:border-gray-300'
+                                        className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all cursor-pointer ${interviewMode === 'text'
+                                            ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-md'
+                                            : 'border-white/40 dark:border-gray-700/50 bg-white/40 dark:bg-gray-800/40 hover:border-indigo-300 dark:hover:border-indigo-600'
                                             }`}
                                     >
-                                        <FileText className={`h-8 w-8 ${interviewMode === 'text' ? 'text-blue-600' : 'text-gray-400'}`} />
+                                        <FileText className={`h-8 w-8 ${interviewMode === 'text' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'}`} />
                                         <div className="text-center">
-                                            <p className={`font-medium text-sm ${interviewMode === 'text' ? 'text-blue-700' : 'text-gray-700'}`}>
+                                            <p className={`font-bold text-sm ${interviewMode === 'text' ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300'}`}>
                                                 Phỏng vấn Text
                                             </p>
                                             <p className="text-xs text-gray-500 mt-1">Trả lời bằng bàn phím</p>
@@ -805,14 +808,14 @@ const InterviewSelectionPage: React.FC = () => {
                                     <button
                                         data-testid="interview-mode-voice"
                                         onClick={() => setInterviewMode('voice')}
-                                        className={`flex flex-col items-center gap-3 p-4 rounded-lg border-2 transition-colors cursor-pointer ${interviewMode === 'voice'
-                                            ? 'border-blue-500 bg-blue-50'
-                                            : 'border-gray-200 bg-white hover:border-gray-300'
+                                        className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all cursor-pointer ${interviewMode === 'voice'
+                                            ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-md'
+                                            : 'border-gray-200 dark:border-gray-700/60 bg-white/40 dark:bg-gray-800/40 hover:border-indigo-300 dark:hover:border-indigo-600'
                                             }`}
                                     >
-                                        <Mic className={`h-8 w-8 ${interviewMode === 'voice' ? 'text-blue-600' : 'text-gray-400'}`} />
+                                        <Mic className={`h-8 w-8 ${interviewMode === 'voice' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'}`} />
                                         <div className="text-center">
-                                            <p className={`font-medium text-sm ${interviewMode === 'voice' ? 'text-blue-700' : 'text-gray-700'}`}>
+                                            <p className={`font-bold text-sm ${interviewMode === 'voice' ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-300'}`}>
                                                 Phỏng vấn Giọng nói
                                             </p>
                                             <p className="text-xs text-gray-500 mt-1">Trả lời bằng microphone</p>
@@ -822,16 +825,24 @@ const InterviewSelectionPage: React.FC = () => {
 
                                 {/* Gender selector */}
                                 <div className="mt-5">
-                                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Chọn hình ảnh người phỏng vấn</h4>
+                                  <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Chọn hình ảnh người phỏng vấn</h4>
                                   <div className="grid grid-cols-2 gap-3">
                                     {(['female', 'male'] as const).map(g => (
                                       <button key={g} onClick={() => setInterviewerGender(g)}
-                                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${interviewerGender === g ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                                        className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
+                                          interviewerGender === g
+                                            ? 'border-indigo-500 bg-indigo-50/70 dark:bg-indigo-900/20 shadow-md'
+                                            : 'border-gray-200 dark:border-gray-700/60 bg-white/40 dark:bg-gray-800/40 hover:border-indigo-300 dark:hover:border-indigo-600'
+                                        }`}>
                                         <img
                                           src={`https://pub-8df5715d271b42d6bf03e5ecd279f612.r2.dev/interview/avatars/${g === 'female' ? 'anhNu' : 'anhNam'}.png`}
-                                          alt={g} className="w-16 h-16 rounded-full object-cover border-2 border-white shadow"
+                                          alt={g} className={`w-16 h-16 rounded-full object-cover border-2 shadow-md transition-all ${
+                                            interviewerGender === g ? 'border-indigo-400 shadow-indigo-200' : 'border-white/60'
+                                          }`}
                                         />
-                                        <span className={`text-xs font-semibold ${interviewerGender === g ? 'text-indigo-700' : 'text-gray-500'}`}>
+                                        <span className={`text-xs font-bold ${
+                                          interviewerGender === g ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-500 dark:text-gray-400'
+                                        }`}>
                                           {g === 'female' ? 'Nữ' : 'Nam'}
                                         </span>
                                       </button>
@@ -841,15 +852,14 @@ const InterviewSelectionPage: React.FC = () => {
                             </div>
 
                             {/* Start Button */}
-                            <div className="interview-card">
-                                <div className="text-center">
-                                    <div className="flex items-center justify-center gap-2 mb-2">
-                                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${isCvBased ? 'bg-cyan-100 text-cyan-700' : 'bg-indigo-100 text-indigo-700'}`}>
-                                            {isCvBased ? '📄 Hướng 2: CV cá nhân' : '💼 Hướng 1: Theo nghề nghiệp'}
-                                        </span>
-                                    </div>
-                                    <h3 className="interview-card-title mb-2">Sẵn sàng bắt đầu?</h3>
-                                    <p className="text-gray-600 mb-2">
+                            <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl p-8 text-center">
+                                <div className="flex items-center justify-center gap-2 mb-4">
+                                    <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${isCvBased ? 'bg-cyan-100 text-cyan-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                                        {isCvBased ? '📄 Hướng 2: CV cá nhân' : '💼 Hướng 1: Theo nghề nghiệp'}
+                                    </span>
+                                </div>
+                                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3">Sẵn sàng bắt đầu?</h3>
+                                <p className="text-gray-600 dark:text-gray-400 font-medium mb-4 max-w-lg mx-auto">
                                         {isCvBased
                                             ? `AI sẽ đặt ${selectedQuestionCount + 1} câu hỏi dựa trên CV của bạn: hỏi sâu về kỹ năng đã có và kỹ năng cần bổ sung${selectedLevel ? ` (cấp ${selectedLevel.name})` : ''}.`
                                             : (() => {
@@ -875,26 +885,25 @@ const InterviewSelectionPage: React.FC = () => {
                                     <button
                                         onClick={handleStartInterview}
                                         disabled={isStarting || !selectedLevel}
-                                        className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg flex items-center gap-2 mx-auto"
+                                        className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-10 py-4 rounded-2xl font-bold hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-3 w-full sm:w-auto mx-auto mt-6"
                                     >
                                         {isStarting ? (
                                             <>
-                                                <Loader2 className="h-5 w-5 animate-spin" />
+                                                <Loader2 className="h-6 w-6 animate-spin" />
                                                 Đang khởi tạo...
                                             </>
                                         ) : !selectedLevel ? (
                                             <>
-                                                <X className="h-5 w-5" />
+                                                <X className="h-6 w-6" />
                                                 Vui lòng chọn cấp bậc
                                             </>
                                         ) : (
                                             <>
-                                                <Play className="h-5 w-5" />
+                                                <Play className="h-6 w-6" />
                                                 Bắt đầu phỏng vấn
                                             </>
                                         )}
                                     </button>
-                                </div>
                             </div>
                         </div>
 
@@ -902,37 +911,22 @@ const InterviewSelectionPage: React.FC = () => {
                         <div className="space-y-6">
                             {/* Job Skills Preview */}
                             {jobInfo.soft_skills.length > 0 && (
-                                <div className="interview-card">
-                                    <h3 className="interview-card-title mb-4">Kỹ năng mềm được đánh giá</h3>
-                                    <div className="space-y-0">
+                                <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl p-6">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Kỹ năng mềm</h3>
+                                    <div className="space-y-3">
                                         {jobInfo.soft_skills.slice(0, 5).map((skill, index) => (
-                                            <div
-                                                key={index}
-                                                className="interview-skill-item"
-                                            >
-                                                <span className="interview-skill-name">
+                                            <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50">
+                                                <span className="font-semibold text-sm text-gray-800 dark:text-gray-200 truncate pr-2">
                                                     {skill.skill_name}
                                                 </span>
-                                                <span className="interview-skill-score soft">
+                                                <span className="flex items-center gap-1 text-xs font-bold px-2 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 rounded-lg">
+                                                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
                                                     {skill.importance.toFixed(1)}/5
                                                 </span>
-
-                                                {/* Hover Tooltip */}
-                                                <div className="interview-skill-tooltip">
-                                                    <div className="font-medium mb-1">{skill.skill_name}</div>
-                                                    <div className="text-gray-300">
-                                                        Mức độ quan trọng: <span className="text-blue-300 font-medium">{skill.importance.toFixed(1)}/5</span>
-                                                    </div>
-                                                    <div className="text-gray-300">
-                                                        Loại: <span className="text-blue-300 font-medium">{skill.skill_type}</span>
-                                                    </div>
-                                                    {/* Arrow */}
-                                                    <div className="interview-skill-tooltip-arrow"></div>
-                                                </div>
                                             </div>
                                         ))}
                                         {jobInfo.soft_skills.length > 5 && (
-                                            <p className="text-xs interview-card-text mt-2">
+                                            <p className="text-xs text-center text-gray-500 dark:text-gray-400 font-medium pt-2 border-t border-gray-100 dark:border-gray-700/50">
                                                 +{jobInfo.soft_skills.length - 5} kỹ năng khác
                                             </p>
                                         )}
@@ -941,37 +935,22 @@ const InterviewSelectionPage: React.FC = () => {
                             )}
 
                             {jobInfo.hard_skills.length > 0 && (
-                                <div className="interview-card">
-                                    <h3 className="interview-card-title mb-4">Kỹ năng chuyên ngành</h3>
-                                    <div className="space-y-0">
+                                <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl p-6">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Kỹ năng chuyên môn</h3>
+                                    <div className="space-y-3">
                                         {jobInfo.hard_skills.slice(0, 5).map((skill, index) => (
-                                            <div
-                                                key={index}
-                                                className="interview-skill-item"
-                                            >
-                                                <span className="interview-skill-name">
+                                            <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50">
+                                                <span className="font-semibold text-sm text-gray-800 dark:text-gray-200 truncate pr-2">
                                                     {skill.skill_name}
                                                 </span>
-                                                <span className="interview-skill-score hard">
+                                                <span className="flex items-center gap-1 text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 rounded-lg">
+                                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                                                     {skill.importance.toFixed(1)}/5
                                                 </span>
-
-                                                {/* Hover Tooltip */}
-                                                <div className="interview-skill-tooltip">
-                                                    <div className="font-medium mb-1">{skill.skill_name}</div>
-                                                    <div className="text-gray-300">
-                                                        Mức độ quan trọng: <span className="text-orange-300 font-medium">{skill.importance.toFixed(1)}/5</span>
-                                                    </div>
-                                                    <div className="text-gray-300">
-                                                        Loại: <span className="text-orange-300 font-medium">{skill.skill_type}</span>
-                                                    </div>
-                                                    {/* Arrow */}
-                                                    <div className="interview-skill-tooltip-arrow"></div>
-                                                </div>
                                             </div>
                                         ))}
                                         {jobInfo.hard_skills_total > 5 && (
-                                            <p className="text-xs interview-card-text mt-2">
+                                            <p className="text-xs text-center text-gray-500 dark:text-gray-400 font-medium pt-2 border-t border-gray-100 dark:border-gray-700/50">
                                                 +{jobInfo.hard_skills_total - 5} kỹ năng khác
                                             </p>
                                         )}
@@ -980,14 +959,17 @@ const InterviewSelectionPage: React.FC = () => {
                             )}
 
                             {/* Tips */}
-                            <div className="interview-tips-card">
-                                <h3 className="interview-tips-title">💡 Lời khuyên</h3>
-                                <ul className="interview-tips-list">
-                                    <li className="interview-tips-item">• Chuẩn bị sẵn 2-3 câu chuyện thành công</li>
-                                    <li className="interview-tips-item">• Nói chậm, rõ ràng và tự tin</li>
-                                    <li className="interview-tips-item">• Sử dụng ví dụ cụ thể, có số liệu</li>
-                                    <li className="interview-tips-item">• Thể hiện thái độ tích cực và học hỏi</li>
-                                    <li className="interview-tips-item">• Đừng ngại hỏi lại nếu không hiểu câu hỏi</li>
+                            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-[24px] border border-indigo-100 dark:border-indigo-800/50 shadow-lg p-6">
+                                <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-4 flex items-center gap-2">
+                                    <span className="text-xl">💡</span> Lời khuyên
+                                </h3>
+                                <ul className="space-y-3">
+                                    {['Chuẩn bị sẵn 2-3 câu chuyện thành công', 'Nói chậm, rõ ràng và tự tin', 'Sử dụng ví dụ cụ thể, có số liệu', 'Thể hiện thái độ tích cực và học hỏi', 'Đừng ngại hỏi lại nếu không hiểu câu hỏi'].map((tip, i) => (
+                                        <li key={i} className="flex items-start gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            <span className="text-indigo-500 mt-0.5">•</span>
+                                            {tip}
+                                        </li>
+                                    ))}
                                 </ul>
                             </div>
                         </div>

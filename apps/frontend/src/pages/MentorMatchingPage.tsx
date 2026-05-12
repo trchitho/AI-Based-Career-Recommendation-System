@@ -84,15 +84,6 @@ const MentorMatchingPage = () => {
 
   /* ── mentee profile ── */
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
-  const [showMenteeForm, setShowMenteeForm] = useState(false);
-  const [menteeForm, setMenteeForm] = useState<MenteeProfileCreate>({
-    full_name: user?.email?.split('@')[0] || '',
-    target_career: '', current_skills: [], desired_skills: [],
-    learning_style: 'flexible', preferred_mentor_experience: 'senior',
-  });
-  const [menteeSaving, setMenteeSaving] = useState(false);
-  const [menteeErr, setMenteeErr] = useState('');
-
   /* ── mentors ── */
   const [mentors, setMentors] = useState<MentorMatch[]>([]);
   const [mentorsLoading, setMentorsLoading] = useState(false);
@@ -100,6 +91,7 @@ const MentorMatchingPage = () => {
 
   /* ── request modal ── */
   const [modalMentor, setModalMentor] = useState<MentorMatch | null>(null);
+  const [viewProfileMentor, setViewProfileMentor] = useState<MentorMatch | null>(null);
   const [modalMsg, setModalMsg] = useState('');
   const [modalSending, setModalSending] = useState(false);
 
@@ -139,12 +131,23 @@ const MentorMatchingPage = () => {
   useEffect(() => {
     (async () => {
       // Try existing mentee profile
-      try { await mentorMatchingService.getMenteeProfile(); setHasProfile(true); loadMentors(); return; } catch {}
+      try { 
+        await mentorMatchingService.getMenteeProfile(); 
+        setHasProfile(true); 
+        loadMentors(); 
+        return; 
+      } catch {}
+      
       // Auto-create from user data (assessment + CV)
-      try { await mentorMatchingService.createMenteeFromProfile(); } catch {}
-      // Always show mentors (backend returns all when no profile data)
-      setHasProfile(true);
-      loadMentors();
+      try { 
+        await mentorMatchingService.createMenteeFromProfile(); 
+        setHasProfile(true);
+        loadMentors();
+        return;
+      } catch {}
+      
+      // If we reach here, user has no profile and no CV/Assessment data
+      setHasProfile(false);
     })();
   }, []);
 
@@ -181,19 +184,6 @@ const MentorMatchingPage = () => {
   const loadSessions = async () => {
     setSessionsLoading(true);
     try { setSessions(await scheduleService.mySessions()); } catch { } finally { setSessionsLoading(false); }
-  };
-
-  /* ── create mentee profile ── */
-  const saveMenteeProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!menteeForm.full_name.trim() || !menteeForm.target_career.trim()) { setMenteeErr('Vui lòng điền đầy đủ thông tin bắt buộc.'); return; }
-    if (menteeForm.desired_skills.length === 0) { setMenteeErr('Vui lòng nhập ít nhất 1 kỹ năng muốn học.'); return; }
-    setMenteeSaving(true); setMenteeErr('');
-    try {
-      await mentorMatchingService.createOrUpdateMenteeProfile(menteeForm);
-      setHasProfile(true); setShowMenteeForm(false); loadMentors();
-    } catch (err: any) { setMenteeErr(err?.response?.data?.detail || 'Lưu thất bại.'); }
-    finally { setMenteeSaving(false); }
   };
 
   /* ── send request ── */
@@ -240,7 +230,11 @@ const MentorMatchingPage = () => {
      ════════════════════════════════════════════════════════════════ */
   return (
     <MainLayout>
-      <div className="mm-page">
+      <div className="mm-page min-h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
+        
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+        <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
         {/* Decorative background elements */}
         <div className="mm-page-decorations">
           <div className="mm-decoration circle-1"></div>
@@ -378,73 +372,23 @@ const MentorMatchingPage = () => {
           {tab === 'find' && (
             <>
               {/* No profile */}
-              {hasProfile === false && !showMenteeForm && (
+              {hasProfile === false && (
                 <div className="mm-setup-card">
                   <div className="mm-setup-icon">
                     <Users size={36} />
                   </div>
                   <h2>Hoàn thiện hồ sơ để tìm mentor</h2>
-                  <p>Hệ thống căn cứ dữ liệu từ kết quả bài đánh giá và CV đã upload để tự động tìm mentor phù hợp.</p>
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
-                    <button className="mm-btn-secondary" onClick={() => setShowMenteeForm(true)}>
+                  <p>Hệ thống AI yêu cầu kết quả từ <strong>Bài đánh giá tính cách</strong> và <strong>CV</strong> của bạn để có thể ghép đôi bạn với Mentor phù hợp nhất dựa trên điểm số RIASEC, Big Five và kỹ năng chuyên môn.</p>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
+                    <button className="mm-btn-secondary" onClick={() => window.location.href = '/cv-analysis'}>
                       <ClipboardList size={18} />
-                      Điền thủ công
+                      Cập nhật CV
                     </button>
                     <button className="mm-btn-gradient" onClick={() => window.location.href = '/assessment'}>
                       <Target size={18} />
                       Làm bài đánh giá
                     </button>
                   </div>
-                </div>
-              )}
-
-              {/* Mentee form */}
-              {hasProfile === false && showMenteeForm && (
-                <div className="mm-setup-card" style={{ maxWidth: 680, textAlign: 'left' }}>
-                  <h2 style={{ marginBottom: '0.4rem' }}>Hồ sơ Mentee</h2>
-                  <p style={{ marginBottom: '1.5rem', color: 'var(--neu-text-muted)', fontSize: '0.86rem' }}>Điền thông tin để AI ghép đôi với mentor phù hợp nhất</p>
-                  {menteeErr && <div className="mm-error-banner">{menteeErr}</div>}
-                  <form className="mm-form" onSubmit={saveMenteeProfile}>
-                    <div className="mm-form-grid">
-                      <div className="mm-form-group">
-                        <label>Họ và tên *</label>
-                        <input className="mm-input" value={menteeForm.full_name} onChange={e => setMenteeForm(p => ({ ...p, full_name: e.target.value }))} placeholder="Nguyễn Văn A" required />
-                      </div>
-                      <div className="mm-form-group">
-                        <label>Nghề nghiệp mục tiêu *</label>
-                        <input className="mm-input" value={menteeForm.target_career} onChange={e => setMenteeForm(p => ({ ...p, target_career: e.target.value }))} placeholder="Software Engineer..." required />
-                      </div>
-                      <div className="mm-form-group">
-                        <label>Phong cách học tập</label>
-                        <select className="mm-select" value={menteeForm.learning_style} onChange={e => setMenteeForm(p => ({ ...p, learning_style: e.target.value }))}>
-                          <option value="flexible">Linh hoạt</option>
-                          <option value="structured">Có cấu trúc</option>
-                          <option value="project-based">Dựa trên dự án</option>
-                        </select>
-                      </div>
-                      <div className="mm-form-group">
-                        <label>Kinh nghiệm mentor mong muốn</label>
-                        <select className="mm-select" value={menteeForm.preferred_mentor_experience} onChange={e => setMenteeForm(p => ({ ...p, preferred_mentor_experience: e.target.value }))}>
-                          <option value="junior">Junior (1-3 năm)</option>
-                          <option value="senior">Senior (5+ năm)</option>
-                          <option value="executive">Executive (10+ năm)</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="mm-form-group">
-                      <label>Kỹ năng hiện có</label>
-                      <TagInput tags={menteeForm.current_skills} onChange={t => setMenteeForm(p => ({ ...p, current_skills: t }))} placeholder="Python, React… Enter để thêm" />
-                    </div>
-                    <div className="mm-form-group">
-                      <label>Kỹ năng muốn học *</label>
-                      <TagInput tags={menteeForm.desired_skills} onChange={t => setMenteeForm(p => ({ ...p, desired_skills: t }))} placeholder="Machine Learning, Docker… Enter để thêm" />
-                      <span className="mm-hint">AI dùng danh sách này để tìm mentor phù hợp</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                      <button type="button" className="mm-btn-secondary" onClick={() => setShowMenteeForm(false)}>Huỷ</button>
-                      <button type="submit" className="mm-btn-primary" disabled={menteeSaving}>{menteeSaving ? 'Đang lưu...' : 'Lưu & Tìm Mentor'}</button>
-                    </div>
-                  </form>
                 </div>
               )}
 
@@ -508,17 +452,21 @@ const MentorMatchingPage = () => {
                             <span><Users size={12} className="inline mr-1" />{m.current_mentees_count}/{m.max_mentees} mentees</span>
                           </div>
                           {/* Actions */}
-                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                            <button className={`mm-request-btn${isSent ? ' sent' : ''}`} disabled={isFull || isSent} onClick={() => { setModalMentor(m); setModalMsg('Xin chào! Tôi rất muốn học hỏi kinh nghiệm từ bạn. Bạn có thể trở thành mentor của tôi không?'); }} style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.75rem' }}>
+                            <button className={`mm-request-btn${isSent ? ' sent' : ''}`} disabled={isFull || isSent} onClick={() => { setModalMentor(m); setModalMsg('Xin chào! Tôi rất muốn học hỏi kinh nghiệm từ bạn. Bạn có thể trở thành mentor của tôi không?'); }} style={{ flex: 1, padding: '0.4rem' }}>
                               {isSent ? <><Check size={12} className="inline mr-1" />Đã gửi</> : isFull ? 'Đã đầy slot' : 'Gửi yêu cầu'}
                             </button>
+                            <button title="Xem hồ sơ chi tiết" onClick={() => setViewProfileMentor(m)}
+                              style={{ padding: '0 0.6rem', borderRadius: 10, border: '1.5px solid #10b981', background: 'rgba(16,185,129,0.08)', color: '#059669', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', flexShrink: 0, display:'flex', alignItems:'center', gap: '0.2rem' }}>
+                              Hồ sơ
+                            </button>
                             <button title="Nhắn tin" onClick={() => setChatTarget({ userId: m.user_id, name: m.mentor_name })}
-                              style={{ padding: '0 0.75rem', borderRadius: 10, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', flexShrink: 0, display:'flex', alignItems:'center' }}>
-                              <MessageCircle size={16} />
+                              style={{ padding: '0 0.5rem', borderRadius: 10, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0, display:'flex', alignItems:'center' }}>
+                              <MessageCircle size={15} />
                             </button>
                             <button title="Đặt lịch" onClick={() => setBookingTarget({ userId: m.user_id, name: m.mentor_name })}
-                              style={{ padding: '0 0.75rem', borderRadius: 10, border: '1.5px solid #8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', flexShrink: 0, display:'flex', alignItems:'center' }}>
-                              <Calendar size={16} />
+                              style={{ padding: '0 0.5rem', borderRadius: 10, border: '1.5px solid #8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0, display:'flex', alignItems:'center' }}>
+                              <Calendar size={15} />
                             </button>
                           </div>
                         </div>
@@ -534,11 +482,11 @@ const MentorMatchingPage = () => {
                     <Users size={32} />
                   </div>
                   <h3>Chưa tìm thấy mentor phù hợp</h3>
-                  <p>Hãy cập nhật kỹ năng muốn học để AI tìm được mentor tốt hơn cho bạn.</p>
+                  <p>Hệ thống AI cần thêm thông tin để tìm kiếm tốt hơn. Hãy cập nhật CV và làm bài đánh giá tính cách.</p>
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '24px' }}>
-                    <button className="mm-btn-secondary" onClick={() => setShowMenteeForm(true)}>
+                    <button className="mm-btn-secondary" onClick={() => window.location.href = '/cv-analysis'}>
                       <ClipboardList size={18} />
-                      Điền thủ công
+                      Cập nhật CV
                     </button>
                     <button className="mm-btn-gradient" onClick={() => window.location.href = '/assessment'}>
                       <Target size={18} />
@@ -671,7 +619,7 @@ const MentorMatchingPage = () => {
               {!reqLoading && mentees.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   {mentees.map(r => (
-                    <div key={r.id} style={{ background: 'var(--neu-bg-card)', borderRadius: 14, padding: '1.1rem 1.25rem', boxShadow: 'var(--neu-raised-sm)', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div key={r.id} className="glass" style={{ borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
                       <Avatar name={r.mentee_name || 'M'} size={44} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--neu-text)' }}>{r.mentee_name || `Mentee ${r.mentee_id}`}</div>
@@ -715,9 +663,9 @@ const MentorMatchingPage = () => {
                     const isMentorRole = s.role === 'mentor';
                     const statusColors: Record<string, string> = { pending: 'f59e0b', confirmed: '10b981', cancelled: 'ef4444', completed: '6b7280' };
                     return (
-                      <div key={s.id} style={{ background: 'var(--neu-bg-card)', borderRadius: 14, boxShadow: 'var(--neu-raised-sm)', padding: '1rem 1.25rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                      <div key={s.id} className="glass" style={{ borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
                         {/* Date block */}
-                        <div style={{ minWidth: 56, textAlign: 'center', background: 'var(--neu-bg)', borderRadius: 10, padding: '0.5rem 0.25rem', boxShadow: 'var(--neu-pressed-sm)' }}>
+                        <div style={{ minWidth: 56, textAlign: 'center', background: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(10px)', borderRadius: 12, padding: '0.5rem 0.25rem', border: '1px solid rgba(255,255,255,0.5)' }}>
                           <div style={{ fontSize: '1.4rem', fontWeight: 800, lineHeight: 1, color: '#8b5cf6' }}>{dt.getDate()}</div>
                           <div style={{ fontSize: '0.7rem', color: 'var(--neu-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{dt.toLocaleString('vi-VN', { month: 'short' })}</div>
                           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--neu-text)', marginTop: 2 }}>{dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</div>
@@ -765,13 +713,13 @@ const MentorMatchingPage = () => {
           {/* ══════════ TAB: BECOME MENTOR ══════════ */}
           {tab === 'become' && (
             <div className="mm-mentor-section">
-              <div className="mm-mentor-card">
-                <h2>{isMentor ? ' Chỉnh sửa hồ sơ Mentor' : ' Đăng ký trở thành Mentor'}</h2>
-                <p>Hệ thống sẽ tự động lấy kỹ năng từ CV và ngành nghề từ kết quả đánh giá của bạn. Bạn chỉ cần bổ sung thêm nếu muốn.</p>
+              <div className="glass" style={{ borderRadius: 24, padding: '2rem', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 8px 32px rgba(0,0,0,0.04)' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>{isMentor ? ' Chỉnh sửa hồ sơ Mentor' : ' Đăng ký trở thành Mentor'}</h2>
+                <p style={{ color: 'var(--neu-text-muted)', marginBottom: '1.5rem' }}>Hệ thống sẽ tự động lấy kỹ năng từ CV và ngành nghề từ kết quả đánh giá của bạn. Bạn chỉ cần bổ sung thêm nếu muốn.</p>
 
                 {/* Auto-fill */}
                 {!mentorSuccess && (
-                  <div style={{ padding: '1rem', marginBottom: '1.5rem', background: 'var(--neu-bg)', borderRadius: 12, boxShadow: 'var(--neu-pressed-sm)', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div className="glass" style={{ padding: '1rem', marginBottom: '1.5rem', borderRadius: 12, display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', border: '1px solid rgba(255,255,255,0.3)' }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--neu-text)', marginBottom: '0.2rem' }}><BookOpen size={14} className="inline mr-1.5" />Tự động điền từ profile của bạn</div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--neu-text-muted)' }}>Lấy kỹ năng từ CV đã upload + ngành nghề từ kết quả assessment</div>
@@ -846,6 +794,74 @@ const MentorMatchingPage = () => {
             <div className="mm-modal-actions">
               <button className="mm-btn-secondary" onClick={() => setModalMentor(null)}>Huỷ</button>
               <button className="mm-btn-primary" disabled={modalSending} onClick={sendRequest}>{modalSending ? 'Đang gửi...' : 'Gửi yêu cầu'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Mentor Profile modal */}
+      {viewProfileMentor && (
+        <div className="mm-modal-overlay" onClick={() => setViewProfileMentor(null)}>
+          <div className="mm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 650 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <Avatar name={viewProfileMentor.mentor_name} size={60} />
+                <div>
+                  <h3 style={{ fontSize: '1.35rem', margin: 0, fontWeight: 800 }}>{viewProfileMentor.mentor_name}</h3>
+                  <div style={{ color: 'var(--neu-text-muted)', fontWeight: 600, fontSize: '0.9rem' }}>{viewProfileMentor.current_position} {viewProfileMentor.company && `tại ${viewProfileMentor.company}`}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--neu-text-muted)', marginTop: '4px' }}>
+                    {viewProfileMentor.experience_years ? `${viewProfileMentor.experience_years} năm kinh nghiệm` : ''} 
+                    {viewProfileMentor.experience_years ? ' · ' : ''} 
+                    {viewProfileMentor.available_hours_per_week}h/tuần
+                  </div>
+                </div>
+              </div>
+              <button className="mm-btn-icon" onClick={() => setViewProfileMentor(null)}><X size={20} /></button>
+            </div>
+            
+            {viewProfileMentor.bio && (
+              <div style={{ marginTop: '1.25rem' }}>
+                <div className="mm-section-label">Giới thiệu bản thân</div>
+                <p style={{ fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--neu-text)', padding: '0.75rem', background: 'var(--neu-bg-card)', borderRadius: 10, border: '1px solid rgba(0,0,0,0.05)' }}>{viewProfileMentor.bio}</p>
+              </div>
+            )}
+
+            <div style={{ marginTop: '1.25rem' }}>
+              <div className="mm-section-label">Lĩnh vực chuyên môn</div>
+              <div className="mm-tags">
+                {viewProfileMentor.expertise_areas.length > 0 
+                  ? viewProfileMentor.expertise_areas.map(s => <span key={s} className="mm-skill-tag">{s}</span>) 
+                  : <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>Chưa cập nhật kỹ năng chi tiết</span>}
+              </div>
+            </div>
+
+            <div style={{ marginTop: '1.5rem', background: 'rgba(59,130,246,0.04)', padding: '1.25rem', borderRadius: 14, border: '1px solid rgba(59,130,246,0.15)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <div className="mm-section-label" style={{ margin: 0, color: '#2563eb', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Star size={16} /> Phân tích mức độ phù hợp bởi AI
+                </div>
+                <div style={{ background: '#3b82f6', color: '#fff', padding: '0.2rem 0.6rem', borderRadius: 20, fontWeight: 800, fontSize: '0.85rem' }}>Match {Math.round(viewProfileMentor.compatibility_score)}%</div>
+              </div>
+              
+              <ul className="mm-reasons" style={{ marginTop: '0.8rem', marginBottom: '1.25rem' }}>
+                {viewProfileMentor.matching_reasons.length > 0 
+                  ? viewProfileMentor.matching_reasons.map((r, i) => <li key={i} className="mm-reason"><span className="mm-reason-dot" style={{ background: '#3b82f6' }} />{r}</li>)
+                  : <li className="mm-reason"><span className="mm-reason-dot" style={{ background: '#9ca3af' }} />Hệ thống chưa tìm thấy lý do nổi bật</li>
+                }
+              </ul>
+
+              <div className="mm-score-bars" style={{ borderTop: '1px dashed rgba(59,130,246,0.2)', paddingTop: '1.25rem' }}>
+                <ScoreBar label="Kỹ năng" value={viewProfileMentor.skill_match_score} color="#8b5cf6" />
+                <ScoreBar label="Nghề nghiệp" value={viewProfileMentor.career_match_score} color="#3b82f6" />
+                <ScoreBar label="Tính cách" value={viewProfileMentor.personality_score} color="#10b981" />
+              </div>
+            </div>
+
+            <div className="mm-modal-actions" style={{ marginTop: '1.5rem' }}>
+              <button className="mm-btn-secondary" onClick={() => setViewProfileMentor(null)}>Đóng</button>
+              <button className={`mm-request-btn${sentIds.has(viewProfileMentor.mentor_id) ? ' sent' : ''}`} disabled={viewProfileMentor.current_mentees_count >= viewProfileMentor.max_mentees || sentIds.has(viewProfileMentor.mentor_id)} onClick={() => { setViewProfileMentor(null); setModalMentor(viewProfileMentor); setModalMsg('Xin chào! Tôi rất muốn học hỏi kinh nghiệm từ bạn. Bạn có thể trở thành mentor của tôi không?'); }} style={{ minWidth: 160 }}>
+                {sentIds.has(viewProfileMentor.mentor_id) ? 'Đã gửi yêu cầu' : viewProfileMentor.current_mentees_count >= viewProfileMentor.max_mentees ? 'Đã đầy slot' : 'Gửi yêu cầu kết nối'}
+              </button>
             </div>
           </div>
         </div>

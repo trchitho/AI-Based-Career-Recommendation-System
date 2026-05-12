@@ -24,6 +24,7 @@ import {
     Settings,
     Wrench
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { interviewService, InterviewHistory, InterviewFeedback } from '../services/interviewService';
 import { toast } from 'react-hot-toast';
 import jsPDF from 'jspdf';
@@ -429,8 +430,13 @@ const InterviewResultsPage: React.FC = () => {
 
     return (
         <MainLayout>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <div className="py-8">
+            <div className="min-h-screen relative overflow-hidden font-['Plus_Jakarta_Sans'] bg-gray-50/50 dark:bg-gray-900/50">
+                
+                <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+                <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+                <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+                
+                <div className="py-8 relative z-10">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Header */}
                         <div className="mb-8">
@@ -438,7 +444,7 @@ const InterviewResultsPage: React.FC = () => {
                                 <div className="flex items-center gap-4">
                                     <button
                                         onClick={() => navigate('/interview')}
-                                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm text-sm font-medium flex-shrink-0"
+                                        className="flex items-center gap-2 px-4 py-2 glass bg-white/60 dark:bg-gray-800/40 border border-gray-200/50 dark:border-white/10 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-white/80 dark:hover:bg-gray-700/60 transition-colors shadow-sm text-sm font-medium flex-shrink-0"
                                     >
                                         <ArrowLeft className="h-4 w-4" />
                                         <span>Quay lại</span>
@@ -488,7 +494,12 @@ const InterviewResultsPage: React.FC = () => {
                             </div>
 
                             {/* Overall Result Card */}
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 mb-6">
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5 }}
+                                className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 p-6 sm:p-8 mb-6"
+                            >
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div className="flex items-center gap-5">
                                         <div className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex-shrink-0">
@@ -521,15 +532,20 @@ const InterviewResultsPage: React.FC = () => {
                                         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{history.session.summary}</p>
                                     </div>
                                 )}
-                            </div>
+                            </motion.div>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Main Content */}
                             <div className="lg:col-span-2 space-y-8">
                                 {/* Detailed Scores */}
-                                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                    <div className="bg-indigo-50 dark:bg-indigo-900/20 px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+                                <motion.div 
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.2 }}
+                                    className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 overflow-hidden"
+                                >
+                                    <div className="bg-indigo-50/50 dark:bg-indigo-900/20 px-6 py-5 border-b border-gray-200/50 dark:border-white/5">
                                         <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                             <BarChart3 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                             Điểm chi tiết
@@ -567,13 +583,18 @@ const InterviewResultsPage: React.FC = () => {
                                             ))}
                                         </div>
                                     </div>
-                                </div>
+                                </motion.div>
 
                                 {/* Strengths & Weaknesses */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Strengths */}
-                                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900/20">
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.3 }}
+                                        className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 overflow-hidden"
+                                    >
+                                        <div className="px-6 py-4 border-b border-gray-200/50 dark:border-white/5 bg-green-50/50 dark:bg-green-900/20">
                                             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                                 <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
                                                 Điểm mạnh
@@ -596,11 +617,11 @@ const InterviewResultsPage: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
+                                    </motion.div>
 
                                     {/* Weaknesses */}
-                                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-red-50 dark:bg-red-900/20">
+                                    <div className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-gray-200/50 dark:border-white/5 bg-red-50/50 dark:bg-red-900/20">
                                             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                                 <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
                                                 Điểm cần cải thiện
@@ -628,8 +649,8 @@ const InterviewResultsPage: React.FC = () => {
 
                                 {/* Learning Recommendations */}
                                 {history.session.learning_recommendations && history.session.learning_recommendations.length > 0 && (
-                                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                        <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-purple-50 dark:bg-purple-900/20">
+                                    <div className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 overflow-hidden">
+                                        <div className="px-6 py-5 border-b border-gray-200/50 dark:border-white/5 bg-purple-50/50 dark:bg-purple-900/20">
                                             <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                                 <BookOpen className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                                                 Gợi ý học tập
@@ -694,8 +715,8 @@ const InterviewResultsPage: React.FC = () => {
                             {/* Sidebar */}
                             <div className="space-y-6">
                                 {/* Session Info Card - Enhanced */}
-                                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                                    <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-5 border-b border-gray-200">
+                                <div className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 overflow-hidden">
+                                    <div className="bg-gradient-to-r from-gray-50/50 to-blue-50/50 dark:from-gray-800/50 dark:to-blue-900/20 px-6 py-5 border-b border-gray-200/50 dark:border-white/5">
                                         <h3 className="text-xl font-bold text-gray-900 flex items-center">
                                             <Settings className="h-5 w-5 mr-3 text-gray-600" />
                                             Thông tin phiên
@@ -762,8 +783,8 @@ const InterviewResultsPage: React.FC = () => {
 
                                 {/* Skills Tested - Enhanced with Hard Skills */}
                                 {history.session.skills_context && history.session.skills_context.length > 0 && (
-                                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                                        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-5 border-b border-gray-200">
+                                    <div className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 overflow-hidden">
+                                        <div className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 px-6 py-5 border-b border-gray-200/50 dark:border-white/5">
                                             <h3 className="text-xl font-bold text-gray-900 flex items-center">
                                                 <Brain className="h-5 w-5 mr-3 text-indigo-600" />
                                                 Kỹ năng được đánh giá
@@ -884,8 +905,8 @@ const InterviewResultsPage: React.FC = () => {
 
                                 {/* Enhanced Feedback Form */}
                                 {showFeedbackForm && (
-                                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                                        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 px-6 py-5 border-b border-gray-200">
+                                    <div className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 overflow-hidden mt-6">
+                                        <div className="bg-gradient-to-r from-yellow-50/50 to-orange-50/50 dark:from-yellow-900/20 dark:to-orange-900/20 px-6 py-5 border-b border-gray-200/50 dark:border-white/5">
                                             <h3 className="text-xl font-bold text-gray-900 flex items-center">
                                                 <Star className="h-5 w-5 mr-3 text-yellow-600" />
                                                 Đánh giá phỏng vấn
@@ -976,13 +997,8 @@ const InterviewResultsPage: React.FC = () => {
                                 )}
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-
                         {/* ── Xem chi tiết cuộc trò chuyện — full width below grid ── */}
-                        <div className="mt-8 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                        <div className="mt-8 glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 overflow-hidden">
                         <button
                         onClick={() => { if (!showConversation) loadConversation(); else setShowConversation(false); }}
                         className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
@@ -1162,7 +1178,9 @@ const InterviewResultsPage: React.FC = () => {
                         </div>
                         )}
                         </div>
-
+                    </div>
+                </div>
+            </div>
         </MainLayout>
     );
 };

@@ -719,19 +719,24 @@ const InterviewPage: React.FC = () => {
 
     return (
         <MainLayout>
-            {/* Dark interview environment */}
-            <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #0d0d1a 0%, #0f1535 50%, #0d0d1a 100%)' }}>
+            <div className="min-h-[calc(100vh-64px)] flex flex-col bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans'] pb-20">
+                
+                <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+                <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+                <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+                
+                <div className="relative z-10 flex flex-col h-full flex-1">
                 <ToastContainer toasts={toasts} onRemove={removeToast} />
 
                 {/* Top bar */}
-                <div className="flex items-center justify-between px-6 py-3 border-b border-white/10">
+                <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200/50 dark:border-white/10 glass">
                     <div className="flex items-center gap-3">
                         <button onClick={() => setShowAbandonModal(true)}
-                            className="text-white/60 hover:text-white transition-colors text-sm flex items-center gap-1.5">
+                            className="text-gray-500 hover:text-gray-900 dark:text-white/60 dark:hover:text-white transition-colors text-sm flex items-center gap-1.5 font-medium">
                             <ArrowLeft className="h-4 w-4" /> Thoát
                         </button>
-                        <span className="text-white/30">|</span>
-                        <span className="text-white font-semibold text-sm truncate max-w-xs">{session?.jobTitle}</span>
+                        <span className="text-gray-300 dark:text-white/30">|</span>
+                        <span className="text-gray-900 dark:text-white font-bold text-sm truncate max-w-xs">{session?.jobTitle}</span>
                         {session?.questionType && (
                             <Badge className={`text-xs ${getQBadge(session.questionType)}`}>
                                 {qTypeLabel[session.questionType] || 'Câu hỏi'}
@@ -739,16 +744,16 @@ const InterviewPage: React.FC = () => {
                         )}
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 text-white/70 text-sm">
+                        <div className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 text-sm font-medium">
                             <Clock className="h-3.5 w-3.5" />
                             <span className="font-mono">{fmt(elapsedTime)}</span>
                         </div>
-                        <div className="text-sm text-white/50">
-                            Câu <span className="text-white font-bold">{session?.questionNumber}</span>/{session?.questionCount}
+                        <div className="text-sm text-gray-500 dark:text-white/50">
+                            Câu <span className="text-gray-900 dark:text-white font-bold">{session?.questionNumber}</span>/{session?.questionCount}
                         </div>
                         <button
                             onClick={() => setShowAbandonModal(true)}
-                            className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs font-semibold transition-colors border border-red-500/30">
+                            className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/20 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/30 text-xs font-semibold transition-colors border border-red-200 dark:border-red-500/30 shadow-sm">
                             Kết thúc
                         </button>
                     </div>
@@ -756,8 +761,7 @@ const InterviewPage: React.FC = () => {
 
                 <div className="flex flex-1 overflow-hidden">
                 {/* ── LEFT: AI Interviewer panel ── */}
-                <div className="hidden lg:flex flex-col items-center justify-center w-72 xl:w-80 flex-shrink-0 px-6 py-8"
-                    style={{ background: 'rgba(255,255,255,0.03)', borderRight: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="hidden lg:flex flex-col items-center justify-center w-72 xl:w-80 flex-shrink-0 px-6 py-8 glass border-r border-gray-200/50 dark:border-white/10 relative">
 
                     {/* Avatar */}
                     <div className="relative mb-5">
@@ -780,25 +784,25 @@ const InterviewPage: React.FC = () => {
                         </div>
                     </div>
 
-                    <p className="text-indigo-300 text-xs font-bold tracking-widest uppercase mb-1">AI INTERVIEWER</p>
-                    <p className="text-white font-semibold text-sm mb-4">{interviewerGender === 'female' ? 'Nữ phỏng vấn viên' : 'Nam phỏng vấn viên'}</p>
+                    <p className="text-indigo-600 dark:text-indigo-300 text-xs font-bold tracking-widest uppercase mb-1">AI INTERVIEWER</p>
+                    <p className="text-gray-900 dark:text-white font-semibold text-sm mb-4">{interviewerGender === 'female' ? 'Nữ phỏng vấn viên' : 'Nam phỏng vấn viên'}</p>
 
                     {/* Toggle video */}
                     <button onClick={() => setShowVideo(v => !v)}
-                        className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors border border-indigo-500/30 rounded-full px-3 py-1">
+                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium transition-colors border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/50 dark:bg-transparent rounded-full px-3 py-1">
                         {showVideo ? 'Dùng ảnh tĩnh' : 'Xem video'}
                     </button>
 
                     {/* Timer bar */}
                     {session?.status === 'active' && (
-                        <div className="mt-8 w-full">
-                            <div className="flex justify-between text-xs mb-1.5">
-                                <span className="text-white/50">Thời gian câu hỏi</span>
-                                <span className={`font-mono font-bold ${remaining <= 15 ? 'text-red-400 animate-pulse' : remaining <= 30 ? 'text-yellow-400' : 'text-white/70'}`}>
+                        <div className="mt-8 w-full glass p-4 rounded-xl border border-gray-200/50 dark:border-white/10 shadow-sm">
+                            <div className="flex justify-between text-xs mb-2">
+                                <span className="text-gray-500 dark:text-white/60 font-medium">Thời gian câu hỏi</span>
+                                <span className={`font-mono font-bold ${remaining <= 15 ? 'text-red-500 dark:text-red-400 animate-pulse' : remaining <= 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-700 dark:text-white/80'}`}>
                                     {fmt(remaining)}
                                 </span>
                             </div>
-                            <div className="w-full h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                            <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
                                 <div className={`h-full rounded-full transition-all duration-1000 ${timerColor}`}
                                     style={{ width: `${timerPct}%` }} />
                             </div>
@@ -861,20 +865,20 @@ const InterviewPage: React.FC = () => {
                                             <React.Fragment key={msg.id}>
                                                 <div className={`flex ${msg.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
                                                     {msg.role === 'interviewer' ? (
-                                                        /* AI Interviewer bubble — dark theme */
+                                                        /* AI Interviewer bubble — light/dark theme */
                                                         <div className="max-w-[88%] flex gap-3 items-end">
                                                             {/* Mini avatar */}
-                                                            <img src={avatarUrl} alt="AI" className="w-9 h-9 rounded-full object-cover flex-shrink-0 mb-1 border-2" style={{ borderColor: 'rgba(99,102,241,0.5)' }} />
-                                                            <div className="rounded-2xl rounded-bl-sm overflow-hidden" style={{ background: 'rgba(30,35,60,0.95)', border: '1px solid rgba(99,102,241,0.3)', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                                                            <img src={avatarUrl} alt="AI" className="w-9 h-9 rounded-full object-cover flex-shrink-0 mb-1 border-2 border-white shadow-sm dark:border-indigo-500/50" />
+                                                            <div className="rounded-2xl rounded-bl-sm overflow-hidden glass border border-gray-200/50 dark:border-indigo-500/30 shadow-md">
                                                             {/* Header */}
-                                                            <div className="px-4 py-2.5 flex items-center gap-2.5" style={{ background: 'rgba(99,102,241,0.15)', borderBottom: '1px solid rgba(99,102,241,0.2)' }}>
+                                                            <div className="px-4 py-2.5 flex items-center gap-2.5 bg-gray-50/80 dark:bg-indigo-500/10 border-b border-gray-200/50 dark:border-indigo-500/20">
                                                                 <div className="flex items-center gap-2">
-                                                                    <div className="p-1.5 rounded-lg bg-indigo-500/30">
-                                                                        <Bot className="h-3.5 w-3.5 text-indigo-300" />
+                                                                    <div className="p-1.5 rounded-lg bg-white shadow-sm dark:bg-indigo-500/30 border border-gray-100 dark:border-transparent">
+                                                                        <Bot className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-300" />
                                                                     </div>
                                                                     <div>
                                                                         <div className="flex items-center gap-2">
-                                                                            <span className="font-semibold text-white text-sm">AI INTERVIEWER</span>
+                                                                            <span className="font-bold text-gray-900 dark:text-white text-sm">AI INTERVIEWER</span>
                                                                             {msg.questionType && (
                                                                                 <Badge className={`text-xs font-medium ${getQBadge(msg.questionType)}`}>
                                                                                     {qTypeLabel[msg.questionType] || msg.questionType}
@@ -886,9 +890,9 @@ const InterviewPage: React.FC = () => {
                                                             </div>
 
                                                             {/* Question content */}
-                                                            <div className="px-4 py-4">
+                                                            <div className="px-4 py-4 bg-white/60 dark:bg-transparent">
                                                                 {msg.content ? (
-                                                                    <div className="text-white/90 leading-relaxed text-sm">
+                                                                    <div className="text-gray-800 dark:text-white/90 leading-relaxed text-sm">
                                                                         {/* Enhanced question formatting with proper line breaks */}
                                                                         {msg.content.split('\n').map((paragraph, index) => {
                                                                             // Check if this is a question type label line
@@ -912,7 +916,7 @@ const InterviewPage: React.FC = () => {
                                                                                         </div>
                                                                                     ) : (
                                                                                         // Regular paragraph formatting
-                                                                                        <p className="leading-relaxed text-xs">
+                                                                                        <p className="leading-relaxed text-[15px] font-medium text-gray-800 dark:text-gray-100">
                                                                                             {paragraph}
                                                                                         </p>
                                                                                     )}
@@ -921,7 +925,7 @@ const InterviewPage: React.FC = () => {
                                                                         })}
                                                                     </div>
                                                                 ) : (
-                                                                    <div className="flex items-center gap-2 text-indigo-300/70 italic">
+                                                                    <div className="flex items-center gap-2 text-indigo-500 dark:text-indigo-300/70 italic font-medium">
                                                                         <Loader2 className="h-4 w-4 animate-spin" />
                                                                         <span className="text-sm">Đang chuẩn bị câu hỏi...</span>
                                                                     </div>
@@ -932,18 +936,18 @@ const InterviewPage: React.FC = () => {
                                                     ) : (
                                                         /* Candidate message — right side */
                                                         <div className="max-w-[82%] flex gap-2 items-end justify-end">
-                                                            <div className="rounded-2xl rounded-br-sm px-4 py-3 text-sm"
+                                                            <div className="rounded-2xl rounded-br-sm px-4 py-3 text-sm shadow-md"
                                                                 style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff' }}>
-                                                                <div className="flex items-center gap-1.5 mb-1 opacity-80">
+                                                                <div className="flex items-center gap-1.5 mb-1 opacity-90">
                                                                     <User className="h-3 w-3" />
-                                                                    <span className="text-xs font-semibold">Bạn</span>
+                                                                    <span className="text-xs font-bold tracking-wide uppercase">Bạn</span>
                                                                 </div>
                                                                 {msg.content
-                                                                    ? <p className="leading-relaxed">{msg.content}</p>
-                                                                    : <p className="leading-relaxed italic opacity-60">Bỏ qua câu hỏi này</p>
+                                                                    ? <p className="leading-relaxed font-medium text-[15px]">{msg.content}</p>
+                                                                    : <p className="leading-relaxed italic opacity-80">Bỏ qua câu hỏi này</p>
                                                                 }
                                                             </div>
-                                                            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 mb-1">
+                                                            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 mb-1 shadow-sm border border-indigo-400">
                                                                 <User className="h-4 w-4 text-white" />
                                                             </div>
                                                         </div>
@@ -952,14 +956,14 @@ const InterviewPage: React.FC = () => {
 
                                                 {/* Eval card directly under candidate message - only when scored */}
                                                 {msg.role === 'candidate' && msg.score !== undefined && msg.score !== null && (
-                                                    <div className="w-full bg-white border border-blue-100 rounded-xl p-4 text-sm shadow-sm">
-                                                        <div className="flex items-center justify-between mb-3">
-                                                            <span className="font-semibold text-gray-800">Đánh giá câu trả lời</span>
-                                                            <span className={`text-xl font-bold ${scoreColor(msg.score)}`}>{msg.score?.toFixed(1)}/10</span>
+                                                    <div className="w-full glass bg-white/70 dark:bg-gray-800/60 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl p-5 text-sm shadow-sm mt-3">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <span className="font-bold text-gray-900 dark:text-white">Đánh giá câu trả lời</span>
+                                                            <span className={`text-xl font-black ${scoreColor(msg.score)}`}>{msg.score?.toFixed(1)}/10</span>
                                                         </div>
 
                                                         {msg.detailedScores && (
-                                                            <div className="space-y-2 mb-3">
+                                                            <div className="space-y-3 mb-4">
                                                                 {([
                                                                     { key: 'technical' as const, label: 'Kỹ năng chuyên môn' },
                                                                     { key: 'logic' as const, label: 'Tư duy logic' },
@@ -970,19 +974,19 @@ const InterviewPage: React.FC = () => {
                                                                     const s = msg.detailedScores![key];
                                                                     const reason = msg.scoreReasoning?.[key];
                                                                     return (
-                                                                        <div key={key} className="bg-gray-50 rounded-lg p-2">
-                                                                            <div className="flex items-center justify-between mb-0.5">
-                                                                                <span className="font-medium text-gray-700 text-xs">{label}</span>
+                                                                        <div key={key} className="bg-white/60 dark:bg-gray-900/40 rounded-xl p-3 border border-gray-100 dark:border-gray-700/50">
+                                                                            <div className="flex items-center justify-between mb-1.5">
+                                                                                <span className="font-semibold text-gray-800 dark:text-gray-200 text-xs">{label}</span>
                                                                                 <div className="flex items-center gap-1">
                                                                                     <span className={`font-bold text-sm ${scoreColor(s)}`}>{s}/10</span>
                                                                                     <ScoreTooltip score={s || 0} skillName={label} />
                                                                                 </div>
                                                                             </div>
-                                                                            <div className="w-full bg-gray-200 rounded-full h-1 mb-1">
-                                                                                <div className={`h-1 rounded-full ${(s ?? 0) >= 8 ? 'bg-indigo-700' : (s ?? 0) >= 6 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-2 overflow-hidden">
+                                                                                <div className={`h-1.5 rounded-full ${(s ?? 0) >= 8 ? 'bg-indigo-600 dark:bg-indigo-500' : (s ?? 0) >= 6 ? 'bg-yellow-500' : 'bg-red-500'}`}
                                                                                     style={{ width: `${(s ?? 0) * 10}%` }} />
                                                                             </div>
-                                                                            {reason && <p className="text-xs text-gray-500 leading-relaxed">{reason}</p>}
+                                                                            {reason && <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-medium">{reason}</p>}
                                                                         </div>
                                                                     );
                                                                 })}
@@ -990,31 +994,31 @@ const InterviewPage: React.FC = () => {
                                                         )}
 
                                                         {msg.feedback && (
-                                                            <div className="bg-blue-50 rounded-lg p-2 mb-2">
-                                                                <p className="text-xs font-medium text-blue-800 mb-0.5">Nhận xét tổng thể</p>
-                                                                <p className="text-xs text-blue-700">{msg.feedback}</p>
+                                                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl p-3 mb-3">
+                                                                <p className="text-xs font-bold text-blue-800 dark:text-blue-300 mb-1">Nhận xét tổng thể</p>
+                                                                <p className="text-xs text-blue-700 dark:text-blue-200 leading-relaxed">{msg.feedback}</p>
                                                             </div>
                                                         )}
 
-                                                        <div className="grid grid-cols-2 gap-2 mb-2">
+                                                        <div className="grid grid-cols-2 gap-3 mb-3">
                                                             {msg.strengths && msg.strengths.length > 0 && (
-                                                                <div className="bg-indigo-50 rounded-lg p-2">
-                                                                    <p className="text-xs font-medium text-indigo-950 mb-1"> Điểm mạnh</p>
-                                                                    {msg.strengths.map((s, i) => <p key={i} className="text-xs text-indigo-900">• {s}</p>)}
+                                                                <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-xl p-3">
+                                                                    <p className="text-xs font-bold text-indigo-900 dark:text-indigo-300 mb-2"> Điểm mạnh</p>
+                                                                    {msg.strengths.map((s, i) => <p key={i} className="text-xs text-indigo-800 dark:text-indigo-200 mb-1 leading-relaxed">• {s}</p>)}
                                                                 </div>
                                                             )}
                                                             {msg.weaknesses && msg.weaknesses.length > 0 && (
-                                                                <div className="bg-red-50 rounded-lg p-2">
-                                                                    <p className="text-xs font-medium text-red-800 mb-1"> Cần cải thiện</p>
-                                                                    {msg.weaknesses.map((w, i) => <p key={i} className="text-xs text-red-700">• {w}</p>)}
+                                                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-xl p-3">
+                                                                    <p className="text-xs font-bold text-red-800 dark:text-red-300 mb-2"> Cần cải thiện</p>
+                                                                    {msg.weaknesses.map((w, i) => <p key={i} className="text-xs text-red-700 dark:text-red-200 mb-1 leading-relaxed">• {w}</p>)}
                                                                 </div>
                                                             )}
                                                         </div>
 
                                                         {msg.suggestion && (
-                                                            <div className="bg-yellow-50 rounded-lg p-2">
-                                                                <p className="text-xs font-medium text-yellow-800 mb-0.5"> Gợi ý</p>
-                                                                <p className="text-xs text-yellow-700">{msg.suggestion}</p>
+                                                            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800/30 rounded-xl p-3">
+                                                                <p className="text-xs font-bold text-yellow-800 dark:text-yellow-400 mb-1"> Gợi ý</p>
+                                                                <p className="text-xs text-yellow-700 dark:text-yellow-200 leading-relaxed">{msg.suggestion}</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -1022,9 +1026,9 @@ const InterviewPage: React.FC = () => {
 
                                                 {/* Suggestion-only card for skipped questions */}
                                                 {msg.role === 'candidate' && (msg.score === undefined || msg.score === null) && msg.suggestion && (
-                                                    <div className="w-full bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm">
-                                                        <p className="text-xs font-medium text-yellow-800 mb-0.5"> Gợi ý cho câu hỏi này</p>
-                                                        <p className="text-xs text-yellow-700">{msg.suggestion}</p>
+                                                    <div className="w-full glass bg-yellow-50/90 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/30 rounded-2xl p-4 text-sm mt-3 shadow-sm">
+                                                        <p className="text-xs font-bold text-yellow-800 dark:text-yellow-400 mb-1"> Gợi ý cho câu hỏi này</p>
+                                                        <p className="text-xs text-yellow-700 dark:text-yellow-200 leading-relaxed font-medium">{msg.suggestion}</p>
                                                     </div>
                                                 )}
                                             </React.Fragment>
@@ -1046,10 +1050,10 @@ const InterviewPage: React.FC = () => {
 
                                     {/* Input */}
                                     {session?.status === 'active' && (
-                                        <div className="border-t px-4 py-3 space-y-2">
+                                        <div className="border-t border-gray-200/50 dark:border-white/10 px-6 py-4 space-y-3 glass bg-white/50 dark:bg-gray-900/50">
                                             {/* Loading indicator */}
                                             {isLoading && (
-                                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm" style={{ background: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }}>
+                                                <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20 shadow-sm w-max">
                                                     <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                                                     <span>Đang chấm điểm và chuẩn bị câu hỏi tiếp theo...</span>
                                                 </div>
@@ -1061,22 +1065,21 @@ const InterviewPage: React.FC = () => {
                                                 placeholder="Nhập câu trả lời... (Ctrl+Enter để gửi)"
                                                 disabled={isLoading}
                                                 rows={3}
-                                                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none resize-none"
-                                                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', caretColor: '#818cf8' }}
+                                                className="w-full px-5 py-3 rounded-2xl text-[15px] font-medium focus:outline-none resize-none glass bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500/50 shadow-inner"
                                             />
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isRecording ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-white/10 text-white/70 border border-white/20 hover:bg-white/15'}`}
+                                                <div className="flex items-center gap-3">
+                                                    <button className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${isRecording ? 'bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/40' : 'glass bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                                                         onClick={isRecording ? stopRecording : startRecording} disabled={isLoading}>
-                                                        {isRecording ? <><MicOff className="h-3.5 w-3.5" />Dừng</> : <><Mic className="h-3.5 w-3.5" />Ghi âm</>}
+                                                        {isRecording ? <><MicOff className="h-4 w-4" />Dừng</> : <><Mic className="h-4 w-4" />Ghi âm</>}
                                                     </button>
-                                                    {isRecording && <span className="text-xs text-red-400 animate-pulse">● Đang ghi...</span>}
-                                                    {audioDuration && !isRecording && <span className="text-xs text-indigo-300"> {audioDuration.toFixed(1)}s</span>}
-                                                    <span className="text-xs text-white/30">{currentAnswer.length} ký tự</span>
+                                                    {isRecording && <span className="text-sm font-medium text-red-500 dark:text-red-400 animate-pulse">● Đang ghi...</span>}
+                                                    {audioDuration && !isRecording && <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400"> {audioDuration.toFixed(1)}s</span>}
+                                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{currentAnswer.length} ký tự</span>
                                                 </div>
                                                 <button onClick={() => handleSubmit()} disabled={isLoading}
-                                                    className="flex items-center gap-2 px-5 py-2 rounded-xl font-semibold text-sm transition-all disabled:opacity-50"
-                                                    style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', boxShadow: '0 4px 15px rgba(79,70,229,0.4)' }}>
+                                                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 hover:-translate-y-0.5 active:translate-y-0"
+                                                    style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff' }}>
                                                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                                     Gửi trả lời
                                                 </button>
@@ -1087,32 +1090,32 @@ const InterviewPage: React.FC = () => {
                         </div>
 
                         {/* Sidebar — progress + skills */}
-                        <div className="w-64 xl:w-72 flex-shrink-0 flex flex-col gap-3 p-4 overflow-y-auto" style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div className="w-64 xl:w-72 flex-shrink-0 flex flex-col gap-4 p-5 overflow-y-auto glass border-l border-gray-200/50 dark:border-white/10 relative">
                             {/* Progress */}
-                            <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-3">Tiến độ</p>
-                                <div className="flex justify-between text-sm text-white mb-2">
-                                    <span className="text-white/70">Câu hỏi</span>
+                            <div className="rounded-2xl p-5 glass bg-white/60 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                                <p className="text-gray-500 dark:text-white/50 text-xs font-bold uppercase tracking-widest mb-3">Tiến độ</p>
+                                <div className="flex justify-between text-sm text-gray-900 dark:text-white mb-2">
+                                    <span className="text-gray-600 dark:text-white/70 font-medium">Câu hỏi</span>
                                     <span className="font-bold">{Math.min(session?.questionNumber || 0, session?.questionCount || 5)}/{session?.questionCount || 5}</span>
                                 </div>
-                                <div className="w-full h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                                    <div className="h-full rounded-full bg-indigo-500 transition-all"
+                                <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                                    <div className="h-full rounded-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-500"
                                         style={{ width: `${Math.min(((session?.questionNumber || 0) / (session?.questionCount || 5)) * 100, 100)}%` }} />
                                 </div>
-                                <p className="text-white/40 text-xs mt-2">Tổng thời gian: {fmt(elapsedTime)}</p>
+                                <p className="text-gray-500 dark:text-white/40 text-xs mt-3 font-medium">Tổng thời gian: <span className="font-mono">{fmt(elapsedTime)}</span></p>
                             </div>
 
                             {/* Skills Section */}
                             {session?.skillsContext && session.skillsContext.length > 0 && (
-                                <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                    <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                                        <Brain className="h-3.5 w-3.5 text-indigo-400" /> Kỹ năng đánh giá
+                                <div className="rounded-2xl p-5 glass bg-white/60 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                                    <p className="text-gray-500 dark:text-white/50 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-1.5">
+                                        <Brain className="h-4 w-4 text-indigo-600 dark:text-indigo-400" /> Kỹ năng đánh giá
                                     </p>
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-2">
                                         {(session.skillsContext as any[]).slice(0, 8).map((skill: any, index: number) => (
-                                            <div key={index} className="flex items-center justify-between text-xs">
-                                                <span className="text-white/70 truncate flex-1 mr-2">{skill.skill_name}</span>
-                                                <span className={`font-semibold shrink-0 ${skill.is_hard_skill ? 'text-orange-400' : 'text-indigo-400'}`}>
+                                            <div key={index} className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-700 dark:text-white/80 truncate flex-1 mr-2 font-medium">{skill.skill_name}</span>
+                                                <span className={`font-bold shrink-0 ${skill.is_hard_skill ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
                                                     {(skill.importance || 0).toFixed(1)}/5
                                                 </span>
                                             </div>
@@ -1122,26 +1125,25 @@ const InterviewPage: React.FC = () => {
                             )}
 
                             {/* Tips */}
-                            <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-2.5">Gợi ý</p>
-                                <ul className="text-xs space-y-1.5 text-white/60">
-                                    <li>• Nói chậm, rõ ràng và tự tin</li>
-                                    <li>• Dùng ví dụ cụ thể với số liệu</li>
-                                    <li>• Thái độ tích cực và học hỏi</li>
-                                    <li>• Hỏi lại nếu không hiểu</li>
+                            <div className="rounded-2xl p-5 glass bg-white/60 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                                <p className="text-gray-500 dark:text-white/50 text-xs font-bold uppercase tracking-widest mb-3">Gợi ý</p>
+                                <ul className="text-sm space-y-2 text-gray-700 dark:text-white/70 font-medium">
+                                    <li className="flex items-start gap-2"><span className="text-indigo-500">•</span> Nói chậm, rõ ràng và tự tin</li>
+                                    <li className="flex items-start gap-2"><span className="text-indigo-500">•</span> Dùng ví dụ cụ thể với số liệu</li>
+                                    <li className="flex items-start gap-2"><span className="text-indigo-500">•</span> Thái độ tích cực và học hỏi</li>
+                                    <li className="flex items-start gap-2"><span className="text-indigo-500">•</span> Hỏi lại nếu không hiểu</li>
                                 </ul>
                             </div>
 
                             {/* Completed actions */}
                             {session?.status === 'completed' && (
-                                <div className="space-y-2">
-                                    <button className="w-full py-2.5 rounded-xl font-semibold text-sm text-white transition-all"
+                                <div className="space-y-3 mt-4">
+                                    <button className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/40 hover:-translate-y-0.5"
                                         style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)' }}
                                         onClick={() => navigate(`/interview/results/${session.sessionId}`)}>
                                         Xem kết quả chi tiết
                                     </button>
-                                    <button className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all"
-                                        style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}
+                                    <button className="w-full py-3 rounded-xl font-bold text-sm transition-all glass bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-white/80 dark:hover:bg-gray-700 shadow-sm"
                                         onClick={() => navigate('/dashboard')}>
                                         Về Dashboard
                                     </button>
@@ -1149,8 +1151,8 @@ const InterviewPage: React.FC = () => {
                             )}
                         </div>
                     </div>
-                </div>
-                </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1187,6 +1189,7 @@ const InterviewPage: React.FC = () => {
                     </div>
                 </div>
             )}
+            </div>
         </MainLayout >
     );
 };

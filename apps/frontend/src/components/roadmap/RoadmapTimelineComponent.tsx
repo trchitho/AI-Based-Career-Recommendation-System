@@ -164,7 +164,7 @@ const RoadmapTimelineComponent = ({
                     ? 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-300 dark:border-orange-600 shadow-orange-200/50 dark:shadow-orange-900/20'
                     : isCompleted
                       ? 'bg-gradient-to-br from-indigo-50 to-indigo-50 dark:from-indigo-950/20 dark:to-indigo-900/20 border-indigo-300 dark:border-indigo-700'
-                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                       : 'glass bg-white/60 dark:bg-gray-800/50 backdrop-blur-sm border-gray-200/60 dark:border-gray-700/60'
                   }`}
               >
                 <div
@@ -247,7 +247,7 @@ const RoadmapTimelineComponent = ({
 
                       {/* Unlock CTA */}
                       <div className="absolute inset-x-6 bottom-6 z-20">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-xl border border-gray-200 dark:border-gray-700">
+                         <div className="glass bg-white/80 dark:bg-gray-800/70 backdrop-blur-md rounded-xl p-4 shadow-xl border border-white/50 dark:border-gray-700/60">
                           <div className="text-center">
                             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-3">
                               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -394,7 +394,7 @@ const RoadmapTimelineComponent = ({
                           {mentorLoading !== milestone.order && (mentorCache[milestone.order] || []).map(m => (
                             <div
                               key={m.mentor_id}
-                              className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 mb-2 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
+                              className="flex items-center gap-3 p-3 rounded-xl glass bg-white/80 dark:bg-gray-900/60 border border-gray-100/60 dark:border-gray-700/60 backdrop-blur-sm mb-2 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
                             >
                               {/* Avatar */}
                               <div className="w-9 h-9 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">

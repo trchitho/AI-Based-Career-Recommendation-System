@@ -10,7 +10,8 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
   const { t } = useTranslation();
 
   return (
-    <div className="h-full flex flex-col justify-center p-8 bg-white dark:bg-gray-800">
+    <div className="h-full flex flex-col justify-center p-8 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500/60 via-purple-500/40 to-transparent rounded-t-[28px]"></div>
 
       {/* Title Header */}
       <div className="flex items-center justify-between mb-8">

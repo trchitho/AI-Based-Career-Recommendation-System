@@ -49,24 +49,27 @@ const AnalysisCard = ({ item, careerName, onView }: {
   return (
     <div
       onClick={onView}
+      className="glass"
       style={{
-        background: 'var(--neu-bg-card, #fff)',
-        border: '1px solid var(--neu-border, #e5e7eb)',
-        borderRadius: 16,
+        borderRadius: 20,
         padding: '1.5rem',
         cursor: 'pointer',
-        transition: 'box-shadow 0.2s, transform 0.15s',
+        transition: 'all 0.3s ease',
         display: 'flex',
         flexDirection: 'column',
         gap: '1rem',
+        border: '1px solid rgba(255,255,255,0.4)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
-        (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(0,0,0,0.1)';
+        (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)';
+        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.8)';
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.boxShadow = '';
-        (e.currentTarget as HTMLElement).style.transform = '';
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.05)';
+        (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.4)';
       }}
     >
       {/* Header row */}
@@ -74,20 +77,21 @@ const AnalysisCard = ({ item, careerName, onView }: {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
             <span style={{
-              width: 36, height: 36, borderRadius: '50%', background: 'var(--neu-accent)',
+              width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '0.8rem', fontWeight: 700, color: '#fff', flexShrink: 0,
+              fontSize: '0.9rem', fontWeight: 700, color: '#fff', flexShrink: 0,
+              boxShadow: '0 4px 10px rgba(16,185,129,0.3)',
             }}>
               {(item.cv_name || 'U').charAt(0).toUpperCase()}
             </span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--neu-text, #111)', lineHeight: 1.2 }}>
+              <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary, inherit)', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
                 {item.cv_name || 'CV không có tên'}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{fmtDate(item.created_at)}</div>
+              <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: 2 }}>{fmtDate(item.created_at)}</div>
             </div>
           </div>
-          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--neu-text, #374151)', padding: '4px 10px', background: 'var(--neu-bg, #f9fafb)', borderRadius: 8, display: 'inline-block', border: '1px solid var(--neu-border, #e5e7eb)', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary, inherit)', padding: '6px 12px', background: 'rgba(255,255,255,0.4)', borderRadius: 10, display: 'inline-block', border: '1px solid rgba(255,255,255,0.5)', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             <Target size={12} className="inline mr-1" />{careerName || item.career_id}
           </div>
         </div>
@@ -95,12 +99,12 @@ const AnalysisCard = ({ item, careerName, onView }: {
         {/* Match score badge */}
         <div style={{ textAlign: 'center', flexShrink: 0 }}>
           <div style={{
-            width: 60, height: 60, borderRadius: '50%',
-            background: `conic-gradient(${col.bar} ${pct * 3.6}deg, #f3f4f6 0deg)`,
+            width: 64, height: 64, borderRadius: '50%',
+            background: `conic-gradient(${col.bar} ${pct * 3.6}deg, rgba(255,255,255,0.2) 0deg)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: `0 0 0 3px fff, 0 0 0 4px ${col.bar}22`,
+            boxShadow: `0 0 0 4px rgba(255,255,255,0.5), 0 0 0 6px ${col.bar}22`,
           }}>
-            <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--neu-bg-card, #fff)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 900, color: col.bar, lineHeight: 1 }}>{pct}%</span>
             </div>
           </div>
@@ -147,11 +151,11 @@ const AnalysisCard = ({ item, careerName, onView }: {
       </div>
 
       {/* Footer */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--neu-border, #f3f4f6)', paddingTop: '0.75rem', marginTop: 'auto' }}>
-        <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>
-          {item.cv_filename && <span className="flex items-center gap-1"><FileText size={11} />{item.cv_filename}</span>}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.4)', paddingTop: '0.85rem', marginTop: 'auto' }}>
+        <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 500 }}>
+          {item.cv_filename && <span className="flex items-center gap-1.5"><FileText size={14} />{item.cv_filename}</span>}
         </div>
-        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--neu-accent)', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: 4 }}>
           Xem chi tiết
           <ChevronRight size={12} />
         </span>
@@ -180,7 +184,7 @@ const CVHistoryPage = () => {
         const map: Record<string, string> = {};
         await Promise.all(ids.map(id =>
           careerService.get(id)
-            .then(c => { map[id] = c.title_vi || c.title_en || c.title || id; })
+            .then(c => { map[id] = c.title_vn || c.title_en || c.title || id; })
             .catch(() => { map[id] = id; })
         ));
         setCareerNames(map);
@@ -210,13 +214,19 @@ const CVHistoryPage = () => {
 
   return (
     <MainLayout>
-      <div style={{ minHeight: '100vh', background: 'var(--neu-bg)', padding: '0 0 4rem' }}>
+      <div className="min-h-[calc(100vh-64px)] bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-hidden font-['Plus_Jakarta_Sans'] pb-16">
+        
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+        <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-emerald-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
         {/* ── Header banner ── */}
-        <div style={{
-          background: 'linear-gradient(135deg, var(--neu-accent, #16a34a) 0%, 0d9488 100%)',
-          padding: '2.5rem 2rem 2rem',
-          position: 'relative', overflow: 'hidden',
+        <div className="relative z-10" style={{
+          background: 'linear-gradient(135deg, rgba(16,185,129,0.85) 0%, rgba(59,130,246,0.85) 100%)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          padding: '2.5rem 2rem 2.5rem',
+          borderBottom: '1px solid rgba(255,255,255,0.2)'
         }}>
           <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, background: 'rgba(255,255,255,0.07)', borderRadius: '50%', pointerEvents: 'none' }} />
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -261,16 +271,14 @@ const CVHistoryPage = () => {
           </div>
         </div>
 
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '1.75rem 1.5rem 0' }}>
+        <div className="relative z-10" style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.5rem 0' }}>
 
           {/* ── Filters ── */}
           {!loading && analyses.length > 0 && (
-            <div style={{
-              background: 'var(--neu-bg-card, #fff)',
-              border: '1px solid var(--neu-border, #e5e7eb)',
-              borderRadius: 14, padding: '1rem 1.25rem',
-              display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap',
-              marginBottom: '1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            <div className="glass" style={{
+              borderRadius: 16, padding: '1rem 1.25rem',
+              display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap',
+              marginBottom: '2rem', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
             }}>
               {/* Search */}
               <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
@@ -279,7 +287,7 @@ const CVHistoryPage = () => {
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Tìm theo tên CV hoặc nghề..."
-                  style={{ width: '100%', padding: '0.5rem 0.75rem 0.5rem 2rem', border: '1px solid var(--neu-border, #e5e7eb)', borderRadius: 8, fontSize: '0.875rem', color: 'var(--neu-text, #111)', background: 'var(--neu-bg, #f9fafb)', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '0.65rem 0.75rem 0.65rem 2rem', border: '1px solid rgba(255,255,255,0.5)', borderRadius: 10, fontSize: '0.9rem', color: 'var(--text-primary, inherit)', background: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(10px)', boxSizing: 'border-box', outline: 'none' }}
                 />
               </div>
 
@@ -288,7 +296,7 @@ const CVHistoryPage = () => {
                 <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: 600 }}>Sắp xếp:</span>
                 {[{ k: 'date', l: 'Mới nhất' }, { k: 'match', l: 'Điểm cao nhất' }].map(o => (
                   <button key={o.k} onClick={() => setSortBy(o.k as any)}
-                    style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: `1.5px solid ${sortBy === o.k ? 'var(--neu-accent)' : 'var(--neu-border,#e5e7eb)'}`, background: sortBy === o.k ? 'rgba(34,197,94,0.08)' : 'transparent', color: sortBy === o.k ? 'var(--neu-accent)' : '#6b7280', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>
+                    style={{ padding: '0.45rem 0.85rem', borderRadius: 10, border: `1px solid ${sortBy === o.k ? '#10b981' : 'rgba(255,255,255,0.5)'}`, background: sortBy === o.k ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.4)', color: sortBy === o.k ? '#10b981' : '#6b7280', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s' }}>
                     {o.l}
                   </button>
                 ))}
@@ -299,7 +307,7 @@ const CVHistoryPage = () => {
                 <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: 600 }}>Match ≥</span>
                 {[0, 40, 60, 80].map(v => (
                   <button key={v} onClick={() => setFilterMin(v)}
-                    style={{ padding: '0.35rem 0.7rem', borderRadius: 8, border: `1.5px solid ${filterMin === v ? 'var(--neu-accent)' : 'var(--neu-border,#e5e7eb)'}`, background: filterMin === v ? 'rgba(34,197,94,0.08)' : 'transparent', color: filterMin === v ? 'var(--neu-accent)' : '#6b7280', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>
+                    style={{ padding: '0.45rem 0.85rem', borderRadius: 10, border: `1px solid ${filterMin === v ? '#10b981' : 'rgba(255,255,255,0.5)'}`, background: filterMin === v ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.4)', color: filterMin === v ? '#10b981' : '#6b7280', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s' }}>
                     {v === 0 ? 'Tất cả' : `${v}%`}
                   </button>
                 ))}
@@ -371,11 +379,11 @@ const CVHistoryPage = () => {
 
           {/* ── Timeline view (most recent 5) ── */}
           {!loading && !error && analyses.length > 0 && search === '' && filterMin === 0 && (
-            <div style={{ marginTop: '2.5rem' }}>
-              <h2 style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--neu-text,#111)', marginBottom: '1rem' }}>
-                <TrendingUp size={16} className="inline mr-2" />Tiến trình cải thiện
+            <div style={{ marginTop: '3rem' }}>
+              <h2 style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--text-primary, inherit)', marginBottom: '1.25rem' }}>
+                <TrendingUp size={20} className="inline mr-2" />Tiến trình cải thiện
               </h2>
-              <div style={{ background: 'var(--neu-bg-card,#fff)', border: '1px solid var(--neu-border,#e5e7eb)', borderRadius: 14, padding: '1.25rem 1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <div className="glass" style={{ borderRadius: 20, padding: '1.5rem 2rem', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
                 {/* bar chart of last 8 */}
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 80 }}>
                   {[...analyses].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()).slice(-8).map((a, i) => {

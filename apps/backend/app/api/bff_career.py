@@ -115,22 +115,26 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         # Language column selection helper
         def get_lang_col(en_col: str, vn_col: str) -> str:
             if language == "vi":
-                return f"COALESCE({vn_col}, {en_col})"
+                # For specific columns, if VN is same as EN, return NULL to trigger fallbacks to better sources in FE
+                if vn_col in ["experience_text_vn", "degree_text_vn"]:
+                     return f"NULLIF(NULLIF({vn_col}, {en_col}), '')"
+                return f"COALESCE(NULLIF({vn_col}, ''), {en_col})"
             else:
-                return f"COALESCE({en_col}, {vn_col})"
+                return f"COALESCE(NULLIF({en_col}, ''), {vn_col})"
 
         # 1. Career header from core.careers
         cur.execute(
             f"""
-            SELECT id, onet_code, 
-                   {get_lang_col("title_en", "title_vi")} AS title, 
-                   {get_lang_col("description_en", "description_vi")} AS description,
-                   alternative_titles_en, alternative_titles_vi,
-                   industry_category, source
-            FROM core.careers
-            WHERE onet_code = %s
+            SELECT {get_lang_col("title_en", "title_vi")} AS title,
+                   {get_lang_col("short_desc_en", "short_desc_vi")} AS description,
+                   title_vi, title_en, short_desc_vi, short_desc_en,
+                   alternative_titles_vi, alternative_titles_en,
+                   industry_category, onet_code, id
+            FROM core.careers 
+            WHERE onet_code = %s OR onet_code = %s OR slug = %s
+            LIMIT 1
             """,
-            (code,),
+            (code, code.replace('.', '-'), code),
         )
         header = cur.fetchone()
         if not header:
@@ -141,7 +145,9 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         # 2. Tasks from core.career_tasks
         cur.execute(
             f"""
-            SELECT {get_lang_col("task_en", "task_vi")} AS task_text, 
+            SELECT task_id, 
+                   {get_lang_col("task_en", "task_vi")} AS task_text,
+                   task_en, task_vi,
                    importance, task_type, incumbents_responding
             FROM core.career_tasks 
             WHERE onet_code = %s 
@@ -323,7 +329,11 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
     dto = {
         "onet_code": header["onet_code"],
         "title": header["title"],
+        "title_vn": header["title_vi"],
+        "title_en": header["title_en"],
         "description": header["description"],
+        "description_vn": header["short_desc_vi"],
+        "description_en": header["short_desc_en"],
         "alternative_titles": header["alternative_titles_vi"] if language == "vi" else header["alternative_titles_en"],
         "industry_category": header["industry_category"],
         "language": language,

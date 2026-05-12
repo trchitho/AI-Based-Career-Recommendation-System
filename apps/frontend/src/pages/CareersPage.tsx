@@ -146,7 +146,7 @@ const CareersPage = () => {
             {/* Search Bar - Modern & Big */}
             <div className="max-w-2xl mx-auto relative group">
               <div className="absolute inset-0 bg-indigo-700/20 rounded-2xl blur-lg group-hover:bg-indigo-700/30 transition-all duration-300"></div>
-              <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl flex items-center p-2 border border-gray-100 dark:border-gray-700">
+              <div className="relative glass bg-white/80 dark:bg-gray-800/60 rounded-2xl shadow-xl flex items-center p-2 border border-white/50 dark:border-gray-700/60 backdrop-blur-md">
                 <div className="pl-4 text-gray-400">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
@@ -225,7 +225,7 @@ const CareersPage = () => {
                 const bgGradient = gradients[index % gradients.length];
 
                 const CardContent = (
-                  <div className={`group bg-white dark:bg-gray-800 rounded-card-hero border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-slow flex flex-col overflow-hidden h-full relative ${isLocked ? 'opacity-75' : ''}`}>
+                  <div className={`group glass bg-white/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-card-hero border border-white/60 dark:border-gray-700/60 shadow-lg hover:shadow-2xl hover:shadow-indigo-900/10 hover:-translate-y-2 transition-all duration-slow flex flex-col overflow-hidden h-full relative ${isLocked ? 'opacity-75' : ''}`}>
 
                     {/* Premium overlay for locked careers */}
                     {isLocked && (
@@ -269,7 +269,7 @@ const CareersPage = () => {
                           ? 'text-gray-500 dark:text-gray-400'
                           : 'text-black dark:text-white group-hover:text-indigo-800 dark:group-hover:text-indigo-400'
                           }`}>
-                          {c.title}
+                          {c.title_vn || c.title_vi || c.title || c.title_en}
                         </h3>
                         <div className={`w-12 h-1 rounded-full transition-colors ${isLocked
                           ? 'bg-gray-200 dark:bg-gray-600'
@@ -286,24 +286,24 @@ const CareersPage = () => {
                             if (currentPlan === 'free') {
                               const canView = canUseFeature('career_view');
                               if (!canView) {
-                                return `You have used all free career views. Upgrade to Basic Plan (99k) to view more careers or Premium Plan (199k) for unlimited access.`;
+                                return `Bạn đã xem hết các nghề nghiệp miễn phí. Vui lòng nâng cấp lên gói Cơ bản (99k) hoặc Cao cấp (199k) để tiếp tục.`;
                               } else {
-                                return `Upgrade to Basic Plan (99k) to view this career or Premium Plan (199k) for unlimited access.`;
+                                return `Vui lòng nâng cấp lên gói Cơ bản (99k) để xem nghề nghiệp này.`;
                               }
                             } else if (currentPlan === 'basic') {
-                              return `You have viewed all 25 careers in Basic Plan. Upgrade to Premium Plan (199k) for unlimited access.`;
+                              return `Bạn đã xem hết 25 nghề trong gói Cơ bản. Nâng cấp lên gói Cao cấp (199k) để xem không giới hạn.`;
                             } else {
-                              return `Upgrade to ${requiredPlanInfo?.name || 'Premium'} to view this career details.`;
+                              return `Nâng cấp lên ${requiredPlanInfo?.name || 'Cao cấp'} để xem chi tiết.`;
                             }
                           })()
-                          : (c.short_desc || c.description || 'Explore this exciting career path and see if it fits your profile.')
+                          : (c.description_vn || c.description_vi || c.description || c.short_desc || 'Khám phá lộ trình nghề nghiệp này.')
                         }
                       </p>
 
                       <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-100 dark:border-gray-700">
                         <span className={`text-xs font-bold uppercase tracking-wider ${isLocked ? 'text-gray-400 dark:text-gray-500' : 'text-black dark:text-gray-300'
                           }`}>
-                          {isLocked ? 'Locked' : 'Full Time'}
+                          {isLocked ? 'Đã khoá' : 'Toàn thời gian'}
                         </span>
                         <div className={`flex items-center text-sm font-bold transition-transform ${isLocked
                           ? 'text-purple-600 dark:text-purple-400'
@@ -311,14 +311,14 @@ const CareersPage = () => {
                           }`}>
                           {isLocked ? (
                             <>
-                              Upgrade
+                              Nâng cấp
                               <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" />
                               </svg>
                             </>
                           ) : (
                             <>
-                              Details
+                              Chi tiết
                               <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                               </svg>
@@ -369,7 +369,7 @@ const CareersPage = () => {
               <p className="text-black dark:text-gray-200 mb-8">We couldn't find any careers matching "{q}". Try adjusting your search terms.</p>
               <button
                 onClick={() => setQ('')}
-                className="px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="px-6 py-2.5 glass bg-white/60 dark:bg-gray-800/50 border border-gray-300/60 dark:border-gray-600/60 rounded-xl font-bold hover:bg-white/80 dark:hover:bg-gray-700/60 transition-colors backdrop-blur-sm"
               >
                 Clear Search
               </button>
@@ -390,7 +390,7 @@ const CareersPage = () => {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
 
-              <div className="px-6 py-2 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="px-6 py-2 glass bg-white/60 dark:bg-gray-800/50 rounded-full border border-gray-200/60 dark:border-gray-700/60 shadow-sm backdrop-blur-sm">
                 <span className="text-sm font-bold text-black dark:text-white">
                   Page <span className="text-black dark:text-white">{page}</span> of {totalPages}
                 </span>

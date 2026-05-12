@@ -311,41 +311,46 @@ const DeviceTestPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-4">
-            <div className="max-w-2xl mx-auto">
+        <div className="min-h-screen relative overflow-hidden font-['Plus_Jakarta_Sans'] bg-gray-50/50 dark:bg-gray-900/50 p-4">
+
+            <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+            <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+            <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+            
+            <div className="max-w-2xl mx-auto relative z-10 pt-8">
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <div className="text-center mb-10">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
                         Kiểm Tra Thiết Bị Âm Thanh
                     </h1>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-400 text-lg">
                         Vui lòng kiểm tra microphone và loa trước khi bắt đầu phỏng vấn
                     </p>
                 </div>
 
                 {/* Error Message */}
                 {errorMessage && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <div className="glass bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl p-4 mb-6 shadow-sm">
                         <div className="flex items-center">
-                            <div className="text-red-600 mr-3">⚠️</div>
-                            <div className="text-red-800">{errorMessage}</div>
+                            <div className="text-red-600 dark:text-red-400 mr-3">⚠️</div>
+                            <div className="text-red-800 dark:text-red-300 font-medium">{errorMessage}</div>
                         </div>
                     </div>
                 )}
 
                 {/* Device Selection */}
-                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <h2 className="text-xl font-semibold mb-4">Chọn Thiết Bị</h2>
+                <div className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 p-6 sm:p-8 mb-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Chọn Thiết Bị</h2>
 
                     {/* Microphone Selection - Tiêu chí 1.1 */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="mb-5">
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Microphone
                         </label>
                         <select
                             value={selectedMicId}
                             onChange={(e) => setSelectedMicId(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full p-3 glass bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all shadow-sm"
                             disabled={isRecording}
                             data-testid="microphone-select"
                         >
@@ -359,14 +364,14 @@ const DeviceTestPage: React.FC = () => {
                     </div>
 
                     {/* Speaker Selection - Tiêu chí 1.2 */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="mb-2">
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Loa
                         </label>
                         <select
                             value={selectedSpeakerId}
                             onChange={(e) => setSelectedSpeakerId(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full p-3 glass bg-white/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all shadow-sm"
                             disabled={isRecording || isPlaying}
                             data-testid="speaker-select"
                         >
@@ -381,17 +386,17 @@ const DeviceTestPage: React.FC = () => {
                 </div>
 
                 {/* Recording Test */}
-                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <h2 className="text-xl font-semibold mb-4">Kiểm Tra Ghi Âm</h2>
+                <div className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 p-6 sm:p-8 mb-8">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Kiểm Tra Ghi Âm</h2>
 
-                    <div className="flex flex-col space-y-4">
+                    <div className="flex flex-col space-y-5">
                         {/* State Machine UI */}
                         {recordingState === 'idle' && (
                             /* idle: chỉ hiện nút Bắt đầu ghi âm */
                             <button
                                 onClick={startRecording}
                                 disabled={!selectedMicId || isPlaying}
-                                className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-md disabled:shadow-none"
                                 data-testid="start-recording-btn"
                             >
                                 Bắt đầu ghi âm thử
@@ -402,20 +407,21 @@ const DeviceTestPage: React.FC = () => {
                             /* recording: chỉ hiện nút Dừng ghi âm */
                             <button
                                 onClick={stopRecording}
-                                className="w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors animate-pulse"
+                                className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-md animate-pulse flex items-center justify-center gap-2"
                                 data-testid="stop-recording-btn"
                             >
-                                🎤 Dừng ghi âm
+                                <span className="w-3 h-3 rounded-full bg-red-500 animate-bounce"></span>
+                                Dừng ghi âm
                             </button>
                         )}
 
                         {recordingState === 'recorded' && (
                             /* recorded: ẩn hoàn toàn start/stop, chỉ hiện Nghe lại + Ghi lại */
-                            <div className="flex space-x-4">
+                            <div className="flex flex-col sm:flex-row gap-4">
                                 <button
                                     onClick={playRecording}
                                     disabled={isPlaying}
-                                    className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-md disabled:shadow-none"
                                     data-testid="play-recording-btn"
                                 >
                                     {isPlaying ? '🔊 Đang phát...' : 'Nghe lại'}
@@ -423,7 +429,7 @@ const DeviceTestPage: React.FC = () => {
                                 <button
                                     onClick={resetRecording}
                                     disabled={isPlaying}
-                                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                                    className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-md disabled:shadow-none"
                                     data-testid="reset-recording-btn"
                                 >
                                     Ghi lại
@@ -433,10 +439,10 @@ const DeviceTestPage: React.FC = () => {
 
                         {/* Test Status */}
                         {testCompleted && (
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div className="glass bg-green-50/80 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl p-4 shadow-sm mt-4">
                                 <div className="flex items-center">
-                                    <div className="text-green-600 mr-3">✅</div>
-                                    <div className="text-green-800">
+                                    <div className="text-green-600 dark:text-green-400 mr-3 text-lg">✅</div>
+                                    <div className="text-green-800 dark:text-green-300 font-medium">
                                         Kiểm tra thiết bị hoàn tất! Bạn có thể bắt đầu phỏng vấn.
                                     </div>
                                 </div>
@@ -446,29 +452,29 @@ const DeviceTestPage: React.FC = () => {
                 </div>
 
                 {/* Start Interview Button */}
-                <div className="text-center">
+                <div className="text-center mt-8">
                     {/* Tiêu chí 1.8 & 1.9: Button chỉ enable khi test completed */}
                     <button
                         onClick={startVoiceInterview}
                         disabled={!canStartInterview()}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors"
+                        className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-10 rounded-2xl text-lg transition-all shadow-lg disabled:shadow-none inline-block w-full sm:w-auto"
                         data-testid="start-interview-btn"
                     >
                         Bắt đầu phỏng vấn
                     </button>
 
                     {!canStartInterview() && (
-                        <p className="text-sm text-gray-500 mt-2">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-4">
                             Vui lòng hoàn thành kiểm tra thiết bị trước khi bắt đầu
                         </p>
                     )}
                 </div>
 
                 {/* Back Button */}
-                <div className="text-center mt-4">
+                <div className="text-center mt-6">
                     <button
                         onClick={() => navigate('/interview/selection')}
-                        className="text-gray-600 hover:text-gray-800 underline"
+                        className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition-colors"
                     >
                         ← Quay lại chọn phỏng vấn
                     </button>

@@ -27,9 +27,9 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
   return (
     <div
       onClick={handleViewCareer}
-      className="group bg-white dark:bg-gray-800 rounded-card-feature border border-gray-100 dark:border-gray-700 p-6 md:p-8 
-                 shadow-sm hover:shadow-xl hover:shadow-green-900/10 dark:shadow-none 
-                 transition-all duration-slow cursor-pointer flex flex-col justify-between h-full min-h-[320px]"
+      className="group bg-white/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-card-feature border border-white/60 dark:border-gray-700/60 p-6 md:p-8 
+                 shadow-sm hover:shadow-xl hover:shadow-indigo-900/10 dark:shadow-none 
+                 transition-all duration-slow cursor-pointer flex flex-col justify-between h-full min-h-[320px] relative overflow-hidden"
     >
       <div>
         {/* Header: Title & Score */}
@@ -40,7 +40,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
             </h3>
             {/* Optional: Industry Tag if available */}
             {(career as any).industry_category && (
-              <span className="inline-block mt-2 px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+              <span className="inline-block mt-2 px-2.5 py-1 rounded-md bg-indigo-50/80 dark:bg-indigo-900/30 text-xs font-semibold text-indigo-700 dark:text-indigo-300 uppercase tracking-wide border border-indigo-100 dark:border-indigo-800/50">
                 {(career as any).industry_category}
               </span>
             )}
@@ -72,7 +72,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
       </div>
 
       {/* Footer Action */}
-      <div className="mt-auto pt-5 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+      <div className="mt-auto pt-5 border-t border-gray-100/60 dark:border-gray-700/50 flex items-center justify-between">
         <span className="text-sm font-semibold text-indigo-800 dark:text-indigo-400 group-hover:underline transition-colors">
           Xem chi tiết nghề nghiệp
         </span>
