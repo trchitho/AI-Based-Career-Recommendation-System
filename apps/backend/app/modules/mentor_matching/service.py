@@ -15,7 +15,7 @@ from .matching_algorithm import (
     generate_matching_reasons,
 )
 
-MATCH_THRESHOLD = 0.08  # minimum overall score to include in results
+MATCH_THRESHOLD = 0.05  # minimum overall score to include in results (lowered from 0.08)
 
 
 def _extract_skill_names(skills_json) -> List[str]:
@@ -147,13 +147,17 @@ class MentorMatchingService:
         if not mentee:
             try:
                 mentee = self.create_mentee_profile_from_user_data(user_id)
-            except Exception:
-                pass
+                print(f"[Mentor Matching] Auto-created mentee profile for user {user_id}")
+            except Exception as e:
+                print(f"[Mentor Matching] Failed to auto-create mentee profile: {e}")
         if not mentee:
+            print(f"[Mentor Matching] No mentee profile for user {user_id}")
             return []
 
         mentors = self.get_active_mentors()
+        print(f"[Mentor Matching] Found {len(mentors)} active mentors")
         mentors = [m for m in mentors if m.user_id != user_id]
+        print(f"[Mentor Matching] After filtering self: {len(mentors)} mentors")
 
         # Normalize target_career: skip ONET codes (e.g. "25-2012.00")
         raw_career = (mentee.target_career or "").strip()
@@ -161,11 +165,17 @@ class MentorMatchingService:
         if _re.match(r'^[\d\-\.]+$', raw_career):
             raw_career = ""  # ONET code, not useful for keyword matching
 
-        has_skills = bool(mentee.desired_skills)
+        has_skills = bool(mentee.desired_skills or mentee.current_skills)
         
-        # Strictly require at least one signal to find mentors
+        print(f"[Mentor Matching] Mentee data: skills={has_skills}, career={bool(raw_career)}, riasec={bool(mentee.riasec_scores)}")
+        print(f"[Mentor Matching] Current skills: {mentee.current_skills[:3] if mentee.current_skills else []}")
+        print(f"[Mentor Matching] Desired skills: {mentee.desired_skills[:3] if mentee.desired_skills else []}")
+        print(f"[Mentor Matching] Target career: {raw_career}")
+        
+        # If no data at all, return fallback mentors
         if not has_skills and not raw_career and not mentee.riasec_scores:
-            return []
+            print(f"[Mentor Matching] No mentee data for user {user_id}, returning fallback mentors")
+            return self._fallback_all_mentors(user_id)
 
         # ── Pre-compute Neo4j GDS graph signals (batch, non-blocking) ──
         graph_score_map: dict = {}
@@ -197,8 +207,11 @@ class MentorMatchingService:
 
         results = []
         for mentor in mentors:
+            # Use desired_skills if available, otherwise use current_skills
+            mentee_skills = mentee.desired_skills or mentee.current_skills or []
+            
             skill_score, matching_skills = calculate_skill_match(
-                mentee.desired_skills or [],
+                mentee_skills,
                 mentor.expertise_areas or [],
             )
             # vi-SBERT semantic skill similarity (skip if model not warm)
@@ -206,7 +219,7 @@ class MentorMatchingService:
             if sbert_available and has_skills and mentor.expertise_areas:
                 try:
                     semantic_score = calculate_semantic_skill_similarity(
-                        mentee.desired_skills or [],
+                        mentee_skills,
                         mentor.expertise_areas or [],
                     )
                 except Exception:
@@ -241,6 +254,9 @@ class MentorMatchingService:
                 has_graph=has_graph and bool(graph_signals),
             ) + pagerank_bonus
 
+            # Debug logging for first few mentors
+            if len(results) < 3:
+                print(f"[Mentor Matching] Mentor {mentor.full_name}: skill={skill_score:.2f}, career={career_score:.2f}, overall={overall:.2f}, threshold={MATCH_THRESHOLD}")
 
             if overall < MATCH_THRESHOLD:
                 continue
@@ -273,6 +289,8 @@ class MentorMatchingService:
                 max_mentees=mentor.max_mentees or 5,
             ))
 
+        print(f"[Mentor Matching] Found {len(results)} matching mentors after filtering")
+        
         # ── Source 2: users who completed a career roadmap ──────────
         seen_user_ids = {mentor.user_id for mentor in mentors} | {user_id}
         seen_user_ids.update(r.user_id for r in results)
@@ -379,7 +397,9 @@ class MentorMatchingService:
             print(f"[find_mentors] Source2 error: {_e}")
 
         results.sort(key=lambda x: x.compatibility_score, reverse=True)
-        return results[:10]
+        final_results = results[:10]
+        print(f"[Mentor Matching] Returning {len(final_results)} mentors for user {user_id}")
+        return final_results
 
     # ── Requests ──────────────────────────────────────────────────
 

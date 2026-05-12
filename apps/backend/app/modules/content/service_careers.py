@@ -83,6 +83,21 @@ def get_career(session: Session, id_or_slug: str):
         where = or_(Career.slug == id_or_slug, Career.onet_code == onet_dash, Career.onet_code == onet_dot)
     else:
         where = Career.slug == id_or_slug
+        
+        # Fallback for slugs like "web-developers-15-1254-00"
+        if '-' in id_or_slug:
+            parts = id_or_slug.split('-')
+            if len(parts) >= 3:
+                # Potential ONET code at the end: 15-1254-00
+                potential_code = "-".join(parts[-3:])
+                # Check if it looks like an ONET code (at least some digits)
+                if any(p.isdigit() for p in parts[-3:]):
+                    where = or_(
+                        Career.slug == id_or_slug,
+                        Career.slug == potential_code,
+                        Career.onet_code == potential_code,
+                        Career.onet_code == potential_code.replace('-', '.', 1).replace('-', '.', 1)
+                    )
 
     row = None
     try:

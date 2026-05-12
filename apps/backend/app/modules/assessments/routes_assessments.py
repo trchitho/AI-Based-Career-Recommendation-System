@@ -294,6 +294,22 @@ def api_submit_assessment(
 
         traits = fuse_user_traits(db, user_id=user_id) or {}
 
+        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING ────
+        try:
+            from app.modules.mentor_matching.service import MentorMatchingService
+            from app.modules.graph.neo4j_client import get_driver as _get_neo4j
+            
+            neo4j_driver = _get_neo4j()
+            mentor_service = MentorMatchingService(db, neo4j_driver)
+            
+            # Try to create/update mentee profile from assessment data
+            mentee_profile = mentor_service.create_mentee_profile_from_user_data(user_id)
+            print(f"[Mentor Matching] Auto-created/updated mentee profile for user {user_id} after assessment")
+            
+        except Exception as mentor_err:
+            # Don't fail the whole request if mentor profile creation fails
+            print(f"[Mentor Matching] Failed to auto-create mentee profile: {mentor_err}")
+
         return {
             "assessmentId": str(assessment_id),
             "hasEssayTraits": bool(traits.get("has_essay_traits")),
