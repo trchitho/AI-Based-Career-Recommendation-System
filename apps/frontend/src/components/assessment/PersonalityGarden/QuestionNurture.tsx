@@ -290,9 +290,9 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
           </div>
         </div>
 
-        {/* Tree canvas - LARGER AND LOWER */}
-        <div className="flex items-end justify-center w-full max-w-4xl relative flex-shrink-0" style={{ height: '350px', marginBottom: '-50px' }}>
-          <div className="transform scale-125 origin-bottom">
+        {/* Tree canvas - POSITIONED HIGHER */}
+        <div className="flex items-end justify-center w-full max-w-4xl relative flex-shrink-0" style={{ height: '320px', marginBottom: '0px' }}>
+          <div className="transform scale-110 origin-bottom">
             <TreeCanvas
               growth={treeGrowth}
               isAnimating={isAnimating}

@@ -31,7 +31,7 @@ Root causes:
 - Limited answer history to 15 questions
 - Faster transitions: 500ms → 300ms, 1000ms → 800ms
 
-### Round 3: EXTREME Performance Mode (Current)
+### Round 3: EXTREME Performance Mode
 **Critical Fix: Removed ALL SVG animations**
 - ❌ Removed `fadeIn` animation from leaves (was causing major lag)
 - ❌ Removed `sway` animation from leaves (3s infinite animation)
@@ -40,13 +40,33 @@ Root causes:
 - ❌ Removed `bloom` animation from flowers
 - ✅ Kept static rendering - instant display, no animation overhead
 
-**Further Reductions:**
-- Leaves: 50 → 30 max (40% reduction)
-- Leaves per branch: 2-3 → 1-2 (50% reduction)
-- Branch depth: 3 → 2 levels (33% reduction)
-- Main branches: 5 → 3 branches (40% reduction)
-- QuestionNurture particles: 4 → 2 (50% reduction)
-- NurtureParticles: 5 → 3 (40% reduction)
+**Initial Reductions (Too Aggressive):**
+- Leaves: 50 → 30 max (caused bare tree)
+- Leaves per branch: 2-3 → 1-2 (too few)
+- Branch depth: 3 → 2 levels
+- Main branches: 5 → 3 branches (too few)
+
+**Balanced Adjustments (Current - v4 FULLER TREE):**
+- **CRITICAL BUG FIX**: Removed `maxTotalLeaves` limit that prevented new branches from getting leaves
+- **CRITICAL BUG FIX**: Added `growth.height` and `growth.branchCount` to useMemo dependencies
+- **VISUAL IMPROVEMENT**: Increased branch depth 2→3 for more sub-branches and fuller appearance
+- **VISUAL IMPROVEMENT**: Increased main branches 6→8 for better coverage
+- **VISUAL IMPROVEMENT**: Better angle distribution (π/8 instead of π/6) for balanced spread
+- **VISUAL IMPROVEMENT**: Branches start lower (50% instead of 60%) for more coverage
+- Leaves: ALL branches get leaves (no limit)
+- Leaves per branch: 4-7 (increased from 3-5)
+- Leaf placement: 20-100% of branch (covers almost entire branch)
+- Leaf size: 9-14px (increased from 8-12px for better visibility)
+- Leaf opacity: 0.9-1.0 (highly visible)
+- Leaf spread: 20px (increased from 15px for wider distribution)
+- Leaf density minimum: 50% (increased from 40%)
+- Sub-branches: 3:2:1 ratio (fuller branching at all depths)
+- **Result**: Much fuller, more balanced tree with leaves covering all branches
+
+**Particles (Kept Minimal):**
+- QuestionNurture particles: 8 → 2 (75% reduction)
+- NurtureParticles: 8 → 3 (62% reduction)
+- Background particles: 8 → 4 (50% reduction)
 - Transition delays: 300ms → 200ms, 800ms → 500ms
 
 **Graphics Preserved:**
@@ -65,11 +85,15 @@ Root causes:
 - 5 branches × 3 depth = ~45 branch elements with animations
 - Total: 150+ simultaneous CSS animations
 
-### After (Round 3):
+### After (Round 3 - v4 FULLER TREE):
 - **ZERO CSS animations on tree elements**
-- 30 leaves, instant render
-- 3 branches × 2 depth = ~15 branch elements
-- Total: ~45 SVG elements (70% reduction)
+- **ALL branches get leaves** - no limit, new branches from later questions get leaves too
+- 8 main branches × 3 depth with 3:2:1 sub-branching = ~50-60 branch elements
+- 4-7 leaves per branch = much fuller appearance
+- Larger leaves (9-14px) with wider spread (20px)
+- Better branch distribution (wider angles, starts lower on trunk)
+- Fixed useMemo dependencies to regenerate leaves when tree grows
+- Total: ~200-400 SVG elements depending on tree growth (static, no animations)
 - Transitions: 200ms (instant feel)
 
 ### Expected Results:
@@ -77,6 +101,8 @@ Root causes:
 - ⚡ **Smooth transitions** - 200ms between questions
 - ⚡ **60 FPS maintained** - no dropped frames
 - ⚡ **Low CPU usage** - no animation calculations
+- ⚡ **Fuller tree appearance** - ALL branches get 3-5 leaves, including new branches
+- ⚡ **Better leaf distribution** - leaves regenerate when tree grows (fixed useMemo bug)
 - ⚡ **Works on low-end devices** - minimal requirements
 
 ## Technical Details
@@ -101,17 +127,24 @@ Root causes:
 
 ### Element Count Reduction
 ```typescript
-// BEFORE
+// BEFORE (Original - Heavy)
 maxDepth: 3, branches: 5, leaves: 50
 = ~45 branches + 50 leaves = 95 elements
 + 150+ CSS animations
 
-// AFTER  
+// AFTER (Round 3 Initial - Too Aggressive)
 maxDepth: 2, branches: 3, leaves: 30
 = ~15 branches + 30 leaves = 45 elements
-+ 0 CSS animations on tree
++ 0 CSS animations
+= Tree looked bare/ugly
 
-= 53% fewer elements, 100% fewer animations
+// AFTER (Round 3 v3 FINAL FIX - Current)
+maxDepth: 2, branches: 6, sub-branches: 3:2
+ALL branches get 3-5 leaves (no limit)
+= ~30 branches + ~90-150 leaves = 120-180 elements
++ 0 CSS animations on tree
++ Leaves regenerate when tree grows (fixed useMemo)
+= Every branch has leaves, including new ones from later questions
 ```
 
 ## Files Modified
@@ -126,6 +159,7 @@ maxDepth: 2, branches: 3, leaves: 30
 - ✅ Smooth 60 FPS throughout
 - ✅ Instant question transitions
 - ✅ All graphics preserved
+- ✅ Fuller tree appearance (ALL branches get 3-5 leaves, no bare branches)
 - ✅ Works on low-end devices
 
 ## Trade-offs
@@ -135,3 +169,5 @@ maxDepth: 2, branches: 3, leaves: 30
 - ✅ Kept: Background animations (butterflies, clouds, etc.)
 - ✅ Kept: Answer particle effects
 - ✅ Gained: Playable game with instant response
+- ✅ Gained: Fuller, more beautiful tree (ALL branches get leaves, including new ones)
+- ✅ Fixed: useMemo bug that prevented new branches from getting leaves

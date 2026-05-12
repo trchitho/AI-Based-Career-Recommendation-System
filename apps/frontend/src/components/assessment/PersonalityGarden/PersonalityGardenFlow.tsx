@@ -168,11 +168,16 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
             setGrowthLevel(dataToRestore.level || 1);
             setBloomChain(dataToRestore.score || 0);
             
+            // Restore answer history
+            if (dataToRestore.answeredQuestions) {
+              setAnsweredQuestions(dataToRestore.answeredQuestions);
+            }
+            
             // Restore selected seed if available
             if (dataToRestore.selectedSeed) {
               setSelectedSeed(dataToRestore.selectedSeed);
               
-              // Restore tree color palette
+              // Restore tree color palette FIRST before growing tree
               const colorPalettes: Record<string, string[]> = {
                 oak: ['#8D6E63', '#A1887F', '#BCAAA4'],
                 maple: ['#D32F2F', '#F44336', '#EF5350'],
@@ -183,9 +188,12 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
               setColorPalette(colorPalettes[dataToRestore.selectedSeed.id] || colorPalettes.oak);
             }
             
-            // Restore tree growth based on actual responses count
+            // Restore tree growth AFTER setting color palette
             const restoredProgress = (restoredResponses.size / questions.length) * 100;
-            growTree(restoredProgress);
+            // Use setTimeout to ensure colorPalette is set first
+            setTimeout(() => {
+              growTree(restoredProgress);
+            }, 0);
             
             // IMPORTANT: Skip tutorial and seed selection - go straight to nurturing
             setShowTutorial(false);
@@ -234,6 +242,12 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
                 setNatureEnergy(oldData.xp || 0);
                 setGrowthLevel(oldData.level || 1);
                 setBloomChain(oldData.score || 0);
+                
+                // Restore answer history
+                if (oldData.answeredQuestions) {
+                  setAnsweredQuestions(oldData.answeredQuestions);
+                }
+                
                 if (oldData.selectedSeed) {
                   setSelectedSeed(oldData.selectedSeed);
                   const colorPalettes: Record<string, string[]> = {
@@ -246,7 +260,10 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
                   setColorPalette(colorPalettes[oldData.selectedSeed.id] || colorPalettes.oak);
                 }
                 const restoredProgress = (restoredResponses.size / questions.length) * 100;
-                growTree(restoredProgress);
+                // Use setTimeout to ensure colorPalette is set first
+                setTimeout(() => {
+                  growTree(restoredProgress);
+                }, 0);
                 setShowTutorial(false);
                 setPhase('nurturing');
                 console.log('[PersonalityGarden] ✅ Migrated old progress to new key');
@@ -375,11 +392,16 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
         setGrowthLevel(dataToRestore.level || 1);
         setBloomChain(dataToRestore.score || 0);
         
+        // Restore answer history
+        if (dataToRestore.answeredQuestions) {
+          setAnsweredQuestions(dataToRestore.answeredQuestions);
+        }
+        
         // Restore selected seed if available
         if (dataToRestore.selectedSeed) {
           setSelectedSeed(dataToRestore.selectedSeed);
           
-          // Restore tree color palette
+          // Restore tree color palette FIRST
           const colorPalettes: Record<string, string[]> = {
             oak: ['#8D6E63', '#A1887F', '#BCAAA4'],
             maple: ['#D32F2F', '#F44336', '#EF5350'],
@@ -390,9 +412,12 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
           setColorPalette(colorPalettes[dataToRestore.selectedSeed.id] || colorPalettes.oak);
         }
         
-        // Restore tree growth based on actual responses count
+        // Restore tree growth AFTER setting color palette
         const restoredProgress = (savedResponses.size / questions.length) * 100;
-        growTree(restoredProgress);
+        // Use setTimeout to ensure colorPalette is set first
+        setTimeout(() => {
+          growTree(restoredProgress);
+        }, 0);
         
         // IMPORTANT: Skip tutorial and seed selection - go straight to nurturing
         setShowTutorial(false);
@@ -425,6 +450,7 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
         level: growthLevel,
         score: bloomChain,
         selectedSeed: selectedSeed, // Save selected seed
+        answeredQuestions: answeredQuestions, // Save answer history
         timestamp: new Date().toISOString()
       };
       

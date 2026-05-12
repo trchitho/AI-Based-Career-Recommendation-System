@@ -59,14 +59,28 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     const branches: BranchSegment[] = [];
     const baseX = 200;
     const baseY = 440; // Match pot soil level
-    const trunkHeight = Math.max(60, (growth.height / 100) * 240);
+    // LIMIT trunk height to prevent tree from being too tall and covering questions
+    const maxTrunkHeight = 180; // Reduced from 240 to keep tree shorter
+    const trunkHeight = Math.max(60, Math.min(maxTrunkHeight, (growth.height / 100) * 200));
     
     // DON'T add trunk here - add it at the END so it renders on top
     
     // Add small sprout at top even when height is low
     if (growth.height > 0 && growth.height < 15) {
-      // Tiny sprout leaves at top
-      const sproutY = baseY - Math.max(30, trunkHeight);
+      // Tiny sprout - JUST A SMALL STEM with 2 leaf branches
+      const sproutY = baseY - Math.max(20, trunkHeight * 0.5); // Much shorter stem
+      
+      // Add tiny trunk for sprout (very thin and short)
+      branches.push({
+        startX: baseX,
+        startY: baseY,
+        endX: baseX,
+        endY: sproutY,
+        thickness: 3, // Very thin stem
+        depth: -1 // Mark as trunk
+      });
+      
+      // Just 2 tiny leaf branches
       branches.push({
         startX: baseX,
         startY: sproutY,
@@ -83,6 +97,9 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
         thickness: 2,
         depth: 0
       });
+      
+      // Return early - no complex branching for sprout stage
+      return branches;
     }
     
     // Recursive branch generation - OPTIMIZED: Reduced max depth
@@ -109,11 +126,11 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
         depth
       });
       
-      // Generate sub-branches - OPTIMIZED: Reduced sub-branches
+      // Generate sub-branches - MORE sub-branches for fuller tree
       if (depth < maxDepth) {
-        const numSubs = depth === 0 ? 2 : 1; // Reduced from 3:2 to 2:1
+        const numSubs = depth === 0 ? 4 : (depth === 1 ? 3 : 2); // Increased to 4:3:2 ratio for much fuller branching
         for (let i = 0; i < numSubs; i++) {
-          const angleSpread = (Math.random() - 0.5) * (Math.PI / 3);
+          const angleSpread = (Math.random() - 0.5) * (Math.PI / 2.5); // More random spread
           const newAngle = angle + angleSpread;
           const newLength = length * (0.6 + Math.random() * 0.2);
           const newThickness = thickness * 0.7;
@@ -123,17 +140,20 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
       }
     };
     
-    // Generate main branches (only when height > 15%) - BALANCED
+    // Generate main branches (only when height > 15%) - FULLER TREE
     if (growth.branchCount > 0 && growth.height >= 15) {
-      const maxDepth = Math.min(2, Math.floor(growth.branchCount / 2)); // Keep at 2 for performance
-      const numMainBranches = Math.min(4, Math.ceil(growth.branchCount / 1.5)); // Increased from 3 to 4
+      const maxDepth = Math.min(3, Math.floor(growth.branchCount / 1.5)); // Keep depth 3
+      const numMainBranches = Math.min(10, Math.ceil(growth.branchCount / 0.8)); // Increased from 8 to 10
       
       for (let i = 0; i < numMainBranches; i++) {
-        const heightRatio = 0.6 + (i / numMainBranches) * 0.4;
+        const heightRatio = 0.4 + (i / numMainBranches) * 0.6; // Start even lower (40% instead of 50%)
         const startY = baseY - trunkHeight * heightRatio;
-        const angle = -Math.PI / 2 + (i - numMainBranches / 2) * (Math.PI / 6);
-        const length = 30 + (growth.height / 100) * 50;
-        const thickness = 6 - (i * 0.5);
+        // BALANCED angle distribution - alternate left/right for symmetry
+        const side = i % 2 === 0 ? 1 : -1; // Alternate sides
+        const angleOffset = Math.floor(i / 2) * (Math.PI / 9); // Smaller angle for more branches (π/9 instead of π/8)
+        const angle = -Math.PI / 2 + (side * angleOffset) + (Math.random() - 0.5) * 0.2; // Add randomness
+        const length = 20 + (growth.height / 100) * 35; // Keep same length
+        const thickness = 6 - (i * 0.3); // Thinner reduction for more branches
         
         generateBranch(baseX, startY, angle, length, thickness, 0, maxDepth);
       }
@@ -166,72 +186,91 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
       const trunkHeight = Math.max(30, (growth.height / 100) * 240);
       const sproutY = baseY - trunkHeight;
       
-      // 2 tiny leaves at top
-      leaves.push({
-        id: 'sprout-leaf-1',
-        x: baseX - 8,
-        y: sproutY - 10,
-        size: 8,
-        rotation: -45,
-        color: growth.colorPalette[0],
-        opacity: 0.9
-      });
-      leaves.push({
-        id: 'sprout-leaf-2',
-        x: baseX + 8,
-        y: sproutY - 10,
-        size: 8,
-        rotation: 45,
-        color: growth.colorPalette[0],
-        opacity: 0.9
-      });
+      // Only show sprout leaves if height > 5% (give branches time to appear first)
+      if (growth.height > 5) {
+        // 2 tiny leaves at top
+        leaves.push({
+          id: 'sprout-leaf-1',
+          x: baseX - 8,
+          y: sproutY - 10,
+          size: 8,
+          rotation: -45,
+          color: growth.colorPalette[0],
+          opacity: 0.9
+        });
+        leaves.push({
+          id: 'sprout-leaf-2',
+          x: baseX + 8,
+          y: sproutY - 10,
+          size: 8,
+          rotation: 45,
+          color: growth.colorPalette[0],
+          opacity: 0.9
+        });
+      }
       
       return leaves;
     }
     
-    // Only use outer branches (depth >= 0 to include more branches)
-    const outerBranches = branches.filter(b => b.depth >= 0 && b.depth !== -1); // Exclude trunk only
+    // Use ALL branches except trunk - place leaves on every branch
+    const allBranches = branches.filter(b => b.depth !== -1); // Exclude trunk only, keep ALL other branches
     
-    if (outerBranches.length === 0) return [];
+    if (allBranches.length === 0) return [];
     
-    // Calculate leaves - BALANCED: Keep visible leaves
-    const leafDensity = Math.max(20, growth.leafDensity); // Minimum 20%
-    const leavesPerBranch = Math.max(2, Math.min(4, Math.floor((leafDensity / 100) * 5))); // 2-4 leaves per branch
+    // Calculate leaves - PROGRESSIVE: fewer leaves at early stages
+    const leafDensity = Math.max(50, growth.leafDensity);
     
-    // OPTIMIZATION: Limit total leaves to prevent lag but keep visible
-    const maxTotalLeaves = 40; // Balanced: 40 leaves (was 30, too few)
-    const branchesToUse = Math.min(outerBranches.length, Math.floor(maxTotalLeaves / leavesPerBranch));
+    // PROGRESSIVE LEAF COUNT based on tree height
+    let leavesPerBranch: number;
+    if (growth.height < 15) {
+      // Very early stage (câu 1-5): only 1-2 leaves per branch
+      leavesPerBranch = Math.max(1, Math.min(2, Math.floor((leafDensity / 100) * 3)));
+    } else if (growth.height < 40) {
+      // Early-mid stage (câu 6-13): 2-3 leaves per branch
+      // BUT: only add leaves to branches that have "matured"
+      // Branches appear at height 15%, leaves start appearing at height 18%
+      if (growth.height < 18) {
+        return []; // No leaves yet, let branches show first for 1 question
+      }
+      leavesPerBranch = Math.max(2, Math.min(3, Math.floor((leafDensity / 100) * 5)));
+    } else if (growth.height < 70) {
+      // Mid-late stage (câu 14-23): 3-4 leaves per branch
+      leavesPerBranch = Math.max(3, Math.min(4, Math.floor((leafDensity / 100) * 6)));
+    } else {
+      // Late stage (câu 24-33): 4-5 leaves per branch (full grown)
+      leavesPerBranch = Math.max(4, Math.min(5, Math.floor((leafDensity / 100) * 8)));
+    }
     
     console.log('[TreeCanvas] Generating leaves:', {
       height: growth.height,
+      branchCount: growth.branchCount,
       leafDensity,
-      outerBranches: outerBranches.length,
-      branchesToUse,
+      totalBranches: allBranches.length,
       leavesPerBranch,
-      maxLeaves: branchesToUse * leavesPerBranch
+      estimatedLeaves: allBranches.length * leavesPerBranch
     });
     
-    // Only use subset of branches for performance
-    outerBranches.slice(0, branchesToUse).forEach((branch, idx) => {
-      // Place leaves ALONG the branch
+    // CRITICAL FIX: Use ALL branches without limit to ensure new branches get leaves
+    allBranches.forEach((branch, idx) => {
+      // Place leaves ALONG the ENTIRE branch with MORE coverage
       for (let i = 0; i < leavesPerBranch; i++) {
-        const t = 0.5 + (i / leavesPerBranch) * 0.5;
+        const t = 0.2 + (i / leavesPerBranch) * 0.8; // Start from 20% along branch to 100%
         const x = branch.startX + (branch.endX - branch.startX) * t;
         const y = branch.startY + (branch.endY - branch.startY) * t;
         
-        // Small offset perpendicular to branch
+        // Larger offset perpendicular to branch for fuller appearance
         const branchAngle = Math.atan2(branch.endY - branch.startY, branch.endX - branch.startX);
         const perpAngle = branchAngle + Math.PI / 2;
-        const offset = (Math.random() - 0.5) * 10;
+        const offset = (Math.random() - 0.5) * 20; // Increased from 15 to 20 for wider spread
         
         leaves.push({
           id: `leaf-${idx}-${i}`,
           x: x + Math.cos(perpAngle) * offset,
           y: y + Math.sin(perpAngle) * offset,
-          size: 6 + Math.random() * 3,
+          size: 9 + Math.random() * 5, // Increased from 8+4 to 9+5 for larger leaves (9-14px)
           rotation: (branchAngle * 180 / Math.PI) + (Math.random() - 0.5) * 50,
           color: growth.colorPalette[Math.floor(Math.random() * growth.colorPalette.length)],
-          opacity: 0.85 + Math.random() * 0.15
+          opacity: 0.9 + Math.random() * 0.1 // High opacity for better visibility
         });
       }
     });
@@ -269,7 +308,8 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
   // Memoize expensive calculations to prevent re-rendering
   const roots = useMemo(() => generateRoots(), [growth.height, growth.trunkThickness]);
   const branches = useMemo(() => generateBranches(), [growth.height, growth.branchCount, growth.trunkThickness]);
-  const leaves = useMemo(() => generateLeaves(branches), [branches, growth.leafDensity, growth.colorPalette]);
+  // CRITICAL: Add growth.height and growth.branchCount to force leaf regeneration when tree grows
+  const leaves = useMemo(() => generateLeaves(branches), [branches, growth.leafDensity, growth.colorPalette, growth.height, growth.branchCount]);
   const flowers = useMemo(() => generateFlowers(branches), [branches, growth.flowerCount, growth.height]);
 
   // Generate flying birds
@@ -532,6 +572,8 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
         {/* Branches (draw from back to front) - NO ANIMATIONS */}
         {branches.map((branch, index) => {
           const isTrunk = branch.depth === -1;
+          // Darker branch colors to match trunk better
+          const branchColor = branch.depth === 0 ? '#6D4C41' : (branch.depth === 1 ? '#5D4037' : '#4E342E');
           
           return (
             <g key={`branch-${index}`}>
@@ -541,10 +583,10 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
                 y1={branch.startY}
                 x2={branch.endX}
                 y2={branch.endY}
-                stroke={isTrunk ? 'url(#trunkGradient)' : '#A1887F'}
+                stroke={isTrunk ? 'url(#trunkGradient)' : branchColor}
                 strokeWidth={branch.thickness}
                 strokeLinecap="round"
-                strokeOpacity={isTrunk ? 1 : 0.8}
+                strokeOpacity={1}
               />
               {/* Bark texture on trunk - ENHANCED */}
               {isTrunk && (

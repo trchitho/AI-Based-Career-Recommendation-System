@@ -23,14 +23,15 @@ const AnswerHistory: React.FC<AnswerHistoryProps> = memo(({
   const recentQuestions = answeredQuestions.slice(-10);
 
   return (
-    <div className="answer-history fixed bottom-24 right-4 z-30 max-w-sm">
+    <div className="answer-history fixed bottom-24 right-4 z-[9999] max-w-sm" style={{ pointerEvents: 'auto' }}>
       {/* Toggle button */}
       <button
         onClick={onToggle}
-        className="mb-2 ml-auto flex items-center gap-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all border-2 border-white/50"
+        className="mb-2 ml-auto flex items-center gap-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all border-2 border-white/50 cursor-pointer"
+        style={{ pointerEvents: 'auto' }}
       >
         <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
-          📜 History ({answeredQuestions.length})
+          📜 Lịch Sử ({answeredQuestions.length})
         </span>
         <span className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
           ▼
@@ -43,9 +44,9 @@ const AnswerHistory: React.FC<AnswerHistoryProps> = memo(({
           <div className="p-4">
             <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
               <span>🌱</span>
-              <span>Your Journey</span>
+              <span>Hành Trình Của Bạn</span>
               {answeredQuestions.length > 10 && (
-                <span className="text-xs text-gray-500">(Last 10)</span>
+                <span className="text-xs text-gray-500">(10 câu gần nhất)</span>
               )}
             </h3>
             
