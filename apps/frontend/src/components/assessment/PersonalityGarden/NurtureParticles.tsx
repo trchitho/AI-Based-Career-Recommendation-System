@@ -19,8 +19,8 @@ const NurtureParticles: React.FC<NurtureParticlesProps> = ({ element, isActive }
 
   useEffect(() => {
     if (isActive) {
-      // Generate particles - REDUCED from 8 to 5 for better performance
-      const newParticles: Particle[] = Array.from({ length: 5 }, (_, i) => ({
+      // Generate particles - MINIMAL for extreme performance (5→3)
+      const newParticles: Particle[] = Array.from({ length: 3 }, (_, i) => ({
         id: i,
         x: Math.random() * 100 - 50, // -50 to 50
         y: Math.random() * 100 - 50,

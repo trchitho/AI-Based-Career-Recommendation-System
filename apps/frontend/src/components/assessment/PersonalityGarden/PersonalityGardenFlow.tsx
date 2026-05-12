@@ -568,20 +568,20 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
       await saveProgress();
     }, 100);
     
-    // Move to next question or complete (REDUCED DELAY)
+    // Move to next question or complete (ULTRA FAST)
     if (currentIndex < questions.length - 1) {
       console.log('[PersonalityGarden] Moving to next question:', currentIndex + 1);
       setTimeout(() => {
         setCurrentIndex(currentIndex + 1);
         setIsAnswering(false); // Unlock for next question
-      }, 300); // Reduced from 500ms to 300ms for faster transitions
+      }, 200); // Reduced from 300ms to 200ms for faster transitions
     } else {
       // All questions answered
       console.log('[PersonalityGarden] All questions answered, revealing...');
       setTimeout(() => {
         setPhase('revealing');
         setIsAnswering(false);
-      }, 800); // Reduced from 1000ms to 800ms
+      }, 500); // Reduced from 800ms to 500ms
     }
   };
 

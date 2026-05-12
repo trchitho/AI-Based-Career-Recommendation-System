@@ -125,8 +125,8 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     
     // Generate main branches (only when height > 15%) - OPTIMIZED
     if (growth.branchCount > 0 && growth.height >= 15) {
-      const maxDepth = Math.min(3, Math.floor(growth.branchCount / 2)); // Reduced from 4 to 3
-      const numMainBranches = Math.min(5, Math.ceil(growth.branchCount / 1.5)); // Reduced from 7 to 5
+      const maxDepth = Math.min(2, Math.floor(growth.branchCount / 2)); // Reduced from 3 to 2
+      const numMainBranches = Math.min(3, Math.ceil(growth.branchCount / 1.5)); // Reduced from 5 to 3
       
       for (let i = 0; i < numMainBranches; i++) {
         const heightRatio = 0.6 + (i / numMainBranches) * 0.4;
@@ -196,10 +196,10 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     
     // Calculate leaves - OPTIMIZED: Reduced leaf count
     const leafDensity = Math.max(20, growth.leafDensity); // Minimum 20%
-    const leavesPerBranch = Math.max(2, Math.min(3, Math.floor((leafDensity / 100) * 4))); // Reduced from 3-5 to 2-3
+    const leavesPerBranch = Math.max(1, Math.min(2, Math.floor((leafDensity / 100) * 3))); // Reduced from 2-3 to 1-2
     
-    // OPTIMIZATION: Limit total leaves to prevent lag
-    const maxTotalLeaves = 50; // Cap at 50 leaves total
+    // OPTIMIZATION: Limit total leaves to prevent lag - REDUCED to 30
+    const maxTotalLeaves = 30; // Reduced from 50 to 30
     const branchesToUse = Math.min(outerBranches.length, Math.floor(maxTotalLeaves / leavesPerBranch));
     
     console.log('[TreeCanvas] Generating leaves:', {
@@ -515,7 +515,7 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
         {/* TREE - Only show when stage is NOT 'seed' */}
         {growth.stage !== 'seed' && (
           <>
-            {/* Roots (visible above ground) */}
+            {/* Roots (visible above ground) - NO ANIMATIONS */}
         {roots.map((root, index) => (
           <path
             key={root.id}
@@ -526,16 +526,10 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
             strokeLinejoin="round"
             fill="none"
             opacity="0.8"
-            className="transition-all duration-1000"
-            style={{
-              opacity: 0,
-              animation: 'fadeIn 0.8s ease-out forwards',
-              animationDelay: `${index * 0.1}s`
-            }}
           />
         ))}
 
-        {/* Branches (draw from back to front) */}
+        {/* Branches (draw from back to front) - NO ANIMATIONS */}
         {branches.map((branch, index) => {
           const isTrunk = branch.depth === -1;
           
@@ -551,12 +545,6 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
                 strokeWidth={branch.thickness}
                 strokeLinecap="round"
                 strokeOpacity={isTrunk ? 1 : 0.8}
-                className="transition-all duration-1000"
-                style={{
-                  opacity: isTrunk ? 1 : 0, // Trunk always visible
-                  animation: isTrunk ? 'none' : 'fadeIn 0.8s ease-out forwards',
-                  animationDelay: isTrunk ? '0s' : `${index * 0.03}s`
-                }}
               />
               {/* Bark texture on trunk - ENHANCED */}
               {isTrunk && (
@@ -589,7 +577,7 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
           );
         })}
 
-        {/* Leaves (behind flowers) */}
+        {/* Leaves (behind flowers) - NO ANIMATIONS for performance */}
         {leaves.map((leaf, index) => (
           <g key={leaf.id} transform={`translate(${leaf.x}, ${leaf.y}) rotate(${leaf.rotation})`}>
             {/* Leaf shape - more realistic */}
@@ -597,12 +585,6 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
               d={`M 0 0 Q ${leaf.size / 2} ${-leaf.size / 3} ${leaf.size} 0 Q ${leaf.size / 2} ${leaf.size / 3} 0 0`}
               fill={leaf.color}
               opacity={leaf.opacity}
-              className="transition-all duration-500"
-              style={{
-                opacity: 0,
-                animation: 'fadeIn 0.6s ease-out forwards, sway 3s ease-in-out infinite',
-                animationDelay: `${0.5 + index * 0.02}s`
-              }}
             />
             {/* Leaf vein */}
             <line
@@ -617,7 +599,7 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
           </g>
         ))}
 
-        {/* Flowers */}
+        {/* Flowers - NO ANIMATIONS */}
         {flowers.map((flower, index) => (
           <g key={flower.id} transform={`translate(${flower.x}, ${flower.y})`}>
             {/* Flower petals */}
@@ -631,11 +613,6 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
                 fill={flower.color}
                 opacity="0.9"
                 transform={`rotate(${angle} ${Math.cos((angle * Math.PI) / 180) * (flower.size / 2.5)} ${Math.sin((angle * Math.PI) / 180) * (flower.size / 2.5)})`}
-                style={{
-                  opacity: 0,
-                  animation: 'bloom 1s ease-out forwards',
-                  animationDelay: `${1 + index * 0.1}s`
-                }}
               />
             ))}
             {/* Flower center */}
@@ -644,11 +621,6 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
               cy="0"
               r={flower.size / 3.5}
               fill="#FFD700"
-              style={{
-                opacity: 0,
-                animation: 'bloom 1s ease-out forwards',
-                animationDelay: `${1 + index * 0.1}s`
-              }}
             />
           </g>
         ))}

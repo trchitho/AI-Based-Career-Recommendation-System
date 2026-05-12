@@ -220,9 +220,9 @@ const QuestionNurture: React.FC<QuestionNurtureProps> = ({
         timeOfDay === 'afternoon' ? 'bg-gradient-to-b from-orange-300 via-pink-200 to-purple-100 dark:from-orange-900/50 dark:via-pink-900/40 dark:to-purple-900/30' :
         'bg-gradient-to-b from-indigo-900 via-purple-800 to-blue-900 dark:from-indigo-950 dark:via-purple-950 dark:to-blue-950' // Evening - DARK
       }`}>
-        {/* Floating particles - REDUCED to 4 for better performance */}
+        {/* Floating particles - MINIMAL for performance */}
         <div className="absolute inset-0 overflow-hidden z-1">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(2)].map((_, i) => (
             <div
               key={i}
               className="absolute animate-float-slow will-change-transform"
