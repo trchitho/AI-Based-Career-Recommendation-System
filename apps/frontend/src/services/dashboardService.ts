@@ -89,9 +89,27 @@ export const dashboardService = {
 
             console.log('✅ [DashboardService] Fast career suggestions loaded (items):', topCareerSuggestions);
           } else {
-            console.log('⚠️ [DashboardService] No saved recommendations found, skipping (use /recommendations page to generate)');
-            // Don't call fresh recommendations here - it's too slow for dashboard
-            // User can go to /recommendations page to generate fresh ones
+            console.log('⚠️ [DashboardService] No saved recommendations found, trying quick fallback...');
+            // Quick fallback with short timeout - don't block dashboard loading
+            try {
+              const recResponse = await api.get('/api/recommendations', {
+                params: { assessment_id: latestAssessment.id, top_k: 3 },
+                timeout: 12000, // 12s max - AI-core needs time
+              });
+              const recData = recResponse.data;
+              if (recData?.items && recData.items.length > 0) {
+                topCareerSuggestions = recData.items.slice(0, 3).map((career: any) => ({
+                  id: career.career_id || career.id,
+                  slug: career.slug || career.career_id,
+                  title: career.title_vi || career.title_en || 'Unknown Career',
+                  description: career.description || 'Khám phá lộ trình nghề nghiệp này.',
+                  matchPercentage: Math.round((career.display_match || career.match_score || 0) * (career.match_score <= 1 ? 100 : 1)),
+                }));
+                console.log('✅ [DashboardService] Quick fallback loaded:', topCareerSuggestions);
+              }
+            } catch (fallbackError) {
+              console.log('⚠️ [DashboardService] Quick fallback timed out or failed, showing empty state');
+            }
           }
         } catch (error) {
           console.error('❌ [DashboardService] Error fetching saved recommendations:', error);

@@ -372,10 +372,9 @@ class RecService:
         for idx, it in enumerate(items_filtered, start=1):
             it["position"] = idx
 
-        # 9) Save top 5 recommendations to core.career_recommendations table
-        # Only save when fetching full recommendations (top_k >= 5), not for dashboard preview (top_k=3)
-        if top_k >= 5:
-            self._save_career_recommendations(db, user_id, assessment_id, items_filtered[:5])
+        # 9) Save top recommendations to core.career_recommendations table
+        # Always save to ensure dashboard can load quickly next time
+        self._save_career_recommendations(db, user_id, assessment_id, items_filtered[:5])
 
         return {
             "request_id": request_id,

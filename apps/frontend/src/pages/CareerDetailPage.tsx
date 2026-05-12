@@ -8,6 +8,44 @@ import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useLanguage } from '../contexts/LanguageContext';
 import CareerMentorSection from '../components/mentor/CareerMentorSection';
+import { CAREER_IMAGES } from './CareersByGroupPage';
+
+// Group fallback images
+const GROUP_FALLBACK_IMAGES: Record<string, string> = {
+  'sales': '/images/careers/sales/retail-salespersons.jpg',
+  'computer-math': '/images/careers/computer-math/software-developer.jpg',
+  'healthcare-practitioners': '/images/careers/healthcare-practitioners/family-medicine-physicians.jpg',
+  'healthcare-support': '/images/careers/healthcare-support/nursing-assistants.jpg',
+  'education': 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=300&fit=crop&auto=format',
+  'business-finance': 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=300&fit=crop&auto=format',
+  'architecture-engineering': '/images/careers/architecture-engineering/civil-engineers.jpg',
+  'arts-media': '/images/careers/arts-media/graphic-designers.jpg',
+  'legal': '/images/careers/legal/lawyers.jpg',
+  'management': '/images/careers/management/general-and-operations-managers.jpg',
+  'transportation': '/images/careers/transportation/heavy-and-tractor-trailer-truck-drivers.jpg',
+  'construction': '/images/careers/construction/construction-laborers.jpg',
+  'food-service': '/images/careers/food-service/chefs-and-head-cooks.jpg',
+  'community-social': 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&h=300&fit=crop&auto=format',
+  'protective-service': '/images/careers/protective-service/police-and-sheriffs-patrol-officers.jpg',
+  'personal-care': '/images/careers/personal-care/hairdresser.jpg',
+  'office-admin': 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=300&fit=crop&auto=format',
+  'life-science': 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&h=300&fit=crop&auto=format',
+  'farming-forestry': 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&h=300&fit=crop&auto=format',
+  'installation-repair': 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=600&h=300&fit=crop&auto=format',
+  'production': '/images/careers/production/first-line-supervisors-of-production-and-operating-workers.jpg',
+  'building-maintenance': '/images/careers/building-maintenance/janitor.jpg',
+};
+
+/** Get career image URL - uses CAREER_IMAGES map (same as CareersByGroupPage) */
+function getCareerImageForDetail(onetCode: string | undefined, groupSlug: string | undefined): string {
+  if (onetCode && CAREER_IMAGES[onetCode]) {
+    return CAREER_IMAGES[onetCode];
+  }
+  if (groupSlug && GROUP_FALLBACK_IMAGES[groupSlug]) {
+    return GROUP_FALLBACK_IMAGES[groupSlug];
+  }
+  return 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=300&fit=crop&auto=format';
+}
 
 const CareerDetailPage = () => {
   const { idOrSlug, groupSlug, careerIdOrSlug } = useParams();
@@ -116,16 +154,54 @@ const CareerDetailPage = () => {
           {!loading && detail && (
             <div className="animate-fade-in-up space-y-8">
               {/* Header */}
-              <div className="rounded-[32px] p-8 md:p-12 relative overflow-hidden" style={{ background: 'var(--neu-accent)', boxShadow: '8px 8px 20px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light)' }}>
-                <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }}></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none" style={{ background: 'rgba(0,0,0,0.08)' }}></div>
-                <div className="relative z-10">
-                  <button onClick={() => navigate(-1)} className="mb-6 flex items-center text-green-100 hover:text-white transition-colors text-sm font-bold uppercase tracking-wide">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>{t('careerDetail.back')}
+              <div className="rounded-[32px] relative overflow-hidden" style={{ boxShadow: '0 25px 80px rgba(0,0,0,0.2)' }}>
+                {/* Career Image - Extra large, crisp */}
+                <div className="relative h-[500px] md:h-[600px]">
+                  <img
+                    src={getCareerImageForDetail(detail.onet_code, groupSlug)}
+                    alt={detail.title}
+                    className="w-full h-full object-cover object-center"
+                    loading="eager"
+                    decoding="sync"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.parentElement?.querySelector('.img-fallback') as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div className="img-fallback absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-700"></div>
+                  
+                  {/* Subtle gradient only at bottom for text */}
+                  <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black/85 via-black/40 to-transparent"></div>
+
+                  {/* Back button */}
+                  <button onClick={() => navigate(-1)} className="absolute top-8 left-8 z-20 flex items-center gap-2 text-white hover:text-white transition-all text-sm font-bold uppercase tracking-wide bg-white/15 backdrop-blur-xl px-5 py-2.5 rounded-2xl border border-white/25 hover:bg-white/25 shadow-lg">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                    {t('careerDetail.back')}
                   </button>
-                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
-                    <div><h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">{detail.title}</h1><p className="text-sm text-green-200 font-mono">{t('careerDetail.onetCode')}: {detail.onet_code}</p></div>
-                    <div className="flex-shrink-0"><Link to={`/careers/${groupSlug}/${careerIdentifier}/roadmap`} className="group inline-flex items-center px-6 py-3 bg-white text-green-800 rounded-xl font-bold text-base shadow-lg hover:bg-green-50 transition-all hover:-translate-y-1">{t('careerDetail.viewLearningRoadmap')}<svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg></Link></div>
+
+                  {/* Content at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 p-10 md:p-14 z-10">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                      <div className="max-w-3xl">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-4 leading-[1.1]">
+                          {detail.title}
+                        </h1>
+                        <p className="text-lg text-white/50 font-mono tracking-wider">
+                          {t('careerDetail.onetCode')}: {detail.onet_code}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <Link 
+                          to={`/careers/${groupSlug}/${careerIdentifier}/roadmap`} 
+                          className="group inline-flex items-center px-8 py-4 bg-white text-gray-900 rounded-2xl font-bold text-lg shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(255,255,255,0.2)]"
+                        >
+                          {t('careerDetail.viewLearningRoadmap')}
+                          <svg className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

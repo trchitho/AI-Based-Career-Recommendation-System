@@ -8,7 +8,7 @@ import { useApiCallTracker } from '../hooks/useApiCallTracker';
 
 // ─── Career image map (Unsplash API + Wikimedia Commons) ──────────────────
 // 959/959 careers mapped to local images
-const CAREER_IMAGES: Record<string, string> = {
+export const CAREER_IMAGES: Record<string, string> = {
     // ── ARCHITECTURE ENGINEERING ──
     '17-1011.00': '/images/careers/architecture-engineering/architects-except-landscape-and-naval.jpg',
     '17-1012.00': '/images/careers/architecture-engineering/landscape-architects.jpg',
