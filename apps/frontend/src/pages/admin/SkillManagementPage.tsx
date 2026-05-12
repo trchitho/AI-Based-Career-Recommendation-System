@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Pagination from '../../components/common/Pagination';
 import api from '../../lib/api';
+import { translateKSAType, translateCategory } from '../../utils/translations';
 
 interface Skill {
   id: number;
@@ -324,16 +325,17 @@ const SkillManagementPage = () => {
                   </td>
 
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${skill.ksa_type === 'Knowledge' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                      skill.ksa_type === 'Skills' ? 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200' :
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      skill.ksa_type === 'Knowledge' || skill.ksa_type === 'knowledge' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                      skill.ksa_type === 'Skills' || skill.ksa_type === 'skill' || skill.ksa_type === 'Basic Skills' ? 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200' :
                         'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                       }`}>
-                      {skill.ksa_type}
+                      {translateKSAType(skill.ksa_type)}
                     </span>
                   </td>
 
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
-                    {skill.category || '-'}
+                    {skill.category ? translateCategory(skill.category) : '-'}
                   </td>
 
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
@@ -475,7 +477,7 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
               value={formData.onet_code}
               onChange={(e) => setFormData({ ...formData, onet_code: e.target.value })}
               className={inputClass}
-              placeholder="e.g., 11-1011.00"
+              placeholder="VD: 11-1011.00"
             />
           </div>
 
@@ -506,6 +508,11 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
               className={inputClass}
               placeholder="Tên kỹ năng"
             />
+            {skill?.name && (
+              <p className="text-xs text-gray-500 mt-1">
+                Hiển thị: {translateCategory(skill.name)}
+              </p>
+            )}
           </div>
 
           <div>
@@ -518,6 +525,11 @@ const SkillFormModal = ({ skill, onClose, onSuccess }: SkillFormModalProps) => {
               className={inputClass}
               placeholder="Danh mục"
             />
+            {skill?.category && (
+              <p className="text-xs text-gray-500 mt-1">
+                Hiển thị: {translateCategory(skill.category)}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
