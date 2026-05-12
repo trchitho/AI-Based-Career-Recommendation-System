@@ -174,7 +174,43 @@
   }
 }
 
-/* ── Line clamp utilities ─────────────────────────────────────────────── */
+/* ── Bento Grid Components ─────────────────────────────────────── */
+@layer components {
+  .bento-item {
+    @apply rounded-xl transition-all duration-300 border border-slate-200/60 bg-white hover:border-indigo-500/30 hover:shadow-lg hover:shadow-slate-200/50;
+  }
+
+  .status-dot {
+    @apply w-2 h-2 rounded-full inline-block;
+  }
+
+  .status-online {
+    @apply bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)];
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.1);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-300;
+  }
+}
+
+/* ── Line clamp utilities ─────────────────────────────────────── */
 @layer utilities {
   .line-clamp-1 {
     display: -webkit-box;

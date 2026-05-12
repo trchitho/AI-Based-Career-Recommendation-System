@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import MainLayout from './components/layout/MainLayout';
 import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
@@ -63,7 +64,18 @@ import InterviewListPage from './pages/InterviewListPage';
 import InterviewResultsPage from './pages/InterviewResultsPage';
 import DeviceTestPage from './pages/DeviceTestPage';
 import VoiceInterviewPage from './pages/VoiceInterviewPage';
+import TrendsPage from './pages/TrendsPage';
 import NotFoundPage from './pages/NotFoundPage';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Component to handle root redirect
 const RootRedirect = () => {
@@ -72,12 +84,13 @@ const RootRedirect = () => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <AppSettingsProvider>
-          <Router>
-            <AuthProvider>
-              <SocketProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AppSettingsProvider>
+            <Router>
+              <AuthProvider>
+                <SocketProvider>
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<RootRedirect />} />
@@ -133,8 +146,18 @@ function App() {
                     }
                   />
                   <Route path="/careers" element={<CareerGroupsPage />} />
-                  <Route path="/404" element={<NotFoundPage />} />
+                  <Route
+                    path="/trends"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <TrendsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="/learning-path" element={<NotFoundPage />} />
+                  <Route path="/404" element={<NotFoundPage />} />
                   <Route path="/careers/:param" element={<CareerRouterPage />} />
                   <Route path="/careers/:param/roadmap" element={<CareerRouterPage />} />
                   <Route path="/careers/:groupSlug/:careerIdOrSlug" element={<CareerDetailPage />} />
@@ -421,6 +444,7 @@ function App() {
         </AppSettingsProvider>
       </LanguageProvider>
     </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
