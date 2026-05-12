@@ -92,9 +92,9 @@ export const useTrendsSummary = (): UseQueryResult<TrendsSummary, Error> => {
         throw error;
       }
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
-    staleTime: 15000, // Data is fresh for 15 seconds
-    gcTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchInterval: false, // Không tự động refresh — người dùng bấm nút để tải lại
+    staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Cache for 10 minutes
   });
 };
 
