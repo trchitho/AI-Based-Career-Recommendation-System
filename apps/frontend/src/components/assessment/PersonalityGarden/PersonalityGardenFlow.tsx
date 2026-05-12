@@ -531,13 +531,17 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
     newResponses.set(currentQuestion.id, answer);
     setResponses(newResponses);
     
-    // Track answered question with selected element
+    // Track answered question with selected element - LIMIT TO LAST 15 FOR PERFORMANCE
     if (selectedElement) {
-      setAnsweredQuestions(prev => [...prev, {
-        question: currentQuestion,
-        selectedElement,
-        questionNumber: newResponses.size // Use actual count
-      }]);
+      setAnsweredQuestions(prev => {
+        const updated = [...prev, {
+          question: currentQuestion,
+          selectedElement,
+          questionNumber: newResponses.size // Use actual count
+        }];
+        // Keep only last 15 questions to reduce memory
+        return updated.slice(-15);
+      });
     }
     
     // Award nature energy
@@ -559,7 +563,7 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
     console.log('[PersonalityGarden] Growing tree to:', newProgress, '%');
     growTree(newProgress);
     
-    // Save progress immediately after answer
+    // Save progress immediately after answer - DEBOUNCED
     setTimeout(async () => {
       await saveProgress();
     }, 100);
@@ -570,14 +574,14 @@ const PersonalityGardenFlow: React.FC<PersonalityGardenFlowProps> = ({
       setTimeout(() => {
         setCurrentIndex(currentIndex + 1);
         setIsAnswering(false); // Unlock for next question
-      }, 500); // Reduced from 1500ms to 500ms
+      }, 300); // Reduced from 500ms to 300ms for faster transitions
     } else {
       // All questions answered
       console.log('[PersonalityGarden] All questions answered, revealing...');
       setTimeout(() => {
         setPhase('revealing');
         setIsAnswering(false);
-      }, 1000); // Reduced from 2000ms to 1000ms
+      }, 800); // Reduced from 1000ms to 800ms
     }
   };
 

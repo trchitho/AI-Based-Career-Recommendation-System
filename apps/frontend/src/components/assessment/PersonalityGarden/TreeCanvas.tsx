@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { TreeGrowthState, NurtureElement } from './types/garden.types';
 
 interface TreeCanvasProps {
@@ -54,7 +54,7 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     return roots;
   };
 
-  // Generate realistic tree branches - COMPLETELY REWRITTEN
+  // Generate realistic tree branches - OPTIMIZED FOR PERFORMANCE
   const generateBranches = () => {
     const branches: BranchSegment[] = [];
     const baseX = 200;
@@ -85,7 +85,7 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
       });
     }
     
-    // Recursive branch generation
+    // Recursive branch generation - OPTIMIZED: Reduced max depth
     const generateBranch = (
       startX: number,
       startY: number,
@@ -109,9 +109,9 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
         depth
       });
       
-      // Generate sub-branches
+      // Generate sub-branches - OPTIMIZED: Reduced sub-branches
       if (depth < maxDepth) {
-        const numSubs = depth === 0 ? 3 : 2;
+        const numSubs = depth === 0 ? 2 : 1; // Reduced from 3:2 to 2:1
         for (let i = 0; i < numSubs; i++) {
           const angleSpread = (Math.random() - 0.5) * (Math.PI / 3);
           const newAngle = angle + angleSpread;
@@ -123,10 +123,10 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
       }
     };
     
-    // Generate main branches (only when height > 15%)
+    // Generate main branches (only when height > 15%) - OPTIMIZED
     if (growth.branchCount > 0 && growth.height >= 15) {
-      const maxDepth = Math.min(4, Math.floor(growth.branchCount / 2));
-      const numMainBranches = Math.min(7, Math.ceil(growth.branchCount / 1.5));
+      const maxDepth = Math.min(3, Math.floor(growth.branchCount / 2)); // Reduced from 4 to 3
+      const numMainBranches = Math.min(5, Math.ceil(growth.branchCount / 1.5)); // Reduced from 7 to 5
       
       for (let i = 0; i < numMainBranches; i++) {
         const heightRatio = 0.6 + (i / numMainBranches) * 0.4;
@@ -152,7 +152,7 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     return branches;
   };
 
-  // Generate leaves DIRECTLY on branches - FIXED
+  // Generate leaves DIRECTLY on branches - OPTIMIZED FOR PERFORMANCE
   const generateLeaves = (branches: BranchSegment[]) => {
     const leaves: any[] = [];
     
@@ -194,18 +194,25 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     
     if (outerBranches.length === 0) return [];
     
-    // Calculate leaves - ensure minimum
+    // Calculate leaves - OPTIMIZED: Reduced leaf count
     const leafDensity = Math.max(20, growth.leafDensity); // Minimum 20%
-    const leavesPerBranch = Math.max(3, Math.min(5, Math.floor((leafDensity / 100) * 6)));
+    const leavesPerBranch = Math.max(2, Math.min(3, Math.floor((leafDensity / 100) * 4))); // Reduced from 3-5 to 2-3
+    
+    // OPTIMIZATION: Limit total leaves to prevent lag
+    const maxTotalLeaves = 50; // Cap at 50 leaves total
+    const branchesToUse = Math.min(outerBranches.length, Math.floor(maxTotalLeaves / leavesPerBranch));
     
     console.log('[TreeCanvas] Generating leaves:', {
       height: growth.height,
       leafDensity,
       outerBranches: outerBranches.length,
-      leavesPerBranch
+      branchesToUse,
+      leavesPerBranch,
+      maxLeaves: branchesToUse * leavesPerBranch
     });
     
-    outerBranches.forEach((branch, idx) => {
+    // Only use subset of branches for performance
+    outerBranches.slice(0, branchesToUse).forEach((branch, idx) => {
       // Place leaves ALONG the branch
       for (let i = 0; i < leavesPerBranch; i++) {
         const t = 0.5 + (i / leavesPerBranch) * 0.5;
@@ -259,10 +266,11 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     return flowers;
   };
 
-  const roots = generateRoots();
-  const branches = generateBranches();
-  const leaves = generateLeaves(branches);
-  const flowers = generateFlowers(branches);
+  // Memoize expensive calculations to prevent re-rendering
+  const roots = useMemo(() => generateRoots(), [growth.height, growth.trunkThickness]);
+  const branches = useMemo(() => generateBranches(), [growth.height, growth.branchCount, growth.trunkThickness]);
+  const leaves = useMemo(() => generateLeaves(branches), [branches, growth.leafDensity, growth.colorPalette]);
+  const flowers = useMemo(() => generateFlowers(branches), [branches, growth.flowerCount, growth.height]);
 
   // Generate flying birds
   const generateBirds = () => {
@@ -290,18 +298,18 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
     <div className="tree-canvas-container relative w-full h-full flex items-center justify-center overflow-hidden">
       {/* ENHANCED BACKGROUND - OPTIMIZED */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Floating particles - REDUCED to 8 */}
-        {[...Array(8)].map((_, i) => (
+        {/* Floating particles - REDUCED to 4 for better performance */}
+        {[...Array(4)].map((_, i) => (
           <div
             key={`particle-${i}`}
-            className="absolute rounded-full animate-float-particle"
+            className="absolute rounded-full animate-float-particle will-change-transform"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               width: `${6 + Math.random() * 6}px`,
               height: `${6 + Math.random() * 6}px`,
               background: i % 2 === 0 ? '#FFD700' : '#90EE90',
-              opacity: 0.4,
+              opacity: 0.3,
               animationDelay: `${Math.random() * 5}s`,
               animationDuration: `${15 + Math.random() * 10}s`,
               filter: 'blur(1px)'
@@ -309,78 +317,62 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
           />
         ))}
         
-        {/* Butterflies - REDUCED to 2 */}
-        {growth.height > 30 && [...Array(2)].map((_, i) => (
+        {/* Butterflies - Only show 1 for performance */}
+        {growth.height > 30 && (
           <div
-            key={`butterfly-${i}`}
-            className="absolute text-xl animate-butterfly"
+            className="absolute text-xl animate-butterfly will-change-transform"
             style={{
-              left: `${30 + i * 30}%`,
-              top: `${40 + Math.random() * 20}%`,
-              animationDelay: `${i * 2}s`,
-              animationDuration: `${10 + Math.random() * 5}s`
+              left: '40%',
+              top: '45%',
+              animationDuration: '12s'
             }}
           >
             🦋
           </div>
-        ))}
+        )}
         
-        {/* Fireflies - REDUCED to 4 */}
-        {growth.height > 60 && [...Array(4)].map((_, i) => (
+        {/* Fireflies - REDUCED to 2 */}
+        {growth.height > 60 && [...Array(2)].map((_, i) => (
           <div
             key={`firefly-${i}`}
-            className="absolute w-2 h-2 rounded-full bg-yellow-300 animate-firefly"
+            className="absolute w-2 h-2 rounded-full bg-yellow-300 animate-firefly will-change-transform"
             style={{
-              left: `${20 + i * 20}%`,
-              top: `${30 + Math.random() * 40}%`,
+              left: `${30 + i * 30}%`,
+              top: `${35 + Math.random() * 30}%`,
               animationDelay: `${Math.random() * 3}s`,
               boxShadow: '0 0 8px #FFD700'
             }}
           />
         ))}
         
-        {/* Clouds - REDUCED to 2 */}
-        {[...Array(2)].map((_, i) => (
-          <div
-            key={`cloud-${i}`}
-            className="absolute text-5xl opacity-15 animate-cloud"
-            style={{
-              left: `${-20 + i * 50}%`,
-              top: `${15 + i * 20}%`,
-              animationDelay: `${i * 8}s`,
-              animationDuration: `${50 + i * 15}s`
-            }}
-          >
-            ☁️
-          </div>
-        ))}
+        {/* Clouds - Only 1 cloud */}
+        <div
+          className="absolute text-5xl opacity-10 animate-cloud will-change-transform"
+          style={{
+            left: '-20%',
+            top: '20%',
+            animationDuration: '60s'
+          }}
+        >
+          ☁️
+        </div>
         
         {/* Sun/Moon - BASED ON TIME OF DAY */}
-        <div className="absolute top-8 right-12 text-5xl opacity-50 animate-pulse-slow">
+        <div className="absolute top-8 right-12 text-5xl opacity-40 animate-pulse-slow">
           {timeOfDay === 'evening' ? '🌙' : '☀️'}
         </div>
       </div>
 
-      {/* Flying birds */}
-      {birds.map(bird => (
-        <div
-          key={bird.id}
-          className="absolute text-2xl opacity-60 z-10"
-          style={{
-            top: `${bird.y}px`,
-            animation: `flyAcross ${bird.duration}s linear infinite`,
-            animationDelay: `${bird.delay}s`
-          }}
-        >
-          🕊️
-        </div>
-      ))}
+      {/* Flying birds - REMOVED for performance */}
 
       <svg
         ref={svgRef}
         viewBox="0 0 400 500"
         className="w-full h-full max-w-md max-h-96"
-        style={{ filter: `drop-shadow(0 0 ${growth.glowIntensity * 20}px rgba(124, 179, 66, 0.5))` }}
+        style={{ 
+          filter: `drop-shadow(0 0 ${growth.glowIntensity * 20}px rgba(124, 179, 66, 0.5))`,
+          willChange: 'filter'
+        }}
       >
         <defs>
           {/* Glow filter */}

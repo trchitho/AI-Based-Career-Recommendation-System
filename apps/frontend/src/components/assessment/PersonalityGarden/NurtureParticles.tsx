@@ -19,8 +19,8 @@ const NurtureParticles: React.FC<NurtureParticlesProps> = ({ element, isActive }
 
   useEffect(() => {
     if (isActive) {
-      // Generate particles
-      const newParticles: Particle[] = Array.from({ length: 12 }, (_, i) => ({
+      // Generate particles - REDUCED from 8 to 5 for better performance
+      const newParticles: Particle[] = Array.from({ length: 5 }, (_, i) => ({
         id: i,
         x: Math.random() * 100 - 50, // -50 to 50
         y: Math.random() * 100 - 50,
@@ -124,7 +124,7 @@ const NurtureParticles: React.FC<NurtureParticlesProps> = ({ element, isActive }
         {particles.map((particle) => (
           <div
             key={particle.id}
-            className="absolute"
+            className="absolute will-change-transform"
             style={{
               left: `${50 + particle.x}%`,
               top: `${50 + particle.y}%`,
@@ -140,7 +140,7 @@ const NurtureParticles: React.FC<NurtureParticlesProps> = ({ element, isActive }
         {/* Center burst effect */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div 
-            className="text-6xl"
+            className="text-6xl will-change-transform"
             style={{
               animation: 'burstScale 0.8s ease-out forwards'
             }}

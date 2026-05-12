@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Question } from '../../../types/assessment';
 import { NurtureElement } from './types/garden.types';
 
@@ -11,12 +12,15 @@ interface AnswerHistoryProps {
   onToggle?: () => void;
 }
 
-const AnswerHistory: React.FC<AnswerHistoryProps> = ({
+const AnswerHistory: React.FC<AnswerHistoryProps> = memo(({
   answeredQuestions,
   isExpanded = false,
   onToggle
 }) => {
   if (answeredQuestions.length === 0) return null;
+
+  // Only show last 10 questions for performance
+  const recentQuestions = answeredQuestions.slice(-10);
 
   return (
     <div className="answer-history fixed bottom-24 right-4 z-30 max-w-sm">
@@ -33,19 +37,22 @@ const AnswerHistory: React.FC<AnswerHistoryProps> = ({
         </span>
       </button>
 
-      {/* History panel */}
+      {/* History panel - Only show last 10 for performance */}
       {isExpanded && (
         <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-white/50 max-h-96 overflow-y-auto">
           <div className="p-4">
             <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
               <span>🌱</span>
               <span>Your Journey</span>
+              {answeredQuestions.length > 10 && (
+                <span className="text-xs text-gray-500">(Last 10)</span>
+              )}
             </h3>
             
             <div className="space-y-2">
-              {answeredQuestions.map((item, index) => (
+              {recentQuestions.map((item, index) => (
                 <div
-                  key={index}
+                  key={`${item.questionNumber}-${index}`}
                   className="group relative bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 hover:shadow-md transition-all border border-gray-200 dark:border-gray-600"
                 >
                   {/* Question number badge */}
@@ -66,12 +73,7 @@ const AnswerHistory: React.FC<AnswerHistoryProps> = ({
                     </span>
                   </div>
 
-                  {/* Hover tooltip with full question */}
-                  <div className="absolute left-0 bottom-full mb-2 w-64 bg-gray-900 text-white text-xs p-3 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                    <p className="font-semibold mb-1">Câu hỏi {item.questionNumber}:</p>
-                    <p>{item.question.question_text}</p>
-                    <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                  </div>
+                  {/* Removed hover tooltip for performance */}
                 </div>
               ))}
             </div>
@@ -79,14 +81,13 @@ const AnswerHistory: React.FC<AnswerHistoryProps> = ({
         </div>
       )}
 
-      {/* Compact view when collapsed */}
+      {/* Compact view when collapsed - Only show last 5 */}
       {!isExpanded && answeredQuestions.length > 0 && (
         <div className="flex gap-1 flex-wrap max-w-xs">
           {answeredQuestions.slice(-5).map((item, index) => (
             <div
-              key={index}
-              className={`w-8 h-8 rounded-full bg-gradient-to-br ${item.selectedElement.color} flex items-center justify-center shadow-md animate-bounce-in`}
-              style={{ animationDelay: `${index * 0.1}s` }}
+              key={`compact-${item.questionNumber}-${index}`}
+              className={`w-8 h-8 rounded-full bg-gradient-to-br ${item.selectedElement.color} flex items-center justify-center shadow-md`}
               title={`Q${item.questionNumber}: ${item.selectedElement.label}`}
             >
               <span className="text-sm">{item.selectedElement.emoji}</span>
@@ -100,18 +101,8 @@ const AnswerHistory: React.FC<AnswerHistoryProps> = ({
         </div>
       )}
 
-      {/* Animations */}
+      {/* Animations - Removed bounce-in for performance */}
       <style>{`
-        @keyframes bounce-in {
-          0% { transform: scale(0); opacity: 0; }
-          50% { transform: scale(1.2); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .animate-bounce-in {
-          animation: bounce-in 0.5s ease-out forwards;
-        }
-        
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
@@ -121,6 +112,8 @@ const AnswerHistory: React.FC<AnswerHistoryProps> = ({
       `}</style>
     </div>
   );
-};
+});
+
+AnswerHistory.displayName = 'AnswerHistory';
 
 export default AnswerHistory;
