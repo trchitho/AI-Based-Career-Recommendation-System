@@ -5,7 +5,6 @@ import {
   ProgressMetrics,
 } from '../types/dashboard';
 import { assessmentService } from './assessmentService';
-import { recommendationService } from './recommendationService';
 
 export const dashboardService = {
   async getDashboardData(): Promise<DashboardData> {
@@ -90,24 +89,9 @@ export const dashboardService = {
 
             console.log('✅ [DashboardService] Fast career suggestions loaded (items):', topCareerSuggestions);
           } else {
-            console.log('⚠️ [DashboardService] No saved recommendations found, trying fallback...');
-
-            // Fallback: try to get fresh recommendations only if no saved data
-            try {
-              const recData = await recommendationService.getMain(latestAssessment.id, 3);
-              if (recData.items && recData.items.length > 0) {
-                topCareerSuggestions = recData.items.slice(0, 3).map((career) => ({
-                  id: career.career_id,
-                  slug: career.slug || career.career_id,
-                  title: career.title_en || career.title_vi || 'Unknown Career',
-                  description: career.description || 'No description available',
-                  matchPercentage: career.display_match || career.match_score || 0,
-                }));
-                console.log('✅ [DashboardService] Fallback recommendations loaded');
-              }
-            } catch (fallbackError) {
-              console.error('❌ [DashboardService] Fallback recommendations failed:', fallbackError);
-            }
+            console.log('⚠️ [DashboardService] No saved recommendations found, skipping (use /recommendations page to generate)');
+            // Don't call fresh recommendations here - it's too slow for dashboard
+            // User can go to /recommendations page to generate fresh ones
           }
         } catch (error) {
           console.error('❌ [DashboardService] Error fetching saved recommendations:', error);

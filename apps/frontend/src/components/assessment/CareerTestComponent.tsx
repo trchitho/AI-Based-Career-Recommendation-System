@@ -686,7 +686,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
           style={{ color: currentPage === 0 ? '#d1d5db' : '#4b5563' }}
         >
           <svg style={{ color: 'inherit' }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          <span style={{ color: 'inherit' }}>Previous</span>
+          <span style={{ color: 'inherit' }}>Trước</span>
         </button>
 
         {!isLastPage ? (
@@ -702,7 +702,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
               borderColor: areCurrentPageQuestionsAnswered() ? '#60a5fa' : '#3b82f6',
             }}
           >
-            <span style={{ color: 'inherit', opacity: 1, fontWeight: 'bold' }}>Next Step</span>
+            <span style={{ color: 'inherit', opacity: 1, fontWeight: 'bold' }}>Tiếp theo</span>
             <svg style={{ color: 'inherit', opacity: 1 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         ) : (
@@ -711,7 +711,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
             style={{ color: '#ffffff' }}
             className="px-10 py-3 bg-indigo-800 dark:bg-indigo-600 hover:bg-indigo-900 dark:hover:bg-indigo-700 rounded-xl font-bold shadow-xl shadow-indigo-800/30 dark:shadow-indigo-600/30 hover:shadow-indigo-800/50 dark:hover:shadow-indigo-600/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
           >
-            <span style={{ color: '#ffffff' }}>Complete Assessment</span>
+            <span style={{ color: '#ffffff' }}>Hoàn thành đánh giá</span>
             <svg style={{ color: '#ffffff' }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
           </button>
         )}
