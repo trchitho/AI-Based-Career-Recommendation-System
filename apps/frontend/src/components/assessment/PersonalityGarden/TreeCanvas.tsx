@@ -123,10 +123,10 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
       }
     };
     
-    // Generate main branches (only when height > 15%) - OPTIMIZED
+    // Generate main branches (only when height > 15%) - BALANCED
     if (growth.branchCount > 0 && growth.height >= 15) {
-      const maxDepth = Math.min(2, Math.floor(growth.branchCount / 2)); // Reduced from 3 to 2
-      const numMainBranches = Math.min(3, Math.ceil(growth.branchCount / 1.5)); // Reduced from 5 to 3
+      const maxDepth = Math.min(2, Math.floor(growth.branchCount / 2)); // Keep at 2 for performance
+      const numMainBranches = Math.min(4, Math.ceil(growth.branchCount / 1.5)); // Increased from 3 to 4
       
       for (let i = 0; i < numMainBranches; i++) {
         const heightRatio = 0.6 + (i / numMainBranches) * 0.4;
@@ -189,17 +189,17 @@ const TreeCanvas: React.FC<TreeCanvasProps> = ({
       return leaves;
     }
     
-    // Only use outer branches (depth >= 1 or 2)
-    const outerBranches = branches.filter(b => b.depth >= 1);
+    // Only use outer branches (depth >= 0 to include more branches)
+    const outerBranches = branches.filter(b => b.depth >= 0 && b.depth !== -1); // Exclude trunk only
     
     if (outerBranches.length === 0) return [];
     
-    // Calculate leaves - OPTIMIZED: Reduced leaf count
+    // Calculate leaves - BALANCED: Keep visible leaves
     const leafDensity = Math.max(20, growth.leafDensity); // Minimum 20%
-    const leavesPerBranch = Math.max(1, Math.min(2, Math.floor((leafDensity / 100) * 3))); // Reduced from 2-3 to 1-2
+    const leavesPerBranch = Math.max(2, Math.min(4, Math.floor((leafDensity / 100) * 5))); // 2-4 leaves per branch
     
-    // OPTIMIZATION: Limit total leaves to prevent lag - REDUCED to 30
-    const maxTotalLeaves = 30; // Reduced from 50 to 30
+    // OPTIMIZATION: Limit total leaves to prevent lag but keep visible
+    const maxTotalLeaves = 40; // Balanced: 40 leaves (was 30, too few)
     const branchesToUse = Math.min(outerBranches.length, Math.floor(maxTotalLeaves / leavesPerBranch));
     
     console.log('[TreeCanvas] Generating leaves:', {
