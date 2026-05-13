@@ -359,8 +359,312 @@ const HomePage = () => {
                     </div>
                 </div>
 
-                {/* --- BENTO GRID FEATURES --- */}
-                <section className="py-24 bg-gray-50 dark:bg-gray-800/50 relative overflow-hidden">
+                {/* --- PREMIUM AI SAAS DASHBOARD SECTION --- */}
+                <section className="py-24 relative overflow-hidden bg-white dark:bg-gray-900">
+                    {/* Ambient lighting effects */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-30 dark:opacity-20 blur-[120px]" style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.3) 0%, transparent 70%)' }}></div>
+                        <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] rounded-full opacity-25 dark:opacity-15 blur-[100px]" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%)' }}></div>
+                        <div className="absolute bottom-0 left-1/3 w-[450px] h-[450px] rounded-full opacity-20 dark:opacity-10 blur-[90px]" style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.2) 0%, transparent 70%)' }}></div>
+                    </div>
+
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                        {/* Header */}
+                        <div className="text-center max-w-3xl mx-auto mb-16">
+                            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight text-gray-900 dark:text-white">
+                                Tất cả những gì bạn cần để{' '}
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600">
+                                    tỏa sáng trong sự nghiệp
+                                </span>
+                            </h2>
+                            <p className="text-lg text-gray-600 dark:text-gray-400">
+                                Nền tảng kết hợp AI tiên tiến và chiến lược nghề nghiệp để đưa kiến chúng đề mang lại lộ trình cá nhân hóa.
+                            </p>
+                        </div>
+
+                        {/* 2-Column Premium Card Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                            {/* LEFT COLUMN - Large Career Assessment Card */}
+                            <div className="lg:row-span-2 group">
+                                <div className="h-full rounded-3xl p-8 relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-200/80 dark:border-gray-700/80 shadow-lg dark:shadow-purple-900/20"
+                                    style={{
+                                        boxShadow: '0 8px 32px rgba(124, 58, 237, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)'
+                                    }}>
+
+                                    {/* Ambient glow */}
+                                    <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-40 dark:opacity-30 blur-[80px] group-hover:opacity-60 dark:group-hover:opacity-50 transition-opacity duration-500"
+                                        style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%)' }}></div>
+
+                                    <div className="relative z-10 h-full flex flex-col">
+                                        {/* Icon badge */}
+                                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300"
+                                            style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)' }}>
+                                            <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+
+                                        {/* Title */}
+                                        <h3 className="text-3xl font-bold mb-3 text-gray-900 dark:text-white">
+                                            Đánh giá nghề nghiệp bằng AI
+                                        </h3>
+                                        <p className="text-base mb-4 text-gray-600 dark:text-gray-400">
+                                            Khám phá con đường nghề nghiệp lý tưởng với bài đánh giá toàn diện RIASEC & Big Five được hỗ trợ bởi phân tích AI tiên tiến.
+                                        </p>
+
+                                        {/* Analytics Widget */}
+                                        <div className="rounded-2xl p-6 relative overflow-hidden group-hover:scale-[1.02] transition-transform duration-500 bg-gradient-to-br from-gray-50 to-purple-50/50 dark:from-gray-900/50 dark:to-purple-950/30 border border-purple-200/20 dark:border-purple-800/20"
+                                            style={{
+                                                boxShadow: '0 4px 20px rgba(124, 58, 237, 0.06)'
+                                            }}>
+
+                                            {/* RIASEC Badge */}
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                                                    style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)' }}>
+                                                    R
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="h-2 rounded-full mb-2 bg-gray-200 dark:bg-gray-700" style={{ width: '100%' }}>
+                                                        <div className="h-full rounded-full" style={{ background: 'linear-gradient(90deg, #8B5CF6 0%, #A78BFA 100%)', width: '75%' }}></div>
+                                                    </div>
+                                                    <div className="text-xs font-medium text-gray-600 dark:text-gray-400">Realistic</div>
+                                                </div>
+                                            </div>
+
+                                            {/* Progress Bars */}
+                                            <div className="space-y-3">
+                                                {[
+                                                    { label: 'Realistic', width: '75%', color: 'linear-gradient(90deg, #EF4444 0%, #F87171 100%)' },
+                                                    { label: 'Investigative', width: '85%', color: 'linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%)' },
+                                                    { label: 'Artistic', width: '60%', color: 'linear-gradient(90deg, #8B5CF6 0%, #A78BFA 100%)' },
+                                                    { label: 'Social', width: '90%', color: 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)' }
+                                                ].map((item, i) => (
+                                                    <div key={i} className="flex items-center gap-3">
+                                                        <span className="text-xs font-medium w-24 text-gray-600 dark:text-gray-400">{item.label}</span>
+                                                        <div className="flex-1 h-2.5 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                                                            <div className="h-full rounded-full transition-all duration-1000" style={{ background: item.color, width: item.width }}></div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Match Badge */}
+                                            <div className="absolute bottom-6 right-6 px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 bg-white/90 dark:bg-gray-800/90 border border-purple-300/30 dark:border-purple-700/30">
+                                                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#8B5CF6' }}></div>
+                                                <span className="text-sm font-bold text-purple-700 dark:text-purple-400">Match: 95%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* RIGHT TOP - Skill Gap Analysis Card */}
+                            <div className="group">
+                                <div className="h-full rounded-3xl p-8 relative overflow-visible transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 bg-white/95 dark:bg-gray-800/95 backdrop-blur-2xl border border-gray-200/90 dark:border-gray-700/90 shadow-lg dark:shadow-purple-900/20"
+                                    style={{
+                                        boxShadow: '0 8px 32px rgba(124, 58, 237, 0.12), 0 2px 8px rgba(139, 92, 246, 0.08)'
+                                    }}>
+
+                                    {/* Multi-layer ambient glow */}
+                                    <div className="absolute -top-20 -right-20 w-56 h-56 rounded-full opacity-30 dark:opacity-20 blur-[80px] group-hover:opacity-50 dark:group-hover:opacity-35 transition-all duration-700"
+                                        style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.5) 0%, rgba(167,139,250,0.3) 40%, transparent 70%)' }}></div>
+                                    <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-25 dark:opacity-15 blur-[60px] group-hover:opacity-40 dark:group-hover:opacity-25 transition-all duration-700"
+                                        style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.4) 0%, transparent 70%)', animationDelay: '0.2s' }}></div>
+
+                                    <div className="relative z-10">
+                                        {/* Icon badge with enhanced glow */}
+                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300"
+                                            style={{
+                                                background: 'linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%)',
+                                                boxShadow: '0 4px 16px rgba(236, 72, 153, 0.3), 0 2px 8px rgba(139, 92, 246, 0.2)'
+                                            }}>
+                                            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                        </div>
+
+                                        {/* Title */}
+                                        <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+                                            Phân tích khoảng cách kỹ năng
+                                        </h3>
+                                        <p className="text-sm mb-6 text-gray-600 dark:text-gray-400">
+                                            Xác định các kỹ năng còn thiếu cho nghề nghiệp mơ ước của bạn.
+                                        </p>
+
+                                        {/* Enhanced Energy Orb Visualization */}
+                                        <div className="relative flex items-center justify-center py-10">
+                                            {/* Center glowing orb with multiple layers */}
+                                            <div className="relative w-28 h-28 flex items-center justify-center">
+                                                {/* Outer bloom layers */}
+                                                <div className="absolute -inset-8 rounded-full opacity-15 animate-pulse"
+                                                    style={{
+                                                        background: 'radial-gradient(circle, rgba(139,92,246,0.8) 0%, rgba(167,139,250,0.4) 30%, transparent 70%)',
+                                                        filter: 'blur(30px)',
+                                                        animationDuration: '3s'
+                                                    }}></div>
+                                                <div className="absolute -inset-4 rounded-full opacity-20 animate-pulse"
+                                                    style={{
+                                                        background: 'radial-gradient(circle, rgba(139,92,246,0.7) 0%, rgba(167,139,250,0.3) 40%, transparent 70%)',
+                                                        filter: 'blur(20px)',
+                                                        animationDuration: '2.5s',
+                                                        animationDelay: '0.3s'
+                                                    }}></div>
+                                                <div className="absolute inset-0 rounded-full opacity-25 animate-pulse"
+                                                    style={{
+                                                        background: 'radial-gradient(circle, rgba(139,92,246,0.6) 0%, transparent 70%)',
+                                                        filter: 'blur(15px)',
+                                                        animationDuration: '2s',
+                                                        animationDelay: '0.6s'
+                                                    }}></div>
+
+                                                {/* Animated dashed orbit rings */}
+                                                <svg className="absolute w-36 h-36 opacity-30 group-hover:opacity-50 transition-opacity duration-500" style={{ animation: 'spin 20s linear infinite' }}>
+                                                    <circle cx="72" cy="72" r="70" fill="none" stroke="#A78BFA" strokeWidth="2" strokeDasharray="8 8" />
+                                                </svg>
+                                                <svg className="absolute w-48 h-48 opacity-20 group-hover:opacity-35 transition-opacity duration-500" style={{ animation: 'spin 30s linear infinite reverse' }}>
+                                                    <circle cx="96" cy="96" r="94" fill="none" stroke="#C4B5FD" strokeWidth="2" strokeDasharray="8 8" />
+                                                </svg>
+                                                <svg className="absolute w-60 h-60 opacity-10 group-hover:opacity-20 transition-opacity duration-500" style={{ animation: 'spin 40s linear infinite' }}>
+                                                    <circle cx="120" cy="120" r="118" fill="none" stroke="#DDD6FE" strokeWidth="1" strokeDasharray="6 6" />
+                                                </svg>
+
+                                                {/* Center icon with enhanced styling */}
+                                                <div className="relative w-20 h-20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500"
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                                                        boxShadow: '0 8px 32px rgba(124, 58, 237, 0.4), 0 4px 16px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+                                                    }}>
+                                                    <svg className="w-10 h-10 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                    </svg>
+                                                </div>
+
+                                                {/* Floating feature icons with enhanced styling and animations */}
+                                                <div className="absolute -top-4 -right-4 w-11 h-11 rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300"
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)',
+                                                        boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4), 0 2px 8px rgba(96, 165, 250, 0.3)'
+                                                    }}>
+                                                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                                    </svg>
+                                                </div>
+                                                <div className="absolute -bottom-4 -left-4 w-11 h-11 rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:translate-y-1 transition-all duration-300"
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
+                                                        boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4), 0 2px 8px rgba(251, 191, 36, 0.3)'
+                                                    }}>
+                                                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                                <div className="absolute top-1/2 -translate-y-1/2 -right-10 w-11 h-11 rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:translate-x-1 transition-all duration-300"
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
+                                                        boxShadow: '0 4px 20px rgba(236, 72, 153, 0.4), 0 2px 8px rgba(244, 114, 182, 0.3)'
+                                                    }}>
+                                                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                    </svg>
+                                                </div>
+                                                <div className="absolute top-1/2 -translate-y-1/2 -left-10 w-11 h-11 rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:-translate-x-1 transition-all duration-300"
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)',
+                                                        boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4), 0 2px 8px rgba(167, 139, 250, 0.3)'
+                                                    }}>
+                                                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Enhanced Recommendation Banner */}
+                                        <div className="mt-4 rounded-xl p-4 flex items-center gap-3 group-hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 border border-purple-300/25 dark:border-purple-700/25 shadow-sm dark:shadow-purple-900/10">
+                                            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                                                style={{
+                                                    background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                                                    boxShadow: '0 2px 8px rgba(124, 58, 237, 0.3)'
+                                                }}>
+                                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <p className="text-sm font-semibold text-purple-700 dark:text-purple-400">
+                                                Bổ sung kỹ năng - Rút ngắn khoảng cách - Đạt mục tiêu nhanh hơn!
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* RIGHT BOTTOM - Career Roadmap Card */}
+                            <div className="group">
+                                <div className="h-full rounded-3xl p-8 relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-200/80 dark:border-gray-700/80 shadow-lg dark:shadow-blue-900/20"
+                                    style={{
+                                        boxShadow: '0 8px 32px rgba(124, 58, 237, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)'
+                                    }}>
+
+                                    {/* Ambient glow */}
+                                    <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full opacity-40 dark:opacity-30 blur-[60px] group-hover:opacity-60 dark:group-hover:opacity-50 transition-opacity duration-500"
+                                        style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)' }}></div>
+
+                                    <div className="relative z-10">
+                                        {/* Icon badge */}
+                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-lg"
+                                            style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)' }}>
+                                            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                            </svg>
+                                        </div>
+
+                                        {/* Title */}
+                                        <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+                                            Lộ trình nghề nghiệp
+                                        </h3>
+                                        <p className="text-sm mb-6 text-gray-600 dark:text-gray-400">
+                                            Lộ trình học tập cá nhân hóa dẫn đến thành công.
+                                        </p>
+
+                                        {/* Step Progress Tracker */}
+                                        <div className="rounded-xl p-6 flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border border-blue-200/20 dark:border-blue-800/20">
+                                            <div className="flex items-center gap-3">
+                                                {[1, 2, 3, 4].map((step) => (
+                                                    <div key={step} className="flex items-center">
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-lg transition-all duration-300 ${step <= 2 ? 'scale-110' : ''}`}
+                                                            style={step <= 2 ? {
+                                                                background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)',
+                                                                color: '#ffffff'
+                                                            } : {
+                                                                background: '#E5E7EB',
+                                                                color: '#9CA3AF'
+                                                            }}>
+                                                            {step}
+                                                        </div>
+                                                        {step < 4 && (
+                                                            <div className={`w-8 h-1.5 rounded-full mx-1 transition-all duration-300`}
+                                                                style={step < 2 ? {
+                                                                    background: 'linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%)'
+                                                                } : {
+                                                                    background: '#E5E7EB'
+                                                                }}></div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                {/* --- OLD BENTO GRID (HIDDEN FOR REFERENCE) --- */}
+                <section className="hidden py-24 bg-gray-50 dark:bg-gray-800/50 relative overflow-hidden">
                     <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-indigo-200/20 dark:bg-indigo-950/20 rounded-full blur-[120px] pointer-events-none"></div>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -372,116 +676,88 @@ const HomePage = () => {
                             <p className="text-lg text-gray-500 dark:text-gray-400">{t('home.features.sectionSubtitle')}</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-                            {/* Feature 1: Large */}
-                            <div className="md:col-span-4 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
-                                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-700/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-indigo-700/20 transition-colors duration-500"></div>
-                                <div className="relative z-10 h-full flex flex-col">
-                                    <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors">{t('home.features.assessment.title')}</h3>
-                                    <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">{t('home.features.assessment.desc')}</p>
-
-                                    <div className="mt-auto relative w-full h-64 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-inner transform group-hover:scale-[1.02] transition-transform duration-500 flex flex-col gap-4 overflow-hidden">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center text-white font-bold">R</div>
-                                            <div className="flex flex-col gap-2">
-                                                <div className="w-32 h-3 bg-indigo-300 dark:bg-indigo-800 rounded-full"></div>
-                                                <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                                            </div>
-                                            <div className="ml-auto w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center">
-                                                <div className="w-4 h-4 bg-indigo-700 rounded-full animate-pulse"></div>
-                                            </div>
-                                        </div>
-                                        <div className="w-full h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
-                                        <div className="space-y-2">
-                                            {[{ l: 'Realistic', w: '75%', c: 'bg-red-400' }, { l: 'Investigative', w: '85%', c: 'bg-yellow-400' }, { l: 'Artistic', w: '60%', c: 'bg-indigo-400' }, { l: 'Social', w: '90%', c: 'bg-blue-400' }].map((item, i) => (
-                                                <div key={i} className="flex items-center gap-2">
-                                                    <span className="text-xs text-gray-500 w-20">{item.l}</span>
-                                                    <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                                        <div className={`h-full ${item.c} rounded-full`} style={{ width: item.w }}></div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="absolute bottom-6 right-6 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 flex items-center gap-2 animate-bounce">
-                                            <span className="w-2 h-2 bg-indigo-700 rounded-full"></span>
-                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200">Match: 95%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Feature 2 */}
-                            <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative">
-                                <div className="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all"></div>
-                                <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 text-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:rotate-12 transition-transform">
-                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.features.skillGap.title')}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('home.features.skillGap.desc')}</p>
-                                <div className="flex items-end justify-between h-24 px-2 pb-2">
-                                    {[40, 70, 50, 90, 60].map((h, i) => (
-                                        <div key={i} className="w-1/6 bg-gray-100 dark:bg-gray-700 rounded-t-md relative overflow-hidden group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors" style={{ height: `${h}%` }}></div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Feature 3 */}
-                            <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative">
-                                <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all"></div>
-                                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:-rotate-12 transition-transform">
-                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('home.features.roadmap.title')}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('home.features.roadmap.desc')}</p>
-                                <div className="relative w-full h-24 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        {[1, 2, 3, 4].map((step) => (
-                                            <div key={step} className="flex items-center">
-                                                <div className={`w-8 h-8 rounded-full ${step <= 2 ? 'bg-blue-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500'} flex items-center justify-center text-xs font-bold`}>{step}</div>
-                                                {step < 4 && <div className={`w-6 h-1 ${step < 2 ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </section>
 
                 {/* --- HOW IT WORKS --- */}
-                <section className="py-24 relative" style={{ background: 'var(--neu-bg)' }}>
-                    <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-gray-50 dark:from-gray-800/50 to-transparent"></div>
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <section className="py-24 relative overflow-hidden bg-gray-50 dark:bg-gray-900">
+                    {/* Decorative background blobs — same palette as MentorMatchingPage */}
+                    <div className="absolute inset-0 pointer-events-none z-0">
+                        <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-gray-100/80 dark:from-gray-800/80 to-transparent"></div>
+                        <div className="absolute -top-32 -left-24 w-[500px] h-[500px] rounded-full opacity-40 dark:opacity-25 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.25) 0%, transparent 70%)', filter: 'blur(80px)' }}></div>
+                        <div className="absolute -top-16 -right-32 w-[450px] h-[450px] rounded-full opacity-35 dark:opacity-20 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(147,197,253,0.22) 0%, transparent 70%)', filter: 'blur(90px)' }}></div>
+                        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] rounded-full opacity-30 dark:opacity-15 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(196,181,253,0.2) 0%, transparent 70%)', filter: 'blur(100px)' }}></div>
+                        <div className="absolute bottom-10 right-10 w-[350px] h-[350px] rounded-full opacity-25 dark:opacity-12 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(186,230,253,0.2) 0%, transparent 70%)', filter: 'blur(80px)' }}></div>
+                        {/* Subtle decorative rings */}
+                        <div className="absolute top-[5%] left-[-5%] w-[600px] h-[600px] border border-purple-200/20 dark:border-purple-800/10 rounded-full pointer-events-none"></div>
+                        <div className="absolute bottom-[5%] right-[-8%] w-[500px] h-[500px] border border-blue-200/20 dark:border-blue-800/10 rounded-full pointer-events-none"></div>
+                        {/* Tiny stars */}
+                        <div className="absolute top-[15%] right-[12%] text-purple-300/30 dark:text-purple-600/20 text-2xl pointer-events-none select-none">✦</div>
+                        <div className="absolute top-[55%] left-[8%] text-blue-300/25 dark:text-blue-600/15 text-xl pointer-events-none select-none">✦</div>
+                        <div className="absolute bottom-[20%] right-[18%] text-violet-200/30 dark:text-violet-600/15 text-lg pointer-events-none select-none">✦</div>
+                    </div>
+
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="mb-20 text-center">
-                            <span className="text-indigo-700 font-bold tracking-wider uppercase text-sm bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full">{t('home.howItWorks.label')}</span>
+                            <span className="text-indigo-700 dark:text-indigo-400 font-bold tracking-wider uppercase text-sm bg-white/70 dark:bg-gray-800/70 border border-indigo-100 dark:border-indigo-800 px-4 py-1.5 rounded-full shadow-sm backdrop-blur-sm">{t('home.howItWorks.label')}</span>
                             <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mt-4">{t('home.howItWorks.title')}</h2>
                             <p className="text-lg text-gray-500 dark:text-gray-400 mt-4 max-w-2xl mx-auto">{t('home.howItWorks.subtitle')}</p>
                         </div>
 
                         <div className="relative">
-                            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 -translate-x-1/2" style={{ width: "3px", borderRadius: "999px", background: "linear-gradient(to bottom, #8b5cf6 0%, #3b82f6 30%, #10b981 65%, #f59e0b 100%)", boxShadow: "0 0 12px rgba(139,92,246,.25)" }}></div>
+                            {/* Vertical timeline line */}
+                            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 -translate-x-1/2 pointer-events-none" style={{ width: "3px", borderRadius: "999px", background: "linear-gradient(to bottom, #8b5cf6 0%, #3b82f6 30%, #10b981 65%, #f59e0b 100%)", boxShadow: "0 0 16px rgba(139,92,246,.3)" }}></div>
                             {[
-                                { title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc'), icon: "1", align: "left", gradient: "linear-gradient(135deg, #8b5cf6, #6366f1)" },
-                                { title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc'), icon: "2", align: "right", gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)" },
-                                { title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc'), icon: "3", align: "left", gradient: "linear-gradient(135deg, #10b981, #14b8a6)" },
-                                { title: t('home.howItWorks.step4.title'), desc: t('home.howItWorks.step4.desc'), icon: "4", align: "right", gradient: "linear-gradient(135deg, #fb923c, #f59e0b)" }
+                                { title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc'), icon: "1", align: "left", gradient: "linear-gradient(135deg, #8b5cf6, #6366f1)", glow: "rgba(139,92,246,0.2)" },
+                                { title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc'), icon: "2", align: "right", gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)", glow: "rgba(59,130,246,0.2)" },
+                                { title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc'), icon: "3", align: "left", gradient: "linear-gradient(135deg, #10b981, #14b8a6)", glow: "rgba(16,185,129,0.2)" },
+                                { title: t('home.howItWorks.step4.title'), desc: t('home.howItWorks.step4.desc'), icon: "4", align: "right", gradient: "linear-gradient(135deg, #fb923c, #f59e0b)", glow: "rgba(251,146,60,0.2)" }
                             ].map((step, idx) => (
-                                <div key={idx} className={`relative flex items-start md:items-center gap-6 mb-12 ${step.align === 'right' ? 'md:flex-row-reverse' : ''} group`}>
-                                    {/* Step number */}
-                                    <div className="flex-shrink-0 relative z-10 md:absolute md:left-1/2 md:-translate-x-1/2" style={{ width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontWeight: 700, fontSize: "16px", border: "3px solid rgba(255,255,255,0.95)", boxShadow: "0 0 24px rgba(0,0,0,0.15)", background: step.gradient }}>
-                                        {step.icon}
+                                <div key={idx} className="relative mb-12 group">
+                                    {/* Desktop: 3-column grid — card | circle | card */}
+                                    <div className="hidden md:grid md:grid-cols-[5fr_auto_5fr] md:items-center md:gap-0">
+                                        {/* Left slot */}
+                                        {step.align === 'left' ? (
+                                            <div className="pr-12 text-right">
+                                                <div className="p-8 rounded-2xl relative overflow-hidden inline-block w-full hover:-translate-y-1 transition-all duration-300 bg-white/75 dark:bg-gray-800/75 backdrop-blur-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg dark:shadow-purple-900/10">
+                                                    <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-indigo-400 to-violet-500 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom rounded-r-2xl"></div>
+                                                    <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-60 dark:opacity-40 pointer-events-none" style={{ background: `radial-gradient(circle, ${step.glow} 0%, transparent 70%)` }}></div>
+                                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                                                    <p className="text-gray-500 dark:text-gray-400">{step.desc}</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div></div>
+                                        )}
+                                        {/* Center: step circle */}
+                                        <div className="flex items-center justify-center z-10" style={{ width: "56px" }}>
+                                            <div style={{ width: "46px", height: "46px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontWeight: 700, fontSize: "17px", border: "3px solid rgba(255,255,255,0.9)", boxShadow: `0 0 0 4px ${step.glow}, 0 4px 16px rgba(0,0,0,0.15)`, background: step.gradient, flexShrink: 0 }}>
+                                                {step.icon}
+                                            </div>
+                                        </div>
+                                        {/* Right slot */}
+                                        {step.align === 'right' ? (
+                                            <div className="pl-12">
+                                                <div className="p-8 rounded-2xl relative overflow-hidden hover:-translate-y-1 transition-all duration-300 bg-white/75 dark:bg-gray-800/75 backdrop-blur-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg dark:shadow-purple-900/10">
+                                                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-400 to-violet-500 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom rounded-l-2xl"></div>
+                                                    <div className="absolute -top-6 -left-6 w-24 h-24 rounded-full opacity-60 dark:opacity-40 pointer-events-none" style={{ background: `radial-gradient(circle, ${step.glow} 0%, transparent 70%)` }}></div>
+                                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                                                    <p className="text-gray-500 dark:text-gray-400">{step.desc}</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div></div>
+                                        )}
                                     </div>
-                                    {/* Spacer for desktop centering */}
-                                    <div className="hidden md:block w-5/12"></div>
-                                    {/* Card */}
-                                    <div className={`flex-1 md:w-5/12 ${step.align === 'left' ? 'md:pr-10 md:text-right' : 'md:pl-10'}`}>
-                                        <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-                                            <div className={`absolute top-0 w-1 h-full bg-indigo-700 ${step.align === 'left' ? 'right-0' : 'left-0'} transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom`}></div>
-                                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{step.title}</h3>
-                                            <p className="text-gray-500 dark:text-gray-400">{step.desc}</p>
+
+                                    {/* Mobile: simple vertical list */}
+                                    <div className="flex md:hidden items-start gap-4">
+                                        <div style={{ width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#ffffff", fontWeight: 700, fontSize: "16px", border: "3px solid rgba(255,255,255,0.9)", boxShadow: `0 0 0 3px ${step.glow}, 0 4px 12px rgba(0,0,0,0.15)`, background: step.gradient }}>
+                                            {step.icon}
+                                        </div>
+                                        <div className="flex-1 p-6 rounded-2xl bg-white/75 dark:bg-gray-800/75 backdrop-blur-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg dark:shadow-purple-900/10">
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                                            <p className="text-gray-500 dark:text-gray-400 text-sm">{step.desc}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -491,10 +767,10 @@ const HomePage = () => {
                 </section>
 
                 {/* --- STATISTICS --- */}
-                <section className="py-20 bg-indigo-800 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
-                    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
+                <section className="py-20 bg-indigo-800 dark:bg-indigo-950 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 dark:opacity-5"></div>
+                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-white dark:bg-indigo-400 opacity-10 dark:opacity-5 rounded-full blur-[100px]"></div>
+                    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white dark:bg-indigo-400 opacity-10 dark:opacity-5 rounded-full blur-[100px]"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                             <CounterItem value={`${stats?.totalAssessments ?? 150}`} suffix="+" label={t('home.stats.assessments')} />
@@ -563,11 +839,10 @@ const HomePage = () => {
                 </section>
 
                 {/* --- CTA & CONTACT --- */}
-                <section className="py-24 relative overflow-hidden">
-                    <div className="absolute inset-0" style={{ background: 'var(--neu-bg)' }}></div>
+                <section className="py-24 relative overflow-hidden bg-white dark:bg-gray-900">
                     <div className="max-w-5xl mx-auto px-4 relative z-10">
                         {/* CTA Card */}
-                        <div className="bg-gradient-to-br from-indigo-800 to-indigo-900 rounded-[2.5rem] p-12 md:p-20 shadow-2xl relative overflow-hidden group mb-16">
+                        <div className="bg-gradient-to-br from-indigo-800 to-indigo-900 dark:from-indigo-950 dark:to-indigo-900 rounded-[2.5rem] p-12 md:p-20 shadow-2xl relative overflow-hidden group mb-16">
                             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-black opacity-20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 relative z-10 text-center">{t('home.cta.title')}</h2>

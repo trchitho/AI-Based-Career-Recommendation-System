@@ -152,10 +152,10 @@ const NotificationCenter = () => {
       {/* Notification Bell Icon */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-700 hover:text-gray-900 focus:outline-none"
+        className="relative flex items-center justify-center p-2 text-[#0f172a] dark:text-[#f8fafc] hover:opacity-80 transition-opacity focus:outline-none"
       >
         <svg
-          className="w-6 h-6"
+          className="w-[24px] h-[24px]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -170,15 +170,13 @@ const NotificationCenter = () => {
 
         {/* Unread Badge */}
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+          <span className="absolute top-[2px] right-[2px] flex items-center justify-center w-[18px] h-[18px] bg-[#dc2626] text-white text-[10px] font-[700] rounded-full animate-[pulseBadge_1.8s_infinite]">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
 
-        {/* Connection Status Indicator */}
-        {connected && (
-          <span className="absolute bottom-0 right-0 w-3 h-3 bg-indigo-700 border-2 border-white rounded-full"></span>
-        )}
+        {/* Small purple dot under bell */}
+        <span className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-[6px] h-[6px] bg-[#4f46e5] rounded-full" />
       </button>
 
       {/* Dropdown Panel */}

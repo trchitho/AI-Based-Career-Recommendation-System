@@ -53,11 +53,11 @@
 }
 
 .mm-hero {
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 8px 40px rgba(124, 58, 237, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06);
     border-radius: 24px;
     padding: 60px 20px;
     text-align: center;
@@ -65,6 +65,7 @@
     margin-bottom: 24px;
     overflow: visible;
 }
+
 html.dark .mm-hero {
     background: rgba(30, 41, 59, 0.4);
     border-color: rgba(255, 255, 255, 0.05);
@@ -136,7 +137,7 @@ html.dark .mm-hero {
 }
 
 .mm-notice-bar {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-radius: 16px;
@@ -146,12 +147,13 @@ html.dark .mm-hero {
     gap: 12px;
     max-width: 1000px;
     margin: 0 auto 24px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08), 0 1px 4px rgba(0, 0, 0, 0.06);
 }
+
 html.dark .mm-notice-bar {
-    background: rgba(30, 41, 59, 0.6);
-    border-color: rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.92);
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
 .mm-notice-bar .icon-wrapper {
@@ -192,8 +194,11 @@ html.dark .mm-notice-bar {
     color: #2563eb;
 }
 
-.mm-tabs {
-    background: rgba(255, 255, 255, 0.5);
+/* ═══════════════════════════════════════════════════════════════
+   TAB NAVIGATION CONTAINER
+   ═══════════════════════════════════════════════════════════════ */
+.mm-tabs-shell {
+    background: rgba(255, 255, 255, 0.97);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-radius: 16px;
@@ -201,57 +206,18 @@ html.dark .mm-notice-bar {
     margin: 0 auto 32px;
     display: flex;
     padding: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 24px rgba(99, 102, 241, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
     overflow: hidden;
-}
-html.dark .mm-tabs {
-    background: rgba(30, 41, 59, 0.5);
-    border-color: rgba(255, 255, 255, 0.05);
+    gap: 6px;
 }
 
-.mm-tab {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #6b7280;
-    cursor: pointer;
-    position: relative;
-    border: none;
-    background: none;
-    transition: all 0.2s;
-    border-radius: 8px;
+html.dark .mm-tabs-shell {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
-.mm-tab:hover:not(.active) {
-    background: #f9fafb;
-    color: #374151;
-}
-
-.mm-tab:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    height: 20px;
-    width: 1px;
-    background: #e5e7eb;
-}
-
-.mm-tab.active {
-    background: #16a34a;
-    color: white;
-    border-radius: 8px;
-}
-
-.mm-tab.active::after {
-    display: none;
-}
-
+/* Tab count badge */
 .mm-tab-count {
     background: #ef4444;
     color: white;
@@ -264,7 +230,7 @@ html.dark .mm-tabs {
 }
 
 .mm-setup-card {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.97);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-radius: 24px;
@@ -272,12 +238,13 @@ html.dark .mm-tabs {
     text-align: center;
     max-width: 800px;
     margin: 0 auto;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 48px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
+
 html.dark .mm-setup-card {
-    background: rgba(30, 41, 59, 0.6);
-    border-color: rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
 .mm-setup-icon {
@@ -309,9 +276,9 @@ html.dark .mm-setup-card {
 }
 
 .mm-btn-secondary {
-    background: white;
-    border: 1.5px solid #6366f1;
-    color: #6366f1;
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+    border: none;
+    color: #065f46;
     padding: 13px 28px;
     border-radius: 10px;
     font-weight: 600;
@@ -320,13 +287,14 @@ html.dark .mm-setup-card {
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    transition: all 0.2s;
+    box-shadow: 0 2px 10px rgba(74, 222, 128, 0.3);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mm-btn-secondary:hover:not(:disabled) {
-    background: #eef2ff;
-    border-color: #4f46e5;
-    color: #4f46e5;
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    box-shadow: 0 4px 16px rgba(74, 222, 128, 0.45);
+    transform: translateY(-2px);
 }
 
 .mm-btn-primary {
@@ -352,8 +320,10 @@ html.dark .mm-setup-card {
 }
 
 .mm-btn-gradient {
-    background: linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
-    color: white;
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 40%, #22c55e 100%);
+    background-size: 200% 200%;
+    background-position: left center;
+    color: #065f46;
     border: none;
     padding: 13px 28px;
     border-radius: 10px;
@@ -363,13 +333,14 @@ html.dark .mm-setup-card {
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(74, 222, 128, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mm-btn-gradient:hover:not(:disabled) {
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-    transform: translateY(-1px);
+    background-position: right center;
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.5), 0 0 0 3px rgba(74, 222, 128, 0.15);
+    transform: translateY(-2px);
 }
 
 .mm-fab-container {
@@ -435,20 +406,21 @@ html.dark .mm-setup-card {
 }
 
 .mm-card {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.97);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-radius: 24px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     animation: slideUp 0.4s ease forwards;
     opacity: 0;
 }
+
 html.dark .mm-card {
-    background: rgba(30, 41, 59, 0.6);
-    border-color: rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
 @keyframes slideUp {
@@ -460,8 +432,8 @@ html.dark .mm-card {
 
 .mm-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 48px rgba(124, 58, 237, 0.12), 0 4px 16px rgba(99, 102, 241, 0.08);
-    border-color: rgba(124, 58, 237, 0.2);
+    box-shadow: 0 16px 56px rgba(124, 58, 237, 0.16), 0 4px 16px rgba(99, 102, 241, 0.1);
+    border-color: rgba(124, 58, 237, 0.3);
 }
 
 .mm-card-top {
@@ -469,6 +441,7 @@ html.dark .mm-card {
     background: rgba(255, 255, 255, 0.4);
     border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 }
+
 html.dark .mm-card-top {
     background: rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -805,39 +778,96 @@ html.dark .mm-card-top {
 }
 
 .mm-req-item {
-  background: rgba(255, 255, 255, 0.6); 
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  padding: 1.1rem 1.4rem; display: flex; align-items: center; gap: 1.1rem;
-  animation: mm-fade-up 0.4s ease-out both;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 1.1rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    animation: mm-fade-up 0.4s ease-out both;
 }
+
 html.dark .mm-req-item {
     background: rgba(30, 41, 59, 0.6);
     border-color: rgba(255, 255, 255, 0.05);
 }
+
 .mm-req-avatar {
-  width: 42px; height: 42px; border-radius: 50%;
-  background: #6366f1; color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 0.95rem; flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #6366f1;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
 }
-.mm-req-info { flex: 1; min-width: 0; }
-.mm-req-name { font-size: 0.92rem; font-weight: 700; color: var(--neu-text); }
-.mm-req-meta { font-size: 0.75rem; color: var(--neu-text-muted); margin-top: 0.12rem; }
-.mm-req-msg { font-size: 0.75rem; color: var(--neu-text-muted); margin-top: 0.25rem; font-style: italic; }
-.mm-status-badge { padding: 0.28rem 0.75rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
-.mm-status-badge.pending  { background: rgba(245,158,11,0.15); color: #92400e; }
-.mm-status-badge.accepted { background: rgba(26,35,126,0.15); color: #065f46; }
-.mm-status-badge.rejected { background: rgba(239,68,68,0.12);  color: #991b1b; }
+
+.mm-req-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mm-req-name {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--neu-text);
+}
+
+.mm-req-meta {
+    font-size: 0.75rem;
+    color: var(--neu-text-muted);
+    margin-top: 0.12rem;
+}
+
+.mm-req-msg {
+    font-size: 0.75rem;
+    color: var(--neu-text-muted);
+    margin-top: 0.25rem;
+    font-style: italic;
+}
+
+.mm-status-badge {
+    padding: 0.28rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.mm-status-badge.pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #92400e;
+}
+
+.mm-status-badge.accepted {
+    background: rgba(26, 35, 126, 0.15);
+    color: #065f46;
+}
+
+.mm-status-badge.rejected {
+    background: rgba(239, 68, 68, 0.12);
+    color: #991b1b;
+}
 
 /* ── Banner ───────────────────────────────────────────────── */
 .mm-success-banner {
-  padding: 0.8rem 1.1rem; background: rgba(26,35,126,0.1);
-  border: 1px solid rgba(26,35,126,0.3); border-radius: 10px;
-  color: #065f46; font-size: 0.88rem; font-weight: 600; margin-bottom: 1.25rem;
+    padding: 0.8rem 1.1rem;
+    background: rgba(26, 35, 126, 0.1);
+    border: 1px solid rgba(26, 35, 126, 0.3);
+    border-radius: 10px;
+    color: #065f46;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
 }
 
 .mm-req-info {
@@ -1115,44 +1145,7 @@ html.dark .mm-notice-bar .cta-link {
     font-weight: 600;
 }
 
-html.dark .mm-tabs {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.85) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1.5px solid rgba(139, 92, 246, 0.2);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6),
-        0 2px 12px rgba(139, 92, 246, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    padding: 8px;
-}
-
-html.dark .mm-tab {
-    color: #94A3B8;
-    transition: all 0.2s ease;
-    font-weight: 600;
-}
-
-html.dark .mm-tab:not(:last-child)::after {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-html.dark .mm-tab:hover:not(.active) {
-    color: #E2E8F0;
-    background: rgba(139, 92, 246, 0.1);
-}
-
-html.dark .mm-tab.active {
-    background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
-    color: #FFFFFF;
-    box-shadow: 0 4px 20px rgba(22, 163, 74, 0.5),
-        0 0 30px rgba(22, 163, 74, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    font-weight: 700;
-}
-
-html.dark .mm-tab.active::after {
-    display: none;
-}
+/* Dark mode tabs-shell container - styles moved to bottom of file */
 
 html.dark .mm-tab-count {
     background: rgba(239, 68, 68, 0.9);
@@ -1195,26 +1188,25 @@ html.dark .mm-btn-primary:hover:not(:disabled) {
 }
 
 html.dark .mm-btn-secondary {
-    background: transparent;
-    border: 1.5px solid rgba(99, 102, 241, 0.5);
-    color: #a78bfa;
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+    border: none;
+    color: #065f46;
     transition: all 0.2s ease;
 }
 
 html.dark .mm-btn-secondary:hover:not(:disabled) {
-    border-color: #8b5cf6;
-    background: rgba(139, 92, 246, 0.1);
-    color: #c4b5fd;
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
 }
 
 html.dark .mm-btn-gradient {
-    background: linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4), 0 0 20px rgba(139, 92, 246, 0.2);
+    background: linear-gradient(90deg, #86efac 0%, #4ade80 50%, #22c55e 100%);
+    color: #065f46;
+    box-shadow: 0 4px 16px rgba(74, 222, 128, 0.4), 0 0 20px rgba(74, 222, 128, 0.2);
 }
 
 html.dark .mm-btn-gradient:hover:not(:disabled) {
-    box-shadow: 0 6px 24px rgba(59, 130, 246, 0.5), 0 0 30px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 6px 24px rgba(74, 222, 128, 0.5), 0 0 30px rgba(74, 222, 128, 0.3);
 }
 
 html.dark .mm-card {
@@ -1531,4 +1523,651 @@ html.dark .mm-fab.purple {
 
 html.dark .mm-fab.blue {
     background: linear-gradient(135deg, #3b82f6, #22d3ee);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   FORCE GREEN PASTEL BUTTONS - OVERRIDE ALL CONFLICTS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Primary green button (mm-btn-secondary) */
+html body .mm-btn-secondary,
+html body button.mm-btn-secondary,
+.mm-btn-secondary,
+button.mm-btn-secondary {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 100%) !important;
+    background-image: linear-gradient(135deg, #86efac 0%, #4ade80 100%) !important;
+    background-color: #4ade80 !important;
+    color: #065f46 !important;
+    border: 0 !important;
+    border-width: 0 !important;
+    outline: none !important;
+    border-radius: 10px !important;
+    height: auto !important;
+    min-height: 40px !important;
+    padding: 13px 28px !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 16px rgba(74, 222, 128, 0.35), 0 2px 8px rgba(34, 197, 94, 0.2) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-decoration: none !important;
+}
+
+html body .mm-btn-secondary svg,
+html body button.mm-btn-secondary svg,
+.mm-btn-secondary svg,
+button.mm-btn-secondary svg {
+    color: #065f46 !important;
+    stroke: #065f46 !important;
+    fill: none !important;
+}
+
+html body .mm-btn-secondary:hover,
+html body button.mm-btn-secondary:hover,
+.mm-btn-secondary:hover,
+button.mm-btn-secondary:hover {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%) !important;
+    background-image: linear-gradient(135deg, #4ade80 0%, #22c55e 100%) !important;
+    background-color: #22c55e !important;
+    color: #064e3b !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(74, 222, 128, 0.45), 0 3px 10px rgba(34, 197, 94, 0.25) !important;
+}
+
+html body .mm-btn-secondary:hover svg,
+html body button.mm-btn-secondary:hover svg,
+.mm-btn-secondary:hover svg,
+button.mm-btn-secondary:hover svg {
+    color: #064e3b !important;
+    stroke: #064e3b !important;
+}
+
+.mm-btn-secondary:active,
+button.mm-btn-secondary:active {
+    transform: translateY(0px) scale(0.98) !important;
+}
+
+/* Gradient green button (mm-btn-gradient) */
+html body .mm-btn-gradient,
+html body button.mm-btn-gradient,
+.mm-btn-gradient,
+button.mm-btn-gradient {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 40%, #22c55e 100%) !important;
+    background-image: linear-gradient(135deg, #86efac 0%, #4ade80 40%, #22c55e 100%) !important;
+    background-color: #4ade80 !important;
+    background-size: 200% 200% !important;
+    background-position: left center !important;
+    color: #065f46 !important;
+    border: 0 !important;
+    border-width: 0 !important;
+    outline: none !important;
+    border-radius: 10px !important;
+    height: auto !important;
+    min-height: 40px !important;
+    padding: 13px 28px !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 16px rgba(74, 222, 128, 0.4), 0 2px 8px rgba(34, 197, 94, 0.2) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-decoration: none !important;
+}
+
+html body .mm-btn-gradient svg,
+html body button.mm-btn-gradient svg,
+.mm-btn-gradient svg,
+button.mm-btn-gradient svg {
+    color: #065f46 !important;
+    stroke: #065f46 !important;
+    fill: none !important;
+}
+
+html body .mm-btn-gradient:hover,
+html body button.mm-btn-gradient:hover,
+.mm-btn-gradient:hover,
+button.mm-btn-gradient:hover {
+    background: linear-gradient(135deg, #bbf7d0 0%, #86efac 45%, #4ade80 100%) !important;
+    background-image: linear-gradient(135deg, #bbf7d0 0%, #86efac 45%, #4ade80 100%) !important;
+    background-color: #4ade80 !important;
+    background-position: right center !important;
+    color: #064e3b !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.5), 0 0 0 3px rgba(74, 222, 128, 0.15) !important;
+}
+
+html body .mm-btn-gradient:hover svg,
+html body button.mm-btn-gradient:hover svg,
+.mm-btn-gradient:hover svg,
+button.mm-btn-gradient:hover svg {
+    color: #064e3b !important;
+    stroke: #064e3b !important;
+}
+
+.mm-btn-gradient:active,
+button.mm-btn-gradient:active {
+    transform: translateY(0px) scale(0.98) !important;
+}
+
+/* Dark mode overrides */
+html.dark .mm-btn-secondary,
+html.dark button.mm-btn-secondary,
+[data-theme="dark"] .mm-btn-secondary,
+[data-theme="dark"] button.mm-btn-secondary {
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 100%) !important;
+    background-image: linear-gradient(135deg, #86efac 0%, #4ade80 100%) !important;
+    background-color: #4ade80 !important;
+    color: #052e16 !important;
+    box-shadow: 0 6px 20px rgba(74, 222, 128, 0.4), 0 0 16px rgba(34, 197, 94, 0.2) !important;
+}
+
+html.dark .mm-btn-secondary svg,
+html.dark button.mm-btn-secondary svg,
+[data-theme="dark"] .mm-btn-secondary svg,
+[data-theme="dark"] button.mm-btn-secondary svg {
+    color: #052e16 !important;
+    stroke: #052e16 !important;
+}
+
+html.dark .mm-btn-secondary:hover,
+html.dark button.mm-btn-secondary:hover,
+[data-theme="dark"] .mm-btn-secondary:hover,
+[data-theme="dark"] button.mm-btn-secondary:hover {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%) !important;
+    background-image: linear-gradient(135deg, #4ade80 0%, #22c55e 100%) !important;
+    background-color: #22c55e !important;
+    color: #052e16 !important;
+    box-shadow: 0 8px 28px rgba(74, 222, 128, 0.5), 0 0 20px rgba(34, 197, 94, 0.3) !important;
+}
+
+html.dark .mm-btn-gradient,
+html.dark button.mm-btn-gradient,
+[data-theme="dark"] .mm-btn-gradient,
+[data-theme="dark"] button.mm-btn-gradient {
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 50%, #22c55e 100%) !important;
+    background-image: linear-gradient(135deg, #86efac 0%, #4ade80 50%, #22c55e 100%) !important;
+    background-color: #4ade80 !important;
+    color: #052e16 !important;
+    box-shadow: 0 6px 22px rgba(74, 222, 128, 0.45), 0 0 18px rgba(34, 197, 94, 0.25) !important;
+}
+
+html.dark .mm-btn-gradient svg,
+html.dark button.mm-btn-gradient svg,
+[data-theme="dark"] .mm-btn-gradient svg,
+[data-theme="dark"] button.mm-btn-gradient svg {
+    color: #052e16 !important;
+    stroke: #052e16 !important;
+}
+
+html.dark .mm-btn-gradient:hover,
+html.dark button.mm-btn-gradient:hover,
+[data-theme="dark"] .mm-btn-gradient:hover,
+[data-theme="dark"] button.mm-btn-gradient:hover {
+    background: linear-gradient(135deg, #bbf7d0 0%, #86efac 45%, #4ade80 100%) !important;
+    background-image: linear-gradient(135deg, #bbf7d0 0%, #86efac 45%, #4ade80 100%) !important;
+    background-color: #4ade80 !important;
+    color: #052e16 !important;
+    box-shadow: 0 10px 32px rgba(74, 222, 128, 0.55), 0 0 24px rgba(34, 197, 94, 0.35) !important;
+}
+
+/* Disabled state */
+html body .mm-btn-secondary:disabled,
+html body button.mm-btn-secondary:disabled,
+html body .mm-btn-gradient:disabled,
+html body button.mm-btn-gradient:disabled,
+.mm-btn-secondary:disabled,
+button.mm-btn-secondary:disabled,
+.mm-btn-gradient:disabled,
+button.mm-btn-gradient:disabled {
+    background: #f1f5f9 !important;
+    background-image: none !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+    box-shadow: none !important;
+}
+
+.mm-btn-secondary:disabled:hover,
+button.mm-btn-secondary:disabled:hover,
+.mm-btn-gradient:disabled:hover,
+button.mm-btn-gradient:disabled:hover {
+    transform: none !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   TAB NAVIGATION - PASTEL GREEN ACTIVE STATE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Base tab styles - inactive state */
+.mm-tab-item,
+button.mm-tab-item,
+.mm-tabs-shell button {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 18px !important;
+    border-radius: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.22s ease !important;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%) !important;
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    border: 1px solid rgba(226, 232, 240, 0.85) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+}
+
+.mm-tab-item svg,
+button.mm-tab-item svg,
+.mm-tabs-shell button svg {
+    color: #475569 !important;
+    stroke: #475569 !important;
+}
+
+/* Hover state for inactive tabs */
+.mm-tab-item:not(.mm-tab-active):hover,
+button.mm-tab-item:not(.mm-tab-active):hover,
+.mm-tabs-shell button:not(.mm-tab-active):hover {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
+    background-color: #d1fae5 !important;
+    color: #047857 !important;
+    border: 1px solid rgba(34, 197, 94, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+.mm-tab-item:not(.mm-tab-active):hover svg,
+button.mm-tab-item:not(.mm-tab-active):hover svg,
+.mm-tabs-shell button:not(.mm-tab-active):hover svg {
+    color: #047857 !important;
+    stroke: #047857 !important;
+}
+
+/* ACTIVE TAB - PASTEL GREEN BACKGROUND */
+.mm-tab-item.mm-tab-active,
+button.mm-tab-item.mm-tab-active,
+.mm-tab-active,
+.mm-tabs-shell button.mm-tab-active {
+    background: linear-gradient(135deg, #bbf7d0 0%, #86efac 45%, #4ade80 100%) !important;
+    background-color: #86efac !important;
+    color: #064e3b !important;
+    border: 1px solid rgba(34, 197, 94, 0.35) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 8px 20px rgba(74, 222, 128, 0.24), 0 2px 6px rgba(34, 197, 94, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+.mm-tab-item.mm-tab-active svg,
+button.mm-tab-item.mm-tab-active svg,
+.mm-tab-active svg,
+.mm-tabs-shell button.mm-tab-active svg {
+    color: #065f46 !important;
+    stroke: #065f46 !important;
+}
+
+/* Active tab hover state */
+.mm-tab-item.mm-tab-active:hover,
+button.mm-tab-item.mm-tab-active:hover,
+.mm-tab-active:hover,
+.mm-tabs-shell button.mm-tab-active:hover {
+    background: linear-gradient(135deg, #dcfce7 0%, #86efac 45%, #22c55e 100%) !important;
+    background-color: #4ade80 !important;
+    color: #064e3b !important;
+    box-shadow: 0 12px 28px rgba(74, 222, 128, 0.34), 0 4px 10px rgba(34, 197, 94, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+.mm-tab-item.mm-tab-active:hover svg,
+button.mm-tab-item.mm-tab-active:hover svg,
+.mm-tab-active:hover svg,
+.mm-tabs-shell button.mm-tab-active:hover svg {
+    color: #064e3b !important;
+    stroke: #064e3b !important;
+}
+
+/* Dark mode overrides for tabs */
+html.dark .mm-tab-item,
+html.dark button.mm-tab-item,
+html.dark .mm-tabs-shell button {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    color: #94A3B8 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .mm-tab-item svg,
+html.dark button.mm-tab-item svg,
+html.dark .mm-tabs-shell button svg {
+    color: #94A3B8 !important;
+    stroke: #94A3B8 !important;
+}
+
+html.dark .mm-tab-item:not(.mm-tab-active):hover,
+html.dark button.mm-tab-item:not(.mm-tab-active):hover,
+html.dark .mm-tabs-shell button:not(.mm-tab-active):hover {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%) !important;
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #10b981 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+html.dark .mm-tab-item:not(.mm-tab-active):hover svg,
+html.dark button.mm-tab-item:not(.mm-tab-active):hover svg,
+html.dark .mm-tabs-shell button:not(.mm-tab-active):hover svg {
+    color: #10b981 !important;
+    stroke: #10b981 !important;
+}
+
+/* Dark mode active tab - still green but adjusted for dark background */
+html.dark .mm-tab-item.mm-tab-active,
+html.dark button.mm-tab-item.mm-tab-active,
+html.dark .mm-tab-active,
+html.dark .mm-tabs-shell button.mm-tab-active {
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 50%, #22c55e 100%) !important;
+    background-color: #4ade80 !important;
+    color: #052e16 !important;
+    border: 1px solid rgba(34, 197, 94, 0.5) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.35), 0 2px 8px rgba(34, 197, 94, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+html.dark .mm-tab-item.mm-tab-active svg,
+html.dark button.mm-tab-item.mm-tab-active svg,
+html.dark .mm-tab-active svg,
+html.dark .mm-tabs-shell button.mm-tab-active svg {
+    color: #052e16 !important;
+    stroke: #052e16 !important;
+}
+
+html.dark .mm-tab-item.mm-tab-active:hover,
+html.dark button.mm-tab-item.mm-tab-active:hover,
+html.dark .mm-tab-active:hover,
+html.dark .mm-tabs-shell button.mm-tab-active:hover {
+    background: linear-gradient(135deg, #bbf7d0 0%, #86efac 50%, #4ade80 100%) !important;
+    background-color: #86efac !important;
+    color: #052e16 !important;
+    box-shadow: 0 12px 32px rgba(74, 222, 128, 0.45), 0 4px 12px rgba(34, 197, 94, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+html.dark .mm-tab-item.mm-tab-active:hover svg,
+html.dark button.mm-tab-item.mm-tab-active:hover svg,
+html.dark .mm-tab-active:hover svg,
+html.dark .mm-tabs-shell button.mm-tab-active:hover svg {
+    color: #052e16 !important;
+    stroke: #052e16 !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   TAB NAVIGATION - PASTEL GREEN ACTIVE STATE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Base tab styles - inactive state */
+.mm-tab-item,
+button.mm-tab-item,
+.mm-tabs-shell button,
+.mm-tab-find,
+.mm-tab-requests,
+.mm-tab-mentees,
+.mm-tab-schedule,
+.mm-tab-become {
+    flex: 1 !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 18px !important;
+    border-radius: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.22s ease !important;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%) !important;
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    border: 1px solid rgba(226, 232, 240, 0.85) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+    position: relative !important;
+}
+
+.mm-tab-item svg,
+button.mm-tab-item svg,
+.mm-tabs-shell button svg,
+.mm-tab-find svg,
+.mm-tab-requests svg,
+.mm-tab-mentees svg,
+.mm-tab-schedule svg,
+.mm-tab-become svg {
+    color: #475569 !important;
+    stroke: #475569 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Hover state for inactive tabs */
+.mm-tab-item:not(.mm-tab-active):hover,
+button.mm-tab-item:not(.mm-tab-active):hover,
+.mm-tabs-shell button:not(.mm-tab-active):hover,
+.mm-tab-find:not(.mm-tab-active):hover,
+.mm-tab-requests:not(.mm-tab-active):hover,
+.mm-tab-mentees:not(.mm-tab-active):hover,
+.mm-tab-schedule:not(.mm-tab-active):hover,
+.mm-tab-become:not(.mm-tab-active):hover {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
+    background-color: #d1fae5 !important;
+    color: #047857 !important;
+    border: 1px solid rgba(34, 197, 94, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+.mm-tab-item:not(.mm-tab-active):hover svg,
+button.mm-tab-item:not(.mm-tab-active):hover svg,
+.mm-tabs-shell button:not(.mm-tab-active):hover svg,
+.mm-tab-find:not(.mm-tab-active):hover svg,
+.mm-tab-requests:not(.mm-tab-active):hover svg,
+.mm-tab-mentees:not(.mm-tab-active):hover svg,
+.mm-tab-schedule:not(.mm-tab-active):hover svg,
+.mm-tab-become:not(.mm-tab-active):hover svg {
+    color: #047857 !important;
+    stroke: #047857 !important;
+}
+
+/* ACTIVE TAB - PASTEL GREEN BACKGROUND */
+.mm-tab-item.mm-tab-active,
+button.mm-tab-item.mm-tab-active,
+.mm-tab-active,
+.mm-tabs-shell button.mm-tab-active,
+.mm-tab-find.mm-tab-active,
+.mm-tab-requests.mm-tab-active,
+.mm-tab-mentees.mm-tab-active,
+.mm-tab-schedule.mm-tab-active,
+.mm-tab-become.mm-tab-active {
+    background: linear-gradient(135deg, #bbf7d0 0%, #86efac 45%, #4ade80 100%) !important;
+    background-color: #86efac !important;
+    color: #064e3b !important;
+    border: 1px solid rgba(34, 197, 94, 0.35) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 8px 20px rgba(74, 222, 128, 0.24), 0 2px 6px rgba(34, 197, 94, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+    transform: translateY(-1px) !important;
+}
+
+.mm-tab-item.mm-tab-active svg,
+button.mm-tab-item.mm-tab-active svg,
+.mm-tab-active svg,
+.mm-tabs-shell button.mm-tab-active svg,
+.mm-tab-find.mm-tab-active svg,
+.mm-tab-requests.mm-tab-active svg,
+.mm-tab-mentees.mm-tab-active svg,
+.mm-tab-schedule.mm-tab-active svg,
+.mm-tab-become.mm-tab-active svg {
+    color: #065f46 !important;
+    stroke: #065f46 !important;
+}
+
+/* Active tab hover state */
+.mm-tab-item.mm-tab-active:hover,
+button.mm-tab-item.mm-tab-active:hover,
+.mm-tab-active:hover,
+.mm-tabs-shell button.mm-tab-active:hover,
+.mm-tab-find.mm-tab-active:hover,
+.mm-tab-requests.mm-tab-active:hover,
+.mm-tab-mentees.mm-tab-active:hover,
+.mm-tab-schedule.mm-tab-active:hover,
+.mm-tab-become.mm-tab-active:hover {
+    background: linear-gradient(135deg, #dcfce7 0%, #86efac 45%, #22c55e 100%) !important;
+    background-color: #4ade80 !important;
+    color: #064e3b !important;
+    box-shadow: 0 12px 28px rgba(74, 222, 128, 0.34), 0 4px 10px rgba(34, 197, 94, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+.mm-tab-item.mm-tab-active:hover svg,
+button.mm-tab-item.mm-tab-active:hover svg,
+.mm-tab-active:hover svg,
+.mm-tabs-shell button.mm-tab-active:hover svg,
+.mm-tab-find.mm-tab-active:hover svg,
+.mm-tab-requests.mm-tab-active:hover svg,
+.mm-tab-mentees.mm-tab-active:hover svg,
+.mm-tab-schedule.mm-tab-active:hover svg,
+.mm-tab-become.mm-tab-active:hover svg {
+    color: #064e3b !important;
+    stroke: #064e3b !important;
+}
+
+/* Dark mode overrides for tabs */
+html.dark .mm-tab-item,
+html.dark button.mm-tab-item,
+html.dark .mm-tabs-shell button,
+html.dark .mm-tab-find,
+html.dark .mm-tab-requests,
+html.dark .mm-tab-mentees,
+html.dark .mm-tab-schedule,
+html.dark .mm-tab-become {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    color: #94A3B8 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .mm-tab-item svg,
+html.dark button.mm-tab-item svg,
+html.dark .mm-tabs-shell button svg,
+html.dark .mm-tab-find svg,
+html.dark .mm-tab-requests svg,
+html.dark .mm-tab-mentees svg,
+html.dark .mm-tab-schedule svg,
+html.dark .mm-tab-become svg {
+    color: #94A3B8 !important;
+    stroke: #94A3B8 !important;
+}
+
+html.dark .mm-tab-item:not(.mm-tab-active):hover,
+html.dark button.mm-tab-item:not(.mm-tab-active):hover,
+html.dark .mm-tabs-shell button:not(.mm-tab-active):hover,
+html.dark .mm-tab-find:not(.mm-tab-active):hover,
+html.dark .mm-tab-requests:not(.mm-tab-active):hover,
+html.dark .mm-tab-mentees:not(.mm-tab-active):hover,
+html.dark .mm-tab-schedule:not(.mm-tab-active):hover,
+html.dark .mm-tab-become:not(.mm-tab-active):hover {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%) !important;
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #10b981 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+html.dark .mm-tab-item:not(.mm-tab-active):hover svg,
+html.dark button.mm-tab-item:not(.mm-tab-active):hover svg,
+html.dark .mm-tabs-shell button:not(.mm-tab-active):hover svg,
+html.dark .mm-tab-find:not(.mm-tab-active):hover svg,
+html.dark .mm-tab-requests:not(.mm-tab-active):hover svg,
+html.dark .mm-tab-mentees:not(.mm-tab-active):hover svg,
+html.dark .mm-tab-schedule:not(.mm-tab-active):hover svg,
+html.dark .mm-tab-become:not(.mm-tab-active):hover svg {
+    color: #10b981 !important;
+    stroke: #10b981 !important;
+}
+
+/* Dark mode active tab - still green but adjusted for dark background */
+html.dark .mm-tab-item.mm-tab-active,
+html.dark button.mm-tab-item.mm-tab-active,
+html.dark .mm-tab-active,
+html.dark .mm-tabs-shell button.mm-tab-active,
+html.dark .mm-tab-find.mm-tab-active,
+html.dark .mm-tab-requests.mm-tab-active,
+html.dark .mm-tab-mentees.mm-tab-active,
+html.dark .mm-tab-schedule.mm-tab-active,
+html.dark .mm-tab-become.mm-tab-active {
+    background: linear-gradient(135deg, #86efac 0%, #4ade80 50%, #22c55e 100%) !important;
+    background-color: #4ade80 !important;
+    color: #052e16 !important;
+    border: 1px solid rgba(34, 197, 94, 0.5) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.35), 0 2px 8px rgba(34, 197, 94, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+html.dark .mm-tab-item.mm-tab-active svg,
+html.dark button.mm-tab-item.mm-tab-active svg,
+html.dark .mm-tab-active svg,
+html.dark .mm-tabs-shell button.mm-tab-active svg,
+html.dark .mm-tab-find.mm-tab-active svg,
+html.dark .mm-tab-requests.mm-tab-active svg,
+html.dark .mm-tab-mentees.mm-tab-active svg,
+html.dark .mm-tab-schedule.mm-tab-active svg,
+html.dark .mm-tab-become.mm-tab-active svg {
+    color: #052e16 !important;
+    stroke: #052e16 !important;
+}
+
+html.dark .mm-tab-item.mm-tab-active:hover,
+html.dark button.mm-tab-item.mm-tab-active:hover,
+html.dark .mm-tab-active:hover,
+html.dark .mm-tabs-shell button.mm-tab-active:hover,
+html.dark .mm-tab-find.mm-tab-active:hover,
+html.dark .mm-tab-requests.mm-tab-active:hover,
+html.dark .mm-tab-mentees.mm-tab-active:hover,
+html.dark .mm-tab-schedule.mm-tab-active:hover,
+html.dark .mm-tab-become.mm-tab-active:hover {
+    background: linear-gradient(135deg, #bbf7d0 0%, #86efac 50%, #4ade80 100%) !important;
+    background-color: #86efac !important;
+    color: #052e16 !important;
+    box-shadow: 0 12px 32px rgba(74, 222, 128, 0.45), 0 4px 12px rgba(34, 197, 94, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+html.dark .mm-tab-item.mm-tab-active:hover svg,
+html.dark button.mm-tab-item.mm-tab-active:hover svg,
+html.dark .mm-tab-active:hover svg,
+html.dark .mm-tabs-shell button.mm-tab-active:hover svg,
+html.dark .mm-tab-find.mm-tab-active:hover svg,
+html.dark .mm-tab-requests.mm-tab-active:hover svg,
+html.dark .mm-tab-mentees.mm-tab-active:hover svg,
+html.dark .mm-tab-schedule.mm-tab-active:hover svg,
+html.dark .mm-tab-become.mm-tab-active:hover svg {
+    color: #052e16 !important;
+    stroke: #052e16 !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   DEBUG - TEMPORARY RED BACKGROUND TO TEST IF CSS IS LOADED
+   ═══════════════════════════════════════════════════════════════ */
+.mm-tab-active,
+.mm-tab-item.mm-tab-active,
+button.mm-tab-active {
+    background: red !important;
+    background-color: red !important;
+    background-image: none !important;
 }

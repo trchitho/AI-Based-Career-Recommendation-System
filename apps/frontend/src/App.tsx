@@ -95,6 +95,22 @@ function App() {
               <AuthProvider>
                 <SocketProvider>
                 <Routes>
+                  {/* Temporary debug route for styling validation */}
+                  <Route path="/test-buttons" element={
+                    <div style={{ padding: '100px', background: '#f3f4f6', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <div className="mm-empty" style={{ background: '#fff', padding: '40px', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                        <h3>Chưa tìm thấy mentor phù hợp</h3>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '24px' }}>
+                          <button type="button" className="mm-empty-action-btn">
+                            Cập nhật CV
+                          </button>
+                          <button type="button" className="mm-empty-action-btn">
+                            Làm bài đánh giá
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  } />
                   {/* Public routes */}
                   <Route path="/" element={<RootRedirect />} />
                   <Route path="/home" element={<MainLayout><HomePage /></MainLayout>} />

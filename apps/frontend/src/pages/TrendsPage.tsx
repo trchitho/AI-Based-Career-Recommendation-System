@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { 
-  TrendingUp, 
-  Users, 
-  MapPin, 
-  Briefcase, 
-  ArrowUpRight, 
+import {
+  TrendingUp,
+  Users,
+  MapPin,
+  Briefcase,
+  ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
   Bell,
@@ -25,13 +25,13 @@ import {
   Grid3X3,
   List
 } from 'lucide-react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -43,6 +43,8 @@ import axios from 'axios';
 import { cn } from '../lib/utils';
 import useVietnamworksCategories, { useCategoryGroups, useCategorySearch } from '../hooks/useVietnamworksCategories';
 import { useTrendsSummary } from '../hooks/useTrends';
+import { useTheme } from '../contexts/ThemeContext';
+import './TrendsPage-dark.css';
 
 interface MarketMetrics {
   avg_salary: number;
@@ -176,23 +178,24 @@ const mockTrends = {
 };
 
 const TrendsPage: React.FC = () => {
+  const { theme } = useTheme();
   const [marketMetrics, setMarketMetrics] = useState<MarketMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [jobFilter, setJobFilter] = useState<string>('all');
   const [jobSearch, setJobSearch] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('trend');
-  
+
   // VietnamWorks categories state
   const [selectedCategoryGroup, setSelectedCategoryGroup] = useState<string>('');
   const [categorySearch, setCategorySearch] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  
+
   // Job expansion state for VietnamWorks categories
   const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
   const [categoryJobs, setCategoryJobs] = useState<any[]>([]);
   const [loadingCategoryJobs, setLoadingCategoryJobs] = useState(false);
   const [showAllCategoryJobs, setShowAllCategoryJobs] = useState(false);
-  
+
   // Trending jobs expansion state
   const [expandedTrendCategories, setExpandedTrendCategories] = useState<Record<string, boolean>>({});
 
@@ -202,7 +205,7 @@ const TrendsPage: React.FC = () => {
       [categoryName]: !prev[categoryName]
     }));
   };
-  
+
   // VietnamWorks categories hooks
   const { data: categoryGroups, isLoading: groupsLoading } = useCategoryGroups(true);
   const { data: categories, isLoading: categoriesLoading } = useVietnamworksCategories({
@@ -249,7 +252,7 @@ const TrendsPage: React.FC = () => {
     if (liveLogs.length === 0) {
       setLiveLogs(initialLogs);
     }
-    
+
     // Simulate incoming data
     const skills = ['Quản lý dự án', 'Digital Marketing', 'Phân tích tài chính', 'Python / AI', 'AutoCAD', 'Tư vấn khách hàng', 'Thiết kế UI/UX', 'SEO', 'Phân tích dữ liệu', 'Khám chữa bệnh', 'Giảng dạy', 'Kiểm toán', 'Bán hàng B2B', 'Tuyển dụng'];
     const companies = ['Vinmec', 'Vingroup', 'Shopee', 'Coteccons', 'Techcombank', 'VinAI', 'Unilever', 'Vietcombank', 'FPT'];
@@ -261,25 +264,25 @@ const TrendsPage: React.FC = () => {
         const newCompany = companies[Math.floor(Math.random() * companies.length)];
         const newRole = roles[Math.floor(Math.random() * roles.length)];
         const isHighMatch = Math.random() > 0.5;
-        
+
         const newLog: LogData = {
           id: Date.now(),
           skill: newSkill,
           time: 'Vừa xong',
           meta: `${newRole} tại ${newCompany}`,
-          score: isHighMatch ? 0.85 + Math.random() * 0.14 : 0.6 + Math.random() * 0.2, 
+          score: isHighMatch ? 0.85 + Math.random() * 0.14 : 0.6 + Math.random() * 0.2,
           color: isHighMatch ? 'text-emerald-600' : 'text-indigo-600',
           match: isHighMatch ? 0.85 + Math.random() * 0.14 : 0.6 + Math.random() * 0.2,
         };
-        
+
         // Update relative time strings for old logs
         const updatedPrevLogs = prevLogs.map(log => {
-           if (log.time === 'Vừa xong') return { ...log, time: '5 giây trước' };
-           if (log.time === '5 giây trước') return { ...log, time: '12 giây trước' };
-           if (log.time === '12 giây trước') return { ...log, time: '20 giây trước' };
-           if (log.time === '20 giây trước') return { ...log, time: '45 giây trước' };
-           if (log.time === '45 giây trước') return { ...log, time: '1 phút trước' };
-           return log;
+          if (log.time === 'Vừa xong') return { ...log, time: '5 giây trước' };
+          if (log.time === '5 giây trước') return { ...log, time: '12 giây trước' };
+          if (log.time === '12 giây trước') return { ...log, time: '20 giây trước' };
+          if (log.time === '20 giây trước') return { ...log, time: '45 giây trước' };
+          if (log.time === '45 giây trước') return { ...log, time: '1 phút trước' };
+          return log;
         });
 
         // Keep maximum of 5 items
@@ -310,8 +313,8 @@ const TrendsPage: React.FC = () => {
     .filter((job: TrendingJob) => {
       const matchesFilter = jobFilter === 'all' || job.category === jobFilter;
       const matchesSearch = job.title.toLowerCase().includes(jobSearch.toLowerCase()) ||
-                           job.company.toLowerCase().includes(jobSearch.toLowerCase()) ||
-                           job.skills.some(skill => skill.toLowerCase().includes(jobSearch.toLowerCase()));
+        job.company.toLowerCase().includes(jobSearch.toLowerCase()) ||
+        job.skills.some(skill => skill.toLowerCase().includes(jobSearch.toLowerCase()));
       return matchesFilter && matchesSearch;
     })
     .sort((a: TrendingJob, b: TrendingJob) => {
@@ -343,9 +346,9 @@ const TrendsPage: React.FC = () => {
 
   function StatCard({ title, value, change, trend, icon: Icon, color }: any) {
     const colors: any = {
-      indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-      emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-      purple: 'bg-purple-50 text-purple-600 border-purple-100',
+      indigo: 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800',
+      emerald: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800',
+      purple: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-800',
     };
 
     return (
@@ -356,14 +359,14 @@ const TrendsPage: React.FC = () => {
           </div>
           <div className={cn(
             "flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded border",
-            trend === 'up' ? "text-emerald-600 bg-emerald-50 border-emerald-100" : "text-rose-600 bg-rose-50 border-rose-100"
+            trend === 'up' ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-100 dark:border-emerald-800" : "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 border-rose-100 dark:border-rose-800"
           )}>
             {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
             {change}
           </div>
         </div>
-        <h4 className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{title}</h4>
-        <p className="text-2xl font-bold font-mono mt-1 text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tighter">{value}</p>
+        <h4 className="text-slate-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-widest">{title}</h4>
+        <p className="text-2xl font-bold font-mono mt-1 text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tighter">{value}</p>
       </div>
     );
   }
@@ -449,7 +452,7 @@ const TrendsPage: React.FC = () => {
             {job.urgency}
           </div>
         </div>
-        
+
         <div className="space-y-2">
           {job.description && (
             <p className="text-xs text-slate-600 mb-3 line-clamp-3">{job.description}</p>
@@ -491,7 +494,7 @@ const TrendsPage: React.FC = () => {
     setExpandedCategory(category.id);
     setLoadingCategoryJobs(true);
     setShowAllCategoryJobs(false);
-    
+
     // Simulate fetching jobs from VietnamWorks API
     setTimeout(() => {
       const generatedJobs = [];
@@ -499,8 +502,8 @@ const TrendsPage: React.FC = () => {
       const locations = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ'];
       const titles = ['Chuyên viên', 'Quản lý', 'Nhân viên', 'Trưởng phòng', 'Thực tập sinh', 'Kỹ sư', 'Chuyên gia', 'Giám đốc'];
       const jobCount = Math.floor(Math.random() * 11) + 10; // Generate 10 to 20 jobs
-      
-      for(let i=0; i<jobCount; i++) {
+
+      for (let i = 0; i < jobCount; i++) {
         generatedJobs.push({
           id: `job-${i}-${category.id}`,
           title: `${titles[i % titles.length]} ${category.vietnamese_name}`,
@@ -519,7 +522,7 @@ const TrendsPage: React.FC = () => {
   function CategoryCard({ category, isGrid }: { category: any, isGrid: boolean }) {
     const isExpanded = expandedCategory === category.id;
     const displayedJobs = showAllCategoryJobs ? categoryJobs : categoryJobs.slice(0, 3);
-    
+
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -530,7 +533,7 @@ const TrendsPage: React.FC = () => {
           isExpanded && !isGrid ? "shadow-md ring-1 ring-indigo-500" : ""
         )}
       >
-        <div 
+        <div
           className={cn("flex items-center justify-between", isGrid && !isExpanded ? "items-start" : "")}
           onClick={() => handleCategoryClick(category)}
         >
@@ -545,10 +548,10 @@ const TrendsPage: React.FC = () => {
             <ChevronRight className={cn("w-3 h-3 text-slate-400 transition-transform", isExpanded ? "rotate-90" : "")} />
           </div>
         </div>
-        
+
         {isExpanded && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }} 
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             className="mt-4 pt-4 border-t border-slate-200"
           >
@@ -569,9 +572,9 @@ const TrendsPage: React.FC = () => {
                 </span>
               </div>
             </div>
-            
+
             <h5 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-3">Công việc đang tuyển</h5>
-            
+
             {loadingCategoryJobs ? (
               <div className="flex justify-center py-6">
                 <RefreshCw className="w-5 h-5 text-indigo-500 animate-spin" />
@@ -598,18 +601,18 @@ const TrendsPage: React.FC = () => {
                     )}
                   </div>
                 ))}
-                
+
                 {!showAllCategoryJobs && categoryJobs.length > 3 && (
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); setShowAllCategoryJobs(true); }}
                     className="w-full mt-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
                   >
                     Xem thêm {categoryJobs.length - 3} công việc <ChevronDown className="w-3 h-3" />
                   </button>
                 )}
-                
+
                 {showAllCategoryJobs && (
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); setShowAllCategoryJobs(false); }}
                     className="w-full mt-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
                   >
@@ -626,13 +629,13 @@ const TrendsPage: React.FC = () => {
 
   if (isLoading) return <div className="animate-pulse space-y-8">
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {[1,2,3,4].map(i => <div key={i} className="h-32 bg-slate-100 rounded-3xl border border-slate-200"></div>)}
+      {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-slate-100 rounded-3xl border border-slate-200"></div>)}
     </div>
     <div className="h-96 bg-slate-50 rounded-3xl border border-slate-200"></div>
   </div>;
 
   return (
-    <div className="space-y-8 pb-12 bg-[#F8FAFC] min-h-screen pt-6 pl-8 pr-8">
+    <div className={cn("space-y-8 pb-12 bg-[#F8FAFC] dark:bg-gray-900 min-h-screen pt-6 pl-8 pr-8", theme === 'dark' && 'trends-page-dark')}>
       {/* CSS Styles */}
       <style>{`
         .bento-item {
@@ -666,10 +669,10 @@ const TrendsPage: React.FC = () => {
       `}</style>
       {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Phân tích thị trường</h1>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Phân tích thị trường</h1>
         <button
           onClick={() => refetch()}
-          className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all"
+          className="p-2 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700 rounded-lg transition-all"
         >
           <RefreshCw className="w-5 h-5" />
         </button>
@@ -677,35 +680,35 @@ const TrendsPage: React.FC = () => {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        <StatCard 
-          title="LƯƠNG TRUNG BÌNH" 
-          value={formatCurrency(marketMetrics?.avg_salary || 0)} 
-          change="+8.4%" 
-          trend="up" 
+        <StatCard
+          title="LƯƠNG TRUNG BÌNH"
+          value={formatCurrency(marketMetrics?.avg_salary || 0)}
+          change="+8.4%"
+          trend="up"
           icon={TrendingUp}
           color="indigo"
         />
-        <StatCard 
-          title="TIN TUYỂN DỤNG" 
-          value={(marketMetrics?.job_postings || 0).toLocaleString()} 
-          change="+12.1%" 
-          trend="up" 
+        <StatCard
+          title="TIN TUYỂN DỤNG"
+          value={(marketMetrics?.job_postings || 0).toLocaleString()}
+          change="+12.1%"
+          trend="up"
           icon={Briefcase}
           color="indigo"
         />
-        <StatCard 
-          title="SỨC KHỎE THỊ TRƯỜNG" 
-          value={marketMetrics?.market_health || 0} 
-          change="-2.5%" 
-          trend="down" 
+        <StatCard
+          title="SỨC KHỎE THỊ TRƯỜNG"
+          value={marketMetrics?.market_health || 0}
+          change="-2.5%"
+          trend="down"
           icon={RefreshCw}
           color="emerald"
         />
-        <StatCard 
-          title="TỐC ĐỘ TUYỂN DỤNG" 
-          value={`${marketMetrics?.recruitment_speed || 0}d`} 
-          change="+0.5d" 
-          trend="up" 
+        <StatCard
+          title="TỐC ĐỘ TUYỂN DỤNG"
+          value={`${marketMetrics?.recruitment_speed || 0}d`}
+          change="+0.5d"
+          trend="up"
           icon={MapPin}
           color="purple"
         />
@@ -786,28 +789,29 @@ const TrendsPage: React.FC = () => {
                   const isExpanded = expandedTrendCategories[categoryName];
                   const displayedJobs = isExpanded ? jobsInCategory : jobsInCategory.slice(0, 6);
                   const hasMore = jobsInCategory.length > 6;
-                  
+
                   return (
-                  <div key={categoryName} className="mb-8">
-                    <div className="flex items-center justify-between mb-4 border-b border-indigo-100 pb-2">
-                      <h4 className="text-md font-bold text-indigo-700">{categoryName} <span className="text-sm font-normal text-slate-500">({jobsInCategory.length})</span></h4>
-                      {hasMore && (
-                        <button 
-                          onClick={() => toggleTrendCategory(categoryName)}
-                          className="px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded hover:bg-indigo-100 transition-colors flex items-center gap-1"
-                        >
-                          {isExpanded ? 'Thu gọn' : `Xem thêm ${jobsInCategory.length - 6} việc`}
-                          {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                        </button>
-                      )}
+                    <div key={categoryName} className="mb-8">
+                      <div className="flex items-center justify-between mb-4 border-b border-indigo-100 pb-2">
+                        <h4 className="text-md font-bold text-indigo-700">{categoryName} <span className="text-sm font-normal text-slate-500">({jobsInCategory.length})</span></h4>
+                        {hasMore && (
+                          <button
+                            onClick={() => toggleTrendCategory(categoryName)}
+                            className="px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded hover:bg-indigo-100 transition-colors flex items-center gap-1"
+                          >
+                            {isExpanded ? 'Thu gọn' : `Xem thêm ${jobsInCategory.length - 6} việc`}
+                            {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {displayedJobs.map((job: TrendingJob) => (
+                          <TrendingJobCard key={job.id} job={job} />
+                        ))}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {displayedJobs.map((job: TrendingJob) => (
-                        <TrendingJobCard key={job.id} job={job} />
-                      ))}
-                    </div>
-                  </div>
-                )})
+                  )
+                })
               ) : (
                 <div className="col-span-full text-center py-12">
                   <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -840,14 +844,14 @@ const TrendsPage: React.FC = () => {
               <AreaChart data={safeTrends.salary_growth}>
                 <defs>
                   <linearGradient id="colorSal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-                <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10}} />
-                <Tooltip 
+                <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                <Tooltip
                   contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #E2E8F0', color: '#1E293B' }}
                 />
                 <Area type="monotone" dataKey="average" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorSal)" />
@@ -871,7 +875,7 @@ const TrendsPage: React.FC = () => {
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-slate-700">{skill.skill}</p>
                   <div className="w-full bg-slate-100 h-1.5 rounded-full mt-1 overflow-hidden">
-                    <motion.div 
+                    <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${(skill.trend_score / (safeTrends.trending_skills[0]?.trend_score || 1)) * 100}%` }}
                       className="bg-indigo-500 h-full rounded-full shadow-[0_0_10px_rgba(99,102,241,0.2)]"
@@ -899,8 +903,8 @@ const TrendsPage: React.FC = () => {
               <BarChart data={safeTrends.industry_demand} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
                 <XAxis type="number" hide />
-                <YAxis dataKey="industry" type="category" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 11}} width={120} />
-                <Tooltip cursor={{fill: 'rgba(0,0,0,0.02)'}} contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #E2E8F0' }} />
+                <YAxis dataKey="industry" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 11 }} width={120} />
+                <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #E2E8F0' }} />
                 <Bar dataKey="growth" fill="#6366f1" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -939,7 +943,7 @@ const TrendsPage: React.FC = () => {
           </div>
           <div className="space-y-4 overflow-y-auto pr-2">
             {liveLogs.map((log: LogData, index: number) => (
-              <motion.div 
+              <motion.div
                 key={log.id}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -952,7 +956,7 @@ const TrendsPage: React.FC = () => {
                 <p className="text-[10px] leading-relaxed text-slate-500">{log.meta}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex-1 h-[2px] bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-300" style={{width: `${(log.match || log.score || 0.85) * 100}%`}} />
+                    <div className="h-full bg-slate-300" style={{ width: `${(log.match || log.score || 0.85) * 100}%` }} />
                   </div>
                   <span className="text-[9px] text-slate-400 font-bold">Độ khớp: {(log.match || log.score || 0.85).toFixed(2)}</span>
                 </div>
