@@ -29,7 +29,7 @@ from urllib.parse import quote_plus
 from .constants import INDUSTRY_GROUPS, JOBS_PER_INDUSTRY, IndustryGroup
 from .normalizer import (
     clean_location, clean_text, clean_title,
-    extract_skills, normalize_employment_type,
+    extract_location_from_text, extract_skills, normalize_employment_type,
     normalize_experience, parse_date, parse_salary,
 )
 from .persistence import JobRecord
@@ -80,18 +80,18 @@ class BaseCrawler(ABC):
         page: Any,
         url: str,
         wait_until: str = "domcontentloaded",
-        timeout: int = 20000,
+        timeout: int = 30000,
     ) -> bool:
         """Navigate with retry logic."""
         for attempt in range(self.max_retries):
             try:
                 await page.goto(url, timeout=timeout, wait_until=wait_until)
-                await _random_delay(0.5, 1.5)
+                await _random_delay(1.0, 2.5)
                 return True
             except Exception as e:
                 self.logger.warning(f"[{self.source_site}] goto failed (attempt {attempt+1}): {e}")
                 if attempt < self.max_retries - 1:
-                    await asyncio.sleep(2 ** attempt)
+                    await asyncio.sleep(3 + 2 ** attempt)  # longer backoff
         return False
 
     def _make_record(
@@ -154,7 +154,7 @@ class BaseCrawler(ABC):
             source_site=self.source_site,
             title=title,
             company=clean_text(company, 300),
-            location=clean_location(location),
+            location=clean_location(location) or extract_location_from_text(description) or extract_location_from_text(requirements) or "",
             salary=clean_text(salary, 200),
             salary_min=sal_min,
             salary_max=sal_max,
@@ -396,7 +396,8 @@ class ITViecCrawler(BaseCrawler):
             skill_list = []
             for t in tag_els[:8]:
                 txt = (await t.inner_text()).strip()
-                if txt and len(txt) < 40:
+                # Bỏ "+1", "+2", etc. (badge "xem thêm") và text quá ngắn/dài
+                if txt and len(txt) < 40 and len(txt) > 1 and not txt.startswith("+"):
                     skill_list.append(txt)
             skills_text = " ".join(skill_list)
 
@@ -637,8 +638,8 @@ class CrawlerEngine:
                         "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
                     )
 
-                    # Crawl each industry in parallel tabs (max 5 concurrent)
-                    sem = asyncio.Semaphore(5)
+                    # Crawl each industry — max 2 concurrent to avoid being blocked
+                    sem = asyncio.Semaphore(2)
 
                     async def crawl_one(industry: IndustryGroup) -> None:
                         async with sem:

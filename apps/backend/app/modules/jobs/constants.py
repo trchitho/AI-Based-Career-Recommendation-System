@@ -191,4 +191,4 @@ INDUSTRY_BY_SLUG: Dict[str, IndustryGroup] = {g.slug: g for g in INDUSTRY_GROUPS
 INDUSTRY_BY_NAME: Dict[str, IndustryGroup] = {g.name: g for g in INDUSTRY_GROUPS}
 
 # How many jobs to crawl per industry per source
-JOBS_PER_INDUSTRY = 30
+JOBS_PER_INDUSTRY = 200

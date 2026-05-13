@@ -52,8 +52,8 @@ const useCrawledTrends = () => {
       const response = await axios.get('http://localhost:8000/api/jobs/analytics/trends-summary');
       return response.data;
     },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 30 * 1000,       // 30s — refresh nhanh khi có data mới
+    gcTime: 5 * 60 * 1000,
   });
 };
 
@@ -243,6 +243,7 @@ const TrendsPage: React.FC = () => {
 
   const handleRefreshJobs = () => {
     fetchTrendingJobs();
+    refetch(); // Cũng refresh biểu đồ thống kê
   };
 
   const toggleTrendCategory = (categoryName: string) => {
@@ -729,9 +730,15 @@ const TrendsPage: React.FC = () => {
               <p className="text-xs text-slate-500 mt-1">Lương trung bình (triệu VND) từ dữ liệu tuyển dụng thực tế</p>
             </div>
           </div>
-          <div className="h-72 sm:h-80 w-full">
+          <div style={{ height: Math.max(280, (safeTrends.salary_growth?.length || 5) * 40) }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={safeTrends.salary_growth} layout="vertical" margin={{ left: 10, right: 20 }}>
+                <defs>
+                  <linearGradient id="salaryGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#6366f1" />
+                    <stop offset="100%" stopColor="#8b5cf6" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} unit=" tr" />
                 <YAxis dataKey="period" type="category" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 11 }} width={130} />
@@ -739,7 +746,7 @@ const TrendsPage: React.FC = () => {
                   contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #E2E8F0' }}
                   formatter={(value: any) => [`${value} triệu VND`, 'Lương TB']}
                 />
-                <Bar dataKey="average" fill="#6366f1" radius={[0, 6, 6, 0]} />
+                <Bar dataKey="average" fill="url(#salaryGradient)" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -749,10 +756,10 @@ const TrendsPage: React.FC = () => {
         <div className="bento-item p-4 sm:p-8 flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Kỹ năng thịnh hành</h3>
-            <TrendingUp className="text-indigo-500 w-5 h-5" />
+            <TrendingUp className="text-emerald-500 w-5 h-5" />
           </div>
           <p className="text-[10px] text-slate-400 mb-4">Kỹ năng được yêu cầu nhiều nhất từ tất cả ngành nghề</p>
-          <div className="space-y-3 flex-1 overflow-y-auto max-h-[320px]">
+          <div className="space-y-3 flex-1">
             {safeTrends.trending_skills.slice(0, 10).map((skill: SkillData, i: number) => (
               <div key={skill.skill} className="flex items-center gap-4">
                 <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-[10px] font-bold text-slate-400 border border-slate-100">
@@ -763,13 +770,13 @@ const TrendsPage: React.FC = () => {
                   <div className="w-full bg-slate-100 h-1.5 rounded-full mt-1 overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${(skill.trend_score / (safeTrends.trending_skills[0]?.trend_score || 1)) * 100}%` }}
-                      className="bg-indigo-500 h-full rounded-full shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                      animate={{ width: `${Math.min(100, (skill.trend_score / (safeTrends.trending_skills[0]?.trend_score || 1)) * 100)}%` }}
+                      className="bg-emerald-500 h-full rounded-full shadow-[0_0_10px_rgba(16,185,129,0.2)]"
                     />
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-mono text-emerald-600">{skill.growth > 0 ? '+' : ''}{skill.growth.toFixed(1)}%</p>
+                  <p className="text-[10px] font-mono text-emerald-600 font-bold">{skill.trend_score} jobs</p>
                 </div>
               </div>
             ))}
@@ -781,16 +788,27 @@ const TrendsPage: React.FC = () => {
         {/* Nhu cầu theo ngành */}
         <div className="bento-item p-4 sm:p-8">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Nhu cầu theo ngành</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={safeTrends.industry_demand} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
-                <XAxis type="number" hide />
-                <YAxis dataKey="industry" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 11 }} width={120} />
-                <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #E2E8F0' }} />
-                <Bar dataKey="growth" fill="#6366f1" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-80 overflow-y-auto">
+            <div style={{ height: Math.max(300, (safeTrends.industry_demand?.length || 5) * 32) }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={safeTrends.industry_demand} layout="vertical" margin={{ left: 0, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
+                  <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                  <YAxis dataKey="industry" type="category" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 11 }} width={160} />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #E2E8F0' }}
+                    formatter={(value: any) => [`${value} tin tuyển dụng`, 'Nhu cầu']}
+                  />
+                  <Bar dataKey="growth" radius={[0, 4, 4, 0]}>
+                    {(safeTrends.industry_demand || []).map((_: any, index: number) => {
+                      const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#f97316', '#14b8a6', '#ef4444', '#3b82f6', '#84cc16', '#a855f7', '#f43f5e'];
+                      return <Cell key={index} fill={colors[index % colors.length]} />;
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
@@ -801,12 +819,12 @@ const TrendsPage: React.FC = () => {
             {(safeTrends.regional_demand || []).map((reg: any, index: number) => (
               <div key={`region-${index}-${reg.region || reg.city}`} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_5px_rgba(99,102,241,0.4)]" />
+                  <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_5px_rgba(249,115,22,0.4)]" />
                   <span className="text-sm font-medium text-slate-600">{reg.region || reg.city}</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-bold font-mono text-slate-900">{reg.posts || reg.count} tin</span>
-                  <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded border border-emerald-100 font-bold">
+                  <span className="text-[10px] bg-orange-50 text-orange-600 px-2 py-0.5 rounded border border-orange-100 font-bold">
                     {reg.change || '+0%'}
                   </span>
                 </div>

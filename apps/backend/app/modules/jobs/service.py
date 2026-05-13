@@ -179,24 +179,25 @@ def get_trending_jobs_by_industry(
     Jobs with passed application_deadline are excluded (is_active=False).
     If limit_per_industry=0, return ALL jobs (no limit).
     """
+    # Single query — much faster than N queries per industry
+    query = db.query(CrawledJob)
+    if active_only:
+        query = query.filter(CrawledJob.is_active == True)
+
+    query = query.order_by(CrawledJob.industry_group_slug, CrawledJob.first_seen_at.desc())
+    all_jobs = query.all()
+
+    # Group and optionally limit per industry
     results = []
+    industry_counts: Dict[str, int] = {}
 
-    for group in INDUSTRY_GROUPS:
-        query = db.query(CrawledJob).filter(
-            CrawledJob.industry_group_slug == group.slug,
-        )
-        if active_only:
-            query = query.filter(CrawledJob.is_active == True)
-
-        query = query.order_by(CrawledJob.first_seen_at.desc())
-
-        if limit_per_industry > 0:
-            query = query.limit(limit_per_industry)
-
-        jobs = query.all()
-
-        for job in jobs:
-            results.append(_job_to_dict(job))
+    for job in all_jobs:
+        slug = job.industry_group_slug
+        count = industry_counts.get(slug, 0)
+        if limit_per_industry > 0 and count >= limit_per_industry:
+            continue
+        industry_counts[slug] = count + 1
+        results.append(_job_to_dict(job))
 
     return results
 
@@ -312,21 +313,29 @@ def get_trends_summary_from_crawled(db: Session) -> Dict[str, Any]:
             CrawledJob.salary_min > 0,
         )
         .group_by(CrawledJob.industry_group_slug)
-        .having(func.count(CrawledJob.id) >= 2)  # Chỉ hiện ngành có ≥2 jobs có salary
         .order_by(func.avg(CrawledJob.salary_max).desc())
-        .limit(10)
-        .all()
+        .all()  # Lấy tất cả ngành có salary
     )
 
     if salary_rows:
-        salary_trends = []
-        for i, row in enumerate(salary_rows):
+        # Tạo map từ kết quả query
+        salary_map = {}
+        for row in salary_rows:
             group = INDUSTRY_BY_SLUG.get(row.industry_group_slug)
             avg = round((row.avg_min + (row.avg_max or row.avg_min)) / 2, 0)
-            salary_trends.append({
+            salary_map[row.industry_group_slug] = {
                 "period": group.name_vi if group else row.industry_group_slug,
                 "average": int(avg),
-            })
+            }
+
+        # Chỉ hiện ngành CÓ salary thật — bỏ ngành 0
+        salary_trends = []
+        for g in INDUSTRY_GROUPS:
+            if g.slug in salary_map:
+                salary_trends.append(salary_map[g.slug])
+
+        # Sort theo lương giảm dần
+        salary_trends.sort(key=lambda x: x["average"], reverse=True)
     else:
         # Fallback: dùng job count per industry làm proxy cho salary
         counts = (
@@ -363,23 +372,23 @@ def get_trends_summary_from_crawled(db: Session) -> Dict[str, Any]:
         # Lấy skills từ DB
         if skills_list:
             for s in skills_list:
-                if s and len(s) > 1:
+                # Bỏ "+1", "+2" và skills quá ngắn
+                if s and len(s) > 1 and not s.startswith("+"):
                     skill_counts[s] = skill_counts.get(s, 0) + 1
         # Nếu job không có skills, extract từ title
         if not skills_list or len(skills_list) == 0:
             from .normalizer import extract_skills as _extract
             title_skills = _extract(title or "")
             for s in title_skills:
-                if s and len(s) > 1:
+                if s and len(s) > 1 and not s.startswith("+"):
                     skill_counts[s] = skill_counts.get(s, 0) + 1
 
     sorted_skills = sorted(skill_counts.items(), key=lambda x: x[1], reverse=True)[:15]
-    max_count = sorted_skills[0][1] if sorted_skills else 1
     top_trending = [
         {
             "skill": s,
-            "growth": round(random.uniform(5, 20), 1),
-            "trend_score": int((c / max_count) * 100),
+            "growth": c,          # số jobs yêu cầu kỹ năng này
+            "trend_score": c,     # dùng làm giá trị hiển thị
         }
         for s, c in sorted_skills
     ]
@@ -438,76 +447,49 @@ def get_trends_summary_from_crawled(db: Session) -> Dict[str, Any]:
         "speed_change": 0.5,
     }
 
-    # ── Regional distribution (normalize + group locations) ──
+    # ── Regional distribution ──
+    # Chỉ dùng jobs có location thật (không trống, không "Việt Nam")
+    from .normalizer import extract_location_from_text as _extract_loc
+
     loc_rows = (
-        db.query(CrawledJob.location)
-        .filter(CrawledJob.is_active == True, CrawledJob.location != None)
+        db.query(CrawledJob.location, CrawledJob.description, CrawledJob.title)
+        .filter(CrawledJob.is_active == True)
         .all()
     )
 
-    # Normalize location names → canonical city
-    LOCATION_MAP = {
-        "hồ chí minh": "Hồ Chí Minh",
-        "tp. hồ chí minh": "Hồ Chí Minh",
-        "tp.hcm": "Hồ Chí Minh",
-        "tp hcm": "Hồ Chí Minh",
-        "hcm": "Hồ Chí Minh",
-        "ho chi minh": "Hồ Chí Minh",
-        "sài gòn": "Hồ Chí Minh",
-        "saigon": "Hồ Chí Minh",
-        "quận": "Hồ Chí Minh",
-        "hà nội": "Hà Nội",
-        "ha noi": "Hà Nội",
-        "hanoi": "Hà Nội",
-        "đà nẵng": "Đà Nẵng",
-        "da nang": "Đà Nẵng",
-        "đà nẵng": "Đà Nẵng",
-        "cần thơ": "Cần Thơ",
-        "can tho": "Cần Thơ",
-        "hải phòng": "Hải Phòng",
-        "hai phong": "Hải Phòng",
-        "bình dương": "Bình Dương",
-        "binh duong": "Bình Dương",
-        "đồng nai": "Đồng Nai",
-        "dong nai": "Đồng Nai",
-        "bắc ninh": "Bắc Ninh",
-        "bac ninh": "Bắc Ninh",
-        "hưng yên": "Hưng Yên",
-        "hung yen": "Hưng Yên",
-        "việt nam": "Toàn quốc",
-        "remote": "Remote",
-        "toàn quốc": "Toàn quốc",
-    }
-
-    def _normalize_location(raw: str) -> str:
-        if not raw:
-            return "Khác"
-        raw_lower = raw.lower().strip()
-        # Direct match
-        for key, canonical in LOCATION_MAP.items():
-            if key in raw_lower:
-                return canonical
-        # If contains "/" → multiple cities, take first
-        if "/" in raw:
-            first = raw.split("/")[0].strip()
-            return _normalize_location(first)
-        return raw.strip()[:20]
-
     region_counts: Dict[str, int] = {}
-    for (loc,) in loc_rows:
-        city = _normalize_location(loc or "")
-        region_counts[city] = region_counts.get(city, 0) + 1
+    for loc, desc, title in loc_rows:
+        city = ""
+        # 1. Thử từ location field
+        if loc:
+            city = _extract_loc(loc)
+        # 2. Thử từ description
+        if not city and desc:
+            city = _extract_loc(desc)
+        # 3. Thử từ title
+        if not city and title:
+            city = _extract_loc(title)
+
+        if city:
+            region_counts[city] = region_counts.get(city, 0) + 1
 
     sorted_regions = sorted(region_counts.items(), key=lambda x: x[1], reverse=True)[:8]
-    total_jobs_for_pct = sum(c for _, c in sorted_regions) or 1
-    regional_distribution = [
-        {
-            "region": city,
-            "posts": count,
-            "change": f"+{round(count / total_jobs_for_pct * 100)}%",
-        }
-        for city, count in sorted_regions
-    ]
+
+    if sorted_regions:
+        total_jobs_for_pct = sum(c for _, c in sorted_regions) or 1
+        regional_distribution = [
+            {
+                "region": city,
+                "posts": count,
+                "change": f"{round(count / total_jobs_for_pct * 100)}%",
+            }
+            for city, count in sorted_regions
+        ]
+    else:
+        # Không có data location → hiện thông báo
+        regional_distribution = [
+            {"region": "Chưa có dữ liệu địa điểm", "posts": 0, "change": "—"},
+        ]
 
     return {
         "market_metrics": market_metrics,
@@ -557,24 +539,37 @@ def _job_to_dict(job: CrawledJob) -> Dict[str, Any]:
     trend_val = "up" if job.first_seen_at and (datetime.now(timezone.utc) - job.first_seen_at.replace(tzinfo=timezone.utc if job.first_seen_at.tzinfo is None else job.first_seen_at.tzinfo)).days < 3 else random.choice(["up", "stable"])
     trend_pct = random.randint(5, 20) if trend_val == "up" else 0
 
-    # Generate description if empty
-    description = job.description or ""
-    if not description:
+    # Luôn tạo description mới — không dùng description cũ kiểu "Vị trí tại..."
+    raw_desc = job.description or ""
+    # Nếu description là tự tạo cũ hoặc quá ngắn → tạo mới
+    if not raw_desc or "Vị trí tại" in raw_desc or "Xem chi tiết" in raw_desc or len(raw_desc) < 50:
         parts = []
         if job.company:
-            parts.append(f"Vị trí tại {job.company}.")
-        if job.location and job.location != "Việt Nam":
-            parts.append(f"Địa điểm: {job.location}.")
+            parts.append(f"{job.company} đang tuyển {job.title}.")
         if job.salary and "thỏa thuận" not in (job.salary or "").lower():
             parts.append(f"Mức lương: {job.salary}.")
         if job.experience_level:
-            parts.append(f"Kinh nghiệm: {job.experience_level}.")
+            parts.append(f"Yêu cầu kinh nghiệm: {job.experience_level}.")
         if skills:
-            parts.append(f"Kỹ năng: {', '.join(skills[:5])}.")
+            parts.append(f"Kỹ năng yêu cầu: {', '.join(skills[:5])}.")
         if group:
-            parts.append(f"Ngành: {group.name_vi}.")
-        parts.append("Xem chi tiết và ứng tuyển trực tiếp trên trang tuyển dụng.")
-        description = " ".join(parts)
+            parts.append(f"Lĩnh vực: {group.name_vi}.")
+        if job.source_site:
+            source_name = {"vietnamworks": "VietnamWorks", "itviec": "ITViec", "topcv": "TopCV", "careerviet": "CareerViet"}.get(job.source_site, job.source_site)
+            parts.append(f"Ứng tuyển trực tiếp trên {source_name}.")
+        description = " ".join(parts) if parts else "Xem chi tiết trên trang tuyển dụng."
+    else:
+        # Description thật từ crawler — giữ nguyên, chỉ clean
+        description = raw_desc.replace("Địa điểm: Việt Nam.", "").replace("Địa điểm: .", "").strip()
+
+    # Cải thiện location hiển thị — bỏ "Việt Nam" chung chung
+    display_location = job.location or ""
+    if display_location.lower().strip() in ("việt nam", "vietnam", "viet nam", ""):
+        # Thử extract từ description
+        from .normalizer import extract_location_from_text
+        display_location = extract_location_from_text(job.description or "")
+    if not display_location:
+        display_location = ""
 
     return {
         "id": str(job.id),
@@ -584,7 +579,7 @@ def _job_to_dict(job: CrawledJob) -> Dict[str, Any]:
         "source_site": job.source_site,
         "title": job.title or "",
         "company": job.company or "",
-        "location": job.location or "Việt Nam",
+        "location": display_location or "Xem chi tiết",
         "salary": job.salary or "Thỏa thuận",
         "salary_min": job.salary_min,
         "salary_max": job.salary_max,

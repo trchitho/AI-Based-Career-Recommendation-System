@@ -76,18 +76,6 @@ def parse_salary(raw: str) -> Tuple[Optional[float], Optional[float]]:
     if lo is None and hi is None:
         return None, None
 
-    # Sanity check: nếu > 60 triệu → có thể là salary năm, chia 12
-    if lo and lo > 60:
-        lo = round(lo / 12, 1)
-    if hi and hi > 60:
-        hi = round(hi / 12, 1)
-
-    # Nếu vẫn > 50 triệu/tháng → bỏ (outlier cho thị trường VN)
-    if lo and lo > 50:
-        return None, None
-    if hi and hi > 50:
-        hi = 50.0
-
     return lo, hi
 
 
@@ -292,3 +280,35 @@ def clean_location(location: str) -> str:
     # Take first line only
     location = location.split("\n")[0].split("|")[0].strip()
     return clean_text(location, 200)
+
+
+# ── Location extraction from description ──────────────────────────────────────
+
+_CITY_KEYWORDS = [
+    ("Hồ Chí Minh", ["hồ chí minh", "tp.hcm", "tp hcm", "hcm", "sài gòn", "saigon", "ho chi minh", "quận 1", "quận 2", "quận 3", "quận 7", "quận 9", "thủ đức", "bình thạnh", "tân bình", "phú nhuận", "gò vấp"]),
+    ("Hà Nội", ["hà nội", "ha noi", "hanoi", "cầu giấy", "đống đa", "ba đình", "hoàn kiếm", "thanh xuân", "hai bà trưng", "long biên"]),
+    ("Đà Nẵng", ["đà nẵng", "da nang", "danang"]),
+    ("Bình Dương", ["bình dương", "binh duong", "thủ dầu một", "dĩ an", "thuận an"]),
+    ("Đồng Nai", ["đồng nai", "dong nai", "biên hòa", "long thành"]),
+    ("Hải Phòng", ["hải phòng", "hai phong"]),
+    ("Cần Thơ", ["cần thơ", "can tho"]),
+    ("Bắc Ninh", ["bắc ninh", "bac ninh"]),
+    ("Hưng Yên", ["hưng yên", "hung yen"]),
+    ("Long An", ["long an"]),
+    ("Bà Rịa - Vũng Tàu", ["vũng tàu", "bà rịa", "vung tau"]),
+]
+
+
+def extract_location_from_text(text: str) -> str:
+    """
+    Extract city/province from description text.
+    Returns canonical city name or empty string.
+    """
+    if not text:
+        return ""
+    text_lower = text.lower()
+    for city, keywords in _CITY_KEYWORDS:
+        for kw in keywords:
+            if kw in text_lower:
+                return city
+    return ""
