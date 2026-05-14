@@ -10,8 +10,8 @@ from .models import Career
 def list_careers(session: Session, q: str | None, category_id: int | None, limit: int, offset: int):
     # Select only portable columns to avoid schema drift
     # Ưu tiên tiếng Việt
-    title_expr = func.coalesce(Career.title_vi, Career.title_en)
-    desc_expr = func.coalesce(Career.short_desc_vi, Career.short_desc_en)
+    title_expr = func.coalesce(Career.title_vn, Career.title_en)
+    desc_expr = func.coalesce(Career.short_desc_vn, Career.short_desc_en)
     stmt = select(
         Career.id,
         Career.slug,
@@ -57,9 +57,9 @@ def get_career(session: Session, id_or_slug: str):
         cols = (
             Career.id,
             Career.slug,
-            Career.title_vi,
+            Career.title_vn,
             Career.title_en,
-            Career.short_desc_vi,
+            Career.short_desc_vn,
             Career.short_desc_en,
             Career.created_at,
             Career.updated_at,
@@ -106,23 +106,23 @@ def get_career(session: Session, id_or_slug: str):
             (
                 cid,
                 slug,
-                title_vi,
+                title_vn,
                 title_en,
-                short_desc_vi,
+                short_desc_vn,
                 short_desc_en,
                 created_at,
                 updated_at,
                 onet_code,
             ) = row
             # Ưu tiên tiếng Việt
-            title = title_vi or title_en or ""
-            sdesc = short_desc_vi or short_desc_en or ""
+            title = title_vn or title_en or ""
+            sdesc = short_desc_vn or short_desc_en or ""
             return {
                 "id": cid,
                 "slug": slug,
                 "title": title,
                 "title_en": title_en,
-                "title_vi": title_vi,
+                "title_vn": title_vn,
                 "short_desc": sdesc,
                 "description": sdesc,
                 "onet_code": onet_code,

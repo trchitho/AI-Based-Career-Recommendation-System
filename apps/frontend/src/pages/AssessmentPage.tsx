@@ -19,6 +19,8 @@ import { useUsageTracking } from '../hooks/useUsageTracking';
 import { checkAssessmentLimit } from '../services/subscriptionService';
 import { getPaymentHistory, PaymentHistory } from '../services/paymentService';
 import { getAccessToken } from '../utils/auth';
+import { useSound } from '../hooks/useSound';
+import { ASSETS } from '../config/assets';
 
 
 type QuizMode = 'standard' | 'game' | 'legacy';
@@ -59,6 +61,9 @@ const AssessmentPage = () => {
 
   // Prompt essay lấy từ DB
   const [essayPrompt, setEssayPrompt] = useState<EssayPrompt | null>(null);
+
+  // Sound effects - chỉ phát khi click vào nút Interactive Story
+  const submitSound = useSound(ASSETS.sounds.success, { volume: 0.5, loop: true });
 
   // Detect user plan from payment history (same logic as PaymentPage)
   const detectUserPlan = async () => {
@@ -271,9 +276,12 @@ const AssessmentPage = () => {
 
   const handleTestComplete = async (responses: QuestionResponse[]) => {
     try {
+      // Show processing immediately for better UX
+      setStep('processing');
       setLoading(true);
       setError(null);
 
+      // Submit assessment in background
       const result = await assessmentService.submitAssessment({
         testTypes: ['RIASEC', 'BIG_FIVE'],
         responses,
@@ -296,6 +304,7 @@ const AssessmentPage = () => {
       localStorage.removeItem(SAVED_SESSION_KEY);
       localStorage.removeItem(`assessment_seed_${quizMode}`);
 
+      // Move to essay step after processing
       setStep('essay');
     } catch (err: any) {
       console.error('Error submitting assessment:', err);
@@ -307,6 +316,8 @@ const AssessmentPage = () => {
         setError(null);
       } else {
         setError('Failed to submit assessment. Please try again.');
+        // Revert to test step on error
+        setStep('test');
       }
     } finally {
       setLoading(false);
@@ -363,10 +374,13 @@ const AssessmentPage = () => {
       await assessmentService.submitEssay(payload);
 
       // Sau essay → chuyển thẳng sang processing (bỏ voice step)
+      // Nhạc vẫn tiếp tục phát từ lúc click nút Interactive Story
       setStep('processing');
     } catch (err) {
       console.error('Error submitting essay:', err);
       setError('Failed to submit essay. Redirecting to results...');
+      // Dừng nhạc khi có lỗi
+      submitSound.stop();
       setTimeout(() => {
         navigate(`/results/${assessmentId}`);
       }, 2000);
@@ -383,6 +397,24 @@ const AssessmentPage = () => {
     if (!assessmentId) { setStep('intro'); return; }
     setStep('processing');
   };
+
+  // Auto-redirect to results after processing step
+  useEffect(() => {
+    if (step === 'processing' && assessmentId) {
+      // Wait 1.5 seconds to show processing animation, then redirect
+      const timer = setTimeout(() => {
+        // Dừng nhạc trước khi chuyển trang
+        submitSound.stop();
+        navigate(`/results/${assessmentId}`);
+      }, 1500);
+
+      return () => {
+        clearTimeout(timer);
+        // Cleanup: dừng nhạc khi component unmount
+        submitSound.stop();
+      };
+    }
+  }, [step, assessmentId, navigate, submitSound]);
 
   // ==========================================
   // 2. PREMIUM DESIGN UI - SINGLE CARD LAYOUT
@@ -557,9 +589,12 @@ const AssessmentPage = () => {
                     </div>
                   </button>
 
-                  {/* Interactive Story */}
+                  {/* Interactive Story - Phát nhạc khi click */}
                   <button
-                    onClick={handleStartAssessment}
+                    onClick={() => {
+                      submitSound.play(); // Phát nhạc khi click
+                      handleStartAssessment();
+                    }}
                     disabled={limitExceeded && getAssessmentLimit() > 0 && detectedPlan === 'Free'}
                     className="btn-interactive group relative flex flex-col items-center justify-center px-6 py-6 rounded-2xl font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden"
                   >

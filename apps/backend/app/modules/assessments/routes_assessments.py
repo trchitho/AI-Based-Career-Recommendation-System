@@ -160,12 +160,11 @@ class EssaySubmitIn(BaseModel):
 class EssayPromptOut(BaseModel):
     id: int
     title_en: str
-    title_vi: str
-    prompt_text_en: str
-    prompt_text_vi: str
+    title_vn: str
+    prompt_text_vn: str
     # Convenience fields: trả về đúng lang FE yêu cầu
-    title: str        # = title_vi hoặc title_en tuỳ lang param
-    prompt_text: str  # = prompt_text_vi hoặc prompt_text_en tuỳ lang param
+    title: str        # = title_vn hoặc title_en tuỳ lang param
+    prompt_text: str  # = prompt_text_vn hoặc prompt_text_en tuỳ lang param
     lang: str
 
 
@@ -294,21 +293,34 @@ def api_submit_assessment(
 
         traits = fuse_user_traits(db, user_id=user_id) or {}
 
-        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING ────
-        try:
-            from app.modules.mentor_matching.service import MentorMatchingService
-            from app.modules.graph.neo4j_client import get_driver as _get_neo4j
-            
-            neo4j_driver = _get_neo4j()
-            mentor_service = MentorMatchingService(db, neo4j_driver)
-            
-            # Try to create/update mentee profile from assessment data
-            mentee_profile = mentor_service.create_mentee_profile_from_user_data(user_id)
-            print(f"[Mentor Matching] Auto-created/updated mentee profile for user {user_id} after assessment")
-            
-        except Exception as mentor_err:
-            # Don't fail the whole request if mentor profile creation fails
-            print(f"[Mentor Matching] Failed to auto-create mentee profile: {mentor_err}")
+        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING (ASYNC) ────
+        # Run in background thread to not block response
+        import threading
+        def create_mentee_profile_async():
+            try:
+                from app.modules.mentor_matching.service import MentorMatchingService
+                from app.modules.graph.neo4j_client import get_driver as _get_neo4j
+                from app.core.db import SessionLocal
+                
+                # Create new DB session for background thread
+                bg_db = SessionLocal()
+                try:
+                    neo4j_driver = _get_neo4j()
+                    mentor_service = MentorMatchingService(bg_db, neo4j_driver)
+                    
+                    # Try to create/update mentee profile from assessment data
+                    mentee_profile = mentor_service.create_mentee_profile_from_user_data(user_id)
+                    print(f"[Mentor Matching] ✓ Auto-created/updated mentee profile for user {user_id} after assessment")
+                finally:
+                    bg_db.close()
+                    
+            except Exception as mentor_err:
+                # Don't fail the whole request if mentor profile creation fails
+                print(f"[Mentor Matching] ✗ Failed to auto-create mentee profile: {mentor_err}")
+        
+        # Start background thread
+        thread = threading.Thread(target=create_mentee_profile_async, daemon=True)
+        thread.start()
 
         return {
             "assessmentId": str(assessment_id),
@@ -418,9 +430,8 @@ def api_get_essay_prompt(
     return EssayPromptOut(
         id=int(prompt.id),
         title_en=prompt.title_en,
-        title_vi=prompt.title_vi,
-        prompt_text_en=prompt.prompt_text_en,
-        prompt_text_vi=prompt.prompt_text_vi,
+        title_vn=prompt.title_vn,
+        prompt_text_vn=prompt.prompt_text_vn,
         title=prompt.get_title(effective_lang),
         prompt_text=prompt.get_prompt_text(effective_lang),
         lang=effective_lang,

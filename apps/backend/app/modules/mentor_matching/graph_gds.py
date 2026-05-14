@@ -226,26 +226,37 @@ def compute_mentor_pagerank(driver, top_k: int = 30) -> Dict[int, float]:
     LIMIT {top_k}
     """
 
+    import threading as _threading
+    _pagerank_lock = getattr(compute_mentor_pagerank, "_lock", None)
+    if _pagerank_lock is None:
+        compute_mentor_pagerank._lock = _threading.Lock()
+        _pagerank_lock = compute_mentor_pagerank._lock
+
     result: Dict[int, float] = {}
-    try:
-        # Drop stale graph if exists
-        _run(driver, drop_q)
-        _run(driver, setup)
-        rows = _run(driver, pagerank_q)
-        if rows:
-            max_score = max(r["score"] for r in rows) or 1.0
-            for r in rows:
-                uid = r.get("user_id")
-                if uid is not None:
-                    result[int(uid)] = round(r["score"] / max_score, 4)
-        _run(driver, drop_q)
-        logger.info("[gds] PageRank computed for %d mentors", len(result))
-    except Exception as e:
-        logger.warning("[gds] PageRank failed: %s", e)
+    with _pagerank_lock:
         try:
-            _run(driver, drop_q)
-        except Exception:
-            pass
+            # Drop stale graph (false = don't fail if not found)
+            try: _run(driver, drop_q)
+            except Exception: pass
+            # Create graph (ignore "already loaded" from concurrent requests)
+            try: _run(driver, setup)
+            except Exception as _se:
+                if "already loaded" not in str(_se):
+                    raise
+            rows = _run(driver, pagerank_q)
+            if rows:
+                max_score = max(r["score"] for r in rows) or 1.0
+                for r in rows:
+                    uid = r.get("user_id")
+                    if uid is not None:
+                        result[int(uid)] = round(r["score"] / max_score, 4)
+            try: _run(driver, drop_q)
+            except Exception: pass
+            logger.info("[gds] PageRank computed for %d mentors", len(result))
+        except Exception as e:
+            logger.warning("[gds] PageRank failed: %s", e)
+            try: _run(driver, drop_q)
+            except Exception: pass
     return result
 
 

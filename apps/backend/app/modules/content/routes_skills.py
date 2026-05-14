@@ -28,7 +28,7 @@ class SkillResponse(BaseModel):
     onet_code: str
     ksa_type: str
     name: str
-    name_vi: Optional[str] = None
+    name_vn: Optional[str] = None
     category: Optional[str] = None
     level: Optional[float] = None
     importance: Optional[float] = None
@@ -48,7 +48,7 @@ class SkillCreateRequest(BaseModel):
     onet_code: str
     ksa_type: str
     name: str          # frontend gửi "name" → lưu vào name_en
-    name_vi: Optional[str] = None
+    name_vn: Optional[str] = None
     category: Optional[str] = None
     level: Optional[float] = None
     importance: Optional[float] = None
@@ -59,7 +59,7 @@ class SkillUpdateRequest(BaseModel):
     onet_code: Optional[str] = None
     ksa_type: Optional[str] = None
     name: Optional[str] = None
-    name_vi: Optional[str] = None
+    name_vn: Optional[str] = None
     category: Optional[str] = None
     level: Optional[float] = None
     importance: Optional[float] = None
@@ -72,7 +72,7 @@ def _to_response(item: CareerKSA) -> SkillResponse:
         onet_code=item.onet_code,
         ksa_type=item.ksa_type,
         name=item.name_en or "",
-        name_vi=item.name_vn or "",
+        name_vn=item.name_vn or "",
         category=item.category,
         level=float(item.level) if item.level else None,
         importance=float(item.importance) if item.importance else None,
@@ -122,7 +122,7 @@ def get_skills(
         total = query.count()
 
         # sort_by từ frontend có thể là "name" → map sang "name_en"
-        col_map = {"name": "name_en", "name_vi": "name_vn"}
+        col_map = {"name": "name_en", "name_vn": "name_vn"}
         actual_sort = col_map.get(sort_by, sort_by)
         sort_col = getattr(CareerKSA, actual_sort, CareerKSA.name_en)
         query = query.order_by(sort_col.desc() if sort_order == "desc" else sort_col.asc())
@@ -159,7 +159,7 @@ def create_skill(skill_data: SkillCreateRequest, db: Session = Depends(_db), _: 
             onet_code=skill_data.onet_code,
             ksa_type=skill_data.ksa_type,
             name_en=skill_data.name,          # frontend field "name" → DB column name_en
-            name_vn=skill_data.name_vi,
+            name_vn=skill_data.name_vn,
             category=skill_data.category,
             level=skill_data.level,
             importance=skill_data.importance,
@@ -185,8 +185,8 @@ def update_skill(skill_id: int, skill_data: SkillUpdateRequest, db: Session = De
         # map "name" → "name_en", "name_vi" → "name_vn"
         if "name" in update_data:
             update_data["name_en"] = update_data.pop("name")
-        if "name_vi" in update_data:
-            update_data["name_vn"] = update_data.pop("name_vi")
+        if "name_vn" in update_data:
+            update_data["name_vn"] = update_data.pop("name_vn")
         for field, value in update_data.items():
             setattr(skill, field, value)
         db.commit()

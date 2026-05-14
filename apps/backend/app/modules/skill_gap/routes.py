@@ -110,18 +110,32 @@ async def test_analyze_cv_skill_gap(
             career_id=career_id
         )
         
-        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING ────
-        try:
-            from app.modules.mentor_matching.service import MentorMatchingService
-            mentor_service = MentorMatchingService(db, neo4j_driver)
-            
-            # Try to create/update mentee profile from CV data
-            mentee_profile = mentor_service.create_mentee_profile_from_user_data(test_user_id)
-            print(f"[Mentor Matching] Auto-created/updated mentee profile for test user {test_user_id}")
-            
-        except Exception as mentor_err:
-            # Don't fail the whole request if mentor profile creation fails
-            print(f"[Mentor Matching] Failed to auto-create mentee profile: {mentor_err}")
+        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING (ASYNC) ────
+        # Run in background thread to not block response
+        import threading
+        def create_mentee_profile_async():
+            try:
+                from app.modules.mentor_matching.service import MentorMatchingService
+                from app.core.db import SessionLocal
+                
+                # Create new DB session for background thread
+                bg_db = SessionLocal()
+                try:
+                    mentor_service = MentorMatchingService(bg_db, neo4j_driver)
+                    
+                    # Try to create/update mentee profile from CV data
+                    mentee_profile = mentor_service.create_mentee_profile_from_user_data(test_user_id)
+                    print(f"[Mentor Matching] ✓ Auto-created/updated mentee profile for test user {test_user_id}")
+                finally:
+                    bg_db.close()
+                    
+            except Exception as mentor_err:
+                # Don't fail the whole request if mentor profile creation fails
+                print(f"[Mentor Matching] ✗ Failed to auto-create mentee profile: {mentor_err}")
+        
+        # Start background thread
+        thread = threading.Thread(target=create_mentee_profile_async, daemon=True)
+        thread.start()
         
         return {
             'success': True,
@@ -343,18 +357,32 @@ async def analyze_cv_skill_gap(
             career_id=career_id
         )
         
-        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING ────
-        try:
-            from app.modules.mentor_matching.service import MentorMatchingService
-            mentor_service = MentorMatchingService(db, neo4j_driver)
-            
-            # Try to create/update mentee profile from CV data
-            mentee_profile = mentor_service.create_mentee_profile_from_user_data(user_id)
-            print(f"[Mentor Matching] Auto-created/updated mentee profile for user {user_id}")
-            
-        except Exception as mentor_err:
-            # Don't fail the whole request if mentor profile creation fails
-            print(f"[Mentor Matching] Failed to auto-create mentee profile: {mentor_err}")
+        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING (ASYNC) ────
+        # Run in background thread to not block response
+        import threading
+        def create_mentee_profile_async():
+            try:
+                from app.modules.mentor_matching.service import MentorMatchingService
+                from app.core.db import SessionLocal
+                
+                # Create new DB session for background thread
+                bg_db = SessionLocal()
+                try:
+                    mentor_service = MentorMatchingService(bg_db, neo4j_driver)
+                    
+                    # Try to create/update mentee profile from CV data
+                    mentee_profile = mentor_service.create_mentee_profile_from_user_data(user_id)
+                    print(f"[Mentor Matching] ✓ Auto-created/updated mentee profile for user {user_id}")
+                finally:
+                    bg_db.close()
+                    
+            except Exception as mentor_err:
+                # Don't fail the whole request if mentor profile creation fails
+                print(f"[Mentor Matching] ✗ Failed to auto-create mentee profile: {mentor_err}")
+        
+        # Start background thread
+        thread = threading.Thread(target=create_mentee_profile_async, daemon=True)
+        thread.start()
         
         return {
             'success': True,

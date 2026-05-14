@@ -333,7 +333,7 @@ async def scrape_group(slug: str, max_pages: int = 2) -> List[CompanyResult]:
     async with httpx.AsyncClient(
         verify=False,
         timeout=_TIMEOUT,
-        pool_limits=httpx.PoolLimits(max_connections=5, max_keepalive_connections=3),
+        limits=httpx.Limits(max_connections=5, max_keepalive_connections=3),
     ) as client:
         for kw in keywords[:2]:    # only first 2 keywords per group to stay polite
             for page in range(1, max_pages + 1):

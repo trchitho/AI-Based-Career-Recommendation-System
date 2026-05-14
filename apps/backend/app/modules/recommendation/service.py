@@ -90,10 +90,10 @@ class RecService:
                 "career_id": slug,  # FE dùng slug làm id
                 "slug": slug,
                 "job_onet": onet_code,  # giữ O*NET để log / debug
-                "title_vi": meta.get("title_vi"),
+                "title_vn": meta.get("title_vn"),
                 "title_en": meta.get("title_en"),
                 # Ưu tiên mô tả tiếng Việt
-                "description": (meta.get("short_desc_vi") or meta.get("short_desc_en") or meta.get("description") or ""),
+                "description": (meta.get("short_desc_vn") or meta.get("short_desc_en") or meta.get("description") or ""),
                 "tags": riasec_codes,  # ["R", "RI", ...]
                 "job_zone": meta.get("job_zone"),
                 "match_score": float(score),
@@ -255,7 +255,7 @@ class RecService:
         logger.debug(f"[OK] Final {len(result)} careers after L1/L2 filter:")
         if logger.level <= logging.DEBUG:
             for i, job in enumerate(result[:top_k], 1):
-                title = job.get("title_en") or job.get("title_vi") or "Unknown"
+                title = job.get("title_en") or job.get("title_vn") or "Unknown"
                 tags = job.get("tags", [])
                 score = job.get("match_score", 0.0)
 
@@ -304,21 +304,33 @@ class RecService:
         # 1) Map assessment -> user_id
         user_id = self._get_user_from_assessment(db, assessment_id)
         if user_id is None:
+            logger.error(f"[Recommendations] Assessment {assessment_id} not found or invalid")
             raise RuntimeError(f"Assessment {assessment_id} not found or invalid")
 
+        logger.info(f"[Recommendations] Getting recommendations for assessment {assessment_id}, user {user_id}, top_k={top_k}")
+
         # 2) Gọi AI-core
-        logger.debug(f"[get_main_recommendations] Calling AI-core for assessment {assessment_id}")
-        scored = self._call_ai_core_top_careers(assessment_id, internal_top_k)
-        logger.debug(f"[get_main_recommendations] AI-core returned {len(scored) if scored else 0} items")
+        logger.debug(f"[Recommendations] Calling AI-core for assessment {assessment_id}")
+        try:
+            scored = self._call_ai_core_top_careers(assessment_id, internal_top_k)
+            logger.debug(f"[Recommendations] AI-core returned {len(scored) if scored else 0} items")
+        except Exception as e:
+            logger.error(f"[Recommendations] AI-core call failed: {type(e).__name__}: {str(e)}")
+            scored = []
 
         # 2.1) Nếu AI-core không trả về kết quả, thử lấy từ saved recommendations
         if not scored:
-            logger.warning(f"AI-core returned no results, trying saved recommendations for assessment {assessment_id}")
-            saved_items = self._get_saved_recommendations_from_db(db, assessment_id, top_k)
-            if saved_items:
-                logger.debug(f"Returning {len(saved_items)} saved recommendations")
-                return {"request_id": None, "items": saved_items}
-            logger.warning(f"No saved recommendations found for assessment {assessment_id}")
+            logger.warning(f"[Recommendations] AI-core returned no results, trying saved recommendations for assessment {assessment_id}")
+            try:
+                saved_items = self._get_saved_recommendations_from_db(db, assessment_id, top_k)
+                if saved_items:
+                    logger.info(f"[Recommendations] Returning {len(saved_items)} saved recommendations")
+                    return {"request_id": None, "items": saved_items}
+                logger.warning(f"[Recommendations] No saved recommendations found for assessment {assessment_id}")
+            except Exception as e:
+                logger.error(f"[Recommendations] Failed to get saved recommendations: {type(e).__name__}: {str(e)}")
+            
+            logger.error(f"[Recommendations] No recommendations available for assessment {assessment_id}")
             return {"request_id": None, "items": []}
 
         # 3) Snapshot traits của **chính assessment này**
@@ -342,7 +354,7 @@ class RecService:
         if logger.level <= logging.DEBUG:
             logger.debug("📋 First 10 careers with tags (before filter):")
             for i, item in enumerate(items_with_meta[:10], 1):
-                title = item.get("title_en") or item.get("title_vi") or "Unknown"
+                title = item.get("title_en") or item.get("title_vn") or "Unknown"
                 tags = item.get("tags", [])
                 score = item.get("match_score", 0.0)
                 logger.debug(f"  {i}. {title[:40]:<40} | Tags: {tags} | Score: {score:.3f}")
@@ -467,10 +479,10 @@ class RecService:
                     cr.rank,
                     c.slug,
                     c.onet_code,
-                    c.title_vi,
+                    c.title_vn,
                     c.title_en,
                     c.short_desc_en,
-                    c.short_desc_vi,
+                    c.short_desc_vn,
                     COALESCE(
                         array_agg(rl.code) FILTER (WHERE rl.code IS NOT NULL),
                         '{}'
@@ -481,7 +493,7 @@ class RecService:
                 LEFT JOIN core.riasec_labels rl ON rl.id = m.label_id
                 WHERE cr.assessment_id = :assessment_id
                 GROUP BY cr.career_id, cr.score, cr.rank, c.slug, c.onet_code,
-                         c.title_vi, c.title_en, c.short_desc_en, c.short_desc_vi
+                         c.title_vn, c.title_en, c.short_desc_en, c.short_desc_vn
                 ORDER BY cr.rank ASC
                 LIMIT :top_k
                 """
@@ -500,7 +512,7 @@ class RecService:
                         "career_id": row[3] or str(row[0]),  # slug or career_id
                         "slug": row[3],
                         "job_onet": row[4],
-                        "title_vi": row[5],
+                        "title_vn": row[5],
                         "title_en": row[6],
                         "description": row[7] or row[8] or "",
                         "match_score": float(row[1]) if row[1] else 0.0,
@@ -529,22 +541,34 @@ class RecService:
         url = f"{AI_CORE_BASE_URL}/recs/top_careers"
         payload = {"assessment_id": assessment_id, "top_k": top_k}
 
+        logger.info(f"[Recommendations] Calling AI-core: {url} with assessment_id={assessment_id}, top_k={top_k}")
+
         try:
             with httpx.Client(timeout=5.0) as client:
                 resp = client.post(url, json=payload)
 
+            logger.info(f"[Recommendations] AI-core response status: {resp.status_code}")
+
             if resp.status_code != 200:
-                print(f"AI-core error {resp.status_code}: {resp.text}")
+                logger.error(f"[Recommendations] AI-core error {resp.status_code}: {resp.text[:200]}")
                 return []  # Return empty to trigger saved recommendations fallback
 
             data = resp.json()
             items = data.get("items", [])
             if not isinstance(items, list):
-                print("AI-core returned invalid format")
+                logger.error("[Recommendations] AI-core returned invalid format (items not a list)")
                 return []  # Return empty to trigger saved recommendations fallback
 
+            logger.info(f"[Recommendations] AI-core returned {len(items)} career recommendations")
+
+        except httpx.TimeoutException as e:
+            logger.error(f"[Recommendations] AI-core timeout: {str(e)}")
+            return []  # Return empty to trigger saved recommendations fallback
+        except httpx.ConnectError as e:
+            logger.error(f"[Recommendations] AI-core not reachable: {str(e)}")
+            return []  # Return empty to trigger saved recommendations fallback
         except Exception as e:
-            print(f"AI-core not reachable: {e}")
+            logger.error(f"[Recommendations] AI-core unexpected error: {type(e).__name__}: {str(e)}")
             return []  # Return empty to trigger saved recommendations fallback
 
         out: List[Dict[str, Any]] = []
@@ -561,6 +585,7 @@ class RecService:
             )
 
         out.sort(key=lambda x: x["final_score"], reverse=True)
+        logger.info(f"[Recommendations] Processed {len(out)} valid career recommendations")
         return out
 
     # ====================================================================== #
@@ -704,9 +729,9 @@ class RecService:
                 c.id,
                 c.slug,
                 c.onet_code,
-                c.title_vi,
+                c.title_vn,
                 c.title_en,
-                c.short_desc_vi,
+                c.short_desc_vn,
                 c.short_desc_en,
                 NULL::int AS job_zone,
                 COALESCE(
@@ -721,8 +746,8 @@ class RecService:
             WHERE c.onet_code = :cid
             GROUP BY
                 c.id, c.slug, c.onet_code,
-                c.title_vi, c.title_en,
-                c.short_desc_vi, c.short_desc_en
+                c.title_vn, c.title_en,
+                c.short_desc_vn, c.short_desc_en
             LIMIT 1
             """
         )

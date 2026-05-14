@@ -1,9 +1,176 @@
-import React, { useRef, forwardRef, useState, useEffect } from 'react';
+import React, { useRef, forwardRef, useState, useEffect, useCallback } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { useTranslation } from 'react-i18next';
 import './StoryBasedAssessment.css';
 import { Question, QuestionResponse } from '../../types/assessment';
 import { assessmentService } from '../../services/assessmentService';
+
+// ─── Types (defined early so cache helpers can reference them) ────────────────
+interface StoryScenarioType {
+  emoji: string;
+  title: string;
+  context: string;
+  situation: string;
+}
+
+interface GroupScenarioType {
+  emoji: string;
+  title: string;
+  introduction: string;
+}
+
+interface StoryGroupType {
+  groupScenario: GroupScenarioType;
+  questionScenarios: StoryScenarioType[];
+}
+
+// ─── localStorage keys ────────────────────────────────────────────────────────
+const CACHE_KEY    = 'story_assessment_cache_v2';
+const PROGRESS_KEY = 'story_assessment_progress_v2';
+const CACHE_TTL    = 24 * 60 * 60 * 1000; // 24h
+
+// ─── Question/scenario cache ──────────────────────────────────────────────────
+interface AssessmentCache {
+  questions: Question[];
+  scenarios: StoryScenarioType[];
+  storyGroups: StoryGroupType[];
+  essayPrompt: string;
+  timestamp: number;
+}
+
+function saveToCache(data: Omit<AssessmentCache, 'timestamp'>) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...data, timestamp: Date.now() })); } catch { /* noop */ }
+}
+
+function loadFromCache(): AssessmentCache | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const cached: AssessmentCache = JSON.parse(raw);
+    if (Date.now() - cached.timestamp > CACHE_TTL) { localStorage.removeItem(CACHE_KEY); return null; }
+    if (!cached.questions?.length || !cached.scenarios?.length) return null;
+    return cached;
+  } catch { return null; }
+}
+
+function clearCache() {
+  try { localStorage.removeItem(CACHE_KEY); } catch { /* noop */ }
+}
+
+// ─── Answer progress auto-save (every 1s) ─────────────────────────────────────
+interface AnswerProgress {
+  answers: Record<string, number>;
+  essayText: string;
+  currentPage: number;
+  savedAt: number;
+}
+
+function saveProgress(data: Omit<AnswerProgress, 'savedAt'>) {
+  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify({ ...data, savedAt: Date.now() })); } catch { /* noop */ }
+}
+
+function loadProgress(): AnswerProgress | null {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return null;
+    const p: AnswerProgress = JSON.parse(raw);
+    // Discard progress older than 24h
+    if (Date.now() - p.savedAt > CACHE_TTL) { localStorage.removeItem(PROGRESS_KEY); return null; }
+    if (!p.answers || typeof p.answers !== 'object') return null;
+    return p;
+  } catch { return null; }
+}
+
+function clearProgress() {
+  try { localStorage.removeItem(PROGRESS_KEY); } catch { /* noop */ }
+}
+
+// ─── Ambient music engine (module-level singleton) ────────────────────────────
+let _activeCtx: AudioContext | null = null;
+let _activeMaster: GainNode | null = null;
+let _activeOscs: OscillatorNode[] = [];
+let _musicRunning = false;
+
+function startAmbientMusic() {
+  if (_musicRunning) return;
+  try {
+    stopAmbientMusic(); // clean up stale context first
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    _activeCtx = ctx;
+
+    const master = ctx.createGain();
+    _activeMaster = master;
+    master.gain.setValueAtTime(0, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 2);
+    master.connect(ctx.destination);
+
+    const freqs = [130.81, 196.0, 261.63, 329.63, 392.0];
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+      osc.frequency.value = freq;
+      gain.gain.value = i === 0 ? 0.06 : 0.035;
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start();
+      _activeOscs.push(osc);
+    });
+
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 0.08;
+    lfoGain.gain.value = 0.04;
+    lfo.connect(lfoGain);
+    lfoGain.connect(master.gain);
+    lfo.start();
+    _activeOscs.push(lfo);
+
+    _musicRunning = true;
+  } catch { /* audio not supported */ }
+}
+
+function stopAmbientMusic() {
+  _musicRunning = false;
+
+  // ── THE FIX: disconnect master from destination FIRST ──────────────────────
+  // This cuts the audio signal path immediately, regardless of LFO modulation.
+  // (Setting gain.value=0 alone doesn't work because LFO still adds to it)
+  if (_activeMaster) {
+    try { _activeMaster.disconnect(); } catch { /* already disconnected */ }
+  }
+
+  // Capture refs before clearing
+  const ctx    = _activeCtx;
+  const oscs   = _activeOscs;
+  const master = _activeMaster;
+
+  // Clear module state synchronously
+  _activeCtx    = null;
+  _activeMaster = null;
+  _activeOscs   = [];
+
+  // Async cleanup (audio already silent from disconnect above)
+  setTimeout(() => {
+    oscs.forEach(osc => { try { osc.stop(); osc.disconnect(); } catch { } });
+    master?.disconnect();
+    if (ctx && ctx.state !== 'closed') {
+      ctx.suspend().catch(() => {});
+      setTimeout(() => ctx.close().catch(() => {}), 200);
+    }
+  }, 50);
+}
+
+// ── Global safety net — fires before React gets a chance to handle anything ───
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate',         stopAmbientMusic, true); // capture phase
+  window.addEventListener('pagehide',         stopAmbientMusic, true);
+  window.addEventListener('beforeunload',     stopAmbientMusic, true);
+  window.addEventListener('hashchange',       stopAmbientMusic, true);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') stopAmbientMusic();
+  });
+}
 
 // Page component with forwardRef
 const Page = forwardRef<HTMLDivElement, { children: React.ReactNode; className?: string }>(
@@ -152,6 +319,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
   const { t } = useTranslation();
   const bookRef = useRef<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Music is managed at module level — no ref needed
   const [currentPage, setCurrentPage] = useState(0);
   const [isBookClosed, setIsBookClosed] = useState(false);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -167,6 +335,11 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
   const [isEditingEssay, setIsEditingEssay] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
   const [showEssayOverlay, setShowEssayOverlay] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [cacheToast, setCacheToast] = useState('');
+  const [loadedFromCache, setLoadedFromCache] = useState(false);
+  const [restoredProgress, setRestoredProgress] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   // STT state cho overlay
   const [sttActive, setSttActive] = useState(false);
   const [sttError, setSttError] = useState('');
@@ -244,9 +417,79 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
     { value: 5, label: t('assessment.response.totallyMe'), color: '#2ecc71' },
   ];
 
-  // Load questions and generate stories from API
+  // Start/stop music (module-level — survives component re-renders)
+  const startMusic = useCallback(() => { startAmbientMusic(); }, []);
+  const stopMusic  = useCallback(() => { stopAmbientMusic();  }, []);
+
+  // Stop music on unmount — DO NOT clear cache/progress here
+  // (clearCache + clearProgress are only called on intentional exit/submit,
+  //  so page reload preserves questions & answers for seamless resume)
+  useEffect(() => {
+    return () => { stopAmbientMusic(); };
+  }, []);
+
+  // Intercept browser back button → reload to kill AudioContext
+  useEffect(() => {
+    const onPop = () => {
+      stopAmbientMusic();
+      window.location.reload();
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // ── Auto-save answers + essay + page every 1 second ──────────────────────────
+  useEffect(() => {
+    if (loading || questions.length === 0) return; // don't save while loading
+    const id = setInterval(() => {
+      saveProgress({ answers, essayText, currentPage });
+      setLastSavedAt(new Date());
+    }, 1000);
+    return () => clearInterval(id);
+  }, [loading, answers, essayText, currentPage, questions.length]);
+
+  // ── Restore progress once questions are loaded ────────────────────────────────
+  useEffect(() => {
+    if (loading || questions.length === 0 || restoredProgress) return;
+    const saved = loadProgress();
+    if (saved && Object.keys(saved.answers).length > 0) {
+      setAnswers(saved.answers);
+      setEssayText(saved.essayText || '');
+      // Restore page position after flipbook mounts
+      if (saved.currentPage > 0) {
+        setTimeout(() => {
+          bookRef.current?.pageFlip().flip(saved.currentPage);
+        }, 600);
+      }
+      setRestoredProgress(true);
+      showToast(`↩️ Đã khôi phục tiến trình: ${Object.keys(saved.answers).length} câu đã trả lời`);
+    } else {
+      setRestoredProgress(true); // mark so we don't check again
+    }
+  }, [loading, questions.length, restoredProgress]);
+
+  // Show cache toast briefly
+  const showToast = (msg: string) => {
+    setCacheToast(msg);
+    setTimeout(() => setCacheToast(''), 4000);
+  };
+
+  // Load questions and generate stories from API (or cache)
   useEffect(() => {
     const loadQuestionsAndStories = async () => {
+      // ── Try cache first ──────────────────────────────────────────
+      const cached = loadFromCache();
+      if (cached) {
+        setQuestions(cached.questions);
+        setScenarios(cached.scenarios as StoryScenario[]);
+        setStoryGroups(cached.storyGroups as StoryGroup[]);
+        setEssayPrompt(cached.essayPrompt);
+        setLoadedFromCache(true);
+        setLoading(false);
+        startMusic();
+        return;
+      }
+
       try {
         setLoading(true);
         setLoadingMessage(t('assessment.loadingQuestions'));
@@ -324,22 +567,20 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         const allScenarios = [...generatedScenarios, essayScenario];
         setScenarios(allScenarios);
 
-        // Fetch essay prompt
-        try {
-          const prompt = await assessmentService.getEssayPrompt('vi');
-          setEssayPrompt(prompt.prompt_text);
-        } catch (err) {
-          console.warn('Failed to load essay prompt, using default');
-        }
-
         console.log(` Story groups: ${groups.length}, scenarios: ${allScenarios.length}`);
 
         if (generatedScenarios.length < selected.length) {
           console.warn(` Missing ${selected.length - generatedScenarios.length} scenarios!`);
         }
 
+        // ── Save to cache ──────────────────────────────────────────
+        const promptText = await assessmentService.getEssayPrompt('vi').then(p => p.prompt_text).catch(() => '');
+        setEssayPrompt(promptText);
+        saveToCache({ questions: selected, scenarios: allScenarios as StoryScenarioType[], storyGroups: groups as StoryGroupType[], essayPrompt: promptText });
+
         setLoadingMessage(t('assessment.startAssessment'));
         setError(null);
+        startMusic();
       } catch (err) {
         console.error('Error loading questions:', err);
         setError('Failed to load questions. Please try again.');
@@ -349,7 +590,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
     };
 
     loadQuestionsAndStories();
-  }, []);
+  }, [startMusic]);
 
   // Disable flipbook keyboard events when editing essay
   useEffect(() => {
@@ -529,7 +770,32 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
     });
   };
 
+  const doNavigate = () => {
+    stopAmbientMusic();
+    // Reload page to fully destroy AudioContext — guaranteed music stop
+    window.location.reload();
+  };
+
+  /** Thoát không lưu — xóa hết, lần sau câu hỏi mới */
+  const handleExitNoSave = () => {
+    clearProgress();
+    clearCache();
+    doNavigate();
+  };
+
+  /** Thoát có lưu — giữ câu hỏi & câu trả lời, lần sau resume */
+  const handleExitSave = () => {
+    // progress đã được auto-save mỗi 1s, cache đã có → không cần làm gì thêm
+    doNavigate();
+  };
+
+  // Keep handleExit as alias for submit flow
+  const handleExit = handleExitNoSave;
+
   const handleSubmit = () => {
+    stopMusic();
+    clearProgress(); // xóa tiến trình đã lưu
+    clearCache();    // xóa cache câu hỏi → lần sau sẽ tạo câu hỏi mới
     if (onComplete) {
       const responses: QuestionResponse[] = Object.entries(answers).map(([questionId, answer]) => ({
         questionId: questionId,
@@ -648,6 +914,133 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
 
   return (
     <div className={`story-container ${isBookClosed ? 'book-closed' : ''}`}>
+
+      {/* ── Cache toast notification ── */}
+      {cacheToast && (
+        <div style={{
+          position: 'fixed', top: '1.5rem', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 99999, background: 'linear-gradient(135deg,#1a237e,#0d9488)',
+          color: 'white', padding: '0.75rem 1.5rem', borderRadius: '50px',
+          fontWeight: 700, fontSize: '0.9rem', boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          animation: 'fadeInDown 0.3s ease',
+        }}>
+          {cacheToast}
+        </div>
+      )}
+
+      {/* ── Auto-save badge (bottom-left) ── */}
+      <div style={{ position: 'fixed', bottom: '1.5rem', left: '1.5rem', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        {!loading && questions.length > 0 && lastSavedAt && (
+          <div style={{
+            background: 'rgba(30,41,59,0.75)', backdropFilter: 'blur(8px)',
+            color: 'rgba(255,255,255,0.85)', padding: '0.4rem 0.9rem', borderRadius: '50px',
+            fontSize: '0.72rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', display: 'inline-block', flexShrink: 0 }} />
+            Tự lưu · {Object.keys(answers).length}/{questions.length} câu
+          </div>
+        )}
+      </div>
+
+      {/* ── Exit button ── */}
+      {!loading && (
+        <button
+          onClick={() => setShowExitConfirm(true)}
+          style={{
+            position: 'fixed', top: '1rem', right: '1rem', zIndex: 9999,
+            background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)',
+            color: 'white', border: '1px solid rgba(255,255,255,0.25)',
+            borderRadius: '50px', padding: '0.45rem 1.1rem',
+            fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '0.4rem',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(220,38,38,0.7)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.45)')}
+        >
+          <span>✕</span> Thoát
+        </button>
+      )}
+
+      {/* ── Exit confirm dialog ── */}
+      {showExitConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 999999,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem',
+        }}>
+          <div style={{
+            background: 'white', borderRadius: '20px', padding: '2rem',
+            maxWidth: '400px', width: '100%', textAlign: 'center',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
+            position: 'relative',
+          }}>
+            {/* ── Nút X đóng ── */}
+            <button
+              onClick={() => setShowExitConfirm(false)}
+              style={{
+                position: 'absolute', top: '1rem', right: '1rem',
+                width: '2rem', height: '2rem', borderRadius: '50%',
+                background: '#f1f5f9', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1rem', color: '#64748b', fontWeight: 700,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#e2e8f0')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#f1f5f9')}
+              title="Đóng"
+            >✕</button>
+
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📚</div>
+            <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.2rem', fontWeight: 800, color: '#1a237e' }}>
+              Thoát khỏi bài đánh giá?
+            </h3>
+            <p style={{ margin: '0 0 1.5rem', fontSize: '0.88rem', color: '#64748b', lineHeight: 1.6 }}>
+              Chọn cách bạn muốn thoát:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {/* Thoát không lưu */}
+              <button
+                onClick={() => { setShowExitConfirm(false); handleExitNoSave(); }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: 'linear-gradient(135deg,#dc2626,#b91c1c)',
+                  border: 'none', borderRadius: '12px', fontWeight: 700,
+                  fontSize: '0.9rem', cursor: 'pointer', color: 'white',
+                  boxShadow: '0 4px 12px rgba(220,38,38,0.25)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                }}
+              >
+                <span>🗑</span> Thoát không lưu
+              </button>
+              <p style={{ margin: '-0.3rem 0 0.3rem', fontSize: '0.75rem', color: '#94a3b8' }}>
+                Câu hỏi &amp; câu trả lời sẽ bị xóa. Lần sau bắt đầu mới.
+              </p>
+
+              {/* Thoát có lưu */}
+              <button
+                onClick={() => { setShowExitConfirm(false); handleExitSave(); }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: 'linear-gradient(135deg,#1a237e,#0d9488)',
+                  border: 'none', borderRadius: '12px', fontWeight: 700,
+                  fontSize: '0.9rem', cursor: 'pointer', color: 'white',
+                  boxShadow: '0 4px 12px rgba(26,35,126,0.25)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                }}
+              >
+                <span>💾</span> Thoát &amp; Lưu tiến trình
+              </button>
+              <p style={{ margin: '-0.3rem 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>
+                Câu trả lời được lưu. Lần sau vào tiếp tục từ chỗ dang dở.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Animated Falling Leaves */}
       <div className="leaves">
         <div className="set">
@@ -716,7 +1109,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
           drawShadow={true}
           flippingTime={800}
           useMouseEvents={false}
-          swipeDistance={30}
+          swipeDistance={120}
           clickEventForward={false}
           onFlip={handleFlip}
           onChangeState={(e: any) => {
@@ -808,80 +1201,94 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
             return (
               <Page key={question.id} className="scenario-page">
                 <div className="scenario-content">
-                  <div className="scenario-header">
-                    <span className="scenario-number">Câu {index + 1} / {questions.length}</span>
-                    {groupScenario && (
-                      <div className="label-badge" style={{ backgroundColor: 'rgba(26,35,126,0.15)', borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
-                        <span className="label-emoji">{groupScenario.emoji}</span>
-                        <span className="label-name">{groupScenario.title}</span>
+                  {/* ── Scrollable body (header + context + situation) ── */}
+                  <div
+                    className="scenario-body"
+                    style={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      overflowX: 'hidden',
+                      touchAction: 'pan-y',
+                      WebkitOverflowScrolling: 'touch' as any,
+                      padding: '1rem 1rem 0.5rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    <div className="scenario-header">
+                      <span className="scenario-number">Câu {index + 1} / {questions.length}</span>
+                      {groupScenario && (
+                        <div className="label-badge" style={{ backgroundColor: 'rgba(26,35,126,0.15)', borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
+                          <span className="label-emoji">{groupScenario.emoji}</span>
+                          <span className="label-name">{groupScenario.title}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {isFirstInGroup && groupScenario && (
+                      <div className="label-intro" style={{ borderLeftColor: 'var(--color-primary)' }}>
+                        <h3 style={{ color: 'var(--color-primary)' }}>
+                          {groupScenario.emoji} {groupScenario.title}
+                        </h3>
+                        <p className="label-description">{groupScenario.introduction}</p>
+                      </div>
+                    )}
+
+                    <div className="scenario-context">
+                      <p className="context-text">{scenario.context}</p>
+                    </div>
+
+                    <div className="scenario-situation">
+                      <div className="situation-box">
+                        <p className="situation-text">{scenario.situation}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── Fixed bottom: response buttons always visible ── */}
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      padding: '0.75rem 1rem',
+                      background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, white 18%)',
+                      borderTop: '1px solid #f1f5f9',
+                    }}
+                  >
+                    <div className="response-options" style={{ marginTop: 0 }}>
+                      {responseOptions.map((option) => {
+                        const selected = answers[String(question.id)] === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            className={`response-btn ${selected ? 'selected' : ''}`}
+                            style={{
+                              borderColor: selected ? option.color : '#ddd',
+                              backgroundColor: selected ? `${option.color}15` : 'white',
+                            }}
+                            onClick={() => handleAnswer(String(question.id), option.value)}
+                          >
+                            <span className="response-label">{option.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {isAnswered && (
+                      <div className="continue-hint" style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}>
+                        {(() => {
+                          if (index === 0) return '✓ Đã ghi nhận! Nhấn Tiếp để tiếp tục';
+                          const pairIdx = Math.floor((index - 1) / 2);
+                          const pairStart = pairIdx * 2 + 1;
+                          const pairEnd = Math.min(pairStart + 1, questions.length - 1);
+                          const pairDone = Array.from({ length: pairEnd - pairStart + 1 }, (_, k) => pairStart + k)
+                            .every(i => answers[String(questions[i]?.id)] !== undefined);
+                          if (pairDone) return '✓ Cả hai câu đã trả lời! Nhấn Tiếp để tiếp tục';
+                          return '✓ Đã ghi nhận! Hãy trả lời câu còn lại';
+                        })()}
                       </div>
                     )}
                   </div>
-
-                  {/* Group story intro — shown only on the FIRST question of each group */}
-                  {isFirstInGroup && groupScenario && (
-                    <div className="label-intro" style={{ borderLeftColor: 'var(--color-primary)' }}>
-                      <h3 style={{ color: 'var(--color-primary)' }}>
-                        {groupScenario.emoji} {groupScenario.title}
-                      </h3>
-                      <p className="label-description">{groupScenario.introduction}</p>
-                    </div>
-                  )}
-
-                  {/* Story Context - AI Generated Scenario (TOP) */}
-                  <div className="scenario-context">
-                    <p className="context-text">{scenario.context}</p>
-                  </div>
-
-                  {/* AI Rephrased Question (MIDDLE) */}
-                  <div className="scenario-situation">
-                    <div className="situation-box">
-                      <p className="situation-text">{scenario.situation}</p>
-                    </div>
-                  </div>
-
-                  {/* Original Question from Database (REFERENCE) */}
-                  <div className="original-question">
-                    <p className="original-label">Câu hỏi gốc:</p>
-                    <p className="original-text">{question.question_text}</p>
-                  </div>
-
-                  <div className="response-options">
-                    {responseOptions.map((option) => {
-                      const selected = answers[String(question.id)] === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          className={`response-btn ${selected ? 'selected' : ''}`}
-                          style={{
-                            borderColor: selected ? option.color : '#ddd',
-                            backgroundColor: selected ? `${option.color}15` : 'white',
-                          }}
-                          onClick={() => handleAnswer(String(question.id), option.value)}
-                        >
-                          <span className="response-label">{option.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {isAnswered && (
-                    <div className="continue-hint">
-                      {(() => {
-                        // Tính xem cặp câu này đã đủ chưa
-                        if (index === 0) {
-                          return '✓ Đã ghi nhận! Nhấn Tiếp để tiếp tục';
-                        }
-                        const pairIdx = Math.floor((index - 1) / 2);
-                        const pairStart = pairIdx * 2 + 1;
-                        const pairEnd = Math.min(pairStart + 1, questions.length - 1);
-                        const pairDone = Array.from({ length: pairEnd - pairStart + 1 }, (_, k) => pairStart + k)
-                          .every(i => answers[String(questions[i]?.id)] !== undefined);
-                        if (pairDone) return '✓ Cả hai câu đã trả lời! Nhấn Tiếp để tiếp tục';
-                        return '✓ Đã ghi nhận! Hãy trả lời câu còn lại';
-                      })()}
-                    </div>
-                  )}
                 </div>
               </Page>
             );
@@ -941,30 +1348,16 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
               const isOnEssayPage = currentPage === 3 + questions.length;
               const isOnEndingPage = currentPage === 3 + questions.length + 1;
 
-              // Trang ending: hiện nút Xem Kết Quả lớn, nổi bật
-              if (isOnEndingPage) {
+              // Trang essay hoặc ending → submit (ending luôn hiển thị song song bên phải)
+              if (isOnEssayPage || isOnEndingPage) {
                 return (
                   <button
                     className="nav-btn submit-nav-btn"
                     onClick={handleSubmit}
                     disabled={isFlipping}
-                    style={{ fontSize: '1rem', padding: '1.25rem 1.5rem' }}
+                    style={{ fontSize: '1rem', padding: '1.25rem 1.75rem', animation: 'pulse-submit 2s ease-in-out infinite' }}
                   >
-                    <span>🚀 Xem Kết Quả</span>
-                  </button>
-                );
-              }
-
-              // Trang essay: nút Tiếp để sang ending
-              if (isOnEssayPage) {
-                return (
-                  <button
-                    className="nav-btn next-btn"
-                    onClick={handleNext}
-                    disabled={isFlipping}
-                  >
-                    <span>Tiếp</span>
-                    <span>→</span>
+                    <span>🚀 Nộp Bài &amp; Xem Kết Quả</span>
                   </button>
                 );
               }
@@ -977,7 +1370,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                     onClick={handleSubmit}
                     disabled={isFlipping}
                   >
-                    <span>Nộp Bài</span>
+                    <span>🚀 Nộp Bài</span>
                   </button>
                 );
               }
@@ -1142,6 +1535,14 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         @keyframes pulse-stt {
           0%,100% { opacity:1; transform:scale(1); }
           50% { opacity:0.5; transform:scale(1.3); }
+        }
+        @keyframes fadeInDown {
+          from { opacity:0; transform:translateX(-50%) translateY(-12px); }
+          to   { opacity:1; transform:translateX(-50%) translateY(0); }
+        }
+        @keyframes pulse-submit {
+          0%,100% { box-shadow: 0 4px 20px rgba(99,102,241,0.4); transform: scale(1); }
+          50%      { box-shadow: 0 8px 32px rgba(99,102,241,0.7); transform: scale(1.03); }
         }
       `}</style>
     </div>

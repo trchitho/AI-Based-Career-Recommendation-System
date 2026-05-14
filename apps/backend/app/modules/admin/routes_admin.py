@@ -880,8 +880,8 @@ def _career_to_client(c: Career, session: Session) -> dict:
         }
 
     # Use English data (title_en, short_desc_en)
-    title = c.title_en or c.title_vi or c.slug.replace("-", " ").title()
-    description = c.short_desc_en or c.short_desc_vi or ""
+    title = c.title_en or c.title_vn or c.slug.replace("-", " ").title()
+    description = c.short_desc_en or c.short_desc_vn or ""
 
     return {
         "id": str(c.id),
@@ -916,7 +916,7 @@ def list_careers(
         # Search in English title first, then Vietnamese
         stmt = stmt.where(or_(
             Career.title_en.ilike(like),
-            Career.title_vi.ilike(like),
+            Career.title_vn.ilike(like),
             Career.slug.ilike(like)
         ))
 
@@ -954,13 +954,13 @@ def export_careers_csv(request: Request):
     rows = session.execute(select(Career).order_by(Career.id.asc())).scalars().all()
     output = StringIO()
     writer = csv.writer(output)
-    writer.writerow(["id", "title_vi", "title_en", "description", "industry_category", "riasec_code", "created_at"])
+    writer.writerow(["id", "title_vn", "title_en", "description", "industry_category", "riasec_code", "created_at"])
     for c in rows:
         writer.writerow([
             c.id,
-            getattr(c, "title_vi", "") or "",
+            getattr(c, "title_vn", "") or "",
             getattr(c, "title_en", "") or getattr(c, "title", "") or "",
-            (getattr(c, "description", "") or "")[:200],
+            (getattr(c, "short_desc_en", "") or "")[:200],
             getattr(c, "industry_category", "") or "",
             getattr(c, "riasec_code", "") or "",
             _iso_or_none(getattr(c, "created_at", None)),
@@ -1029,7 +1029,7 @@ def delete_career(request: Request, career_id: int):
     c = session.get(Career, career_id)
     if not c:
         raise HTTPException(status_code=404, detail="Career not found")
-    title = c.title_en or c.title_vi or c.slug
+    title = c.title_en or c.title_vn or c.slug
     _write_audit_log(session, "delete_career", "career", career_id, actor_id=admin_id,
                      details={"title": title})
     session.delete(c)
@@ -1138,9 +1138,9 @@ def create_skill(request: Request, payload: dict):
             c = Career(
                 slug=slug,
                 onet_code="GENERIC",
-                title_vi="Kỹ năng chung",
+                title_vn="Kỹ năng chung",
                 title_en="Generic Skills",
-                short_desc_vi="Nhóm kỹ năng tổng quát",
+                short_desc_vn="Nhóm kỹ năng tổng quát",
                 short_desc_en="Generic skill bucket",
             )
             session.add(c)
@@ -1205,8 +1205,8 @@ def _question_to_client(q: AssessmentQuestion, test_type: str, lang: str = "vi")
     opts_src = getattr(q, "options_json", None) or {}
     # Chọn options theo lang
     if isinstance(opts_src, dict):
-        if lang == "vi" and "options_vi" in opts_src:
-            opts = opts_src["options_vi"]
+        if lang == "vn" and "options_vn" in opts_src:
+            opts = opts_src["options_vn"]
         elif "options" in opts_src:
             opts = opts_src["options"]
         else:
@@ -1216,15 +1216,15 @@ def _question_to_client(q: AssessmentQuestion, test_type: str, lang: str = "vi")
     else:
         opts = []
 
-    prompt = getattr(q, "prompt_vi", None) if lang == "vi" else getattr(q, "prompt_en", None)
+    prompt = getattr(q, "prompt_vn", None) if lang == "vn" else getattr(q, "prompt_en", None)
     if not prompt:
-        prompt = getattr(q, "prompt_en", "") or getattr(q, "prompt_vi", "")
+        prompt = getattr(q, "prompt_en", "") or getattr(q, "prompt_vn", "")
 
     return {
         "id": str(q.id),
         "text": prompt,
         "prompt_en": getattr(q, "prompt_en", ""),
-        "prompt_vi": getattr(q, "prompt_vi", ""),
+        "prompt_vn": getattr(q, "prompt_vn", ""),
         "test_type": test_type,
         "dimension": q.question_key or "",
         "question_type": "multiple_choice" if opts else "scale",
@@ -1328,13 +1328,13 @@ def update_question(request: Request, question_id: int, payload: dict):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     if "text" in payload:
-        q.prompt_vi = payload.get("text") or q.prompt_vi
+        q.prompt_vn = payload.get("text") or q.prompt_vn
     if "dimension" in payload:
         q.question_key = payload.get("dimension") or q.question_key
     if "options" in payload:
         q.options_json = payload.get("options") or None  # type: ignore[assignment]
     _write_audit_log(session, "update_question", "question", question_id, actor_id=admin_id,
-                     details={"prompt_preview": (q.prompt_vi or q.prompt_en or "")[:80]})
+                     details={"prompt_preview": (q.prompt_vn or q.prompt_en or "")[:80]})
     session.commit()
     f = session.get(AssessmentForm, q.form_id) if q.form_id is not None else None
     form_type = str(f.form_type) if f and f.form_type is not None else "RIASEC"
@@ -1349,7 +1349,7 @@ def delete_question(request: Request, question_id: int):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     _write_audit_log(session, "delete_question", "question", question_id, actor_id=admin_id,
-                     details={"prompt_preview": (q.prompt_vi or q.prompt_en or "")[:80]})
+                     details={"prompt_preview": (q.prompt_vn or q.prompt_en or "")[:80]})
     session.delete(q)
     session.commit()
     return {"status": "ok"}
@@ -2026,13 +2026,13 @@ def get_career_trends(
         query = """
             SELECT 
                 c.id as career_id,
-                COALESCE(c.title_en, c.title_vi, c.slug) as career_title,
+                COALESCE(c.title_en, c.title_vn, c.slug) as career_title,
                 COALESCE(c.industry_category, 'Other') as industry_category,
                 COUNT(cr.id) as recommendation_count
             FROM core.career_recommendations cr
             INNER JOIN core.careers c ON c.id = cr.career_id
             WHERE cr.created_at >= NOW() - INTERVAL '%s days'
-            GROUP BY c.id, c.title_en, c.title_vi, c.slug, c.industry_category
+            GROUP BY c.id, c.title_en, c.title_vn, c.slug, c.industry_category
             ORDER BY recommendation_count DESC
             LIMIT 20
         """ % days

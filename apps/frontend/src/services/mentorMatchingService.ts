@@ -103,7 +103,8 @@ class MentorMatchingService {
   }
 
   async findMentors(): Promise<MentorMatch[]> {
-    const res = await api.get(`${this.base}/mentee/find-mentors`);
+    // Mentor matching runs GDS + SBERT — needs longer timeout than default 10s
+    const res = await api.get(`${this.base}/mentee/find-mentors`, { timeout: 90000 });
     return res.data;
   }
 

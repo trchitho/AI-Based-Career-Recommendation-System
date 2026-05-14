@@ -85,18 +85,40 @@ class BookingRespond(BaseModel):
     mentor_note: Optional[str] = ""
 
 
+def _resolve_display_name(user_id: int, db: Session) -> str:
+    """Get the best display name for a user: MentorProfile > MenteeProfile > User.full_name > email."""
+    from app.modules.mentor_matching.models import MentorProfile, MenteeProfile
+
+    # Try MentorProfile first (has curated full_name)
+    mp = db.query(MentorProfile).filter(MentorProfile.user_id == user_id).first()
+    if mp and mp.full_name and mp.full_name.strip():
+        return mp.full_name.strip()
+
+    # Try MenteeProfile
+    mentee_p = db.query(MenteeProfile).filter(MenteeProfile.user_id == user_id).first()
+    if mentee_p and mentee_p.full_name and mentee_p.full_name.strip():
+        return mentee_p.full_name.strip()
+
+    # Fallback to User
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        return user.full_name or user.email or f"User #{user_id}"
+
+    return f"User #{user_id}"
+
+
 def _session_to_dict(s: MentorSession, db: Session, my_id: int) -> dict:
     other_id = s.mentor_id if s.mentee_id == my_id else s.mentee_id
-    other = db.query(User).filter(User.id == other_id).first()
-    mentor = db.query(User).filter(User.id == s.mentor_id).first()
-    mentee = db.query(User).filter(User.id == s.mentee_id).first()
+    mentor_name = _resolve_display_name(s.mentor_id, db)
+    mentee_name = _resolve_display_name(s.mentee_id, db)
+    other_name  = _resolve_display_name(other_id, db)
     return {
         "id": s.id,
         "mentor_id": s.mentor_id,
         "mentee_id": s.mentee_id,
-        "mentor_name": (mentor.full_name or mentor.email) if mentor else str(s.mentor_id),
-        "mentee_name": (mentee.full_name or mentee.email) if mentee else str(s.mentee_id),
-        "other_name": (other.full_name or other.email) if other else str(other_id),
+        "mentor_name": mentor_name,
+        "mentee_name": mentee_name,
+        "other_name": other_name,
         "scheduled_at": s.scheduled_at.isoformat() if s.scheduled_at else None,
         "duration_minutes": s.duration_minutes,
         "topic": s.topic or "",

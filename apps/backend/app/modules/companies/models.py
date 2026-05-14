@@ -26,7 +26,7 @@ class Company(Base):
 
     # Company info
     name        = Column(String(200), nullable=False)
-    name_vi     = Column(String(200))                            # Vietnamese name if different
+    name_vn     = Column(String(200))                            # Vietnamese name if different
     description = Column(Text)
     industry    = Column(String(120))                            # sector
     size        = Column(String(50))                             # startup / SME / large / enterprise
