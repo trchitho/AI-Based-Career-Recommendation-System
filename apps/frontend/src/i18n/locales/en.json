@@ -187,7 +187,7 @@
     },
     "howItWorks": {
       "label": "Workflow",
-      "title": "How CareerBridge works",
+      "title": "How CareerVerse works",
       "subtitle": "Our AI-powered platform guides you through a comprehensive career discovery journey",
       "step1": {
         "title": "Complete Assessment",
@@ -211,8 +211,8 @@
     },
     "faq": {
       "title": "Frequently Asked Questions",
-      "subtitle": "Everything you need to know about CareerBridge.",
-      "q1": "Is CareerBridge suitable for beginners?",
+      "subtitle": "Everything you need to know about CareerVerse.",
+      "q1": "Is CareerVerse suitable for beginners?",
       "a1": "Absolutely! Whether you're a fresh graduate or an experienced professional looking to pivot, our AI adapts to your level.",
       "q2": "How does the AI analysis work?",
       "a2": "We analyze your personality traits, interests, and skills against thousands of career paths and market trends to find your perfect match.",
@@ -223,7 +223,7 @@
     },
     "cta": {
       "title": "Ready to launch your career?",
-      "subtitle": "Join thousands of professionals who have found their dream jobs using CareerBridge AI.",
+      "subtitle": "Join thousands of professionals who have found their dream jobs using CareerVerse AI.",
       "btn": "Get Started for Free"
     },
     "contact": {
@@ -249,7 +249,7 @@
       "phoneLabel": "Phone"
     },
     "footer": {
-      "tagline": "CareerBridge AI helps you build professional resumes, analyze your skills, and find your perfect career path using advanced artificial intelligence.",
+      "tagline": "CareerVerse AI helps you build professional resumes, analyze your skills, and find your perfect career path using advanced artificial intelligence.",
       "product": "Product",
       "features": "Features",
       "pricing": "Pricing",
@@ -261,7 +261,7 @@
       "legal": "Legal",
       "privacy": "Privacy",
       "terms": "Terms",
-      "copyright": "© 2025 CareerBridge AI. All rights reserved."
+      "copyright": "© 2025 CareerVerse AI. All rights reserved."
     }
   },
   "dashboard": {

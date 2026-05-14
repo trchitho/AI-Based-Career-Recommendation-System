@@ -193,7 +193,7 @@
     },
     "howItWorks": {
       "label": "Quy trình",
-      "title": "CareerBridge hoạt động như thế nào",
+      "title": "CareerVerse hoạt động như thế nào",
       "subtitle": "Nền tảng AI của chúng tôi dẫn dắt bạn qua hành trình khám phá nghề nghiệp toàn diện",
       "step1": {
         "title": "Hoàn thành bài đánh giá",
@@ -217,8 +217,8 @@
     },
     "faq": {
       "title": "Câu hỏi thường gặp",
-      "subtitle": "Mọi thứ bạn cần biết về CareerBridge.",
-      "q1": "CareerBridge có phù hợp với người mới bắt đầu không?",
+      "subtitle": "Mọi thứ bạn cần biết về CareerVerse.",
+      "q1": "CareerVerse có phù hợp với người mới bắt đầu không?",
       "a1": "Hoàn toàn có! Dù bạn là sinh viên mới tốt nghiệp hay chuyên gia muốn chuyển hướng, AI của chúng tôi sẽ thích nghi với trình độ của bạn.",
       "q2": "AI phân tích hoạt động như thế nào?",
       "a2": "Chúng tôi phân tích đặc điểm tính cách, sở thích và kỹ năng của bạn dựa trên hàng nghìn con đường sự nghiệp và xu hướng thị trường.",
@@ -229,7 +229,7 @@
     },
     "cta": {
       "title": "Sẵn sàng khởi động sự nghiệp?",
-      "subtitle": "Tham gia cùng hàng nghìn chuyên gia đã tìm được công việc mơ ước qua CareerBridge AI.",
+      "subtitle": "Tham gia cùng hàng nghìn chuyên gia đã tìm được công việc mơ ước qua CareerVerse AI.",
       "btn": "Bắt đầu miễn phí"
     },
     "contact": {
@@ -255,7 +255,7 @@
       "phoneLabel": "Điện thoại"
     },
     "footer": {
-      "tagline": "CareerBridge AI giúp bạn xây dựng CV chuyên nghiệp, phân tích kỹ năng và tìm con đường sự nghiệp hoàn hảo bằng trí tuệ nhân tạo tiên tiến.",
+      "tagline": "CareerVerse AI giúp bạn xây dựng CV chuyên nghiệp, phân tích kỹ năng và tìm con đường sự nghiệp hoàn hảo bằng trí tuệ nhân tạo tiên tiến.",
       "product": "Sản phẩm",
       "features": "Tính năng",
       "pricing": "Bảng giá",
@@ -267,7 +267,7 @@
       "legal": "Pháp lý",
       "privacy": "Chính sách bảo mật",
       "terms": "Điều khoản",
-      "copyright": "© 2025 CareerBridge AI. Bảo lưu mọi quyền."
+      "copyright": "© 2025 CareerVerse AI. Bảo lưu mọi quyền."
     }
   },
   "dashboard": {

@@ -118,6 +118,31 @@ async def lifespan(_: FastAPI):
                 CREATE INDEX IF NOT EXISTS ix_csm_skill_score
                 ON core.course_skill_map(skill_name, similarity_score DESC)
             """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS core.skill_gap_course_recommendations (
+                    id              SERIAL PRIMARY KEY,
+                    analysis_id     INTEGER,
+                    cache_key       VARCHAR(64) UNIQUE NOT NULL,
+                    career_name     VARCHAR(255),
+                    model_name      VARCHAR(120),
+                    source          VARCHAR(50) NOT NULL,
+                    status          VARCHAR(30) NOT NULL DEFAULT 'ready',
+                    skill_groups    JSONB NOT NULL DEFAULT '{}'::jsonb,
+                    owned_skills    JSONB NOT NULL DEFAULT '[]'::jsonb,
+                    recommendations JSONB NOT NULL DEFAULT '[]'::jsonb,
+                    error_message   TEXT,
+                    created_at      TIMESTAMPTZ DEFAULT NOW(),
+                    updated_at      TIMESTAMPTZ DEFAULT NOW()
+                )
+            """))
+            conn.execute(text("""
+                CREATE UNIQUE INDEX IF NOT EXISTS ix_sg_course_cache_key
+                ON core.skill_gap_course_recommendations(cache_key)
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS ix_sg_course_cache_analysis
+                ON core.skill_gap_course_recommendations(analysis_id)
+            """))
             conn.commit()
         print("✅ Course tables ready")
     except Exception as e:
@@ -666,6 +691,14 @@ def create_app() -> FastAPI:
         print("[OK] Skill Gap Analysis router registered")
     except Exception as e:
         print("??  Skip skill gap router:", repr(e))
+
+    # Learning Path (tổng quan lộ trình học tập)
+    try:
+        from .modules.learning_path.routes import router as learning_path_router
+        app.include_router(learning_path_router, prefix="/api/learning-path", tags=["learning-path"])
+        print("[OK] Learning Path router registered")
+    except Exception as e:
+        print("[WARN] Skip learning path router:", repr(e))
 
     # Skill Gap SSE (streaming AI responses)
     try:

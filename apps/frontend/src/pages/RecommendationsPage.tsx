@@ -48,9 +48,9 @@ import "./RecommendationsPage.css";
 type MatchLevel = "excellent" | "great" | "good";
 const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
   const pct = Math.round(score * 100);
-  if (pct >= 90) return { level: "excellent", label: "Excellent" };
-  if (pct >= 75) return { level: "great", label: "Great" };
-  return { level: "good", label: "Good" };
+  if (pct >= 90) return { level: "excellent", label: "Xuất sắc" };
+  if (pct >= 75) return { level: "great", label: "Rất phù hợp" };
+  return { level: "good", label: "Phù hợp" };
 };
 const CIRC = 2 * Math.PI * 20; // r=20
 
@@ -193,7 +193,7 @@ const RecommendationsPage = () => {
                   <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                   <line x1="12" y1="22.08" x2="12" y2="12" />
                 </svg>
-                <span>AI-Powered Recommendations</span>
+                <span>Gợi ý nghề nghiệp AI</span>
               </div>
               <h1 className="hero-title">
                 Khám phá nghề nghiệp <span className="hero-highlight">phù hợp với bạn</span>

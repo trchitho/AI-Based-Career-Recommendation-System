@@ -159,12 +159,15 @@ def upsert_user_embedding(
     """
     sql = """
     INSERT INTO ai.user_embeddings (user_id, emb, source, model_name, built_at)
-    VALUES (%(uid)s, %(emb)s, %(source)s, %(model)s, now())
+    VALUES (%(uid)s, %(emb)s::vector(768), %(source)s, %(model)s, now())
     ON CONFLICT (user_id) DO UPDATE
        SET emb       = EXCLUDED.emb,
            source    = EXCLUDED.source,
            model_name= EXCLUDED.model_name,
-           built_at  = now();
+           built_at  = now()
+    WHERE ai.user_embeddings.source IS DISTINCT FROM EXCLUDED.source
+       OR ai.user_embeddings.model_name IS DISTINCT FROM EXCLUDED.model_name
+       OR ai.user_embeddings.emb IS DISTINCT FROM EXCLUDED.emb;
     """
     dsn = get_pg_dsn()
     with psycopg.connect(dsn) as conn, conn.cursor() as cur:
@@ -172,7 +175,7 @@ def upsert_user_embedding(
             sql,
             {
                 "uid": int(user_id),
-                "emb": emb.tolist(),
+                "emb": "[" + ",".join(f"{float(x):.8f}" for x in emb.tolist()) + "]",
                 "source": source,
                 "model": model_name,
             },

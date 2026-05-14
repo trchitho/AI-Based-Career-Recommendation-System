@@ -51,7 +51,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
               <span className="text-3xl font-extrabold tracking-tight">{career.matchPercentage}</span>
               <span className="text-sm font-bold ml-0.5">%</span>
             </div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">Match</span>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">Phù hợp</span>
           </div>
         </div>
 
@@ -67,7 +67,7 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
 
         {/* Description */}
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-3 leading-relaxed">
-          {career.description || "Explore this career path to see if it matches your skills and interests."}
+          {career.description || "Khám phá lộ trình nghề nghiệp này để xem có phù hợp với kỹ năng và sở thích của bạn không."}
         </p>
       </div>
 

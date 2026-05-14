@@ -50,6 +50,29 @@ async def recommend_courses(
     return service.recommend_courses_for_skills(db, skills, top_k_per_skill=top_k)
 
 
+@router.get("/recommend/skill-gap", response_model=CourseRecommendationsResponse)
+async def recommend_courses_for_skill_gap(
+    critical: list[str] = Query(default=[], description="Critical missing skills"),
+    important: list[str] = Query(default=[], description="Important missing skills"),
+    nice_to_have: list[str] = Query(default=[], description="Nice-to-have missing skills"),
+    owned_skills: list[str] = Query(default=[], description="Skills already present in the CV"),
+    career_name: str | None = Query(default=None),
+    analysis_id: int | None = Query(default=None, description="Skill-gap analysis id for DB cache reuse"),
+    top_k: int = Query(3, ge=1, le=5),
+    db: Session = Depends(get_db),
+):
+    return service.recommend_courses_for_skill_groups(
+        db=db,
+        critical=critical,
+        important=important,
+        nice_to_have=nice_to_have,
+        owned_skills=owned_skills,
+        career_name=career_name,
+        analysis_id=analysis_id,
+        top_k_per_skill=top_k,
+    )
+
+
 # ── Public: search courses ─────────────────────────────────────────
 @router.get("/search", response_model=list[CourseOut])
 async def search_courses(

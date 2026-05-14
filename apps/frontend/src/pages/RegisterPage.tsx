@@ -159,7 +159,7 @@ const RegisterPage = () => {
   const ModernLogo = () => (
     <Link to="/home" className="flex items-center gap-2 group select-none">
       <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
-        career<span className="text-indigo-700">bridge</span><span className="text-indigo-700 text-3xl leading-none">.</span>
+        career<span className="text-indigo-700">verse</span><span className="text-indigo-700 text-3xl leading-none">.</span>
       </span>
     </Link>
   );
@@ -438,7 +438,7 @@ const RegisterPage = () => {
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
               <span className="font-medium">{t('auth.secureEncryption')}</span>
             </div>
-            <p className="font-normal">© 2025 CareerBridge AI. All rights reserved.</p>
+            <p className="font-normal">© 2025 CareerVerse AI. All rights reserved.</p>
           </div>
 
         </div>
@@ -449,7 +449,7 @@ const RegisterPage = () => {
         {app.footer_html ? (
           <div dangerouslySetInnerHTML={{ __html: app.footer_html }} />
         ) : (
-          <div>© 2025 CareerBridge AI. All rights reserved.</div>
+          <div>© 2025 CareerVerse AI. All rights reserved.</div>
         )}
       </footer>
     </div>

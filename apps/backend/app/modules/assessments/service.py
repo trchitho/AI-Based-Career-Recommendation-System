@@ -71,19 +71,22 @@ def save_essay_traits(
       - ai.user_embeddings        (1 user -> 1 vector, source='essay')
       - ai.user_trait_preds       (1 dòng / essay / model)
     """
-    # 1) upsert ai.user_embeddings (giữ nguyên logic cũ)
+    # 1) upsert ai.user_embeddings: 1 user -> 1 vector essay mới nhất.
     if embedding:
         emb_lit = "[" + ",".join(f"{float(x):.8f}" for x in embedding) + "]"
-        sql_emb = f"""
+        sql_emb = """
             INSERT INTO ai.user_embeddings (user_id, emb, source, model_name, built_at)
-            VALUES ({int(user_id)}, '{emb_lit}'::vector, 'essay', :model, now())
+            VALUES (:user_id, CAST(:embedding AS vector(768)), 'essay', :model, now())
             ON CONFLICT (user_id) DO UPDATE
               SET emb        = EXCLUDED.emb,
                   source     = EXCLUDED.source,
                   model_name = EXCLUDED.model_name,
-                  built_at   = now();
+                  built_at   = now()
+            WHERE ai.user_embeddings.source IS DISTINCT FROM EXCLUDED.source
+               OR ai.user_embeddings.model_name IS DISTINCT FROM EXCLUDED.model_name
+               OR ai.user_embeddings.emb IS DISTINCT FROM EXCLUDED.emb;
         """
-        session.execute(text(sql_emb), {"model": model})
+        session.execute(text(sql_emb), {"user_id": int(user_id), "embedding": emb_lit, "model": model})
 
     # 2) upsert ai.user_trait_preds nếu có trait đầy đủ
     r_arr = _to_pg_real_array(riasec)
@@ -126,8 +129,11 @@ def infer_user_traits_for_essay(
     Không raise ra ngoài, chỉ log nếu lỗi.
     """
     essay_text = (essay_text or "").strip()
-    if not essay_text:
-        print(f"[assessments] infer_user_traits_for_essay: empty essay_text for user_id={user_id}, essay_id={essay_id}")
+    if len(essay_text) < 5:
+        print(
+            f"[assessments] infer_user_traits_for_essay: skip AI-core vì bài luận quá ngắn "
+            f"(user_id={user_id}, essay_id={essay_id}, text_len={len(essay_text)})"
+        )
         return
 
     print(
@@ -141,7 +147,7 @@ def infer_user_traits_for_essay(
 
         resp = requests.post(
             url,
-            json={"essay_text": essay_text, "lang": "auto"},
+            json={"essay_text": essay_text, "lang": "vi"},
             timeout=60,
         )
 

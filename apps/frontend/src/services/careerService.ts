@@ -5,10 +5,12 @@ export interface CareerItem {
   slug: string;
   title: string;      // display title (vi preferred)
   title_vn?: string;  // tiếng Việt
+  title_vi?: string;  // tiếng Việt (một số API trả về key này)
   title_en?: string;  // tiếng Anh
   short_desc?: string;
   description?: string;
   description_vn?: string;
+  description_vi?: string;  // một số API trả về key này
   skills?: string[];
   education_requirements?: string;
   salary_range?: string;
@@ -33,6 +35,12 @@ export interface CareerDetailDTO {
   plan: string;
   allowed_sections: string[];
   locked_sections: string[];
+  riasec_interests?: Array<{
+    code: string;
+    label: string;
+    description: string;
+    score: number;
+  }>;
   sections: {
     // Original sections
     tasks: Array<{ task_text: string; importance: number | null; task_type?: string; incumbents_responding?: number }>;
@@ -157,9 +165,11 @@ export interface CareerDetailDTO {
     work_context?: Array<{
       element_id: string;
       element_name: string;
+      element_name_vi?: string;
       scale_id: string;
       category: number;
       category_description: string;
+      category_description_vi?: string;
       data_value: number | null;
       n?: number;
       standard_error?: number;
@@ -194,7 +204,7 @@ export const careerService = {
    * @param plan - User's subscription plan (free, basic, premium, pro)
    * @param language - Language preference (en, vi)
    */
-  async getDetail(onetCode: string, plan: string = 'free', language: string = 'en'): Promise<CareerDetailDTO> {
+  async getDetail(onetCode: string, plan: string = 'free', language: string = 'vi'): Promise<CareerDetailDTO> {
     const res = await api.get(`/bff/catalog/career/${onetCode}?plan=${plan}&language=${language}`);
     return res.data;
   },

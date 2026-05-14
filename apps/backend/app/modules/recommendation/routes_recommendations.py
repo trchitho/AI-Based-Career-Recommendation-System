@@ -103,6 +103,7 @@ def get_saved_recommendations(
                 "score": float(row[1]) if row[1] else 0.0,
                 "rank": row[2],
                 "slug": row[3],
+                "title_vi": row[4],
                 "title_vn": row[4],
                 "title_en": row[5],
                 "description": row[6] or row[7] or ""  # Ưu tiên description_vi

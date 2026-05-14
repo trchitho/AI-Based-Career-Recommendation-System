@@ -68,6 +68,7 @@ import InterviewResultsPage from './pages/InterviewResultsPage';
 import DeviceTestPage from './pages/DeviceTestPage';
 import VoiceInterviewPage from './pages/VoiceInterviewPage';
 import TrendsPage from './pages/TrendsPage';
+import LearningPathPage from './pages/LearningPathPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Create a client
@@ -159,7 +160,7 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/learning-path" element={<NotFoundPage />} />
+                  <Route path="/learning-path" element={<ProtectedRoute><LearningPathPage /></ProtectedRoute>} />
                   <Route path="/404" element={<NotFoundPage />} />
                   <Route path="/careers/:param" element={<CareerRouterPage />} />
                   <Route path="/careers/:param/roadmap" element={<CareerRouterPage />} />

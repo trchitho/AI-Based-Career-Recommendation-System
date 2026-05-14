@@ -42,7 +42,7 @@ const VerifyEmailPage = () => {
   const ModernLogo = () => (
     <Link to="/home" className="flex items-center gap-2 group select-none">
       <span className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white group-hover:opacity-80 transition-opacity">
-        career<span className="text-indigo-700">bridge</span><span className="text-indigo-700 text-3xl leading-none">.</span>
+        career<span className="text-indigo-700">verse</span><span className="text-indigo-700 text-3xl leading-none">.</span>
       </span>
     </Link>
   );
@@ -153,7 +153,7 @@ const VerifyEmailPage = () => {
 
           {/* Footer Text */}
           <div className="mt-8 text-center text-xs text-gray-400 dark:text-gray-500 font-medium">
-            © 2025 CareerBridge AI. All rights reserved.
+            © 2025 CareerVerse AI. All rights reserved.
           </div>
 
         </div>

@@ -71,8 +71,8 @@ export const dashboardService = {
             topCareerSuggestions = savedRecResponse.data.slice(0, 3).map((career: any) => ({
               id: career.career_id || career.id,
               slug: career.slug || career.career_id,
-              title: career.title_vi || career.title_en || 'Unknown Career',
-              description: career.description || 'No description available',
+              title: career.title_vi || career.title_vn || career.title_en || 'Nghề nghiệp chưa xác định',
+              description: career.description || 'Chưa có mô tả',
               matchPercentage: Math.round(career.score || 0),
             }));
 
@@ -82,8 +82,8 @@ export const dashboardService = {
             topCareerSuggestions = savedRecResponse.data.items.slice(0, 3).map((career: any) => ({
               id: career.career_id || career.id,
               slug: career.slug || career.career_id,
-              title: career.title_vi || career.title_en || 'Unknown Career',
-              description: career.description || 'No description available',
+              title: career.title_vi || career.title_vn || career.title_en || 'Nghề nghiệp chưa xác định',
+              description: career.description || 'Chưa có mô tả',
               matchPercentage: Math.round(career.score || 0),
             }));
 
@@ -101,7 +101,7 @@ export const dashboardService = {
                 topCareerSuggestions = recData.items.slice(0, 3).map((career: any) => ({
                   id: career.career_id || career.id,
                   slug: career.slug || career.career_id,
-                  title: career.title_vi || career.title_en || 'Unknown Career',
+                  title: career.title_vi || career.title_en || 'Nghề nghiệp chưa xác định',
                   description: career.description || 'Khám phá lộ trình nghề nghiệp này.',
                   matchPercentage: Math.round((career.display_match || career.match_score || 0) * (career.match_score <= 1 ? 100 : 1)),
                 }));

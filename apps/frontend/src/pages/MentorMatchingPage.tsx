@@ -120,7 +120,7 @@ const MentorMatchingPage = () => {
     full_name: user?.email?.split('@')[0] || '',
     current_position: '', company: '', bio: '', expertise_areas: [],
     experience_years: 0, available_hours_per_week: 2,
-    preferred_communication: ['video', 'chat'], max_mentees: 5,
+    preferred_communication: ['chat'], max_mentees: 5,
   });
   const [mentorSaving, setMentorSaving] = useState(false);
   const [mentorSuccess, setMentorSuccess] = useState('');
@@ -380,7 +380,7 @@ const MentorMatchingPage = () => {
                   <h2>Hoàn thiện hồ sơ để tìm mentor</h2>
                   <p>Hệ thống AI yêu cầu kết quả từ <strong>Bài đánh giá tính cách</strong> và <strong>CV</strong> của bạn để có thể ghép đôi bạn với Mentor phù hợp nhất dựa trên điểm số RIASEC, Big Five và kỹ năng chuyên môn.</p>
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
-                    <button className="mm-btn-secondary" onClick={() => window.location.href = '/cv-analysis'}>
+                    <button className="mm-btn-secondary" onClick={() => window.location.href = '/skill-gap'}>
                       <ClipboardList size={18} />
                       Cập nhật CV
                     </button>
@@ -484,7 +484,7 @@ const MentorMatchingPage = () => {
                   <h3>Chưa tìm thấy mentor phù hợp</h3>
                   <p>Hệ thống AI cần thêm thông tin để tìm kiếm tốt hơn. Hãy cập nhật CV và làm bài đánh giá tính cách.</p>
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '24px' }}>
-                    <button className="mm-btn-secondary" onClick={() => window.location.href = '/cv-analysis'}>
+                    <button className="mm-btn-secondary" onClick={() => window.location.href = '/skill-gap'}>
                       <ClipboardList size={18} />
                       Cập nhật CV
                     </button>
@@ -760,11 +760,11 @@ const MentorMatchingPage = () => {
                   <div className="mm-form-group">
                     <label>Hình thức liên lạc ưa thích</label>
                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                      {['video', 'chat', 'email', 'phone'].map(opt => (
+                      {['chat', 'email', 'phone'].map(opt => (
                         <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--neu-text)' }}>
                           <input type="checkbox" checked={mentorProfile.preferred_communication.includes(opt)}
                             onChange={e => setMentorProfile(p => ({ ...p, preferred_communication: e.target.checked ? [...p.preferred_communication, opt] : p.preferred_communication.filter(x => x !== opt) }))} />
-                          {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                          {opt === 'chat' ? 'Chat' : opt === 'email' ? 'Email' : 'Điện thoại'}
                         </label>
                       ))}
                     </div>
