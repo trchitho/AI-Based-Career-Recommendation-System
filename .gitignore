@@ -18,6 +18,10 @@ var/
 wheels/
 *.egg-info/
 .installed.cfg
+
+# Virtual environments
+.venv/
+apps/backend/.venv/
 *.egg
 
 # Node

@@ -188,7 +188,7 @@ const ModeBadge = ({ mode }: { mode: string }) => (
       : 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
   }`}>
     {mode === 'voice' ? <Mic size={10} /> : <MessageSquare size={10} />}
-    {mode === 'voice' ? 'Voice' : 'Text'}
+    {mode === 'voice' ? 'Giọng nói' : 'Văn bản'}
   </span>
 );
 
@@ -263,7 +263,7 @@ const StatsOverview = ({ stats, loading }: { stats: InterviewStats | null; loadi
       icon: <BarChart2 size={20} className="text-indigo-500" />,
     },
     {
-      label: 'Voice Interviews',
+      label: 'Phỏng vấn giọng nói',
       value: stats.voice_sessions.toLocaleString(),
       sub: `${voiceRate}% tổng phỏng vấn`,
       gradient: 'from-purple-500 to-pink-500',
@@ -370,8 +370,8 @@ const SessionDetailModal = ({ session, onClose }: { session: InterviewSession; o
           {/* Info Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
-              { label: 'User ID', value: `#${session.user_id}` },
-              { label: 'Job ID', value: session.job_id },
+              { label: 'ID người dùng', value: `#${session.user_id}` },
+              { label: 'ID công việc', value: session.job_id },
               { label: 'Chế độ', value: <ModeBadge mode={session.interview_mode} /> },
               { label: 'Trạng thái', value: <StatusBadge status={session.status} /> },
               { label: 'Đánh giá', value: <RecommendBadge rec={session.recommendation} /> },
@@ -566,7 +566,7 @@ const SessionsTab = () => {
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Tìm theo nghề nghiệp, user ID..."
+              placeholder="Tìm theo nghề nghiệp, ID người dùng..."
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600"
             />
           </div>
@@ -588,8 +588,8 @@ const SessionsTab = () => {
             className="py-2 px-3 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600"
           >
             <option value="">Tất cả chế độ</option>
-            <option value="text">Text</option>
-            <option value="voice">Voice</option>
+            <option value="text">Văn bản</option>
+            <option value="voice">Giọng nói</option>
           </select>
           {/* Date range */}
           <div className="flex items-center gap-2">
@@ -625,7 +625,7 @@ const SessionsTab = () => {
           </button>
           <button onClick={handleExport} disabled={exporting} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 dark:border-gray-600 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50">
             <Download size={14} />
-            {exporting ? 'Đang xuất...' : 'Export CSV'}
+            {exporting ? 'Đang xuất...' : 'Xuất CSV'}
           </button>
         </div>
       </div>
@@ -655,7 +655,7 @@ const SessionsTab = () => {
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 w-8">#</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">User</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Người dùng</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Nghề nghiệp</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Chế độ</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Trạng thái</th>
@@ -713,7 +713,7 @@ const SessionsTab = () => {
                           <Eye size={15} />
                         </button>
                         <button
-                          onClick={() => setDeleteConfirm({ type: 'session', id: s.id, label: `Session #${s.id} — ${s.job_title}` })}
+                          onClick={() => setDeleteConfirm({ type: 'session', id: s.id, label: `Phiên #${s.id} — ${s.job_title}` })}
                           className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           title="Xóa"
                         >
@@ -816,13 +816,13 @@ const TemplatesTab = () => {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { setSearch(searchInput); setPage(1); } }}
-            placeholder="Tìm theo job title, loại câu hỏi..."
+            placeholder="Tìm theo tên công việc, loại câu hỏi..."
             className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600"
           />
         </div>
         <button onClick={() => { setSearch(searchInput); setPage(1); }} className="px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors">Tìm</button>
         <button onClick={load} className="p-2 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><RefreshCw size={15} /></button>
-        <span className="text-sm text-gray-500 dark:text-gray-400 ml-auto">{total} template</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400 ml-auto">{total} mẫu câu hỏi</span>
       </div>
 
       {error && (
@@ -848,7 +848,7 @@ const TemplatesTab = () => {
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 w-8">#</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Job</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Công việc</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Loại câu hỏi</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Danh mục kỹ năng</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Độ khó</th>
@@ -891,7 +891,7 @@ const TemplatesTab = () => {
                             <Eye size={15} />
                           </button>
                           <button
-                            onClick={() => setDeleteConfirm({ type: 'template', id: t.id, label: `Template #${t.id} — ${t.job_title}` })}
+                            onClick={() => setDeleteConfirm({ type: 'template', id: t.id, label: `Mẫu câu hỏi #${t.id} — ${t.job_title}` })}
                             className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             title="Xóa"
                           >
@@ -1008,13 +1008,13 @@ const JDLibraryTab = () => {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { setSearch(searchInput); setPage(1); } }}
-            placeholder="Tìm theo career ID, user ID..."
+            placeholder="Tìm theo ID nghề nghiệp, ID người dùng..."
             className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600"
           />
         </div>
         <button onClick={() => { setSearch(searchInput); setPage(1); }} className="px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors">Tìm</button>
         <button onClick={load} className="p-2 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><RefreshCw size={15} /></button>
-        <span className="text-sm text-gray-500 dark:text-gray-400 ml-auto">{total} JD</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400 ml-auto">{total} mô tả công việc</span>
       </div>
 
       {error && (
@@ -1040,8 +1040,8 @@ const JDLibraryTab = () => {
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 w-8">#</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">User ID</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Career ID</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">ID người dùng</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">ID nghề nghiệp</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Nguồn</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Kỹ năng trích xuất</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Ngày tạo</th>
@@ -1083,7 +1083,7 @@ const JDLibraryTab = () => {
                             <Eye size={15} />
                           </button>
                           <button
-                            onClick={() => setDeleteConfirm({ type: 'jd', id: jd.id, label: `JD #${jd.id} — User #${jd.user_id}` })}
+                            onClick={() => setDeleteConfirm({ type: 'jd', id: jd.id, label: `JD #${jd.id} — Người dùng #${jd.user_id}` })}
                             className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             title="Xóa"
                           >
@@ -1216,9 +1216,9 @@ const VoiceMetricsTab = () => {
   };
 
   const stageLabel: Record<string, string> = {
-    stt: 'Speech-to-Text (STT)',
-    ai: 'AI Processing',
-    tts: 'Text-to-Speech (TTS)',
+    stt: 'Chuyển giọng nói thành văn bản (STT)',
+    ai: 'Xử lý AI',
+    tts: 'Chuyển văn bản thành giọng nói (TTS)',
     total: 'Tổng thời gian',
   };
 
@@ -1316,7 +1316,7 @@ const VoiceMetricsTab = () => {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2">
             <Database size={18} className="text-indigo-600" />
-            Audio Cache ({cacheTotal} files)
+            Bộ nhớ đệm âm thanh ({cacheTotal} tệp)
           </h3>
           <button
             onClick={() => setShowClearConfirm(true)}
@@ -1343,7 +1343,7 @@ const VoiceMetricsTab = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">ID</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Mã định danh</th>
                     <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Giọng nói</th>
                     <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Kích thước</th>
                     <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Thời lượng</th>
@@ -1382,7 +1382,7 @@ const VoiceMetricsTab = () => {
 
         {cacheTotalPages > 1 && (
           <div className="mt-3 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-            <span>Trang {cachePage} / {cacheTotalPages} — {cacheTotal} files</span>
+            <span>Trang {cachePage} / {cacheTotalPages} — {cacheTotal} tệp</span>
             <div className="flex gap-2">
               <button onClick={() => setCachePage(p => Math.max(1, p - 1))} disabled={cachePage <= 1}
                 className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -1420,8 +1420,8 @@ const VoiceMetricsTab = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Session</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">User</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Phiên</th>
+                    <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Người dùng</th>
                     <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Chất lượng câu hỏi</th>
                     <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Độ chính xác AI</th>
                     <th className="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-300">Trải nghiệm tổng thể</th>
@@ -1480,9 +1480,9 @@ const VoiceMetricsTab = () => {
             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <Database size={22} className="text-red-500" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Xóa toàn bộ Audio Cache?</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Sẽ xóa <strong>{cacheTotal}</strong> file audio cache.</p>
-            <p className="text-red-500 text-xs mb-5">Hành động này không thể hoàn tác. TTS sẽ cần tạo lại audio từ đầu.</p>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Xóa toàn bộ bộ nhớ đệm âm thanh?</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Sẽ xóa <strong>{cacheTotal}</strong> tệp âm thanh trong bộ nhớ đệm.</p>
+            <p className="text-red-500 text-xs mb-5">Hành động này không thể hoàn tác. Hệ thống sẽ cần tạo lại âm thanh từ đầu.</p>
             <div className="flex gap-3">
               <button onClick={() => setShowClearConfirm(false)} className="flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 font-semibold text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Huỷ</button>
               <button onClick={handleClearCache} disabled={clearingCache} className="flex-1 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold text-sm transition-colors disabled:opacity-50">
@@ -1504,7 +1504,7 @@ const TABS: { key: TabKey; label: string; icon: JSX.Element }[] = [
   { key: 'sessions',      label: 'Phiên phỏng vấn', icon: <MessageSquare size={16} /> },
   { key: 'templates',     label: 'Câu hỏi mẫu',     icon: <FileText size={16} /> },
   { key: 'jd-library',   label: 'Thư viện JD',      icon: <Database size={16} /> },
-  { key: 'voice-metrics', label: 'Voice & Metrics',  icon: <Activity size={16} /> },
+  { key: 'voice-metrics', label: 'Giọng nói & Chỉ số',  icon: <Activity size={16} /> },
 ];
 
 const AdminInterviewPage = () => {
@@ -1552,10 +1552,10 @@ const AdminInterviewPage = () => {
       {stats && !statsLoading && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {[
-            { label: 'Templates', value: stats.total_templates, icon: <FileText size={14} className="text-blue-500" />, color: 'text-blue-600 dark:text-blue-400' },
-            { label: 'JD Library', value: stats.total_jd, icon: <Database size={14} className="text-purple-500" />, color: 'text-purple-600 dark:text-purple-400' },
-            { label: 'Audio Cache', value: stats.audio_cache_count, icon: <Volume2 size={14} className="text-green-500" />, color: 'text-green-600 dark:text-green-400' },
-            { label: 'Cache Size', value: `${stats.audio_cache_size_mb.toFixed(1)} MB`, icon: <TrendingUp size={14} className="text-orange-500" />, color: 'text-orange-600 dark:text-orange-400' },
+            { label: 'Mẫu câu hỏi', value: stats.total_templates, icon: <FileText size={14} className="text-blue-500" />, color: 'text-blue-600 dark:text-blue-400' },
+            { label: 'Thư viện JD', value: stats.total_jd, icon: <Database size={14} className="text-purple-500" />, color: 'text-purple-600 dark:text-purple-400' },
+            { label: 'Bộ nhớ đệm âm thanh', value: stats.audio_cache_count, icon: <Volume2 size={14} className="text-green-500" />, color: 'text-green-600 dark:text-green-400' },
+            { label: 'Kích thước bộ nhớ', value: `${stats.audio_cache_size_mb.toFixed(1)} MB`, icon: <TrendingUp size={14} className="text-orange-500" />, color: 'text-orange-600 dark:text-orange-400' },
           ].map((item, i) => (
             <div key={i} className="bg-white dark:bg-gray-800 rounded-xl px-4 py-3 border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">

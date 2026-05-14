@@ -1,9 +1,10 @@
 /**
- * ANOMALY DETECTION PAGE - English Only
+ * ANOMALY DETECTION PAGE - Vietnamese UI
  */
 
 import { useState, useEffect } from "react";
 import api from "../../lib/api";
+import { translateSeverity, translateAnomalyText } from "../../utils/translations";
 
 interface Anomaly {
   id: number;
@@ -83,11 +84,11 @@ const AnomalyDetectionPage = () => {
       const created = res.data.anomalies_created ?? 0;
       setDetectMsg({
         type: created > 0 ? "success" : "info",
-        text: created > 0 ? `${created} new anomaly(s) detected and logged.` : "Scan complete — no new anomalies found.",
+        text: created > 0 ? `Đã phát hiện và ghi nhận ${created} bất thường mới.` : "Quét hoàn tất — không tìm thấy bất thường mới.",
       });
       await loadAnomalies();
     } catch (err: any) {
-      setDetectMsg({ type: "error", text: `Detection failed: ${err?.response?.data?.detail || err?.message || "Unknown error"}` });
+      setDetectMsg({ type: "error", text: `Phát hiện thất bại: ${err?.response?.data?.detail || err?.message || "Lỗi không xác định"}` });
     } finally {
       setDetecting(false);
     }
@@ -115,10 +116,10 @@ const AnomalyDetectionPage = () => {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      security: "Security",
-      ai_error: "AI Error",
-      performance: "Performance",
-      unusual_activity: "Unusual Activity",
+      security: "Bảo mật",
+      ai_error: "Lỗi AI",
+      performance: "Hiệu suất",
+      unusual_activity: "Hoạt động bất thường",
     };
     return labels[type] || type;
   };
@@ -134,9 +135,9 @@ const AnomalyDetectionPage = () => {
             <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            Anomaly Detection
+            Phát hiện bất thường
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monitor and resolve system anomalies</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Giám sát và giải quyết các bất thường hệ thống</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -147,7 +148,7 @@ const AnomalyDetectionPage = () => {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            {detecting ? "Scanning..." : "Run Detection"}
+            {detecting ? "Đang quét..." : "Chạy phát hiện"}
           </button>
           <button
             onClick={loadAnomalies}
@@ -156,7 +157,7 @@ const AnomalyDetectionPage = () => {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            Refresh
+            Làm mới
           </button>
         </div>
       </div>
@@ -171,27 +172,27 @@ const AnomalyDetectionPage = () => {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Total Alerts</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Tổng cảnh báo</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.total}</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Unresolved</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Chưa giải quyết</p>
             <p className="text-2xl font-bold text-orange-600 mt-1">{stats.unresolved}</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-100 dark:border-red-900/30 shadow-sm p-4">
-            <p className="text-sm text-red-600 dark:text-red-400">Critical</p>
+            <p className="text-sm text-red-600 dark:text-red-400">Nghiêm trọng</p>
             <p className="text-2xl font-bold text-red-600 mt-1">{stats.critical}</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-orange-100 dark:border-orange-900/30 shadow-sm p-4">
-            <p className="text-sm text-orange-600 dark:text-orange-400">High</p>
+            <p className="text-sm text-orange-600 dark:text-orange-400">Cao</p>
             <p className="text-2xl font-bold text-orange-600 mt-1">{stats.high}</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-yellow-100 dark:border-yellow-900/30 shadow-sm p-4">
-            <p className="text-sm text-yellow-600 dark:text-yellow-400">Medium</p>
+            <p className="text-sm text-yellow-600 dark:text-yellow-400">Trung bình</p>
             <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.medium}</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm p-4">
-            <p className="text-sm text-blue-600 dark:text-blue-400">Low</p>
+            <p className="text-sm text-blue-600 dark:text-blue-400">Thấp</p>
             <p className="text-2xl font-bold text-blue-600 mt-1">{stats.low}</p>
           </div>
         </div>
@@ -205,11 +206,11 @@ const AnomalyDetectionPage = () => {
             onChange={(e) => setFilter({ ...filter, type: e.target.value || undefined })}
             className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           >
-            <option value="">All Types</option>
-            <option value="security">Security</option>
-            <option value="ai_error">AI Error</option>
-            <option value="performance">Performance</option>
-            <option value="unusual_activity">Unusual Activity</option>
+            <option value="">Tất cả loại</option>
+            <option value="security">Bảo mật</option>
+            <option value="ai_error">Lỗi AI</option>
+            <option value="performance">Hiệu suất</option>
+            <option value="unusual_activity">Hoạt động bất thường</option>
           </select>
 
           <select
@@ -217,11 +218,11 @@ const AnomalyDetectionPage = () => {
             onChange={(e) => setFilter({ ...filter, severity: e.target.value || undefined })}
             className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           >
-            <option value="">All Severities</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
+            <option value="">Tất cả mức độ</option>
+            <option value="critical">Nghiêm trọng</option>
+            <option value="high">Cao</option>
+            <option value="medium">Trung bình</option>
+            <option value="low">Thấp</option>
           </select>
 
           <select
@@ -229,9 +230,9 @@ const AnomalyDetectionPage = () => {
             onChange={(e) => setFilter({ ...filter, resolved: e.target.value === "" ? undefined : e.target.value === "true" })}
             className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           >
-            <option value="">All Status</option>
-            <option value="false">Unresolved</option>
-            <option value="true">Resolved</option>
+            <option value="">Tất cả trạng thái</option>
+            <option value="false">Chưa giải quyết</option>
+            <option value="true">Đã giải quyết</option>
           </select>
         </div>
       </div>
@@ -239,10 +240,10 @@ const AnomalyDetectionPage = () => {
       {/* Anomalies List */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Đang tải...</div>
         ) : anomalies.length === 0 ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            No anomalies detected
+            Không phát hiện bất thường
           </div>
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -255,24 +256,24 @@ const AnomalyDetectionPage = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`px-2 py-0.5 text-xs font-medium rounded ${getSeverityBadge(anomaly.severity)}`}>
-                        {anomaly.severity.toUpperCase()}
+                        {translateSeverity(anomaly.severity)}
                       </span>
                       <span className={`px-2 py-0.5 text-xs font-medium rounded ${getTypeBadge(anomaly.type)}`}>
                         {getTypeLabel(anomaly.type)}
                       </span>
                       {anomaly.resolved && (
                         <span className="px-2 py-0.5 text-xs font-medium rounded bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-300">
-                          Resolved
+                          Đã giải quyết
                         </span>
                       )}
                     </div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">{anomaly.title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{anomaly.description}</p>
+                    <h3 className="font-medium text-gray-900 dark:text-white">{translateAnomalyText(anomaly.title)}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{translateAnomalyText(anomaly.description)}</p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
                       <span>{formatDate(anomaly.created_at)}</span>
-                      {anomaly.user_email && <span>User: {anomaly.user_email}</span>}
+                      {anomaly.user_email && <span>Người dùng: {anomaly.user_email}</span>}
                       {anomaly.resolved_at && (
-                        <span>Resolved at: {formatDate(anomaly.resolved_at)}</span>
+                        <span>Đã giải quyết lúc: {formatDate(anomaly.resolved_at)}</span>
                       )}
                     </div>
                   </div>
@@ -281,7 +282,7 @@ const AnomalyDetectionPage = () => {
                       onClick={() => resolveAnomaly(anomaly.id)}
                       className="px-3 py-1 text-sm bg-indigo-800 text-white rounded hover:bg-indigo-900"
                     >
-                      Mark Resolved
+                      Đánh dấu đã giải quyết
                     </button>
                   )}
                 </div>

@@ -1,9 +1,10 @@
 /**
- * CAREER TRENDS PAGE - English Only
+ * CAREER TRENDS PAGE - Vietnamese UI
  */
 
 import { useState, useEffect } from "react";
 import api from "../../lib/api";
+import { translateIndustryCategory } from "../../utils/translations";
 
 interface CareerTrend {
   career_id: string;
@@ -71,16 +72,16 @@ const CareerTrendsPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
-              <h1 className="text-3xl font-bold text-white">Career Trends</h1>
+              <h1 className="text-3xl font-bold text-white">Xu hướng nghề nghiệp</h1>
             </div>
-            <p className="text-white/90 text-sm ml-16">Most recommended careers over time</p>
+            <p className="text-white/90 text-sm ml-16">Nghề nghiệp được đề xuất nhiều nhất theo thời gian</p>
           </div>
           <div className="flex gap-2">
             {[
-              { value: "7d", label: "7 Days" },
-              { value: "30d", label: "30 Days" },
-              { value: "90d", label: "90 Days" },
-              { value: "all", label: "All Time" },
+              { value: "7d", label: "7 ngày" },
+              { value: "30d", label: "30 ngày" },
+              { value: "90d", label: "90 ngày" },
+              { value: "all", label: "Tất cả" },
             ].map((p) => (
               <button
                 key={p.value}
@@ -100,14 +101,14 @@ const CareerTrendsPage = () => {
       {loading ? (
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-12 flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-lg font-medium">Loading trends...</span>
+          <span className="text-lg font-medium">Đang tải xu hướng...</span>
         </div>
       ) : !data ? (
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-12 text-center text-gray-500 dark:text-gray-400">
           <svg className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
           </svg>
-          <p className="text-lg font-medium">No data available</p>
+          <p className="text-lg font-medium">Không có dữ liệu</p>
         </div>
       ) : (
         <>
@@ -116,7 +117,7 @@ const CareerTrendsPage = () => {
             <div className="group relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
               <div className="relative z-10">
-                <p className="text-sm font-semibold text-blue-100 mb-2">Total Recommendations</p>
+                <p className="text-sm font-semibold text-blue-100 mb-2">Tổng đề xuất</p>
                 <p className="text-5xl font-bold text-white mb-1">
                   {data.totalRecommendations.toLocaleString()}
                 </p>
@@ -124,7 +125,7 @@ const CareerTrendsPage = () => {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
-                  <span>All time</span>
+                  <span>Tất cả thời gian</span>
                 </div>
               </div>
             </div>
@@ -132,7 +133,7 @@ const CareerTrendsPage = () => {
             <div className="group relative bg-gradient-to-br from-indigo-700 to-indigo-800 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
               <div className="relative z-10">
-                <p className="text-sm font-semibold text-indigo-100 mb-2">Top Careers</p>
+                <p className="text-sm font-semibold text-indigo-100 mb-2">Nghề hàng đầu</p>
                 <p className="text-5xl font-bold text-white mb-1">
                   {data.topCareers.length}
                 </p>
@@ -140,7 +141,7 @@ const CareerTrendsPage = () => {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>Trending now</span>
+                  <span>Xu hướng hiện tại</span>
                 </div>
               </div>
             </div>
@@ -148,7 +149,7 @@ const CareerTrendsPage = () => {
             <div className="group relative bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
               <div className="relative z-10">
-                <p className="text-sm font-semibold text-purple-100 mb-2">Time Period</p>
+                <p className="text-sm font-semibold text-purple-100 mb-2">Khoảng thời gian</p>
                 <p className="text-5xl font-bold text-white mb-1">
                   {data.periodLabel}
                 </p>
@@ -156,7 +157,7 @@ const CareerTrendsPage = () => {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>Selected range</span>
+                  <span>Phạm vi đã chọn</span>
                 </div>
               </div>
             </div>
@@ -165,7 +166,7 @@ const CareerTrendsPage = () => {
           {/* Top Careers Chart */}
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
             <h2 className="text-base font-semibold mb-4 text-gray-900 dark:text-white">
-              Top 10 Most Recommended Careers
+              Top 10 nghề được đề xuất nhiều nhất
             </h2>
             <div className="space-y-4">
               {data.topCareers.slice(0, 10).map((career, index) => (
@@ -192,7 +193,7 @@ const CareerTrendsPage = () => {
                       />
                     </div>
                     <span className="text-xs text-gray-400 dark:text-gray-500">
-                      {career.industry_category}
+                      {translateIndustryCategory(career.industry_category)}
                     </span>
                   </div>
                 </div>
@@ -203,7 +204,7 @@ const CareerTrendsPage = () => {
           {/* Industry Distribution */}
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
             <h2 className="text-base font-semibold mb-4 text-gray-900 dark:text-white">
-              Distribution by Industry
+              Phân bố theo ngành
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Object.entries(
@@ -219,7 +220,7 @@ const CareerTrendsPage = () => {
                     className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 text-center"
                   >
                     <div className={`w-3 h-3 rounded-full ${getCategoryColor(category)} mx-auto mb-2`} />
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{category}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{translateIndustryCategory(category)}</p>
                     <p className="text-lg font-bold text-gray-600 dark:text-gray-300">{count}</p>
                   </div>
                 ))}
