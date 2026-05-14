@@ -39,11 +39,17 @@ class EdgeTTSService:
         "male":   "vi-VN-NamMinhNeural",
     }
     
-    # Fallback voices if Vietnamese voices fail
+    # Vietnamese fallback voices - NEVER use English voices for Vietnamese text
     FALLBACK_VOICES: Dict[str, str] = {
-        "female": "en-US-AriaNeural",
-        "male":   "en-US-GuyNeural",
+        "female": "vi-VN-HoaiMyNeural",  # If male fails, try female
+        "male":   "vi-VN-NamMinhNeural",  # If female fails, try male
     }
+    
+    # Alternative Vietnamese voices to try before giving up on Edge TTS
+    ALTERNATIVE_VI_VOICES: List[str] = [
+        "vi-VN-HoaiMyNeural",
+        "vi-VN-NamMinhNeural",
+    ]
 
     def __init__(self) -> None:
         self._default_voice = self.VOICES["female"]
@@ -133,14 +139,25 @@ class EdgeTTSService:
                 f"Invalid voice preference: {voice_preference}. Must be 'male' or 'female'"
             )
 
-        # Check cache first
+        # Detect language from text
+        is_vietnamese = self._detect_vietnamese(text)
+        detected_language = "vi" if is_vietnamese else "unknown"
+        
+        logger.info(f"[TTS] detected_language={detected_language}, text_preview={text[:50]}...")
+
+        # Check cache first with proper voice settings including provider and voice_model
+        voice_name = self.VOICES[voice_preference]
         voice_settings = {
+            "provider": "edge-tts",
+            "voice_model": voice_name,
             "voice_type": voice_preference,
             "rate": "+0%",
             "pitch": "+0Hz",
             "volume": 1.0,
             "language": "vi-VN"
         }
+        
+        logger.info(f"[TTS] selected_voice={voice_name}, voice_settings={voice_settings}")
         
         cache_service = self._get_cache_service()
         if cache_service:
@@ -151,7 +168,7 @@ class EdgeTTSService:
                     self._record_performance(session_id, "tts", processing_time, True, 
                                            metadata={"cache_hit": True, "voice_model": cached_audio.voice_model})
                     
-                    logger.info(f"[TTS] Cache hit for text: {text[:50]}...")
+                    logger.info(f"[TTS] cache_hit=True, cache_key={cached_audio.content_hash[:16]}..., voice_model={cached_audio.voice_model}")
                     return {
                         "audio_data": b"",  # Don't return cached audio data
                         "audio_url": cached_audio.audio_url,
@@ -163,6 +180,8 @@ class EdgeTTSService:
                         "fallback_reason": None,
                         "cache_hit": True
                     }
+                else:
+                    logger.info(f"[TTS] cache_hit=False, will synthesize fresh audio")
             except Exception as e:
                 logger.warning(f"[TTS] Cache lookup failed: {e}")
 
@@ -174,7 +193,6 @@ class EdgeTTSService:
             return await self._try_fallback_voice(text, voice_preference, session_id, voice_settings, start_time)
 
         # Try Vietnamese voice first with retry logic
-        voice_name = self.VOICES[voice_preference]
         logger.info(f"[TTS] Synthesizing with voice: {voice_name}")
 
         # Reduce retries if we've had recent failures
@@ -197,6 +215,11 @@ class EdgeTTSService:
                 if audio_data:
                     # Success with Vietnamese voice - reset failure counter
                     duration = self._estimate_duration(text, word_timestamps)
+                    
+                    # Update voice_settings with actual voice used
+                    voice_settings["voice_model"] = voice_name
+                    voice_settings["provider"] = "edge-tts"
+                    
                     result = await self._create_success_result(
                         audio_data, voice_name, text, duration, word_timestamps, session_id, voice_settings
                     )
@@ -209,6 +232,8 @@ class EdgeTTSService:
                     self._last_success_time = time.time()
                     self._consecutive_failures = 0
                     self._retry_count = 0
+                    
+                    logger.info(f"[TTS] Success: voice_model={voice_name}, duration={duration:.1f}s, cache_hit=False")
                     return result
                     
             except Exception as e:
@@ -228,6 +253,7 @@ class EdgeTTSService:
                         self._last_failure_time = current_time
                         
                         logger.info(f"[TTS] Edge TTS unavailable (failure #{self._consecutive_failures}), using fallback")
+                        logger.info(f"[TTS] fallback_reason=edge_tts_403_error, will_try_alternative_vietnamese_voices=True")
                         processing_time = time.time() - start_time
                         self._record_performance(session_id, "tts", processing_time, False, 
                                                f"Edge TTS access denied after {max_retries} attempts")
@@ -235,6 +261,7 @@ class EdgeTTSService:
                 else:
                     # Non-403 error, try fallback immediately
                     logger.warning(f"[TTS] Edge TTS error: {e}")
+                    logger.info(f"[TTS] fallback_reason=edge_tts_error, will_try_alternative_vietnamese_voices=True")
                     processing_time = time.time() - start_time
                     self._record_performance(session_id, "tts", processing_time, False, str(e))
                     return await self._try_fallback_voice(text, voice_preference, session_id, voice_settings, start_time)
@@ -296,59 +323,96 @@ class EdgeTTSService:
         voice_settings: Optional[Dict[str, Any]] = None,
         start_time: Optional[float] = None,
     ) -> Dict[str, Any]:
-        """Try fallback English voice when Vietnamese voice fails"""
+        """
+        Try alternative Vietnamese voices when primary voice fails.
+        CRITICAL: NEVER fallback to English voices for Vietnamese text.
+        Fallback chain: vi-VN-NamMinhNeural → vi-VN-HoaiMyNeural → gTTS(vi) → pyttsx3(vi) → text-only
+        """
         if start_time is None:
             start_time = time.time()
+        
+        # Detect if text is Vietnamese
+        is_vietnamese = self._detect_vietnamese(text)
+        if not is_vietnamese:
+            logger.warning(f"[TTS] Text does not appear to be Vietnamese: {text[:50]}...")
         
         # Skip Edge TTS fallback if we know it's failing
         if self._consecutive_failures >= self._failure_threshold:
             logger.info("[TTS] Skipping Edge TTS fallback due to known issues, using alternative services")
         else:
-            fallback_voice = self.FALLBACK_VOICES[voice_preference]
-            logger.info(f"[TTS] Trying fallback voice: {fallback_voice}")
+            # Try all Vietnamese voices before giving up on Edge TTS
+            primary_voice = self.VOICES[voice_preference]
+            voices_to_try = [v for v in self.ALTERNATIVE_VI_VOICES if v != primary_voice]
             
-            try:
-                audio_data, word_timestamps = await self._generate_audio_with_timestamps_safe(text, fallback_voice)
+            for fallback_voice in voices_to_try:
+                logger.info(f"[TTS] Trying alternative Vietnamese voice: {fallback_voice}")
+                logger.info(f"[TTS] fallback_voice={fallback_voice}, language=vi-VN, provider=edge-tts")
                 
-                if audio_data:
-                    duration = self._estimate_duration(text, word_timestamps)
-                    result = await self._create_success_result(
-                        audio_data, fallback_voice, text, duration, word_timestamps, session_id, voice_settings
-                    )
-                    result["fallback_reason"] = f"Vietnamese voice failed, used {fallback_voice}"
+                try:
+                    audio_data, word_timestamps = await self._generate_audio_with_timestamps_safe(text, fallback_voice)
                     
-                    processing_time = time.time() - start_time
-                    self._record_performance(session_id, "tts", processing_time, True, 
-                                           metadata={"voice_model": fallback_voice, "fallback": True})
-                    
-                    # Reset failure counter on successful fallback
-                    self._consecutive_failures = max(0, self._consecutive_failures - 1)
-                    logger.info(f"[TTS] Fallback successful with {fallback_voice}")
-                    return result
-                    
-            except Exception as e:
-                logger.info(f"[TTS] Fallback voice also failed: {str(e)[:50]}...")
-                # Increase failure count since even fallback failed
-                self._consecutive_failures += 1
-                self._last_failure_time = time.time()
+                    if audio_data:
+                        duration = self._estimate_duration(text, word_timestamps)
+                        
+                        # Update voice_settings with fallback voice
+                        fallback_settings = voice_settings.copy()
+                        fallback_settings["voice_model"] = fallback_voice
+                        fallback_settings["provider"] = "edge-tts"
+                        
+                        result = await self._create_success_result(
+                            audio_data, fallback_voice, text, duration, word_timestamps, session_id, fallback_settings
+                        )
+                        result["fallback_reason"] = f"Primary voice failed, used alternative Vietnamese voice {fallback_voice}"
+                        
+                        processing_time = time.time() - start_time
+                        self._record_performance(session_id, "tts", processing_time, True, 
+                                               metadata={"voice_model": fallback_voice, "fallback": True})
+                        
+                        # Reset failure counter on successful fallback
+                        self._consecutive_failures = max(0, self._consecutive_failures - 1)
+                        logger.info(f"[TTS] Alternative Vietnamese voice successful: {fallback_voice}, cache_hit=False")
+                        return result
+                        
+                except Exception as e:
+                    logger.info(f"[TTS] Alternative voice {fallback_voice} also failed: {str(e)[:50]}...")
+                    continue
+            
+            # All Edge TTS Vietnamese voices failed
+            logger.info("[TTS] All Edge TTS Vietnamese voices failed")
+            self._consecutive_failures += 1
+            self._last_failure_time = time.time()
         
-        # Try alternative TTS services (gTTS, pyttsx3)
-        logger.info("[TTS] Using alternative TTS services")
+        # Try alternative TTS services (gTTS, pyttsx3) - ALWAYS use Vietnamese for Vietnamese text
+        logger.info("[TTS] Using alternative Vietnamese TTS services")
+        logger.info(f"[TTS] fallback_reason=all_edge_tts_failed, will_try=gtts_and_pyttsx3, language=vi")
         try:
             from .fallback_tts_service import fallback_tts_service
+            
+            # Force Vietnamese language for Vietnamese text
+            language = "vi" if is_vietnamese else "vi"  # Default to Vietnamese for this system
+            
             fallback_result = await fallback_tts_service.synthesize_text_fallback(
                 text=text,
                 voice_preference=voice_preference,
-                language="vi"
+                language=language
             )
             
             if fallback_result.get("success"):
                 # Convert fallback result to our format and cache it
                 audio_data = fallback_result.get("audio_data", b"")
                 voice_model = fallback_result.get("voice_used", "unknown")
+                fallback_method = fallback_result.get("method_used", "unknown")
+                
+                logger.info(f"[TTS] Alternative TTS success: provider={fallback_method}, voice_model={voice_model}, language=vi")
+                
+                # Update voice_settings for caching
+                fallback_settings = voice_settings.copy()
+                fallback_settings["provider"] = fallback_method
+                fallback_settings["voice_model"] = voice_model
+                fallback_settings["language"] = "vi-VN"
                 
                 # Try to cache the result
-                if audio_data and voice_settings:
+                if audio_data and fallback_settings:
                     cache_service = self._get_cache_service()
                     if cache_service:
                         try:
@@ -369,7 +433,7 @@ class EdgeTTSService:
                             if audio_url:
                                 cache_service.cache_audio(
                                     text=text,
-                                    voice_settings=voice_settings,
+                                    voice_settings=fallback_settings,
                                     audio_url=audio_url,
                                     voice_model=voice_model,
                                     file_size_bytes=len(audio_data),
@@ -377,22 +441,23 @@ class EdgeTTSService:
                                     word_timestamps=fallback_result.get("word_timestamps")
                                 )
                                 fallback_result["audio_url"] = audio_url
+                                logger.info(f"[TTS] Cached alternative TTS result: cache_key includes provider={fallback_method}")
                         except Exception as cache_e:
                             logger.warning(f"[TTS] Fallback caching failed: {cache_e}")
                 
                 processing_time = time.time() - start_time
                 self._record_performance(session_id, "tts", processing_time, True, 
-                                       metadata={"voice_model": voice_model, "fallback_method": fallback_result.get("method_used")})
+                                       metadata={"voice_model": voice_model, "fallback_method": fallback_method})
                 
                 fallback_result["success"] = True
-                logger.info(f"[TTS] Alternative TTS successful: {fallback_result.get('method_used')}")
+                logger.info(f"[TTS] Alternative Vietnamese TTS successful: {fallback_method}, cache_hit=False")
                 return fallback_result
                 
         except Exception as fallback_e:
             logger.error(f"[TTS] Alternative TTS services failed: {fallback_e}")
         
         # Ultimate fallback: return text-only response
-        logger.warning("[TTS] All TTS options failed, returning text-only response")
+        logger.warning("[TTS] All Vietnamese TTS options failed, returning text-only response")
         processing_time = time.time() - start_time
         self._record_performance(session_id, "tts", processing_time, False, 
                                "All TTS services failed")
@@ -405,7 +470,7 @@ class EdgeTTSService:
             "question_text": text,
             "word_timestamps": [],
             "success": False,
-            "fallback_reason": "All TTS services failed, text-only mode"
+            "fallback_reason": "All Vietnamese TTS services failed, text-only mode"
         }
 
     async def _create_success_result(
@@ -555,6 +620,25 @@ class EdgeTTSService:
             raise RuntimeError("No audio data received from Edge TTS")
             
         return audio_data, word_timestamps
+
+    def _detect_vietnamese(self, text: str) -> bool:
+        """
+        Detect if text is Vietnamese by checking for Vietnamese-specific characters.
+        Returns True if text contains Vietnamese diacritics.
+        """
+        vietnamese_chars = set('àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ')
+        vietnamese_chars.update('ÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ')
+        
+        # Check if text contains Vietnamese characters
+        text_chars = set(text.lower())
+        has_vietnamese = bool(text_chars & vietnamese_chars)
+        
+        # Also check for common Vietnamese words
+        vietnamese_words = {'là', 'của', 'và', 'có', 'được', 'trong', 'cho', 'với', 'này', 'để', 'một', 'các', 'người', 'không', 'như'}
+        words = set(text.lower().split())
+        has_vietnamese_words = bool(words & vietnamese_words)
+        
+        return has_vietnamese or has_vietnamese_words
 
     def _estimate_duration(
         self,

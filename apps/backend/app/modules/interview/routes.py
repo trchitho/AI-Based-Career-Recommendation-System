@@ -797,7 +797,7 @@ async def search_jobs(
                         "id": r.id,
                         "title": r.title,
                         "title_vn": r.title,
-                        "description_vn": r.description_vi or f"Tìm hiểu về nghề {r.title} và các cơ hội phát triển sự nghiệp.",
+                        "description_vi": r.description_vi or f"Tìm hiểu về nghề {r.title} và các cơ hội phát triển sự nghiệp.",
                     }
                 )
 

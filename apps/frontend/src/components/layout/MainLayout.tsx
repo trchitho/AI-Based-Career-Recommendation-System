@@ -10,7 +10,10 @@ import ScrollIndicator from "../common/ScrollIndicator";
 import { useScrollBehavior } from "../../hooks/useScrollBehavior";
 
 // Pages that should NOT show the sidebar (public / auth pages)
-const NO_SIDEBAR_PATHS = ['/', '/home', '/login', '/register', '/forgot-password', '/verify', '/oauth', '/careers', '/pricing', '/blog'];
+const NO_SIDEBAR_PATHS = ['/', '/home', '/login', '/register', '/forgot-password', '/verify', '/oauth'];
+
+// Pages that show sidebar but auto-collapse it
+const AUTO_COLLAPSE_PATHS = ['/careers', '/pricing', '/blog'];
 
 const sidebarItems = [
   {
@@ -72,11 +75,31 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     return false;
   });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  // Track whether collapse was triggered automatically (not by user)
+  const autoCollapsedRef = useRef(false);
 
   // Persist sidebar state to localStorage
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
+
+  // Auto-collapse sidebar on AUTO_COLLAPSE_PATHS, restore when leaving
+  useEffect(() => {
+    const isAutoCollapsePath = AUTO_COLLAPSE_PATHS.some(p =>
+      location.pathname.startsWith(p)
+    );
+    if (isAutoCollapsePath) {
+      if (!sidebarCollapsed) {
+        autoCollapsedRef.current = true;
+        setSidebarCollapsed(true);
+      }
+    } else {
+      if (autoCollapsedRef.current) {
+        autoCollapsedRef.current = false;
+        setSidebarCollapsed(false);
+      }
+    }
+  }, [location.pathname]);
 
   // Đóng mobile sidebar khi resize sang desktop
   useEffect(() => {
@@ -125,14 +148,18 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { scrollY, isScrolled, isScrollingUp, isScrollingDown } = useScrollBehavior(20);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden flex font-['Plus_Jakarta_Sans'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
+    <div className="min-h-screen w-full overflow-x-hidden flex font-['Inter'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
 
       {/* Scroll Progress Indicator */}
       <ScrollIndicator />
 
       {/* CSS Injection */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        :root {
+          --color-primary: #6d28d9;
+          --color-primary-glow: rgba(109, 40, 217, 0.35);
+        }
       `}</style>
 
       {/* SIDEBAR - Fixed left side, full height */}
@@ -241,44 +268,54 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         }`}>
 
         {/* HEADER */}
-        <header className={`fixed top-0 z-50 transition-[left] duration-300 ease-in-out ${isScrolled
-          ? 'bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-700'
-          : 'bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700'
-          } ${showSidebar && !sidebarCollapsed ? 'md:left-52 left-0 right-0' :
-            showSidebar && sidebarCollapsed ? 'md:left-16 left-0 right-0' :
-              'left-0 right-0'
-          }`}>
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
+        <header className={`fixed top-0 z-50 transition-[left,background-color,box-shadow] duration-300 ease-in-out bg-[#ffffff] dark:bg-[rgba(15,23,42,0.9)] border-b border-[rgba(15,23,42,0.06)] dark:border-[rgba(255,255,255,0.08)] shadow-[0_8px_28px_rgba(15,23,42,0.04)] ${showSidebar && !sidebarCollapsed ? 'md:left-52 left-0 right-0' : showSidebar && sidebarCollapsed ? 'md:left-16 left-0 right-0' : 'left-0 right-0'} h-[72px] flex items-center`}>
+          <div className="w-full px-6 md:px-10 lg:px-14">
+            <div className="flex items-center justify-between h-full relative">
 
               {/* Logo */}
-              <div className="flex-shrink-0">
-                <AppLogo />
+              <div className="flex-shrink-0 flex-1 flex justify-start">
+                <AppLogo className="hover:-translate-y-[1px] transition-transform duration-250 ease-out" />
               </div>
 
               {/* Desktop Navigation - KHÔNG ảnh hưởng đến sidebar state */}
-              <nav className="hidden md:flex items-center space-x-8">
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 absolute left-1/2 -translate-x-1/2">
                 {navLinks.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `text-sm font-medium transition-all duration-200 hover:scale-105 ${isActive
-                        ? "text-indigo-600 dark:text-indigo-400"
-                        : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      `relative px-[18px] py-[10px] rounded-full text-[15px] leading-none transition-all duration-250 ease-out cursor-pointer group outline-none ${isActive
+                        ? "text-[#4f46e5] dark:text-[#a78bfa] font-[700] bg-transparent"
+                        : "text-[#64748b] dark:text-[#cbd5e1] font-[600] hover:text-[#4f46e5] dark:hover:text-[#a78bfa] hover:bg-[rgba(15,23,42,0.04)] dark:hover:bg-[rgba(139,92,246,0.14)] hover:-translate-y-[1px] hover:shadow-[0_8px_22px_rgba(15,23,42,0.06)]"
                       }`
                     }
                   >
-                    {item.label}
+                    {({ isActive }) => (
+                      <>
+                        <span>{item.label}</span>
+                        {/* Active Underline */}
+                        {isActive && (
+                          <span
+                            className="absolute -bottom-[16px] left-1/2 -translate-x-1/2 w-[92px] h-[4px] rounded-full bg-gradient-to-r from-[#8b5cf6] via-[#6366f1] to-[#3b82f6] shadow-[0_0_14px_rgba(139,92,246,0.45),0_0_26px_rgba(59,130,246,0.28)]"
+                          />
+                        )}
+                        {/* Hover Underline (Non-active) */}
+                        {!isActive && (
+                          <span
+                            className="absolute -bottom-[12px] left-1/2 -translate-x-1/2 w-0 h-[2px] rounded-full bg-gradient-to-r from-[#8b5cf6] to-[#6366f1] transition-all duration-300 ease-out group-hover:w-[34px]"
+                          />
+                        )}
+                      </>
+                    )}
                   </NavLink>
                 ))}
               </nav>
 
               {/* Right side */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-1 justify-end">
                 {/* Mobile menu button */}
                 <button
-                  className="md:hidden p-2 text-gray-600 dark:text-gray-400 rounded-lg smooth-transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-110 micro-bounce"
+                  className="md:hidden p-2 text-gray-600 dark:text-gray-400 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                   onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,21 +325,21 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
                 {/* Notifications */}
                 {user && (
-                  <div>
+                  <div className="flex items-center">
                     <NotificationCenter />
                   </div>
                 )}
 
                 {/* User menu */}
                 {user ? (
-                  <div className="relative" ref={dropdownRef}>
+                  <div className="relative ml-2" ref={dropdownRef}>
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 smooth-transition hover:scale-105 micro-bounce"
+                      className="flex items-center justify-center w-[42px] h-[42px] rounded-full bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] shadow-[0_10px_24px_rgba(79,70,229,0.28)] hover:-translate-y-[1px] hover:scale-[1.03] hover:shadow-[0_14px_30px_rgba(79,70,229,0.34)] transition-all duration-250 ease-out border-none outline-none"
                     >
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg hover-lift">
-                        {displayInitial}
-                      </div>
+                      <span className="text-white text-[16px] font-bold">
+                        P
+                      </span>
                     </button>
 
                     {isDropdownOpen && (

@@ -186,62 +186,125 @@ const BlogPage = () => {
   return (
     <MainLayout>
       <div className="min-h-[calc(100vh-64px)] bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans'] pb-20">
-        
+
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
         <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
         <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
-        {/* ── Compact Hero ── */}
+        {/* ── Premium Hero Section ── */}
         <section className="relative z-10 border-b border-white/20 dark:border-gray-800/50 overflow-hidden">
-          {/* Hero gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-purple-500/5 to-transparent dark:from-indigo-900/20 dark:via-purple-900/10 pointer-events-none" />
-          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-400/10 rounded-full blur-[80px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-400/10 rounded-full blur-[60px] pointer-events-none" />
+          {/* Background Gradient - Light Mode */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-50 dark:hidden pointer-events-none"
+            style={{ background: 'linear-gradient(135deg, #F8FAFC 0%, #F3F4F6 38%, #F8FAFC 70%, #EEF2FF 100%)' }} />
+
+          {/* Background Gradient - Dark Mode */}
+          <div className="hidden dark:block absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(135deg, #020817 0%, #07152F 35%, #081A38 65%, #041022 100%)' }} />
+
+          {/* Glow behind title - Light Mode */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[240px] rounded-full blur-[60px] pointer-events-none dark:hidden"
+            style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.16) 0%, rgba(168,85,247,0.12) 35%, rgba(244,114,182,0.10) 60%, transparent 78%)' }} />
+
+          {/* Glow behind title - Dark Mode */}
+          <div className="hidden dark:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[260px] rounded-full blur-[60px] pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.30) 0%, rgba(124,58,237,0.24) 38%, rgba(236,72,153,0.14) 65%, transparent 80%)' }} />
 
           <div className="relative max-w-6xl mx-auto px-6 py-24 text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-              Latest News & Articles
+            {/* Top Badge */}
+            <div className="inline-flex items-center gap-2 h-11 px-5 rounded-full mb-5 text-[13px] font-semibold tracking-wide
+                          bg-white/65 dark:bg-blue-600/10 
+                          border border-purple-300/40 dark:border-blue-400/36
+                          text-purple-600 dark:text-blue-200">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              CẬP NHẬT MỖI NGÀY
+            </div>
+
+            {/* Main Heading with Gradient */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 tracking-tight leading-[1.05]"
+              style={{ letterSpacing: '-0.04em' }}>
+              <span className="text-slate-900 dark:text-white">Latest </span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400"
+                style={{
+                  backgroundImage: 'linear-gradient(90deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>
+                News & Articles
+              </span>
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto">
+
+            {/* Subtitle */}
+            <p className="text-base sm:text-lg md:text-xl max-w-[860px] mx-auto mb-7 leading-relaxed
+                        text-slate-600 dark:text-slate-300/86">
               Expert career guidance, interview strategies, and professional development insights.
             </p>
 
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-10">
+            <div className="max-w-[880px] mx-auto mb-7">
               <div className="relative">
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="Search career advice, interview tips..."
-                  className="w-full pl-14 pr-6 py-5 rounded-full bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/60 dark:border-gray-600/50 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 shadow-xl transition-all text-lg"
+                  className="w-full h-[74px] pl-14 pr-6 rounded-[20px] text-base
+                           bg-white dark:bg-slate-800
+                           border border-indigo-100 dark:border-indigo-500/30
+                           text-slate-900 dark:text-white 
+                           placeholder-slate-400 dark:placeholder-slate-400
+                           shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]
+                           hover:shadow-[0_8px_40px_rgb(99,102,241,0.12)] dark:hover:shadow-[0_8px_40px_rgb(99,102,241,0.3)]
+                           hover:border-indigo-300 dark:hover:border-indigo-400/60
+                           focus:outline-none 
+                           focus:border-indigo-500 dark:focus:border-indigo-400
+                           focus:ring-4 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20
+                           transition-all duration-300"
                 />
               </div>
             </div>
 
             {/* Trending Topics */}
-            <div className="flex items-center justify-center gap-3 flex-wrap mb-8">
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                <TrendingUp className="w-4 h-4" />
+            <div className="flex items-center justify-center gap-3 flex-wrap mb-7">
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                <TrendingUp className="w-4 h-4 text-purple-500 dark:text-violet-400" />
                 <span className="font-medium">Trending:</span>
               </div>
               {trendingTopics.map((topic) => (
                 <button
                   key={topic}
                   onClick={() => handleSearchChange(topic)}
-                  className="px-4 py-2 rounded-full glass border border-white/40 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-indigo-500 hover:text-indigo-600 transition-all shadow-sm"
+                  className="h-[46px] px-5 rounded-full text-sm font-medium
+                           bg-white/90 dark:bg-slate-900/58
+                           border border-slate-200 dark:border-blue-400/14
+                           text-slate-700 dark:text-slate-200
+                           hover:border-purple-400/22 dark:hover:border-blue-400/28
+                           hover:text-purple-600 dark:hover:text-slate-100
+                           hover:-translate-y-0.5
+                           transition-all"
+                  style={{
+                    boxShadow: '0 8px 20px rgba(15,23,42,0.04)'
+                  }}
                 >
                   {topic}
                 </button>
               ))}
             </div>
 
-            {/* Action Button */}
-            <div className="flex items-center justify-center gap-4">
+            {/* Action Buttons */}
+            <div className="flex items-center justify-center gap-4 mt-6">
               <button
                 onClick={() => navigate(isAdmin ? '/admin/blog/create' : '/blog/create')}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
+                className="inline-flex items-center gap-2 h-[58px] px-8 rounded-[18px] text-base font-bold
+                         text-white
+                         hover:-translate-y-0.5
+                         transition-all"
+                style={{
+                  background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 50%, #D946EF 100%)',
+                  boxShadow: '0 18px 36px rgba(139,92,246,0.22), 0 0 32px rgba(59,130,246,0.18)'
+                }}
               >
                 <Edit3 className="w-5 h-5" />
                 Write Article
@@ -250,7 +313,12 @@ const BlogPage = () => {
               {isAdmin && (
                 <button
                   onClick={() => navigate('/admin/blog/manage')}
-                  className="inline-flex items-center gap-2 px-8 py-4 glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-full hover:border-indigo-500 hover:text-indigo-600 transition-all shadow-md"
+                  className="inline-flex items-center gap-2 h-[58px] px-8 rounded-[18px] text-base font-bold
+                           bg-white/90 dark:bg-slate-900/52
+                           border border-slate-200 dark:border-slate-700/18
+                           text-slate-900 dark:text-slate-50
+                           hover:-translate-y-0.5
+                           transition-all"
                 >
                   <Settings className="w-5 h-5" />
                   Manage

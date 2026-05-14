@@ -230,25 +230,30 @@ async def deepgram_stt_websocket(
                         
                         logger.info(f"[DG-WS] 🎤 Transcript: '{text[:80]}' (is_final={is_final}, speech_final={sp_final})")
                         
-                        if is_final or sp_final:
-                            confirmed_text = (confirmed_text + " " + text).strip()
-                            response = {
-                                "type": "transcript",
-                                "text": text,
-                                "accumulated": confirmed_text,
-                                "is_final": True,
-                            }
-                            await ws.send_text(json.dumps(response))
-                            logger.info(f"[DG-WS] ✓ Sent FINAL transcript to client: '{text[:50]}'")
-                        else:
-                            response = {
-                                "type": "transcript",
-                                "text": text,
-                                "accumulated": (confirmed_text + " " + text).strip(),
-                                "is_final": False,
-                            }
-                            await ws.send_text(json.dumps(response))
-                            logger.debug(f"[DG-WS] → Sent INTERIM transcript to client: '{text[:50]}'")
+                        # Check if frontend WebSocket is still connected before sending
+                        try:
+                            if is_final or sp_final:
+                                confirmed_text = (confirmed_text + " " + text).strip()
+                                response = {
+                                    "type": "transcript",
+                                    "text": text,
+                                    "accumulated": confirmed_text,
+                                    "is_final": True,
+                                }
+                                await ws.send_text(json.dumps(response))
+                                logger.info(f"[DG-WS] ✓ Sent FINAL transcript to client: '{text[:50]}'")
+                            else:
+                                response = {
+                                    "type": "transcript",
+                                    "text": text,
+                                    "accumulated": (confirmed_text + " " + text).strip(),
+                                    "is_final": False,
+                                }
+                                await ws.send_text(json.dumps(response))
+                                logger.debug(f"[DG-WS] → Sent INTERIM transcript to client: '{text[:50]}'")
+                        except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_err:
+                            logger.info(f"[DG-WS] Frontend disconnected, stopping receive loop: {send_err}")
+                            break  # Exit loop immediately when frontend disconnects
                             
                 except Exception as e:
                     error_msg = str(e)
@@ -285,7 +290,32 @@ async def deepgram_stt_websocket(
                     else:
                         logger.error(f"[DG-WS] send loop error after {chunk_count} chunks: {e}", exc_info=True)
 
-            await asyncio.gather(_recv_from_deepgram(), _send_to_deepgram())
+            # Run both tasks concurrently and cancel remaining when one finishes
+            recv_task = asyncio.create_task(_recv_from_deepgram())
+            send_task = asyncio.create_task(_send_to_deepgram())
+            
+            try:
+                # Wait for either task to complete
+                done, pending = await asyncio.wait(
+                    [recv_task, send_task],
+                    return_when=asyncio.FIRST_COMPLETED
+                )
+                
+                # Cancel any remaining tasks to prevent zombie tasks
+                for task in pending:
+                    task.cancel()
+                    try:
+                        await task
+                    except asyncio.CancelledError:
+                        logger.debug(f"[DG-WS] Task cancelled successfully")
+                    except Exception as e:
+                        logger.warning(f"[DG-WS] Error cancelling task: {e}")
+                        
+            except Exception as e:
+                logger.error(f"[DG-WS] Error in task coordination: {e}")
+                # Ensure both tasks are cancelled on error
+                recv_task.cancel()
+                send_task.cancel()
             logger.info(f"[DG-WS] Session done. final={repr(confirmed_text[:80])}")
 
     except _wss.exceptions.ConnectionClosedError as e:

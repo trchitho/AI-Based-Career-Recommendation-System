@@ -512,7 +512,7 @@ const CareerDetailPage = () => {
                       <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-[24px] p-6 text-white">
                         <h3 className="text-lg font-bold mb-2">{t('careerDetail.unlockFullAccess')}</h3>
                         <p className="text-purple-100 text-sm mb-4">{t('careerDetail.unlockFullAccessDesc')}</p>
-                        <button onClick={() => navigate('/pricing')} className="w-full py-3 bg-white text-purple-700 font-bold rounded-xl hover:bg-purple-50 transition-colors">{t('careerDetail.viewPlans')}</button>
+                        <button onClick={() => navigate('/pricing')} className="w-full py-3 font-bold rounded-xl transition-colors" style={{ background: '#ffffff', color: '#7e22ce', border: 'none', cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = '#f5f3ff')} onMouseLeave={e => (e.currentTarget.style.background = '#ffffff')}>{t('careerDetail.viewPlans')}</button>
                       </div>
                     </>
                   ) : (

@@ -43,6 +43,8 @@ import axios from 'axios';
 import { cn } from '../lib/utils';
 import useVietnamworksCategories, { useCategoryGroups, useCategorySearch } from '../hooks/useVietnamworksCategories';
 import { useTrendsSummary } from '../hooks/useTrends';
+import { useTheme } from '../contexts/ThemeContext';
+import './TrendsPage-dark.css';
 
 // Hook lấy trends từ dữ liệu crawl thật
 const useCrawledTrends = () => {
@@ -175,6 +177,7 @@ const mockTrends = {
 };
 
 const TrendsPage: React.FC = () => {
+  const { theme } = useTheme();
   const [marketMetrics, setMarketMetrics] = useState<MarketMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [jobFilter, setJobFilter] = useState<string>('all');
@@ -290,6 +293,56 @@ const TrendsPage: React.FC = () => {
     }
   }, [trends]);
 
+  // Dynamic live logs simulation
+  const [liveLogs, setLiveLogs] = useState<LogData[]>([]);
+
+  useEffect(() => {
+    // Initial logs setup
+    const initialLogs = trends?.live_skills || mockTrends.logs;
+    if (liveLogs.length === 0) {
+      setLiveLogs(initialLogs);
+    }
+
+    // Simulate incoming data
+    const skills = ['Quản lý dự án', 'Digital Marketing', 'Phân tích tài chính', 'Python / AI', 'AutoCAD', 'Tư vấn khách hàng', 'Thiết kế UI/UX', 'SEO', 'Phân tích dữ liệu', 'Khám chữa bệnh', 'Giảng dạy', 'Kiểm toán', 'Bán hàng B2B', 'Tuyển dụng'];
+    const companies = ['Vinmec', 'Vingroup', 'Shopee', 'Coteccons', 'Techcombank', 'VinAI', 'Unilever', 'Vietcombank', 'FPT'];
+    const roles = ['Bác sĩ', 'Kỹ sư xây dựng', 'Data Scientist', 'Product Manager', 'Chuyên viên Marketing', 'Giám đốc Kinh doanh', 'Business Analyst', 'Giảng viên', 'Chuyên viên Nhân sự', 'Kiểm toán viên'];
+
+    const interval = setInterval(() => {
+      setLiveLogs(prevLogs => {
+        const newSkill = skills[Math.floor(Math.random() * skills.length)];
+        const newCompany = companies[Math.floor(Math.random() * companies.length)];
+        const newRole = roles[Math.floor(Math.random() * roles.length)];
+        const isHighMatch = Math.random() > 0.5;
+
+        const newLog: LogData = {
+          id: Date.now(),
+          skill: newSkill,
+          time: 'Vừa xong',
+          meta: `${newRole} tại ${newCompany}`,
+          score: isHighMatch ? 0.85 + Math.random() * 0.14 : 0.6 + Math.random() * 0.2,
+          color: isHighMatch ? 'text-emerald-600' : 'text-indigo-600',
+          match: isHighMatch ? 0.85 + Math.random() * 0.14 : 0.6 + Math.random() * 0.2,
+        };
+
+        // Update relative time strings for old logs
+        const updatedPrevLogs = prevLogs.map(log => {
+          if (log.time === 'Vừa xong') return { ...log, time: '5 giây trước' };
+          if (log.time === '5 giây trước') return { ...log, time: '12 giây trước' };
+          if (log.time === '12 giây trước') return { ...log, time: '20 giây trước' };
+          if (log.time === '20 giây trước') return { ...log, time: '45 giây trước' };
+          if (log.time === '45 giây trước') return { ...log, time: '1 phút trước' };
+          return log;
+        });
+
+        // Keep maximum of 5 items
+        return [newLog, ...updatedPrevLogs].slice(0, 5);
+      });
+    }, 3500); // New log every 3.5s
+
+    return () => clearInterval(interval);
+  }, [trends]);
+
   // Ensure trends always has all required properties
   // trending_jobs dùng state riêng, không tự cập nhật theo refetch interval
   const safeTrends = {
@@ -347,9 +400,9 @@ const TrendsPage: React.FC = () => {
 
   function StatCard({ title, value, change, trend, icon: Icon, color }: any) {
     const colors: any = {
-      indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-      emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-      purple: 'bg-purple-50 text-purple-600 border-purple-100',
+      indigo: 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800',
+      emerald: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800',
+      purple: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-800',
     };
 
     return (
@@ -360,14 +413,14 @@ const TrendsPage: React.FC = () => {
           </div>
           <div className={cn(
             "flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded border",
-            trend === 'up' ? "text-emerald-600 bg-emerald-50 border-emerald-100" : "text-rose-600 bg-rose-50 border-rose-100"
+            trend === 'up' ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-100 dark:border-emerald-800" : "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 border-rose-100 dark:border-rose-800"
           )}>
             {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
             {change}
           </div>
         </div>
-        <h4 className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{title}</h4>
-        <p className="text-2xl font-bold font-mono mt-1 text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tighter">{value}</p>
+        <h4 className="text-slate-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-widest">{title}</h4>
+        <p className="text-2xl font-bold font-mono mt-1 text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tighter">{value}</p>
       </div>
     );
   }
@@ -444,6 +497,31 @@ const TrendsPage: React.FC = () => {
               </div>
             </div>
           </div>
+          <div className={cn("px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border", getUrgencyColor())}>
+            {job.urgency}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {job.description && (
+            <p className="text-xs text-slate-600 mb-3 line-clamp-3">{job.description}</p>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Skills:</span>
+            <div className="flex flex-wrap gap-1">
+              {job.skills.slice(0, 3).map((skill, index) => (
+                <span
+                  key={index}
+                  className="px-2 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-medium rounded border border-indigo-100"
+                >
+                  {skill}
+                </span>
+              ))}
+              {job.skills.length > 3 && (
+                <span className="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-medium rounded border border-slate-200">
+                  +{job.skills.length - 3} more
+                </span>
+              )}
           <div className="flex flex-col items-end gap-1 ml-2 shrink-0">
             <div className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border", getUrgencyColor())}>
               {job.urgency === 'high' ? 'Gấp' : job.urgency === 'medium' ? 'Bình thường' : 'Thường'}
@@ -650,7 +728,7 @@ const TrendsPage: React.FC = () => {
   </div>;
 
   return (
-    <div className="space-y-8 pb-12 bg-[#F8FAFC] min-h-screen pt-6 pl-8 pr-8">
+    <div className={cn("space-y-8 pb-12 bg-[#F8FAFC] dark:bg-gray-900 min-h-screen pt-6 pl-8 pr-8", theme === 'dark' && 'trends-page-dark')}>
       {/* CSS Styles */}
       <style>{`
         .bento-item {
@@ -677,6 +755,14 @@ const TrendsPage: React.FC = () => {
         }
       `}</style>
       {/* Page Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Phân tích thị trường</h1>
+        <button
+          onClick={() => refetch()}
+          className="p-2 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-gray-700 rounded-lg transition-all"
+        >
+          <RefreshCw className="w-5 h-5" />
+        </button>
       <div className="mb-8">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
           Phân tích thị trường
@@ -689,6 +775,7 @@ const TrendsPage: React.FC = () => {
         <StatCard
           title="LƯƠNG TRUNG BÌNH"
           value={formatCurrency(marketMetrics?.avg_salary || 0)}
+          change="+8.4%"
           change={`${marketMetrics?.job_postings || 0} tin`}
           trend="up"
           icon={TrendingUp}
@@ -697,12 +784,26 @@ const TrendsPage: React.FC = () => {
         <StatCard
           title="TIN TUYỂN DỤNG"
           value={(marketMetrics?.job_postings || 0).toLocaleString()}
+          change="+12.1%"
           change="đang hoạt động"
           trend="up"
           icon={Briefcase}
           color="indigo"
         />
         <StatCard
+          title="SỨC KHỎE THỊ TRƯỜNG"
+          value={marketMetrics?.market_health || 0}
+          change="-2.5%"
+          trend="down"
+          icon={RefreshCw}
+          color="emerald"
+        />
+        <StatCard
+          title="TỐC ĐỘ TUYỂN DỤNG"
+          value={`${marketMetrics?.recruitment_speed || 0}d`}
+          change="+0.5d"
+          trend="up"
+          icon={MapPin}
           title="NGÀNH ĐANG TUYỂN"
           value={uniqueCategories.length || 0}
           change="nhóm ngành"
@@ -722,6 +823,119 @@ const TrendsPage: React.FC = () => {
 
       {/* ═══ ANALYTICS SECTION — Biểu đồ phân tích ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        {/* Trending Jobs Section */}
+        <div className="lg:col-span-3">
+          <div className="bento-item p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
+                  <Flame className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">Việc làm thịnh hành</h3>
+                  <p className="text-xs text-slate-500 uppercase tracking-wider">Cơ hội việc làm nổi bật theo xu hướng thị trường</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors text-sm font-bold">
+                  Xem tất cả
+                </button>
+              </div>
+            </div>
+
+            {/* Search and Filters */}
+            <div className="flex flex-col lg:flex-row gap-4 mb-6">
+              <div className="flex-1">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm theo tên công việc, công ty, kỹ năng..."
+                    value={jobSearch}
+                    onChange={(e) => setJobSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
+                  />
+                  <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={jobFilter}
+                  onChange={(e) => setJobFilter(e.target.value)}
+                  className="px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm bg-white"
+                >
+                  <option value="all">Tất cả danh mục</option>
+                  {uniqueCategories.map((category: string) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm bg-white"
+                >
+                  <option value="trend">Xu hướng</option>
+                  <option value="salary">Lương</option>
+                  <option value="applicants">Ứng viên</option>
+                  <option value="posted">Ngày đăng</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Job Cards Grid */}
+            <div className="space-y-8">
+              {filteredJobs.length > 0 ? (
+                Object.entries(
+                  filteredJobs.reduce((acc: any, job: TrendingJob) => {
+                    const cat = job.category || 'Khác';
+                    if (!acc[cat]) acc[cat] = [];
+                    acc[cat].push(job);
+                    return acc;
+                  }, {})
+                ).map(([categoryName, jobsInCategory]: [string, any]) => {
+                  const isExpanded = expandedTrendCategories[categoryName];
+                  const displayedJobs = isExpanded ? jobsInCategory : jobsInCategory.slice(0, 6);
+                  const hasMore = jobsInCategory.length > 6;
+
+                  return (
+                    <div key={categoryName} className="mb-8">
+                      <div className="flex items-center justify-between mb-4 border-b border-indigo-100 pb-2">
+                        <h4 className="text-md font-bold text-indigo-700">{categoryName} <span className="text-sm font-normal text-slate-500">({jobsInCategory.length})</span></h4>
+                        {hasMore && (
+                          <button
+                            onClick={() => toggleTrendCategory(categoryName)}
+                            className="px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded hover:bg-indigo-100 transition-colors flex items-center gap-1"
+                          >
+                            {isExpanded ? 'Thu gọn' : `Xem thêm ${jobsInCategory.length - 6} việc`}
+                            {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {displayedJobs.map((job: TrendingJob) => (
+                          <TrendingJobCard key={job.id} job={job} />
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">Không tìm thấy công việc</h3>
+                  <p className="text-slate-500">Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm của bạn</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Chart */}
         {/* Lương theo ngành */}
         <div className="lg:col-span-2 bento-item p-4 sm:p-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -734,6 +948,16 @@ const TrendsPage: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={safeTrends.salary_growth} layout="vertical" margin={{ left: 10, right: 20 }}>
                 <defs>
+                  <linearGradient id="colorSal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #E2E8F0', color: '#1E293B' }}
                   <linearGradient id="salaryGradient" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stopColor="#6366f1" />
                     <stop offset="100%" stopColor="#8b5cf6" />
@@ -788,6 +1012,16 @@ const TrendsPage: React.FC = () => {
         {/* Nhu cầu theo ngành */}
         <div className="bento-item p-4 sm:p-8">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Nhu cầu theo ngành</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={safeTrends.industry_demand} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
+                <XAxis type="number" hide />
+                <YAxis dataKey="industry" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 11 }} width={120} />
+                <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #E2E8F0' }} />
+                <Bar dataKey="growth" fill="#6366f1" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           <div className="h-80 overflow-y-auto">
             <div style={{ height: Math.max(300, (safeTrends.industry_demand?.length || 5) * 32) }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -867,6 +1101,27 @@ const TrendsPage: React.FC = () => {
               </p>
             </div>
           </div>
+          <div className="space-y-4 overflow-y-auto pr-2">
+            {liveLogs.map((log: LogData, index: number) => (
+              <motion.div
+                key={log.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white transition-colors"
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <span className="text-[11px] font-bold text-indigo-600">{log.skill}</span>
+                  <span className="text-[9px] text-slate-400 font-mono tracking-tighter">{log.time}</span>
+                </div>
+                <p className="text-[10px] leading-relaxed text-slate-500">{log.meta}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 h-[2px] bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-slate-300" style={{ width: `${(log.match || log.score || 0.85) * 100}%` }} />
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-bold">Độ khớp: {(log.match || log.score || 0.85).toFixed(2)}</span>
+                </div>
+              </motion.div>
+            ))}
           <div className="flex items-center gap-3">
             <div className="flex flex-col items-end gap-1">
               <span className="text-[10px] text-slate-400 font-mono">
