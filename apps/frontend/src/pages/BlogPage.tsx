@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, TrendingUp, Clock, Calendar, ArrowRight, Sparkles, Edit3, Settings } from 'lucide-react';
+import { Search, TrendingUp, Clock, Heart, MessageCircle, ArrowRight, Edit3, Settings } from 'lucide-react';
 import MainLayout from '../components/layout/MainLayout';
 import { blogService, BlogPost, BlogListResponse } from '../services/blogService';
 import { useAuth } from '../contexts/AuthContext';
 import { getBlogImage, getBlogGradient } from '../utils/blogImages';
+import { isAuthenticated } from '../utils/auth';
+import api from '../lib/api';
 
 const BlogPage = () => {
   const navigate = useNavigate();
@@ -15,33 +17,25 @@ const BlogPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const POSTS_PER_PAGE = 9;
 
-  // Category mapping: Display Name -> Database Slug
-  const categoryMap: Record<string, string> = {
-    'All': 'all',
-    'Career Advice': 'career-advice',
-    'Interview Tips': 'interview-tips',
-    'Resume Writing': 'resume-writing',
-    'Workplace Culture': 'workplace-culture',
-    'Industry Insights': 'industry-insights',
-    'Job Search': 'job-search',
-    'Skill Development': 'skill-development'
-  };
-
+  // Category mapping with Vietnamese labels
+  // Database now stores English keys (career, interview, etc.)
   const categories = [
-    'All',
-    'Career Advice',
-    'Interview Tips',
-    'Job Search',
-    'Skill Development',
-    'Industry Insights'
+    { key: "all", label: "Tất cả" },
+    { key: "career", label: "Tư vấn nghề nghiệp" },
+    { key: "interview", label: "Mẹo phỏng vấn" },
+    { key: "resume", label: "Viết CV" },
+    { key: "culture", label: "Văn hóa công sở" },
+    { key: "skills", label: "Phát triển kỹ năng" },
+    { key: "jobs", label: "Tìm việc làm" },
+    { key: "industry", label: "Góc nhìn ngành" }
   ];
 
   const trendingTopics = ['Remote Work', 'AI Careers', 'Leadership', 'Salary Negotiation'];
 
-  // Load all posts once
+  // Load all posts
   const loadAllPosts = async () => {
     setLoading(true);
     setError(null);
@@ -54,14 +48,9 @@ const BlogPage = () => {
       while (hasMore) {
         const resp: BlogListResponse = await blogService.list({ page, pageSize });
         const items = resp.items || [];
-
         loadedPosts = [...loadedPosts, ...items];
-
         const total = typeof resp.total === 'number' ? resp.total : undefined;
-        hasMore = total !== undefined
-          ? loadedPosts.length < total
-          : items.length === pageSize;
-
+        hasMore = total !== undefined ? loadedPosts.length < total : items.length === pageSize;
         page += 1;
       }
 
@@ -73,25 +62,36 @@ const BlogPage = () => {
     }
   };
 
-  // Filter and paginate posts
+  // Filter and paginate
   const filterAndPaginatePosts = (
     postsToFilter: BlogPost[],
-    category: string,
+    categoryKey: string,
     search: string,
     page: number
   ) => {
     let filtered = postsToFilter;
 
-    // Step 1: Filter by category
-    if (category !== 'All') {
-      const categorySlug = categoryMap[category] || category.toLowerCase().replace(/\s+/g, '-');
+    // Debug logging
+    console.log('🔍 Filter Debug:', {
+      selectedCategory: categoryKey,
+      totalPosts: postsToFilter.length,
+      sampleCategories: postsToFilter.slice(0, 5).map(p => ({ title: p.title, category: p.category }))
+    });
+
+    if (categoryKey !== 'all') {
       filtered = filtered.filter(post => {
-        const postCategory = post.category?.toLowerCase() || '';
-        return postCategory === categorySlug || postCategory === category.toLowerCase();
+        const postCategory = (post.category || '').toLowerCase().trim();
+        const matches = postCategory === categoryKey.toLowerCase();
+        return matches;
+      });
+
+      console.log('✅ After category filter:', {
+        category: categoryKey,
+        matchedPosts: filtered.length,
+        sampleMatches: filtered.slice(0, 3).map(p => p.title)
       });
     }
 
-    // Step 2: Filter by search query
     if (search.trim()) {
       const query = search.toLowerCase();
       filtered = filtered.filter(post =>
@@ -101,24 +101,23 @@ const BlogPage = () => {
       );
     }
 
-    // Step 3: Apply pagination to filtered results
     const startIndex = (page - 1) * POSTS_PER_PAGE;
     const endIndex = startIndex + POSTS_PER_PAGE;
     const paginated = filtered.slice(startIndex, endIndex);
 
     setDisplayedPosts(paginated);
-    return filtered.length; // Return total filtered count for pagination
+    return filtered.length;
   };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setCurrentPage(1); // Reset to first page when category changes
-    filterAndPaginatePosts(allPosts, category, searchQuery, 1);
+  const handleCategoryChange = (categoryKey: string) => {
+    setSelectedCategory(categoryKey);
+    setCurrentPage(1);
+    filterAndPaginatePosts(allPosts, categoryKey, searchQuery, 1);
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    setCurrentPage(1); // Reset to first page when search changes
+    setCurrentPage(1);
     filterAndPaginatePosts(allPosts, selectedCategory, query, 1);
   };
 
@@ -132,27 +131,23 @@ const BlogPage = () => {
     }
   };
 
-  // Load all posts on mount
   useEffect(() => {
     loadAllPosts();
   }, []);
 
-  // Update displayed posts when allPosts changes
   useEffect(() => {
     if (allPosts.length > 0) {
       filterAndPaginatePosts(allPosts, selectedCategory, searchQuery, currentPage);
     }
   }, [allPosts]);
 
-  // Calculate total pages based on filtered results
   const getFilteredCount = () => {
     let filtered = allPosts;
 
-    if (selectedCategory !== 'All') {
-      const categorySlug = categoryMap[selectedCategory] || selectedCategory.toLowerCase().replace(/\s+/g, '-');
+    if (selectedCategory !== 'all') {
       filtered = filtered.filter(post => {
-        const postCategory = post.category?.toLowerCase() || '';
-        return postCategory === categorySlug || postCategory === selectedCategory.toLowerCase();
+        const postCategory = (post.category || '').toLowerCase().trim();
+        return postCategory === selectedCategory.toLowerCase();
       });
     }
 
@@ -171,289 +166,382 @@ const BlogPage = () => {
   const totalFilteredPosts = getFilteredCount();
   const totalPages = Math.ceil(totalFilteredPosts / POSTS_PER_PAGE);
 
-  // Calculate reading time (rough estimate: 200 words per minute)
   const calculateReadingTime = (content: string) => {
     const words = content.split(/\s+/).length;
     const minutes = Math.ceil(words / 200);
-    return `${minutes} min read`;
+    return `${minutes} min`;
   };
 
-  // Convert category slug to display name
-  const getCategoryDisplayName = (categorySlug: string | undefined) => {
-    if (!categorySlug) return 'Career Advice';
+  const getCategoryDisplayName = (categoryKey: string | undefined) => {
+    if (!categoryKey) return 'Tư vấn nghề nghiệp';
 
-    // Find the display name from the map
-    const entry = Object.entries(categoryMap).find(
-      ([_, slug]) => slug === categorySlug.toLowerCase()
-    );
-
-    if (entry) return entry[0];
-
-    // Fallback: Convert slug to title case
-    return categorySlug
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    // Find matching category by key
+    const category = categories.find(cat => cat.key === categoryKey.toLowerCase());
+    return category?.label || categoryKey;
   };
+
+  const featuredPost = displayedPosts[0];
+  const gridPosts = displayedPosts.slice(1);
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-[calc(100vh-64px)] bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans'] pb-20">
 
-        {/* Hero Section with Search */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
+        <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+
+        {/* ── Premium Hero Section ── */}
+        <section className="relative z-10 border-b border-white/20 dark:border-gray-800/50 overflow-hidden">
+          {/* Background Gradient - Light Mode */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-50 dark:hidden pointer-events-none"
+            style={{ background: 'linear-gradient(135deg, #F8FAFC 0%, #F3F4F6 38%, #F8FAFC 70%, #EEF2FF 100%)' }} />
+
+          {/* Background Gradient - Dark Mode */}
+          <div className="hidden dark:block absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(135deg, #020817 0%, #07152F 35%, #081A38 65%, #041022 100%)' }} />
+
+          {/* Glow behind title - Light Mode */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[240px] rounded-full blur-[60px] pointer-events-none dark:hidden"
+            style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.16) 0%, rgba(168,85,247,0.12) 35%, rgba(244,114,182,0.10) 60%, transparent 78%)' }} />
+
+          {/* Glow behind title - Dark Mode */}
+          <div className="hidden dark:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[260px] rounded-full blur-[60px] pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.30) 0%, rgba(124,58,237,0.24) 38%, rgba(236,72,153,0.14) 65%, transparent 80%)' }} />
+
+          <div className="relative max-w-6xl mx-auto px-6 py-24 text-center">
+            {/* Top Badge */}
+            <div className="inline-flex items-center gap-2 h-11 px-5 rounded-full mb-5 text-[13px] font-semibold tracking-wide
+                          bg-white/65 dark:bg-blue-600/10 
+                          border border-purple-300/40 dark:border-blue-400/36
+                          text-purple-600 dark:text-blue-200">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              CẬP NHẬT MỖI NGÀY
+            </div>
+
+            {/* Main Heading with Gradient */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 tracking-tight leading-[1.05]"
+              style={{ letterSpacing: '-0.04em' }}>
+              <span className="text-slate-900 dark:text-white">Latest </span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400"
+                style={{
+                  backgroundImage: 'linear-gradient(90deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>
+                News & Articles
+              </span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-base sm:text-lg md:text-xl max-w-[860px] mx-auto mb-7 leading-relaxed
+                        text-slate-600 dark:text-slate-300/86">
+              Expert career guidance, interview strategies, and professional development insights.
+            </p>
+
+            {/* Search Bar */}
+            <div className="max-w-[880px] mx-auto mb-7">
+              <div className="relative">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Search career advice, interview tips..."
+                  className="w-full h-[74px] pl-14 pr-6 rounded-[20px] text-base
+                           bg-white dark:bg-slate-800
+                           border border-indigo-100 dark:border-indigo-500/30
+                           text-slate-900 dark:text-white 
+                           placeholder-slate-400 dark:placeholder-slate-400
+                           shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]
+                           hover:shadow-[0_8px_40px_rgb(99,102,241,0.12)] dark:hover:shadow-[0_8px_40px_rgb(99,102,241,0.3)]
+                           hover:border-indigo-300 dark:hover:border-indigo-400/60
+                           focus:outline-none 
+                           focus:border-indigo-500 dark:focus:border-indigo-400
+                           focus:ring-4 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20
+                           transition-all duration-300"
+                />
+              </div>
+            </div>
+
+            {/* Trending Topics */}
+            <div className="flex items-center justify-center gap-3 flex-wrap mb-7">
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                <TrendingUp className="w-4 h-4 text-purple-500 dark:text-violet-400" />
+                <span className="font-medium">Trending:</span>
+              </div>
+              {trendingTopics.map((topic) => (
+                <button
+                  key={topic}
+                  onClick={() => handleSearchChange(topic)}
+                  className="h-[46px] px-5 rounded-full text-sm font-medium
+                           bg-white/90 dark:bg-slate-900/58
+                           border border-slate-200 dark:border-blue-400/14
+                           text-slate-700 dark:text-slate-200
+                           hover:border-purple-400/22 dark:hover:border-blue-400/28
+                           hover:text-purple-600 dark:hover:text-slate-100
+                           hover:-translate-y-0.5
+                           transition-all"
+                  style={{
+                    boxShadow: '0 8px 20px rgba(15,23,42,0.04)'
+                  }}
+                >
+                  {topic}
+                </button>
+              ))}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <button
+                onClick={() => navigate(isAdmin ? '/admin/blog/create' : '/blog/create')}
+                className="inline-flex items-center gap-2 h-[58px] px-8 rounded-[18px] text-base font-bold
+                         text-white
+                         hover:-translate-y-0.5
+                         transition-all"
+                style={{
+                  background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 50%, #D946EF 100%)',
+                  boxShadow: '0 18px 36px rgba(139,92,246,0.22), 0 0 32px rgba(59,130,246,0.18)'
+                }}
+              >
+                <Edit3 className="w-5 h-5" />
+                Write Article
+              </button>
+
+              {isAdmin && (
+                <button
+                  onClick={() => navigate('/admin/blog/manage')}
+                  className="inline-flex items-center gap-2 h-[58px] px-8 rounded-[18px] text-base font-bold
+                           bg-white/90 dark:bg-slate-900/52
+                           border border-slate-200 dark:border-slate-700/18
+                           text-slate-900 dark:text-slate-50
+                           hover:-translate-y-0.5
+                           transition-all"
+                >
+                  <Settings className="w-5 h-5" />
+                  Manage
+                </button>
+              )}
+            </div>
           </div>
+        </section>
 
-          <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-20 lg:py-28">
-            <div className="text-center max-w-4xl mx-auto">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
-                <Sparkles className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Career Insights & Expert Advice
-                </span>
-              </div>
+        {/* Category Filters */}
+        <section className="sticky top-16 z-40 glass border-b border-white/30 dark:border-gray-800/50 shadow-sm backdrop-blur-xl">
+          <div className="max-w-6xl mx-auto px-6 py-6">
+            <div className="relative flex items-center gap-3">
+              {/* Left Arrow - pointing right (inward) */}
+              <button
+                onClick={() => {
+                  const container = document.getElementById('category-scroll');
+                  if (container) container.scrollBy({ left: -200, behavior: 'smooth' });
+                }}
+                className="flex-shrink-0 w-10 h-10 rounded-full glass border border-white/40 dark:border-gray-700 flex items-center justify-center hover:bg-white/60 dark:hover:bg-gray-700 transition-all shadow-md"
+              >
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
 
-              {/* Title */}
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-                Latest News & <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">Articles</span>
-              </h1>
-
-              {/* Subtitle */}
-              <p className="text-xl text-gray-600 dark:text-gray-400 mb-12 leading-relaxed max-w-2xl mx-auto">
-                Expert career guidance, interview strategies, and professional development insights to accelerate your success.
-              </p>
-
-              {/* Search Bar */}
-              <div className="max-w-2xl mx-auto mb-8">
-                <div className="relative group">
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-green-600 transition-colors" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    placeholder="Search career advice, interview tips, resume strategies..."
-                    className="w-full pl-14 pr-6 py-5 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-green-500 dark:focus:border-green-500 shadow-lg hover:shadow-xl transition-all text-lg"
-                  />
-                </div>
-              </div>
-
-              {/* Trending Topics */}
-              <div className="flex items-center justify-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="font-medium">Trending:</span>
-                </div>
-                {trendingTopics.map((topic) => (
+              {/* Category Buttons */}
+              <div id="category-scroll" className="flex items-center gap-3 overflow-x-auto scrollbar-hide flex-1">
+                {categories.map((category) => (
                   <button
-                    key={topic}
-                    onClick={() => handleSearchChange(topic)}
-                    className="px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all"
+                    key={category.key}
+                    onClick={() => handleCategoryChange(category.key)}
+                    className={`px-6 py-3 rounded-full font-semibold whitespace-nowrap transition-all ${selectedCategory === category.key
+                      ? 'bg-indigo-600 text-white shadow-lg border-indigo-600'
+                      : 'glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-gray-700'
+                      }`}
                   >
-                    {topic}
+                    {category.label}
                   </button>
                 ))}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center justify-center gap-4 mt-10">
-                <button
-                  onClick={() => navigate(isAdmin ? '/admin/blog/create' : '/blog/create')}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                >
-                  <Edit3 className="w-5 h-5" />
-                  Write Article
-                </button>
-
-                {isAdmin && (
-                  <button
-                    onClick={() => navigate('/admin/blog/manage')}
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all duration-200"
-                  >
-                    <Settings className="w-5 h-5" />
-                    Manage Blog
-                  </button>
-                )}
-              </div>
+              {/* Right Arrow - pointing left (outward) */}
+              <button
+                onClick={() => {
+                  const container = document.getElementById('category-scroll');
+                  if (container) container.scrollBy({ left: 200, behavior: 'smooth' });
+                }}
+                className="flex-shrink-0 w-10 h-10 rounded-full glass border border-white/40 dark:border-gray-700 flex items-center justify-center hover:bg-white/60 dark:hover:bg-gray-700 transition-all shadow-md"
+              >
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
           </div>
         </section>
 
-        {/* Category Filter Bar */}
-        <section className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5">
-            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => handleCategoryChange(category)}
-                  className={`px-6 py-3 rounded-xl font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategory === category
-                    ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-500/30'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
-                    }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Blog Grid Section */}
-        <section className="py-16 lg:py-24">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            {/* Loading State */}
+        {/* Blog Grid */}
+        <section className="relative z-10 py-16">
+          <div className="max-w-6xl mx-auto px-6">
             {loading && (
               <div className="flex items-center justify-center py-32">
                 <div className="relative">
                   <div className="w-20 h-20 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
-                  <div className="absolute top-0 left-0 w-20 h-20 border-4 border-green-500 rounded-full border-t-transparent animate-spin"></div>
+                  <div className="absolute top-0 left-0 w-20 h-20 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
                 </div>
               </div>
             )}
 
-            {/* Error State */}
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-2xl p-8 text-center max-w-2xl mx-auto">
-                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p className="text-red-600 dark:text-red-400 font-semibold text-lg">{error}</p>
+              <div className="glass border border-red-200/50 dark:border-red-800/50 rounded-2xl p-8 text-center max-w-2xl mx-auto shadow-xl">
+                <p className="text-red-600 dark:text-red-400 font-semibold text-lg mb-4">{error}</p>
                 <button
                   onClick={() => loadAllPosts()}
-                  className="mt-6 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all"
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all"
                 >
                   Try Again
                 </button>
               </div>
             )}
 
-            {/* Blog Cards Grid */}
             {!loading && !error && displayedPosts.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {displayedPosts.map((post) => {
-                  const readingTime = calculateReadingTime(post.content_md || '');
-                  const publishDate = post.published_at
-                    ? new Date(post.published_at).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })
-                    : 'Draft';
+              <div className="space-y-8">
+                {/* Featured post — full width dark card */}
+                {featuredPost && (
+                  <article
+                    onClick={() => navigate(`/blog/${featuredPost.slug}`)}
+                    className={`group cursor-pointer relative rounded-3xl overflow-hidden h-72 lg:h-96 bg-gradient-to-br ${getBlogGradient(featuredPost.category)} shadow-2xl hover:shadow-indigo-500/20 hover:-translate-y-1 transition-all duration-300 border border-white/20`}
+                  >
+                    <img
+                      src={getBlogImage(featuredPost.category, featuredPost.featured_image)}
+                      alt={featuredPost.title}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                    {/* Dark overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20" />
 
-                  return (
-                    <article
-                      key={post.slug}
-                      onClick={() => navigate(`/blog/${post.slug}`)}
-                      className="group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-2xl hover:shadow-green-500/10 hover:-translate-y-2 transition-all duration-300 flex flex-col"
-                    >
-                      {/* Featured Image */}
-                      <div className={`relative h-56 overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)}`}>
-                        <img
-                          src={getBlogImage(post.category, post.featured_image)}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          onError={(e) => {
-                            // If image fails to load, hide it and show gradient background
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-
-                        {/* Fallback content - always show but behind image */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-white/20 text-6xl font-bold">
-                            {post.title.charAt(0)}
-                          </div>
-                        </div>
-
-                        {/* Category Badge */}
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1.5 rounded-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm text-xs font-bold text-gray-900 dark:text-white border border-white/20">
-                            {getCategoryDisplayName(post.category)}
-                          </span>
-                        </div>
+                    <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="px-2.5 py-1 rounded-md bg-indigo-700 text-white text-xs font-bold uppercase tracking-wide">
+                          Featured
+                        </span>
+                        <span className="px-2.5 py-1 rounded-md bg-white/20 text-white text-xs font-semibold backdrop-blur-sm">
+                          {getCategoryDisplayName(featuredPost.category)}
+                        </span>
                       </div>
-
-                      {/* Content */}
-                      <div className="p-6 flex flex-col flex-grow">
-                        {/* Meta Info */}
-                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="w-4 h-4" />
-                            <span>{publishDate}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="w-4 h-4" />
-                            <span>{readingTime}</span>
-                          </div>
-                        </div>
-
-                        {/* Title */}
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 leading-tight group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                          {post.title}
-                        </h3>
-
-                        {/* Description */}
-                        <p className="text-gray-600 dark:text-gray-400 line-clamp-3 mb-6 flex-grow leading-relaxed">
-                          {post.excerpt || post.content_md?.substring(0, 150) + '...'}
-                        </p>
-
-                        {/* Read More Link */}
-                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-semibold text-sm group-hover:gap-3 transition-all mt-auto">
-                          <span>Read Article</span>
+                      <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 line-clamp-2 leading-tight group-hover:text-indigo-300 transition-colors">
+                        {featuredPost.title}
+                      </h2>
+                      <p className="text-white/70 text-sm line-clamp-2 mb-4 max-w-2xl">
+                        {featuredPost.excerpt || featuredPost.content_md?.substring(0, 120) + '...'}
+                      </p>
+                      <div className="flex items-center gap-4">
+                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-sm transition-colors">
+                          Read Full Report
                           <ArrowRight className="w-4 h-4" />
+                        </button>
+                        <div className="flex items-center gap-1.5 text-white/80 text-xs">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{calculateReadingTime(featuredPost.content_md || '')}</span>
                         </div>
                       </div>
-                    </article>
-                  );
-                })}
+                    </div>
+                  </article>
+                )}
+
+                {/* Grid of remaining posts */}
+                {gridPosts.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {gridPosts.map((post) => {
+                      const readingTime = calculateReadingTime(post.content_md || '');
+                      const publishDate = post.published_at
+                        ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : 'Draft';
+                      const authorInitial = (post.author_name || 'A').charAt(0).toUpperCase();
+
+                      return (
+                        <article
+                          key={post.slug}
+                          onClick={() => navigate(`/blog/${post.slug}`)}
+                          className="group cursor-pointer glass rounded-[24px] border border-white/40 dark:border-gray-700 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col"
+                        >
+                          {/* Image */}
+                          <div className={`relative h-44 overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)}`}>
+                            <img
+                              src={getBlogImage(post.category, post.featured_image)}
+                              alt={post.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent dark:from-black/50" />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <span className="text-white/10 dark:text-white/5 text-7xl font-black">{post.title.charAt(0)}</span>
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-5 flex flex-col flex-grow">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-bold text-indigo-800 dark:text-indigo-400 uppercase tracking-wide">
+                                {getCategoryDisplayName(post.category)}
+                              </span>
+                              <span className="text-gray-300 dark:text-gray-600">·</span>
+                              <span className="text-xs text-gray-400 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />{readingTime}
+                              </span>
+                            </div>
+
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 leading-snug group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors">
+                              {post.title}
+                            </h3>
+
+                            <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-4 flex-grow leading-relaxed">
+                              {post.excerpt || post.content_md?.substring(0, 100) + '...'}
+                            </p>
+
+                            {/* Footer */}
+                            <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100 dark:border-gray-700">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                                  {authorInitial}
+                                </div>
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                                  {post.author_name || 'Author'}
+                                </span>
+                              </div>
+                              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                                Read More <ArrowRight className="w-3 h-3" />
+                              </span>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Empty State */}
             {!loading && !error && displayedPosts.length === 0 && (
-              <div className="text-center py-32">
-                <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <div className="text-center py-32 glass rounded-3xl max-w-3xl mx-auto border border-white/40 shadow-xl">
+                <div className="w-24 h-24 glass rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                   <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                  {searchQuery
-                    ? 'No articles found'
-                    : selectedCategory === 'All'
-                      ? 'No articles yet'
-                      : `No articles in ${selectedCategory}`}
+                  No articles found
                 </h3>
-                <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                  {searchQuery
-                    ? `Try adjusting your search or browse all articles`
-                    : selectedCategory === 'All'
-                      ? 'Be the first to share your insights!'
-                      : 'Try selecting a different category or check back later.'}
+                <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+                  Try adjusting your search or browse all articles
                 </p>
-                {searchQuery ? (
-                  <button
-                    onClick={() => handleSearchChange('')}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all"
-                  >
-                    Clear Search
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => navigate('/blog/create')}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all"
-                  >
-                    <Edit3 className="w-5 h-5" />
-                    Write First Article
-                  </button>
-                )}
+                <button
+                  onClick={() => {
+                    handleSearchChange('');
+                    handleCategoryChange('all');
+                  }}
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all"
+                >
+                  Clear Filters
+                </button>
               </div>
             )}
           </div>
@@ -461,66 +549,227 @@ const BlogPage = () => {
 
         {/* Pagination */}
         {!loading && !error && totalPages > 1 && displayedPosts.length > 0 && (
-          <section className="pb-20">
-            <div className="max-w-7xl mx-auto px-6 lg:px-8">
-              <div className="flex items-center justify-center gap-2">
-                {/* Previous Button */}
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
-                >
-                  Previous
-                </button>
-
-                {/* Page Numbers */}
-                <div className="hidden sm:flex items-center gap-2">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`w-12 h-12 rounded-xl font-semibold transition-all ${currentPage === pageNum
-                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-500/30'
-                          : 'border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400'
-                          }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Mobile Page Indicator */}
-                <div className="sm:hidden px-6 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold">
-                  {currentPage} / {totalPages}
-                </div>
-
-                {/* Next Button */}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:text-gray-700 dark:disabled:hover:text-gray-300 transition-all"
-                >
-                  Next
-                </button>
-              </div>
+          <section className="relative z-10 pb-20">
+            <div className="max-w-6xl mx-auto px-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             </div>
           </section>
         )}
       </div>
     </MainLayout>
+  );
+};
+
+// Blog Card Component
+interface BlogCardProps {
+  post: BlogPost;
+  onNavigate: () => void;
+  getCategoryDisplayName: (slug: string | undefined) => string;
+  calculateReadingTime: (content: string) => string;
+  onReactionUpdate?: () => void;
+}
+
+const BlogCard = ({ post, onNavigate, getCategoryDisplayName, calculateReadingTime, onReactionUpdate }: BlogCardProps) => {
+  const navigate = useNavigate();
+  const [likeCount, setLikeCount] = useState(post.like_count || 0);
+  const [dislikeCount, setDislikeCount] = useState(post.dislike_count || 0);
+  const [commentCount] = useState(post.comment_count || 0);
+  const [userReaction, setUserReaction] = useState<'like' | 'dislike' | null>(post.user_reaction || null);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Debug: Log post data to verify image field
+  useEffect(() => {
+    console.log('BlogCard post data:', {
+      title: post.title,
+      featured_image: post.featured_image,
+      category: post.category
+    });
+  }, [post]);
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const response = await api.post(`/api/blog/${post.id}/like`);
+      const data = response.data;
+
+      // Update with actual counts from server (source of truth)
+      setLikeCount(data.like_count);
+      setDislikeCount(data.dislike_count);
+      setUserReaction(data.user_reaction);
+
+      // Trigger animation if liked
+      if (data.user_reaction === 'like') {
+        setIsAnimating(true);
+        setTimeout(() => setIsAnimating(false), 600);
+      }
+
+      // Notify parent to refresh if needed
+      onReactionUpdate?.();
+    } catch (error: any) {
+      console.error('Failed to like post:', error);
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
+    }
+  };
+
+  const readingTime = calculateReadingTime(post.content_md || '');
+  const isLiked = userReaction === 'like';
+
+  return (
+    <article
+      onClick={onNavigate}
+      className="group cursor-pointer glass rounded-[24px] overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col border border-white/40 dark:border-gray-700"
+    >
+      {/* Image */}
+      <div className={`relative aspect-video overflow-hidden bg-gradient-to-br ${getBlogGradient(post.category)}`}>
+        <img
+          src={getBlogImage(post.category, post.featured_image)}
+          alt={post.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onError={(e) => {
+            // Show fallback letter only if image fails to load
+            const parent = e.currentTarget.parentElement;
+            if (parent) {
+              const fallback = document.createElement('div');
+              fallback.className = 'absolute inset-0 flex items-center justify-center';
+              fallback.innerHTML = `<div class="text-white text-6xl font-bold">${post.title.charAt(0)}</div>`;
+              parent.appendChild(fallback);
+            }
+          }}
+        />
+
+        {/* Category Tag */}
+        <div className="absolute top-4 left-4">
+          <span className="px-3 py-1.5 rounded-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm text-xs font-bold text-gray-900 dark:text-white">
+            {getCategoryDisplayName(post.category)}
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 flex flex-col flex-1">
+        {/* Title */}
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+          {post.title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-gray-600 dark:text-gray-400 line-clamp-3 mb-6 flex-1 leading-relaxed">
+          {post.excerpt || post.content_md?.substring(0, 150) + '...'}
+        </p>
+
+        {/* Interaction Bar */}
+        <div className="flex items-center justify-between pt-4 border-t border-white/30 dark:border-gray-700/50">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleLike}
+              className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors"
+            >
+              <Heart className={`w-4 h-4 transition-transform ${isAnimating ? 'scale-125' : 'scale-100'} ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+              <span className="font-medium">{likeCount}</span>
+            </button>
+            <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+              <MessageCircle className="w-4 h-4" />
+              <span className="font-medium">{commentCount}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-500">
+            <Clock className="w-4 h-4" />
+            <span>{readingTime} read</span>
+          </div>
+        </div>
+
+        {/* Read More */}
+        <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold text-sm mt-4 group-hover:gap-3 transition-all">
+          <span>Read Article</span>
+          <ArrowRight className="w-4 h-4" />
+        </div>
+      </div>
+    </article>
+  );
+};
+
+// Pagination Component
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
+const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) => {
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else if (currentPage <= 3) {
+      for (let i = 1; i <= maxVisible; i++) {
+        pages.push(i);
+      }
+    } else if (currentPage >= totalPages - 2) {
+      for (let i = totalPages - maxVisible + 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+        pages.push(i);
+      }
+    }
+
+    return pages;
+  };
+
+  return (
+    <div className="flex items-center justify-center gap-2">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="px-6 py-3 rounded-xl glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-500 hover:text-indigo-600 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+      >
+        Prev
+      </button>
+
+      <div className="hidden sm:flex items-center gap-2">
+        {getPageNumbers().map((pageNum) => (
+          <button
+            key={pageNum}
+            onClick={() => onPageChange(pageNum)}
+            className={`w-12 h-12 rounded-xl font-semibold transition-all ${currentPage === pageNum
+              ? 'bg-indigo-600 text-white shadow-lg border-indigo-600'
+              : 'glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-indigo-500 hover:shadow-md'
+              }`}
+          >
+            {pageNum}
+          </button>
+        ))}
+      </div>
+
+      <div className="sm:hidden px-6 py-3 rounded-xl glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold shadow-sm">
+        {currentPage} / {totalPages}
+      </div>
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="px-6 py-3 rounded-xl glass border border-white/40 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:border-indigo-500 hover:text-indigo-600 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+      >
+        Next
+      </button>
+    </div>
   );
 };
 

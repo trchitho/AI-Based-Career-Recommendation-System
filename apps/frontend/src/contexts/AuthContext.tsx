@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
+import axios from 'axios';
 import api from '../lib/api';
 import { clearSubscriptionCache } from '../hooks/useSubscription';
+
+const API_BASE_URL = import.meta.env.DEV ? '/' : (import.meta.env.VITE_API_URL || '/');
 
 interface User {
   id: string;
@@ -54,18 +57,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const initAuth = async () => {
       const token = localStorage.getItem('accessToken');
-      if (token) {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!token && !refreshToken) {
+        setLoading(false);
+        return;
+      }
+
+      // Nếu không có accessToken nhưng có refreshToken, thử refresh trước
+      if (!token && refreshToken) {
         try {
-          const response = await api.get('/api/users/me');
-          setUser(response.data);
-        } catch (error) {
-          console.error('Failed to fetch user profile:', error);
+          const base = API_BASE_URL.replace(/\/$/, '');
+          const resp = await axios.post(`${base}/api/auth/refresh`, {
+            refresh_token: refreshToken,
+          });
+          const newAccess = resp.data?.access_token;
+          if (newAccess) {
+            localStorage.setItem('accessToken', newAccess);
+          } else {
+            localStorage.removeItem('refreshToken');
+            setLoading(false);
+            return;
+          }
+        } catch {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
-        } finally {
           setLoading(false);
+          return;
         }
-      } else {
+      }
+
+      try {
+        // Interceptor sẽ tự động refresh nếu accessToken hết hạn và retry request
+        const response = await api.get('/api/users/me');
+        setUser(response.data);
+      } catch (error: any) {
+        console.error('Failed to fetch user profile:', error);
+        // Interceptor đã xử lý 401 (refresh + retry hoặc redirect login)
+        // Chỉ xóa token với lỗi khác (403, 404, 500...)
+        const status = error?.response?.status;
+        if (status && status !== 401) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+        }
+      } finally {
         setLoading(false);
       }
     };
@@ -176,6 +210,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     clearSubscriptionCache();
+    
+    // Clear all game-related data to prevent data leakage between users
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith('pg_backup_') ||
+        key.startsWith('pg_session_') ||
+        key.startsWith('assessment_session_') ||
+        key.startsWith('assessment_seed_') ||
+        key === 'pg_backup_current'
+      )) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
     setUser(null);
     window.location.href = '/login';
   };

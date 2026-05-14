@@ -112,23 +112,23 @@ const SessionResultsPage = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Kết quả đánh giá - Session {results.session_id}
             </h1>
-            <p className="text-gray-600">Thực hiện lúc: {formatDate(results.created_at)}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Thực hiện lúc: {formatDate(results.created_at)}</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {results.riasec && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">RIASEC Interest Profile</h2>
-                <div className="bg-green-50 rounded-lg p-4 mb-6">
-                  <p className="text-sm font-medium text-green-600 mb-1">Sở thích nghề nghiệp hàng đầu</p>
-                  <p className="text-2xl font-bold text-gray-900">{topRiasec.toUpperCase()}</p>
-                  <p className="text-sm text-gray-600">Điểm: {topRiasecScore}/100</p>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">RIASEC Interest Profile</h2>
+                <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 mb-5 border border-indigo-100 dark:border-indigo-800">
+                  <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-1">Sở thích nghề nghiệp hàng đầu</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{topRiasec.toUpperCase()}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Điểm: {topRiasecScore}/100</p>
                 </div>
                 <div className="space-y-3 mb-6">
                   <h3 className="font-medium text-gray-900">Chi tiết điểm số:</h3>
@@ -137,7 +137,7 @@ const SessionResultsPage = () => {
                       <span className="text-gray-700 capitalize">{key}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-500 h-2 rounded-full" style={{ width: `${value}%` }}></div>
+                          <div className="bg-indigo-700 h-2 rounded-full" style={{ width: `${value}%` }}></div>
                         </div>
                         <span className="text-sm font-medium text-gray-900 w-12 text-right">{value}</span>
                       </div>
@@ -151,12 +151,12 @@ const SessionResultsPage = () => {
             )}
 
             {results.bigfive && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Big Five Personality Traits</h2>
-                <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                  <p className="text-sm font-medium text-blue-600 mb-1">Đặc điểm tính cách nổi bật</p>
-                  <p className="text-2xl font-bold text-gray-900">{topBigfive.toUpperCase()}</p>
-                  <p className="text-sm text-gray-600">Điểm: {topBigfiveScore}/100</p>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Big Five Personality Traits</h2>
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-5 border border-blue-100 dark:border-blue-800">
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-300 mb-1">Đặc điểm tính cách nổi bật</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{topBigfive.toUpperCase()}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Điểm: {topBigfiveScore}/100</p>
                 </div>
                 <div className="space-y-3 mb-6">
                   <h3 className="font-medium text-gray-900">Chi tiết điểm số:</h3>
@@ -179,22 +179,22 @@ const SessionResultsPage = () => {
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 mt-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Tóm tắt kết quả</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mt-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Tóm tắt kết quả</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {results.riasec && (
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-2">RIASEC Profile</h3>
-                  <p className="text-gray-600 text-sm">
-                    Bạn có xu hướng nghề nghiệp mạnh nhất ở lĩnh vực <strong>{topRiasec}</strong> với điểm số {topRiasecScore}/100.
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-2">RIASEC Profile</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Bạn có xu hướng nghề nghiệp mạnh nhất ở lĩnh vực <strong className="text-gray-900 dark:text-white">{topRiasec}</strong> với điểm số {topRiasecScore}/100.
                   </p>
                 </div>
               )}
               {results.bigfive && (
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Big Five Profile</h3>
-                  <p className="text-gray-600 text-sm">
-                    Đặc điểm tính cách nổi bật nhất của bạn là <strong>{topBigfive}</strong> với điểm số {topBigfiveScore}/100.
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-2">Big Five Profile</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Đặc điểm tính cách nổi bật nhất của bạn là <strong className="text-gray-900 dark:text-white">{topBigfive}</strong> với điểm số {topBigfiveScore}/100.
                   </p>
                 </div>
               )}

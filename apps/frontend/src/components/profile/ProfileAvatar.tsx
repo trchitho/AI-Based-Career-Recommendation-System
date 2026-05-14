@@ -39,16 +39,16 @@ const ProfileAvatar = ({ name = '', email = '', size = 'lg' }: ProfileAvatarProp
         gradient: 'from-purple-500 via-pink-500 to-purple-600',
         ringColor: 'ring-purple-500/50',
         badgeColor: 'from-purple-500 to-pink-500',
-        icon: '👑',
+        icon: '',
         glow: 'shadow-purple-500/25'
       };
     }
     
     if (plan.includes('premium')) {
       return {
-        gradient: 'from-green-500 via-emerald-500 to-green-600',
-        ringColor: 'ring-green-500/50',
-        badgeColor: 'from-green-500 to-emerald-500',
+        gradient: 'from-indigo-700 via-indigo-500 to-indigo-800',
+        ringColor: 'ring-indigo-600/50',
+        badgeColor: 'from-indigo-700 to-indigo-700',
         icon: '⭐',
         glow: 'shadow-green-500/25'
       };
@@ -59,7 +59,7 @@ const ProfileAvatar = ({ name = '', email = '', size = 'lg' }: ProfileAvatarProp
         gradient: 'from-blue-500 via-cyan-500 to-blue-600',
         ringColor: 'ring-blue-500/50',
         badgeColor: 'from-blue-500 to-cyan-500',
-        icon: '✨',
+        icon: '',
         glow: 'shadow-blue-500/25'
       };
     }
@@ -107,8 +107,8 @@ const ProfileAvatar = ({ name = '', email = '', size = 'lg' }: ProfileAvatarProp
         )}
 
         {/* Online indicator */}
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 shadow-sm">
-          <div className="w-full h-full bg-green-500 rounded-full animate-ping opacity-75"></div>
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-700 rounded-full border-2 border-white dark:border-gray-800 shadow-sm">
+          <div className="w-full h-full bg-indigo-700 rounded-full animate-ping opacity-75"></div>
         </div>
       </div>
 

@@ -13,70 +13,72 @@ interface RIASECSpiderChartProps {
   scores: RIASECScores;
 }
 
+const DIMENSIONS = [
+  { key: 'realistic',     label: 'Kỹ Thuật',     sub: 'Doers',      color: '#EF4444' },
+  { key: 'investigative', label: 'Nghiên Cứu',  sub: 'Thinkers',   color: '#F59E0B' },
+  { key: 'artistic',      label: 'Nghệ Thuật',       sub: 'Creators',   color: '#10B981' },
+  { key: 'social',        label: 'Xã Hội',         sub: 'Helpers',    color: '#3B82F6' },
+  { key: 'enterprising',  label: 'Kinh Doanh',   sub: 'Persuaders', color: '#8B5CF6' },
+  { key: 'conventional',  label: 'Nghiệp Vụ',   sub: 'Organizers', color: '#EC4899' },
+];
+
 const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
-  // Check if we have real data or should use fallback
-  
-  // Fallback data nếu không có scores thực
-  const hasRealData = scores && Object.values(scores).some(score => score > 0);
-  
-  const data = [
-    { dimension: 'Realistic', score: scores?.realistic || (hasRealData ? 0 : 65), fullName: 'Realistic (Doers)', color: '#EF4444' },
-    { dimension: 'Investigative', score: scores?.investigative || (hasRealData ? 0 : 78), fullName: 'Investigative (Thinkers)', color: '#F59E0B' },
-    { dimension: 'Artistic', score: scores?.artistic || (hasRealData ? 0 : 72), fullName: 'Artistic (Creators)', color: '#10B981' },
-    { dimension: 'Social', score: scores?.social || (hasRealData ? 0 : 85), fullName: 'Social (Helpers)', color: '#3B82F6' },
-    { dimension: 'Enterprising', score: scores?.enterprising || (hasRealData ? 0 : 58), fullName: 'Enterprising (Persuaders)', color: '#8B5CF6' },
-    { dimension: 'Conventional', score: scores?.conventional || (hasRealData ? 0 : 63), fullName: 'Conventional (Organizers)', color: '#EC4899' },
-  ];
+  const hasRealData = scores && Object.values(scores).some(v => v > 0);
+
+  const fallback = [65, 78, 72, 85, 58, 63];
+  const data = DIMENSIONS.map((d, i) => ({
+    dimension: d.label,
+    score: (scores as any)?.[d.key] ?? (hasRealData ? 0 : fallback[i]),
+    color: d.color,
+    sub: d.sub,
+  }));
 
   const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-xl p-3 z-50">
-          <p className="font-semibold text-gray-800">{payload[0].payload.fullName}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-gray-500">Score:</span>
-            <span className="text-lg font-bold text-indigo-600">{payload[0].value.toFixed(1)}</span>
-          </div>
-        </div>
-      );
-    }
-    return null;
+    if (!active || !payload?.length) return null;
+    const item = payload[0].payload;
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl shadow-xl px-4 py-3 text-sm">
+        <p className="font-bold text-gray-800 mb-1">{item.dimension}</p>
+        <p className="text-gray-500">{item.sub}</p>
+        <p className="text-xl font-extrabold mt-1" style={{ color: item.color }}>
+          {item.score.toFixed(0)}<span className="text-xs font-normal text-gray-400 ml-1">/100</span>
+        </p>
+      </div>
+    );
+  };
+
+  const CustomDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    if (cx == null || cy == null) return null;
+    return (
+      <circle cx={cx} cy={cy} r={5} fill={payload.color} stroke="#fff" strokeWidth={2} />
+    );
   };
 
   return (
-    // THAY ĐỔI QUAN TRỌNG:
-    // Xóa bỏ: bg-white, shadow-md, border, p-6, rounded-xl
-    // Chỉ giữ lại w-full để nó chiếm hết chiều rộng của khung cha
-    <div className="w-full h-auto">
+    <div className="w-full">
       {!hasRealData && (
-        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
-            <span className="text-lg">📊</span>
-            Đây là dữ liệu mẫu. Hoàn thành assessment để xem kết quả thực tế của bạn.
-          </p>
+        <div className="mb-3 px-3 py-2 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-600">
+          Dữ liệu mẫu — hoàn thành bài test để xem kết quả thực tế.
         </div>
       )}
 
-      {/* Lưu ý: Nếu ở khung cha (Parent Component) ĐÃ CÓ tiêu đề "RIASEC Interest Profile" rồi 
-         thì bạn nên xóa hoặc ẩn thẻ div dưới đây đi để tránh bị lặp lại 2 tiêu đề.
-         Nếu chưa có thì giữ lại.
-      */}
-      {/* <div className="mb-4">
-        <h3 className="text-xl font-bold text-gray-800">RIASEC Interest Profile</h3>
-        <p className="text-sm text-gray-500">Biểu đồ thể hiện mức độ phù hợp...</p>
-      </div> */}
+      <div className="flex flex-col md:flex-row items-center gap-6">
 
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
-
-        {/* Phần biểu đồ */}
-        <div className="w-full md:w-1/2 h-[300px] relative flex justify-center">
+        {/* Radar chart */}
+        <div className="w-full md:w-[340px] h-[300px] flex-shrink-0">
           <ResponsiveContainer width="100%" height="100%">
-            {/* outerRadius="70%" để cân đối trong khung mới */}
-            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
-              <PolarGrid gridType="polygon" stroke="#e5e7eb" />
+            <RadarChart
+              cx="50%" cy="50%"
+              outerRadius="55%"
+              margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+              data={data}
+            >
+              <PolarGrid gridType="polygon" stroke="#d1d5db" strokeWidth={1} />
               <PolarAngleAxis
                 dataKey="dimension"
-                tick={{ fill: '#4b5563', fontSize: 11, fontWeight: 600 }}
+                tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
+                tickLine={false}
               />
               <PolarRadiusAxis
                 angle={30}
@@ -87,46 +89,46 @@ const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {
               <Radar
                 name="Score"
                 dataKey="score"
-                stroke="#16a34a"
-                strokeWidth={3}
-                fill="#16a34a"
-                fillOpacity={0.35}
+                stroke="#4f46e5"
+                strokeWidth={2.5}
+                fill="#6366f1"
+                fillOpacity={0.4}
+                dot={<CustomDot />}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ strokeWidth: 2 }} />
+              <Tooltip content={<CustomTooltip />} />
             </RadarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Phần danh sách điểm */}
-        <div className="w-full md:w-1/2 flex flex-col gap-3 pb-4 md:pb-0">
-          {data.map((item) => (
-            <div
-              key={item.dimension}
-              className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
+        {/* Score list */}
+        <div className="flex-1 w-full flex flex-col gap-2">
+          {[...data]
+            .sort((a, b) => b.score - a.score)
+            .map(item => (
+              <div key={item.dimension} className="flex items-center gap-3">
                 <div
-                  className="w-3 h-3 rounded-full shadow-sm flex-shrink-0"
-                  style={{ backgroundColor: item.color }}
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ background: item.color }}
                 />
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-gray-700 leading-tight">
-                    {item.dimension}
-                  </span>
-                  <span className="text-[11px] text-gray-400 font-medium">
-                    {item.fullName.split('(')[1]?.replace(')', '') || ''}
-                  </span>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-0.5">
+                    <span className="text-sm font-semibold text-gray-700">
+                      {item.dimension}
+                      <span className="text-xs font-normal text-gray-400 ml-1">({item.sub})</span>
+                    </span>
+                    <span className="text-sm font-bold" style={{ color: item.color }}>
+                      {item.score.toFixed(0)}
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${item.score}%`, background: item.color }}
+                    />
+                  </div>
                 </div>
               </div>
-
-              <div className="flex items-center bg-gray-100 px-3 py-1 rounded-md flex-shrink-0">
-                <span className="text-sm font-bold text-gray-800">
-                  {item.score.toFixed(0)}
-                </span>
-                <span className="text-[10px] text-gray-500 ml-1">/100</span>
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </div>

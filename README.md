@@ -198,12 +198,25 @@ git --version
 ```bash
 cd AI-Based-Career-Recommendation-System
 
-# Khởi động Docker services (3 containers: PostgreSQL, Redis, Neo4j)
-docker compose down -v ; docker compose up -d
+# Dừng và xóa các containers cũ, nhưng GIỮ nguyên volumes để không mất dữ liệu
+docker compose down
 
-# Nếu lỗi thiếu biến môi trường, chạy lệnh này:
-docker compose down -v ; docker-compose --env-file apps/backend/.env up -d
+# CẢNH BÁO: Lệnh dưới đây sẽ xóa toàn bộ Docker volumes và làm mất dữ liệu
+# PostgreSQL / Redis / Neo4j. Chỉ chạy khi bạn muốn reset dữ liệu từ đầu.
+# docker compose down -v
+
+# Khởi động lại tất cả 3 services: PostgreSQL, Redis, Neo4j
+docker compose --env-file apps/backend/.env up -d
+
+# Kiểm tra trạng thái các containers
+docker compose ps
+
+# Đợi các services khởi động hoàn tất (khoảng 10-15 giây)
+echo "Waiting for services to be ready..."
+sleep 15
 ```
+
+**Import Database:**
 
 ```bash
 # 1) Đá hết connection đang giữ DB
@@ -213,11 +226,17 @@ docker compose exec -T postgres psql -U postgres -d postgres -c "SELECT pg_termi
 docker compose exec -T postgres psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS career_ai;"
 docker compose exec -T postgres psql -U postgres -d postgres -c "CREATE DATABASE career_ai;"
 
-# 3) Copy file dump vào container (nếu file nằm trên host)
+# 3) Copy file dump vào container
 docker compose cp db/backup/dev_snapshot_utf8.sql postgres:/tmp/dev_snapshot_utf8.sql
 
 # 4) Import vào DB
 docker compose exec -T postgres psql -U postgres -d career_ai -v ON_ERROR_STOP=1 -f /tmp/dev_snapshot_utf8.sql
+
+# 5) Kiểm tra kết nối Redis
+docker compose exec redis redis-cli ping
+
+# 6) Kiểm tra kết nối Neo4j
+curl http://localhost:7474
 ```
 
 ### B2: Cài đặt thư viện và chạy dự án
@@ -245,6 +264,8 @@ python -m venv .venv ; .\.venv\Scripts\activate
 pip install -r requirements.txt
 pip install -e ../../packages/ai-core
 uvicorn app.main:app --reload --port 8000
+pip install sentence-transformers>=2.7.0 neo4j>=5.0.0
+pip install beautifulsoup4 lxml fake-useragent
 ```
 pip install PyPDF2==3.0.1
 **Terminal 3: Frontend (port 3000)**
@@ -255,6 +276,8 @@ npm install
 npm run dev
 npm install page-flip
 npm install react-pageflip
+cd "d:\test_capston\Capstone\AI-Based-Career-Recommendation-System\apps\backend" && pip install edge-tts 2>&1 | tail -5
+pip install edge-tts 
 ```
 
 Sau khi chạy xong, truy cập http://localhost:3000 để sử dụng ứng dụng.

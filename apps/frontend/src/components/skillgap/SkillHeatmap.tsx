@@ -117,7 +117,7 @@ const SkillHeatmap: React.FC<SkillHeatmapProps> = ({ data }) => {
   return (
     <div className="skill-heatmap">
       <div className="heatmap-header">
-        <h3>🗺️ Skill Gap Heatmap</h3>
+        <h3> Skill Gap Heatmap</h3>
         <div className="match-score">
           <span className="score-label">Match Score:</span>
           <span className="score-value">{data.match_percentage?.toFixed(1) || '0.0'}%</span>

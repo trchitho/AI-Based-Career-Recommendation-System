@@ -1,8 +1,92 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { skillGapService } from '../../services/skillGapService';
 import { recommendationService } from '../../services/recommendationService';
 import { assessmentService } from '../../services/assessmentService';
 import './CVUploadForm.css';
+
+interface SelectOption { value: string; label: string; }
+interface SelectGroup  { label: string; options: SelectOption[]; }
+
+interface CareerSelectProps {
+  value: string;
+  onChange: (val: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  groups?: SelectGroup[];
+  options?: SelectOption[];
+}
+
+const CareerSelect: React.FC<CareerSelectProps> = ({
+  value, onChange, disabled, placeholder = 'Chọn nghề nghiệp để phân tích...', groups = [], options = []
+}) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  let displayLabel = placeholder;
+  for (const g of groups) {
+    const found = g.options.find(o => o.value === value);
+    if (found) { displayLabel = found.label; break; }
+  }
+  for (const o of options) {
+    if (o.value === value) { displayLabel = o.label; break; }
+  }
+
+  return (
+    <div className="career-select-wrapper" ref={ref}>
+      <button
+        type="button"
+        disabled={disabled}
+        className={`career-select-trigger${open ? ' open' : ''}`}
+        onClick={() => !disabled && setOpen(p => !p)}
+      >
+        <span className="career-select-trigger-text">{displayLabel}</span>
+        <ChevronDown size={16} className="career-select-trigger-icon" />
+      </button>
+
+      {open && (
+        <div className="career-select-dropdown">
+          <div className="career-select-option placeholder" onClick={() => { onChange(''); setOpen(false); }}>
+            {placeholder}
+          </div>
+
+          {groups.map(g => (
+            <div key={g.label}>
+              <div className="career-select-group-label">{g.label}</div>
+              {g.options.map(o => (
+                <div
+                  key={o.value}
+                  className={`career-select-option${o.value === value ? ' selected' : ''}`}
+                  onClick={() => { onChange(o.value); setOpen(false); }}
+                >
+                  {o.label}
+                </div>
+              ))}
+            </div>
+          ))}
+
+          {options.map(o => (
+            <div
+              key={o.value}
+              className={`career-select-option${o.value === value ? ' selected' : ''}`}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+            >
+              {o.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface CVUploadFormProps {
   onAnalysisComplete: (analysisId: number) => void;
@@ -41,7 +125,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             if (recData.items && recData.items.length > 0) {
               const careers = recData.items.map((career: any) => ({
                 id: career.slug || career.career_id,
-                title: career.title_en || career.title_vi || 'Unknown Career',
+                title: career.title_vn || career.title_en || 'Nghề nghiệp chưa xác định',
                 match: Math.round(career.display_match || career.match_score || 0)
               }));
 
@@ -94,7 +178,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
         const url = URL.createObjectURL(file);
         setPreviewUrl(url);
       } else {
-        setError('Please upload a PDF or image file (JPG, PNG)');
+        setError('Vui lòng tải lên file PDF hoặc hình ảnh (JPG, PNG)');
       }
     }
   };
@@ -113,7 +197,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
         const url = URL.createObjectURL(file);
         setPreviewUrl(url);
       } else {
-        setError('Please upload a PDF or image file (JPG, PNG)');
+        setError('Vui lòng tải lên file PDF hoặc hình ảnh (JPG, PNG)');
       }
     }
   };
@@ -151,7 +235,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: #ef4444;
+            background: ef4444;
             color: white;
             padding: 12px 24px;
             border-radius: 8px;
@@ -159,7 +243,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             z-index: 10001;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
           `;
-          warning.textContent = '⚠️ Không thể rời khỏi trang khi đang phân tích!';
+          warning.textContent = 'Không thể rời khỏi trang khi đang phân tích!';
           document.body.appendChild(warning);
 
           setTimeout(() => {
@@ -196,7 +280,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
     e.preventDefault();
 
     if (!careerId || !cvFile) {
-      setError('Please select a career and upload your CV');
+      setError('Vui lòng chọn nghề nghiệp và tải lên CV của bạn');
       return;
     }
 
@@ -249,7 +333,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
         }, 1000); // Give user time to see completion
       } else {
         console.error('No analysis ID found in result:', result);
-        setError('Analysis completed but no ID returned. Please try again.');
+        setError('Phân tích hoàn tất nhưng không nhận được ID. Vui lòng thử lại.');
         setProgress(0);
         setProgressMessage('');
       }
@@ -267,7 +351,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
           const requiredPlans = errorData.required_plans?.join(', ') || 'Basic/Premium/Pro';
 
           setError(
-            `🔒 ${message}\n\n` +
+            `${message}\n\n` +
             `Gói hiện tại: ${currentPlan}\n` +
             `Vui lòng nâng cấp lên: ${requiredPlans}\n\n` +
             `Nhấn vào nút "Nâng cấp tài khoản" bên dưới để xem các gói.`
@@ -275,13 +359,13 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
         } else {
           // Simple error message
           setError(
-            '🔒 Chức năng Phân tích Skill Gap yêu cầu gói trả phí.\n\n' +
+            'Chức năng Phân tích Skill Gap yêu cầu gói trả phí.\n\n' +
             'Vui lòng nâng cấp tài khoản để sử dụng tính năng này.'
           );
         }
       } else {
         // Other errors - make sure to convert to string
-        const errorMessage = err.message || err.toString() || 'Failed to analyze CV';
+        const errorMessage = err.message || err.toString() || 'Không thể phân tích CV';
         setError(errorMessage);
       }
 
@@ -324,7 +408,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: #ef4444;
+                background: ef4444;
                 color: white;
                 padding: 12px 20px;
                 border-radius: 8px;
@@ -333,11 +417,11 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                 animation: slideIn 0.3s ease-out;
               `;
-              warning.textContent = '⚠️ Đang phân tích, vui lòng đợi...';
+              warning.textContent = 'Đang phân tích, vui lòng đợi...';
               document.body.appendChild(warning);
 
               // Add animation keyframes
-              if (!document.querySelector('#analysis-warning-styles')) {
+              if (!document.querySelector('analysis-warning-styles')) {
                 const style = document.createElement('style');
                 style.id = 'analysis-warning-styles';
                 style.textContent = `
@@ -359,13 +443,13 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
         >
           <div
             style={{
-              background: 'white',
-              borderRadius: '20px',
+              background: 'var(--neu-bg-card)',
+              borderRadius: '24px',
               padding: '3rem 2rem',
               textAlign: 'center',
               maxWidth: '500px',
               margin: '0 20px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              boxShadow: 'var(--neu-raised-lg)',
               position: 'relative'
             }}
             onClick={(e) => e.stopPropagation()}
@@ -378,22 +462,22 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                 animation: 'pulse 2s infinite'
               }}
             >
-              🤖
+              
             </div>
 
             <h2 style={{
-              fontSize: '1.8rem',
-              marginBottom: '1rem',
-              color: '#1f2937',
-              fontWeight: 'bold'
+              fontSize: '1.6rem',
+              marginBottom: '0.75rem',
+              color: 'var(--neu-text)',
+              fontWeight: '800'
             }}>
               AI đang phân tích CV của bạn
             </h2>
 
             <p style={{
-              fontSize: '1.1rem',
-              color: '#6b7280',
-              marginBottom: '2rem',
+              fontSize: '1rem',
+              color: 'var(--neu-text-muted)',
+              marginBottom: '1.5rem',
               lineHeight: '1.6'
             }}>
               Vui lòng không tắt trình duyệt hoặc rời khỏi trang này.<br />
@@ -401,106 +485,58 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             </p>
 
             {/* Progress Bar */}
-            <div style={{
-              width: '100%',
-              height: '8px',
-              backgroundColor: '#e5e7eb',
-              borderRadius: '4px',
-              marginBottom: '1rem',
-              overflow: 'hidden'
-            }}>
-              <div
-                style={{
-                  height: '100%',
-                  backgroundColor: '#3b82f6',
-                  borderRadius: '4px',
-                  width: `${progress}%`,
-                  transition: 'width 0.3s ease-out'
-                }}
-              />
+            <div style={{ width:'100%', height:'8px', background:'var(--neu-bg)', borderRadius:'4px', marginBottom:'0.75rem', overflow:'hidden', boxShadow:'inset 2px 2px 4px var(--neu-shadow-dark)' }}>
+              <div style={{ height:'100%', background:'var(--neu-accent)', borderRadius:'4px', width:`${progress}%`, transition:'width 0.3s ease-out' }} />
             </div>
 
             {/* Progress Info */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '2rem'
-            }}>
-              <span style={{
-                fontSize: '0.9rem',
-                color: '#6b7280',
-                fontWeight: '500'
-              }}>
-                {progressMessage}
-              </span>
-              <span style={{
-                fontSize: '0.9rem',
-                color: '#3b82f6',
-                fontWeight: 'bold'
-              }}>
-                {progress}%
-              </span>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
+              <span style={{ fontSize:'0.875rem', color:'var(--neu-text-muted)', fontWeight:'#500' }}>{progressMessage}</span>
+              <span style={{ fontSize:'0.875rem', color:'var(--neu-accent)', fontWeight:'#700' }}>{progress}%</span>
             </div>
 
             {/* Warning Message */}
-            <div style={{
-              background: '#fef3c7',
-              border: '1px solid #f59e0b',
-              borderRadius: '8px',
-              padding: '12px',
-              marginBottom: '1.5rem'
-            }}>
-              <p style={{
-                fontSize: '0.85rem',
-                color: '#92400e',
-                margin: 0,
-                fontWeight: '500'
-              }}>
-                ⚠️ Không được tắt trang này khi đang phân tích, có thể gây lỗi hệ thống!
+            <div style={{ background:'rgba(245,158,11,0.12)', border:'1px solid rgba(245,158,11,0.35)', borderRadius:'10px', padding:'10px 14px', marginBottom:'1.5rem' }}>
+              <p style={{ fontSize:'0.85rem', color:'#92400e', margin:0, fontWeight:'#500' }}>
+                 Không được tắt trang này khi đang phân tích, có thể gây lỗi hệ thống!
               </p>
             </div>
 
             {/* Processing Steps */}
-            <div style={{ textAlign: 'left', marginTop: '1.5rem' }}>
-              <h4 style={{
-                fontSize: '1rem',
-                color: '#374151',
-                marginBottom: '0.75rem',
-                fontWeight: '600'
-              }}>
+            <div style={{ textAlign:'left', marginTop:'1.25rem' }}>
+              <h4 style={{ fontSize:'0.9rem', color:'var(--neu-text)', marginBottom:'0.5rem', fontWeight:'#600' }}>
                 Các bước đang thực hiện:
               </h4>
-              <div style={{ fontSize: '0.85rem', color: '#6b7280', lineHeight: '1.8' }}>
+              <div style={{ fontSize:'0.85rem', color:'var(--neu-text-muted)', lineHeight:'1.8' }}>
                 <div style={{
                   opacity: progress >= 20 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  ✓ Tải lên CV
+                   Tải lên CV
                 </div>
                 <div style={{
                   opacity: progress >= 40 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  {progress >= 40 ? '✓' : '⏳'} Trích xuất văn bản từ CV
+                  {progress >= 40 ? '' : '⏳'} Trích xuất văn bản từ CV
                 </div>
                 <div style={{
                   opacity: progress >= 60 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  {progress >= 60 ? '✓' : '⏳'} AI phân tích kỹ năng
+                  {progress >= 60 ? '' : '⏳'} AI phân tích kỹ năng
                 </div>
                 <div style={{
                   opacity: progress >= 80 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  {progress >= 80 ? '✓' : '⏳'} So sánh với yêu cầu công việc
+                  {progress >= 80 ? '' : '⏳'} So sánh với yêu cầu công việc
                 </div>
                 <div style={{
                   opacity: progress >= 100 ? 1 : 0.5,
                   transition: 'opacity 0.3s'
                 }}>
-                  {progress >= 100 ? '✓' : '⏳'} Tạo báo cáo kết quả
+                  {progress >= 100 ? '' : '⏳'} Tạo báo cáo kết quả
                 </div>
               </div>
             </div>
@@ -520,70 +556,57 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
 
       <div className="cv-upload-form">
         <div className="form-header">
-          <h2>📊 Skill Gap Analysis</h2>
-          <p>Upload your CV to discover skill gaps and get personalized recommendations</p>
+          <h2>Phân tích Khoảng cách Kỹ năng</h2>
+          <p>Tải lên CV của bạn để khám phá khoảng cách kỹ năng và nhận gợi ý cá nhân hóa</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="career-select">
-              Target Career
-              {loadingCareers && <span className="ml-2 text-sm text-gray-500">(Loading from your assessment...)</span>}
+              Nghề nghiệp mục tiêu
+              {loadingCareers && <span className="ml-2 text-sm text-gray-500">(Đang tải từ đánh giá của bạn...)</span>}
             </label>
 
-            <select
-              id="career-select"
+            <CareerSelect
               value={careerId}
-              onChange={(e) => setCareerId(e.target.value)}
-              required
+              onChange={setCareerId}
               disabled={loadingCareers}
-              className="career-select"
-            >
-              <option value="">Select a career to analyze...</option>
-
-              {/* Recommended careers from assessment */}
-              {recommendedCareers.length > 0 && (
-                <optgroup label="🎯 Recommended for You (from your assessment)">
-                  {recommendedCareers.map((career) => (
-                    <option key={career.id} value={career.id}>
-                      {career.title} ({career.match}% match)
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-
-              {/* Fallback careers if no assessment */}
-              {recommendedCareers.length === 0 && !loadingCareers && (
-                <>
-                  <option value="software-developers-15-1252-00">Software Developers</option>
-                  <option value="web-developers-15-1254-00">Web Developers</option>
-                  <option value="computer-programmers-15-1251-00">Computer Programmers</option>
-                  <option value="web-and-digital-interface-designers-15-1255-00">Web and Digital Interface Designers</option>
-                  <option value="database-administrators-15-1242-00">Database Administrators</option>
-                  <option value="computer-systems-analysts-15-1211-00">Computer Systems Analysts</option>
-                  <option value="information-security-analysts-15-1212-00">Information Security Analysts</option>
-                  <option value="network-and-computer-systems-administrators-15-1244-00">Network and Computer Systems Administrators</option>
-                </>
-              )}
-            </select>
+              groups={recommendedCareers.length > 0 ? [{
+                label: 'Đề xuất cho bạn (từ đánh giá của bạn)',
+                options: recommendedCareers.map(c => ({
+                  value: c.id,
+                  label: `${c.title} (${c.match}% phù hợp)`
+                }))
+              }] : []}
+              options={recommendedCareers.length === 0 && !loadingCareers ? [
+                { value: 'software-developers-15-1252-00', label: 'Lập trình viên phần mềm' },
+                { value: 'web-developers-15-1254-00', label: 'Lập trình viên web' },
+                { value: 'computer-programmers-15-1251-00', label: 'Lập trình viên máy tính' },
+                { value: 'web-and-digital-interface-designers-15-1255-00', label: 'Thiết kế giao diện web và kỹ thuật số' },
+                { value: 'database-administrators-15-1242-00', label: 'Quản trị cơ sở dữ liệu' },
+                { value: 'computer-systems-analysts-15-1211-00', label: 'Phân tích hệ thống máy tính' },
+                { value: 'information-security-analysts-15-1212-00', label: 'Phân tích an ninh thông tin' },
+                { value: 'network-and-computer-systems-administrators-15-1244-00', label: 'Quản trị hệ thống mạng và máy tính' },
+              ] : []}
+            />
 
             {recommendedCareers.length > 0 && careerId && (
               <div className="career-info-hint">
                 <p className="text-sm text-blue-600 mt-2">
-                  ℹ️ System will load all job requirements from database and compare with your CV
+                  Hệ thống sẽ tải toàn bộ yêu cầu công việc từ cơ sở dữ liệu và so sánh với CV của bạn
                 </p>
               </div>
             )}
 
             {recommendedCareers.length === 0 && !loadingCareers && (
               <p className="text-sm text-yellow-600 mt-1">
-                ⚠️ No assessment found. Complete a career assessment first for personalized recommendations.
+                Không tìm thấy đánh giá. Hãy hoàn thành đánh giá nghề nghiệp trước để nhận gợi ý cá nhân hóa.
               </p>
             )}
           </div>
 
           <div className="form-group">
-            <label>Upload CV (PDF or Image)</label>
+            <label>Tải lên CV (PDF hoặc Hình ảnh)</label>
             <div
               className={`file-drop-zone ${dragActive ? 'active' : ''} ${cvFile ? 'has-file' : ''}`}
               onDragEnter={handleDrag}
@@ -598,19 +621,21 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                   <button
                     type="button"
                     className="remove-file"
-                    onClick={() => setCvFile(null)}
+                    onClick={() => { setCvFile(null); setError(null); }}
+                    title="Xóa và thêm CV khác"
+                    style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: '600' }}
                   >
                     ✕
                   </button>
                 </div>
               ) : (
                 <>
-                  <span className="upload-icon">📤</span>
-                  <p>Drag and drop your CV here</p>
-                  <p className="text-sm text-gray-500">Supports: PDF, JPG, PNG</p>
-                  <p className="or-text">or</p>
+                  <span className="upload-icon">📁</span>
+                  <p>Kéo và thả CV của bạn vào đây</p>
+                  <p className="text-sm text-gray-500">Hỗ trợ: PDF, JPG, PNG</p>
+                  <p className="or-text">hoặc</p>
                   <label htmlFor="file-input" className="browse-button">
-                    Browse Files
+                    Chọn tệp
                   </label>
                   <input
                     id="file-input"
@@ -625,40 +650,57 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
           </div>
 
           {error && (
-            <div className="error-message" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="error-message" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Error text + close */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ whiteSpace: 'pre-line' }}>⚠️ {error}</span>
-                <button
-                  onClick={() => setError(null)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, color: 'inherit', flexShrink: 0, padding: '0 2px' }}
-                  aria-label="Đóng thông báo lỗi"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Show upgrade button if payment required */}
-              {error.includes('🔒') && (
+                <span style={{ whiteSpace: 'pre-line', fontSize: '13px' }}>{error}</span>
                 <button
                   type="button"
-                  onClick={() => window.location.href = '/pricing'}
+                  onClick={() => setError(null)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, color: 'inherit', flexShrink: 0, padding: '0 2px', fontWeight: 'bold' }}
+                  aria-label="Đóng thông báo lỗi"
+                >✕</button>
+              </div>
+
+              {/* Replace CV button */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <label
+                  htmlFor="file-input-retry"
                   style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    transition: 'background-color 0.2s',
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 16px', backgroundColor: '#1A237E', color: 'white',
+                    border: 'none', borderRadius: '8px', cursor: 'pointer',
+                    fontSize: '13px', fontWeight: '600',
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
                 >
-                  💳 Nâng cấp tài khoản
-                </button>
-              )}
+                  ↑ Thêm CV khác vào
+                  <input
+                    id="file-input-retry"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) { setCvFile(f); setError(null); }
+                      e.target.value = '';
+                    }}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                {cvFile && (
+                  <button
+                    type="button"
+                    onClick={() => { setCvFile(null); setError(null); }}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      padding: '8px 14px', backgroundColor: 'transparent', color: '#ef4444',
+                      border: '1.5px solid #ef4444', borderRadius: '8px', cursor: 'pointer',
+                      fontSize: '13px', fontWeight: '600',
+                    }}
+                  >
+                    ✕ Xóa CV
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -682,11 +724,11 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             {loading ? (
               <>
                 <span className="spinner"></span>
-                Analyzing... {progress}%
+                Đang phân tích... {progress}%
               </>
             ) : (
               <>
-                🔍 Analyze My Skills
+                Phân tích kỹ năng của tôi
               </>
             )}
           </button>
@@ -697,18 +739,18 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
               className="preview-button"
               onClick={handlePreviewClick}
             >
-              👁️ Preview CV
+               Xem trước CV
             </button>
           )}
         </form>
 
         <div className="info-box">
-          <h4>What happens next?</h4>
+          <h4>Điều gì xảy ra tiếp theo?</h4>
           <ul>
-            <li>🤖 AI extracts skills from your CV</li>
-            <li>📊 Compares with job requirements</li>
-            <li>🎯 Identifies skill gaps</li>
-            <li>💡 Provides learning recommendations</li>
+            <li>AI trích xuất kỹ năng từ CV của bạn</li>
+            <li>So sánh với yêu cầu công việc</li>
+            <li>Xác định khoảng cách kỹ năng</li>
+            <li>Cung cấp gợi ý học tập</li>
           </ul>
         </div>
       </div>

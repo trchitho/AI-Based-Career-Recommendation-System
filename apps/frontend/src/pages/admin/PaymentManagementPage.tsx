@@ -205,25 +205,25 @@ const PaymentManagementPage = () => {
       }
     } catch (error) {
       console.error('Error exporting data:', error);
-      alert('Error exporting data');
+      alert('Lỗi xuất dữ liệu');
     }
   };
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND'
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US');
+    return new Date(dateString).toLocaleString('vi-VN');
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'failed':
@@ -237,10 +237,10 @@ const PaymentManagementPage = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'success': return 'Success';
-      case 'pending': return 'Processing';
-      case 'failed': return 'Failed';
-      case 'cancelled': return 'Cancelled';
+      case 'success': return 'Thành công';
+      case 'pending': return 'Đang xử lý';
+      case 'failed': return 'Thất bại';
+      case 'cancelled': return 'Đã hủy';
       default: return status;
     }
   };
@@ -255,15 +255,15 @@ const PaymentManagementPage = () => {
   };
 
   return (
-    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
+    <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
-            Payment Management
+            Quản lý thanh toán
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Quản lý tất cả giao dịch thanh toán</p>
         </div>
@@ -271,12 +271,12 @@ const PaymentManagementPage = () => {
           <button onClick={() => exportData('csv')}
             className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-            Export CSV
+            Xuất CSV
           </button>
           <button onClick={() => exportData('json')}
-            className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors">
+            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-            Export JSON
+            Xuất JSON
           </button>
         </div>
       </div>
@@ -288,7 +288,7 @@ const PaymentManagementPage = () => {
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500"></div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Payments</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Tổng thanh toán</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.total_payments}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatAmount(stats.total_amount)}</p>
               </div>
@@ -299,15 +299,15 @@ const PaymentManagementPage = () => {
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-green-500"></div>
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-700"></div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Successful</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Thành công</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.completed_payments}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatAmount(stats.completed_amount)}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
             </div>
           </div>
@@ -316,7 +316,7 @@ const PaymentManagementPage = () => {
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-amber-500"></div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Processing</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Đang xử lý</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.pending_payments}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
@@ -329,7 +329,7 @@ const PaymentManagementPage = () => {
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-purple-500"></div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Today</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Hôm nay</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.today_payments}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatAmount(stats.today_amount)}</p>
               </div>
@@ -348,27 +348,27 @@ const PaymentManagementPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                General Search
+                Tìm kiếm chung
               </label>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Email, Order ID, Transaction ID, username..."
+                placeholder="Email, Mã đơn hàng, Mã giao dịch, tên người dùng..."
                 className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               />
             </div>
 
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Filter by User
+                Lọc theo người dùng
               </label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={userFilter}
                   onChange={(e) => handleUserFilterChange(e.target.value)}
-                  placeholder="Search user by email or name..."
+                  placeholder="Tìm người dùng theo email hoặc tên..."
                   className="flex-1 px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
                 />
                 {selectedUserId && (
@@ -411,31 +411,31 @@ const PaymentManagementPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Status
+                Trạng thái
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               >
-                <option value="">All</option>
-                <option value="success">Success</option>
-                <option value="pending">Processing</option>
-                <option value="failed">Failed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="">Tất cả</option>
+                <option value="success">Thành công</option>
+                <option value="pending">Đang xử lý</option>
+                <option value="failed">Thất bại</option>
+                <option value="cancelled">Đã hủy</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Method
+                Phương thức
               </label>
               <select
                 value={paymentMethodFilter}
                 onChange={(e) => setPaymentMethodFilter(e.target.value)}
                 className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
               >
-                <option value="">All</option>
+                <option value="">Tất cả</option>
                 <option value="zalopay">ZaloPay</option>
                 <option value="vnpay">VNPay</option>
                 <option value="momo">MoMo</option>
@@ -444,7 +444,7 @@ const PaymentManagementPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                From Date
+                Từ ngày
               </label>
               <input
                 type="date"
@@ -456,7 +456,7 @@ const PaymentManagementPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                To Date
+                Đến ngày
               </label>
               <input
                 type="date"
@@ -477,7 +477,7 @@ const PaymentManagementPage = () => {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Search
+                Tìm kiếm
               </button>
               <button
                 type="button"
@@ -492,13 +492,13 @@ const PaymentManagementPage = () => {
                 }}
                 className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl font-semibold border-2 border-gray-200 dark:border-gray-600 transition-colors"
               >
-                Clear Filters
+                Xóa bộ lọc
               </button>
             </div>
 
             {selectedUserId && (
               <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                Filtering by user ID: {selectedUserId}
+                Đang lọc theo người dùng ID: {selectedUserId}
               </div>
             )}
           </div>
@@ -510,10 +510,10 @@ const PaymentManagementPage = () => {
         <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 p-4 shadow-lg">
           <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
             <span>
-              Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, paymentsData.total)} of {paymentsData.total} payments
+              Hiển thị {((currentPage - 1) * perPage) + 1} đến {Math.min(currentPage * perPage, paymentsData.total)} của {paymentsData.total} giao dịch
             </span>
             <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-medium">
-              Page {currentPage} / {paymentsData.total_pages}
+              Trang {currentPage} / {paymentsData.total_pages}
             </span>
           </div>
         </div>
@@ -534,45 +534,45 @@ const PaymentManagementPage = () => {
                   onClick={() => handleSort('order_id')}
                 >
                   <div className="flex items-center gap-1">
-                    Order ID
+                    Mã đơn hàng
                     {sortBy === 'order_id' && (
                       <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  User
+                  Người dùng
                 </th>
                 <th
                   className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   onClick={() => handleSort('amount')}
                 >
                   <div className="flex items-center gap-1">
-                    Amount
+                    Số tiền
                     {sortBy === 'amount' && (
                       <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Method
+                  Phương thức
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Status
+                  Trạng thái
                 </th>
                 <th
                   className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   onClick={() => handleSort('created_at')}
                 >
                   <div className="flex items-center gap-1">
-                    Created At
+                    Ngày tạo
                     {sortBy === 'created_at' && (
                       <span className="text-blue-500">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </div>
                 </th>
                 <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Actions
+                  Hành động
                 </th>
               </tr>
             </thead>
@@ -597,7 +597,7 @@ const PaymentManagementPage = () => {
                       {payment.user_email}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {payment.user_name || `User #${payment.user_id}`}
+                      {payment.user_name || `Người dùng ${payment.user_id}`}
                     </div>
                   </td>
 
@@ -625,13 +625,13 @@ const PaymentManagementPage = () => {
                         onClick={() => setShowDetail(payment)}
                         className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-semibold border border-blue-200 dark:border-blue-800 transition-colors"
                       >
-                        Details
+                        Chi tiết
                       </button>
                       <button
                         onClick={() => setShowUserHistory(payment.user_id)}
-                        className="px-3 py-1.5 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 rounded-lg text-xs font-semibold border border-green-200 dark:border-green-800 transition-colors"
+                        className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-50 dark:bg-indigo-950/20 dark:hover:bg-indigo-950/40 text-indigo-800 dark:text-indigo-400 rounded-lg text-xs font-semibold border border-indigo-200 dark:border-indigo-800 transition-colors"
                       >
-                        History
+                        Lịch sử
                       </button>
                     </div>
                   </td>
@@ -645,7 +645,7 @@ const PaymentManagementPage = () => {
               <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              No payments found
+              Không tìm thấy giao dịch nào
             </div>
           )}
         </div>
@@ -724,7 +724,7 @@ const PaymentDetailModal = ({ payment, onClose }: PaymentDetailModalProps) => {
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Order ID</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Mã đơn hàng</label>
               <p className="mt-1 text-sm text-gray-900 dark:text-white">{payment.order_id}</p>
             </div>
             <div>
@@ -757,7 +757,7 @@ const PaymentDetailModal = ({ payment, onClose }: PaymentDetailModalProps) => {
 
           {payment.transaction_id && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Transaction ID</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Mã giao dịch</label>
               <p className="mt-1 text-sm text-gray-900 dark:text-white">{payment.transaction_id}</p>
             </div>
           )}
@@ -784,7 +784,7 @@ const PaymentDetailModal = ({ payment, onClose }: PaymentDetailModalProps) => {
 
           {payment.gateway_response && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Gateway Response</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phản hồi cổng thanh toán</label>
               <pre className="mt-1 text-xs bg-gray-100 dark:bg-gray-700 p-3 rounded overflow-auto max-h-40">
                 {JSON.stringify(payment.gateway_response, null, 2)}
               </pre>
@@ -868,7 +868,7 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-200';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'failed':
@@ -940,16 +940,16 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
                 <div className="text-sm text-blue-600 dark:text-blue-400">Tổng giao dịch</div>
                 <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.total}</div>
               </div>
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                <div className="text-sm text-green-600 dark:text-green-400">Thành công</div>
-                <div className="text-2xl font-bold text-green-900 dark:text-green-100">{stats.successCount}</div>
+              <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-lg">
+                <div className="text-sm text-indigo-800 dark:text-indigo-400">Thành công</div>
+                <div className="text-2xl font-bold text-indigo-950 dark:text-indigo-100">{stats.successCount}</div>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
                 <div className="text-sm text-purple-600 dark:text-purple-400">Tổng tiền</div>
                 <div className="text-lg font-bold text-purple-900 dark:text-purple-100">{formatAmount(stats.totalAmount)}</div>
               </div>
               <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
-                <div className="text-sm text-orange-600 dark:text-orange-400">Paid</div>
+                <div className="text-sm text-orange-600 dark:text-orange-400">Đã thanh toán</div>
                 <div className="text-lg font-bold text-orange-900 dark:text-orange-100">{formatAmount(stats.successAmount)}</div>
               </div>
             </div>
@@ -1021,7 +1021,7 @@ const UserPaymentHistoryModal = ({ userId, onClose }: UserPaymentHistoryModalPro
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Order ID
+                      Mã đơn hàng
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Số tiền

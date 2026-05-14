@@ -1,0 +1,96 @@
+import api from '../lib/api';
+
+export interface ChatMessage {
+  id: number;
+  room_id: string;
+  sender_id: number;
+  receiver_id: number;
+  content: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface ChatRoom {
+  room_id: string;
+  other_user_id: number;
+  other_name: string;
+  other_role?: 'mentor' | 'mentee';
+  last_message: string;
+  last_at: string;
+  unread: number;
+  is_online?: boolean;
+  last_status_at?: string | null;
+  offline_since?: string | null;
+  presence_label?: string;
+}
+
+export interface ChatPresence {
+  user_id: number;
+  role?: 'mentor' | 'mentee';
+  is_online: boolean;
+  last_status_at?: string | null;
+  offline_since?: string | null;
+  presence_label?: string;
+}
+
+class ChatService {
+  async getMessages(otherUserId: number): Promise<ChatMessage[]> {
+    const res = await api.get(`/api/chat/${otherUserId}/messages`);
+    return res.data;
+  }
+
+  async sendMessage(otherUserId: number, content: string): Promise<ChatMessage> {
+    const res = await api.post(`/api/chat/${otherUserId}/send`, { content });
+    return res.data;
+  }
+
+  async getRooms(): Promise<ChatRoom[]> {
+    const res = await api.get('/api/chat/rooms');
+    return res.data;
+  }
+
+  async getPresence(otherUserId: number): Promise<ChatPresence> {
+    const res = await api.get(`/api/chat/${otherUserId}/presence`);
+    return res.data;
+  }
+
+  openSocket(roomId: string, onMessage: (msg: ChatMessage) => void): WebSocket {
+    const token = localStorage.getItem('accessToken') || '';
+    const wsBase = window.location.origin.replace(/^http/, 'ws');
+    const ws = new WebSocket(`${wsBase}/ws/chat/${roomId}?token=${token}`);
+    ws.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === 'message') onMessage(data as ChatMessage);
+      } catch { /* ignore */ }
+    };
+    return ws;
+  }
+
+  /** WebSocket kênh thông báo hệ thống — nhận khi có tin nhắn mới */
+  openNotificationSocket(onEvent: (type: string, data: any) => void): WebSocket | null {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return null;
+    try {
+      const wsBase = window.location.origin.replace(/^http/, 'ws');
+      const ws = new WebSocket(`${wsBase}/ws/notifications?token=${token}`);
+      ws.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          onEvent(data.type || 'unknown', data);
+        } catch { /* ignore */ }
+      };
+      return ws;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Tổng số unread từ tất cả rooms */
+  async getTotalUnread(): Promise<number> {
+    const rooms = await this.getRooms();
+    return rooms.reduce((s, r) => s + (r.unread || 0), 0);
+  }
+}
+
+export const chatService = new ChatService();

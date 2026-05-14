@@ -1,364 +1,378 @@
 // apps/frontend/src/pages/RecommendationsPage.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { ThumbsUp, ThumbsDown, ChevronRight, ChevronLeft, Lock, Briefcase, ArrowRight } from "lucide-react";
 import MainLayout from "../components/layout/MainLayout";
+
+/* ── Career group icon mapping ── */
+const getCareerIcon = (title: string, slug: string): string => {
+  const text = (title + ' ' + slug).toLowerCase();
+  if (text.match(/giáo viên|teacher|education|dạy|training|đào tạo/)) return '📚';
+  if (text.match(/y tế|health|medical|bác sĩ|doctor|nurse|điều dưỡng|dược/)) return '🏥';
+  if (text.match(/kỹ thuật|engineer|technical|cơ khí|điện|electronic/)) return '⚙️';
+  if (text.match(/máy tính|computer|software|developer|lập trình|IT|tech/)) return '💻';
+  if (text.match(/kiến trúc|architect|xây dựng|construction|building/)) return '🏗️';
+  if (text.match(/bán hàng|sales|marketing|quảng cáo|advertising/)) return '📈';
+  if (text.match(/tài chính|finance|ngân hàng|bank|kế toán|accounting/)) return '💰';
+  if (text.match(/luật|law|legal|pháp/)) return '⚖️';
+  if (text.match(/nghệ thuật|art|design|thiết kế|creative|đồ họa/)) return '🎨';
+  if (text.match(/truyền thông|media|journalist|báo chí|communication/)) return '📡';
+  if (text.match(/vận tải|transport|logistics|giao hàng|delivery|lái xe/)) return '🚛';
+  if (text.match(/nông nghiệp|agriculture|farm|trồng|chăn nuôi/)) return '🌾';
+  if (text.match(/ẩm thực|food|cook|đầu bếp|nhà hàng|restaurant/)) return '🍳';
+  if (text.match(/quản lý|management|giám đốc|director|admin/)) return '👔';
+  if (text.match(/khoa học|science|research|nghiên cứu|lab/)) return '🔬';
+  if (text.match(/bảo vệ|security|police|cảnh sát|quân đội|military/)) return '🛡️';
+  if (text.match(/du lịch|travel|tourism|khách sạn|hotel/)) return '✈️';
+  if (text.match(/thể thao|sport|fitness|gym/)) return '⚽';
+  if (text.match(/môi trường|environment|ecology|sinh thái/)) return '🌿';
+  if (text.match(/sản xuất|production|manufacturing|nhà máy|factory/)) return '🏭';
+  if (text.match(/bảo trì|maintenance|sửa chữa|repair|thợ/)) return '🔧';
+  if (text.match(/xã hội|social|community|cộng đồng/)) return '🤝';
+  return '💼';
+};
 import {
   recommendationService,
   CareerRecommendationDTO,
   RecommendationsResponse,
 } from "../services/recommendationService";
+import { careerService, CareerItem } from "../services/careerService";
+import { assessmentService } from "../services/assessmentService";
 import { getRIASECTagDisplay } from "../utils/riasec";
+import { useFeatureAccess } from "../hooks/useFeatureAccess";
+import { useUsageTracking } from "../hooks/useUsageTracking";
 import api from "../lib/api";
+import "./RecommendationsPage.css";
+import "./RecommendationsPage-hero.css";
 
-// RIASEC tag → Vietnamese explanation
-const RIASEC_WHY: Record<string, string> = {
-  R: "Bạn thích làm việc thực tế với công cụ, máy móc và vật chất",
-  I: "Bạn có tư duy phân tích, thích nghiên cứu và giải quyết vấn đề phức tạp",
-  A: "Bạn có khả năng sáng tạo, thiên về nghệ thuật và biểu đạt",
-  S: "Bạn có kỹ năng giao tiếp, thích giúp đỡ và làm việc với con người",
-  E: "Bạn có tố chất lãnh đạo, thích thuyết phục và quản lý",
-  C: "Bạn cẩn thận, có kỷ luật, làm việc tốt với dữ liệu và quy trình",
+/* ── helpers ── */
+type MatchLevel = "excellent" | "great" | "good";
+const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
+  const pct = Math.round(score * 100);
+  if (pct >= 90) return { level: "excellent", label: "Xuất sắc" };
+  if (pct >= 75) return { level: "great", label: "Rất phù hợp" };
+  return { level: "good", label: "Phù hợp" };
 };
+const CIRC = 2 * Math.PI * 20; // r=20
 
 const RecommendationsPage = () => {
   const navigate = useNavigate();
+  const { hasFeature, currentPlan, getPlanInfo } = useFeatureAccess();
+  const { canUseFeature } = useUsageTracking();
 
-  const [data, setData] = useState<RecommendationsResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  // PB10: which card is expanded for explainability
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
-  // PB11: feedback state per career_id: 'up' | 'down' | null
-  const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>(() => {
-    try { return JSON.parse(localStorage.getItem('career_feedback') || '{}'); } catch { return {}; }
+  /* ── AI recommendations (top strip) ── */
+  const [recData, setRecData] = useState<RecommendationsResponse | null>(null);
+  const [recLoading, setRecLoading] = useState(true);
+  const [recError, setRecError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Record<string, "up" | "down">>(() => {
+    try { return JSON.parse(localStorage.getItem("career_feedback") || "{}"); } catch { return {}; }
   });
+  const stripRef = useRef<HTMLDivElement>(null);
 
-  const items: CareerRecommendationDTO[] = data?.items ?? [];
-  const requestId = data?.request_id ?? null;
+  /* ── Career browse (bottom grid) ── */
+  const [items, setItems] = useState<CareerItem[]>([]);
+  const [careerLoading, setCareerLoading] = useState(true);
+  const [q, setQ] = useState("");
 
+  const recItems = recData?.items ?? [];
+  const requestId = recData?.request_id ?? null;
+
+  /* fetch AI recs — same pattern as dashboard */
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      setError(null);
-      setLoading(true);
+    (async () => {
+      setRecLoading(true);
       try {
-        // Get latest assessment ID from user sessions
-        const token = localStorage.getItem('accessToken');
-        let assessmentId: number | null = null;
+        const history = await assessmentService.getHistory();
+        if (!history.length) { setRecLoading(false); return; }
+
+        const latestId = history[0].id;
+
+        // 1. Try fast saved recommendations first
         try {
-          const sessRes = await fetch('/api/assessments/user/sessions', {
-            headers: { Authorization: `Bearer ${token}` },
+          const saved = await api.get("/api/recommendations/saved", {
+            params: { assessment_id: latestId, top_k: 10 },
           });
-          if (sessRes.ok) {
-            const sessions = await sessRes.json();
-            if (sessions?.length > 0) assessmentId = sessions[0].primary_assessment_id ?? sessions[0].id;
+          const rows: any[] = Array.isArray(saved.data)
+            ? saved.data
+            : saved.data?.items ?? [];
+          if (rows.length > 0) {
+            setRecData({
+              request_id: null,
+              items: rows.map((c: any) => ({
+                career_id: c.career_id || c.id,
+                slug: c.slug || c.career_id,
+                title_vn: c.title_vn,
+                title_en: c.title_en,
+                description: c.description,
+                match_score: (c.score ?? c.match_score ?? 0) / (c.score > 1 ? 100 : 1),
+                tags: c.tags ?? [],
+                position: c.rank || 0,
+              })),
+            });
+            setRecLoading(false);
+            return;
           }
-        } catch { /* fallback to null */ }
+        } catch { /* fall through to fresh fetch */ }
 
-        if (!assessmentId) throw new Error("Chưa có kết quả đánh giá. Hãy hoàn thành bài kiểm tra trước.");
-
-        const res = await recommendationService.getMain(assessmentId, 20);
-        setData(res);
-      } catch (err: any) {
-        setError(err?.response?.data?.detail || err?.message || "Failed to load recommendations");
+        // 2. Fallback: fresh recommendations
+        const res = await recommendationService.getMain(latestId, 10);
+        setRecData(res);
+      } catch (e: any) {
+        setRecError(e?.message || "Không thể tải gợi ý");
       } finally {
-        setLoading(false);
+        setRecLoading(false);
       }
-    };
-    fetchRecommendations();
+    })();
   }, []);
 
-  // PB11: send feedback
-  const handleFeedback = async (career_id: string, value: 'up' | 'down') => {
-    const newFb = { ...feedback, [career_id]: value };
-    setFeedback(newFb);
-    localStorage.setItem('career_feedback', JSON.stringify(newFb));
+  /* fetch career browse — random 9 careers each time */
+  const fetchCareers = useCallback(async () => {
+    setCareerLoading(true);
     try {
-      await api.post('/api/recommendations/feedback', {
-        career_id,
-        rating: value === 'up' ? 5 : 1,
-        comment: `User ${value === 'up' ? 'liked' : 'disliked'} career: ${career_id}`,
+      if (q.trim()) {
+        // If searching, use normal search
+        const resp = await careerService.list({ page: 1, pageSize: 9, q: q.trim() });
+        setItems(resp.items);
+      } else {
+        // Random page for discovery - fetch from a random offset
+        const totalResp = await careerService.list({ page: 1, pageSize: 1 });
+        const totalCareers = totalResp.total || 100;
+        const maxPage = Math.max(1, Math.floor(totalCareers / 9));
+        const randomPage = Math.floor(Math.random() * maxPage) + 1;
+        const resp = await careerService.list({ page: randomPage, pageSize: 9 });
+        setItems(resp.items);
+      }
+    } catch { /* ignore */ } finally {
+      setCareerLoading(false);
+    }
+  }, [q]);
+
+  useEffect(() => { fetchCareers(); }, [fetchCareers]);
+
+  /* feedback */
+  const handleFeedback = async (career_id: string, value: "up" | "down") => {
+    const nf = { ...feedback, [career_id]: value };
+    setFeedback(nf);
+    localStorage.setItem("career_feedback", JSON.stringify(nf));
+    try {
+      await api.post("/api/recommendations/feedback", {
+        career_id, rating: value === "up" ? 5 : 1,
+        comment: `User ${value === "up" ? "liked" : "disliked"} career: ${career_id}`,
       });
-    } catch { /* non-critical */ }
+    } catch { /* ignore */ }
   };
 
-  // Match style theo % match_score
-  const getMatchStyle = (score: number) => {
-    const percent = Math.round(score * 100);
-    if (percent >= 90)
-      return {
-        color: "text-green-600",
-        bg: "bg-green-100 dark:bg-green-900/30",
-        border: "border-green-200 dark:border-green-700",
-        label: "Excellent Match",
-      };
-    if (percent >= 75)
-      return {
-        color: "text-blue-600",
-        bg: "bg-blue-100 dark:bg-blue-900/30",
-        border: "border-blue-200 dark:border-blue-700",
-        label: "Great Match",
-      };
-    return {
-      color: "text-yellow-600",
-      bg: "bg-yellow-100 dark:bg-yellow-900/30",
-      border: "border-yellow-200 dark:border-yellow-700",
-      label: "Good Match",
-    };
-  };
-
-  const handleClick = async (item: CareerRecommendationDTO, index: number) => {
-    const slugOrId = item.slug || item.career_id;
-
+  const handleRecClick = async (item: CareerRecommendationDTO, index: number) => {
+    const id = item.slug || item.career_id;
     try {
       await recommendationService.logClick({
-        career_id: slugOrId,
-        position: item.position ?? index + 1,
-        request_id: requestId,
-        match_score: item.match_score,
+        career_id: id, position: item.position ?? index + 1,
+        request_id: requestId, match_score: item.match_score,
       });
-    } catch (err) {
-      // Không chặn UX nếu log fail
-      // eslint-disable-next-line no-console
-      console.error("Failed to log recommendation click", err);
-    }
+    } catch { /* ignore */ }
+    navigate(`/careers/${id}`);
+  };
 
-    // Điều hướng sang trang chi tiết nghề (không /roadmap ở trang này)
-    navigate(`/careers/${slugOrId}`);
+  /* strip scroll */
+  const scrollStrip = (dir: -1 | 1) => {
+    if (stripRef.current) stripRef.current.scrollBy({ left: dir * 300, behavior: "smooth" });
   };
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-surface-primary dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
-        {/* CSS Injection */}
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          .bg-dot-pattern {
-            background-image: radial-gradient(#E5E7EB 1px, transparent 1px);
-            background-size: 24px 24px;
-          }
-          .dark .bg-dot-pattern {
-            background-image: radial-gradient(#374151 1px, transparent 1px);
-          }
-          @keyframes fade-in-up { 
-            0% { opacity: 0; transform: translateY(20px); } 
-            100% { opacity: 1; transform: translateY(0); } 
-          }
-          .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
-        `}</style>
+      <div className="rec-page">
 
-        {/* Background Layers */}
-        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
-        <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-green-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
-        <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-blue-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
+        {/* ════════════════════════════════════════
+            SECTION 1 — AI Recommendations strip
+            ════════════════════════════════════════ */}
+        <div className="rec-content" style={{ paddingTop: "1.75rem", paddingBottom: "0" }}>
+          <div className="rec-hero">
+            <div className="rec-hero-left">
+              <div className="section-badge" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                  <line x1="12" y1="22.08" x2="12" y2="12" />
+                </svg>
+                <span>Gợi ý nghề nghiệp AI</span>
+              </div>
+              <h1 className="hero-title">
+                Khám phá nghề nghiệp<br />
+                <span className="hero-highlight">phù hợp với bạn</span>
+              </h1>
+              <p className="hero-sub">
+                Hoàn thành bài đánh giá để nhận gợi ý nghề nghiệp cá nhân hóa dựa trên kỹ năng, sở thích và mục tiêu của bạn.
+              </p>
+              <div className="hero-actions">
+                <Link to="/assessment" className="hero-btn-primary">
+                  Bắt đầu đánh giá →
+                </Link>
+                <Link to="/recommendations/learn-more" className="hero-btn-secondary">
+                  Tìm hiểu thêm
+                </Link>
+              </div>
+            </div>
+            <div className="rec-hero-right">
+              <div className="hero-visual-wrapper">
+                <div className="hero-visual-glow"></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* HEADER */}
-          <div className="text-center mb-16 animate-fade-in-up">
-            <span className="inline-block py-1.5 px-4 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold tracking-widest uppercase mb-6 border border-green-200 dark:border-green-800">
-              AI-Powered Analysis
-            </span>
-            <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
-              Your Career{" "}
-              <span className="text-green-600 dark:text-green-500">
-                Recommendations
-              </span>
-            </h1>
-            <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed">
-              Based on your unique personality profile and interests, here are
-              the top career paths that fit you best.
-            </p>
+                {/* Orbit rings */}
+                <div className="orbit-ring ring-1"></div>
+                <div className="orbit-ring ring-2"></div>
+
+                {/* Floating particles */}
+                <div className="hero-visual">
+                  <div className="floating-particle"></div>
+                  <div className="floating-particle"></div>
+                  <div className="floating-particle"></div>
+
+                  {/* Main central card with briefcase icon */}
+                  <div className="floating-card main">
+                    <div className="icon-wrapper">
+                      <Briefcase size={48} strokeWidth={2} />
+                      <div className="sparkle">✦</div>
+                    </div>
+                  </div>
+
+                  {/* Small floating cards with icons */}
+                  <div className="floating-card small chart">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="20" x2="12" y2="10" />
+                      <line x1="18" y1="20" x2="18" y2="4" />
+                      <line x1="6" y1="20" x2="6" y2="16" />
+                    </svg>
+                  </div>
+
+                  <div className="floating-card small user">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+
+                  <div className="floating-card small clock">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                  </div>
+
+                  <div className="floating-card small pie">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                      <path d="M22 12A10 10 0 0 0 12 2v10z" />
+                    </svg>
+                  </div>
+
+                  <div className="floating-card small analytics">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="hero-nav">
+              <button onClick={() => scrollStrip(-1)} style={arrowBtnStyle}><ChevronLeft size={16} /></button>
+              <button onClick={() => scrollStrip(1)} style={arrowBtnStyle}><ChevronRight size={16} /></button>
+            </div>
           </div>
 
-          {/* LOADING */}
-          {loading && (
-            <div className="flex flex-col items-center justify-center py-32 animate-pulse">
-              <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-green-600 mb-4 animate-spin" />
-              <p className="text-gray-500 font-medium">
-                Analyzing career matches...
-              </p>
+          {/* Loading */}
+          {recLoading && (
+            <div className="rec-loading" style={{ padding: "2rem 0" }}>
+              <div className="rec-spinner" />
+              <span>Đang phân tích...</span>
             </div>
           )}
 
-          {/* ERROR */}
-          {error && !loading && (
-            <div className="max-w-2xl mx-auto bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 flex items-center gap-4 animate-fade-in-up">
-              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center text-red-600 shrink-0">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <p className="text-red-600 dark:text-red-300 font-medium">
-                {error}
-              </p>
+          {/* Error / no assessment */}
+          {!recLoading && (recError || recItems.length === 0) && (
+            <div style={{ padding: "1rem", textAlign: "center", color: "var(--neu-text-muted)", fontSize: "0.88rem" }}>
+              {recError ?? ""}
             </div>
           )}
 
-          {/* GRID RECOMMENDATIONS */}
-          {!loading && !error && items.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up">
-              {items.map((it, index) => {
-                const style = getMatchStyle(it.match_score);
-                const percent = Math.round(it.match_score * 100);
-
-                const title =
-                  it.title_en ||
-                  it.title_vi ||
-                  it.career_id ||
-                  "Unknown career";
-                const desc = it.description || "";
+          {/* Horizontal strip */}
+          {!recLoading && recItems.length > 0 && (
+            <div
+              ref={stripRef}
+              style={{
+                display: "flex", gap: "1rem", overflowX: "auto", paddingBottom: "0.75rem",
+                scrollbarWidth: "none", msOverflowStyle: "none",
+              }}
+            >
+              {recItems.map((it, index) => {
+                const { level, label } = getMatchLevel(it.match_score);
+                const pct = Math.round(it.match_score * 100);
+                const title = it.title_vn || it.title_en || it.career_id || "Unknown";
+                const offset = CIRC - (CIRC * pct) / 100;
+                const fb = feedback[it.career_id];
 
                 return (
-                  <div
-                    key={it.career_id}
-                    className="group bg-white dark:bg-gray-800 rounded-card-hero border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-green-900/10 hover:-translate-y-2 transition-all duration-slow flex flex-col overflow-hidden h-full"
-                    style={{ animationDelay: `${index * 0.1}s` }}
+                  <div key={it.career_id} style={{
+                    minWidth: 260, maxWidth: 260,
+                    background: "var(--neu-bg-card)",
+                    borderRadius: 16,
+                    boxShadow: "var(--neu-raised)",
+                    display: "flex", flexDirection: "column",
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                  }}
+                    className="rec-strip-card"
                   >
-                    {/* Card Header with Score */}
-                    <div className="p-8 border-b border-gray-50 dark:border-gray-700/50">
-                      <div className="flex justify-between items-start mb-4">
-                        <div
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${style.bg} ${style.color} ${style.border}`}
-                        >
-                          {style.label}
-                        </div>
-                        <div className="relative w-14 h-14 flex items-center justify-center">
-                          <svg className="w-full h-full transform -rotate-90">
-                            <circle
-                              cx="28"
-                              cy="28"
-                              r="26"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                              fill="transparent"
-                              className="text-gray-200 dark:text-gray-700"
-                            />
-                            <circle
-                              cx="28"
-                              cy="28"
-                              r="26"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                              fill="transparent"
-                              strokeDasharray={163}
-                              strokeDashoffset={163 - (163 * percent) / 100}
-                              className={style.color}
-                              strokeLinecap="round"
-                            />
+                    {/* Card header */}
+                    <div style={{ padding: "1rem 1rem 0.75rem", borderBottom: "1px solid var(--neu-shadow-dark)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+                        <span className={`match-badge ${level}`} style={{ fontSize: "0.68rem" }}>{label}</span>
+                        {/* mini donut */}
+                        <div style={{ position: "relative", width: 40, height: 40, flexShrink: 0 }}>
+                          <svg width="40" height="40" viewBox="0 0 40 40" style={{ transform: "rotate(-90deg)" }}>
+                            <circle className="score-donut-track" cx="20" cy="20" r="16"
+                              stroke="currentColor" strokeWidth="4" fill="transparent" />
+                            <circle className={`score-donut-fill-${level}`} cx="20" cy="20" r="16"
+                              stroke="currentColor" strokeWidth="4" fill="transparent"
+                              strokeDasharray={CIRC} strokeDashoffset={offset} strokeLinecap="round" />
                           </svg>
-                          <span
-                            className={`absolute text-sm font-bold ${style.color}`}
-                          >
-                            {percent}%
-                          </span>
+                          <span style={{
+                            position: "absolute", inset: 0,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: "0.6rem", fontWeight: 800, color: "var(--neu-accent)",
+                          }}>{pct}%</span>
                         </div>
                       </div>
-
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-green-600 transition-colors">
+                      <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--neu-text)", margin: "0 0 0.5rem", lineHeight: 1.3 }}>
                         {title}
-                      </h3>
-
-                      {/* Tags – tạm thời static + tags từ API nếu có */}
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-md font-medium">
-                          Full-time
-                        </span>
-                        <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-md font-medium">
-                          Remote Friendly
-                        </span>
-                        {it.tags &&
-                          it.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-xs bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-200 px-2 py-1 rounded-md font-medium"
-                            >
-                              {getRIASECTagDisplay(tag)}
-                            </span>
-                          ))}
+                      </h4>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                        {it.tags?.slice(0, 3).map(tag => (
+                          <span key={tag} className="card-tag riasec" style={{ fontSize: "0.65rem" }}>
+                            {getRIASECTagDisplay(tag)}
+                          </span>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Description + Action */}
-                    <div className="p-8 pt-6 flex-grow flex flex-col">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-4 leading-relaxed mb-4 flex-grow">
-                        {desc || "No description available."}
-                      </p>
-
-                      {/* PB10: Explainability – "Tại sao phù hợp?" */}
-                      <button
-                        onClick={() => setExpandedCard(expandedCard === it.career_id ? null : it.career_id)}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-green-600 dark:text-green-400 hover:text-green-700 mb-3 self-start"
-                      >
-                        <svg className={`w-3.5 h-3.5 transition-transform ${expandedCard === it.career_id ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                        Tại sao phù hợp?
-                      </button>
-                      {expandedCard === it.career_id && (
-                        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-xl text-xs text-green-800 dark:text-green-200 space-y-1.5">
-                          {it.tags && it.tags.length > 0 ? (
-                            it.tags.map((tag) => (
-                              <div key={tag} className="flex items-start gap-2">
-                                <span className="mt-0.5 w-4 h-4 rounded-full bg-green-200 dark:bg-green-800 flex items-center justify-center text-green-700 dark:text-green-200 font-bold shrink-0 text-[10px]">{tag.toUpperCase()}</span>
-                                <span>{RIASEC_WHY[tag.toUpperCase()] ?? `Nhóm RIASEC: ${tag.toUpperCase()}`}</span>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-gray-500 dark:text-gray-400">Dựa trên kết quả đánh giá tính cách RIASEC của bạn với điểm phù hợp {percent}%.</p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* PB11: Feedback buttons */}
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="text-xs text-gray-400 dark:text-gray-500">Phù hợp không?</span>
+                    {/* Card footer */}
+                    <div style={{ padding: "0.75rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
+                      <div style={{ display: "flex", gap: "0.4rem" }}>
                         <button
-                          onClick={() => handleFeedback(it.career_id, 'up')}
-                          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${feedback[it.career_id] === 'up' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-green-400 hover:text-green-600'}`}
-                        >
-                          <svg className="w-3.5 h-3.5" fill={feedback[it.career_id] === 'up' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                          </svg>
-                          Có
-                        </button>
+                          className={`feedback-btn${fb === "up" ? " active-up" : ""}`}
+                          style={{ padding: "0.2rem 0.5rem", fontSize: "0.72rem", display: "flex", alignItems: "center" }}
+                          onClick={() => handleFeedback(it.career_id, "up")}
+                        ><ThumbsUp size={13} /></button>
                         <button
-                          onClick={() => handleFeedback(it.career_id, 'down')}
-                          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${feedback[it.career_id] === 'down' ? 'bg-red-500 border-red-500 text-white' : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-red-400 hover:text-red-600'}`}
-                        >
-                          <svg className="w-3.5 h-3.5" fill={feedback[it.career_id] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
-                          </svg>
-                          Không
-                        </button>
+                          className={`feedback-btn${fb === "down" ? " active-down" : ""}`}
+                          style={{ padding: "0.2rem 0.5rem", fontSize: "0.72rem", display: "flex", alignItems: "center" }}
+                          onClick={() => handleFeedback(it.career_id, "down")}
+                        ><ThumbsDown size={13} /></button>
                       </div>
-
                       <button
-                        onClick={() => handleClick(it, index)}
-                        className="w-full py-3.5 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 group/btn"
+                        className="view-btn"
+                        onClick={() => handleRecClick(it, index)}
                       >
-                        View Career Path
-                        <svg
-                          className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M14 5l7 7m0 0l-7 7m7-7H3"
-                          />
-                        </svg>
+                        Xem →
                       </button>
                     </div>
                   </div>
@@ -366,44 +380,195 @@ const RecommendationsPage = () => {
               })}
             </div>
           )}
+        </div>
 
-          {/* EMPTY STATE */}
-          {!loading && !error && items.length === 0 && (
-            <div className="text-center py-32 animate-fade-in-up">
-              <div className="w-24 h-24 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg
-                  className="w-10 h-10 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
+        {/* divider */}
+        <div style={{ maxWidth: 1200, margin: "1.75rem auto 0", padding: "0 1.5rem" }}>
+          <div style={{ borderTop: "1px solid var(--neu-shadow-dark)" }} />
+        </div>
+
+        {/* ════════════════════════════════════════
+            SECTION 2 — Career browser (like CareersPage)
+            ════════════════════════════════════════ */}
+        <div className="rec-content" style={{ paddingTop: "1.75rem" }}>
+
+          {/* Header + search */}
+          <div style={{ marginBottom: "1.5rem" }}>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--neu-text)", margin: "0 0 1rem" }}>
+              Khám phá tất cả nghề nghiệp
+            </h2>
+
+            {/* Search bar */}
+            <div style={{ position: "relative", maxWidth: 560 }}>
+              <div style={{
+                display: "flex", alignItems: "center",
+                background: "var(--neu-bg)",
+                borderRadius: 14,
+                boxShadow: "var(--neu-pressed-sm)",
+                padding: "0.5rem 0.75rem",
+                gap: "0.6rem",
+              }}>
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--neu-text-muted)", flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} /></svg>
+                <input
+                  value={q}
+                  onChange={(e) => { setQ(e.target.value); }}
+                  placeholder="Tìm theo tên nghề, ngành, từ khóa..."
+                  style={{
+                    flex: 1, border: "none", outline: "none", background: "transparent",
+                    fontSize: "0.9rem", color: "var(--neu-text)", fontFamily: "inherit",
+                  }}
+                />
+                {q && (
+                  <button onClick={() => { setQ(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--neu-text-muted)", padding: 2, display: "flex", alignItems: "center" }}>
+                    <ArrowRight size={14} style={{ transform: "rotate(45deg)" }} />
+                  </button>
+                )}
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                No recommendations found
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                It seems we couldn't generate recommendations at this time.
-                Please try taking the assessment again.
-              </p>
-              <Link
-                to="/assessment"
-                className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold shadow-lg transition-all"
+            </div>
+          </div>
+
+          {/* Grid */}
+          {careerLoading ? (
+            <div className="rec-loading" style={{ padding: "3rem 0" }}>
+              <div className="rec-spinner" />
+              <span>Đang tải danh sách nghề nghiệp...</span>
+            </div>
+          ) : items.length > 0 ? (
+            <div className="rec-grid">
+              {items.map((c, index) => {
+                const isLocked = (() => {
+                  if (hasFeature("unlimited_careers")) return false;
+                  if (currentPlan === "basic") return !canUseFeature("career_view");
+                  if (currentPlan === "free") {
+                    if (!canUseFeature("career_view")) return true;
+                    return index > 0;
+                  }
+                  return false;
+                })();
+
+                const requiredPlan = !isLocked ? null : currentPlan === "basic" ? "premium" : "basic";
+                const requiredPlanInfo = requiredPlan ? getPlanInfo(requiredPlan) : null;
+
+                const gradients = [
+                  'from-emerald-500 to-teal-600',
+                  'from-blue-500 to-indigo-600',
+                  'from-orange-400 to-rose-500',
+                  'from-purple-500 to-violet-600',
+                  'from-cyan-500 to-blue-600',
+                  'from-pink-500 to-rose-600',
+                  'from-amber-500 to-orange-600',
+                  'from-indigo-500 to-purple-600',
+                  'from-teal-500 to-emerald-600',
+                ];
+                const gradient = gradients[index % gradients.length];
+
+                const CardContent = (
+                  <div className="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 h-full flex flex-col">
+                    {/* Locked overlay */}
+                    {isLocked && (
+                      <div className="absolute inset-0 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm z-10 flex items-center justify-center">
+                        <div className="text-center p-4">
+                          <Lock size={24} className="mx-auto mb-2 text-gray-400" />
+                          <span className="text-xs font-bold text-gray-500 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                            {requiredPlanInfo?.name || 'PRO'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Card header with gradient */}
+                    <div className={`h-32 bg-gradient-to-br ${gradient} relative flex items-center justify-center`}>
+                      <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 text-3xl">
+                        {isLocked ? <Lock size={24} className="text-white" /> : getCareerIcon(c.title, (c as any).slug || c.id)}
+                      </div>
+                      {/* Decorative circles */}
+                      <div className="absolute top-3 right-3 w-16 h-16 bg-white/10 rounded-full" />
+                      <div className="absolute bottom-2 left-4 w-8 h-8 bg-white/10 rounded-full" />
+                    </div>
+
+                    {/* Card body */}
+                    <div className="p-5 flex-1 flex flex-col">
+                      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                        {c.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4 flex-1">
+                        {c.short_desc || c.description || 'Khám phá lộ trình nghề nghiệp này.'}
+                      </p>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                          {isLocked ? 'Khóa' : 'Có sẵn'}
+                        </span>
+                        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 group-hover:gap-2 transition-all">
+                          Chi tiết <ArrowRight size={14} />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+
+                return isLocked ? (
+                  <Link key={c.id} to="/pricing" style={{ textDecoration: "none" }}>{CardContent}</Link>
+                ) : (
+                  <Link key={c.id} to={`/careers/${(c as any).slug || c.id}`} state={{ fromCareersPage: true }} style={{ textDecoration: "none" }}>{CardContent}</Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rec-empty">
+              <div className="rec-empty-icon"><Briefcase size={32} /></div>
+              <h3>Không tìm thấy nghề nghiệp</h3>
+              <p>Thử tìm với từ khóa khác.</p>
+              <button
+                className="rec-empty-link"
+                onClick={() => { setQ(""); }}
+                style={{ border: "none", cursor: "pointer" }}
               >
-                Take Assessment
-              </Link>
+                Xoá tìm kiếm
+              </button>
             </div>
           )}
-        </div>
-      </div>
-    </MainLayout>
+
+          {/* Refresh button instead of pagination */}
+          {
+            !careerLoading && items.length > 0 && !q.trim() && (
+              <div style={{ textAlign: "center", padding: "2rem 0" }}>
+                <button
+                  onClick={() => fetchCareers()}
+                  style={{
+                    padding: "0.75rem 2rem",
+                    background: "var(--neu-bg)",
+                    boxShadow: "var(--neu-raised)",
+                    border: "none",
+                    borderRadius: 14,
+                    cursor: "pointer",
+                    fontSize: "0.9rem",
+                    fontWeight: 700,
+                    color: "var(--neu-accent)",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  🔄 Xem nghề khác
+                </button>
+              </div>
+            )
+          }
+
+        </div >
+      </div >
+    </MainLayout >
   );
+};
+
+/* ── inline style helpers ── */
+const arrowBtnStyle: React.CSSProperties = {
+  width: 34, height: 34, borderRadius: 10,
+  border: "none", cursor: "pointer",
+  display: "flex", alignItems: "center", justifyContent: "center",
+  background: "var(--neu-bg)",
+  boxShadow: "3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light)",
+  color: "var(--neu-text-muted)",
 };
 
 export default RecommendationsPage;

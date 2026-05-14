@@ -1,0 +1,1501 @@
+================================================================================
+DATABASE DESIGN DOCUMENT
+Project  : AI-Based Career Recommendation System
+Database : career_ai  (PostgreSQL 15)
+================================================================================
+
+SCHEMAS OVERVIEW
+------------------------------------------------------------
+  Schema      Label                          Tables
+------------------------------------------------------------
+  ai          AI / Machine Learning              5
+  analytics   Analytics / Tracking               4
+  chatbot     Chatbot                            2
+  core        Core / Business Logic             74
+  interview   Interview / Voice                 10
+------------------------------------------------------------
+  TOTAL                                         95
+
+EXCLUDED (backup / internal):
+  core.comment_likes
+  core.comment_rate_limits
+  core.assessment_questions_backup_20260508
+  core.mentorship_requests
+  core.career_overview_backup_viet_hoa
+  core.careers_backup_alt_titles_viet_hoa
+  core.careers_backup_title_vi
+
+================================================================================
+SCHEMA: ai  |  AI / Machine Learning  |  5 tables
+================================================================================
+
+  [ai.career_embeddings]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  career_id                            BIGINT           NO     FK
+  emb                                  VECTOR           NO     
+  model_name                           TEXT             YES    
+  built_at                             TIMESTAMPTZ      YES    default=now()
+  job_id                               TEXT             YES    FK
+
+  [ai.retrieval_jobs_visbert]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  job_id                               TEXT             NO     FK
+  title                                TEXT             YES    
+  tags_vi                              TEXT             YES    
+  tag_tokens                           ARRAY            YES    
+  riasec_centroid                      ARRAY            YES    
+  embedding                            VECTOR           NO     
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [ai.user_embeddings]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  user_id                              BIGINT           NO     FK
+  emb                                  VECTOR           NO     
+  source                               TEXT             YES    
+  model_name                           TEXT             YES    
+  built_at                             TIMESTAMPTZ      YES    default=now()
+
+  [ai.user_trait_fused]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  user_id                              BIGINT           NO     FK
+  riasec_scores_fused                  ARRAY            NO     
+  big5_scores_fused                    ARRAY            NO     
+  source_components                    JSONB            NO     
+  model_name                           TEXT             NO     
+  built_at                             TIMESTAMPTZ      YES    default=now()
+
+  [ai.user_trait_preds]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  user_id                              BIGINT           NO     FK
+  essay_id                             BIGINT           NO     FK
+  riasec_pred                          ARRAY            NO     
+  big5_pred                            ARRAY            NO     
+  source                               TEXT             NO     
+  model_name                           TEXT             NO     
+  built_at                             TIMESTAMPTZ      YES    default=now()
+
+================================================================================
+SCHEMA: analytics  |  Analytics / Tracking  |  4 tables
+================================================================================
+
+  [analytics.career_events]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           YES    FK
+  session_id                           UUID             YES    FK
+  job_id                               TEXT             NO     FK
+  event_type                           TEXT             NO     
+  rank_pos                             INT              YES    
+  score_shown                          REAL             YES    
+  source                               TEXT             NO     
+  ref                                  TEXT             YES    
+  dwell_ms                             INT              YES    
+  created_at                           TIMESTAMPTZ      NO     default=now()
+
+  [analytics.career_feedback]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  job_onet                             TEXT             NO     
+  alpha                                INT              NO     
+  beta                                 INT              NO     
+  created_at                           TIMESTAMPTZ      NO     default=now()
+  updated_at                           TIMESTAMPTZ      NO     default=now()
+
+  [analytics.report_events]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  assessment_id                        BIGINT           NO     FK
+  report_id                            BIGINT           NO     FK
+  report_type                          TEXT             NO     
+  event_type                           TEXT             NO     
+  tab_key                              TEXT             YES    
+  page_no                              INT              YES    
+  meta_json                            JSONB            NO     
+  created_at                           TIMESTAMPTZ      NO     default=now()
+  page_key                             TEXT             YES    
+  device                               TEXT             YES    
+  source                               TEXT             YES    
+  event_uuid                           UUID             NO     
+
+  [analytics.report_pages]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  report_type                          TEXT             NO     
+  page_no                              INT              NO     
+  page_key                             TEXT             NO     
+  title                                TEXT             YES    
+  description                          TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+================================================================================
+SCHEMA: chatbot  |  Chatbot  |  2 tables
+================================================================================
+
+  [chatbot.chat_messages]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  session_id                           INT              NO     FK
+  user_id                              INT              NO     FK
+  message                              TEXT             NO     
+  response                             TEXT             YES    
+  message_type                         VARCHAR          YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  response_time_ms                     INT              YES    
+
+  [chatbot.chat_sessions]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  user_id                              INT              NO     FK
+  title                                VARCHAR          YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+  is_active                            BOOLEAN          YES    default=true
+
+================================================================================
+SCHEMA: core  |  Core / Business Logic  |  74 tables
+================================================================================
+
+  [core.anomalies]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  type                                 VARCHAR          YES    
+  severity                             VARCHAR          YES    
+  title                                VARCHAR          YES    
+  description                          TEXT             YES    
+  user_id                              INT              YES    FK
+  metadata                             JSONB            YES    
+  resolved                             BOOLEAN          YES    default=false
+  resolved_at                          TIMESTAMPTZ      YES    
+  resolved_by                          INT              YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.app_settings]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  logo_url                             TEXT             YES    
+  app_title                            TEXT             YES    
+  app_name                             TEXT             YES    
+  footer_html                          TEXT             YES    
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+  updated_by                           BIGINT           YES    
+
+  [core.assessment_forms]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  code                                 TEXT             YES    
+  title                                TEXT             YES    
+  form_type                            TEXT             NO     
+  lang                                 TEXT             YES    
+  version                              TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.assessment_gamification_sessions]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  assessment_session_id                INT              NO     FK
+  user_id                              INT              NO     FK
+  quiz_mode                            VARCHAR          NO     
+  xp_earned                            INT              NO     
+  questions_answered                   INT              NO     
+  started_at                           TIMESTAMPTZ      NO     default=now()
+  completed_at                         TIMESTAMPTZ      YES    
+  extra_data                           JSONB            YES    
+
+  [core.assessment_questions]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK
+  form_id                              BIGINT           YES    FK
+  question_no                          INT              YES    
+  question_key                         TEXT             YES    
+  prompt_en                            TEXT             NO     
+  prompt_vi                            TEXT             NO     
+  options_json                         JSONB            YES    
+  reverse_score                        BOOLEAN          YES    default=false
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.assessment_reports]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  session_id                           BIGINT           YES    FK
+  assessment_id                        BIGINT           NO     FK
+  template_id                          BIGINT           NO     FK
+  report_type                          TEXT             NO     
+  locale                               TEXT             NO     
+  status                               TEXT             NO     
+  source_hash                          TEXT             YES    
+  computed_at                          TIMESTAMPTZ      NO     default=now()
+  cover_json                           JSONB            NO     
+  narrative_json                       JSONB            NO     
+  scores_json                          JSONB            NO     
+  facets_json                          JSONB            NO     
+  strengths_json                       JSONB            NO     
+  challenges_json                      JSONB            NO     
+  pages_json                           JSONB            NO     
+  created_at                           TIMESTAMPTZ      NO     default=now()
+  updated_at                           TIMESTAMPTZ      NO     default=now()
+  layout_version                       TEXT             YES    
+
+  [core.assessment_responses]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  assessment_id                        BIGINT           YES    FK
+  question_id                          BIGINT           YES    FK
+  question_key                         TEXT             YES    
+  answer_raw                           TEXT             YES    
+  score_value                          NUMERIC          YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.assessment_sessions]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.assessments]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  a_type                               TEXT             NO     
+  scores                               JSONB            NO     
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  session_id                           BIGINT           YES    FK
+  processed_riasec_scores              JSONB            YES    
+  processed_big_five_scores            JSONB            YES    
+  top_interest                         TEXT             YES    
+  career_recommendations               JSONB            YES    
+  essay_analysis                       JSONB            YES    
+  test_mode                            TEXT             YES    
+
+  [core.audit_logs]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  action                               VARCHAR          YES    
+  resource_type                        VARCHAR          YES    
+  resource_id                          VARCHAR          YES    FK
+  details                              JSONB            YES    
+  ip_address                           VARCHAR          YES    
+  user_agent                           TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  user_id                              INT              YES    FK
+  actor_id                             INT              YES    FK
+  entity                               VARCHAR          YES    
+  entity_id                            VARCHAR          YES    FK
+  data_json                            JSONB            YES    
+
+  [core.auth_tokens]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  token                                TEXT             NO     
+  ttype                                TEXT             NO     
+  expires_at                           TIMESTAMPTZ      NO     
+  used_at                              TIMESTAMPTZ      YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.blog_categories]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  name                                 TEXT             NO     
+  slug                                 TEXT             NO     
+  description                          TEXT             YES    
+  color                                TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    
+  updated_at                           TIMESTAMPTZ      YES    
+
+  [core.blog_comments]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  post_id                              BIGINT           NO     FK
+  user_id                              BIGINT           NO     FK
+  parent_id                            BIGINT           YES    FK
+  content                              TEXT             NO     
+  like_count                           INT              NO     
+  is_deleted                           BOOLEAN          NO     default=false
+  created_at                           TIMESTAMPTZ      NO     default=now()
+  updated_at                           TIMESTAMPTZ      NO     default=now()
+
+  [core.blog_post_reactions]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  post_id                              BIGINT           NO     FK
+  user_id                              BIGINT           NO     FK
+  reaction_type                        TEXT             NO     
+  created_at                           TIMESTAMPTZ      YES    
+
+  [core.blog_posts]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  author_id                            BIGINT           YES    FK
+  title                                TEXT             NO     
+  slug                                 TEXT             NO     
+  content_md                           TEXT             NO     
+  status                               VECTOR           YES    
+  published_at                         TIMESTAMPTZ      YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+  excerpt                              TEXT             YES    
+  category                             TEXT             YES    
+  tags                                 JSONB            YES    
+  featured_image                       TEXT             YES    
+  view_count                           BIGINT           YES    
+  is_featured                          BOOLEAN          YES    default=false
+  like_count                           BIGINT           YES    
+  dislike_count                        BIGINT           YES    
+
+  [core.career_dwas]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK
+  onet_code                            VARCHAR          NO     
+  element_id                           VARCHAR          YES    FK
+  iwa_id                               VARCHAR          YES    FK
+  dwa_id                               VARCHAR          NO     FK
+  dwa_title_en                         TEXT             NO     
+  dwa_title_vn                         TEXT             NO     
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+
+  [core.career_education_pct]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  onet_code                            VARCHAR          NO     
+  element_id                           VARCHAR          NO     FK
+  category                             INT              NO     
+  data_value                           NUMERIC          YES    
+  n                                    INT              YES    
+  standard_error                       NUMERIC          YES    
+  date                                 VARCHAR          YES    
+  domain_source                        VARCHAR          YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+  element_name_en                      VARCHAR          NO     
+  element_name_vn                      VARCHAR          NO     
+  category_description_en              VARCHAR          YES    
+  category_description_vn              VARCHAR          YES    
+
+  [core.career_group_levels]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  group_id                             INT              NO     FK
+  level_order                          INT              NO     
+  level_name_vi                        TEXT             NO     
+  level_name_en                        TEXT             NO     
+  level_slug                           TEXT             NO     
+  min_exp_years                        INT              NO     
+  max_exp_years                        INT              YES    
+  job_zone_mapping                     TEXT             YES    
+  seniority_keywords                   ARRAY            YES    
+  description_vi                       TEXT             YES    
+  description_en                       TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_group_mapping]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  career_id                            BIGINT           NO     FK
+  group_id                             INT              NO     FK
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_groups]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  name                                 TEXT             NO     
+  slug                                 TEXT             NO     
+  description                          TEXT             YES    
+  onet_major_group                     TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_interests]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  onet_code                            TEXT             NO     
+  r                                    NUMERIC          YES    
+  i                                    NUMERIC          YES    
+  a                                    NUMERIC          YES    
+  s                                    NUMERIC          YES    
+  e                                    NUMERIC          YES    
+  c                                    NUMERIC          YES    
+  source                               TEXT             YES    
+  fetched_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_ksas]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK
+  onet_code                            TEXT             NO     
+  ksa_type                             TEXT             NO     
+  name_en                              TEXT             NO     
+  name_vn                              TEXT             YES    
+  category                             TEXT             YES    
+  level                                NUMERIC          YES    
+  importance                           NUMERIC          YES    
+  source                               TEXT             YES    
+  fetched_at                           TIMESTAMPTZ      YES    default=now()
+  description_en                       TEXT             YES    
+  description_vn                       TEXT             YES    
+
+  [core.career_level_mapping]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  career_id                            BIGINT           NO     FK
+  group_level_id                       INT              NO     FK
+  is_primary                           BOOLEAN          YES    default=true
+  confidence_score                     NUMERIC          YES    
+  detection_method                     TEXT             YES    
+  notes                                TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_mapping_esco]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  onet_code                            VARCHAR          NO     
+  onet_title                           VARCHAR          YES    
+  esco_code                            VARCHAR          NO     
+  esco_title                           VARCHAR          YES    
+  isco_code                            VARCHAR          YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+
+  [core.career_outlook]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK
+  onet_code                            TEXT             NO     
+  summary_md_en                        TEXT             YES    
+  summary_md_vn                        TEXT             YES    
+  growth_label_en                      TEXT             YES    
+  growth_label_vn                      TEXT             YES    
+  openings_est_en                      TEXT             YES    
+  openings_est_vn                      TEXT             YES    
+  source                               TEXT             YES    
+  fetched_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_overview]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  career_id                            BIGINT           NO     FK
+  experience_text_en                   TEXT             YES    
+  experience_text_vn                   TEXT             YES    
+  degree_text_en                       TEXT             YES    
+  degree_text_vn                       TEXT             YES    
+  salary_min_en                        NUMERIC          YES    
+  salary_min_vn                        NUMERIC          YES    
+  salary_max_en                        NUMERIC          YES    
+  salary_max_vn                        NUMERIC          YES    
+  salary_avg_en                        NUMERIC          YES    
+  salary_avg_vn                        NUMERIC          YES    
+  salary_currency_en                   TEXT             YES    
+  salary_currency_vn                   TEXT             YES    
+  salary_bands_en                      JSONB            YES    
+  salary_bands_vn                      JSONB            YES    
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_prep]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  onet_code                            VARCHAR          NO     
+  job_zone                             INT              NO     
+  education_summary_en                 TEXT             YES    
+  education_summary_vi                 TEXT             YES    
+  experience_summary_en                TEXT             YES    
+  experience_summary_vi                TEXT             YES    
+  date                                 VARCHAR          YES    
+  domain_source                        VARCHAR          YES    
+  domain_source_vi                     VARCHAR          YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+
+  [core.career_recommendations]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  user_id                              INT              YES    FK
+  assessment_id                        INT              YES    FK
+  career_id                            INT              YES    FK
+  score                                NUMERIC          YES    
+  rank                                 INT              YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_riasec_map]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  career_id                            BIGINT           NO     FK
+  label_id                             BIGINT           NO     FK
+
+  [core.career_sources]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  provider                             TEXT             NO     
+  version                              TEXT             YES    
+  license                              TEXT             YES    
+
+  [core.career_tag_map]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  career_id                            BIGINT           NO     FK
+  tag_id                               BIGINT           NO     FK
+
+  [core.career_tags]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  name                                 TEXT             NO     
+
+  [core.career_tasks]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  onet_code                            TEXT             NO     
+  task_id                              VARCHAR          YES    FK
+  task_en                              TEXT             NO     
+  task_vi                              TEXT             YES    
+  task_type                            VARCHAR          NO     
+  incumbents_responding                INT              NO     
+  importance                           NUMERIC          NO     
+  date                                 VARCHAR          YES    
+  domain_source                        VARCHAR          YES    
+  source                               TEXT             YES    
+  fetched_at                           TIMESTAMPTZ      YES    default=now()
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_technology]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  onet_code                            TEXT             NO     
+  category                             VARCHAR          YES    
+  category_vi                          VARCHAR          YES    
+  name_en                              TEXT             NO     
+  name_vi                              TEXT             YES    
+  example_en                           TEXT             YES    
+  example_vi                           TEXT             YES    
+  commodity_code                       VARCHAR          YES    
+  commodity_title                      TEXT             YES    
+  commodity_title_vi                   TEXT             YES    
+  hot_flag                             BOOLEAN          YES    default=false
+  in_demand_flag                       BOOLEAN          YES    default=false
+  source                               TEXT             YES    
+  fetched_at                           TIMESTAMPTZ      YES    default=now()
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_trend_summaries]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  career_id                            BIGINT           NO     FK
+  onet_code                            TEXT             YES    
+  current_interest                     NUMERIC          NO     
+  growth_rate_7d                       NUMERIC          YES    
+  growth_rate_30d                      NUMERIC          YES    
+  trend_direction                      TEXT             NO     
+  popularity_rank                      BIGINT           YES    
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_trends]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  career_id                            BIGINT           NO     FK
+  onet_code                            TEXT             YES    
+  timestamp                            TIMESTAMPTZ      NO     
+  search_interest                      NUMERIC          NO     
+  source                               TEXT             NO     
+  region                               TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.career_wages_us]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  onet_code                            VARCHAR          NO     
+  annual_median                        NUMERIC          YES    
+  annual_10th_percentile               NUMERIC          YES    
+  annual_25th_percentile               NUMERIC          YES    
+  annual_75th_percentile               NUMERIC          YES    
+  annual_90th_percentile               NUMERIC          YES    
+  hourly_median                        NUMERIC          YES    
+  hourly_10th_percentile               NUMERIC          YES    
+  hourly_25th_percentile               NUMERIC          YES    
+  hourly_75th_percentile               NUMERIC          YES    
+  hourly_90th_percentile               NUMERIC          YES    
+  date                                 VARCHAR          YES    
+  source                               VARCHAR          YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+  experience_level                     VARCHAR          YES    
+  job_zone                             INT              YES    
+  industry_category                    VARCHAR          YES    
+  adjustment_factor                    NUMERIC          YES    
+  confidence_level                     VARCHAR          YES    
+  last_updated                         DATE             YES    
+  data_quality                         VARCHAR          YES    
+  market_demand                        VARCHAR          YES    
+
+  [core.career_wages_vi]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  onet_code                            VARCHAR          NO     
+  annual_median_vnd                    BIGINT           YES    
+  annual_min_vnd                       BIGINT           YES    
+  annual_max_vnd                       BIGINT           YES    
+  monthly_median_vnd                   INT              YES    
+  monthly_min_vnd                      INT              YES    
+  monthly_max_vnd                      INT              YES    
+  experience_level                     VARCHAR          YES    
+  experience_level_vi                  VARCHAR          YES    
+  job_zone                             INT              YES    
+  industry_category                    VARCHAR          YES    
+  industry_category_vi                 VARCHAR          YES    
+  data_source                          VARCHAR          YES    
+  data_source_vi                       VARCHAR          YES    
+  adjustment_factor                    NUMERIC          YES    
+  confidence_level                     VARCHAR          YES    
+  confidence_level_vi                  VARCHAR          YES    
+  last_updated                         DATE             YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+  region_hcm_monthly                   INT              YES    
+  region_hanoi_monthly                 INT              YES    
+  region_danang_monthly                INT              YES    
+  region_provinces_monthly             INT              YES    
+  data_quality                         VARCHAR          YES    
+  data_quality_vi                      VARCHAR          YES    
+  market_demand                        VARCHAR          YES    
+  market_demand_vi                     VARCHAR          YES    
+
+  [core.career_work_activities_master]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  element_id                           VARCHAR          NO     FK
+  element_name                         VARCHAR          NO     
+  element_name_vi                      TEXT             NO     
+  description                          TEXT             YES    
+  description_vi                       TEXT             YES    
+  activity_category                    VARCHAR          YES    
+  activity_category_vi                 VARCHAR          YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+
+  [core.career_work_activity_ratings]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  onet_code                            VARCHAR          NO     
+  element_id                           VARCHAR          NO     FK
+  scale_id                             VARCHAR          NO     FK
+  scale_id_vi                          VARCHAR          YES    
+  data_value                           NUMERIC          YES    
+  n                                    INT              YES    
+  standard_error                       NUMERIC          YES    
+  date                                 VARCHAR          YES    
+  domain_source                        VARCHAR          YES    
+  domain_source_vi                     VARCHAR          YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+
+  [core.career_work_activity_summary]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  onet_code                            VARCHAR          NO     
+  element_id                           VARCHAR          NO     FK
+  importance_score                     NUMERIC          YES    
+  level_score                          NUMERIC          YES    
+  combined_score                       NUMERIC          YES    
+  activity_rank                        INT              YES    
+  is_top_activity                      BOOLEAN          YES    default=false
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+  activity_title_en                    TEXT             YES    
+  activity_title_vi                    TEXT             YES    
+  activity_description_en              TEXT             YES    
+  activity_description_vi              TEXT             YES    
+
+  [core.career_work_context]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  onet_code                            VARCHAR          NO     
+  element_id                           VARCHAR          NO     FK
+  element_name                         VARCHAR          NO     
+  element_name_vi                      TEXT             YES    
+  scale_id                             VARCHAR          YES    FK
+  category                             INT              YES    
+  category_description                 VARCHAR          YES    
+  category_description_vi              VARCHAR          YES    
+  data_value                           NUMERIC          YES    
+  n                                    INT              YES    
+  standard_error                       NUMERIC          YES    
+  date                                 VARCHAR          YES    
+  domain_source                        VARCHAR          YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+
+  [core.careers]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK
+  slug                                 TEXT             NO     
+  title_en                             TEXT             YES    
+  title_vi                             TEXT             YES    
+  short_desc_en                        TEXT             YES    
+  short_desc_vi                        TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+  onet_code                            TEXT             YES    
+  source                               VARCHAR          YES    
+  industry_category                    VARCHAR          YES    
+  description_vi                       TEXT             YES    
+  alternative_titles_vi                ARRAY            YES    
+  alternative_titles_en                ARRAY            YES    
+  description_en                       TEXT             YES    
+
+  [core.chat_messages]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  room_id                              VARCHAR          NO     FK
+  sender_id                            BIGINT           NO     FK
+  receiver_id                          BIGINT           NO     FK
+  content                              TEXT             NO     
+  is_read                              BOOLEAN          YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.companies]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  career_group_id                      INT              NO     FK
+  career_group_slug                    VARCHAR          NO     
+  career_group_name                    VARCHAR          NO     
+  name                                 VARCHAR          NO     
+  is_active                            BOOLEAN          YES    default=true
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  onet_major_group                     VARCHAR          YES    
+  name_vi                              VARCHAR          YES    
+  description                          TEXT             YES    
+  industry                             VARCHAR          YES    
+  size                                 VARCHAR          YES    
+  location                             VARCHAR          YES    
+  careers_url                          TEXT             YES    
+  linkedin_url                         TEXT             YES    
+  vietnamworks_url                     TEXT             YES    
+  topcv_url                            TEXT             YES    
+  itviec_url                           TEXT             YES    
+  jobstreet_url                        TEXT             YES    
+  other_url                            TEXT             YES    
+  verified                             BOOLEAN          YES    default=false
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.company_update_logs]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  run_at                               TIMESTAMPTZ      YES    default=now()
+  group_slug                           VARCHAR          YES    
+  source                               VARCHAR          YES    
+  inserted                             INT              YES    
+  updated                              INT              YES    
+  skipped                              INT              YES    
+  errors                               INT              YES    
+  detail                               TEXT             YES    
+
+  [core.course_catalog]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  external_id                          VARCHAR          NO     FK
+  title                                VARCHAR          NO     
+  description                          TEXT             YES    
+  url                                  VARCHAR          YES    
+  platform                             VARCHAR          YES    
+  instructor                           VARCHAR          YES    
+  rating                               FLOAT            YES    
+  num_reviews                          INT              YES    
+  price                                FLOAT            YES    
+  is_free                              BOOLEAN          YES    default=false
+  level                                VARCHAR          YES    
+  duration_hrs                         FLOAT            YES    
+  thumbnail                            VARCHAR          YES    
+  language                             VARCHAR          YES    
+  tags                                 ARRAY            YES    
+  embedding                            ARRAY            YES    
+  is_embedded                          BOOLEAN          YES    default=false
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.course_skill_map]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  course_id                            INT              NO     FK
+  skill_name                           VARCHAR          NO     
+  similarity_score                     FLOAT            NO     
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.data_source_documentation]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  source_code                          VARCHAR          NO     
+  source_name                          VARCHAR          NO     
+  description                          TEXT             YES    
+  url                                  VARCHAR          YES    
+  reliability                          VARCHAR          YES    
+  last_updated                         DATE             YES    
+  notes                                TEXT             YES    
+  created_at                           TIMESTAMP        YES    
+
+  [core.essay_prompts]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  title_en                             TEXT             NO     
+  title_vi                             TEXT             NO     
+  prompt_text_en                       TEXT             NO     
+  prompt_text_vi                       TEXT             NO     
+
+  [core.essays]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  lang                                 TEXT             YES    
+  content                              TEXT             NO     
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  prompt_id                            BIGINT           YES    FK
+
+  [core.goal_milestones]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  goal_id                              BIGINT           NO     FK
+  title                                VARCHAR          NO     
+  description                          TEXT             YES    
+  target_date                          DATE             YES    
+  status                               VARCHAR          NO     
+  order_index                          INT              NO     
+  created_at                           TIMESTAMPTZ      NO     default=now()
+  completed_at                         TIMESTAMPTZ      YES    
+
+  [core.mentee_profiles]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  full_name                            VARCHAR          NO     
+  target_career                        VARCHAR          YES    
+  current_skills                       ARRAY            YES    
+  desired_skills                       ARRAY            YES    
+  learning_style                       VARCHAR          YES    
+  preferred_mentor_experience          VARCHAR          YES    
+  riasec_scores                        JSONB            YES    
+  big_five_scores                      JSONB            YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+
+  [core.mentor_profiles]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  full_name                            VARCHAR          NO     
+  current_position                     VARCHAR          YES    
+  company                              VARCHAR          YES    
+  bio                                  TEXT             YES    
+  expertise_areas                      ARRAY            YES    
+  experience_years                     INT              YES    
+  available_hours_per_week             INT              YES    
+  preferred_communication              ARRAY            YES    
+  max_mentees                          INT              YES    
+  current_mentees_count                INT              YES    
+  riasec_scores                        JSONB            YES    
+  big_five_scores                      JSONB            YES    
+  is_active                            BOOLEAN          YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+
+  [core.mentor_sessions]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  mentor_id                            BIGINT           NO     FK
+  mentee_id                            BIGINT           NO     FK
+  scheduled_at                         TIMESTAMPTZ      NO     
+  duration_minutes                     INT              YES    
+  topic                                VARCHAR          YES    
+  notes                                TEXT             YES    
+  status                               VARCHAR          YES    
+  mentor_note                          TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.notifications]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  type                                 TEXT             NO     
+  title                                TEXT             NO     
+  message                              TEXT             NO     
+  link                                 TEXT             YES    
+  is_read                              BOOLEAN          YES    default=false
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.payments]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  order_id                             VARCHAR          NO     FK
+  app_trans_id                         VARCHAR          YES    FK
+  amount                               INT              NO     
+  description                          TEXT             YES    
+  payment_method                       VARCHAR          YES    
+  status                               VARCHAR          YES    
+  zp_trans_token                       VARCHAR          YES    
+  order_url                            TEXT             YES    
+  callback_data                        TEXT             YES    
+  created_at                           TIMESTAMPTZ      NO     default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+  paid_at                              TIMESTAMPTZ      YES    
+
+  [core.refresh_tokens]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  token                                TEXT             NO     
+  expires_at                           TIMESTAMPTZ      NO     
+  revoked                              BOOLEAN          YES    default=false
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.report_templates]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  template_key                         TEXT             NO     
+  version                              TEXT             NO     
+  locale                               TEXT             NO     
+  title                                TEXT             YES    
+  description                          TEXT             YES    
+  config_json                          JSONB            NO     
+  is_active                            BOOLEAN          NO     default=true
+  created_at                           TIMESTAMPTZ      NO     default=now()
+  updated_at                           TIMESTAMPTZ      NO     default=now()
+
+  [core.revoked_access_tokens]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  jti                                  TEXT             NO     
+  user_id                              BIGINT           YES    FK
+  revoked_at                           TIMESTAMPTZ      YES    default=now()
+  expires_at                           TIMESTAMPTZ      YES    
+
+  [core.riasec_labels]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  code                                 TEXT             NO     
+
+  [core.roadmap_milestones]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  roadmap_id                           BIGINT           NO     FK
+  order_no                             INT              YES    
+  skill_name                           TEXT             YES    
+  description                          TEXT             YES    
+  estimated_duration                   TEXT             YES    
+  resources_json                       JSONB            YES    
+  level                                INT              YES    
+
+  [core.roadmaps]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  career_id                            BIGINT           NO     FK
+  title_en                             TEXT             YES    
+  title_vn                             TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.skill_gap_analyses]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  user_id                              INT              NO     FK
+  career_id                            VARCHAR          NO     FK
+  cv_filename                          VARCHAR          YES    
+  cv_text_preview                      TEXT             YES    
+  cv_skills                            JSONB            YES    
+  job_skills                           JSONB            YES    
+  matched_skills                       JSONB            YES    
+  skill_gaps                           JSONB            YES    
+  extra_skills                         JSONB            YES    
+  match_percentage                     FLOAT            YES    
+  total_required_skills                INT              YES    
+  matched_skills_count                 INT              YES    
+  missing_skills_count                 INT              YES    
+  created_at                           TIMESTAMPTZ      YES    
+  updated_at                           TIMESTAMPTZ      YES    
+  cv_name                              VARCHAR          YES    
+  cv_email                             VARCHAR          YES    
+  cv_phone                             VARCHAR          YES    
+  cv_file_url                          VARCHAR          YES    
+  learning_plan_cache                  JSONB            YES    
+
+  [core.subscription_plans]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  name                                 TEXT             NO     
+  price_monthly                        NUMERIC          NO     
+  price_yearly                         NUMERIC          NO     
+  features                             JSONB            NO     
+  limits                               JSONB            NO     
+  is_active                            BOOLEAN          NO     default=true
+  created_at                           TIMESTAMPTZ      NO     
+
+  [core.sync_jobs]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  source                               VARCHAR          NO     
+  type                                 VARCHAR          NO     
+  status                               VARCHAR          YES    
+  total_items                          INT              YES    
+  processed_items                      INT              YES    
+  created_items                        INT              YES    
+  updated_items                        INT              YES    
+  error_message                        TEXT             YES    
+  started_at                           TIMESTAMPTZ      YES    
+  completed_at                         TIMESTAMPTZ      YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.user_achievements]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  user_id                              INT              NO     FK
+  achievement_type                     VARCHAR          NO     
+  achievement_name                     VARCHAR          NO     
+  achievement_description              VARCHAR          YES    
+  earned_at                            TIMESTAMPTZ      NO     default=now()
+  achievement_metadata                 JSONB            YES    
+
+  [core.user_feedback]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  assessment_id                        BIGINT           YES    FK
+  rating                               INT              YES    
+  comment                              TEXT             YES    
+  created_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.user_gamification_profiles]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  user_id                              INT              NO     FK
+  total_xp                             INT              NO     
+  level                                INT              NO     
+  created_at                           TIMESTAMPTZ      NO     default=now()
+  updated_at                           TIMESTAMPTZ      NO     default=now()
+
+  [core.user_goals]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  goal_text                            TEXT             NO     
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  career_id                            VARCHAR          YES    FK
+  career_name                          VARCHAR          YES    
+  goal_type                            VARCHAR          YES    
+  target_date                          DATE             YES    
+  status                               VARCHAR          YES    
+  priority                             INT              YES    
+  notes                                TEXT             YES    
+  updated_at                           TIMESTAMPTZ      YES    default=now()
+
+  [core.user_progress]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  career_id                            BIGINT           NO     FK
+  roadmap_id                           BIGINT           NO     FK
+  completed_milestones                 JSONB            YES    
+  milestone_completions                JSONB            YES    
+  current_milestone_id                 BIGINT           YES    FK
+  progress_percentage                  NUMERIC          YES    
+  started_at                           TIMESTAMPTZ      YES    default=now()
+  last_updated_at                      TIMESTAMPTZ      YES    default=now()
+
+  [core.user_subscriptions]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  plan_id                              BIGINT           NO     FK
+  status                               VARCHAR          NO     
+  start_date                           TIMESTAMPTZ      NO     
+  end_date                             TIMESTAMPTZ      NO     
+  created_at                           TIMESTAMPTZ      YES    
+  updated_at                           TIMESTAMPTZ      YES    
+  expires_at                           TIMESTAMPTZ      YES    
+  started_at                           TIMESTAMPTZ      YES    
+  payment_method                       TEXT             YES    
+  payment_id                           TEXT             YES    FK
+
+  [core.user_usage_tracking]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  user_id                              BIGINT           NO     FK
+  feature_type                         TEXT             NO     
+  usage_count                          INT              YES    
+  last_reset_date                      DATE             YES    
+  created_at                           TIMESTAMPTZ      YES    
+  updated_at                           TIMESTAMPTZ      YES    
+
+  [core.users]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   BIGINT           NO     PK, auto-increment
+  email                                TEXT             NO     
+  password_hash                        TEXT             NO     
+  full_name                            TEXT             NO     
+  avatar_url                           TEXT             YES    
+  role                                 TEXT             YES    
+  is_locked                            BOOLEAN          YES    default=false
+  created_at                           TIMESTAMPTZ      YES    default=now()
+  last_login                           TIMESTAMPTZ      YES    
+  date_of_birth                        DATE             YES    
+  is_blocked                           BOOLEAN          NO     default=false
+  is_email_verified                    BOOLEAN          YES    default=false
+  email_verified_at                    TIMESTAMPTZ      YES    
+  riasec_top_dim                       TEXT             YES    
+  big5_profile                         TEXT             YES    
+
+================================================================================
+SCHEMA: interview  |  Interview / Voice  |  10 tables
+================================================================================
+
+  [interview.audio_cache]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   UUID             NO     PK
+  content_hash                         VARCHAR          NO     
+  voice_type                           VARCHAR          NO     
+  voice_model                          VARCHAR          NO     
+  audio_url                            VARCHAR          NO     
+  file_size_bytes                      BIGINT           YES    
+  duration_seconds                     FLOAT            YES    
+  word_timestamps                      JSONB            YES    
+  created_at                           TIMESTAMP        YES    
+  last_accessed                        TIMESTAMP        YES    
+  access_count                         INT              YES    
+
+  [interview.interview_audio]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   UUID             NO     PK
+  session_id                           INT              NO     FK
+  message_id                           INT              YES    FK
+  audio_type                           VARCHAR          NO     
+  file_url                             TEXT             NO     
+  duration_seconds                     FLOAT            YES    
+  file_size_bytes                      BIGINT           YES    
+  transcript                           TEXT             YES    
+  created_at                           TIMESTAMP        YES    
+
+  [interview.interview_feedback]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  session_id                           INT              NO     FK
+  user_id                              INT              NO     FK
+  question_quality                     INT              YES    
+  ai_accuracy                          INT              YES    
+  overall_experience                   INT              YES    
+  comments                             TEXT             YES    
+  suggestions                          TEXT             YES    
+  created_at                           TIMESTAMP        YES    
+
+  [interview.interview_messages]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  session_id                           INT              NO     FK
+  role                                 VARCHAR          NO     
+  content                              TEXT             NO     
+  timestamp                            TIMESTAMP        YES    
+  question_type                        VARCHAR          YES    
+  question_number                      INT              YES    
+  skills_tested                        JSONB            YES    
+  score                                FLOAT            YES    
+  detailed_scores                      JSONB            YES    
+  feedback                             TEXT             YES    
+  strengths                            JSONB            YES    
+  weaknesses                           JSONB            YES    
+  suggestion                           TEXT             YES    
+  has_audio                            BOOLEAN          YES    default=false
+  audio_duration                       FLOAT            YES    
+  voice_type                           VARCHAR          YES    
+  processing_time                      FLOAT            YES    
+  word_timestamps                      JSONB            YES    
+  order_index                          INT              YES    
+  audio_url                            TEXT             YES    
+  conversation_flow                    JSONB            YES    
+
+  [interview.interview_sessions]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  user_id                              INT              NO     FK
+  job_id                               VARCHAR          NO     FK
+  job_title                            VARCHAR          NO     
+  status                               VARCHAR          YES    
+  started_at                           TIMESTAMP        YES    
+  completed_at                         TIMESTAMP        YES    
+  overall_score                        FLOAT            YES    
+  technical_score                      FLOAT            YES    
+  communication_score                  FLOAT            YES    
+  logic_score                          FLOAT            YES    
+  experience_score                     FLOAT            YES    
+  attitude_score                       FLOAT            YES    
+  recommendation                       VARCHAR          YES    
+  summary                              TEXT             YES    
+  key_strengths                        JSONB            YES    
+  key_weaknesses                       JSONB            YES    
+  skill_gaps                           JSONB            YES    
+  learning_recommendations             JSONB            YES    
+  skills_context                       JSONB            YES    
+  market_context                       JSONB            YES    
+  id                                   INT              NO     PK, auto-increment
+  question_count                       INT              YES    
+  question_distribution                JSONB            YES    
+  tab_switch_count                     INT              YES    
+  interview_mode                       VARCHAR          YES    
+  voice_type                           VARCHAR          YES    
+  voice_settings                       JSONB            YES    
+  processing_metrics                   JSONB            YES    
+  conversation_metadata                JSONB            YES    
+  replay_metadata                      JSONB            YES    
+  evaluation_mode                      VARCHAR          YES    
+  evaluation_status                    VARCHAR          YES    
+  evaluation_results                   JSONB            YES    
+  user_experience_metrics              JSONB            YES    
+
+  [interview.interview_templates]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  job_id                               VARCHAR          NO     FK
+  job_title                            VARCHAR          NO     
+  question_type                        VARCHAR          NO     
+  skill_category                       VARCHAR          NO     
+  difficulty_level                     VARCHAR          YES    
+  question_template                    TEXT             NO     
+  expected_keywords                    JSONB            YES    
+  scoring_rubric                       JSONB            YES    
+  usage_count                          INT              YES    
+  avg_score                            FLOAT            YES    
+  created_at                           TIMESTAMP        YES    
+  updated_at                           TIMESTAMP        YES    
+
+  [interview.job_descriptions]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   INT              NO     PK, auto-increment
+  user_id                              INT              NO     FK
+  career_id                            VARCHAR          YES    FK
+  raw_text                             TEXT             NO     
+  extracted_data                       JSONB            YES    
+  source                               VARCHAR          YES    
+  created_at                           TIMESTAMP        YES    
+
+  [interview.ui_state_log]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   UUID             NO     PK
+  session_id                           INT              NO     FK
+  state_type                           VARCHAR          NO     
+  state_value                          VARCHAR          NO     
+  started_at                           TIMESTAMP        YES    
+  ended_at                             TIMESTAMP        YES    
+  duration_ms                          INT              YES    
+  metadata_json                        JSONB            YES    
+
+  [interview.voice_performance_metrics]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   UUID             NO     PK
+  session_id                           INT              YES    FK
+  stage                                VARCHAR          NO     
+  processing_time                      FLOAT            NO     
+  input_size                           INT              YES    
+  output_size                          INT              YES    
+  success                              BOOLEAN          YES    default=true
+  error_message                        TEXT             YES    
+  metadata_json                        JSONB            YES    
+  created_at                           TIMESTAMP        YES    
+  stage_details                        JSONB            YES    
+
+  [interview.voice_preferences]
+  ----------------------------------------------------------------------
+  Column                               Type             Null   Notes
+  ----------------------------------------------------------------------
+  id                                   UUID             NO     PK
+  user_id                              INT              NO     FK
+  preferred_voice                      VARCHAR          NO     
+  voice_rate                           VARCHAR          NO     
+  voice_pitch                          VARCHAR          NO     
+  voice_volume                         FLOAT            NO     
+  language                             VARCHAR          NO     
+  created_at                           TIMESTAMP        NO     
+  updated_at                           TIMESTAMP        NO     
+
+================================================================================
+END OF DOCUMENT
+================================================================================

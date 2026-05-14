@@ -276,27 +276,36 @@ def login(request: Request, payload: LoginPayload):
     session.add(rt)
     session.commit()
     
-    # Ghi audit log cho login
-    user_agent = request.headers.get("user-agent", "")
-    browser = "Unknown"
-    if "Chrome" in user_agent:
-        browser = "Chrome"
-    elif "Firefox" in user_agent:
-        browser = "Firefox"
-    elif "Safari" in user_agent:
-        browser = "Safari"
-    elif "Edge" in user_agent:
-        browser = "Edge"
-    
-    log_audit(
-        session=session,
-        user_id=u.id,
-        action="login",
-        resource_type="user",
-        resource_id=str(u.id),
-        details={"browser": browser, "user_agent": user_agent[:200]},
-        ip_address=client_ip,
-    )
+    # Ghi audit log cho login - NGAY LẬP TỨC, trước khi trả response
+    try:
+        user_agent = request.headers.get("user-agent", "")
+        browser = "Unknown"
+        if "Chrome" in user_agent:
+            browser = "Chrome"
+        elif "Firefox" in user_agent:
+            browser = "Firefox"
+        elif "Safari" in user_agent:
+            browser = "Safari"
+        elif "Edge" in user_agent:
+            browser = "Edge"
+        
+        log_audit(
+            session=session,
+            user_id=u.id,
+            action="login",
+            resource_type="user",
+            resource_id=str(u.id),
+            details={
+                "browser": browser,
+                "user_agent": user_agent[:200],
+                "role": u.role or "user",
+                "email": u.email,
+            },
+            ip_address=client_ip,
+        )
+    except Exception as e:
+        logger.error(f"Failed to log audit for login: {e}")
+        # Continue with login even if audit log fails
 
     return {
         "access_token": token,
@@ -407,11 +416,19 @@ def logout(request: Request, payload: dict):
             except Exception as e:
                 logger.warning(f"[Auth] logout: could not blacklist access token: {e}")
 
-        # Ghi audit log cho logout
+        # Ghi audit log cho logout - bao gồm role
         client_ip = request.client.host if request.client else None
         forwarded = request.headers.get("x-forwarded-for")
         if forwarded:
             client_ip = forwarded.split(",")[0].strip()
+
+        # Lấy role của user để phân biệt admin/user
+        user_row = session.execute(
+            text("SELECT role, email FROM core.users WHERE id = :uid"),
+            {"uid": rt.user_id}
+        ).fetchone()
+        user_role = user_row[0] if user_row else "user"
+        user_email = user_row[1] if user_row else ""
 
         log_audit(
             session=session,
@@ -419,7 +436,12 @@ def logout(request: Request, payload: dict):
             action="logout",
             resource_type="user",
             resource_id=str(rt.user_id),
-            details={"method": "refresh_token_revoke", "access_token_blacklisted": bool(access_token_str)},
+            details={
+                "method": "refresh_token_revoke",
+                "access_token_blacklisted": bool(access_token_str),
+                "role": user_role,
+                "email": user_email,
+            },
             ip_address=client_ip,
         )
     return {"status": "ok"}

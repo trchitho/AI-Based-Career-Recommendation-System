@@ -17,7 +17,7 @@ interface Big5CoverProps {
 const Big5Cover = ({ cover }: Big5CoverProps) => {
     const formatDate = (dateString?: string) => {
         if (!dateString) return '';
-        return new Date(dateString).toLocaleDateString('en-US', {
+        return new Date(dateString).toLocaleDateString('vi-VN', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -42,7 +42,7 @@ const Big5Cover = ({ cover }: Big5CoverProps) => {
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-purple-500/30 pt-3 mt-2">
                     {cover.user_name && (
                         <p className="font-semibold uppercase tracking-wide text-base print:text-sm">
-                            Results for: {cover.user_name}
+                            Kết quả cho: {cover.user_name}
                         </p>
                     )}
                     {cover.completed_at && (
@@ -66,24 +66,24 @@ const Big5Cover = ({ cover }: Big5CoverProps) => {
                 {/* What's Inside Section */}
                 <div className="mt-6 print:mt-4">
                     <h3 className="text-base font-bold text-gray-900 dark:text-white mb-3 print:text-sm">
-                        What's Inside This Report
+                        Nội Dung Báo Cáo
                     </h3>
                     <div className="grid grid-cols-2 gap-3 text-sm print:text-xs print:gap-2">
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">Your Career Personality Type</span>
+                            <span className="text-gray-600 dark:text-gray-400">Loại Tính Cách Nghề Nghiệp Của Bạn</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">6 Behavioral Patterns</span>
+                            <span className="text-gray-600 dark:text-gray-400">6 Mẫu Hành Vi</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">Personal Strengths</span>
+                            <span className="text-gray-600 dark:text-gray-400">Điểm Mạnh Cá Nhân</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">Potential Challenges</span>
+                            <span className="text-gray-600 dark:text-gray-400">Thách Thức Tiềm Năng</span>
                         </div>
                     </div>
                 </div>
@@ -97,7 +97,7 @@ const Big5Cover = ({ cover }: Big5CoverProps) => {
             {/* Footer */}
             <div className="mt-auto pt-4 print:pt-2">
                 <p className="text-xs text-gray-400 dark:text-gray-500 text-center print:text-[10px]">
-                    Based on the Big Five (OCEAN) personality model
+                    Dựa trên mô hình tính cách Big Five (OCEAN)
                 </p>
             </div>
         </div>

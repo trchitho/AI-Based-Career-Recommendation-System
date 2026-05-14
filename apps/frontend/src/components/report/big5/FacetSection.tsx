@@ -40,10 +40,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     caretaker: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     pragmatist: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -65,10 +65,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     dutiful: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     casual: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -90,10 +90,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     supportive: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     independent: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -115,10 +115,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     insightful: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     concise: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -140,10 +140,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     improviser: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     cooperator: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -165,10 +165,10 @@ const LABEL_CARD_COLORS: Record<
         ring: 'ring-blue-400',
     },
     inspector: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-300 dark:border-green-700',
-        text: 'text-green-700 dark:text-green-400',
-        ring: 'ring-green-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-950/20',
+        border: 'border-indigo-300 dark:border-indigo-800',
+        text: 'text-indigo-900 dark:text-indigo-400',
+        ring: 'ring-indigo-500',
     },
     responder: {
         bg: 'bg-amber-50 dark:bg-amber-900/20',
@@ -235,17 +235,17 @@ const getFixedOrderLabels = (
 
 const FACET_DESCRIPTIONS: Record<string, string> = {
     problemSolving:
-        'This chart illustrates your cognitive approach to problem-solving, reflecting how you analyze situations, generate solutions, and make decisions.',
+        'Biểu đồ này minh họa cách tiếp cận nhận thức của bạn trong giải quyết vấn đề, phản ánh cách bạn phân tích tình huống, tạo ra giải pháp và đưa ra quyết định.',
     motivation:
-        'This chart shows how you are motivated in your work, including the factors that drive you to work as well as your overall level of motivation.',
+        'Biểu đồ này cho thấy bạn được thúc đẩy như thế nào trong công việc, bao gồm các yếu tố thúc đẩy bạn làm việc cũng như mức độ động lực tổng thể của bạn.',
     interaction:
-        'This chart reveals your interpersonal interaction style, showing how you engage with others in professional and social contexts.',
+        'Biểu đồ này tiết lộ phong cách tương tác giữa các cá nhân của bạn, cho thấy cách bạn giao tiếp với người khác trong bối cảnh chuyên nghiệp và xã hội.',
     communication:
-        'This chart describes how you communicate your thoughts, experiences, and ideas to others.',
+        'Biểu đồ này mô tả cách bạn truyền đạt suy nghĩ, kinh nghiệm và ý tưởng của mình cho người khác.',
     teamwork:
-        'This chart demonstrates your collaborative approach within team settings, indicating how you contribute to group dynamics.',
+        'Biểu đồ này thể hiện cách tiếp cận hợp tác của bạn trong môi trường nhóm, cho thấy cách bạn đóng góp vào động lực nhóm.',
     taskManagement:
-        'This chart depicts your approach to managing tasks and projects, revealing your organizational style and leadership tendencies.',
+        'Biểu đồ này mô tả cách tiếp cận của bạn trong quản lý nhiệm vụ và dự án, tiết lộ phong cách tổ chức và xu hướng lãnh đạo của bạn.',
 };
 
 const FacetSection = ({ facet }: FacetSectionProps) => {
@@ -253,7 +253,7 @@ const FacetSection = ({ facet }: FacetSectionProps) => {
 
     const description =
         FACET_DESCRIPTIONS[facet.name] ||
-        'This chart shows your behavioral pattern in this area.';
+        'Biểu đồ này cho thấy mẫu hành vi của bạn trong lĩnh vực này.';
 
     const orderedLabels = getFixedOrderLabels(facet.name, facet.labels);
 

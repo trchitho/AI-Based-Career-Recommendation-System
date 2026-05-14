@@ -35,7 +35,7 @@ class CVParser:
             return self._skill_cache
         
         if not self.db:
-            print("⚠️ No database session, using fallback skills")
+            print("[WARN] No database session, using fallback skills")
             return self._get_fallback_skills()
         
         try:
@@ -43,23 +43,24 @@ class CVParser:
             from sqlalchemy import select
             
             # Query skills with their categories from database
-            stmt = select(CareerKSA.name, CareerKSA.category).distinct()
+            stmt = select(CareerKSA.name_en, CareerKSA.category).distinct()
             result = self.db.execute(stmt)
             
             # Build dict: skill_name (lowercase) -> category
             skills_dict = {}
             for name, category in result:
+                if not name:
+                    continue
                 skill_lower = name.lower()
-                # Use first category found for each skill
                 if skill_lower not in skills_dict:
                     skills_dict[skill_lower] = category or 'Other'
             
-            print(f"✅ Loaded {len(skills_dict)} skills with categories from database")
+            print(f"[OK] Loaded {len(skills_dict)} skills with categories from database")
             self._skill_cache = skills_dict
             return skills_dict
             
         except Exception as e:
-            print(f"⚠️ Error loading skills from database: {e}")
+            print(f"[WARN] Error loading skills from database: {e}")
             return self._get_fallback_skills()
     
     def _get_fallback_skills(self) -> Dict[str, str]:
@@ -143,7 +144,7 @@ class CVParser:
                 import pytesseract
                 from PIL import Image
             except ImportError:
-                print("⚠️ OCR libraries not installed")
+                print("[WARN] OCR libraries not installed")
                 print("   Install: pip install pytesseract pillow")
                 print("   Also install Tesseract: https://github.com/tesseract-ocr/tesseract")
                 return self._get_fallback_text()
@@ -154,11 +155,11 @@ class CVParser:
             # Perform OCR
             text = pytesseract.image_to_string(image, lang='eng')
             
-            print(f"✅ OCR extracted {len(text)} characters")
+            print(f"[OK] OCR extracted {len(text)} characters")
             return text.lower()
             
         except Exception as e:
-            print(f"❌ Error in OCR: {e}")
+            print(f"[ERR] Error in OCR: {e}")
             return self._get_fallback_text()
     
     def _get_fallback_text(self) -> str:
@@ -262,7 +263,7 @@ class CVParser:
             return skills
             
         except Exception as e:
-            print(f"  ⚠️ NER Engine failed: {e}")
+            print(f"  [WARN] NER Engine failed: {e}")
             import traceback
             traceback.print_exc()
             return []
@@ -338,7 +339,7 @@ class CVParser:
                     existing['source'] = 'multiple'
         
         result = list(normalized_skills.values())
-        print(f"  ✅ Normalized to {len(result)} unique skills")
+        print(f"  [OK] Normalized to {len(result)} unique skills")
         return result
     
     def extract_personal_info(self, text: str) -> Dict[str, str]:
@@ -395,7 +396,7 @@ class CVParser:
             print(f"     - Phone: {info['phone'] or 'Not found'}")
             
         except Exception as e:
-            print(f"  ⚠️ Error extracting personal info: {e}")
+            print(f"  [WARN] Error extracting personal info: {e}")
         
         return info
     
@@ -486,13 +487,13 @@ Return ONLY the name, nothing else.
                         
                         name_lower = name.lower()
                         if not any(keyword in name_lower for keyword in invalid_keywords):
-                            print(f"  ✅ AI extracted name: {name}")
+                            print(f"  [OK] AI extracted name: {name}")
                             return name
             
-            print(f"  ⚠️ AI extracted invalid name: '{name}', using fallback")
+            print(f"  [WARN] AI extracted invalid name: '{name}', using fallback")
             
         except Exception as e:
-            print(f"  ⚠️ AI name extraction failed: {e}")
+            print(f"  [WARN] AI name extraction failed: {e}")
         
         return ''
     
@@ -542,7 +543,7 @@ Return ONLY the name, nothing else.
                 skills_dict[skill_name_lower] = skill
         
         merged_skills = list(skills_dict.values())
-        print(f"  ✅ Step 3 - Merged: {len(merged_skills)} skills")
+        print(f"  [OK] Step 3 - Merged: {len(merged_skills)} skills")
         
         # Step 4: Normalization
         normalized_skills = self.normalize_skills(merged_skills)
@@ -615,7 +616,7 @@ Return ONLY the name, nothing else.
                 print(f"     - Phone: {info['phone'] or 'Not found'}")
 
             except Exception as e:
-                print(f"  ⚠️ Error extracting personal info: {e}")
+                print(f"  [WARN] Error extracting personal info: {e}")
 
             return info
 
@@ -659,7 +660,7 @@ Return ONLY the name, nothing else.
                     return name
 
             except Exception as e:
-                print(f"  ⚠️ AI name extraction failed: {e}")
+                print(f"  [WARN] AI name extraction failed: {e}")
 
             return ''
 

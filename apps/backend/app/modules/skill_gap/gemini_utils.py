@@ -25,7 +25,7 @@ class GeminiAPIManager:
         self.model = self.stream_manager.model
         
         print("🔧 CV Analysis Gemini Manager initialized")
-        print(f"   Stream available: {'✅' if self.stream_manager.is_available() else '❌'}")
+        print(f"   Stream available: {'[OK]' if self.stream_manager.is_available() else '[ERR]'}")
         print(f"   Model: {self.model_name}")
         print(f"   Fast fail: {self.fast_fail}")
     
@@ -106,11 +106,11 @@ Return ONLY the JSON array, no explanations.
                 if 'context' in skill and len(skill.get('context', '')) > 100:
                     skill['context'] = skill['context'][:100] + '...'
             
-            print(f"  ✅ NER Engine extracted {len(skills)} skills")
+            print(f"  [OK] NER Engine extracted {len(skills)} skills")
             return skills
             
         except json.JSONDecodeError as e:
-            print(f"  ❌ Failed to parse JSON response: {e}")
+            print(f"  [ERR] Failed to parse JSON response: {e}")
             return []
     
     def extract_personal_info(self, text: str) -> dict:
@@ -156,11 +156,11 @@ Return ONLY JSON, no explanations.
                 response_text = response_text.split('```')[1].split('```')[0].strip()
             
             personal_info = json.loads(response_text)
-            print(f"  ✅ AI extracted personal info: {personal_info}")
+            print(f"  [OK] AI extracted personal info: {personal_info}")
             return personal_info
             
         except json.JSONDecodeError as e:
-            print(f"  ❌ Failed to parse personal info JSON: {e}")
+            print(f"  [ERR] Failed to parse personal info JSON: {e}")
             return {}
     
     def semantic_skill_matching(self, cv_skills: list, job_skills: list, career_name: str) -> Optional[dict]:
@@ -188,6 +188,14 @@ For example:
 - "AutoCAD" matches "Computer-aided design software" or "CAD software"
 - "GPS" matches "GPS Technology" or "Geographic positioning"
 - "Python" matches "Programming" or "Software development"
+
+Rules:
+- Match from the JOB REQUIREMENT perspective, not from the CV perspective.
+- Do not match a CV skill to a broad generic requirement unless it is genuinely used in this occupation.
+- For non-software/industrial occupations, do NOT treat IT tools/frameworks (Node.js, React, Docker, JWT, Redis, PostgreSQL, Machine Learning, PyTorch, web development) as satisfying generic ONET skills such as "Programming", "Science", or "Systems Analysis".
+- Prefer "unmatched_cv_skills" for skills that are valuable but unrelated to the target occupation.
+- A match must have direct occupational evidence. If the relationship is only abstract, leave it unmatched.
+- Confidence below 0.75 should not be returned as a matched pair.
 
 Return JSON with:
 {{
@@ -217,11 +225,11 @@ CRITICAL: Return ONLY valid JSON, no markdown, no explanations.
                 response_text = response_text.split('```')[1].split('```')[0].strip()
             
             result = json.loads(response_text)
-            print(f"  ✅ AI found {len(result.get('matched_pairs', []))} semantic matches")
+            print(f"  [OK] AI found {len(result.get('matched_pairs', []))} semantic matches")
             return result
             
         except json.JSONDecodeError as e:
-            print(f"  ❌ Failed to parse semantic matching JSON: {e}")
+            print(f"  [ERR] Failed to parse semantic matching JSON: {e}")
             return None
 
 # Global instance

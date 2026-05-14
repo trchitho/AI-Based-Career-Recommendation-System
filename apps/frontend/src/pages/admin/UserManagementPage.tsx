@@ -67,7 +67,7 @@ const UserManagementPage = () => {
       load();
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
-      setCreateError(typeof detail === 'object' ? detail?.message : (detail || err?.message || "Failed to create user"));
+      setCreateError(typeof detail === 'object' ? detail?.message : (detail || err?.message || "Không thể tạo người dùng"));
     } finally {
       setCreating(false);
     }
@@ -80,7 +80,7 @@ const UserManagementPage = () => {
       setDeleteConfirm(null);
       load();
     } catch {
-      alert("Failed to delete user");
+      alert("Không thể xóa người dùng");
     } finally {
       setDeleting(false);
     }
@@ -97,7 +97,7 @@ const UserManagementPage = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert("Export failed");
+      alert("Xuất dữ liệu thất bại");
     } finally {
       setExporting(false);
     }
@@ -106,35 +106,35 @@ const UserManagementPage = () => {
   const getRoleColor = (role: string) => {
     switch (role?.toLowerCase()) {
       case "admin":
-        return "from-rose-500 to-pink-500";
+        return "from-[#9333EA] to-[#A855F7]";
       case "manager":
-        return "from-purple-500 to-indigo-500";
+        return "from-[#6366F1] to-[#818CF8]";
       default:
-        return "from-blue-500 to-cyan-500";
+        return "from-[#4F46E5] to-[#6366F1]";
     }
   };
 
   const getRoleBadge = (role: string) => {
     switch (role?.toLowerCase()) {
       case "admin":
-        return "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200 dark:border-rose-800";
+        return "bg-[#9333EA] text-white shadow-md shadow-[#9333EA]/30 border-[#9333EA]";
       case "manager":
-        return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800";
+        return "bg-[#6366F1] text-white shadow-md shadow-[#6366F1]/30 border-[#6366F1]";
       default:
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800";
+        return "bg-[#4F46E5] text-white shadow-md shadow-[#4F46E5]/30 border-[#4F46E5]";
     }
   };
 
   return (
-    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen">
+    <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            User Management
+            Quản lý người dùng
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Quản lý {total} người dùng trong hệ thống</p>
         </div>
@@ -144,7 +144,7 @@ const UserManagementPage = () => {
               value={q}
               onChange={(e) => { setPage(1); setQ(e.target.value); }}
               placeholder={t("admin.user.search")}
-              className="pl-9 pr-4 py-2 w-52 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="pl-9 pr-4 py-2 w-52 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600"
             />
             <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -153,12 +153,12 @@ const UserManagementPage = () => {
           <button onClick={handleExport} disabled={exporting}
             className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-            {exporting ? "Exporting..." : "Export CSV"}
+            {exporting ? "Đang xuất..." : "Xuất CSV"}
           </button>
           <button onClick={() => { setShowCreate(true); setCreateError(null); }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors">
+            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            New User
+            + Thêm người dùng
           </button>
         </div>
       </div>
@@ -166,7 +166,7 @@ const UserManagementPage = () => {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-20 gap-3 text-gray-500">
-          <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
           Đang tải...
         </div>
       )}
@@ -207,10 +207,10 @@ const UserManagementPage = () => {
 
                   {/* Status indicator */}
                   <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${u.is_locked
-                      ? "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
-                      : "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800"
+                    ? "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
+                    : "bg-indigo-50 text-indigo-800 border-emerald-200 dark:bg-indigo-950/20 dark:text-emerald-400 dark:border-emerald-800"
                     }`}>
-                    {u.is_locked ? "🔒" : "✓"}
+                    {u.is_locked ? "Locked" : "Active"}
                   </span>
                 </div>
 
@@ -226,8 +226,8 @@ const UserManagementPage = () => {
                     <button
                       className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all
                         ${u.role === "user"
-                          ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30"
-                          : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800"}`}
+                          ? "bg-[#4F46E5] text-white shadow-lg shadow-[#4F46E5]/50"
+                          : "bg-white text-gray-700 border border-[#CBD5E1] hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"}`}
                       onClick={() => setRole(u.id, "user")}
                     >
                       User
@@ -235,8 +235,8 @@ const UserManagementPage = () => {
                     <button
                       className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all
                         ${u.role === "manager"
-                          ? "bg-purple-500 text-white shadow-lg shadow-purple-500/30"
-                          : "bg-purple-50 text-purple-600 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/40 border border-purple-200 dark:border-purple-800"}`}
+                          ? "bg-[#4F46E5] text-white shadow-lg shadow-[#4F46E5]/50"
+                          : "bg-white text-gray-700 border border-[#CBD5E1] hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"}`}
                       onClick={() => setRole(u.id, "manager")}
                     >
                       Manager
@@ -244,8 +244,8 @@ const UserManagementPage = () => {
                     <button
                       className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all
                         ${u.role === "admin"
-                          ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30"
-                          : "bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/20 dark:text-rose-400 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-800"}`}
+                          ? "bg-[#9333EA] text-white shadow-lg shadow-[#9333EA]/50"
+                          : "bg-white text-gray-700 border border-[#CBD5E1] hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"}`}
                       onClick={() => setRole(u.id, "admin")}
                     >
                       Admin
@@ -255,8 +255,8 @@ const UserManagementPage = () => {
                   <button
                     className={`w-full px-3 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2
                       ${u.is_locked
-                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
-                        : "bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 dark:bg-gray-700 dark:hover:bg-red-900/30 dark:text-gray-300 dark:hover:text-red-400 border-2 border-gray-200 dark:border-gray-600 hover:border-red-200 dark:hover:border-red-800"
+                        ? "bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-lg shadow-[#4F46E5]/40"
+                        : "bg-[#F8FAFC] text-[#94A3B8] border border-[#E2E8F0] hover:bg-white hover:border-[#CBD5E1] dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 shadow-sm shadow-[#FEE2E2]/30"
                       }`}
                     onClick={async () => {
                       await adminService.updateUser(u.id, { is_locked: !u.is_locked });
@@ -283,10 +283,10 @@ const UserManagementPage = () => {
                   {/* PB25: Delete user */}
                   <button
                     onClick={() => setDeleteConfirm(u.id)}
-                    className="w-full mt-1 px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border-2 border-red-100 dark:border-red-900/30 hover:border-red-300 transition-all flex items-center justify-center gap-1.5"
+                    className="w-full mt-1 px-3 py-2 rounded-lg text-xs font-bold bg-[#EF4444] text-white hover:bg-[#DC2626] dark:bg-[#DC2626] dark:hover:bg-[#B91C1C] shadow-lg shadow-[#EF4444]/40 hover:shadow-[#EF4444]/60 transition-all flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    Delete
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -331,22 +331,22 @@ const UserManagementPage = () => {
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Email *</label>
                 <input type="email" required value={createForm.email} onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500" />
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Full Name</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Họ và tên</label>
                 <input type="text" value={createForm.full_name} onChange={e => setCreateForm(f => ({ ...f, full_name: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500" />
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Password *</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Mật khẩu *</label>
                 <input type="password" required value={createForm.password} onChange={e => setCreateForm(f => ({ ...f, password: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500" />
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Role</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Vai trò</label>
                 <select value={createForm.role} onChange={e => setCreateForm(f => ({ ...f, role: e.target.value as "admin" | "user" }))}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-600">
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
                 </select>
@@ -354,7 +354,7 @@ const UserManagementPage = () => {
               {createError && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2.5 rounded-lg">{createError}</p>}
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 font-semibold text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Huỷ</button>
-                <button type="submit" disabled={creating} className="flex-1 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold text-sm transition-colors disabled:opacity-50">
+                <button type="submit" disabled={creating} className="flex-1 py-2.5 rounded-lg bg-indigo-800 hover:bg-indigo-900 text-white font-semibold text-sm transition-colors disabled:opacity-50">
                   {creating ? "Đang tạo..." : "Tạo người dùng"}
                 </button>
               </div>

@@ -76,7 +76,7 @@ const CareerRecommendationsDisplay = ({
   const displayedItems = items;
 
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 90) return "text-green-600 bg-green-100";
+    if (percentage >= 90) return "text-indigo-800 bg-indigo-50";
     if (percentage >= 80) return "text-blue-600 bg-blue-100";
     if (percentage >= 70) return "text-yellow-600 bg-yellow-100";
     return "text-gray-600 bg-gray-100";
@@ -112,11 +112,11 @@ const CareerRecommendationsDisplay = ({
 
       let message = '';
       if (currentPlan === 'free') {
-        message = `Upgrade to ${planInfo?.name || 'Basic Plan'} to view top 2 career matches.`;
+        message = `Nâng cấp lên ${planInfo?.name || 'Gói Cơ bản'} để xem top 2 nghề phù hợp.`;
       } else if (currentPlan === 'basic') {
-        message = `Upgrade to ${getPlanInfo('premium')?.name || 'Premium Plan'} to view all career categories.`;
+        message = `Nâng cấp lên ${getPlanInfo('premium')?.name || 'Gói Premium'} để xem tất cả nghề nghiệp.`;
       } else {
-        message = `Upgrade to ${getPlanInfo('premium')?.name || 'Premium Plan'} to view all career categories.`;
+        message = `Nâng cấp lên ${getPlanInfo('premium')?.name || 'Gói Premium'} để xem tất cả nghề nghiệp.`;
       }
 
       navigate('/pricing', {
@@ -183,9 +183,9 @@ const CareerRecommendationsDisplay = ({
     <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Your Top Career Matches
+          Nghề Nghiệp Phù Hợp Nhất Của Bạn
         </h3>
-        {/* View Career Goals button - Pro feature */}
+        {/* Xem Mục Tiêu Nghề Nghiệp button - Pro feature */}
         {canSetGoals && (
           <button
             onClick={() => navigate('/career-goals')}
@@ -194,16 +194,16 @@ const CareerRecommendationsDisplay = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            View Career Goals
+            Xem Mục Tiêu Nghề Nghiệp
           </button>
         )}
       </div>
       <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-        Based on your assessment results, here are careers that align with your
-        interests and personality.
+        Dựa trên kết quả đánh giá của bạn, đây là các nghề nghiệp phù hợp với
+        sở thích và tính cách của bạn.
       </p>
 
-      {loading && <div>Loading recommendations...</div>}
+      {loading && <div>Đang tải gợi ý nghề nghiệp...</div>}
 
       {!loading && error && (
         <div className="text-red-700 bg-red-50 dark:bg-red-900/30 px-4 py-3 rounded-lg">
@@ -214,8 +214,7 @@ const CareerRecommendationsDisplay = ({
       {!loading && !error && displayedItems.length === 0 && (
         <div className="text-center py-8 bg-gray-50 dark:bg-gray-900 rounded-lg">
           <p className="text-gray-600 dark:text-gray-400">
-            Career recommendations are being generated. Please check back
-            shortly.
+            Gợi ý nghề nghiệp đang được tạo. Vui lòng quay lại sau.
           </p>
         </div>
       )}
@@ -234,12 +233,12 @@ const CareerRecommendationsDisplay = ({
               ? Math.round(career.display_match as number)
               : Math.max(60, raw);
 
-            // Ưu tiên EN, thiếu thì fallback VN
+            // Ưu tiên VN, thiếu thì fallback EN
             const title =
-              career.title_en ||
               career.title_vi ||
+              career.title_en ||
               career.career_id ||
-              "Unknown career";
+              "Nghề nghiệp chưa xác định";
             const desc = career.description ?? "";
 
             // Check if this career is locked based on 4-tier system
@@ -282,7 +281,7 @@ const CareerRecommendationsDisplay = ({
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 pointer-events-none">
                     <div className="absolute top-3 right-3">
                       <span className={`px-2 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${requiredPlanInfo?.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
-                        requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                        requiredPlanInfo?.color === 'green' ? 'bg-gradient-to-r from-indigo-700 to-indigo-700' :
                           'bg-gradient-to-r from-purple-500 to-pink-500'
                         }`}>
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
@@ -298,13 +297,13 @@ const CareerRecommendationsDisplay = ({
                   <div className="flex items-center">
                     <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3 ${isLocked
                       ? 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30'
-                      : 'bg-beige-light dark:bg-green-900/30'
+                      : 'bg-beige-light dark:bg-indigo-950/30'
                       }`}>
                       <span className={`font-bold text-lg ${isLocked
                         ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-primary-cta dark:text-green-400'
+                        : 'text-primary-cta dark:text-indigo-400'
                         }`}>
-                        #{index + 1}
+                        {index + 1}
                       </span>
                     </div>
                     <div>
@@ -322,7 +321,7 @@ const CareerRecommendationsDisplay = ({
                       : getMatchColor(percent)
                       }`}
                   >
-                    {percent}% Match
+                    {percent}% Phù Hợp
                   </div>
                 </div>
 
@@ -334,11 +333,11 @@ const CareerRecommendationsDisplay = ({
                     {isLocked
                       ? (() => {
                         if (currentPlan === 'free') {
-                          return `Upgrade to Basic Plan (99k) to view top 2 career matches or Premium Plan (199k) for unlimited access.`;
+                          return `Nâng cấp lên Gói Cơ Bản (99k) để xem 2 nghề phù hợp hàng đầu hoặc Gói Cao Cấp (199k) để truy cập không giới hạn.`;
                         } else if (currentPlan === 'basic') {
-                          return `Basic Plan only allows viewing first 2 careers. Upgrade to Premium Plan (199k) to view all career categories.`;
+                          return `Gói Cơ Bản chỉ cho phép xem 2 nghề đầu tiên. Nâng cấp lên Gói Cao Cấp (199k) để xem tất cả.`;
                         } else {
-                          return `Upgrade to ${requiredPlanInfo?.name || 'Premium'} to view this career details.`;
+                          return `Nâng cấp lên ${requiredPlanInfo?.name || 'Cao Cấp'} để xem chi tiết nghề nghiệp này.`;
                         }
                       })()
                       : desc
@@ -353,21 +352,21 @@ const CareerRecommendationsDisplay = ({
                     }
                     className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${isLocked
                       ? `bg-gradient-to-r ${requiredPlanInfo?.color === 'blue' ? 'from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600' :
-                        requiredPlanInfo?.color === 'green' ? 'from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' :
+                        requiredPlanInfo?.color === 'green' ? 'from-indigo-700 to-indigo-700 hover:from-indigo-800 hover:to-indigo-800' :
                           'from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
                       } text-white`
-                      : 'bg-primary-cta dark:bg-green-600 text-white hover:bg-primary-dark dark:hover:bg-green-700'
+                      : 'bg-primary-cta dark:bg-indigo-800 text-white hover:bg-primary-dark dark:hover:bg-indigo-900'
                       }`}
                   >
                     {isLocked ? (() => {
                       if (currentPlan === 'free') {
-                        return 'Upgrade to Basic ✨';
+                        return 'Nâng Cấp Lên Cơ Bản ';
                       } else if (currentPlan === 'basic') {
-                        return 'Upgrade to Premium ✨';
+                        return 'Nâng Cấp Lên Cao Cấp ';
                       } else {
-                        return `Upgrade to ${requiredPlanInfo?.name || 'Premium'} ✨`;
+                        return `Nâng Cấp Lên ${requiredPlanInfo?.name || 'Cao Cấp'} `;
                       }
-                    })() : 'View Career Details'}
+                    })() : 'Xem Chi Tiết Nghề Nghiệp'}
                   </button>
 
                   {/* Save as Goal button - Pro feature */}
@@ -376,12 +375,12 @@ const CareerRecommendationsDisplay = ({
                       onClick={() => handleSaveAsGoal(career.slug || career.career_id, title)}
                       disabled={savingGoal === career.career_id || savedGoals.has(career.career_id)}
                       className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${savedGoals.has(career.career_id)
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-400'
                         : canSetGoals
                           ? 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50'
                           : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
                         }`}
-                      title={canSetGoals ? 'Save as career goal' : 'Pro feature - Upgrade to use'}
+                      title={canSetGoals ? 'Lưu làm mục tiêu nghề nghiệp' : 'Tính năng Pro - Nâng cấp để sử dụng'}
                     >
                       {savingGoal === career.career_id ? (
                         <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -393,14 +392,14 @@ const CareerRecommendationsDisplay = ({
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
-                          Saved
+                          Đã Lưu
                         </>
                       ) : (
                         <>
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                           </svg>
-                          {canSetGoals ? 'Save' : '🔒 Pro'}
+                          {canSetGoals ? 'Lưu' : ' Pro'}
                         </>
                       )}
                     </button>
@@ -413,7 +412,7 @@ const CareerRecommendationsDisplay = ({
                     onClick={() => navigate('/career-goals')}
                     className="w-full mt-2 px-4 py-2 text-sm text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
                   >
-                    → Manage Career Goals
+                    → Quản Lý Mục Tiêu Nghề Nghiệp
                   </button>
                 )}
               </div>
@@ -433,19 +432,19 @@ const CareerRecommendationsDisplay = ({
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                Goal saved successfully!
+                Đã lưu mục tiêu thành công!
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Would you like AI to generate a roadmap for "{showAIPrompt.careerName}"?
+                Bạn có muốn AI tạo lộ trình cho "{showAIPrompt.careerName}"?
               </p>
             </div>
 
             <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 mb-6">
               <p className="text-sm text-purple-700 dark:text-purple-300">
-                <span className="font-semibold">✨ AI will:</span>
-                <br />• Analyze career data and roadmap
-                <br />• Create detailed action steps
-                <br />• Estimate time for each step
+                <span className="font-semibold"> AI sẽ:</span>
+                <br />• Phân tích dữ liệu nghề nghiệp và lộ trình
+                <br />• Tạo các bước hành động chi tiết
+                <br />• Ước tính thời gian cho từng bước
               </p>
             </div>
 
@@ -457,7 +456,7 @@ const CareerRecommendationsDisplay = ({
                 }}
                 className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                Later
+                Để Sau
               </button>
               <button
                 onClick={handleAIGenerate}
@@ -466,7 +465,7 @@ const CareerRecommendationsDisplay = ({
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                Generate AI Roadmap
+                Tạo Lộ Trình AI
               </button>
             </div>
           </div>

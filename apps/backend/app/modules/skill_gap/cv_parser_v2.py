@@ -42,7 +42,7 @@ class CVParserV2:
             cv_stream = multi_stream_manager.get_cv_stream()
             
             if not cv_stream.is_available():
-                print("  ⚠️ CV analysis stream not available")
+                print("  [WARN] CV analysis stream not available")
                 return ''
             
             print(f"Using CV analysis stream: {cv_stream.model_name}")
@@ -80,11 +80,11 @@ Use clear formatting with line breaks between sections.
                         if response_text:
                             full_text += response_text + "\n\n"
                     
-                    print(f"  ✅ AI Vision extracted {len(full_text)} characters from PDF")
+                    print(f"  [OK] AI Vision extracted {len(full_text)} characters from PDF")
                     return full_text
                     
                 except ImportError:
-                    print("  ⚠️ pdf2image not installed")
+                    print("  [WARN] pdf2image not installed")
                     return ''
             else:
                 # Direct image processing
@@ -101,47 +101,73 @@ Use clear formatting with line breaks between sections.
                 response_text = cv_stream.generate_content_with_retry([prompt, img])
                 
                 if response_text:
-                    print(f"  ✅ AI Vision extracted {len(response_text)} characters from image")
+                    print(f"  [OK] AI Vision extracted {len(response_text)} characters from image")
                     return response_text
                 else:
-                    print("  ⚠️ AI Vision returned no text")
+                    print("  [WARN] AI Vision returned no text")
                     return ""
             
         except Exception as e:
             error_msg = str(e)
-            print(f"  ❌ AI Vision extraction failed: {error_msg}")
+            print(f"  [ERR] AI Vision extraction failed: {error_msg}")
             
             # Check for fast fail conditions
             if any(keyword in error_msg.lower() for keyword in ['quota', '429', 'rate limit', 'api key', 'expired', 'invalid']):
                 print("  ⚡ FAST FAIL - API quota/key issue detected")
             else:
-                print("  ⚠️ Unexpected vision error")
+                print("  [WARN] Unexpected vision error")
                 import traceback
                 traceback.print_exc()
             
             return ''
     
     def extract_text_from_pdf(self, file_content: bytes) -> str:
-        """Extract text from PDF - tries multiple methods"""
+        """Extract text from PDF - tries multiple methods and validates CV content"""
         
         # Method 1: Try PyMuPDF (best)
         text = self._extract_with_pymupdf(file_content)
         if text and len(text) > 50:
+            # Validate CV content
+            print("  [CV Validation] Checking if PDF content is a valid CV...")
+            is_cv, reason = self._is_cv_content(text)
+            if not is_cv:
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
+            print("  [CV Validation] ✓ PDF content validated as CV")
             return text
         
         # Method 2: Try pdfplumber
         text = self._extract_with_pdfplumber(file_content)
         if text and len(text) > 50:
+            # Validate CV content
+            print("  [CV Validation] Checking if PDF content is a valid CV...")
+            is_cv, reason = self._is_cv_content(text)
+            if not is_cv:
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
+            print("  [CV Validation] ✓ PDF content validated as CV")
             return text
         
         # Method 3: Try PyPDF2
         text = self._extract_with_pypdf2(file_content)
         if text and len(text) > 50:
+            # Validate CV content
+            print("  [CV Validation] Checking if PDF content is a valid CV...")
+            is_cv, reason = self._is_cv_content(text)
+            if not is_cv:
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
+            print("  [CV Validation] ✓ PDF content validated as CV")
             return text
         
         # Method 4: AI Vision (last resort)
-        print("  ⚠️ All PDF extraction methods failed, trying AI Vision...")
+        print("  [WARN] All PDF extraction methods failed, trying AI Vision...")
         text = self.extract_text_with_ai_vision(file_content, is_pdf=True)
+        
+        # Validate CV content from AI Vision
+        if text and len(text) > 50:
+            print("  [CV Validation] Checking if PDF content is a valid CV...")
+            is_cv, reason = self._is_cv_content(text)
+            if not is_cv:
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
+            print("  [CV Validation] ✓ PDF content validated as CV")
         
         return text
     
@@ -230,16 +256,16 @@ Use clear formatting with line breaks between sections.
             # 2 tín hiệu chính để phân biệt CV vs ảnh không phải CV:
             #
             #  A) edge_mean ≥ 5  → ảnh có nhiều đường nét sắc nét (chữ viết)
-            #     - CV thật:      edge 15-40  ✅
-            #     - Ảnh trắng:    edge ~2     ❌
-            #     - Meme it chữ:  edge ~3     ❌
+            #     - CV thật:      edge 15-40  [OK]
+            #     - Ảnh trắng:    edge ~2     [ERR]
+            #     - Meme it chữ:  edge ~3     [ERR]
             #     - Cartoon phức tạp: edge 8+ nhưng thiếu nền trắng → bị chặn bởi B
             #
             #  B) light_ratio ≥ 0.40 → >40% pixel sáng (nền giấy trắng)
-            #     - CV thật:      light 0.90+ ✅
-            #     - Meme nền be:  light ~0    ❌
-            #     - Cartoon màu:  light ~0    ❌
-            #     - Phong cảnh:   light 0.1-0.3 ❌
+            #     - CV thật:      light 0.90+ [OK]
+            #     - Meme nền be:  light ~0    [ERR]
+            #     - Cartoon màu:  light ~0    [ERR]
+            #     - Phong cảnh:   light 0.1-0.3 [ERR]
 
             reasons = []
             if edge_mean < 5.0:
@@ -263,6 +289,99 @@ Use clear formatting with line breaks between sections.
         except Exception as e:
             print(f"  [PreCheck] Error: {e} - skipping pre-check")
             return True, ""   # Nếu lỗi hẳn thì skip, để Gemini quyết định
+
+    @staticmethod
+    def _is_cv_content(text: str) -> tuple[bool, str]:
+        """
+        TC-NON-02: Kiểm tra xem nội dung có phải là CV hay không bằng AI.
+        
+        Sử dụng Gemini để phân tích nội dung và xác định:
+        - Có phải là CV/Resume không
+        - Nếu không, đó là loại tài liệu gì
+        
+        Returns:
+            (is_cv, reason): 
+                - is_cv=True: Đây là CV hợp lệ
+                - is_cv=False: Không phải CV, kèm lý do
+        """
+        try:
+            # Lấy 2000 ký tự đầu để phân tích nhanh
+            sample_text = text[:2000].strip()
+            
+            if not sample_text or len(sample_text) < 50:
+                return False, "Nội dung quá ngắn, không đủ thông tin để xác định là CV."
+            
+            # Sử dụng CV stream để kiểm tra
+            cv_stream = multi_stream_manager.get_cv_stream()
+            
+            if not cv_stream.is_available():
+                print("  [WARN] CV validation stream not available, skipping validation")
+                return True, ""  # Skip validation if stream not available
+            
+            prompt = f"""Phân tích văn bản sau và xác định xem đây có phải là CV/Resume (hồ sơ xin việc) hay không.
+
+VĂN BẢN:
+{sample_text}
+
+Trả lời ĐÚNG định dạng JSON sau (không có text khác):
+{{
+  "is_cv": true/false,
+  "confidence": 0.0-1.0,
+  "document_type": "CV" hoặc "Báo chí" hoặc "Sách" hoặc "Menu" hoặc "Hóa đơn" hoặc "Khác",
+  "reason": "Lý do ngắn gọn bằng tiếng Việt"
+}}
+
+Đặc điểm của CV:
+- Có thông tin cá nhân (tên, email, số điện thoại)
+- Có phần học vấn/kinh nghiệm làm việc
+- Có danh sách kỹ năng
+- Mục đích: xin việc, giới thiệu bản thân chuyên môn
+
+KHÔNG PHẢI CV nếu:
+- Bài báo, tin tức
+- Sách, tài liệu học tập
+- Menu nhà hàng
+- Hóa đơn, biên lai
+- Ảnh chụp màn hình mạng xã hội
+- Meme, ảnh vui"""
+
+            response_text = cv_stream.generate_content_with_retry(
+                prompt,
+                max_output_tokens=200,
+                temperature=0.1  # Low temperature for consistent validation
+            )
+            
+            if not response_text:
+                print("  [WARN] CV validation failed, allowing by default")
+                return True, ""
+            
+            # Parse JSON response
+            import re
+            # Extract JSON from response
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if not json_match:
+                print("  [WARN] Could not parse validation response, allowing by default")
+                return True, ""
+            
+            import json
+            result = json.loads(json_match.group())
+            
+            is_cv = result.get('is_cv', False)
+            confidence = result.get('confidence', 0.0)
+            doc_type = result.get('document_type', 'Không xác định')
+            reason = result.get('reason', '')
+            
+            print(f"  [CV Validation] is_cv={is_cv}, confidence={confidence:.2f}, type={doc_type}")
+            
+            # Chỉ reject nếu confidence cao (> 0.7) và không phải CV
+            if not is_cv and confidence > 0.7:
+                return False, f"Tài liệu này là '{doc_type}', không phải CV/Resume. {reason}"
+            
+            return True, ""
+            
+        except Exception as e:
+            print(f"  [WARN] CV validation error: {e}, allowing by default")
+            return True, ""  # Allow by default if validation fails
 
     @staticmethod
     def _detect_selfie(img_original) -> tuple[bool, str]:
@@ -386,11 +505,11 @@ Use clear formatting with line breaks between sections.
                 result = buf.getvalue()
                 print(f"  🗜️ [TC-IMG-11] Compressed to {len(result)/1024:.0f}KB at quality={quality}")
 
-            print(f"  ✅ [TC-IMG-11] Final image size: {len(result)/1024:.0f}KB")
+            print(f"  [OK] [TC-IMG-11] Final image size: {len(result)/1024:.0f}KB")
             return result
 
         except Exception as e:
-            print(f"  ⚠️ [TC-IMG-11] Compression failed, using original: {e}")
+            print(f"  [WARN] [TC-IMG-11] Compression failed, using original: {e}")
             return file_content
 
     def extract_text_from_image(self, file_content: bytes) -> str:
@@ -423,11 +542,13 @@ Use clear formatting with line breaks between sections.
         if not text or not text.strip():
             raise ValueError("Không tìm thấy nội dung văn bản trong ảnh")
 
-        # TC-NON-02: Validate that extracted text is actually CV content
+        # TC-NON-02: Validate that extracted text is actually CV content using AI
+        print("  [CV Validation] Checking if content is a valid CV...")
         is_cv, reason = self._is_cv_content(text)
         if not is_cv:
-            raise ValueError("Nội dung không giống một hồ sơ nghề nghiệp.")
+            raise ValueError(f"Tài liệu không phải là CV. {reason}")
 
+        print("  [CV Validation] ✓ Content validated as CV")
         return text
 
     # ── TC-IMG-12: Multi-image merge ──────────────────────────────────────
@@ -455,18 +576,18 @@ Use clear formatting with line breaks between sections.
                 page_text = self.extract_text_with_ai_vision(compressed, is_pdf=False)
                 if page_text and page_text.strip():
                     merged_parts.append(page_text.strip())
-                    print(f"  ✅ [TC-IMG-12] Page {i + 1}: {len(page_text)} chars extracted")
+                    print(f"  [OK] [TC-IMG-12] Page {i + 1}: {len(page_text)} chars extracted")
                 else:
-                    print(f"  ⚠️ [TC-IMG-12] Page {i + 1}: no text found, skipping")
+                    print(f"  [WARN] [TC-IMG-12] Page {i + 1}: no text found, skipping")
             except Exception as e:
-                print(f"  ⚠️ [TC-IMG-12] Page {i + 1} failed: {e}")
+                print(f"  [WARN] [TC-IMG-12] Page {i + 1} failed: {e}")
 
         if not merged_parts:
             raise ValueError("Không tìm thấy nội dung văn bản trong ảnh")
 
         # Merge with clear page separator
         merged = "\n\n--- Trang tiếp theo ---\n\n".join(merged_parts)
-        print(f"  ✅ [TC-IMG-12] Merged {len(merged_parts)} pages → {len(merged)} chars total")
+        print(f"  [OK] [TC-IMG-12] Merged {len(merged_parts)} pages → {len(merged)} chars total")
         return merged
     
     def _extract_with_pymupdf(self, file_content: bytes) -> str:
@@ -503,17 +624,17 @@ Use clear formatting with line breaks between sections.
             text = re.sub(r'[ \t]+', ' ', text)  # Multiple spaces/tabs to single space
             text = re.sub(r'\n\n\n+', '\n\n', text)  # Multiple newlines to double newline
             
-            print(f"  ✅ [PyMuPDF] After cleanup: {len(text)} characters")
+            print(f"  [OK] [PyMuPDF] After cleanup: {len(text)} characters")
             return text
             
         except ImportError:
-            print("  ⚠️ PyMuPDF not installed (pip install PyMuPDF)")
+            print("  [WARN] PyMuPDF not installed (pip install PyMuPDF)")
             return ""
         except ValueError:
             # Re-raise ValueError for page count check
             raise
         except Exception as e:
-            print(f"  ⚠️ PyMuPDF failed: {e}")
+            print(f"  [WARN] PyMuPDF failed: {e}")
             import traceback
             traceback.print_exc()
             return ""
@@ -545,14 +666,14 @@ Use clear formatting with line breaks between sections.
                 text = re.sub(r'[ \t]+', ' ', text)
                 text = re.sub(r'\n\n\n+', '\n\n', text)
                 
-                print(f"  ✅ [pdfplumber] After cleanup: {len(text)} characters")
+                print(f"  [OK] [pdfplumber] After cleanup: {len(text)} characters")
                 return text
                 
         except ImportError:
-            print("  ⚠️ pdfplumber not installed (pip install pdfplumber)")
+            print("  [WARN] pdfplumber not installed (pip install pdfplumber)")
             return ""
         except Exception as e:
-            print(f"  ⚠️ pdfplumber failed: {e}")
+            print(f"  [WARN] pdfplumber failed: {e}")
             import traceback
             traceback.print_exc()
             return ""
@@ -591,11 +712,11 @@ Use clear formatting with line breaks between sections.
             text = re.sub(r'[ \t]+', ' ', text)
             text = re.sub(r'\n\n\n+', '\n\n', text)
             
-            print(f"  ✅ [PyPDF2] After cleanup: {len(text)} characters")
+            print(f"  [OK] [PyPDF2] After cleanup: {len(text)} characters")
             return text
             
         except Exception as e:
-            print(f"  ⚠️ PyPDF2 failed: {e}")
+            print(f"  [WARN] PyPDF2 failed: {e}")
             import traceback
             traceback.print_exc()
             return ""
@@ -620,12 +741,12 @@ Use clear formatting with line breaks between sections.
             # Check if Gemini is enabled
             gemini_enabled = os.getenv('GEMINI_ENABLED', 'true').lower() == 'true'
             if not gemini_enabled:
-                print("  ⚠️ Gemini AI is disabled (GEMINI_ENABLED=false)")
+                print("  [WARN] Gemini AI is disabled (GEMINI_ENABLED=false)")
                 return self._get_fallback_data()
             
             api_key = os.getenv('GEMINI_API_KEY')
             if not api_key:
-                print("  ⚠️ GEMINI_API_KEY not found")
+                print("  [WARN] GEMINI_API_KEY not found")
                 return self._get_fallback_data()
             
             genai.configure(api_key=api_key)
@@ -700,13 +821,13 @@ CRITICAL RULES:
             cv_stream = multi_stream_manager.get_cv_stream()
             
             if not cv_stream.is_available():
-                print("  ⚠️ CV analysis stream not available")
+                print("  [WARN] CV analysis stream not available")
                 return {}
             
             response_text = cv_stream.generate_content_with_retry(prompt)
             
             if not response_text:
-                print("  ⚠️ AI complete extraction failed")
+                print("  [WARN] AI complete extraction failed")
                 return {}
             
             print("\n📥 AI RESPONSE RECEIVED:")
@@ -719,17 +840,17 @@ CRITICAL RULES:
             # Parse JSON
             if '```json' in response_text:
                 response_text = response_text.split('```json')[1].split('```')[0].strip()
-                print("   ✅ Extracted JSON from markdown code block")
+                print("   [OK] Extracted JSON from markdown code block")
             elif '```' in response_text:
                 response_text = response_text.split('```')[1].split('```')[0].strip()
-                print("   ✅ Extracted JSON from code block")
+                print("   [OK] Extracted JSON from code block")
             
             print("\n🔍 PARSING JSON:")
             print(f"   JSON length: {len(response_text)} chars")
             
             data = json.loads(response_text)
             
-            print("   ✅ JSON parsed successfully")
+            print("   [OK] JSON parsed successfully")
             print(f"   Keys: {list(data.keys())}")
             
             # Validate and clean data
@@ -750,17 +871,17 @@ CRITICAL RULES:
                 words = name.split()
                 print(f"   Word count: {len(words)}")
                 if len(words) < 2 or len(words) > 4:
-                    print("   ⚠️ Invalid name format (need 2-4 words)")
+                    print("   [WARN] Invalid name format (need 2-4 words)")
                     name = ''
                 else:
                     # Check not a job title
                     invalid_keywords = ['engineer', 'developer', 'designer', 'manager', 
                                        'laravel', 'php', 'python', 'backend', 'frontend']
                     if any(kw in name.lower() for kw in invalid_keywords):
-                        print("   ⚠️ Name looks like job title")
+                        print("   [WARN] Name looks like job title")
                         name = ''
                     else:
-                        print("   ✅ Name validated successfully")
+                        print("   [OK] Name validated successfully")
             
             personal_info['name'] = name
             
@@ -768,7 +889,7 @@ CRITICAL RULES:
             for skill in skills:
                 skill['source'] = 'ai'
             
-            print("\n✅ AI EXTRACTION COMPLETE:")
+            print("\n[OK] AI EXTRACTION COMPLETE:")
             print(f"   - Name: {personal_info.get('name') or 'Not found'}")
             print(f"   - Email: {personal_info.get('email') or 'Not found'}")
             print(f"   - Phone: {personal_info.get('phone') or 'Not found'}")
@@ -781,13 +902,13 @@ CRITICAL RULES:
             
         except Exception as e:
             error_msg = str(e)
-            print(f"  ⚠️ AI complete extraction failed: {error_msg}")
+            print(f"  [WARN] AI complete extraction failed: {error_msg}")
             
             # Check for fast fail conditions
             if any(keyword in error_msg.lower() for keyword in ['quota', '429', 'rate limit', 'api key', 'expired', 'invalid']):
                 print("  ⚡ FAST FAIL - API quota/key issue detected, using fallback immediately")
             else:
-                print("  ⚠️ Unexpected AI error, using fallback")
+                print("  [WARN] Unexpected AI error, using fallback")
                 import traceback
                 traceback.print_exc()
             
@@ -835,30 +956,28 @@ CRITICAL RULES:
         ]
         financial_count = sum(1 for kw in financial_keywords if kw in lower)
         
-        if financial_count >= 3:
-            return False, "File chứa nội dung tài chính, không phải CV/Resume."
+        if financial_count >= 8:  # Increased threshold to 8 to avoid rejecting finance/accounting CVs
+            return False, "File chứa quá nhiều nội dung tài chính, có thể là hóa đơn hoặc biên lai."
 
         # ── 1. Dấu hiệu rõ ràng KHÔNG PHẢI CV ────────────────────────────
         # Check for non-CV document types (must be more specific to avoid false positives)
         non_cv_patterns = [
-            # Administrative/Official documents (MUST REJECT EARLY - saves tokens!)
-            ("thông báo", "thông báo hành chính"),
-            ("thong bao", "thông báo hành chính"),
-            ("công văn", "công văn"),
-            ("cong van", "công văn"),
-            ("quyết định", "quyết định"),
-            ("quyet dinh", "quyết định"),
-            ("giấy chứng nhận", "giấy chứng nhận"),
-            ("giay chung nhan", "giấy chứng nhận"),
+            # Administrative/Official documents (Only reject if very specific)
+            ("công văn số", "công văn"),
+            ("cong van so", "công văn"),
+            ("quyết định số", "quyết định"),
+            ("quyet dinh so", "quyết định"),
+            ("mã số thuế", "hóa đơn/MST"),
             ("học phí", "thông báo học phí"),
             ("hoc phi", "thông báo học phí"),
             ("nộp học phí", "thông báo học phí"),
             ("nop hoc phi", "thông báo học phí"),
             ("official notice", "official notice"),
-            ("announcement", "announcement"),
-            ("notification", "notification"),
-            ("circular", "circular"),
-            ("memorandum", "memorandum"),
+            ("announcement letter", "announcement"),
+            ("official notification", "official notification"),
+            ("notification letter", "notification letter"),
+            ("circular letter", "circular"),
+            ("memorandum to", "memorandum"),
             # Educational materials (check for specific phrases, not just keywords)
             ("learning roadmap", "roadmap"),
             ("course roadmap", "roadmap"),
@@ -960,6 +1079,71 @@ CRITICAL RULES:
 
         return False, "File thiếu thông tin nghề nghiệp (kinh nghiệm, học vấn hoặc kỹ năng)."
 
+    def _validate_and_extract(self, text: str, target_career: str = None) -> Dict:
+        """
+        Gộp validate + extract thành 1 Gemini call duy nhất để giảm latency 50%.
+        Trả về dict với key 'is_cv' (bool) và toàn bộ extracted data.
+        """
+        import os
+        cv_text = text[:20000]
+        career_context = f"\nTarget Career: {target_career}" if target_career else ""
+
+        prompt = f"""You are a CV/Resume parser. Analyze the document below.{career_context}
+
+DOCUMENT:
+{cv_text}
+
+STEP 1 — Determine if this is a CV/Resume or Professional Profile.
+Be lenient: as long as the document contains some professional information (experience, education, or skills), consider it a CV. It does NOT need to have all sections to be valid.
+
+STEP 2 — If it is a professional document, extract all information.
+
+Return ONLY valid JSON:
+{{
+  "is_cv": true,
+  "personal_info": {{
+    "name": "Full Name",
+    "email": "email@example.com",
+    "phone": "0900000000"
+  }},
+  "skills": [
+    {{"name": "Python", "category": "Programming"}},
+    {{"name": "React", "category": "Frontend"}}
+  ]
+}}
+
+If clearly NOT a professional document (e.g., a recipe, a movie script, an invoice), return:
+{{"is_cv": false, "reason": "brief reason"}}
+
+RULES:
+- Return ONLY valid JSON, no markdown
+- Extract ALL skills (technical + soft)
+- name = person's real name (2-4 words, NOT a job title). If not found, use "".
+"""
+        try:
+            cv_stream = multi_stream_manager.get_cv_stream()
+            if not cv_stream.is_available():
+                return {"is_cv": False, "reason": "AI stream not available"}
+
+            print(f"  📤 [COMBINED] Sending {len(cv_text)} chars — validate + extract in 1 call")
+            response_text = cv_stream.generate_content_with_retry(prompt)
+
+            if not response_text:
+                return {"is_cv": False, "reason": "No AI response"}
+
+            # Strip markdown fences
+            if '```json' in response_text:
+                response_text = response_text.split('```json')[1].split('```')[0].strip()
+            elif '```' in response_text:
+                response_text = response_text.split('```')[1].split('```')[0].strip()
+
+            data = json.loads(response_text)
+            print(f"  [OK] [COMBINED] is_cv={data.get('is_cv')}, skills={len(data.get('skills', []))}")
+            return data
+        except Exception as e:
+            print(f"  [ERR] [COMBINED] Error: {e}")
+            return {"is_cv": False, "reason": str(e)}
+
     def _ask_gemini_is_cv(self, text: str) -> bool:
         """
         Hỏi Gemini AI xác nhận xem văn bản có phải là CV/Resume không.
@@ -986,20 +1170,20 @@ TEXT TO ANALYZE:
 {text_preview}
 
 INSTRUCTIONS:
-1. A CV/Resume contains:
+1. A CV/Resume or Professional Profile typically contains SOME of these:
    - Personal information (name, contact details)
-   - Work experience or employment history
+   - Work experience or projects
    - Education background
-   - Skills or competencies
-   - Professional summary or objective
+   - Skills, tools, or competencies
+   - Professional summary
 
-2. NOT a CV/Resume:
-   - Test answer keys (TOEIC, IELTS, exam answers)
-   - Textbooks or study materials
-   - Tutorial documents or course materials
-   - Technical documentation
-   - News articles or blog posts
-   - Any other non-CV document
+2. Clearly NOT a CV/Resume:
+   - Test answer keys (TOEIC, IELTS, etc.)
+   - Textbooks, news articles, or recipes
+   - Technical manuals or marketing brochures
+   - Invoices, receipts, or financial statements
+
+CRITICAL: Be lenient. If it looks like someone's professional profile or list of qualifications, it's a CV.
 
 CRITICAL: Analyze the CONTENT and STRUCTURE, not just keywords.
 
@@ -1019,14 +1203,14 @@ Return ONLY valid JSON, no markdown, no explanations.
             cv_stream = multi_stream_manager.get_cv_stream()
             
             if not cv_stream.is_available():
-                print("  ⚠️ CV analysis stream not available, assuming NOT a CV (safe default)")
+                print("  [WARN] CV analysis stream not available, assuming NOT a CV (safe default)")
                 return False
             
             print(f"  📤 Sending {len(text_preview)} chars to Gemini for CV validation...")
             response_text = cv_stream.generate_content_with_retry(prompt)
             
             if not response_text:
-                print("  ⚠️ No response from Gemini, assuming NOT a CV (safe default)")
+                print("  [WARN] No response from Gemini, assuming NOT a CV (safe default)")
                 return False
             
             # Parse JSON response
@@ -1055,12 +1239,12 @@ Return ONLY valid JSON, no markdown, no explanations.
                 return False
                 
         except json.JSONDecodeError as e:
-            print(f"  ❌ Failed to parse Gemini response: {e}")
+            print(f"  [ERR] Failed to parse Gemini response: {e}")
             print(f"  Raw response: {response_text[:200]}")
             # Safe default: assume NOT a CV if we can't parse response
             return False
         except Exception as e:
-            print(f"  ❌ Error calling Gemini: {e}")
+            print(f"  [ERR] Error calling Gemini: {e}")
             import traceback
             traceback.print_exc()
             # Safe default: assume NOT a CV on error
@@ -1152,10 +1336,10 @@ Return ONLY valid JSON, no markdown, no explanations.
         # CRITICAL: Validate content BEFORE calling Gemini (saves tokens!)
         is_cv, reason = self._is_cv_content(text)
         if not is_cv:
-            print(f"\n❌ ERROR: File does not appear to be a CV — {reason}")
+            print(f"\n[ERR] ERROR: File does not appear to be a CV — {reason}")
             raise ValueError(f"File tải lên không phải là CV. {reason}")
 
-        print("\n✅ TEXT EXTRACTION SUCCESSFUL")
+        print("\n[OK] TEXT EXTRACTION SUCCESSFUL")
         print(f"   Extracted: {len(text)} characters")
         
         # Show preview
@@ -1170,24 +1354,19 @@ Return ONLY valid JSON, no markdown, no explanations.
         print(text[-200:] if len(text) > 200 else text)
         print("-" * 80)
         
-        # CRITICAL: Ask Gemini to verify if this is actually a CV/Resume
-        # This prevents false positives like test answer keys, textbooks, etc.
-        print("\n🤖 [GEMINI VALIDATION] Asking AI: Is this a CV/Resume?")
-        is_cv_by_ai = self._ask_gemini_is_cv(text)
-        if not is_cv_by_ai:
-            print("❌ [GEMINI VALIDATION] AI confirmed: This is NOT a CV/Resume")
-            raise ValueError("File tải lên không phải là CV/Resume.")
-        print("✅ [GEMINI VALIDATION] AI confirmed: This looks like a CV/Resume")
-        
-        # Use AI to extract everything
-        print("\n🤖 [CV Parser V2] STARTING AI EXTRACTION")
+        # OPTIMIZED: Gộp validate + extract thành 1 Gemini call (tiết kiệm ~50% thời gian)
+        print("\n🤖 [CV Parser V2] COMBINED validate + extract (1 Gemini call)")
         print("="*80)
-        result = self.extract_all_with_ai(text, target_career)
+        result = self._validate_and_extract(text, target_career)
+        if not result.get('is_cv', False):
+            reason = result.get('reason', '')
+            print(f"[ERR] AI confirmed: NOT a CV — {reason}")
+            raise ValueError(f"File tải lên không phải là CV/Resume. {reason}")
         
         result['text'] = text[:500]  # Preview
         
         print("\n" + "="*80)
-        print("✅ [CV Parser V2] EXTRACTION COMPLETE")
+        print("[OK] [CV Parser V2] EXTRACTION COMPLETE")
         print("="*80)
         
         return result

@@ -70,7 +70,7 @@ const ReportPage = () => {
             const result = await reportService.sendReportEmail(parseInt(assessmentId), { useLoggedInEmail: true });
             setEmailResult(result);
         } catch (err) {
-            setEmailResult({ success: false, message: 'Failed to send email' });
+            setEmailResult({ success: false, message: 'Gửi email thất bại' });
         } finally {
             setSendingEmail(false);
         }
@@ -88,7 +88,7 @@ const ReportPage = () => {
                 setEmailInput(''); // Clear input on success
             }
         } catch (err) {
-            setEmailResult({ success: false, message: 'Failed to send email' });
+            setEmailResult({ success: false, message: 'Gửi email thất bại' });
         } finally {
             setSendingEmail(false);
         }
@@ -101,7 +101,7 @@ const ReportPage = () => {
 
     const fetchReport = useCallback(async () => {
         if (!assessmentId) {
-            setError('Assessment ID is required');
+            setError('Yêu cầu ID đánh giá');
             setLoading(false);
             return;
         }
@@ -223,7 +223,7 @@ const ReportPage = () => {
                 return {
                     career_id: item.career_id,
                     onet_code: detail?.onet_code || onetCode,
-                    title: detail?.title || item.title_en || item.title_vi || item.career_id,
+                    title: detail?.title || item.title_en || item.title_vn || item.career_id,
                     description: detail?.short_desc || item.description,
                     match_score: item.display_match ?? item.match_score * 100,
                     tags: item.tags || [],
@@ -242,7 +242,7 @@ const ReportPage = () => {
             setCareers(careerData);
 
         } catch (err: any) {
-            const message = err?.response?.data?.detail || err?.message || 'Failed to load report';
+            const message = err?.response?.data?.detail || err?.message || 'Không thể tải báo cáo';
             setError(message);
         } finally {
             setLoading(false);
@@ -411,7 +411,7 @@ const ReportPage = () => {
                     <div className="flex flex-col items-center justify-center min-h-[60vh]">
                         <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-purple-600 animate-spin mb-4" />
                         <p className="text-gray-500 dark:text-gray-400 font-medium">
-                            Generating your personality report...
+                            Đang tạo báo cáo tính cách của bạn...
                         </p>
                     </div>
                 )}
@@ -421,14 +421,14 @@ const ReportPage = () => {
                     <div className="max-w-3xl mx-auto px-4 py-16">
                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 text-center">
                             <h2 className="text-xl font-bold text-red-700 dark:text-red-300 mb-2">
-                                Unable to Load Report
+                                Không Thể Tải Báo Cáo
                             </h2>
                             <p className="text-red-600 dark:text-red-400 mb-6">{error}</p>
                             <button
                                 onClick={fetchReport}
                                 className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
                             >
-                                Try Again
+                                Thử Lại
                             </button>
                         </div>
                     </div>
@@ -446,7 +446,7 @@ const ReportPage = () => {
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
-                                Back to Results
+                                Quay Lại Kết Quả
                             </Link>
                         </div>
 
@@ -462,24 +462,51 @@ const ReportPage = () => {
                                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                                             } ${!data.big5 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        Big Five Personality
+                                        Big Five Tính Cách
                                     </button>
                                     <button
                                         onClick={() => handleTabSwitch('riasec')}
                                         disabled={!data.riasec}
                                         className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'riasec'
-                                            ? 'bg-green-600 text-white shadow-sm'
+                                            ? 'bg-indigo-800 text-white shadow-sm'
                                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                                             } ${!data.riasec ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        RIASEC Interests
+                                        Sở Thích RIASEC
                                     </button>
                                 </div>
                             </div>
                         </div>
 
                         {/* Big Five Tab Content - 7 Pages */}
-                        {activeTab === 'big5' && data.big5 && (
+                        {activeTab === 'big5' && data.big5 && (() => {
+                            // Check if Big5 data is complete (has meaningful scores)
+                            // scores is ScoreItem[] with {trait, score} - check non-zero scores
+                            const big5Scores = data.big5.scores || [];
+                            const nonZeroCount = big5Scores.filter((s: any) => Number(s.score) > 0).length;
+                            const isIncomplete = big5Scores.length < 5 || nonZeroCount < 3;
+
+                            if (isIncomplete) {
+                                return (
+                                    <div className="flex flex-col items-center justify-center py-20 text-center max-w-lg mx-auto">
+                                        <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-4">
+                                            <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Chưa đủ dữ liệu Big Five</h3>
+                                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                            Bài đánh giá Big Five (OCEAN) của bạn chưa hoàn thành. Hệ thống chỉ ghi nhận được {nonZeroCount}/5 chiều tính cách.
+                                            Vui lòng hoàn thành bài đánh giá để xem báo cáo đầy đủ.
+                                        </p>
+                                        <a href="/assessment" className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-colors">
+                                            Làm bài đánh giá ngay →
+                                        </a>
+                                    </div>
+                                );
+                            }
+
+                            return (
                             <div className="print:block">
                                 {/* Page 1: Cover */}
                                 <div ref={setPageRef(0)}>
@@ -536,7 +563,8 @@ const ReportPage = () => {
                                     </PageContainer>
                                 </div>
                             </div>
-                        )}
+                            );
+                        })()}
 
                         {/* RIASEC Tab Content - Intro pages + 10 Career Detail Pages + Closing pages */}
                         {activeTab === 'riasec' && data.riasec && (
@@ -579,7 +607,7 @@ const ReportPage = () => {
                                             <RIASECCareerDetailPage
                                                 career={career}
                                                 rank={index + 1}
-                                                sectionTitle={index === 0 ? 'Your Top Career Matches' : undefined}
+                                                sectionTitle={index === 0 ? 'Nghề Nghiệp Phù Hợp Nhất Của Bạn' : undefined}
                                             />
                                         </PageContainer>
                                     </div>
@@ -590,14 +618,14 @@ const ReportPage = () => {
                                     <div className="max-w-[1400px] mx-auto px-12 py-8 no-print">
                                         <button
                                             onClick={() => setShowMoreCareers(!showMoreCareers)}
-                                            className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-3"
+                                            className="w-full py-4 bg-gradient-to-r from-indigo-700 to-indigo-800 hover:from-indigo-800 hover:to-violet-700 text-white rounded-xl font-semibold text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-3"
                                         >
                                             <svg className={`w-6 h-6 transition-transform ${showMoreCareers ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                             </svg>
                                             {showMoreCareers
-                                                ? 'Collapse additional careers'
-                                                : `View more careers that match you (${moreCareers.length} careers)`}
+                                                ? 'Thu gọn các nghề nghiệp bổ sung'
+                                                : `Xem thêm nghề nghiệp phù hợp với bạn (${moreCareers.length} nghề nghiệp)`}
                                             <svg className={`w-6 h-6 transition-transform ${showMoreCareers ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                             </svg>
@@ -619,7 +647,7 @@ const ReportPage = () => {
                                             <RIASECCareerDetailPage
                                                 career={career}
                                                 rank={index + 6}
-                                                sectionTitle={index === 0 ? 'More Careers to Explore' : undefined}
+                                                sectionTitle={index === 0 ? 'Thêm Nghề Nghiệp Để Khám Phá' : undefined}
                                             />
                                         </PageContainer>
                                     </div>
@@ -652,10 +680,10 @@ const ReportPage = () => {
                                                 <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                                 </svg>
-                                                Export Report
+                                                Xuất Báo Cáo
                                             </h3>
                                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                                Download your full report as a PDF file
+                                                Tải xuống báo cáo đầy đủ dưới dạng PDF
                                             </p>
                                             <button
                                                 onClick={handlePrint}
@@ -664,7 +692,7 @@ const ReportPage = () => {
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                 </svg>
-                                                Export PDF Report
+                                                Xuất Báo Cáo PDF
                                             </button>
                                         </div>
 
@@ -674,10 +702,10 @@ const ReportPage = () => {
                                                 <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                 </svg>
-                                                Send to Email
+                                                Gửi Qua Email
                                             </h3>
                                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                                Receive your report summary via email
+                                                Nhận tóm tắt báo cáo qua email
                                             </p>
 
                                             {/* Send to my email button */}
@@ -685,19 +713,19 @@ const ReportPage = () => {
                                                 <button
                                                     onClick={handleSendToMyEmail}
                                                     disabled={sendingEmail}
-                                                    className="w-full mb-3 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-xl font-medium transition-colors"
+                                                    className="w-full mb-3 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-800 hover:bg-indigo-900 disabled:bg-indigo-400 text-white rounded-xl font-medium transition-colors"
                                                 >
                                                     {sendingEmail ? (
                                                         <>
                                                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                            Sending...
+                                                            Đang gửi...
                                                         </>
                                                     ) : (
                                                         <>
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                             </svg>
-                                                            Send to {user.email}
+                                                            Gửi đến {user.email}
                                                         </>
                                                     )}
                                                 </button>
@@ -716,7 +744,7 @@ const ReportPage = () => {
                                                     type="email"
                                                     value={emailInput}
                                                     onChange={(e) => setEmailInput(e.target.value)}
-                                                    placeholder="Enter email address"
+                                                    placeholder="Nhập địa chỉ email"
                                                     className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                                 />
                                                 <button
@@ -724,14 +752,14 @@ const ReportPage = () => {
                                                     disabled={sendingEmail || !emailInput.trim()}
                                                     className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors text-sm whitespace-nowrap"
                                                 >
-                                                    Send
+                                                    Gửi
                                                 </button>
                                             </div>
 
                                             {/* Result message */}
                                             {emailResult && (
                                                 <div className={`mt-3 p-3 rounded-lg text-sm ${emailResult.success
-                                                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
+                                                    ? 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-900 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800'
                                                     : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
                                                     }`}>
                                                     {emailResult.message}
@@ -750,29 +778,29 @@ const ReportPage = () => {
                                                 </svg>
                                             </div>
                                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                                Export PDF - Pro Feature
+                                                Xuất PDF - Tính Năng Pro
                                             </h3>
                                             <p className="text-gray-600 dark:text-gray-400 mb-6">
-                                                Upgrade to Pro to export detailed PDF reports with RIASEC & Big Five charts
+                                                Nâng cấp lên Pro để xuất báo cáo PDF chi tiết với biểu đồ RIASEC & Big Five
                                             </p>
                                             <div className="space-y-3 mb-6 text-sm text-gray-600 dark:text-gray-400">
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg className="w-4 h-4 text-indigo-700" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
-                                                    <span>High-quality PDF reports</span>
+                                                    <span>Báo cáo PDF chất lượng cao</span>
                                                 </div>
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg className="w-4 h-4 text-indigo-700" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
-                                                    <span>RIASEC & Big Five radar charts</span>
+                                                    <span>Biểu đồ radar RIASEC & Big Five</span>
                                                 </div>
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg className="w-4 h-4 text-indigo-700" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
-                                                    <span>Perfect for personal portfolio</span>
+                                                    <span>Hoàn hảo cho hồ sơ cá nhân</span>
                                                 </div>
                                             </div>
                                             <Link
@@ -782,8 +810,8 @@ const ReportPage = () => {
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                                 </svg>
-                                                Upgrade to Pro (499k)
-                                                <span>✨</span>
+                                                Nâng Cấp Pro (499k)
+                                                <span></span>
                                             </Link>
                                         </div>
                                     </div>

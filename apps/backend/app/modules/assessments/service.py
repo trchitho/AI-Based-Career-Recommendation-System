@@ -71,19 +71,22 @@ def save_essay_traits(
       - ai.user_embeddings        (1 user -> 1 vector, source='essay')
       - ai.user_trait_preds       (1 dòng / essay / model)
     """
-    # 1) upsert ai.user_embeddings (giữ nguyên logic cũ)
+    # 1) upsert ai.user_embeddings: 1 user -> 1 vector essay mới nhất.
     if embedding:
         emb_lit = "[" + ",".join(f"{float(x):.8f}" for x in embedding) + "]"
-        sql_emb = f"""
+        sql_emb = """
             INSERT INTO ai.user_embeddings (user_id, emb, source, model_name, built_at)
-            VALUES ({int(user_id)}, '{emb_lit}'::vector, 'essay', :model, now())
+            VALUES (:user_id, CAST(:embedding AS vector(768)), 'essay', :model, now())
             ON CONFLICT (user_id) DO UPDATE
               SET emb        = EXCLUDED.emb,
                   source     = EXCLUDED.source,
                   model_name = EXCLUDED.model_name,
-                  built_at   = now();
+                  built_at   = now()
+            WHERE ai.user_embeddings.source IS DISTINCT FROM EXCLUDED.source
+               OR ai.user_embeddings.model_name IS DISTINCT FROM EXCLUDED.model_name
+               OR ai.user_embeddings.emb IS DISTINCT FROM EXCLUDED.emb;
         """
-        session.execute(text(sql_emb), {"model": model})
+        session.execute(text(sql_emb), {"user_id": int(user_id), "embedding": emb_lit, "model": model})
 
     # 2) upsert ai.user_trait_preds nếu có trait đầy đủ
     r_arr = _to_pg_real_array(riasec)
@@ -126,8 +129,11 @@ def infer_user_traits_for_essay(
     Không raise ra ngoài, chỉ log nếu lỗi.
     """
     essay_text = (essay_text or "").strip()
-    if not essay_text:
-        print(f"[assessments] infer_user_traits_for_essay: empty essay_text for user_id={user_id}, essay_id={essay_id}")
+    if len(essay_text) < 5:
+        print(
+            f"[assessments] infer_user_traits_for_essay: skip AI-core vì bài luận quá ngắn "
+            f"(user_id={user_id}, essay_id={essay_id}, text_len={len(essay_text)})"
+        )
         return
 
     print(
@@ -141,7 +147,7 @@ def infer_user_traits_for_essay(
 
         resp = requests.post(
             url,
-            json={"essay_text": essay_text, "lang": "auto"},
+            json={"essay_text": essay_text, "lang": "vi"},
             timeout=60,
         )
 
@@ -196,6 +202,8 @@ def get_questions(
     per_dim: int | None = None,
 ):
     db_type = _normalize_type(test_type)
+    print(f"[DEBUG get_questions] test_type={test_type}, normalized={db_type}")
+    
     form_stmt = select(AssessmentForm.id).where(AssessmentForm.form_type == db_type)
     if lang:
         form_stmt = form_stmt.where(AssessmentForm.lang == lang)
@@ -215,7 +223,7 @@ def get_questions(
         .scalars()
         .all()
     )
-    out = [q.to_client() | {"test_type": test_type} for q in rows]
+    out = [q.to_client(lang=lang or "vi") | {"test_type": test_type} for q in rows]
 
     if shuffle:
         rng = random.Random(seed)
@@ -244,6 +252,11 @@ def get_questions(
 
     for idx, item in enumerate(out, start=1):
         item["order_index"] = idx
+    
+    print(f"[DEBUG get_questions] Returning {len(out)} questions for {db_type}")
+    if out:
+        print(f"[DEBUG get_questions] Sample question: id={out[0].get('id')}, dimension={out[0].get('dimension')}")
+    
     return out
 
 
@@ -407,11 +420,23 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             "neutral": 3.0,
             "like": 4.0,
             "strongly like": 5.0,
+            # Vietnamese RIASEC style
+            "rất không thích": 1.0,
+            "không thích": 2.0,
+            "không chắc": 3.0,
+            "trung lập": 3.0,
+            "thích": 4.0,
+            "rất thích": 5.0,
             # Big Five style
             "strongly disagree": 1.0,
             "disagree": 2.0,
             "agree": 4.0,
             "strongly agree": 5.0,
+            # Vietnamese Big Five style
+            "rất không đồng ý": 1.0,
+            "không đồng ý": 2.0,
+            "đồng ý": 4.0,
+            "rất đồng ý": 5.0,
         }
 
         return likert_map.get(sl)
@@ -463,11 +488,24 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
     )
     rows = session.execute(stmt).all()
 
+    print(f"[DEBUG save_assessment] Queried {len(rows)} question metadata for {len(question_ids)} question IDs")
+    if len(rows) < len(question_ids):
+        missing_ids = set(question_ids) - {int(r[0]) for r in rows}
+        print(f"[DEBUG save_assessment] ⚠️  Missing metadata for question IDs: {sorted(list(missing_ids))[:10]}...")
+
     # qmeta[qid] = (question_key, form_type_norm, reverse_flag)
     qmeta: dict[int, tuple[str | None, str | None, bool]] = {}
+    riasec_count = 0
+    bigfive_count = 0
     for qid, qkey, rev, _opts, ftype in rows:
         form_type_norm = _normalize_type(ftype)
         qmeta[int(qid)] = (qkey, form_type_norm, bool(rev))
+        if form_type_norm == "RIASEC":
+            riasec_count += 1
+        elif form_type_norm == "BigFive":
+            bigfive_count += 1
+
+    print(f"[DEBUG save_assessment] Question metadata: {riasec_count} RIASEC, {bigfive_count} BigFive")
 
     if not qmeta:
         raise ValueError("No question metadata found for responses")
@@ -483,6 +521,9 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
     riasec_resp_rows: list[tuple[int, str | None, str, float | None]] = []
     big5_resp_rows: list[tuple[int, str | None, str, float | None]] = []
 
+    processed_count = 0
+    skipped_count = 0
+
     for r in normalized_responses:
         raw_qid = r.get("questionId")
         raw_ans = r.get("answer")
@@ -490,22 +531,27 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
         try:
             qid_int = int(str(raw_qid))
         except (TypeError, ValueError):
+            skipped_count += 1
             continue
 
         meta = qmeta.get(qid_int)
         if not meta:
+            skipped_count += 1
             continue
 
         qkey, form_type_norm, is_rev = meta
         if form_type_norm not in {"RIASEC", "BigFive"}:
+            skipped_count += 1
             continue
 
         # Nếu FE có gửi testTypes, dùng để filter thêm (phòng trường hợp form có loại khác)
         if test_types and form_type_norm not in test_types:
+            skipped_count += 1
             continue
 
         dim_letter = (qkey or "").strip()[:1].upper() or None
         if not dim_letter:
+            skipped_count += 1
             continue
 
         score_val = _to_score(raw_ans)
@@ -518,10 +564,17 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             if dim_letter in riasec_letters and score_val is not None:
                 riasec_acc[dim_letter].append(score_val)
             riasec_resp_rows.append((qid_int, qkey, str(raw_ans), score_val))
+            processed_count += 1
         elif form_type_norm == "BigFive":
             if dim_letter in big5_letters and score_val is not None:
                 big5_acc[dim_letter].append(score_val)
             big5_resp_rows.append((qid_int, qkey, str(raw_ans), score_val))
+            processed_count += 1
+
+    print(f"[DEBUG save_assessment] Processed {processed_count} responses, skipped {skipped_count}")
+    print(f"[DEBUG save_assessment] RIASEC responses: {len(riasec_resp_rows)}, BigFive responses: {len(big5_resp_rows)}")
+    print(f"[DEBUG save_assessment] RIASEC accumulator: {{{', '.join(f'{k}: {len(v)}' for k, v in riasec_acc.items())}}}")
+    print(f"[DEBUG save_assessment] BigFive accumulator: {{{', '.join(f'{k}: {len(v)}' for k, v in big5_acc.items())}}}")
 
     has_riasec = any(riasec_acc[k] for k in riasec_letters)
     has_big5 = any(big5_acc[k] for k in big5_letters)
@@ -550,6 +603,10 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             v = _avg(big5_acc[k])
             if v is not None:
                 big5_scores[k] = v
+    
+    print(f"[DEBUG save_assessment] RIASEC scores: {riasec_scores}")
+    print(f"[DEBUG save_assessment] BigFive scores: {big5_scores}")
+    print(f"[DEBUG save_assessment] has_riasec={has_riasec}, has_big5={has_big5}")
 
     riasec_assess: Assessment | None = None
     big5_assess: Assessment | None = None
@@ -1014,20 +1071,11 @@ def save_essay(
 
         resolved_prompt_id = pid
 
-    # 4) Nếu FE **không** gửi prompt_id → random theo lang (giữ logic cũ)
+    # 4) Nếu FE **không** gửi prompt_id → random toàn bảng (tất cả prompts đều bilingual)
     if resolved_prompt_id is None:
         prompt_obj = None
         try:
-            q = session.query(EssayPrompt)
-
-            # ưu tiên random trong đúng lang
-            q_lang = q.filter(EssayPrompt.lang == effective_lang)
-            prompt_obj = q_lang.order_by(func.random()).first()
-
-            if not prompt_obj:
-                # không có cùng lang -> random toàn bảng
-                prompt_obj = q.order_by(func.random()).first()
-
+            prompt_obj = session.query(EssayPrompt).order_by(func.random()).first()
             if prompt_obj:
                 resolved_prompt_id = int(prompt_obj.id)
         except Exception as e:
@@ -1212,7 +1260,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
         try:
             rec_query = text(
                 f"""
-                SELECT c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vn, c.short_desc_en
+                SELECT c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vi, c.short_desc_en
                 FROM core.careers c
                 JOIN core.career_interests ci ON c.onet_code = ci.onet_code
                 WHERE ci.{interest_col} IS NOT NULL
@@ -1249,7 +1297,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
                     Career.slug,
                     Career.title_vi,
                     Career.title_en,
-                    Career.short_desc_vn,
+                    Career.short_desc_vi,
                     Career.short_desc_en,
                 )
                 .order_by(func.random())

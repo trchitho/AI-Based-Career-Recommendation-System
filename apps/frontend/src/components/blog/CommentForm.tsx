@@ -81,7 +81,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
                     </p>
                     <button
                         onClick={() => window.location.href = '/login'}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-xl transition-all"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -175,7 +175,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
                         <button
                             type="submit"
                             disabled={!content.trim() || isSubmitting || isLoading || content.length > 5000}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm font-semibold rounded-lg transition-all disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 disabled:bg-gray-400 text-white text-sm font-semibold rounded-lg transition-all disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? (
                                 <>

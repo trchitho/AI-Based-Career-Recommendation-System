@@ -5,7 +5,8 @@ export interface CareerRecommendationDTO {
   career_id: string;
   slug?: string | null;
   job_onet?: string | null;  // O*NET code from backend
-  title_vi?: string | null;
+  title_vn?: string | null;
+  title_vi?: string | null;  // legacy backend alias
   title_en?: string | null;
   description?: string | null;
   match_score: number;

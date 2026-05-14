@@ -16,9 +16,10 @@ Section locking by plan:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
+import time
+from app.core.serialization import dumps_str as json_dumps, loads as json_loads  # orjson binary
 import re
 from pathlib import Path
 from typing import Any, Dict
@@ -51,14 +52,89 @@ router = APIRouter(prefix="/bff/catalog", tags=["catalog"])
 try:
     from ..core.cache import cache_manager
 
-    print("✅ Enhanced caching available")
+    print("[OK] Enhanced caching available")
 except ImportError:
     cache_manager = None
-    print("⚠️ Enhanced caching not available, using basic Redis")
+    print("[WARN] Enhanced caching not available, using basic Redis")
 
 # Fallback to basic Redis if enhanced caching not available
 _redis = None
 _redis_available = True
+_memory_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+_MEMORY_CACHE_TTL_SECONDS = 60 * 60 * 12
+_MEMORY_CACHE_MAX_ITEMS = 512
+
+RIASEC_INTERESTS_VI = {
+    "R": {
+        "label": "Thực tế",
+        "description": "Phù hợp với công việc thiên về thao tác thực hành, công cụ, máy móc, kỹ thuật hoặc môi trường làm việc cụ thể.",
+    },
+    "I": {
+        "label": "Nghiên cứu",
+        "description": "Thể hiện mức độ công việc cần phân tích, tìm hiểu dữ liệu, khám phá vấn đề và ra quyết định dựa trên tư duy logic.",
+    },
+    "A": {
+        "label": "Nghệ thuật",
+        "description": "Gắn với các nhiệm vụ sáng tạo, biểu đạt ý tưởng, thiết kế, nội dung hoặc cách làm linh hoạt, ít rập khuôn.",
+    },
+    "S": {
+        "label": "Xã hội",
+        "description": "Cho thấy công việc cần hỗ trợ, hướng dẫn, tư vấn, chăm sóc hoặc tương tác thường xuyên với con người.",
+    },
+    "E": {
+        "label": "Quản lý và thuyết phục",
+        "description": "Phù hợp với hoạt động lãnh đạo, bán hàng, đàm phán, kinh doanh, ra quyết định và tạo ảnh hưởng đến người khác.",
+    },
+    "C": {
+        "label": "Quy củ",
+        "description": "Thể hiện mức độ công việc cần tuân thủ quy trình, xử lý hồ sơ, tổ chức dữ liệu và đảm bảo tính chính xác.",
+    },
+}
+
+
+def _top_riasec_interests(row: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not row:
+        return []
+    pairs = [
+        ("R", row.get("r")),
+        ("I", row.get("i")),
+        ("A", row.get("a")),
+        ("S", row.get("s")),
+        ("E", row.get("e")),
+        ("C", row.get("c")),
+    ]
+    ranked = sorted(
+        ((code, float(score)) for code, score in pairs if score is not None),
+        key=lambda item: item[1],
+        reverse=True,
+    )[:2]
+    return [
+        {
+            "code": code,
+            "label": RIASEC_INTERESTS_VI[code]["label"],
+            "description": RIASEC_INTERESTS_VI[code]["description"],
+            "score": round(score, 3),
+        }
+        for code, score in ranked
+    ]
+
+
+def _memory_get(key: str) -> dict[str, Any] | None:
+    item = _memory_cache.get(key)
+    if not item:
+        return None
+    expires_at, value = item
+    if expires_at < time.time():
+        _memory_cache.pop(key, None)
+        return None
+    return value
+
+
+def _memory_set(key: str, value: dict[str, Any]) -> None:
+    if len(_memory_cache) >= _MEMORY_CACHE_MAX_ITEMS:
+        oldest_key = min(_memory_cache, key=lambda k: _memory_cache[k][0])
+        _memory_cache.pop(oldest_key, None)
+    _memory_cache[key] = (time.time() + _MEMORY_CACHE_TTL_SECONDS, value)
 
 
 async def _get_redis():
@@ -78,9 +154,9 @@ async def _get_redis():
             _redis = redis_async.from_url(REDIS_URL, decode_responses=True)
             # Test connection
             await _redis.ping()
-            print("✅ Basic Redis cache connected")
+            print("[OK] Basic Redis cache connected")
         except Exception as e:
-            print(f"⚠️ Redis not available, caching disabled: {e}")
+            print(f"[WARN] Redis not available, caching disabled: {e}")
             _redis_available = False
             _redis = None
             return None
@@ -109,28 +185,52 @@ def _normalize_onet_code(code: str) -> str:
     return code
 
 
-def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -> Dict[str, Any]:
+def _safe_query(cur, conn, sql: str, params: tuple):
+    """Execute a query and return results, rolling back on error (handles missing tables)."""
+    try:
+        cur.execute(sql, params)
+        return cur.fetchall()
+    except Exception as e:
+        logger.warning(f"[BFF] Optional query failed (table may not exist): {e}")
+        try: conn.rollback()
+        except Exception: pass
+        return []
+
+
+def _safe_query_one(cur, conn, sql: str, params: tuple):
+    """Execute a query and return one row, rolling back on error."""
+    try:
+        cur.execute(sql, params)
+        return cur.fetchone()
+    except Exception as e:
+        logger.warning(f"[BFF] Optional query failed (table may not exist): {e}")
+        try: conn.rollback()
+        except Exception: pass
+        return None
+
+
+def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "vi") -> Dict[str, Any]:
     """Fetch career data from all available tables with language support"""
     with conn.cursor(row_factory=dict_row) as cur:
-        # Language column selection helper
+        # Language column selection helper — always vi for this product
         def get_lang_col(en_col: str, vi_col: str) -> str:
-            if language == "vi":
-                return f"COALESCE({vi_col}, {en_col})"
-            else:
-                return f"COALESCE({en_col}, {vi_col})"
+            # vi_col may reference a table alias (e.g. "d.dwa_title_vi")
+            return f"COALESCE(NULLIF({vi_col}, ''), {en_col})"
 
-        # 1. Career header from core.careers
+        # 1. Career header
         cur.execute(
             f"""
-            SELECT id, onet_code, 
-                   {get_lang_col("title_en", "title_vi")} AS title, 
-                   {get_lang_col("short_desc_en", "short_desc_vn")} AS short_desc,
-                   alternative_titles_en, alternative_titles_vi,
-                   industry_category, source
+            SELECT {get_lang_col("title_en", "title_vi")} AS title,
+                   {get_lang_col("short_desc_en", "short_desc_vi")} AS description,
+                   title_vi, title_en,
+                   short_desc_vi, short_desc_en,
+                   alternative_titles_vi, alternative_titles_en,
+                   industry_category, onet_code, id
             FROM core.careers
-            WHERE onet_code = %s
+            WHERE onet_code = %s OR onet_code = %s OR slug = %s
+            LIMIT 1
             """,
-            (code,),
+            (code, code.replace('.', '-'), code),
         )
         header = cur.fetchone()
         if not header:
@@ -138,158 +238,142 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
 
         career_id = header["id"]
 
-        # 2. Tasks from core.career_tasks
-        cur.execute(
+        # 2. Tasks
+        tasks = _safe_query(cur, conn,
             f"""
-            SELECT {get_lang_col("task_en", "task_vi")} AS task_text, 
+            SELECT task_id,
+                   {get_lang_col("task_en", "task_vi")} AS task_text,
+                   task_en, task_vi,
                    importance, task_type, incumbents_responding
-            FROM core.career_tasks 
-            WHERE onet_code = %s 
+            FROM core.career_tasks
+            WHERE onet_code = %s
             ORDER BY importance DESC NULLS LAST, id ASC
             """,
             (code,),
         )
-        tasks = cur.fetchall()
 
-        # 3. Technology from core.career_technology
-        cur.execute(
+        # 3. Technology
+        techs = _safe_query(cur, conn,
             f"""
-            SELECT {get_lang_col("category", "category_vi")} AS category, 
+            SELECT {get_lang_col("category", "category_vi")} AS category,
                    {get_lang_col("name_en", "name_vi")} AS name,
                    {get_lang_col("example_en", "example_vi")} AS example,
                    hot_flag, in_demand_flag, commodity_code
-            FROM core.career_technology 
-            WHERE onet_code = %s 
+            FROM core.career_technology
+            WHERE onet_code = %s
             ORDER BY hot_flag DESC NULLS LAST, in_demand_flag DESC NULLS LAST, id ASC
             """,
             (code,),
         )
-        techs = cur.fetchall()
 
-        # 4. KSAs from core.career_ksas (skills, knowledge, abilities)
-        cur.execute(
+        # 4. KSAs
+        ksas = _safe_query(cur, conn,
             f"""
-            SELECT ksa_type, 
-                   {get_lang_col("name", "name_vi")} AS name,
-                   {get_lang_col("description", "description_vi")} AS description,
-                   category, level, importance 
-            FROM core.career_ksas 
-            WHERE onet_code = %s 
+            SELECT ksa_type,
+                   {get_lang_col("name_en", "name_vn")} AS name,
+                   {get_lang_col("description_en", "description_vn")} AS description,
+                   category, level, importance
+            FROM core.career_ksas
+            WHERE onet_code = %s
             ORDER BY importance DESC NULLS LAST, id ASC
             """,
             (code,),
         )
-        ksas = cur.fetchall()
-        skills = [x for x in ksas if x["ksa_type"] == "skill"]
+        skills    = [x for x in ksas if x["ksa_type"] == "skill"]
         knowledge = [x for x in ksas if x["ksa_type"] == "knowledge"]
         abilities = [x for x in ksas if x["ksa_type"] == "ability"]
 
-        # 5. Outlook from core.career_outlook
-        cur.execute(
+        # 5. Outlook
+        outlook = _safe_query_one(cur, conn,
             f"""
-            SELECT {get_lang_col("summary_md", "summary_md_vi")} AS summary_md,
-                   {get_lang_col("growth_label", "growth_label_vi")} AS growth_label,
-                   {get_lang_col("CAST(openings_est AS TEXT)", "openings_est_vi")} AS openings_est
-            FROM core.career_outlook 
+            SELECT {get_lang_col("summary_md_en", "summary_md_vn")} AS summary_md,
+                   {get_lang_col("growth_label_en", "growth_label_vn")} AS growth_label,
+                   {get_lang_col("openings_est_en", "openings_est_vn")} AS openings_est,
+                   openings_est_en, openings_est_vn
+            FROM core.career_outlook
             WHERE onet_code = %s
             """,
             (code,),
         )
-        outlook = cur.fetchone()
 
-        # 6. Overview from core.career_overview (join by career_id)
-        cur.execute(
+        # 6. Overview
+        overview = _safe_query_one(cur, conn,
             f"""
-            SELECT {get_lang_col("experience_text", "experience_text_vi")} AS experience_text,
-                   {get_lang_col("degree_text", "degree_text_vi")} AS degree_text,
-                   salary_min, salary_max, salary_avg, salary_currency,
+            SELECT {get_lang_col("experience_text_en", "experience_text_vn")} AS experience_text,
+                   {get_lang_col("degree_text_en", "degree_text_vn")} AS degree_text,
+                   salary_min_vn  AS salary_min,  salary_max_vn  AS salary_max,
+                   salary_avg_vn  AS salary_avg,  salary_currency_vn AS salary_currency,
                    salary_min_en, salary_max_en, salary_avg_en, salary_currency_en,
-                   salary_bands, salary_bands_en
-            FROM core.career_overview 
+                   salary_bands_vn AS salary_bands, salary_bands_en
+            FROM core.career_overview
             WHERE career_id = %s
             """,
             (career_id,),
         )
-        overview = cur.fetchone()
 
-        # 7. NEW: Detailed Work Activities (DWAs)
-        cur.execute(
+        # 7. Detailed Work Activities (DWAs)
+        dwas = _safe_query(cur, conn,
             f"""
-            SELECT dwa_id, 
-                   {get_lang_col("dwa_title", "dwa_title_vi")} AS dwa_title,
-                   element_id, iwa_id
-            FROM core.career_dwas 
-            WHERE onet_code = %s
-            ORDER BY dwa_id
+            SELECT d.dwa_id,
+                   {get_lang_col("d.dwa_title_en", "d.dwa_title_vn")} AS dwa_title,
+                   d.element_id,
+                   COALESCE(m.activity_category_vi, m.activity_category) AS activity_category,
+                   COALESCE(m.description_vi, m.description) AS activity_description
+            FROM core.career_dwas d
+            LEFT JOIN core.career_work_activities_master m ON d.element_id = m.element_id
+            WHERE d.onet_code = %s
+            ORDER BY d.dwa_id
             """,
             (code,),
         )
-        dwas = cur.fetchall()
 
-        # 8. NEW: Education Percentages
-        cur.execute(
+        # 8. Education Percentages
+        education_pct = _safe_query(cur, conn,
             f"""
             SELECT element_id,
-                   {get_lang_col("element_name", "element_name_vi")} AS element_name,
-                   category, 
-                   {get_lang_col("category_description", "category_description_vi")} AS category_description,
+                   {get_lang_col("element_name_en", "element_name_vn")} AS element_name,
+                   category,
+                   {get_lang_col("category_description_en", "category_description_vn")} AS category_description,
                    data_value, n, standard_error
-            FROM core.career_education_pct 
+            FROM core.career_education_pct
             WHERE onet_code = %s
             ORDER BY category, data_value DESC
             """,
             (code,),
         )
-        education_pct = cur.fetchall()
 
-        # 9. NEW: Career Preparation
-        cur.execute(
+        # 9. Career Preparation
+        prep = _safe_query_one(cur, conn,
             f"""
             SELECT job_zone,
                    {get_lang_col("education_summary_en", "education_summary_vi")} AS education_summary,
                    {get_lang_col("experience_summary_en", "experience_summary_vi")} AS experience_summary,
-                   {get_lang_col("domain_source", "domain_source_vi")} AS domain_source
-            FROM core.career_prep 
+                   COALESCE(domain_source_vi, '') AS domain_source
+            FROM core.career_prep
             WHERE onet_code = %s
             """,
             (code,),
         )
-        prep = cur.fetchone()
 
-        # 10. NEW: Wages (US or Vietnam based on language)
-        if language == "vi":
-            # Vietnam wages
-            cur.execute(
-                """
-                SELECT annual_median_vnd, annual_min_vnd, annual_max_vnd,
-                       monthly_median_vnd, monthly_min_vnd, monthly_max_vnd,
-                       region_hcm_monthly, region_hanoi_monthly, region_danang_monthly, region_provinces_monthly,
-                       experience_level, job_zone, industry_category, data_quality, market_demand
-                FROM core.career_wages_vi 
-                WHERE onet_code = %s
-                """,
-                (code,),
-            )
-        else:
-            # US wages
-            cur.execute(
-                """
-                SELECT annual_median, annual_10th_percentile, annual_25th_percentile, 
-                       annual_75th_percentile, annual_90th_percentile,
-                       hourly_median, hourly_10th_percentile, hourly_25th_percentile,
-                       hourly_75th_percentile, hourly_90th_percentile,
-                       experience_level, job_zone, industry_category, data_quality, market_demand
-                FROM core.career_wages_us 
-                WHERE onet_code = %s
-                """,
-                (code,),
-            )
-        wages = cur.fetchone()
-
-        # 11. NEW: Work Activity Summary
-        cur.execute(
+        # 10. Wages (Vietnam)
+        wages = _safe_query_one(cur, conn,
             """
-            SELECT s.element_id, s.importance_score, s.level_score, s.combined_score, 
+            SELECT annual_median_vnd, annual_min_vnd, annual_max_vnd,
+                   monthly_median_vnd, monthly_min_vnd, monthly_max_vnd,
+                   region_hcm_monthly, region_hanoi_monthly,
+                   region_danang_monthly, region_provinces_monthly,
+                   experience_level, job_zone, industry_category,
+                   data_quality, market_demand
+            FROM core.career_wages_vi
+            WHERE onet_code = %s
+            """,
+            (code,),
+        )
+
+        # 11. Work Activity Summary
+        work_activities = _safe_query(cur, conn,
+            """
+            SELECT s.element_id, s.importance_score, s.level_score, s.combined_score,
                    s.activity_rank, s.is_top_activity,
                    m.element_name_vi, m.element_name, m.description_vi, m.description,
                    m.activity_category_vi, m.activity_category
@@ -300,34 +384,44 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
             """,
             (code,),
         )
-        work_activities = cur.fetchall()
 
-        # 12. NEW: Work Context
-        cur.execute(
-            f"""
-            SELECT element_id,
-                   {get_lang_col("element_name", "element_name_vi")} AS element_name,
+        # 12. Work Context
+        work_context = _safe_query(cur, conn,
+            """
+            SELECT element_id, element_name, element_name_vi,
                    scale_id, category,
-                   {get_lang_col("category_description", "category_description_vi")} AS category_description,
+                   category_description, category_description_vi,
                    data_value, n, standard_error
-            FROM core.career_work_context 
+            FROM core.career_work_context
             WHERE onet_code = %s
-            ORDER BY scale_id, data_value DESC
+            ORDER BY scale_id, element_id, data_value DESC
             """,
             (code,),
         )
-        work_context = cur.fetchall()
 
-    # Build response DTO with all sections
+        # 13. RIASEC interests
+        riasec_row = _safe_query_one(cur, conn,
+            "SELECT r, i, a, s, e, c FROM core.career_interests WHERE onet_code = %s",
+            (header["onet_code"],),
+        )
+        riasec_interests = _top_riasec_interests(riasec_row)
+
+    # Build response DTO
     dto = {
         "onet_code": header["onet_code"],
         "title": header["title"],
-        "short_desc": header["short_desc"],
-        "alternative_titles": header["alternative_titles_vi"] if language == "vi" else header["alternative_titles_en"],
+        "title_vi": header["title_vi"],
+        "title_vn": header["title_vi"],   # backwards compat
+        "title_en": header["title_en"],
+        "description": header["description"],
+        "description_vi": header["short_desc_vi"],
+        "description_vn": header["short_desc_vi"],  # backwards compat
+        "description_en": header["short_desc_en"],
+        "alternative_titles": header["alternative_titles_vi"],
         "industry_category": header["industry_category"],
-        "language": language,
+        "language": "vi",
+        "riasec_interests": riasec_interests,
         "sections": {
-            # Original sections
             "tasks": tasks or [],
             "technology": techs or [],
             "skills": skills or [],
@@ -335,7 +429,6 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
             "abilities": abilities or [],
             "outlook": outlook,
             "overview": overview,
-            # New sections
             "detailed_work_activities": dwas or [],
             "education_requirements": education_pct or [],
             "preparation": prep,
@@ -352,7 +445,7 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
 async def get_career(
     onet_code: str,
     plan: str = Query("free", description="User plan: free, basic, premium, pro"),
-    language: str = Query("en", description="Language: en (English) or vi (Vietnamese)"),
+    language: str = Query("vi", description="Language is locked to vi"),
 ):
     """Get career details by onet_code or slug with section locking based on plan and language support"""
     normalized_code = _normalize_onet_code(onet_code)
@@ -362,12 +455,14 @@ async def get_career(
     if plan not in valid_plans:
         plan = "free"
 
-    # Validate language
-    valid_languages = ["en", "vi"]
-    if language not in valid_languages:
-        language = "en"
+    # Vietnamese-only product mode. Keep the query parameter for compatibility, but ignore EN.
+    language = "vi"
 
-    cache_key = f"career:v5:{normalized_code}:{plan}:{language}"
+    cache_key = f"career:v11:{normalized_code}:{plan}:{language}"
+
+    memory_cached = _memory_get(cache_key)
+    if memory_cached:
+        return memory_cached
 
     # Try to get from cache (enhanced or basic Redis)
     cache_client = await _get_redis()
@@ -379,9 +474,10 @@ async def get_career(
             else:
                 # Use basic Redis
                 cached_data = await cache_client.get(cache_key)
-                cached = json.loads(cached_data) if cached_data else None
+                cached = json_loads(cached_data) if cached_data else None
 
             if cached:
+                _memory_set(cache_key, cached)
                 return cached
         except Exception as e:
             logger.warning(f"Cache get error: {e}")
@@ -414,12 +510,14 @@ async def get_career(
     if cache_client:
         try:
             if cache_manager:
-                # Use enhanced cache manager with 30 minute TTL
-                await cache_manager.set(cache_key, dto, ttl=1800)
+                # Career catalog is stable; cache longer to keep detail pages snappy.
+                await cache_manager.set(cache_key, dto, ttl=_MEMORY_CACHE_TTL_SECONDS)
             else:
                 # Use basic Redis
-                await cache_client.set(cache_key, json.dumps(dto, ensure_ascii=False, default=str), ex=1800)
+                await cache_client.set(cache_key, json_dumps(dto), ex=_MEMORY_CACHE_TTL_SECONDS)
         except Exception as e:
             logger.warning(f"Cache set error: {e}")
+
+    _memory_set(cache_key, dto)
 
     return dto

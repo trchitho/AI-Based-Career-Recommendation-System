@@ -103,32 +103,32 @@ const NotificationCenter = () => {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'LEARNING_REMINDER':
-        return '📚';
+        return '';
       case 'ESSAY_FEEDBACK':
-        return '✍️';
+        return '';
       case 'MILESTONE_ACHIEVEMENT':
-        return '🎉';
+        return '';
       case 'SYSTEM_UPDATE':
       case 'system':
-        return '🔔';
+        return '';
       case 'payment':
       case 'payment_success':
-        return '💳';
+        return '';
       case 'assessment':
-        return '📝';
+        return '';
       case 'promotion':
-        return '🎁';
+        return '';
       case 'announcement':
-        return '📢';
+        return '';
       case 'warning':
       case 'alert':
-        return '⚠️';
+        return '';
       case 'success':
-        return '✅';
+        return '';
       case 'error':
-        return '❌';
+        return '';
       default:
-        return '📬';
+        return '';
     }
   };
 
@@ -152,10 +152,10 @@ const NotificationCenter = () => {
       {/* Notification Bell Icon */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-700 hover:text-gray-900 focus:outline-none"
+        className="relative flex items-center justify-center p-2 text-[#0f172a] dark:text-[#f8fafc] hover:opacity-80 transition-opacity focus:outline-none"
       >
         <svg
-          className="w-6 h-6"
+          className="w-[24px] h-[24px]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -170,15 +170,13 @@ const NotificationCenter = () => {
 
         {/* Unread Badge */}
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+          <span className="absolute top-[2px] right-[2px] flex items-center justify-center w-[18px] h-[18px] bg-[#dc2626] text-white text-[10px] font-[700] rounded-full animate-[pulseBadge_1.8s_infinite]">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
 
-        {/* Connection Status Indicator */}
-        {connected && (
-          <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-        )}
+        {/* Small purple dot under bell */}
+        <span className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-[6px] h-[6px] bg-[#4f46e5] rounded-full" />
       </button>
 
       {/* Dropdown Panel */}
@@ -190,7 +188,7 @@ const NotificationCenter = () => {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-xs text-primary-cta dark:text-green-400 hover:text-primary-dark dark:hover:text-green-500 font-medium"
+                className="text-xs text-primary-cta dark:text-indigo-400 hover:text-primary-dark dark:hover:text-indigo-700 font-medium"
               >
                 Đánh dấu đã đọc
               </button>
@@ -201,7 +199,7 @@ const NotificationCenter = () => {
           <div className="overflow-y-auto flex-1">
             {loading ? (
               <div className="flex justify-center items-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-cta dark:border-green-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-cta dark:border-indigo-700"></div>
               </div>
             ) : notifications.length === 0 ? (
               <div className="text-center py-8 px-4">
@@ -216,7 +214,7 @@ const NotificationCenter = () => {
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${!notification.is_read ? 'bg-beige-light dark:bg-green-900/20' : ''
+                    className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${!notification.is_read ? 'bg-beige-light dark:bg-indigo-950/20' : ''
                       }`}
                   >
                     <div className="flex items-start">
@@ -233,7 +231,7 @@ const NotificationCenter = () => {
                         </p>
                       </div>
                       {!notification.is_read && (
-                        <span className="ml-2 w-2 h-2 bg-primary-cta dark:bg-green-500 rounded-full flex-shrink-0"></span>
+                        <span className="ml-2 w-2 h-2 bg-primary-cta dark:bg-indigo-700 rounded-full flex-shrink-0"></span>
                       )}
                     </div>
                   </div>

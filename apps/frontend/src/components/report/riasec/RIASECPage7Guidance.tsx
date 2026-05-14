@@ -19,134 +19,134 @@ const INTEREST_GUIDANCE: Record<string, {
 }> = {
     realistic: {
         coreNeeds: [
-            'Work with my hands to create tangible, practical results',
-            'Use tools, machines, or physical skills in my daily work',
-            'See the concrete outcomes of my efforts',
-            'Work independently with minimal supervision',
+            'Làm việc bằng tay để tạo ra kết quả thực tế, hữu hình',
+            'Sử dụng công cụ, máy móc hoặc kỹ năng thể chất trong công việc hàng ngày',
+            'Thấy được kết quả cụ thể từ nỗ lực của mình',
+            'Làm việc độc lập với ít sự giám sát',
         ],
         preferredTasks: [
-            'Building, constructing, or crafting things',
-            'Repairing or maintaining equipment',
-            'Operating machinery or tools',
-            'Working outdoors or with nature',
-            'Physical labor or athletic activities',
-            'Making something tangible and useful',
+            'Xây dựng, thi công hoặc chế tạo đồ vật',
+            'Sửa chữa hoặc bảo trì thiết bị',
+            'Vận hành máy móc hoặc công cụ',
+            'Làm việc ngoài trời hoặc với thiên nhiên',
+            'Lao động thể chất hoặc hoạt động thể thao',
+            'Tạo ra thứ gì đó hữu hình và có ích',
         ],
         keyQuestions: [
-            'Will this career allow me to work with my hands?',
-            'Will I see tangible results from my work?',
-            'Does this career involve practical, real-world problem solving?',
-            'Will I have opportunities to work independently?',
+            'Nghề nghiệp này có cho phép tôi làm việc bằng tay không?',
+            'Tôi có thấy được kết quả hữu hình từ công việc của mình không?',
+            'Nghề nghiệp này có liên quan đến giải quyết vấn đề thực tế không?',
+            'Tôi có cơ hội làm việc độc lập không?',
         ],
     },
     investigative: {
         coreNeeds: [
-            'Research and analyze complex problems',
-            'Use logic and reason to form conclusions',
-            'Develop expertise in my field',
-            'Work independently on intellectual challenges',
+            'Nghiên cứu và phân tích các vấn đề phức tạp',
+            'Sử dụng logic và lý luận để đưa ra kết luận',
+            'Phát triển chuyên môn trong lĩnh vực của mình',
+            'Làm việc độc lập với các thách thức trí tuệ',
         ],
         preferredTasks: [
-            'Researching scientific principles and theories',
-            'Gathering and analyzing data',
-            'Developing and testing hypotheses',
-            'Using logic and reason to form conclusions',
-            'Reading and learning to increase knowledge',
-            'Applying expertise to devise innovative solutions',
+            'Nghiên cứu các nguyên lý và lý thuyết khoa học',
+            'Thu thập và phân tích dữ liệu',
+            'Phát triển và kiểm tra các giả thuyết',
+            'Sử dụng logic và lý luận để đưa ra kết luận',
+            'Đọc và học hỏi để tăng kiến thức',
+            'Áp dụng chuyên môn để tìm ra giải pháp sáng tạo',
         ],
         keyQuestions: [
-            'Will this career allow me to research and analyze?',
-            'Will I be challenged intellectually in this role?',
-            'Does this career value expertise and knowledge?',
-            'Will I have opportunities for continuous learning?',
+            'Nghề nghiệp này có cho phép tôi nghiên cứu và phân tích không?',
+            'Tôi có được thách thức về mặt trí tuệ trong vai trò này không?',
+            'Nghề nghiệp này có đề cao chuyên môn và kiến thức không?',
+            'Tôi có cơ hội học hỏi liên tục không?',
         ],
     },
     artistic: {
         coreNeeds: [
-            'Use my creative talents to do something original and unique',
-            'Express my ideas, feelings and experiences',
-            'Experience my senses through art, design, music, or drama',
-            'Follow my inspiration to create what is authentic to me',
+            'Sử dụng tài năng sáng tạo để làm điều gì đó độc đáo và riêng biệt',
+            'Biểu đạt ý tưởng, cảm xúc và trải nghiệm của mình',
+            'Trải nghiệm các giác quan qua nghệ thuật, thiết kế, âm nhạc hoặc sân khấu',
+            'Theo đuổi cảm hứng để tạo ra những gì chân thực với bản thân',
         ],
         preferredTasks: [
-            'Working with forms, colors, patterns, or visual elements',
-            'Working with aesthetic or expressive media',
-            'Creating a visually appealing presentation or design',
-            'Coming up with original ideas with few guidelines',
-            'Working on what inspires you at the moment',
-            'Being imaginative, creative, and original',
+            'Làm việc với hình dạng, màu sắc, hoa văn hoặc các yếu tố thị giác',
+            'Làm việc với phương tiện thẩm mỹ hoặc biểu đạt',
+            'Tạo ra bản trình bày hoặc thiết kế hấp dẫn về mặt thị giác',
+            'Đưa ra ý tưởng độc đáo với ít hướng dẫn',
+            'Làm việc theo những gì truyền cảm hứng cho bạn vào lúc đó',
+            'Sáng tạo, tưởng tượng và độc đáo',
         ],
         keyQuestions: [
-            'Will this career allow me to be creative and original?',
-            'Will I be able to express myself authentically?',
-            'Does this career take advantage of my creative talents?',
-            'Will I work in aesthetically pleasing environments?',
+            'Nghề nghiệp này có cho phép tôi sáng tạo và độc đáo không?',
+            'Tôi có thể biểu đạt bản thân một cách chân thực không?',
+            'Nghề nghiệp này có tận dụng tài năng sáng tạo của tôi không?',
+            'Tôi có làm việc trong môi trường thẩm mỹ không?',
         ],
     },
     social: {
         coreNeeds: [
-            'Help others improve their lives and well-being',
-            'Work cooperatively with others toward shared goals',
-            'Make a positive difference in my community',
-            'Build meaningful relationships through my work',
+            'Giúp người khác cải thiện cuộc sống và sức khỏe của họ',
+            'Làm việc hợp tác với người khác hướng đến mục tiêu chung',
+            'Tạo ra sự khác biệt tích cực trong cộng đồng của mình',
+            'Xây dựng các mối quan hệ có ý nghĩa thông qua công việc',
         ],
         preferredTasks: [
-            'Teaching or training others',
-            'Counseling or advising people',
-            'Caring for others\' physical or emotional needs',
-            'Working as part of a team',
-            'Communicating and building relationships',
-            'Serving the community or helping those in need',
+            'Giảng dạy hoặc đào tạo người khác',
+            'Tư vấn hoặc hướng dẫn mọi người',
+            'Chăm sóc nhu cầu thể chất hoặc cảm xúc của người khác',
+            'Làm việc như một phần của nhóm',
+            'Giao tiếp và xây dựng mối quan hệ',
+            'Phục vụ cộng đồng hoặc giúp đỡ những người cần',
         ],
         keyQuestions: [
-            'Will this career allow me to help others directly?',
-            'Will I work closely with people in this role?',
-            'Does this career make a positive impact on others?',
-            'Will I be part of a supportive, cooperative team?',
+            'Nghề nghiệp này có cho phép tôi giúp đỡ người khác trực tiếp không?',
+            'Tôi có làm việc gần gũi với mọi người trong vai trò này không?',
+            'Nghề nghiệp này có tạo ra tác động tích cực đến người khác không?',
+            'Tôi có là một phần của nhóm hỗ trợ và hợp tác không?',
         ],
     },
     enterprising: {
         coreNeeds: [
-            'Use my charisma and powers of persuasion to motivate and influence other people',
-            'Set exciting goals and take risks to achieve success',
-            'Increase my power and standing within my field',
-            'Promote novel ideas and impact key decisions to make my mark on the world',
+            'Sử dụng sức hút và khả năng thuyết phục để thúc đẩy và ảnh hưởng đến người khác',
+            'Đặt ra mục tiêu thú vị và chấp nhận rủi ro để đạt được thành công',
+            'Tăng quyền lực và vị thế trong lĩnh vực của mình',
+            'Thúc đẩy ý tưởng mới và tác động đến các quyết định quan trọng',
         ],
         preferredTasks: [
-            'Selling products or services',
-            'Leading or managing a team',
-            'Pitching ideas or initiatives',
-            'Starting a new business or other venture',
-            'Speaking in front of groups of people',
-            'Influencing people to your way of thinking',
+            'Bán sản phẩm hoặc dịch vụ',
+            'Lãnh đạo hoặc quản lý nhóm',
+            'Trình bày ý tưởng hoặc sáng kiến',
+            'Khởi nghiệp kinh doanh hoặc dự án mới',
+            'Phát biểu trước đám đông',
+            'Ảnh hưởng đến người khác theo cách suy nghĩ của bạn',
         ],
         keyQuestions: [
-            'Will this career allow me to influence and motivate other people?',
-            'Will I feel powerful and important in this career?',
-            'Will this career allow me to take risks and pursue exciting achievements?',
-            'Will this career give me a platform to share my ideas and persuade others?',
+            'Nghề nghiệp này có cho phép tôi ảnh hưởng và thúc đẩy người khác không?',
+            'Tôi có cảm thấy có quyền lực và quan trọng trong nghề nghiệp này không?',
+            'Nghề nghiệp này có cho phép tôi chấp nhận rủi ro và theo đuổi thành tích thú vị không?',
+            'Nghề nghiệp này có cho tôi nền tảng để chia sẻ ý tưởng và thuyết phục người khác không?',
         ],
     },
     conventional: {
         coreNeeds: [
-            'Work in a structured, organized environment',
-            'Complete tasks with precision and accuracy',
-            'Follow established procedures and systems',
-            'Achieve stability and predictability in my work',
+            'Làm việc trong môi trường có cấu trúc và tổ chức',
+            'Hoàn thành nhiệm vụ với độ chính xác và cẩn thận',
+            'Tuân theo các quy trình và hệ thống đã được thiết lập',
+            'Đạt được sự ổn định và khả năng dự đoán trong công việc',
         ],
         preferredTasks: [
-            'Organizing and managing data or information',
-            'Following established procedures',
-            'Working with numbers and calculations',
-            'Maintaining accurate records',
-            'Processing information systematically',
-            'Ensuring quality and accuracy in work',
+            'Tổ chức và quản lý dữ liệu hoặc thông tin',
+            'Tuân theo các quy trình đã được thiết lập',
+            'Làm việc với số liệu và tính toán',
+            'Duy trì hồ sơ chính xác',
+            'Xử lý thông tin một cách có hệ thống',
+            'Đảm bảo chất lượng và độ chính xác trong công việc',
         ],
         keyQuestions: [
-            'Will this career provide structure and stability?',
-            'Will I work with data, systems, or processes?',
-            'Does this career value accuracy and attention to detail?',
-            'Will I have clear expectations and procedures to follow?',
+            'Nghề nghiệp này có cung cấp cấu trúc và sự ổn định không?',
+            'Tôi có làm việc với dữ liệu, hệ thống hoặc quy trình không?',
+            'Nghề nghiệp này có đề cao độ chính xác và chú ý đến chi tiết không?',
+            'Tôi có kỳ vọng và quy trình rõ ràng để tuân theo không?',
         ],
     },
 };
@@ -171,21 +171,21 @@ const RIASECPage7Guidance = ({ scores }: RIASECPage7GuidanceProps) => {
         <div className="h-full flex flex-col overflow-hidden">
             {/* Page Title */}
             <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-4 print:text-xl print:mb-3">
-                Choosing the Right Career
+                Chọn Nghề Nghiệp Phù Hợp
             </h2>
 
             {/* Intro */}
             <p className="text-sm text-gray-700 dark:text-gray-300 mb-5 leading-relaxed print:text-xs print:mb-4">
-                Now that you've reviewed some possible careers, you may be wondering where to go next. This section is designed to give you a roadmap that you can use to navigate forward as you explore your career possibilities.
+                Bây giờ bạn đã xem qua một số nghề nghiệp có thể, bạn có thể đang tự hỏi nên đi đâu tiếp theo. Phần này được thiết kế để cung cấp cho bạn một lộ trình mà bạn có thể sử dụng để tiến về phía trước khi khám phá các khả năng nghề nghiệp của mình.
             </p>
 
             {/* Core Needs Section */}
             <div className="mb-5 print:mb-4">
                 <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 print:text-sm">
-                    Your Core Needs
+                    Nhu Cầu Cốt Lõi Của Bạn
                 </h3>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 print:text-[10px]">
-                    Below are the factors that are most likely to be important to you in a career. If a career has most of these factors, you will find the day-to-day work satisfying.
+                    Dưới đây là các yếu tố có khả năng quan trọng nhất với bạn trong một nghề nghiệp. Nếu một nghề nghiệp có hầu hết các yếu tố này, bạn sẽ thấy công việc hàng ngày thỏa mãn.
                 </p>
                 <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1.5 print:text-xs">
                     {coreNeeds.slice(0, 4).map((need, i) => (
@@ -197,10 +197,10 @@ const RIASECPage7Guidance = ({ scores }: RIASECPage7GuidanceProps) => {
             {/* Preferred Tasks Section */}
             <div className="mb-5 print:mb-4">
                 <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 print:text-sm">
-                    Your Preferred Tasks
+                    Nhiệm Vụ Ưa Thích Của Bạn
                 </h3>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 print:text-[10px]">
-                    One of the most important aspects of job satisfaction is the extent to which your daily work fits with your preferred types of activities.
+                    Một trong những khía cạnh quan trọng nhất của sự hài lòng trong công việc là mức độ công việc hàng ngày của bạn phù hợp với các loại hoạt động ưa thích của bạn.
                 </p>
                 <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1.5 grid grid-cols-2 gap-x-4 print:text-xs">
                     {preferredTasks.slice(0, 6).map((task, i) => (
@@ -212,10 +212,10 @@ const RIASECPage7Guidance = ({ scores }: RIASECPage7GuidanceProps) => {
             {/* Key Questions Section */}
             <div className="mb-5 print:mb-4">
                 <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 print:text-sm">
-                    Your Key Questions
+                    Câu Hỏi Quan Trọng Của Bạn
                 </h3>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 print:text-[10px]">
-                    As you explore careers, ask these questions that are personal to your interests:
+                    Khi khám phá nghề nghiệp, hãy đặt những câu hỏi phù hợp với sở thích cá nhân của bạn:
                 </p>
                 <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1.5 print:text-xs">
                     {keyQuestions.slice(0, 4).map((q, i) => (
@@ -227,10 +227,10 @@ const RIASECPage7Guidance = ({ scores }: RIASECPage7GuidanceProps) => {
             {/* What Makes Your Ideal Career */}
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 print:p-3">
                 <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 print:text-sm">
-                    What Makes Your Ideal Career?
+                    Điều Gì Tạo Nên Nghề Nghiệp Lý Tưởng Của Bạn?
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed print:text-xs">
-                    In choosing a career, you want to be mindful of the factors that are most important to you. Many of these factors will be based on your interests and personality, but some will be unique to you. An ideal career should satisfy your most fundamental motivations to work. To understand what sort of career will be satisfying, you must understand the factors that create satisfaction for you.
+                    Khi chọn nghề nghiệp, bạn cần chú ý đến các yếu tố quan trọng nhất với bạn. Nhiều yếu tố trong số này sẽ dựa trên sở thích và tính cách của bạn, nhưng một số sẽ là độc đáo với bạn. Một nghề nghiệp lý tưởng nên thỏa mãn những động lực cơ bản nhất của bạn để làm việc. Để hiểu loại nghề nghiệp nào sẽ thỏa mãn, bạn phải hiểu các yếu tố tạo ra sự hài lòng cho bạn.
                 </p>
             </div>
         </div>

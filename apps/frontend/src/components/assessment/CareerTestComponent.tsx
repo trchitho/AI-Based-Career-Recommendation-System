@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Question, QuestionResponse } from '../../types/assessment';
 import { assessmentService } from '../../services/assessmentService';
 import { useAuth } from '../../contexts/AuthContext';
+import './CareerTestButtons.css';
 
 // LocalStorage key for auto-save - now includes userId for per-user storage
 const AUTOSAVE_KEY_PREFIX = 'assessment_autosave_';
@@ -10,9 +11,9 @@ const AUTOSAVE_TIMESTAMP_KEY_PREFIX = 'assessment_autosave_timestamp_';
 const AUTOSAVE_EXPIRY_HOURS = 24; // Dữ liệu hết hạn sau 24 giờ
 
 // Helper to get user-specific keys
-const getAutosaveKey = (userId: number | string | undefined) => 
+const getAutosaveKey = (userId: number | string | undefined) =>
   `${AUTOSAVE_KEY_PREFIX}${userId || 'guest'}`;
-const getAutosaveTimestampKey = (userId: number | string | undefined) => 
+const getAutosaveTimestampKey = (userId: number | string | undefined) =>
   `${AUTOSAVE_TIMESTAMP_KEY_PREFIX}${userId || 'guest'}`;
 
 interface AutoSaveData {
@@ -32,7 +33,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   const { t } = useTranslation();
   const { user } = useAuth(); // Get current user
   const userId = user?.id; // User ID for per-user storage
-  
+
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [responses, setResponses] = useState<Map<string, string | number>>(new Map());
@@ -61,11 +62,11 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     try {
       const autosaveKey = getAutosaveKey(userId);
       const saved = localStorage.getItem(autosaveKey);
-      console.log(`📂 Raw localStorage data for user ${userId}:`, saved);
+      console.log(` Raw localStorage data for user ${userId}:`, saved);
 
       if (saved && isSavedDataValid()) {
         const data: AutoSaveData = JSON.parse(saved);
-        console.log('📋 Parsed data:', data);
+        console.log(' Parsed data:', data);
 
         // Validate data structure
         if (data && Array.isArray(data.responses) && data.responses.length > 0) {
@@ -78,7 +79,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       console.log('⏰ Timestamp:', timestamp);
 
     } catch (e) {
-      console.error('❌ Error loading saved progress:', e);
+      console.error(' Error loading saved progress:', e);
     }
     return null;
   }, [isSavedDataValid, userId]);
@@ -98,9 +99,9 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       localStorage.setItem(autosaveKey, JSON.stringify(data));
       localStorage.setItem(timestampKey, new Date().toISOString());
       setLastSaved(new Date());
-      console.log(`✅ Auto-saved for user ${userId}:`, data.responses.length, 'answers, page', page);
+      console.log(` Auto-saved for user ${userId}:`, data.responses.length, 'answers, page', page);
     } catch (e) {
-      console.error('❌ Error saving progress:', e);
+      console.error(' Error saving progress:', e);
     }
   }, [userId]);
 
@@ -111,7 +112,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     localStorage.removeItem(autosaveKey);
     localStorage.removeItem(timestampKey);
     setSavedProgress(null);
-    console.log(`🗑️ Cleared saved progress for user ${userId}`);
+    console.log(` Cleared saved progress for user ${userId}`);
   }, [userId]);
 
   // Check for saved progress on mount and when userId changes
@@ -120,22 +121,22 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     const oldAutosaveKey = 'assessment_autosave';
     const oldTimestampKey = 'assessment_autosave_timestamp';
     if (localStorage.getItem(oldAutosaveKey)) {
-      console.log('🧹 Cleaning up legacy autosave data (no userId)');
+      console.log(' Cleaning up legacy autosave data (no userId)');
       localStorage.removeItem(oldAutosaveKey);
       localStorage.removeItem(oldTimestampKey);
     }
-    
-    console.log(`🔍 Checking for saved progress for user ${userId}...`);
+
+    console.log(` Checking for saved progress for user ${userId}...`);
     const saved = loadSavedProgress();
-    console.log('📦 Saved data:', saved);
+    console.log(' Saved data:', saved);
 
     if (saved && saved.responses && saved.responses.length > 0) {
-      console.log('✅ Found saved progress:', saved.responses.length, 'answers');
-      console.log('🔔 Setting showResumeModal to TRUE');
+      console.log(' Found saved progress:', saved.responses.length, 'answers');
+      console.log(' Setting showResumeModal to TRUE');
       setSavedProgress(saved);
       setShowResumeModal(true);
     } else {
-      console.log('❌ No saved progress found');
+      console.log(' No saved progress found');
       // Reset state when switching users
       setSavedProgress(null);
       setShowResumeModal(false);
@@ -145,17 +146,17 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
   // Resume from saved progress
   const handleResume = () => {
     if (savedProgress) {
-      console.log('🔄 Resuming with', savedProgress.responses.length, 'answers');
+      console.log(' Resuming with', savedProgress.responses.length, 'answers');
 
       const restoredResponses = new Map(savedProgress.responses);
-      console.log('🗺️ Restored Map size:', restoredResponses.size);
+      console.log(' Restored Map size:', restoredResponses.size);
 
       setResponses(restoredResponses);
       setCurrentPage(savedProgress.currentPage);
 
       // Dùng câu hỏi đã lưu thay vì từ API
       if (savedProgress.questions && savedProgress.questions.length > 0) {
-        console.log('✅ Using saved questions:', savedProgress.questions.length);
+        console.log(' Using saved questions:', savedProgress.questions.length);
         setAllQuestions(savedProgress.questions);
         setLoading(false); // Không cần load từ API nữa
       }
@@ -192,7 +193,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         const timestampKey = getAutosaveTimestampKey(userId);
         localStorage.setItem(autosaveKey, JSON.stringify(data));
         localStorage.setItem(timestampKey, new Date().toISOString());
-        console.log(`💾 Saved on unload for user ${userId}:`, data.responses.length, 'answers');
+        console.log(` Saved on unload for user ${userId}:`, data.responses.length, 'answers');
 
         // Show confirmation dialog
         e.preventDefault();
@@ -358,7 +359,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     const unansweredQuestions = allQuestions.filter(q => !responses.has(String(q.id)));
 
     if (unansweredQuestions.length > 0) {
-      setError(`Please answer all questions. ${unansweredQuestions.length} question(s) remaining.`);
+      setError(`Vui lòng trả lời tất cả câu hỏi. Còn ${unansweredQuestions.length} câu chưa trả lời.`);
       return;
     }
 
@@ -396,50 +397,50 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 border-t-green-600 rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-500 dark:text-gray-400 font-medium">Loading questions...</p>
+        <p className="text-gray-500 dark:text-gray-400 font-medium">Đang tải câu hỏi...</p>
       </div>
     );
   }
 
   // Show resume modal even while loading
-  console.log('🎯 Render check - showResumeModal:', showResumeModal, 'savedProgress:', savedProgress?.responses?.length);
+  console.log(' Render check - showResumeModal:', showResumeModal, 'savedProgress:', savedProgress?.responses?.length);
 
   if (showResumeModal && savedProgress) {
-    console.log('🔔 SHOWING RESUME MODAL!');
+    console.log(' SHOWING RESUME MODAL!');
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-fade-in-up">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-950/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-indigo-800 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Continue Assessment?
+              Tiếp tục bài đánh giá?
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              You have an incomplete assessment ({savedProgress.responses.length} questions answered).
-              Would you like to continue or start fresh?
+              Bạn có bài đánh giá chưa hoàn thành ({savedProgress.responses.length} câu đã trả lời).
+              Bạn muốn tiếp tục hay bắt đầu lại?
             </p>
           </div>
 
           <div className="space-y-3">
             <button
               onClick={handleResume}
-              className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+              className="w-full px-6 py-3 bg-indigo-800 hover:bg-indigo-900 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Continue ({savedProgress.responses.length} answers)
+              Tiếp tục ({savedProgress.responses.length} câu trả lời)
             </button>
             <button
               onClick={handleStartFresh}
               className="w-full px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-bold transition-all"
             >
-              Start Fresh
+              Bắt đầu lại
             </button>
           </div>
         </div>
@@ -453,13 +454,13 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Failed to load questions</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Không thể tải câu hỏi</h3>
         <p className="text-red-600 dark:text-red-300 mb-6">{error}</p>
         <button
           onClick={fetchQuestions}
           className="px-6 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg"
         >
-          Retry
+          Thử lại
         </button>
       </div>
     );
@@ -471,17 +472,17 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       {/* Progress Bar */}
       <div className="mb-10">
         <div className="flex justify-between items-center mb-3">
-          <span className="text-sm font-bold text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-            {getProgress().toFixed(0)}% Completed
+          <span className="text-sm font-bold text-indigo-900 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full">
+            {getProgress().toFixed(0)}% Hoàn thành
           </span>
           <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-            Page {currentPage + 1} / {totalPages}
+            Trang {currentPage + 1} / {totalPages}
           </span>
         </div>
 
         <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
           <div
-            className="bg-gradient-to-r from-green-500 to-teal-500 h-3 transition-all duration-700 ease-out rounded-full"
+            className="bg-gradient-to-r from-indigo-700 to-indigo-600 h-3 transition-all duration-700 ease-out rounded-full"
             style={{ width: `${getProgress()}%` }}
           ></div>
         </div>
@@ -489,11 +490,11 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
         {/* Auto-save indicator - Centered below progress bar */}
         {lastSaved && responses.size > 0 && (
           <div className="flex justify-center mt-4">
-            <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-green-200 dark:border-green-800">
+            <div className="bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-indigo-200 dark:border-indigo-800">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Saved ({responses.size} answers)
+              Đã lưu ({responses.size} câu trả lời)
             </div>
           </div>
         )}
@@ -502,14 +503,14 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
       {/* Title */}
       <div className="text-center mb-10">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          How accurately does this describe you?
+          Mức độ mô tả chính xác về bạn như thế nào?
         </h3>
         <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mt-4">
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-300"></div> Strongly Disagree</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-300"></div> Disagree</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-gray-300"></div> Neutral</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-300"></div> Agree</div>
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-emerald-500"></div> Strongly Agree</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-300"></div> Rất không đồng ý</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-300"></div> Không đồng ý</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-gray-300"></div> Trung lập</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-300"></div> Đồng ý</div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-indigo-700"></div> Rất đồng ý</div>
         </div>
       </div>
 
@@ -532,20 +533,20 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
           // Label descriptions
           const labelDescriptions: { [key: string]: { name: string; description: string; color: string } } = {
-            'R': { name: 'Realistic', description: 'Hands-on, practical, mechanical work', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700' },
-            'I': { name: 'Investigative', description: 'Research, analysis, problem-solving', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' },
-            'A': { name: 'Artistic', description: 'Creative, expressive, innovative work', color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-700' },
-            'S': { name: 'Social', description: 'Helping, teaching, caring for others', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700' },
-            'E': { name: 'Enterprising', description: 'Leadership, persuasion, business', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
-            'C': { name: 'Conventional', description: 'Organization, detail-oriented, structured', color: 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' },
-            'O': { name: 'Openness', description: 'Curiosity, imagination, creativity', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700' },
-            'N': { name: 'Neuroticism', description: 'Emotional stability, stress management', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700' },
+            'R': { name: 'Thực tế', description: 'Công việc thực hành, kỹ thuật, cơ khí', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700' },
+            'I': { name: 'Nghiên cứu', description: 'Nghiên cứu, phân tích, giải quyết vấn đề', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' },
+            'A': { name: 'Nghệ thuật', description: 'Sáng tạo, biểu đạt, đổi mới', color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-700' },
+            'S': { name: 'Xã hội', description: 'Giúp đỡ, giảng dạy, chăm sóc người khác', color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800' },
+            'E': { name: 'Doanh nhân', description: 'Lãnh đạo, thuyết phục, kinh doanh', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' },
+            'C': { name: 'Quy ước', description: 'Tổ chức, chi tiết, có cấu trúc', color: 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600' },
+            'O': { name: 'Cởi mở', description: 'Tò mò, trí tưởng tượng, sáng tạo', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700' },
+            'N': { name: 'Nhạy cảm', description: 'Ổn định cảm xúc, quản lý căng thẳng', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700' },
           };
 
           // Debug log
           if (index === 0) {
-            console.log('🔍 Question ID:', question.id, 'Answer:', answer, 'Responses size:', responses.size);
-            console.log('🔍 All response keys:', Array.from(responses.keys()).slice(0, 5));
+            console.log(' Question ID:', question.id, 'Answer:', answer, 'Responses size:', responses.size);
+            console.log(' All response keys:', Array.from(responses.keys()).slice(0, 5));
           }
 
           return (
@@ -573,7 +574,7 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
                 <div className="flex flex-col md:flex-row md:items-center gap-6">
                   {/* Question Text */}
                   <div className="flex-1">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1 block">Question {(currentPage * questionsPerPage) + index + 1}</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1 block">Câu hỏi {(currentPage * questionsPerPage) + index + 1}</span>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-snug">
                       {question.question_text}
                     </h3>
@@ -581,30 +582,90 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
 
                   {/* Answer Options */}
                   <div className="flex items-center justify-between md:justify-end gap-3 md:gap-6 w-full md:w-auto mt-4 md:mt-0">
-                    {[
-                      { value: 1, color: 'bg-red-100', active: 'bg-red-500', ring: 'ring-red-200' },
-                      { value: 2, color: 'bg-orange-100', active: 'bg-orange-400', ring: 'ring-orange-200' },
-                      { value: 3, color: 'bg-gray-100', active: 'bg-gray-400', ring: 'ring-gray-200' },
-                      { value: 4, color: 'bg-green-100', active: 'bg-green-500', ring: 'ring-green-200' },
-                      { value: 5, color: 'bg-emerald-100', active: 'bg-emerald-600', ring: 'ring-emerald-200' }
-                    ].map(({ value, color, active, ring }) => (
-                      <button
-                        key={value}
-                        onClick={() => handleAnswer(question.id, value)}
-                        className={`
-                                    relative w-10 h-10 md:w-12 md:h-12 rounded-full transition-all duration-300 flex items-center justify-center
-                                    ${answer === value
-                            ? `${active} text-white scale-110 shadow-lg ring-4 ${ring}`
-                            : `${color} dark:bg-gray-700 text-transparent hover:scale-110`
-                          }
-                                `}
-                        aria-label={`Rate ${value}`}
-                      >
-                        {answer === value && (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                        )}
-                      </button>
-                    ))}
+                    {/* Option 1 - Rất không đồng ý */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 1)}
+                      className={`answer-btn answer-btn-1 ${answer === 1 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 1 ? '#ef4444' : '#fca5a5',
+                        color: answer === 1 ? 'white' : 'transparent',
+                        transform: answer === 1 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 1 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 1"
+                    >
+                      {answer === 1 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+
+                    {/* Option 2 - Không đồng ý */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 2)}
+                      className={`answer-btn answer-btn-2 ${answer === 2 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 2 ? '#f97316' : '#fdba74',
+                        color: answer === 2 ? 'white' : 'transparent',
+                        transform: answer === 2 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 2 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 2"
+                    >
+                      {answer === 2 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+
+                    {/* Option 3 - Trung lập */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 3)}
+                      className={`answer-btn answer-btn-3 ${answer === 3 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 3 ? '#6b7280' : '#d1d5db',
+                        color: answer === 3 ? 'white' : 'transparent',
+                        transform: answer === 3 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 3 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 3"
+                    >
+                      {answer === 3 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+
+                    {/* Option 4 - Đồng ý */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 4)}
+                      className={`answer-btn answer-btn-4 ${answer === 4 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 4 ? '#4f46e5' : '#a5b4fc',
+                        color: answer === 4 ? 'white' : 'transparent',
+                        transform: answer === 4 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 4 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 4"
+                    >
+                      {answer === 4 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
+
+                    {/* Option 5 - Rất đồng ý */}
+                    <button
+                      onClick={() => handleAnswer(question.id, 5)}
+                      className={`answer-btn answer-btn-5 ${answer === 5 ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: answer === 5 ? '#4338ca' : '#6366f1',
+                        color: answer === 5 ? 'white' : 'transparent',
+                        transform: answer === 5 ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: answer === 5 ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none'
+                      }}
+                      aria-label="Rate 5"
+                    >
+                      {answer === 5 && (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -622,27 +683,36 @@ const CareerTestComponent = ({ onComplete }: CareerTestComponentProps) => {
             ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
             : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
+          style={{ color: currentPage === 0 ? '#d1d5db' : '#4b5563' }}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          Previous
+          <svg style={{ color: 'inherit' }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          <span style={{ color: 'inherit' }}>Trước</span>
         </button>
 
         {!isLastPage ? (
           <button
             onClick={handleNext}
             disabled={!areCurrentPageQuestionsAnswered()}
-            className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition-all flex items-center gap-2"
+            className="px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:transform-none transition-all flex items-center gap-2"
+            style={{
+              backgroundColor: areCurrentPageQuestionsAnswered() ? '#111827' : '#e5e7eb',
+              color: areCurrentPageQuestionsAnswered() ? '#60a5fa' : '#3b82f6',
+              borderWidth: '2px',
+              borderStyle: 'solid',
+              borderColor: areCurrentPageQuestionsAnswered() ? '#60a5fa' : '#3b82f6',
+            }}
           >
-            Next Step
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            <span style={{ color: 'inherit', opacity: 1, fontWeight: 'bold' }}>Tiếp theo</span>
+            <svg style={{ color: 'inherit', opacity: 1 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         ) : (
           <button
             onClick={handleSubmit}
-            className="px-10 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-xl shadow-green-600/30 hover:shadow-green-600/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+            style={{ color: '#ffffff' }}
+            className="px-10 py-3 bg-indigo-800 dark:bg-indigo-600 hover:bg-indigo-900 dark:hover:bg-indigo-700 rounded-xl font-bold shadow-xl shadow-indigo-800/30 dark:shadow-indigo-600/30 hover:shadow-indigo-800/50 dark:hover:shadow-indigo-600/50 hover:-translate-y-0.5 transition-all flex items-center gap-2"
           >
-            Complete Assessment
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <span style={{ color: '#ffffff' }}>Hoàn thành đánh giá</span>
+            <svg style={{ color: '#ffffff' }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
           </button>
         )}
       </div>

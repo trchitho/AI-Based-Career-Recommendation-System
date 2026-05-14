@@ -52,11 +52,30 @@ class SkillGraphAnalyzer:
             return result
             
         except Exception as e:
-            print(f"  ⚠️ AI semantic matching failed: {e}")
+            print(f"  [WARN] AI semantic matching failed: {e}")
             import traceback
             traceback.print_exc()
             return None
     
+    def get_job_required_skills_from_graph(self, career_id: str) -> List[Dict]:
+        """
+        Lay ky nang yeu cau tu Neo4j graph (nhanh hon, co relationship weights).
+        Fallback ve get_job_required_skills_from_db neu Neo4j khong kha dung.
+
+        @param career_id: Career ID (PostgreSQL)
+        @returns: List[{name, category, importance, level}]
+        """
+        if self.driver:
+            try:
+                from app.modules.graph.graph_queries import get_career_required_skills_from_graph
+                results = get_career_required_skills_from_graph(self.driver, career_id)
+                if results:
+                    print(f"[graph] Got {len(results)} skills from Neo4j for career {career_id}")
+                    return results
+            except Exception as e:
+                print(f"[graph] Neo4j skill query failed, falling back to DB: {e}")
+        return []
+
     def get_job_required_skills_from_db(self, onet_code: str) -> List[Dict]:
         """
         Lấy danh sách kỹ năng yêu cầu cho một nghề nghiệp từ PostgreSQL
@@ -86,13 +105,22 @@ class SkillGraphAnalyzer:
                 'devops-engineer': 'software-developers-15-1252-00',  # Use software dev as fallback
             }
             
-            # Try to map the career name
+            # Normalize ONET code: handle both "25-2012-00" and "25-2012.00" formats
+            # DB stores as "25-2012.00" but career_id may come as "25-2012-00"
+            onet_normalized = onet_code
+            if onet_code and onet_code.count('-') >= 2 and '.' not in onet_code:
+                # Convert last "-" to "." e.g. "25-2012-00" → "25-2012.00"
+                parts = onet_code.rsplit('-', 1)
+                if len(parts) == 2 and parts[1].isdigit():
+                    onet_normalized = f"{parts[0]}.{parts[1]}"
+
             search_slug = career_mapping.get(onet_code, onet_code)
-            
-            # First, try to find the career by slug or ONET code
+
+            # Search by slug, original code, and normalized code
             career_stmt = select(Career).where(
-                (Career.slug == search_slug) | 
+                (Career.slug == search_slug) |
                 (Career.onet_code == onet_code) |
+                (Career.onet_code == onet_normalized) |
                 (Career.slug == onet_code)
             )
             career_result = self.db.execute(career_stmt)
@@ -100,7 +128,7 @@ class SkillGraphAnalyzer:
             
             if career:
                 actual_onet_code = career.onet_code
-                print(f"  ✅ Found career: {career.title_en} (ONET: {actual_onet_code})")
+                print(f"  [OK] Found career: {career.title_en} (ONET: {actual_onet_code})")
             else:
                 # Try fuzzy search by title
                 career_stmt = select(Career).where(
@@ -111,40 +139,50 @@ class SkillGraphAnalyzer:
                 
                 if career:
                     actual_onet_code = career.onet_code
-                    print(f"  ✅ Found career by fuzzy search: {career.title_en} (ONET: {actual_onet_code})")
+                    print(f"  [OK] Found career by fuzzy search: {career.title_en} (ONET: {actual_onet_code})")
                 else:
                     actual_onet_code = onet_code
-                    print(f"  ⚠️ Career not found, using provided code: {actual_onet_code}")
+                    print(f"  [WARN] Career not found, using provided code: {actual_onet_code}")
             
             # Query skills from database
-            stmt = select(CareerKSA).where(
-                CareerKSA.onet_code == actual_onet_code,
-                CareerKSA.ksa_type == 'skill'
-            ).order_by(CareerKSA.importance.desc())
-            
-            result = self.db.execute(stmt)
-            ksa_rows = result.scalars().all()
-            
+            # Use raw SQL to avoid model column name mismatch (name_en vs name)
+            from sqlalchemy import text as _text
+            rows = self.db.execute(_text("""
+                SELECT name_en, name_vn, category, level, importance
+                FROM core.career_ksas
+                WHERE onet_code = :code AND ksa_type = 'skill'
+                  AND (name_en IS NOT NULL OR name_vn IS NOT NULL)
+                ORDER BY importance DESC
+            """), {"code": actual_onet_code}).fetchall()
+
             skills = []
-            for ksa in ksa_rows:
-                # Normalize importance to 0-1 scale
-                importance = float(ksa.importance) / 100.0 if ksa.importance else 0.5
-                
+            for row in rows:
+                skill_name = row.name_en or row.name_vn or ""
+                if not skill_name:
+                    continue
+                # Importance stored as 0-100 or 0-1, normalize to 0-1
+                raw_imp = float(row.importance or 50)
+                importance = raw_imp / 100.0 if raw_imp > 1 else raw_imp
+
                 skills.append({
-                    'name': ksa.name,
-                    'category': ksa.category or 'Other',
+                    'name': row.name_en or row.name_vn or "",
+                    'category': row.category or 'Other',
                     'importance': importance,
                     'proficiency_level': 'intermediate',  # Default
                     'source': 'onet_database'
                 })
             
-            print(f"  ✅ Loaded {len(skills)} ONET skills from database")
+            print(f"  [OK] Loaded {len(skills)} ONET skills from database")
             return skills
             
         except Exception as e:
-            print(f"  ⚠️ Error querying database for skills: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"  [WARN] Error querying database for skills: {e}")
+            # Rollback aborted transaction so subsequent queries can proceed
+            try:
+                if self.db:
+                    self.db.rollback()
+            except Exception:
+                pass
             return []
     
     def get_job_required_skills(self, career_id: str) -> List[Dict]:
@@ -164,16 +202,17 @@ class SkillGraphAnalyzer:
         if self.db:
             skills = self.get_job_required_skills_from_db(career_id)
             if skills:
-                print(f"✅ Using skills from PostgreSQL database for {career_id}")
+                print(f"[OK] Using skills from PostgreSQL database for {career_id}")
                 return skills
         
         # Try 2: Get from Neo4j (if available)
+        # Relationship is REQUIRES (not REQUIRES_SKILL), property is level (not proficiency_level)
         query = """
-        MATCH (c:Career {id: $career_id})-[r:REQUIRES_SKILL]->(s:Skill)
-        RETURN s.name as skill_name, 
-               s.category as category,
-               r.importance as importance,
-               r.proficiency_level as proficiency_level
+        MATCH (c:Career {id: $career_id})-[r:REQUIRES]->(s:Skill)
+        RETURN s.name AS skill_name,
+               s.category AS category,
+               r.importance AS importance,
+               r.level AS level
         ORDER BY r.importance DESC
         """
         
@@ -184,19 +223,19 @@ class SkillGraphAnalyzer:
                 skills.append({
                     'name': record['skill_name'],
                     'category': record.get('category', 'Other'),
-                    'importance': record.get('importance', 0.5),
-                    'proficiency_level': record.get('proficiency_level', 'intermediate'),
+                    'importance': float(record.get('importance') or 0.5),
+                    'proficiency_level': record.get('level', 'intermediate'),
                     'source': 'neo4j'
                 })
             
             if skills:
-                print(f"✅ Using skills from Neo4j for {career_id}")
+                print(f"[OK] Using skills from Neo4j for {career_id}")
                 return skills
         except Exception as e:
             print(f"Neo4j query failed: {e}")
         
         # Try 3: Fallback to mock data
-        print(f"⚠️ No database/Neo4j data for {career_id}, using fallback mock data")
+        print(f"[WARN] No database/Neo4j data for {career_id}, using fallback mock data")
         return self._get_fallback_skills(career_id)
     
     def _get_fallback_skills(self, career_id: str) -> List[Dict]:
@@ -354,7 +393,7 @@ class SkillGraphAnalyzer:
         Returns:
             Dict: Kết quả phân tích chi tiết
         """
-        print("  🔍 [Gap Analysis] Starting skill comparison...")
+        print("  [Search] [Gap Analysis] Starting skill comparison...")
         
         # Convert CV skills to lowercase dict for matching
         cv_skill_names = {skill['name'].lower() for skill in cv_skills}
@@ -474,7 +513,7 @@ class SkillGraphAnalyzer:
         matched_cv_skills = {detail['name'].lower() for detail in matched_details}
         extra_skills = cv_skill_names - matched_cv_skills
         
-        print("  ✅ [Gap Analysis] Complete:")
+        print("  [OK] [Gap Analysis] Complete:")
         print(f"     - Match percentage: {match_percentage:.1f}%")
         print(f"     - Critical gaps: {len(critical_gaps)}")
         print(f"     - Important gaps: {len(important_gaps)}")
@@ -526,7 +565,7 @@ class SkillGraphAnalyzer:
         Returns:
             Dict: Kết quả phân tích đầy đủ với insights
         """
-        print(f"\n🎯 [Gap Analysis Pipeline] Analyzing for career: {career_id}")
+        print(f"\n[Target] [Gap Analysis Pipeline] Analyzing for career: {career_id}")
         
         # Step 1: Get job requirements
         print("  [1/3] Querying job requirements...")
@@ -555,7 +594,7 @@ class SkillGraphAnalyzer:
                 if career:
                     career_name = career.title_en
             except Exception as e:
-                print(f"  ⚠️ Could not get career name: {e}")
+                print(f"  [WARN] Could not get career name: {e}")
         
         ai_result = self.ai_semantic_skill_matching(cv_skills, job_skills, career_name)
         
@@ -563,10 +602,10 @@ class SkillGraphAnalyzer:
         print("  [3/4] Performing gap analysis...")
         if ai_result:
             # Use AI semantic matching results
-            analysis = self._build_analysis_from_ai(ai_result, cv_skills, job_skills)
+            analysis = self._build_analysis_from_ai(ai_result, cv_skills, job_skills, career_name)
         else:
             # Fallback to traditional matching
-            print("  ⚠️ AI matching unavailable, using traditional matching")
+            print("  [WARN] AI matching unavailable, using traditional matching")
             analysis = self.calculate_skill_match(cv_skills, job_skills)
         
         analysis['career_id'] = career_id
@@ -576,11 +615,11 @@ class SkillGraphAnalyzer:
         insights = self._generate_insights(analysis)
         analysis['insights'] = insights
         
-        print("✅ [Gap Analysis Pipeline] Complete!\n")
+        print("[OK] [Gap Analysis Pipeline] Complete!\n")
         
         return analysis
     
-    def _build_analysis_from_ai(self, ai_result: Dict, cv_skills: List[Dict], job_skills: List[Dict]) -> Dict:
+    def _build_analysis_from_ai(self, ai_result: Dict, cv_skills: List[Dict], job_skills: List[Dict], career_name: str = "") -> Dict:
         """
         Build analysis result from AI semantic matching
         
@@ -592,28 +631,77 @@ class SkillGraphAnalyzer:
         Returns:
             Dict: Analysis in standard format
         """
-        print("  🤖 Building analysis from AI semantic matching...")
-        
+        print("  [AI] Building analysis from AI semantic matching...")
+
         # Get matched pairs from AI
         matched_pairs = ai_result.get('matched_pairs', [])
-        unmatched_cv = set(ai_result.get('unmatched_cv_skills', []))
-        unmatched_job = set(ai_result.get('unmatched_job_skills', []))
-        match_percentage = ai_result.get('overall_match_percentage', 0)
+        unmatched_cv  = set(ai_result.get('unmatched_cv_skills',  []))
+        unmatched_job = set(ai_result.get('unmatched_job_skills',  []))
+
+        # Build job skill importance map
+        job_skill_imp = {s['name'].lower(): float(s.get('importance', 0.5)) for s in job_skills}
+        total_importance = sum(job_skill_imp.values()) or 1.0
+
+        # Collect matched job skill names (deduped)
+        seen_job_matched: set = set()
+        for pair in matched_pairs:
+            seen_job_matched.add(pair['job_skill'].lower())
+
+        # Importance-weighted match%: consistent with calculate_skill_match
+        matched_importance = sum(
+            job_skill_imp.get(j, 0.5) for j in seen_job_matched
+        )
+        match_percentage = round((matched_importance / total_importance) * 100, 2)
         
         # Build matched skills list
         matched_skills = []
         cv_skill_dict = {s['name'].lower(): s for s in cv_skills}
         job_skill_dict = {s['name'].lower(): s for s in job_skills}
+        software_career_markers = ("software", "developer", "programmer", "web", "data", "computer", "information technology", "ai", "machine learning")
+        is_software_like_career = any(marker in (career_name or "").lower() for marker in software_career_markers)
+        generic_job_skills = {"programming", "science", "systems analysis"}
+        software_tool_skills = {
+            "node.js", "react", "docker", "jwt", "redis", "postgresql", "sqlite", "tailwindcss",
+            "phobert", "pytorch", "machine learning", "web development", "javascript", "typescript"
+        }
         
+        seen_cv_skills = set()
+        seen_job_skills = set()
         for pair in matched_pairs:
             cv_skill_name = pair['cv_skill']
             job_skill_name = pair['job_skill']
-            confidence = pair.get('confidence', 0.8)
-            
+            cv_key = cv_skill_name.lower()
+            job_key = job_skill_name.lower()
+
+            # Skip if either side already matched
+            if cv_key in seen_cv_skills or job_key in seen_job_skills:
+                continue
+
+            seen_cv_skills.add(cv_key)
+            seen_job_skills.add(job_key)
+
+            try:
+                confidence = float(pair.get('confidence', 0.8))
+            except (TypeError, ValueError):
+                confidence = 0.0
+            if confidence < 0.75:
+                unmatched_cv.add(cv_skill_name)
+                unmatched_job.add(job_skill_name)
+                continue
+
+            if (
+                not is_software_like_career
+                and cv_key in software_tool_skills
+                and job_key in generic_job_skills
+            ):
+                unmatched_cv.add(cv_skill_name)
+                unmatched_job.add(job_skill_name)
+                continue
+
             # Get original skill data
-            cv_skill = cv_skill_dict.get(cv_skill_name.lower(), {'name': cv_skill_name, 'category': 'Other'})
-            job_skill = job_skill_dict.get(job_skill_name.lower(), {'name': job_skill_name, 'importance': 0.5})
-            
+            cv_skill = cv_skill_dict.get(cv_key, {'name': cv_skill_name, 'category': 'Other'})
+            job_skill = job_skill_dict.get(job_key, {'name': job_skill_name, 'importance': 0.5})
+
             matched_skills.append({
                 'name': cv_skill['name'],
                 'onet_skill': job_skill['name'],
@@ -667,7 +755,7 @@ class SkillGraphAnalyzer:
                     'source': cv_skill.get('source', 'unknown')
                 })
         
-        print("  ✅ AI Analysis built:")
+        print("  [OK] AI Analysis built:")
         print(f"     - Match percentage: {match_percentage:.1f}%")
         print(f"     - Matched skills: {len(matched_skills)}")
         print(f"     - Critical gaps: {len(critical_gaps)}")

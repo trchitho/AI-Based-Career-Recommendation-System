@@ -3,6 +3,7 @@ API Routes for Skill Gap Analysis
 """
 from typing import Any, List
 
+from app.core.serialization import dumps_str as _to_json, loads as _from_json
 from app.core.db import get_db
 from app.modules.graph.neo4j_client import get_driver
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -109,19 +110,66 @@ async def test_analyze_cv_skill_gap(
             career_id=career_id
         )
         
+        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING (ASYNC) ────
+        # Run in background thread to not block response
+        import threading
+        def create_mentee_profile_async():
+            try:
+                from app.modules.mentor_matching.service import MentorMatchingService
+                from app.core.db import SessionLocal
+                
+                # Create new DB session for background thread
+                bg_db = SessionLocal()
+                try:
+                    mentor_service = MentorMatchingService(bg_db, neo4j_driver)
+                    
+                    # Try to create/update mentee profile from CV data
+                    mentee_profile = mentor_service.create_mentee_profile_from_user_data(test_user_id)
+                    print(f"[Mentor Matching] ✓ Auto-created/updated mentee profile for test user {test_user_id}")
+                finally:
+                    bg_db.close()
+                    
+            except Exception as mentor_err:
+                # Don't fail the whole request if mentor profile creation fails
+                print(f"[Mentor Matching] ✗ Failed to auto-create mentee profile: {mentor_err}")
+        
+        # Start background thread
+        thread = threading.Thread(target=create_mentee_profile_async, daemon=True)
+        thread.start()
+        
         return {
             'success': True,
             'message': 'CV analyzed successfully (TEST MODE)',
             'test_user_id': test_user_id,
             'data': result
         }
+    except ValueError as ve:
+        # Handle validation errors (not CV, wrong format, etc.)
+        error_msg = str(ve)
+        print(f"[Validation Error] {error_msg}")
+        raise HTTPException(
+            status_code=422,  # Unprocessable Entity
+            detail={
+                'error': 'validation_failed',
+                'message': error_msg,
+                'message_en': 'File validation failed',
+                'suggestions': [
+                    'Đảm bảo file là CV/Resume thật sự',
+                    'Không upload ảnh báo chí, menu, hóa đơn',
+                    'CV cần có: tên, email, kỹ năng, kinh nghiệm',
+                    'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX'
+                ]
+            }
+        )
     except Exception as e:
+        try:
+            db.rollback()
+        except Exception:
+            pass
         import traceback
-        error_details = traceback.format_exc()
-        
         raise HTTPException(
             status_code=500,
-            detail=f"Error analyzing CV: {str(e)}\n\nDetails:\n{error_details}"
+            detail=f"Error analyzing CV: {str(e)}\n\n{traceback.format_exc()}"
         )
 
 
@@ -233,12 +281,12 @@ async def analyze_cv_skill_gap(
             )
         
         # Log usage cho paid plans
-        print(f"✅ User {user_id} ({plan_name}) accessing Skill Gap Analysis")
+        print(f"[OK] User {user_id} ({plan_name}) accessing Skill Gap Analysis")
         
     except HTTPException:
         raise  # Re-raise HTTP exceptions
     except Exception as e:
-        print(f"⚠️ Subscription check error: {e}")
+        print(f"[WARN] Subscription check error: {e}")
         # Nếu có lỗi kiểm tra subscription, vẫn cho phép (fallback)
         pass
     # TC-CV-01: Validate file type
@@ -309,12 +357,62 @@ async def analyze_cv_skill_gap(
             career_id=career_id
         )
         
+        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING (ASYNC) ────
+        # Run in background thread to not block response
+        import threading
+        def create_mentee_profile_async():
+            try:
+                from app.modules.mentor_matching.service import MentorMatchingService
+                from app.core.db import SessionLocal
+                
+                # Create new DB session for background thread
+                bg_db = SessionLocal()
+                try:
+                    mentor_service = MentorMatchingService(bg_db, neo4j_driver)
+                    
+                    # Try to create/update mentee profile from CV data
+                    mentee_profile = mentor_service.create_mentee_profile_from_user_data(user_id)
+                    print(f"[Mentor Matching] ✓ Auto-created/updated mentee profile for user {user_id}")
+                finally:
+                    bg_db.close()
+                    
+            except Exception as mentor_err:
+                # Don't fail the whole request if mentor profile creation fails
+                print(f"[Mentor Matching] ✗ Failed to auto-create mentee profile: {mentor_err}")
+        
+        # Start background thread
+        thread = threading.Thread(target=create_mentee_profile_async, daemon=True)
+        thread.start()
+        
         return {
             'success': True,
             'message': 'CV analyzed successfully',
             'data': result
         }
+    except ValueError as ve:
+        # Handle validation errors (not CV, wrong format, etc.)
+        error_msg = str(ve)
+        print(f"[Validation Error] {error_msg}")
+        raise HTTPException(
+            status_code=422,  # Unprocessable Entity
+            detail={
+                'error': 'validation_failed',
+                'message': error_msg,
+                'message_en': 'File validation failed',
+                'suggestions': [
+                    'Đảm bảo file là CV/Resume thật sự',
+                    'Không upload ảnh báo chí, menu, hóa đơn',
+                    'CV cần có: tên, email, kỹ năng, kinh nghiệm',
+                    'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX'
+                ]
+            }
+        )
     except Exception as e:
+        # Rollback any aborted transaction
+        try:
+            db.rollback()
+        except Exception:
+            pass
         raise HTTPException(
             status_code=500,
             detail=f"Error analyzing CV: {str(e)}"
@@ -548,10 +646,8 @@ async def get_learning_plan(
     neo4j_driver = Depends(get_neo4j_driver)
 ):
     """
-    Tạo lộ trình học tập chi tiết (AI-generated) dựa trên skill gap analysis.
-    - Phân chia theo giai đoạn (phase)
-    - Gợi ý khóa học, tài liệu cụ thể
-    - Ước tính thời gian học
+    Tạo lộ trình học tập chi tiết (AI-generated). Kết quả được cache vào DB —
+    lần đầu gọi AI, các lần sau trả thẳng từ DB (không tốn token).
     """
     service = SkillGapService(db, neo4j_driver)
     analysis = service.get_analysis_by_id(analysis_id, user_id)
@@ -559,7 +655,20 @@ async def get_learning_plan(
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
 
-    # Build skill gap summary for Gemini
+    # ── CACHE HIT: trả ngay nếu đã có ────────────────────────────
+    if analysis.learning_plan_cache:
+        print(f"[learning-plan] Cache hit for analysis {analysis_id} — skipping AI call")
+        return {
+            'success': True,
+            'analysis_id': analysis_id,
+            'career_id': analysis.career_id,
+            'plan': analysis.learning_plan_cache,
+            'from_cache': True,
+        }
+
+    # ── CACHE MISS: gọi AI ────────────────────────────────────────
+    print(f"[learning-plan] Cache miss for analysis {analysis_id} — calling AI")
+
     critical = analysis.skill_gaps.get('critical', [])
     important = analysis.skill_gaps.get('important', [])
     nice_to_have = analysis.skill_gaps.get('nice_to_have', [])
@@ -600,19 +709,38 @@ Trả về JSON (không có text ngoài JSON):
 }}
 Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
 
+    def _save_cache(plan: dict):
+        """Lưu kết quả AI vào DB để dùng lại sau.
+        Phải dùng flag_modified vì SQLAlchemy không tự detect thay đổi JSONB.
+        """
+        try:
+            from sqlalchemy.orm.attributes import flag_modified
+            from sqlalchemy import text as _text
+            db.execute(
+                _text("UPDATE core.skill_gap_analyses SET learning_plan_cache = :plan WHERE id = :id"),
+                {"plan": _to_json(plan), "id": analysis_id}   # orjson — faster
+            )
+            db.commit()
+            analysis.learning_plan_cache = plan
+            flag_modified(analysis, "learning_plan_cache")
+            print(f"[learning-plan] Cache saved for analysis {analysis_id}")
+        except Exception as e:
+            print(f"[learning-plan] Failed to save cache: {e}")
+            db.rollback()
+
     try:
         from app.core.gemini_manager import multi_stream_manager
+        import re
         stream = multi_stream_manager.get_cv_stream()
         raw = stream.generate_content_with_retry(prompt, max_output_tokens=3000, temperature=0.4)
 
         if raw:
-            import json as _json
-            import re
             cleaned = raw.strip()
             cleaned = re.sub(r'^```(?:json)?', '', cleaned).rstrip('`').strip()
             m = re.search(r'\{.*\}', cleaned, re.DOTALL)
             if m:
-                plan = _json.loads(m.group())
+                plan = _from_json(m.group())   # orjson parse
+                _save_cache(plan)
                 return {'success': True, 'analysis_id': analysis_id, 'career_id': analysis.career_id, 'plan': plan}
     except Exception as e:
         print(f"Learning plan AI error: {e}")
@@ -639,17 +767,120 @@ Tạo 3-4 phases, mỗi phase 2-4 resources cụ thể có tên thật."""
                 {'name': f'Tài liệu {important_names[0]}', 'platform': 'YouTube', 'type': 'video', 'level': 'intermediate', 'free': True}
             ] if important_names else []
         })
+    fallback_plan = {
+        'total_weeks': 12,
+        'summary': f'Lộ trình {12} tuần để đạt mục tiêu {analysis.career_id}.',
+        'phases': phases,
+        'milestones': [
+            {'week': 4, 'title': 'Hoàn thành kỹ năng nền tảng', 'description': 'Nắm vững các kỹ năng Critical'},
+            {'week': 8, 'title': 'Hoàn thành kỹ năng quan trọng', 'description': 'Sẵn sàng apply'},
+            {'week': 12, 'title': 'Sẵn sàng phỏng vấn', 'description': 'Match rate > 80%'}
+        ]
+    }
+    _save_cache(fallback_plan)
     return {
         'success': True, 'analysis_id': analysis_id,
         'career_id': analysis.career_id,
-        'plan': {
-            'total_weeks': 12,
-            'summary': f'Lộ trình {12} tuần để đạt mục tiêu {analysis.career_id}.',
-            'phases': phases,
-            'milestones': [
-                {'week': 4, 'title': 'Hoàn thành kỹ năng nền tảng', 'description': 'Nắm vững các kỹ năng Critical'},
-                {'week': 8, 'title': 'Hoàn thành kỹ năng quan trọng', 'description': 'Sẵn sàng apply'},
-                {'week': 12, 'title': 'Sẵn sàng phỏng vấn', 'description': 'Match rate > 80%'}
-            ]
-        }
+        'plan': fallback_plan,
+    }
+
+
+# ── Feedback endpoints (Thompson Sampling) ───────────────────────
+
+from pydantic import BaseModel
+
+class FeedbackPayload(BaseModel):
+    item_type: str   # 'skill' | 'career' | 'job'
+    item_name: str
+    event_type: str  # 'click' | 'like' | 'dislike'
+    analysis_id: int | None = None
+
+
+@router.post("/feedback", summary="Ghi nhận click/like để điều chỉnh gợi ý (Thompson Sampling)")
+def record_feedback(
+    payload: FeedbackPayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Người dùng click hoặc like một kỹ năng/nghề nghiệp được gợi ý.
+    Thompson Sampling dùng signal này để cá nhân hoá gợi ý tiếp theo.
+    """
+    from app.core.auth_deps import get_current_user_from_token
+    from app.modules.auth.models import User
+
+    token = request.headers.get("authorization", "").replace("Bearer ", "")
+    try:
+        from app.core.jwt import decode_access_token
+        payload_jwt = decode_access_token(token)
+        user_id = int(payload_jwt.get("sub", 0))
+    except Exception:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    if payload.event_type not in ("click", "like", "dislike"):
+        raise HTTPException(400, "event_type must be click | like | dislike")
+
+    from .thompson_sampling import record_event, ensure_feedback_table
+    ensure_feedback_table(db)
+    record_event(
+        db, user_id,
+        payload.item_type,
+        payload.item_name,
+        payload.event_type,
+        payload.analysis_id,
+    )
+    return {"recorded": True, "item": payload.item_name, "event": payload.event_type}
+
+
+@router.get("/priority-skills/{analysis_id}", summary="Top kỹ năng ưu tiên sau NeuMF + Thompson Sampling")
+def get_priority_skills(
+    analysis_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Trả về danh sách kỹ năng ưu tiên được xếp hạng bởi NeuMF và
+    điều chỉnh theo Thompson Sampling dựa trên feedback cá nhân.
+    """
+    from app.core.jwt import decode_access_token
+    token = request.headers.get("authorization", "").replace("Bearer ", "")
+    try:
+        payload_jwt = decode_access_token(token)
+        user_id = int(payload_jwt.get("sub", 0))
+    except Exception:
+        raise HTTPException(401, "Unauthorized")
+
+    from .models import SkillGapAnalysis
+    from sqlalchemy import text as _text
+
+    analysis = db.query(SkillGapAnalysis).filter(
+        SkillGapAnalysis.id == analysis_id,
+        SkillGapAnalysis.user_id == user_id,
+    ).first()
+    if not analysis:
+        raise HTTPException(404, "Analysis not found")
+
+    # Check if NeuMF already ran (stored in skill_gaps JSONB)
+    gaps = analysis.skill_gaps or {}
+    if isinstance(gaps, dict) and "neumf_priority" in gaps:
+        priority = gaps["neumf_priority"]
+        if isinstance(priority, str):
+            import json
+            priority = json.loads(priority)
+    else:
+        # Fallback: build from critical gaps
+        critical = gaps.get("critical", []) if isinstance(gaps, dict) else []
+        priority = [{"name": s.get("name", s) if isinstance(s, dict) else s, "score": 0.7} for s in critical[:10]]
+
+    # Apply Thompson Sampling adjustment
+    names = [p.get("name", "") for p in priority if p.get("name")]
+    if names and user_id:
+        from .thompson_sampling import rerank_with_thompson, ensure_feedback_table
+        ensure_feedback_table(db)
+        priority = rerank_with_thompson(db, user_id, "skill", priority, score_key="score", name_key="name")
+
+    return {
+        "analysis_id": analysis_id,
+        "priority_skills": priority[:15],
+        "ranking_method": "NeuMF + Thompson Sampling",
     }

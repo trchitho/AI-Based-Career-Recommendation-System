@@ -20,10 +20,10 @@ const Big5Page6Strengths = ({ strengths, challenges }: Big5Page6StrengthsProps) 
             {/* Page Header - Larger for conclusion section */}
             <div className="mb-5 print:mb-4 flex-shrink-0">
                 <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white print:text-xl">
-                    Strengths & Potential Challenges
+                    Điểm Mạnh & Thách Thức
                 </h2>
                 <p className="text-base text-gray-500 dark:text-gray-400 print:text-sm">
-                    Based on your behavioral patterns across all six dimensions
+                    Dựa trên các mẫu hành vi của bạn trên cả sáu chiều
                 </p>
             </div>
 
@@ -32,19 +32,19 @@ const Big5Page6Strengths = ({ strengths, challenges }: Big5Page6StrengthsProps) 
                 {/* Strengths Section */}
                 <section className="mb-5 print:mb-4 flex-shrink-0">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 print:text-base print:mb-2">
-                        <span className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 print:w-5 print:h-5">
+                        <span className="w-6 h-6 bg-indigo-700 rounded-full flex items-center justify-center flex-shrink-0 print:w-5 print:h-5">
                             <svg className="w-4 h-4 text-white print:w-3 print:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
                         </span>
-                        Your Personal Strengths
+                        Điểm Mạnh Cá Nhân
                     </h3>
 
-                    <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100 dark:border-green-800/30 print:p-3">
+                    <div className="bg-indigo-50 dark:bg-indigo-950/20 rounded-lg p-4 border border-indigo-100 dark:border-indigo-800/30 print:p-3">
                         <div className="space-y-3 text-gray-700 dark:text-gray-300 leading-relaxed text-base print:text-sm print:space-y-2">
                             {strengths.map((strength, index) => (
                                 <p key={index}>
-                                    <span className="font-bold text-green-700 dark:text-green-400">
+                                    <span className="font-bold text-indigo-900 dark:text-indigo-400">
                                         {index + 1}.
                                     </span>{' '}
                                     {strength}
@@ -62,7 +62,7 @@ const Big5Page6Strengths = ({ strengths, challenges }: Big5Page6StrengthsProps) 
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                         </span>
-                        Potential Challenges
+                        Thách Thức Tiềm Năng
                     </h3>
 
                     <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-100 dark:border-amber-800/30 print:p-3">
@@ -82,9 +82,9 @@ const Big5Page6Strengths = ({ strengths, challenges }: Big5Page6StrengthsProps) 
                 {/* Note on Development */}
                 <div className="mt-auto p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 print:p-3 flex-shrink-0">
                     <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed print:text-sm">
-                        <span className="font-bold">Note:</span> These challenges are growth opportunities,
-                        not fixed limitations. While core traits remain stable, behavioral patterns can be
-                        adapted through awareness and practice.
+                        <span className="font-bold">Lưu ý:</span> Những thách thức này là cơ hội phát triển,
+                        không phải giới hạn cố định. Mặc dù các đặc điểm cốt lõi vẫn ổn định, các mẫu hành vi có thể
+                        được điều chỉnh thông qua nhận thức và thực hành.
                     </p>
                 </div>
             </div>

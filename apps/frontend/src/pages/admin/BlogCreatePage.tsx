@@ -54,14 +54,14 @@ const BlogCreatePage = () => {
         `}</style>
 
       {/* Background Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-green-500/5 dark:bg-green-500/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-700/5 dark:bg-indigo-700/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
-            Tạo Blog <span className="text-green-600 dark:text-green-500">Mới</span>
+            Tạo Blog <span className="text-indigo-800 dark:text-indigo-700">Mới</span>
           </h1>
           <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
             Chia sẻ kiến thức và kinh nghiệm của bạn với cộng đồng
@@ -90,7 +90,7 @@ const BlogCreatePage = () => {
                 value={formData.title}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Nhập tiêu đề blog..."
               />
             </div>
@@ -106,7 +106,7 @@ const BlogCreatePage = () => {
                 onChange={handleInputChange}
                 required
                 rows={12}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Viết nội dung blog bằng Markdown..."
               />
             </div>
@@ -121,7 +121,7 @@ const BlogCreatePage = () => {
                 value={formData.excerpt}
                 onChange={handleInputChange}
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Tóm tắt ngắn gọn về blog..."
               />
             </div>
@@ -138,14 +138,16 @@ const BlogCreatePage = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="">Chọn danh mục</option>
-                  <option value="Career Advice">Lời khuyên nghề nghiệp</option>
-                  <option value="Job Search">Tìm kiếm việc làm</option>
-                  <option value="Interview Tips">Mẹo phỏng vấn</option>
-                  <option value="Skill Development">Phát triển kỹ năng</option>
-                  <option value="Industry Insights">Thông tin ngành</option>
+                  <option value="career">Tư vấn nghề nghiệp</option>
+                  <option value="interview">Mẹo phỏng vấn</option>
+                  <option value="resume">Viết CV</option>
+                  <option value="culture">Văn hóa công sở</option>
+                  <option value="skills">Phát triển kỹ năng</option>
+                  <option value="jobs">Tìm việc làm</option>
+                  <option value="industry">Góc nhìn ngành</option>
                 </select>
               </div>
 
@@ -159,7 +161,7 @@ const BlogCreatePage = () => {
                   name="tags"
                   value={formData.tags}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="career, job, interview, skills"
                 />
               </div>
@@ -175,7 +177,7 @@ const BlogCreatePage = () => {
                 name="featured_image"
                 value={formData.featured_image}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="https://example.com/image.jpg"
               />
             </div>
@@ -187,7 +189,7 @@ const BlogCreatePage = () => {
                 name="is_published"
                 checked={formData.is_published}
                 onChange={handleInputChange}
-                className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                className="w-4 h-4 text-indigo-800 bg-gray-100 border-gray-300 rounded focus:ring-indigo-600 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
               <label className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Xuất bản ngay lập tức
@@ -199,7 +201,7 @@ const BlogCreatePage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-1 disabled:hover:translate-y-0"
+                className="flex-1 bg-indigo-800 hover:bg-indigo-900 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-1 disabled:hover:translate-y-0"
               >
                 {loading ? 'Đang tạo...' : 'Tạo Blog'}
               </button>

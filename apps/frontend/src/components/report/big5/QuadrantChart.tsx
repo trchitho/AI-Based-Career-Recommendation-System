@@ -33,37 +33,37 @@ const LABEL_COLORS: Record<string, ColorDef> = {
     // Problem-Solving facet labels (order: innovator, humanitarian, caretaker, pragmatist)
     'innovator': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },      // Purple
     'humanitarian': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },   // Blue
-    'caretaker': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },      // Green
+    'caretaker': { bg: 'rgba(26,35,126, 0.75)', border: '#10B981' },      // Green
     'pragmatist': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },     // Amber
 
     // Motivation facet labels (order: ambitious, excitable, dutiful, casual)
     'ambitious': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },      // Purple
     'excitable': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },      // Blue
-    'dutiful': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },        // Green
+    'dutiful': { bg: 'rgba(26,35,126, 0.75)', border: '#10B981' },        // Green
     'casual': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },         // Amber
 
     // Interaction facet labels (order: gregarious, dominant, supportive, independent)
     'gregarious': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },     // Purple
     'dominant': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },       // Blue
-    'supportive': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },     // Green
+    'supportive': { bg: 'rgba(26,35,126, 0.75)', border: '#10B981' },     // Green
     'independent': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },    // Amber
 
     // Communication facet labels (order: inspiring, informative, insightful, concise)
     'inspiring': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },      // Purple
     'informative': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },    // Blue
-    'insightful': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },     // Green
+    'insightful': { bg: 'rgba(26,35,126, 0.75)', border: '#10B981' },     // Green
     'concise': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },        // Amber
 
     // Teamwork facet labels (order: taskmaster, empath, improviser, cooperator)
     'taskmaster': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },     // Purple
     'empath': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },         // Blue
-    'improviser': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },     // Green
+    'improviser': { bg: 'rgba(26,35,126, 0.75)', border: '#10B981' },     // Green
     'cooperator': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },     // Amber
 
     // Task Management facet labels (order: director, visionary, inspector, responder)
     'director': { bg: 'rgba(139, 92, 246, 0.85)', border: '#8B5CF6' },       // Purple
     'visionary': { bg: 'rgba(59, 130, 246, 0.75)', border: '#3B82F6' },      // Blue
-    'inspector': { bg: 'rgba(16, 185, 129, 0.75)', border: '#10B981' },      // Green
+    'inspector': { bg: 'rgba(26,35,126, 0.75)', border: '#10B981' },      // Green
     'responder': { bg: 'rgba(245, 158, 11, 0.75)', border: '#F59E0B' },      // Amber
 };
 

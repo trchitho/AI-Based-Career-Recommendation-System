@@ -1,0 +1,251 @@
+/* STAR Method Guide - Light & Dark Mode */
+
+/* Container */
+.star-guide-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 0.5rem;
+}
+
+html.dark .star-guide-container {
+    background: rgba(30, 41, 59, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Header */
+.star-guide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.star-guide-header:hover {
+    background: var(--bg-hover);
+}
+
+html.dark .star-guide-header:hover {
+    background: rgba(30, 41, 59, 0.9);
+}
+
+.star-guide-icon-wrapper {
+    padding: 0.5rem;
+    background: #fef3c7;
+    border-radius: 0.5rem;
+}
+
+html.dark .star-guide-icon-wrapper {
+    background: rgba(251, 191, 36, 0.2);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.star-guide-icon {
+    color: #d97706;
+}
+
+html.dark .star-guide-icon {
+    color: #fbbf24;
+}
+
+.star-guide-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+html.dark .star-guide-title {
+    color: #ffffff;
+}
+
+.star-guide-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+html.dark .star-guide-subtitle {
+    color: #94a3b8;
+}
+
+.star-guide-chevron {
+    color: var(--text-muted);
+}
+
+html.dark .star-guide-chevron {
+    color: #64748b;
+}
+
+/* Content */
+.star-guide-content {
+    padding: 0 1rem 1rem;
+    border-top: 1px solid var(--border-subtle);
+}
+
+html.dark .star-guide-content {
+    border-top-color: rgba(255, 255, 255, 0.05);
+}
+
+/* STAR Steps */
+.star-step-letter {
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    border: 2px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.star-step-blue {
+    background: #dbeafe;
+    color: #2563eb;
+    border-color: #bfdbfe;
+}
+
+html.dark .star-step-blue {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.star-step-indigo {
+    background: #e0e7ff;
+    color: #4f46e5;
+    border-color: #c7d2fe;
+}
+
+html.dark .star-step-indigo {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818cf8;
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+.star-step-orange {
+    background: #fed7aa;
+    color: #ea580c;
+    border-color: #fdba74;
+}
+
+html.dark .star-step-orange {
+    background: rgba(249, 115, 22, 0.2);
+    color: #fb923c;
+    border-color: rgba(249, 115, 22, 0.4);
+}
+
+.star-step-purple {
+    background: #e9d5ff;
+    color: #9333ea;
+    border-color: #d8b4fe;
+}
+
+html.dark .star-step-purple {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border-color: rgba(168, 85, 247, 0.4);
+}
+
+.star-step-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+html.dark .star-step-title {
+    color: #ffffff;
+}
+
+.star-step-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+html.dark .star-step-description {
+    color: #94a3b8;
+}
+
+.star-step-example {
+    background: var(--bg-muted);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+}
+
+html.dark .star-step-example {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.star-step-example-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+html.dark .star-step-example-text {
+    color: #94a3b8;
+}
+
+/* Info Boxes */
+.star-benefits-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #eff6ff;
+    border-radius: 0.5rem;
+}
+
+html.dark .star-benefits-box {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.star-benefits-title {
+    font-weight: 500;
+    color: #1e40af;
+    margin-bottom: 0.5rem;
+}
+
+html.dark .star-benefits-title {
+    color: #60a5fa;
+}
+
+.star-benefits-list {
+    font-size: 0.875rem;
+    color: #1e40af;
+}
+
+html.dark .star-benefits-list {
+    color: #93c5fd;
+}
+
+.star-tips-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f0fdf4;
+    border-radius: 0.5rem;
+}
+
+html.dark .star-tips-box {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.star-tips-title {
+    font-weight: 500;
+    color: #065f46;
+    margin-bottom: 0.5rem;
+}
+
+html.dark .star-tips-title {
+    color: #34d399;
+}
+
+.star-tips-list {
+    font-size: 0.875rem;
+    color: #065f46;
+}
+
+html.dark .star-tips-list {
+    color: #6ee7b7;
+}

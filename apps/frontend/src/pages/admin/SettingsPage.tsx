@@ -8,12 +8,12 @@ import { adminService } from '../../services/adminService';
 import AppFooter from '../../components/layout/AppFooter';
 import type { FooterConfig, FooterItem, FooterColumn } from '../../components/layout/AppFooter';
 
-const inputCls = "w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition";
+const inputCls = "w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition";
 
 const Section = ({ icon, title, desc, children }: { icon: React.ReactNode; title: string; desc?: string; children: React.ReactNode }) => (
   <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
     <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-      <span className="text-green-600">{icon}</span>
+      <span className="text-indigo-800">{icon}</span>
       <div>
         <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{title}</h3>
         {desc && <p className="text-xs text-gray-400 mt-0.5">{desc}</p>}
@@ -31,19 +31,19 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 );
 
 const defaultFooter: FooterConfig = {
-  brand_desc: 'CareerBridge AI giúp bạn xây dựng CV chuyên nghiệp, phân tích kỹ năng và tìm con đường sự nghiệp hoàn hảo bằng trí tuệ nhân tạo tiên tiến.',
+  brand_desc: 'CareerVerse AI giúp bạn xây dựng CV chuyên nghiệp, phân tích kỹ năng và tìm con đường sự nghiệp hoàn hảo bằng trí tuệ nhân tạo tiên tiến.',
   columns: [
     { title: 'Sản phẩm', items: [{ label: 'Tính năng', href: '/features' }, { label: 'Bảng giá', href: '/pricing' }, { label: 'Đánh giá', href: '/assessment' }] },
     { title: 'Tài nguyên', items: [{ label: 'Bài viết', href: '/blog' }, { label: 'Hướng dẫn nghề nghiệp', href: '/guide' }, { label: 'Trung tâm trợ giúp', href: '/help' }] },
     { title: 'Pháp lý', items: [{ label: 'Chính sách bảo mật', href: '/privacy' }, { label: 'Điều khoản', href: '/terms' }] },
   ],
   social_links: [
-    { label: 'Twitter', href: '#' },
-    { label: 'GitHub', href: '#' },
-    { label: 'LinkedIn', href: '#' },
-    { label: 'Discord', href: '#' },
+    { label: 'Twitter', href: '' },
+    { label: 'GitHub', href: '' },
+    { label: 'LinkedIn', href: '' },
+    { label: 'Discord', href: '' },
   ],
-  copyright: `© ${new Date().getFullYear()} CareerBridge AI. Bảo lưu mọi quyền.`,
+  copyright: `© ${new Date().getFullYear()} CareerVerse AI. Bảo lưu mọi quyền.`,
 };
 
 const SettingsPage = () => {
@@ -121,18 +121,18 @@ const SettingsPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen">
+    <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Settings size={24} className="text-green-600" />
+            <Settings size={24} className="text-indigo-800" />
             Cài đặt hệ thống
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -143,14 +143,14 @@ const SettingsPage = () => {
           <button onClick={load} className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
             <RefreshCw size={14} /> Tải lại
           </button>
-          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors">
+          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-5 py-2 bg-indigo-800 hover:bg-indigo-900 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors">
             {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Đang lưu...</> : <><Save size={15} /> Lưu thay đổi</>}
           </button>
         </div>
       </div>
 
       {saved && (
-        <div className="mb-4 flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-400 text-sm">
+        <div className="mb-4 flex items-center gap-2 p-3 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg text-indigo-900 dark:text-indigo-400 text-sm">
           <CheckCircle size={16} /> Đã lưu thành công! Footer đã được cập nhật trên toàn trang.
         </div>
       )}
@@ -167,14 +167,14 @@ const SettingsPage = () => {
             <Field label="Tên đầy đủ (App Title)">
               <div className="relative">
                 <Type size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input className={inputCls + " pl-9"} placeholder="VD: CareerBridge AI System"
+                <input className={inputCls + " pl-9"} placeholder="VD: CareerVerse AI System"
                   value={form.app_title || ''} onChange={e => setForm(f => ({ ...f, app_title: e.target.value }))} />
               </div>
             </Field>
             <Field label="Tên ngắn (App Name)">
               <div className="relative">
                 <Type size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input className={inputCls + " pl-9"} placeholder="VD: CareerBridge"
+                <input className={inputCls + " pl-9"} placeholder="VD: CareerVerse"
                   value={form.app_name || ''} onChange={e => setForm(f => ({ ...f, app_name: e.target.value }))} />
               </div>
             </Field>
@@ -229,7 +229,7 @@ const SettingsPage = () => {
             <Field label="Bản quyền (copyright)">
               <div className="relative">
                 <FileText size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input className={inputCls + " pl-9"} placeholder={`© ${new Date().getFullYear()} CareerBridge AI. Bảo lưu mọi quyền.`}
+                <input className={inputCls + " pl-9"} placeholder={`© ${new Date().getFullYear()} CareerVerse AI. Bảo lưu mọi quyền.`}
                   value={footer.copyright || ''} onChange={e => setFooter(f => ({ ...f, copyright: e.target.value }))} />
               </div>
             </Field>
@@ -238,7 +238,7 @@ const SettingsPage = () => {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Mạng xã hội</label>
-                <button onClick={addSocial} className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 hover:text-green-700 font-medium">
+                <button onClick={addSocial} className="flex items-center gap-1 text-xs text-indigo-800 dark:text-indigo-400 hover:text-indigo-900 font-medium">
                   <Plus size={12} /> Thêm
                 </button>
               </div>
@@ -262,7 +262,7 @@ const SettingsPage = () => {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Cột điều hướng</label>
-                <button onClick={addColumn} className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 hover:text-green-700 font-medium">
+                <button onClick={addColumn} className="flex items-center gap-1 text-xs text-indigo-800 dark:text-indigo-400 hover:text-indigo-900 font-medium">
                   <Plus size={12} /> Thêm cột
                 </button>
               </div>
@@ -291,7 +291,7 @@ const SettingsPage = () => {
                           <button onClick={() => removeItem(ci, ii)} className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg flex-shrink-0"><Trash2 size={13} /></button>
                         </div>
                       ))}
-                      <button onClick={() => addItem(ci)} className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 hover:text-green-700 font-medium mt-1">
+                      <button onClick={() => addItem(ci)} className="flex items-center gap-1 text-xs text-indigo-800 dark:text-indigo-400 hover:text-indigo-900 font-medium mt-1">
                         <Plus size={12} /> Thêm liên kết
                       </button>
                     </div>
@@ -308,7 +308,7 @@ const SettingsPage = () => {
             onClick={() => setShowPreview(v => !v)}
             className="w-full flex items-center justify-between px-5 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <span className="flex items-center gap-2"><Eye size={16} className="text-green-600" /> Xem trước Footer</span>
+            <span className="flex items-center gap-2"><Eye size={16} className="text-indigo-800" /> Xem trước Footer</span>
             {showPreview ? <EyeOff size={15} className="text-gray-400" /> : <Eye size={15} className="text-gray-400" />}
           </button>
           {showPreview && (
@@ -318,7 +318,7 @@ const SettingsPage = () => {
                 <div className="max-w-4xl mx-auto px-6">
                   <div className={`grid grid-cols-2 gap-6 mb-8 ${(footer.columns || []).length <= 2 ? 'md:grid-cols-3' : 'md:grid-cols-5'}`}>
                     <div className="col-span-2">
-                      <span className="font-extrabold text-xl text-gray-900 dark:text-white">career<span className="text-green-600">bridge</span><span className="text-green-600 text-2xl">.</span></span>
+                      <span className="font-extrabold text-xl text-gray-900 dark:text-white">career<span className="text-indigo-800">verse</span><span className="text-indigo-800 text-2xl">.</span></span>
                       <p className="mt-3 text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-xs">{footer.brand_desc}</p>
                     </div>
                     {(footer.columns || []).map((col, i) => (
@@ -347,7 +347,7 @@ const SettingsPage = () => {
         {/* Save bottom */}
         <div className="flex justify-end pt-2 pb-10">
           <button onClick={handleSave} disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-semibold rounded-lg transition-colors">
+            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-800 hover:bg-indigo-900 disabled:opacity-60 text-white font-semibold rounded-lg transition-colors">
             {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Đang lưu...</> : <><Save size={16} /> Lưu thay đổi</>}
           </button>
         </div>

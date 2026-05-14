@@ -54,13 +54,13 @@ def test_api_endpoint(job_id: str, description: str):
 
                 print(f"   🎯 Likely Source: {likely_source}")
             else:
-                print("   ❌ No skills returned")
+                print("   [ERR] No skills returned")
         else:
-            print(f"   ❌ API Error: {response.status_code}")
+            print(f"   [ERR] API Error: {response.status_code}")
             print(f"   Response: {response.text[:200]}...")
 
     except Exception as e:
-        print(f"   ❌ Request failed: {e}")
+        print(f"   [ERR] Request failed: {e}")
 
 
 def main():

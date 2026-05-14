@@ -24,7 +24,12 @@ logger = logging.getLogger(__name__)
 
 AI_CORE_URL = os.getenv("AI_CORE_URL", "http://localhost:9000")
 EMBEDDING_DIM = 768
-_GEMINI_EMBED_MODEL = "models/text-embedding-004"
+_GEMINI_EMBED_MODELS = [
+    m.strip()
+    for m in os.getenv("GEMINI_EMBEDDING_MODELS", "models/embedding-001,text-embedding-004").split(",")
+    if m.strip()
+]
+_gemini_embed_unavailable = False
 
 RIASEC_KEYS = ["realistic", "investigative", "artistic", "social", "enterprising", "conventional"]
 BIG5_KEYS   = ["openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"]
@@ -96,20 +101,34 @@ def get_embedding(text_input: str, task_type: str = "RETRIEVAL_DOCUMENT") -> lis
         logger.debug(f"[NLP] AI-core /ai/encode unavailable: {e}")
 
     # 2) Fallback: Gemini embed
+    global _gemini_embed_unavailable
+    if _gemini_embed_unavailable:
+        return []
+
     api_key = _gemini_api_key()
     if not api_key:
         return []
     try:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        result = genai.embed_content(
-            model=_GEMINI_EMBED_MODEL,
-            content=text_input[:2000],
-            task_type=task_type,
-        )
-        emb = result.get("embedding") or result["embedding"]
-        return emb if emb else []
+        last_error: Exception | None = None
+        for model_name in _GEMINI_EMBED_MODELS:
+            try:
+                result = genai.embed_content(
+                    model=model_name,
+                    content=text_input[:2000],
+                    task_type=task_type,
+                )
+                emb = result.get("embedding") if isinstance(result, dict) else None
+                if emb:
+                    return emb
+            except Exception as e:
+                last_error = e
+                logger.debug(f"[NLP] Gemini embed model {model_name} failed: {e}")
+        if last_error:
+            raise last_error
     except Exception as e:
+        _gemini_embed_unavailable = True
         logger.warning(f"[NLP] Gemini embed_content failed: {e}")
         return []
 
@@ -118,7 +137,7 @@ def get_embedding(text_input: str, task_type: str = "RETRIEVAL_DOCUMENT") -> lis
 #  PB32 — Essay Analysis (PhoBERT → Gemini fallback)
 # ─────────────────────────────────────────────────────────────
 
-def _analyze_via_aicore(essay_text: str, lang: str = "auto") -> dict | None:
+def _analyze_via_aicore(essay_text: str, lang: str = "vi") -> dict | None:
     """Try AI-core PhoBERT service. Returns None if unavailable."""
     try:
         res = requests.post(
@@ -222,7 +241,7 @@ def _essay_cache_key(essay_text: str, lang: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-def analyze_essay(essay_text: str, lang: str = "auto") -> dict:
+def analyze_essay(essay_text: str, lang: str = "vi") -> dict:
     """
     PB32 - Main entry: analyze essay → RIASEC + Big5 + embedding.
     Tries PhoBERT AI-core first, falls back to Gemini.
@@ -286,7 +305,7 @@ def store_user_embedding(
     source: str = "essay",
     model_name: str = "gemini-text-embedding-004",
 ) -> bool:
-    """Store user essay embedding in ai.user_embeddings (upsert by user_id + source)."""
+    """Store latest user embedding in ai.user_embeddings (one vector per user)."""
     if not embedding or len(embedding) != EMBEDDING_DIM:
         return False
     vec_str = _vec_to_pg(embedding)
@@ -294,14 +313,15 @@ def store_user_embedding(
         ensure_pgvector_schema(session)
         session.execute(text("""
             INSERT INTO ai.user_embeddings (user_id, emb, source, model_name, built_at)
-            VALUES (:uid, :emb::vector(768), :src, :model, NOW())
-            ON CONFLICT DO NOTHING
-        """), {"uid": user_id, "emb": vec_str, "src": source, "model": model_name})
-        # Always update to latest
-        session.execute(text("""
-            UPDATE ai.user_embeddings
-            SET emb = :emb::vector(768), model_name = :model, built_at = NOW()
-            WHERE user_id = :uid AND source = :src
+            VALUES (:uid, CAST(:emb AS vector(768)), :src, :model, NOW())
+            ON CONFLICT (user_id) DO UPDATE
+              SET emb = EXCLUDED.emb,
+                  source = EXCLUDED.source,
+                  model_name = EXCLUDED.model_name,
+                  built_at = NOW()
+            WHERE ai.user_embeddings.source IS DISTINCT FROM EXCLUDED.source
+               OR ai.user_embeddings.model_name IS DISTINCT FROM EXCLUDED.model_name
+               OR ai.user_embeddings.emb IS DISTINCT FROM EXCLUDED.emb
         """), {"uid": user_id, "emb": vec_str, "src": source, "model": model_name})
         return True
     except Exception as e:
@@ -313,7 +333,7 @@ def analyze_and_store(
     session: Session,
     user_id: int,
     essay_text: str,
-    lang: str = "auto",
+    lang: str = "vi",
 ) -> dict:
     """
     PB32+PB34: Full pipeline — analyze essay then persist embedding.
@@ -364,13 +384,12 @@ def ensure_pgvector_schema(session: Session) -> bool:
 
         session.execute(text("""
             CREATE TABLE IF NOT EXISTS ai.user_embeddings (
-                id         BIGSERIAL PRIMARY KEY,
-                user_id    BIGINT NOT NULL,
-                emb        vector(768),
+                user_id    BIGINT PRIMARY KEY,
+                emb        vector(768) NOT NULL,
                 source     TEXT DEFAULT 'essay',
-                model_name TEXT DEFAULT 'phobert+vi-sbert',
+                model_name TEXT DEFAULT 'vi-sbert',
                 built_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                UNIQUE (user_id, source)
+                CHECK (source = ANY (ARRAY['essay'::text, 'profile'::text]))
             )
         """))
 
@@ -393,16 +412,8 @@ def ensure_pgvector_schema(session: Session) -> bool:
             except Exception as idx_e:
                 logger.warning(f"[NLP] Could not create vector index: {idx_e}")
 
-        # User embedding index
-        try:
-            session.execute(text("""
-                CREATE INDEX IF NOT EXISTS user_emb_hnsw_idx
-                ON ai.user_embeddings
-                USING hnsw (emb vector_cosine_ops)
-                WITH (m = 16, ef_construction = 64)
-            """))
-        except Exception:
-            pass
+        # ai.user_embeddings is read by user_id, then compared against career/job vectors.
+        # Do not create a vector index on this write-heavy table.
 
         session.commit()
         return True

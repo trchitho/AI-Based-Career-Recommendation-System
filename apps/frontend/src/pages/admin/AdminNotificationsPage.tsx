@@ -1,5 +1,5 @@
 /**
- * ADMIN NOTIFICATIONS PAGE - English Only
+ * ADMIN NOTIFICATIONS PAGE - Vietnamese UI
  */
 
 import { useState, useEffect } from "react";
@@ -41,12 +41,14 @@ const AdminNotificationsPage = () => {
   const [userSearch, setUserSearch] = useState("");
 
   const notificationTypes = [
-    { value: "", label: "All Types" },
-    { value: "new_user", label: "New User" },
-    { value: "payment", label: "Payment" },
-    { value: "assessment", label: "Assessment" },
-    { value: "anomaly", label: "Anomaly" },
-    { value: "system", label: "System" },
+    { value: "", label: "Tất cả loại" },
+    { value: "new_user", label: "Người dùng mới" },
+    { value: "payment", label: "Thanh toán" },
+    { value: "assessment", label: "Đánh giá" },
+    { value: "anomaly", label: "Bất thường" },
+    { value: "system", label: "Hệ thống" },
+    { value: "promotion", label: "Khuyến mãi" },
+    { value: "announcement", label: "Thông báo" },
   ];
 
   useEffect(() => {
@@ -93,7 +95,7 @@ const AdminNotificationsPage = () => {
   };
 
   const deleteNotification = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this notification?")) return;
+    if (!confirm("Bạn có chắc chắn muốn xóa thông báo này?")) return;
     try {
       await api.delete(`/api/admin/notifications/${id}`);
       loadNotifications();
@@ -129,11 +131,11 @@ const AdminNotificationsPage = () => {
 
   const handleCreateNotification = async () => {
     if (!newNotification.title.trim()) {
-      alert("Please enter a notification title");
+      alert("Vui lòng nhập tiêu đề thông báo");
       return;
     }
     if (!newNotification.send_to_all && !newNotification.user_id) {
-      alert("Please select a recipient or send to all");
+      alert("Vui lòng chọn người nhận hoặc gửi cho tất cả");
       return;
     }
 
@@ -161,10 +163,10 @@ const AdminNotificationsPage = () => {
       setUserSearch("");
       setUsers([]);
       loadNotifications();
-      alert("Notification sent successfully!");
+      alert("Thông báo đã được gửi thành công!");
     } catch (err) {
       console.error("Error creating notification:", err);
-      alert("Failed to send notification. Please try again.");
+      alert("Gửi thông báo thất bại. Vui lòng thử lại.");
     } finally {
       setCreating(false);
     }
@@ -172,7 +174,7 @@ const AdminNotificationsPage = () => {
 
   const getSeverityStyle = (severity: string) => {
     const styles: Record<string, string> = {
-      success: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      success: "bg-indigo-50 text-indigo-950 dark:bg-indigo-950 dark:text-indigo-300",
       warning: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
       error: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
       info: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
@@ -198,25 +200,25 @@ const AdminNotificationsPage = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
+    if (diffMins < 1) return "Vừa xong";
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
   };
 
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
+    <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            Admin Notifications
+            Thông báo quản trị
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {unreadCount > 0 ? `${unreadCount} thông báo chưa đọc` : "Không có thông báo mới"}
@@ -224,15 +226,15 @@ const AdminNotificationsPage = () => {
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors">
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            Create Notification
+            Tạo thông báo
           </button>
           {unreadCount > 0 && (
             <button onClick={markAllAsRead}
               className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              Mark All Read
+              Đánh dấu đã đọc tất cả
             </button>
           )}
         </div>
@@ -243,7 +245,7 @@ const AdminNotificationsPage = () => {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold dark:text-white">Create Notification</h2>
+              <h2 className="text-xl font-bold dark:text-white">Tạo thông báo</h2>
               <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -253,49 +255,49 @@ const AdminNotificationsPage = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loại</label>
                 <select
                   value={newNotification.type}
                   onChange={(e) => setNewNotification({ ...newNotification, type: e.target.value })}
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white px-3 py-2"
                 >
-                  <option value="system">System</option>
-                  <option value="payment">Payment</option>
-                  <option value="assessment">Assessment</option>
-                  <option value="promotion">Promotion</option>
-                  <option value="announcement">Announcement</option>
+                  <option value="system">Hệ thống</option>
+                  <option value="payment">Thanh toán</option>
+                  <option value="assessment">Đánh giá</option>
+                  <option value="promotion">Khuyến mãi</option>
+                  <option value="announcement">Thông báo</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tiêu đề *</label>
                 <input
                   type="text"
                   value={newNotification.title}
                   onChange={(e) => setNewNotification({ ...newNotification, title: e.target.value })}
-                  placeholder="Enter notification title..."
+                  placeholder="Nhập tiêu đề thông báo..."
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nội dung</label>
                 <textarea
                   value={newNotification.message}
                   onChange={(e) => setNewNotification({ ...newNotification, message: e.target.value })}
-                  placeholder="Enter notification message..."
+                  placeholder="Nhập nội dung thông báo..."
                   rows={3}
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white px-3 py-2"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Liên kết (tùy chọn)</label>
                 <input
                   type="text"
                   value={newNotification.link}
                   onChange={(e) => setNewNotification({ ...newNotification, link: e.target.value })}
-                  placeholder="/pricing or https://..."
+                  placeholder="/pricing hoặc https://..."
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white px-3 py-2"
                 />
               </div>
@@ -309,21 +311,21 @@ const AdminNotificationsPage = () => {
                   className="rounded border-gray-300 text-blue-600"
                 />
                 <label htmlFor="send_to_all" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Send to all users
+                  Gửi cho tất cả người dùng
                 </label>
               </div>
 
               {!newNotification.send_to_all && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recipient *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Người nhận *</label>
                   <input
                     type="text"
                     value={userSearch}
                     onChange={(e) => setUserSearch(e.target.value)}
-                    placeholder="Search by email..."
+                    placeholder="Tìm theo email..."
                     className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white px-3 py-2"
                   />
-                  {searchingUsers && <p className="text-sm text-gray-500 mt-1">Searching...</p>}
+                  {searchingUsers && <p className="text-sm text-gray-500 mt-1">Đang tìm kiếm...</p>}
                   {users.length > 0 && (
                     <div className="mt-2 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg">
                       {users.map((user) => (
@@ -338,21 +340,21 @@ const AdminNotificationsPage = () => {
                       ))}
                     </div>
                   )}
-                  {newNotification.user_id && <p className="text-sm text-green-600 mt-1">Selected: User #{newNotification.user_id}</p>}
+                  {newNotification.user_id && <p className="text-sm text-indigo-800 mt-1">Đã chọn: Người dùng {newNotification.user_id}</p>}
                 </div>
               )}
             </div>
 
             <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button onClick={() => setShowCreateModal(false)} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                Cancel
+                Hủy
               </button>
               <button
                 onClick={handleCreateNotification}
                 disabled={creating}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg"
+                className="px-4 py-2 bg-indigo-800 hover:bg-indigo-900 disabled:opacity-60 text-white text-sm font-semibold rounded-lg"
               >
-                {creating ? "Sending..." : newNotification.send_to_all ? "Send to All" : "Send"}
+                {creating ? "Đang gửi..." : newNotification.send_to_all ? "Gửi cho tất cả" : "Gửi"}
               </button>
             </div>
           </div>
@@ -363,7 +365,7 @@ const AdminNotificationsPage = () => {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4">
         <div className="flex flex-wrap gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loại</label>
             <select
               value={filter.type || ""}
               onChange={(e) => {
@@ -383,7 +385,7 @@ const AdminNotificationsPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Trạng thái</label>
             <select
               value={filter.is_read === undefined ? "" : filter.is_read ? "true" : "false"}
               onChange={(e) => {
@@ -397,9 +399,9 @@ const AdminNotificationsPage = () => {
               }}
               className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white px-3 py-2"
             >
-              <option value="">All</option>
-              <option value="false">Unread</option>
-              <option value="true">Read</option>
+              <option value="">Tất cả</option>
+              <option value="false">Chưa đọc</option>
+              <option value="true">Đã đọc</option>
             </select>
           </div>
 
@@ -408,7 +410,7 @@ const AdminNotificationsPage = () => {
               onClick={() => { setFilter({}); setPage(1); }}
               className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-500"
             >
-              Clear Filters
+              Xóa bộ lọc
             </button>
           </div>
         </div>
@@ -417,13 +419,13 @@ const AdminNotificationsPage = () => {
       {/* Notifications List */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Đang tải...</div>
         ) : notifications.length === 0 ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
             <svg className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            No notifications found
+            Không tìm thấy thông báo
           </div>
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -449,8 +451,8 @@ const AdminNotificationsPage = () => {
                       </span>
                       {notification.user_email && <span className="text-blue-600 dark:text-blue-400">{notification.user_email}</span>}
                       {notification.link && (
-                        <a href={notification.link} target="_blank" rel="noopener noreferrer" className="text-green-600 dark:text-green-400 hover:underline">
-                          View Details
+                        <a href={notification.link} target="_blank" rel="noopener noreferrer" className="text-indigo-800 dark:text-indigo-400 hover:underline">
+                          Xem chi tiết
                         </a>
                       )}
                     </div>
@@ -458,13 +460,13 @@ const AdminNotificationsPage = () => {
 
                   <div className="flex items-center gap-2">
                     {!notification.is_read && (
-                      <button onClick={() => markAsRead(notification.id)} className="p-2 text-gray-400 hover:text-green-600" title="Mark as read">
+                      <button onClick={() => markAsRead(notification.id)} className="p-2 text-gray-400 hover:text-indigo-800" title="Đánh dấu đã đọc">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </button>
                     )}
-                    <button onClick={() => deleteNotification(notification.id)} className="p-2 text-gray-400 hover:text-red-600" title="Delete">
+                    <button onClick={() => deleteNotification(notification.id)} className="p-2 text-gray-400 hover:text-red-600" title="Xóa">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
@@ -480,7 +482,7 @@ const AdminNotificationsPage = () => {
         {totalPages > 1 && (
           <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Page {page} / {totalPages} ({total} notifications)
+              Trang {page} / {totalPages} ({total} thông báo)
             </div>
             <div className="flex gap-2">
               <button
@@ -488,14 +490,14 @@ const AdminNotificationsPage = () => {
                 disabled={page <= 1}
                 className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                Previous
+                Trước
               </button>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page >= totalPages}
                 className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                Next
+                Sau
               </button>
             </div>
           </div>

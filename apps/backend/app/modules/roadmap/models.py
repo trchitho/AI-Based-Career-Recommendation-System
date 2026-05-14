@@ -1,4 +1,4 @@
-from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, Text, func
+from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, Text, func, CheckConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 
 from ...core.db import Base
@@ -6,13 +6,41 @@ from ...core.db import Base
 
 class Roadmap(Base):
     __tablename__ = "roadmaps"
-    __table_args__ = {"schema": "core"}
+    __table_args__ = (
+        CheckConstraint(
+            "title_en IS NOT NULL OR title_vn IS NOT NULL",
+            name="chk_roadmaps_has_title"
+        ),
+        {"schema": "core"}
+    )
 
     id = Column(BigInteger, primary_key=True)
     career_id = Column(BigInteger, nullable=False)
-    title = Column(Text)
+    title_en = Column(Text, nullable=True, comment="English title")
+    title_vn = Column(Text, nullable=True, comment="Vietnamese title")
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    def get_title(self, language: str = "vn") -> str:
+        """Get title in specified language with fallback"""
+        if language.lower() == "en" and self.title_en:
+            return self.title_en
+        elif language.lower() == "vn" and self.title_vn:
+            return self.title_vn
+        # Fallback to available title
+        return self.title_vn or self.title_en or f"Roadmap for Career {self.career_id}"
+
+    def to_dict(self, language: str = "vn") -> dict:
+        """Convert to dictionary with localized title"""
+        return {
+            "id": self.id,
+            "career_id": self.career_id,
+            "title": self.get_title(language),
+            "title_en": self.title_en,
+            "title_vn": self.title_vn,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
 
 
 class RoadmapMilestone(Base):
@@ -22,10 +50,14 @@ class RoadmapMilestone(Base):
     id = Column(BigInteger, primary_key=True)
     roadmap_id = Column(BigInteger, nullable=False)
     order_no = Column(Integer)
-    skill_name = Column(Text)
-    description = Column(Text)
-    estimated_duration = Column(Text)
-    resources_json = Column(JSONB)
+    skill_name_en = Column(Text)
+    skill_name_vn = Column(Text)
+    description_en = Column(Text)
+    description_vn = Column(Text)
+    estimated_duration_en = Column(Text)
+    estimated_duration_vn = Column(Text)
+    resources_json_en = Column(JSONB)
+    resources_json_vn = Column(JSONB)
     level = Column(Integer, default=1)  # Level of milestone (1-6)
 
 

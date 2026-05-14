@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface EssayModalComponentProps {
@@ -22,6 +22,9 @@ const EssayModalComponent = ({
   const { t } = useTranslation();
   const [essayText, setEssayText] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [sttActive, setSttActive] = useState(false);
+  const [sttError, setSttError] = useState('');
+  const recognitionRef = useRef<any>(null);
 
   const trimmedLen = essayText.trim().length;
   const rawLen = essayText.length;
@@ -30,13 +33,46 @@ const EssayModalComponent = ({
   const progressPct = Math.min((trimmedLen / MIN_CHARS) * 100, 100);
   const remaining = MAX_CHARS - rawLen;
 
+  // ── STT tiếng Việt ──────────────────────────────────────────────
+  const startSTT = () => {
+    setSttError('');
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { setSttError('Trình duyệt không hỗ trợ. Dùng Chrome.'); return; }
+    const rec = new SR();
+    recognitionRef.current = rec;
+    rec.lang = 'vi-VN';
+    rec.continuous = true;
+    rec.interimResults = true;
+    let final = essayText;
+    rec.onstart = () => setSttActive(true);
+    rec.onresult = (e: any) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const txt = e.results[i][0].transcript;
+        if (e.results[i].isFinal) {
+          const c = txt.trim();
+          if (c) final = final ? final.trimEnd() + ' ' + c.charAt(0).toUpperCase() + c.slice(1) : c.charAt(0).toUpperCase() + c.slice(1);
+        } else interim += txt;
+      }
+      const newText = final + (interim ? ' ' + interim : '');
+      setEssayText(newText.slice(0, MAX_CHARS));
+      if (error && newText.trim().length >= MIN_CHARS) setError(null);
+    };
+    rec.onerror = (e: any) => {
+      setSttError(e.error === 'not-allowed' ? 'Cần cấp quyền microphone.' : 'Lỗi: ' + e.error);
+      setSttActive(false);
+    };
+    rec.onend = () => { setSttActive(false); setEssayText(final.slice(0, MAX_CHARS)); };
+    rec.start();
+  };
+  const stopSTT = () => { recognitionRef.current?.stop(); setSttActive(false); };
+  // ────────────────────────────────────────────────────────────────
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
-    if (val.length > MAX_CHARS) return; // hard cap
+    if (val.length > MAX_CHARS) return;
     setEssayText(val);
-    if (error && val.trim().length >= MIN_CHARS) {
-      setError(null);
-    }
+    if (error && val.trim().length >= MIN_CHARS) setError(null);
   };
 
   const handleSubmit = () => {
@@ -49,7 +85,7 @@ const EssayModalComponent = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 font-['Plus_Jakarta_Sans']">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 md:p-8 font-['Plus_Jakarta_Sans'] overflow-y-auto">
 
       <style>{`
         @keyframes modal-pop {
@@ -59,21 +95,21 @@ const EssayModalComponent = ({
         .animate-modal-pop { animation: modal-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       `}</style>
 
-      <div className="w-full max-w-3xl bg-white dark:bg-gray-800 rounded-[32px] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-modal-pop">
+      <div className="w-full max-w-2xl max-h-[calc(100vh-72px)] md:max-h-[calc(100vh-96px)] bg-white dark:bg-gray-800 rounded-[28px] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-modal-pop flex flex-col">
 
         {/* Header */}
-        <div className="relative p-8 md:p-10 border-b border-gray-100 dark:border-gray-700">
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 to-teal-500"></div>
+        <div className="relative p-5 md:p-6 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-700 to-indigo-600"></div>
 
           <div className="flex justify-between items-start gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold uppercase tracking-wider mb-3 border border-green-200 dark:border-green-800">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-3 border border-indigo-200 dark:border-indigo-800">
                 {t('assessment.essay.optionalStep')}
               </div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">
+              <h2 className="text-2xl md:text-[1.65rem] font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">
                 {promptTitle || t('assessment.essay.title')}
               </h2>
-              <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+              <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
                 {promptText || t('assessment.essay.defaultPrompt')}
               </p>
             </div>
@@ -89,16 +125,35 @@ const EssayModalComponent = ({
         </div>
 
         {/* Body */}
-        <div className="p-8 md:p-10 bg-gray-50/50 dark:bg-gray-900/50">
+        <div className="p-5 md:p-6 bg-gray-50/50 dark:bg-gray-900/50 overflow-y-auto flex-1">
           <div className="relative">
             <textarea
               value={essayText}
               onChange={handleChange}
-              rows={10}
-              className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 py-4 text-base text-gray-900 dark:text-white shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all resize-none placeholder-gray-400 font-medium"
+              rows={5}
+              className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 py-4 pr-14 text-base text-gray-900 dark:text-white shadow-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 outline-none transition-all resize-none placeholder-gray-400 font-medium"
               placeholder={t('assessment.essay.placeholder')}
               disabled={loading}
             />
+
+            {/* Nút mic STT */}
+            <button
+              type="button"
+              onClick={() => sttActive ? stopSTT() : startSTT()}
+              disabled={loading}
+              title={sttActive ? 'Dừng nhận dạng giọng nói' : 'Nhận dạng giọng nói tiếng Việt'}
+              className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center text-white transition-all shadow-md disabled:opacity-50 ${
+                sttActive
+                  ? 'bg-gradient-to-br from-teal-500 to-teal-700 shadow-teal-300 animate-pulse'
+                  : 'bg-gradient-to-br from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 shadow-indigo-200'
+              }`}
+            >
+              {sttActive ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 9a7 7 0 0 0 14 0h2a9 9 0 0 1-8 8.94V23h-2v-2.06A9 9 0 0 1 3 12h2z"/></svg>
+              )}
+            </button>
 
             {/* Max chars warning */}
             <div className="absolute bottom-4 right-4 flex items-center gap-2">
@@ -113,7 +168,7 @@ const EssayModalComponent = ({
               )}
               <span className={`text-xs font-bold px-2 py-1 rounded-md transition-colors ${
                 trimmedLen >= MIN_CHARS
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-400'
                   : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
               }`}>
                 {t('assessment.essay.charCount', { count: trimmedLen, min: MIN_CHARS })}
@@ -121,12 +176,23 @@ const EssayModalComponent = ({
             </div>
           </div>
 
+          {/* STT status */}
+          {sttActive && (
+            <div className="mt-2 flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm font-semibold">
+              <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse inline-block" />
+              Đang nghe... Hãy nói tiếng Việt
+            </div>
+          )}
+          {sttError && (
+            <p className="mt-2 text-sm text-red-500">⚠ {sttError}</p>
+          )}
+
           {/* Progress bar */}
           <div className="mt-3">
             <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
-                  trimmedLen >= MIN_CHARS ? 'bg-green-500' : 'bg-blue-400'
+                  trimmedLen >= MIN_CHARS ? 'bg-indigo-700' : 'bg-blue-400'
                 }`}
                 style={{ width: `${progressPct}%` }}
               />
@@ -149,7 +215,7 @@ const EssayModalComponent = ({
           )}
 
           {/* Footer Actions */}
-          <div className="mt-8 flex items-center justify-end gap-4">
+          <div className="mt-5 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onSkip}
@@ -163,7 +229,7 @@ const EssayModalComponent = ({
               type="button"
               onClick={handleSubmit}
               disabled={!isValid || loading}
-              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
+              className="px-8 py-3 bg-indigo-800 hover:bg-indigo-900 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/20 hover:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
             >
               {loading ? (
                 <>

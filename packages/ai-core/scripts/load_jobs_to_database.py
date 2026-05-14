@@ -148,7 +148,7 @@ class JobsDatabaseLoader:
                     "title_en": "",  # We don't have English titles in this dataset
                     "title_vi": title_vi,
                     "short_desc_en": "",
-                    "short_desc_vn": description_vi[:500] if description_vi else "",  # Truncate for short desc
+                    "short_desc_vi": description_vi[:500] if description_vi else "",  # Truncate for short desc
                     "source": "onet_etl",
                     "industry_category": "General",
                 }
@@ -160,11 +160,11 @@ class JobsDatabaseLoader:
                 insert_query = text(
                     """
                     INSERT INTO core.careers 
-                    (onet_code, slug, title_en, title_vi, short_desc_en, short_desc_vn, source, industry_category)
-                    VALUES (:onet_code, :slug, :title_en, :title_vi, :short_desc_en, :short_desc_vn, :source, :industry_category)
+                    (onet_code, slug, title_en, title_vi, short_desc_en, short_desc_vi, source, industry_category)
+                    VALUES (:onet_code, :slug, :title_en, :title_vi, :short_desc_en, :short_desc_vi, :source, :industry_category)
                     ON CONFLICT (onet_code) DO UPDATE SET
                         title_vi = EXCLUDED.title_vi,
-                        short_desc_vn = EXCLUDED.short_desc_vn,
+                        short_desc_vi = EXCLUDED.short_desc_vi,
                         updated_at = CURRENT_TIMESTAMP
                 """
                 )

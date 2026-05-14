@@ -1,10 +1,11 @@
 /**
- * AI MONITORING PAGE - English Only, 100% Dynamic Data
+ * AI MONITORING PAGE - Vietnamese UI, 100% Dynamic Data
  */
 
 import React, { useState, useEffect } from 'react';
 import api from '../../lib/api';
 import { adminService } from '../../services/adminService';
+import { translateRIASEC, translateBigFive, translateSeverity, translateAnomalyText } from '../../utils/translations';
 
 /* ---------------------------------------------
    TYPES
@@ -65,7 +66,7 @@ const baseInput =
   "border-gray-200 dark:border-gray-700 " +
   "text-gray-900 dark:text-gray-100 " +
   "placeholder-gray-400 dark:placeholder-gray-500 " +
-  "focus:outline-none focus:ring-2 focus:ring-green-500";
+  "focus:outline-none focus:ring-2 focus:ring-indigo-600";
 
 const cardClass =
   "bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 " +
@@ -211,8 +212,8 @@ const AIMonitoringPage = () => {
 
   if (loading) {
     return (
-      <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
-        <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+      <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
         Đang tải...
       </div>
     );
@@ -220,7 +221,7 @@ const AIMonitoringPage = () => {
 
   if (!metrics) {
     return (
-      <div className="p-6 bg-[#F8F9FA] dark:bg-gray-900 min-h-screen">
+      <div className="p-6 bg-[F8F9FA] dark:bg-gray-900 min-h-screen">
         <div className={`${cardClass} text-red-500`}>Failed to load metrics</div>
       </div>
     );
@@ -239,9 +240,9 @@ const AIMonitoringPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2" />
                 </svg>
               </div>
-              <h1 className="text-3xl font-bold text-white">AI Performance Monitoring</h1>
+              <h1 className="text-3xl font-bold text-white">Giám sát hiệu suất AI</h1>
             </div>
-            <p className="text-white/90 text-sm ml-16">Real-time AI system health and performance metrics</p>
+            <p className="text-white/90 text-sm ml-16">Theo dõi sức khỏe và hiệu suất hệ thống AI theo thời gian thực</p>
           </div>
           <button
             onClick={loadMetrics}
@@ -250,7 +251,7 @@ const AIMonitoringPage = () => {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            Refresh
+            Làm mới
           </button>
         </div>
       </div>
@@ -260,26 +261,26 @@ const AIMonitoringPage = () => {
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-2xl">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className={`relative w-4 h-4 rounded-full ${geminiStatus?.streams_initialized ? 'bg-green-500' : 'bg-red-500'}`}>
+              <div className={`relative w-4 h-4 rounded-full ${geminiStatus?.streams_initialized ? 'bg-indigo-700' : 'bg-red-500'}`}>
                 {geminiStatus?.streams_initialized && (
-                  <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></span>
+                  <span className="absolute inset-0 rounded-full bg-indigo-700 animate-ping opacity-75"></span>
                 )}
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Gemini AI Status</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Trạng thái Gemini AI</h2>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={loadGeminiStatus}
                 className="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-all duration-200 hover:scale-105"
               >
-                Refresh
+                Làm mới
               </button>
               <button
                 onClick={handleReinit}
                 disabled={reiniting}
                 className="px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
-                {reiniting ? "Reinitializing..." : "Reinitialize"}
+                {reiniting ? "Đang khởi tạo lại..." : "Khởi tạo lại"}
               </button>
             </div>
           </div>
@@ -287,16 +288,16 @@ const AIMonitoringPage = () => {
           {geminiLoading ? (
             <div className="flex items-center justify-center gap-3 text-gray-400 py-8">
               <div className="w-6 h-6 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              <span>Loading status...</span>
+              <span>Đang tải trạng thái...</span>
             </div>
           ) : geminiStatus ? (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Overall Status', value: geminiStatus.streams_initialized ? '✅ Online' : '❌ Offline', ok: geminiStatus.streams_initialized, gradient: 'from-green-500 to-emerald-600' },
-                  { label: 'Assessment AI', value: geminiStatus.streams?.assessment?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.assessment?.initialized, gradient: 'from-blue-500 to-cyan-600' },
-                  { label: 'Chatbot AI', value: geminiStatus.streams?.chatbot?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.chatbot?.initialized, gradient: 'from-purple-500 to-pink-600' },
-                  { label: 'CV Parser AI', value: geminiStatus.streams?.cv?.initialized ? '✅ Ready' : '⚠️ Error', ok: geminiStatus.streams?.cv?.initialized, gradient: 'from-orange-500 to-red-600' },
+                  { label: 'Trạng thái tổng', value: geminiStatus.streams_initialized ? '✓ Trực tuyến' : '✗ Ngoại tuyến', ok: geminiStatus.streams_initialized, gradient: 'from-indigo-700 to-indigo-800' },
+                  { label: 'AI Đánh giá', value: geminiStatus.streams?.assessment?.initialized ? '✓ Sẵn sàng' : '✗ Lỗi', ok: geminiStatus.streams?.assessment?.initialized, gradient: 'from-blue-500 to-cyan-600' },
+                  { label: 'AI Chatbot', value: geminiStatus.streams?.chatbot?.initialized ? '✓ Sẵn sàng' : '✗ Lỗi', ok: geminiStatus.streams?.chatbot?.initialized, gradient: 'from-purple-500 to-pink-600' },
+                  { label: 'AI Phân tích CV', value: geminiStatus.streams?.cv?.initialized ? '✓ Sẵn sàng' : '✗ Lỗi', ok: geminiStatus.streams?.cv?.initialized, gradient: 'from-orange-500 to-red-600' },
                 ].map(({ label, value, ok, gradient }) => (
                   <div key={label} className={`relative overflow-hidden rounded-xl p-4 ${ok ? 'bg-gradient-to-br ' + gradient : 'bg-gradient-to-br from-gray-400 to-gray-500'} shadow-lg transition-all duration-300 hover:scale-105`}>
                     <div className="absolute inset-0 bg-white/10"></div>
@@ -312,7 +313,7 @@ const AIMonitoringPage = () => {
                   <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  <span className="text-sm text-blue-900 dark:text-blue-100">Model: <span className="font-mono font-bold">{geminiStatus.model}</span></span>
+                  <span className="text-sm text-blue-900 dark:text-blue-100">Mô hình: <span className="font-mono font-bold">{geminiStatus.model}</span></span>
                 </div>
               )}
               {geminiStatus.error && (
@@ -322,7 +323,7 @@ const AIMonitoringPage = () => {
               )}
             </div>
           ) : (
-            <p className="text-center text-gray-500 py-8">Unable to fetch Gemini status.</p>
+            <p className="text-center text-gray-500 py-8">Không thể tải trạng thái Gemini.</p>
           )}
         </div>
       </section>
@@ -331,33 +332,33 @@ const AIMonitoringPage = () => {
       <section>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
           <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
-          Performance Metrics
+          Chỉ số hiệu suất
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
-            title="Total Recommendations"
+            title="Tổng đề xuất"
             value={metrics.totalRecommendations}
-            subtitle={`${metrics.avgRecommendationsPerAssessment.toFixed(1)} per assessment`}
+            subtitle={`${metrics.avgRecommendationsPerAssessment.toFixed(1)} mỗi đánh giá`}
           />
 
           <MetricCard
-            title="Essay Analysis"
+            title="Phân tích bài luận"
             value={metrics.assessmentsWithEssay}
-            subtitle="Assessments analyzed"
+            subtitle="Đánh giá đã phân tích"
           />
 
           <MetricCard
-            title="Avg Processing Time"
+            title="Thời gian xử lý TB"
             value={`${metrics.avgProcessingTime}s`}
-            subtitle="per assessment"
+            subtitle="mỗi đánh giá"
             status={metrics.avgProcessingTime < 30 ? 'good' : 'warning'}
           />
 
           <MetricCard
-            title="Error Rate"
+            title="Tỷ lệ lỗi"
             value={`${metrics.errorRate}%`}
-            subtitle="Last 30 days"
+            subtitle="30 ngày qua"
             status={metrics.errorRate < 5 ? 'good' : metrics.errorRate < 10 ? 'warning' : 'error'}
           />
         </div>
@@ -365,29 +366,29 @@ const AIMonitoringPage = () => {
         {/* Additional Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
           <MetricCard
-            title="Total Assessments"
+            title="Tổng đánh giá"
             value={metrics.totalAssessments}
-            subtitle="All time"
+            subtitle="Tất cả thời gian"
           />
 
           <MetricCard
-            title="Success Operations"
+            title="Thao tác thành công"
             value={metrics.successCount}
-            subtitle="Last 30 days"
+            subtitle="30 ngày qua"
             status="good"
           />
 
           <MetricCard
-            title="Error Operations"
+            title="Thao tác lỗi"
             value={metrics.errorCount}
-            subtitle="Last 30 days"
+            subtitle="30 ngày qua"
             status={metrics.errorCount === 0 ? 'good' : 'warning'}
           />
 
           <MetricCard
-            title="Avg Feedback Rating"
-            value={metrics.avgFeedbackRating > 0 ? `${metrics.avgFeedbackRating} ★` : 'N/A'}
-            subtitle={`${metrics.totalFeedback} total reviews`}
+            title="Đánh giá TB"
+            value={metrics.avgFeedbackRating > 0 ? `${metrics.avgFeedbackRating} ` : 'Chưa có'}
+            subtitle={`${metrics.totalFeedback} đánh giá`}
             status={metrics.avgFeedbackRating >= 4 ? 'good' : metrics.avgFeedbackRating >= 3 ? 'warning' : 'error'}
           />
         </div>
@@ -396,7 +397,7 @@ const AIMonitoringPage = () => {
       {/* RIASEC DISTRIBUTION */}
       <section>
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          RIASEC Distribution
+          Phân bố RIASEC
         </h2>
 
         <div className={cardClass}>
@@ -404,8 +405,8 @@ const AIMonitoringPage = () => {
             {Object.entries(metrics.riasecDistribution).map(([key, value]) => (
               <div key={key}>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
-                    {key}
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {translateRIASEC(key)}
                   </span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">{value}</span>
                 </div>
@@ -424,7 +425,7 @@ const AIMonitoringPage = () => {
       {/* BIG FIVE DISTRIBUTION */}
       <section>
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          Big Five Distribution
+          Phân bố Big Five
         </h2>
 
         <div className={cardClass}>
@@ -432,14 +433,14 @@ const AIMonitoringPage = () => {
             {Object.entries(metrics.bigFiveDistribution).map(([key, value]) => (
               <div key={key}>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
-                    {key}
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {translateBigFive(key)}
                   </span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">{value}</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full">
                   <div
-                    className="bg-green-600 h-2 rounded-full"
+                    className="bg-indigo-800 h-2 rounded-full"
                     style={{ width: value }}
                   />
                 </div>
@@ -452,7 +453,7 @@ const AIMonitoringPage = () => {
       {/* USER FEEDBACK */}
       <section>
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          User Feedback
+          Phản hồi người dùng
         </h2>
 
         {/* Filters */}
@@ -460,7 +461,7 @@ const AIMonitoringPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Start Date
+                Ngày bắt đầu
               </label>
               <input
                 type="date"
@@ -472,7 +473,7 @@ const AIMonitoringPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                End Date
+                Ngày kết thúc
               </label>
               <input
                 type="date"
@@ -484,19 +485,19 @@ const AIMonitoringPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Min Rating
+                Đánh giá tối thiểu
               </label>
               <select
                 value={filters.minRating}
                 onChange={(e) => handleFilter("minRating", e.target.value)}
                 className={baseInput}
               >
-                <option value="">All Ratings</option>
-                <option value="1">1+ Stars</option>
-                <option value="2">2+ Stars</option>
-                <option value="3">3+ Stars</option>
-                <option value="4">4+ Stars</option>
-                <option value="5">5 Stars</option>
+                <option value="">Tất cả</option>
+                <option value="1">1+ Sao</option>
+                <option value="2">2+ Sao</option>
+                <option value="3">3+ Sao</option>
+                <option value="4">4+ Sao</option>
+                <option value="5">5 Sao</option>
               </select>
             </div>
 
@@ -505,7 +506,7 @@ const AIMonitoringPage = () => {
                 onClick={loadFeedback}
                 className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
               >
-                Apply Filters
+                Áp dụng bộ lọc
               </button>
             </div>
           </div>
@@ -514,22 +515,22 @@ const AIMonitoringPage = () => {
         {/* Feedback List */}
         {feedbackLoading ? (
           <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-            Loading feedback...
+            Đang tải phản hồi...
           </div>
         ) : feedback.length > 0 ? (
           <div className={`${cardClass} overflow-hidden p-0`}>
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className={tableHead}>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Rating</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Comment</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Người dùng</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Đánh giá</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Bình luận</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Ngày</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-[#0F172A]">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-[0F172A]">
                 {feedback.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-[#1E293B]">
+                  <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-[1E293B]">
                     <td className="px-6 py-4 text-gray-900 dark:text-white">
                       {item.userName}
                     </td>
@@ -540,7 +541,7 @@ const AIMonitoringPage = () => {
                             key={i}
                             className={i < item.rating ? "text-yellow-400" : "text-gray-400"}
                           >
-                            ★
+                            
                           </span>
                         ))}
                       </div>
@@ -558,9 +559,9 @@ const AIMonitoringPage = () => {
           </div>
         ) : (
           <div className={`${cardClass} text-center py-10`}>
-            <p className="text-gray-600 dark:text-gray-400">No feedback found</p>
+            <p className="text-gray-600 dark:text-gray-400">Không tìm thấy phản hồi</p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              Feedback will appear here when users rate their assessments
+              Phản hồi sẽ xuất hiện ở đây khi người dùng đánh giá
             </p>
           </div>
         )}
@@ -569,26 +570,26 @@ const AIMonitoringPage = () => {
       {/* SYSTEM HEALTH */}
       <section>
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          System Health
+          Sức khỏe hệ thống
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <HealthIndicator
-            title="Service Status"
+            title="Trạng thái dịch vụ"
             status="operational"
-            message="All systems operational"
+            message="Tất cả hệ thống hoạt động"
           />
 
           <HealthIndicator
-            title="Response Time"
+            title="Thời gian phản hồi"
             status={metrics.avgProcessingTime < 30 ? 'good' : 'warning'}
-            message={`Avg: ${metrics.avgProcessingTime}s (Target < 30s)`}
+            message={`TB: ${metrics.avgProcessingTime}s (Mục tiêu < 30s)`}
           />
 
           <HealthIndicator
-            title="Success Rate"
+            title="Tỷ lệ thành công"
             status={metrics.errorRate < 5 ? 'good' : 'warning'}
-            message={`${(100 - metrics.errorRate).toFixed(1)}% success rate`}
+            message={`${(100 - metrics.errorRate).toFixed(1)}% thành công`}
           />
         </div>
       </section>
@@ -597,11 +598,11 @@ const AIMonitoringPage = () => {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-full ${anomalyStats && anomalyStats.critical > 0 ? 'bg-red-500 animate-pulse' : anomalyStats && anomalyStats.unresolved > 0 ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
-            Anomaly Detection
+            <span className={`w-2.5 h-2.5 rounded-full ${anomalyStats && anomalyStats.critical > 0 ? 'bg-red-500 animate-pulse' : anomalyStats && anomalyStats.unresolved > 0 ? 'bg-yellow-500 animate-pulse' : 'bg-indigo-700'}`} />
+            Phát hiện bất thường
             {anomalyStats && anomalyStats.unresolved > 0 && (
               <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
-                {anomalyStats.unresolved} unresolved
+                {anomalyStats.unresolved} chưa giải quyết
               </span>
             )}
           </h2>
@@ -610,7 +611,7 @@ const AIMonitoringPage = () => {
             disabled={detecting}
             className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-xl disabled:opacity-50 transition-colors"
           >
-            {detecting ? "Scanning..." : "Run Detection"}
+            {detecting ? "Đang quét..." : "Chạy phát hiện"}
           </button>
         </div>
 
@@ -625,9 +626,10 @@ const AIMonitoringPage = () => {
           <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
             {(["total", "unresolved", "critical", "high", "medium", "low"] as const).map((k) => {
               const colorMap = { total: "text-gray-700 dark:text-gray-300", unresolved: "text-orange-600 dark:text-orange-400", critical: "text-red-600 dark:text-red-400", high: "text-red-500 dark:text-red-400", medium: "text-yellow-600 dark:text-yellow-400", low: "text-blue-600 dark:text-blue-400" };
+              const labelMap = { total: "Tổng", unresolved: "Chưa giải quyết", critical: "Nghiêm trọng", high: "Cao", medium: "Trung bình", low: "Thấp" };
               return (
                 <div key={k} className={`${cardClass} text-center py-3`}>
-                  <p className="text-xs text-gray-500 capitalize">{k}</p>
+                  <p className="text-xs text-gray-500">{labelMap[k]}</p>
                   <p className={`text-2xl font-bold ${colorMap[k]}`}>{anomalyStats[k]}</p>
                 </div>
               );
@@ -636,11 +638,11 @@ const AIMonitoringPage = () => {
         )}
 
         {anomalyLoading ? (
-          <div className="text-center py-8 text-gray-500">Loading anomalies...</div>
+          <div className="text-center py-8 text-gray-500">Đang tải bất thường...</div>
         ) : anomalies.length === 0 ? (
           <div className={`${cardClass} text-center py-8`}>
-            <p className="text-green-600 dark:text-green-400 font-semibold">No anomalies detected</p>
-            <p className="text-sm text-gray-500 mt-1">Click "Run Detection" to scan for issues in real data.</p>
+            <p className="text-indigo-800 dark:text-indigo-400 font-semibold">Không phát hiện bất thường</p>
+            <p className="text-sm text-gray-500 mt-1">Nhấn "Chạy phát hiện" để quét vấn đề trong dữ liệu thực.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -662,20 +664,20 @@ const AIMonitoringPage = () => {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`px-2 py-0.5 text-xs font-bold rounded uppercase ${badgeColors[a.severity] || "bg-gray-400 text-white"}`}>{a.severity}</span>
-                        <span className="text-xs text-gray-500 font-mono">{a.type}</span>
-                        {a.resolved && <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">Resolved</span>}
+                        <span className={`px-2 py-0.5 text-xs font-bold rounded uppercase ${badgeColors[a.severity] || "bg-gray-400 text-white"}`}>{translateSeverity(a.severity)}</span>
+                        <span className="text-xs text-gray-500 font-mono">{translateAnomalyText(a.type)}</span>
+                        {a.resolved && <span className="px-2 py-0.5 text-xs bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-400 rounded">{translateAnomalyText('Resolved')}</span>}
                       </div>
-                      <p className="font-semibold text-gray-900 dark:text-white">{a.title}</p>
-                      {a.description && <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{a.description}</p>}
+                      <p className="font-semibold text-gray-900 dark:text-white">{translateAnomalyText(a.title)}</p>
+                      {a.description && <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{translateAnomalyText(a.description)}</p>}
                       <p className="text-xs text-gray-400 mt-1">{a.created_at ? new Date(a.created_at).toLocaleString() : ""}</p>
                     </div>
                     {!a.resolved && (
                       <button
                         onClick={() => resolveAnomaly(a.id)}
-                        className="flex-shrink-0 px-3 py-1.5 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                        className="flex-shrink-0 px-3 py-1.5 text-xs font-semibold bg-indigo-800 hover:bg-indigo-900 text-white rounded-lg transition-colors"
                       >
-                        Resolve
+                        {translateAnomalyText('Resolve')}
                       </button>
                     )}
                   </div>
@@ -702,20 +704,20 @@ interface MetricProps {
 const MetricCard: React.FC<MetricProps> = ({ title, value, subtitle, status }) => {
   const statusConfig = {
     good: {
-      gradient: 'from-green-500 to-emerald-600',
-      icon: '✓',
-      iconBg: 'bg-green-500/20',
-      iconColor: 'text-green-600 dark:text-green-400'
+      gradient: 'from-indigo-700 to-indigo-800',
+      icon: '',
+      iconBg: 'bg-indigo-700/20',
+      iconColor: 'text-indigo-800 dark:text-indigo-400'
     },
     warning: {
       gradient: 'from-yellow-500 to-orange-600',
-      icon: '⚠',
+      icon: '',
       iconBg: 'bg-yellow-500/20',
       iconColor: 'text-yellow-600 dark:text-yellow-400'
     },
     error: {
       gradient: 'from-red-500 to-pink-600',
-      icon: '✕',
+      icon: '',
       iconBg: 'bg-red-500/20',
       iconColor: 'text-red-600 dark:text-red-400'
     },
@@ -760,17 +762,17 @@ interface HealthProps {
 
 const HealthIndicator: React.FC<HealthProps> = ({ title, status, message }) => {
   const statusColors: Record<string, string> = {
-    operational: "bg-green-500",
-    good: "bg-green-500",
+    operational: "bg-indigo-700",
+    good: "bg-indigo-700",
     warning: "bg-yellow-500",
     error: "bg-red-500",
   };
 
   const statusLabels: Record<string, string> = {
-    operational: "Operational",
-    good: "Good",
-    warning: "Warning",
-    error: "Error",
+    operational: "Hoạt động",
+    good: "Tốt",
+    warning: "Cảnh báo",
+    error: "Lỗi",
   };
 
   return (

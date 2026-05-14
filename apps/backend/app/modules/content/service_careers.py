@@ -9,9 +9,9 @@ from .models import Career
 
 def list_careers(session: Session, q: str | None, category_id: int | None, limit: int, offset: int):
     # Select only portable columns to avoid schema drift
-    # Prioritize English titles and descriptions
-    title_expr = func.coalesce(Career.title_en, Career.title_vi)
-    desc_expr = func.coalesce(Career.short_desc_en, Career.short_desc_vn)
+    # Ưu tiên tiếng Việt
+    title_expr = func.coalesce(Career.title_vi, Career.title_en)
+    desc_expr = func.coalesce(Career.short_desc_vi, Career.short_desc_en)
     stmt = select(
         Career.id,
         Career.slug,
@@ -59,7 +59,7 @@ def get_career(session: Session, id_or_slug: str):
             Career.slug,
             Career.title_vi,
             Career.title_en,
-            Career.short_desc_vn,
+            Career.short_desc_vi,
             Career.short_desc_en,
             Career.created_at,
             Career.updated_at,
@@ -83,6 +83,21 @@ def get_career(session: Session, id_or_slug: str):
         where = or_(Career.slug == id_or_slug, Career.onet_code == onet_dash, Career.onet_code == onet_dot)
     else:
         where = Career.slug == id_or_slug
+        
+        # Fallback for slugs like "web-developers-15-1254-00"
+        if '-' in id_or_slug:
+            parts = id_or_slug.split('-')
+            if len(parts) >= 3:
+                # Potential ONET code at the end: 15-1254-00
+                potential_code = "-".join(parts[-3:])
+                # Check if it looks like an ONET code (at least some digits)
+                if any(p.isdigit() for p in parts[-3:]):
+                    where = or_(
+                        Career.slug == id_or_slug,
+                        Career.slug == potential_code,
+                        Career.onet_code == potential_code,
+                        Career.onet_code == potential_code.replace('-', '.', 1).replace('-', '.', 1)
+                    )
 
     row = None
     try:
@@ -91,7 +106,7 @@ def get_career(session: Session, id_or_slug: str):
             (
                 cid,
                 slug,
-                title_vi,
+                title_vn,
                 title_en,
                 short_desc_vn,
                 short_desc_en,
@@ -99,15 +114,15 @@ def get_career(session: Session, id_or_slug: str):
                 updated_at,
                 onet_code,
             ) = row
-            # Prioritize English titles and descriptions
-            title = title_en or title_vi or ""
-            sdesc = short_desc_en or short_desc_vn or ""
+            # Ưu tiên tiếng Việt
+            title = title_vn or title_en or ""
+            sdesc = short_desc_vn or short_desc_en or ""
             return {
                 "id": cid,
                 "slug": slug,
                 "title": title,
                 "title_en": title_en,
-                "title_vi": title_vi,
+                "title_vn": title_vn,
                 "short_desc": sdesc,
                 "description": sdesc,
                 "onet_code": onet_code,
@@ -132,52 +147,86 @@ def get_career(session: Session, id_or_slug: str):
 
 
 def get_roadmap(session: Session, user_id: int, id_or_slug: str):
-    # Resolve career by id or slug
+    # Resolve career by id, slug, or ONET code
     if id_or_slug.isdigit():
         c = session.get(Career, int(id_or_slug))
+    elif '-' in id_or_slug and len(id_or_slug.split('-')) == 3:
+        # Looks like ONET code with dashes, try both formats
+        onet_dash = id_or_slug  # 39-5094-00
+        onet_dot = id_or_slug.replace('-', '.', 1).replace('-', '.', 1)  # 39-5094.00
+        c = session.execute(
+            select(Career).where(
+                or_(Career.slug == id_or_slug, Career.onet_code == onet_dash, Career.onet_code == onet_dot)
+            )
+        ).scalar_one_or_none()
     else:
         c = session.execute(select(Career).where(Career.slug == id_or_slug)).scalar_one_or_none()
+    
     if not c:
         return None
     career_id = int(c.id)
     roadmap = session.execute(select(Roadmap).where(Roadmap.career_id == career_id)).scalar_one_or_none()
     if not roadmap:
         ct = c.to_dict().get("title") or "Career"
-        roadmap = Roadmap(career_id=career_id, title=f"{ct} Roadmap")
+        # Create roadmap with Vietnamese title (default) and English title if available
+        title_vn = f"{ct} Roadmap"
+        title_en = f"{ct} Roadmap" if ct != "Career" else None
+        
+        roadmap = Roadmap(
+            career_id=career_id, 
+            title_vn=title_vn,
+            title_en=title_en
+        )
         session.add(roadmap)
         session.flush()
         demo_ms = [
             (
                 1,
                 "Fundamentals",
+                "Kiến thức nền tảng",
                 "Master the foundational knowledge and core concepts",
+                "Nắm vững kiến thức và khái niệm cơ bản",
                 "2 weeks",
+                "2 tuần",
                 [{"title": "CS50 Lecture 1", "url": "https://cs50.harvard.edu/", "type": "course"}],
+                [{"title": "CS50 Bài giảng 1", "url": "https://cs50.harvard.edu/", "type": "course"}],
             ),
             (
                 2,
                 "Tools & Workflow",
+                "Công cụ & Quy trình",
                 "Get familiar with essential tools and workflows",
+                "Làm quen với các công cụ và quy trình làm việc",
                 "1 week",
+                "1 tuần",
                 [{"title": "Git Handbook", "url": "https://guides.github.com/", "type": "article"}],
+                [{"title": "Hướng dẫn Git", "url": "https://guides.github.com/", "type": "article"}],
             ),
             (
                 3,
                 "Project",
+                "Dự án thực hành",
                 "Practice with a small hands-on project",
+                "Thực hành với một dự án nhỏ",
                 "2 weeks",
+                "2 tuần",
                 [{"title": "Build a Todo App", "url": "https://example.com/todo", "type": "video"}],
+                [{"title": "Xây dựng ứng dụng Todo", "url": "https://example.com/todo", "type": "video"}],
             ),
         ]
-        for order_no, skill_name, desc, est, res in demo_ms:
+        for order_no, skill_en, skill_vn, desc_en, desc_vn, dur_en, dur_vn, res_en, res_vn in demo_ms:
             session.add(
                 RoadmapMilestone(
                     roadmap_id=roadmap.id,
                     order_no=order_no,
-                    skill_name=skill_name,
-                    description=desc,
-                    estimated_duration=est,
-                    resources_json=res,
+                    skill_name_en=skill_en,
+                    skill_name_vn=skill_vn,
+                    description_en=desc_en,
+                    description_vn=desc_vn,
+                    estimated_duration_en=dur_en,
+                    estimated_duration_vn=dur_vn,
+                    resources_json_en=res_en,
+                    resources_json_vn=res_vn,
                 )
             )
         session.commit()
@@ -192,11 +241,15 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
     milestones = [
         {
             "order": m.order_no or 0,
-            "skillName": m.skill_name,
-            "description": m.description,
-            "estimatedDuration": m.estimated_duration,
-            "resources": m.resources_json or [],
-            "level": m.level or (m.order_no or 1),  # Use level column or fallback to order_no
+            "skillName": m.skill_name_en or m.skill_name_vn or "",
+            "skillNameVn": m.skill_name_vn or m.skill_name_en or "",
+            "description": m.description_en or m.description_vn or "",
+            "descriptionVn": m.description_vn or m.description_en or "",
+            "estimatedDuration": m.estimated_duration_en or m.estimated_duration_vn or "",
+            "estimatedDurationVn": m.estimated_duration_vn or m.estimated_duration_en or "",
+            "resources": m.resources_json_en or [],
+            "resourcesVn": m.resources_json_vn or [],
+            "level": m.level or (m.order_no or 1),
         }
         for m in ms
     ]
@@ -233,9 +286,21 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
 
 
 def complete_milestone(session: Session, user_id: int, id_or_slug: str, milestone_id: int):
-    # Resolve career id
+    # Resolve career id by id, slug, or ONET code
     if id_or_slug.isdigit():
         cid = int(id_or_slug)
+    elif '-' in id_or_slug and len(id_or_slug.split('-')) == 3:
+        # Looks like ONET code with dashes, try both formats
+        onet_dash = id_or_slug  # 39-5094-00
+        onet_dot = id_or_slug.replace('-', '.', 1).replace('-', '.', 1)  # 39-5094.00
+        c = session.execute(
+            select(Career).where(
+                or_(Career.slug == id_or_slug, Career.onet_code == onet_dash, Career.onet_code == onet_dot)
+            )
+        ).scalar_one_or_none()
+        if not c:
+            return None
+        cid = int(c.id)
     else:
         c = session.execute(select(Career).where(Career.slug == id_or_slug)).scalar_one_or_none()
         if not c:

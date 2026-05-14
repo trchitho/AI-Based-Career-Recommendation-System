@@ -4,8 +4,9 @@ export interface Question {
   question_text: string;
   question_type: 'MULTIPLE_CHOICE' | 'SCALE';
   options?: string[];
-  dimension?: string; // Label/tag for grouping (R, I, A, S, E, C for RIASEC; O, C, E, A, N for Big Five)
+  dimension?: string;
   order_index: number;
+  reverse_score?: boolean;
 }
 
 export interface QuestionResponse {

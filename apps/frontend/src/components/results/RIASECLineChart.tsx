@@ -21,12 +21,12 @@ interface RIASECLineChartProps {
 
 const RIASECLineChart = ({ scores }: RIASECLineChartProps) => {
   const data = [
-    { name: 'R', fullName: 'Realistic', score: scores?.realistic || 0, color: '#EF4444' },
-    { name: 'I', fullName: 'Investigative', score: scores?.investigative || 0, color: '#F59E0B' },
-    { name: 'A', fullName: 'Artistic', score: scores?.artistic || 0, color: '#10B981' },
-    { name: 'S', fullName: 'Social', score: scores?.social || 0, color: '#3B82F6' },
-    { name: 'E', fullName: 'Enterprising', score: scores?.enterprising || 0, color: '#8B5CF6' },
-    { name: 'C', fullName: 'Conventional', score: scores?.conventional || 0, color: '#EC4899' },
+    { name: 'R', fullName: 'Kỹ Thuật', score: scores?.realistic || 0, color: '#EF4444' },
+    { name: 'I', fullName: 'Nghiên Cứu', score: scores?.investigative || 0, color: '#F59E0B' },
+    { name: 'A', fullName: 'Nghệ Thuật', score: scores?.artistic || 0, color: '#10B981' },
+    { name: 'S', fullName: 'Xã Hội', score: scores?.social || 0, color: '#3B82F6' },
+    { name: 'E', fullName: 'Kinh Doanh', score: scores?.enterprising || 0, color: '#8B5CF6' },
+    { name: 'C', fullName: 'Nghiệp Vụ', score: scores?.conventional || 0, color: '#EC4899' },
   ];
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -74,7 +74,7 @@ const RIASECLineChart = ({ scores }: RIASECLineChartProps) => {
             dataKey="score"
             stroke="#3B82F6"
             strokeWidth={3}
-            fill="url(#riasecGradient)"
+            fill="url(riasecGradient)"
             dot={{ fill: '#3B82F6', strokeWidth: 2, r: 5, stroke: '#fff' }}
             activeDot={{ r: 7, stroke: '#3B82F6', strokeWidth: 2, fill: '#fff' }}
           />

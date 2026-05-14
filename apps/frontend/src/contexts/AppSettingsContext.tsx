@@ -8,16 +8,16 @@ export interface AppSettings {
   app_name: string | null;
   footer_html: string | null;
 
-  // 🔥 Thêm theme
+  //  Thêm theme
   theme: "light" | "dark";
 }
 
 const defaultSettings: AppSettings = {
   id: 1,
   logo_url: null,
-  app_title: "CareerBridge AI",
-  app_name: "CareerBridge",
-  footer_html: "© 2025 CareerBridge AI",
+  app_title: "CareerVerse AI",
+  app_name: "CareerVerse",
+  footer_html: "© 2025 CareerVerse AI",
   theme: "light",
 };
 

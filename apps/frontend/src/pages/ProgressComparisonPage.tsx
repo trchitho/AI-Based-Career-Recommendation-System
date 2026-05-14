@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Calendar, BarChart2, TrendingUp, TrendingDown, Minus, CheckCircle2 } from 'lucide-react';
 import MainLayout from '../components/layout/MainLayout';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useSubscription } from '../hooks/useSubscription';
 import { assessmentService } from '../services/assessmentService';
 import api from '../lib/api';
-import '../styles/progress-comparison.css';
+/* progress-comparison.css removed — styles migrated to Tailwind/inline */
 
 interface AssessmentHistory {
   id: number;
@@ -127,7 +129,7 @@ const CareerTooltip: React.FC<{ career: CareerRecommendation; children: React.Re
             <p className="text-gray-600 dark:text-gray-400 text-xs mb-3 line-clamp-3">{career.career_description || 'No description available'}</p>
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">Match Score</span>
-              <span className="font-bold text-green-600">{career.score.toFixed(1)}%</span>
+              <span className="font-bold text-indigo-800">{career.score.toFixed(1)}%</span>
             </div>
             <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">Click to view details →</div>
           </div>
@@ -258,7 +260,7 @@ const ProgressComparisonPage: React.FC = () => {
       return items.map((item: any) => ({
         career_id: item.career_id,
         career_slug: item.slug || '',
-        career_title: item.title_en || item.title_vi || 'Unknown Career',
+        career_title: item.title_en || item.title_vn || 'Unknown Career',
         career_description: item.description || '',
         score: item.score || 0,
         rank: item.rank || 0
@@ -308,42 +310,57 @@ const ProgressComparisonPage: React.FC = () => {
     };
 
     return (
-      <div className="comparison-card bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-3">{label}</h4>
-        <div className="space-y-3">
+      <motion.div 
+        whileHover={{ y: -4, scale: 1.01 }}
+        className="glass bg-white/50 dark:bg-gray-800/50 rounded-2xl p-5 border border-gray-200/50 dark:border-white/10 hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-bl-full pointer-events-none" />
+        
+        <h4 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-between relative z-10">
+          {label}
+          {diff.isPositive && <TrendingUp className="w-4 h-4 text-emerald-500" />}
+          {diff.isNegative && <TrendingDown className="w-4 h-4 text-red-500" />}
+          {!diff.isPositive && !diff.isNegative && <Minus className="w-4 h-4 text-gray-400" />}
+        </h4>
+        
+        <div className="space-y-4 relative z-10">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Before</span>
-              <span className="font-semibold text-gray-900 dark:text-white">{normalizedOld.toFixed(0)}%</span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Before</span>
+              <span className="font-black text-gray-700 dark:text-gray-300">{normalizedOld.toFixed(0)}%</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-              <div
-                className="bg-blue-500 h-2 rounded-full"
-                style={{ width: animateScores ? `${Math.min(normalizedOld, 100)}%` : '0%', transition: 'width 1.5s ease-out' }}
-              ></div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: animateScores ? `${Math.min(normalizedOld, 100)}%` : '0%' }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="bg-indigo-400/50 dark:bg-indigo-500/50 h-full rounded-full"
+              />
             </div>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-gray-600 dark:text-gray-400">After</span>
-              <span className="font-semibold text-gray-900 dark:text-white">{normalizedNew.toFixed(0)}%</span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">After</span>
+              <span className="font-black text-gray-900 dark:text-white">{normalizedNew.toFixed(0)}%</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full ${diff.isPositive ? 'bg-green-500' : diff.isNegative ? 'bg-red-500' : 'bg-blue-500'}`}
-                style={{ width: animateScores ? `${Math.min(normalizedNew, 100)}%` : '0%', transition: 'width 1.5s ease-out 0.3s' }}
-              ></div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: animateScores ? `${Math.min(normalizedNew, 100)}%` : '0%' }}
+                transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+                className={`h-full rounded-full ${diff.isPositive ? 'bg-emerald-500' : diff.isNegative ? 'bg-red-500' : 'bg-indigo-500'}`}
+              />
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Change</span>
-          <span className={`font-semibold flex items-center gap-1 ${diff.isPositive ? 'text-green-600' : diff.isNegative ? 'text-red-600' : 'text-gray-600'}`}>
-            {diff.isPositive && '↗'}{diff.isNegative && '↘'}{!diff.isPositive && !diff.isNegative && '→'}
-            {diff.isPositive ? '+' : ''}{diff.value.toFixed(0)}%
+        
+        <div className="flex items-center justify-between mt-5 pt-4 border-t border-gray-100 dark:border-gray-700/50 relative z-10">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Change</span>
+          <span className={`font-black flex items-center gap-1 ${diff.isPositive ? 'text-emerald-500' : diff.isNegative ? 'text-red-500' : 'text-gray-500'}`}>
+            {diff.isPositive ? '+' : ''}{diff.value.toFixed(1)}%
           </span>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
@@ -383,8 +400,13 @@ const ProgressComparisonPage: React.FC = () => {
 
     return (
       <MainLayout>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 relative overflow-x-hidden pb-20 pt-16">
+          <style>{`
+            .bg-dot-pattern { background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px); background-size: 24px 24px; }
+            .dark .bg-dot-pattern { background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); }
+          `}</style>
+          <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60"></div>
+          <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
               <button
                 onClick={() => { setShowComparison(false); setSelectedSessions([]); setComparisonData(null); setAnimateScores(false); }}
@@ -405,7 +427,7 @@ const ProgressComparisonPage: React.FC = () => {
                     <div className="text-sm text-gray-500">Time Gap</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-indigo-800">
                       {(comparisonData.first.bigFiveScores && comparisonData.second.bigFiveScores ? 5 : 0) + (comparisonData.first.riasecScores && comparisonData.second.riasecScores ? 6 : 0)}
                     </div>
                     <div className="text-sm text-gray-500">Metrics Compared</div>
@@ -417,13 +439,19 @@ const ProgressComparisonPage: React.FC = () => {
             <div className="space-y-8">
               {/* Big Five Comparison */}
               {comparisonData.first.bigFiveScores && comparisonData.second.bigFiveScores && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 p-8"
+                >
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center">
+                      <BarChart2 className="w-6 h-6 text-indigo-500" />
                     </div>
                     Big Five Comparison
-                    <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full">5 metrics</span>
+                    <span className="text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full uppercase tracking-widest ml-auto">
+                      5 metrics
+                    </span>
                   </h2>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {renderScoreComparison('Openness', comparisonData.first.bigFiveScores.openness, comparisonData.second.bigFiveScores.openness)}
@@ -432,18 +460,25 @@ const ProgressComparisonPage: React.FC = () => {
                     {renderScoreComparison('Agreeableness', comparisonData.first.bigFiveScores.agreeableness, comparisonData.second.bigFiveScores.agreeableness)}
                     {renderScoreComparison('Neuroticism', comparisonData.first.bigFiveScores.neuroticism, comparisonData.second.bigFiveScores.neuroticism)}
                   </div>
-                </div>
+                </motion.div>
               )}
 
               {/* RIASEC Comparison */}
               {comparisonData.first.riasecScores && comparisonData.second.riasecScores && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 p-8"
+                >
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center">
+                      <BarChart2 className="w-6 h-6 text-purple-500" />
                     </div>
                     RIASEC Comparison
-                    <span className="text-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">6 metrics</span>
+                    <span className="text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 px-3 py-1 rounded-full uppercase tracking-widest ml-auto">
+                      6 metrics
+                    </span>
                   </h2>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {renderScoreComparison('Realistic', comparisonData.first.riasecScores.realistic, comparisonData.second.riasecScores.realistic)}
@@ -453,7 +488,7 @@ const ProgressComparisonPage: React.FC = () => {
                     {renderScoreComparison('Enterprising', comparisonData.first.riasecScores.enterprising, comparisonData.second.riasecScores.enterprising)}
                     {renderScoreComparison('Conventional', comparisonData.first.riasecScores.conventional, comparisonData.second.riasecScores.conventional)}
                   </div>
-                </div>
+                </motion.div>
               )}
 
               {/* Career Recommendations Comparison */}
@@ -488,7 +523,7 @@ const ProgressComparisonPage: React.FC = () => {
                                 <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-medium whitespace-nowrap overflow-hidden text-ellipsis">
                                   {career.career_title}
                                 </span>
-                                <span className="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
+                                <span className="text-xs font-bold text-indigo-800 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
                               </Link>
                             </CareerTooltip>
                           ))
@@ -503,7 +538,7 @@ const ProgressComparisonPage: React.FC = () => {
                     {/* After */}
                     <div className="flex flex-col">
                       <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-5 flex items-center justify-center gap-2 pb-3 border-b border-gray-200 dark:border-gray-700">
-                        <span className="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                        <span className="w-2.5 h-2.5 bg-indigo-700 rounded-full"></span>
                         After ({comparisonData.second.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
                       </h3>
                       <div className="flex flex-col gap-4 flex-1">
@@ -517,24 +552,24 @@ const ProgressComparisonPage: React.FC = () => {
                               <CareerTooltip key={career.career_id} career={career}>
                                 <Link
                                   to={`/careers/${career.career_slug || career.career_id}`}
-                                  className="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 group border border-transparent hover:border-green-200 dark:hover:border-green-800"
+                                  className="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all duration-200 group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-900"
                                 >
-                                  <span className="w-6 h-6 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                  <span className="w-6 h-6 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                                     {idx + 1}
                                   </span>
-                                  <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                                  <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors font-medium whitespace-nowrap overflow-hidden text-ellipsis">
                                     {career.career_title}
                                   </span>
                                   {!wasInPrevious && (
                                     <span className="px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-[10px] font-semibold rounded flex-shrink-0">New</span>
                                   )}
                                   {rankChange !== null && rankChange > 0 && (
-                                    <span className="text-green-600 text-[10px] font-bold flex-shrink-0">↑{rankChange}</span>
+                                    <span className="text-indigo-800 text-[10px] font-bold flex-shrink-0">↑{rankChange}</span>
                                   )}
                                   {rankChange !== null && rankChange < 0 && (
                                     <span className="text-red-600 text-[10px] font-bold flex-shrink-0">↓{Math.abs(rankChange)}</span>
                                   )}
-                                  <span className="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
+                                  <span className="text-xs font-bold text-indigo-800 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
                                 </Link>
                               </CareerTooltip>
                             );
@@ -551,23 +586,29 @@ const ProgressComparisonPage: React.FC = () => {
               )}
 
               {/* Dynamic Summary */}
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-8 border border-purple-200 dark:border-purple-700">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Summary of Changes</h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-emerald-500/10 rounded-3xl p-8 border border-white/20 backdrop-blur-md"
+              >
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Summary of Changes</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
                   Based on the comparison results, here's an analysis of your development and changes in personality and career interests over time.
                 </p>
 
                 {/* Dynamic insights */}
-                <div className="space-y-4 mb-6">
+                <div className="space-y-4 mb-8">
                   {summaryMessages.improved.length > 0 && (
-                    <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
-                      <h4 className="font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-2">
-                        <span>↗</span> Areas of Improvement ({summaryMessages.improved.length})
+                    <div className="glass bg-emerald-500/5 rounded-2xl p-6 border border-emerald-500/20">
+                      <h4 className="font-bold text-emerald-700 dark:text-emerald-400 mb-4 flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" />
+                        Areas of Improvement ({summaryMessages.improved.length})
                       </h4>
-                      <ul className="space-y-2">
+                      <ul className="space-y-3">
                         {summaryMessages.improved.slice(0, 5).map((msg, idx) => (
-                          <li key={idx} className="text-sm text-green-600 dark:text-green-300 flex items-start gap-2">
-                            <span className="mt-1">•</span>
+                          <li key={idx} className="text-sm font-medium text-emerald-800 dark:text-emerald-300 flex items-start gap-3">
+                            <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
                             <span>{msg}</span>
                           </li>
                         ))}
@@ -576,14 +617,15 @@ const ProgressComparisonPage: React.FC = () => {
                   )}
 
                   {summaryMessages.decreased.length > 0 && (
-                    <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-200 dark:border-red-800">
-                      <h4 className="font-semibold text-red-700 dark:text-red-400 mb-2 flex items-center gap-2">
-                        <span>↘</span> Areas of Decrease ({summaryMessages.decreased.length})
+                    <div className="glass bg-red-500/5 rounded-2xl p-6 border border-red-500/20">
+                      <h4 className="font-bold text-red-700 dark:text-red-400 mb-4 flex items-center gap-2">
+                        <TrendingDown className="w-5 h-5" />
+                        Areas of Decrease ({summaryMessages.decreased.length})
                       </h4>
-                      <ul className="space-y-2">
+                      <ul className="space-y-3">
                         {summaryMessages.decreased.slice(0, 5).map((msg, idx) => (
-                          <li key={idx} className="text-sm text-red-600 dark:text-red-300 flex items-start gap-2">
-                            <span className="mt-1">•</span>
+                          <li key={idx} className="text-sm font-medium text-red-800 dark:text-red-300 flex items-start gap-3">
+                            <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
                             <span>{msg}</span>
                           </li>
                         ))}
@@ -592,51 +634,39 @@ const ProgressComparisonPage: React.FC = () => {
                   )}
 
                   {summaryMessages.stable.length > 0 && (
-                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
-                      <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                        <span>→</span> Stable Areas ({summaryMessages.stable.length})
+                    <div className="glass bg-gray-500/5 rounded-2xl p-6 border border-gray-500/20">
+                      <h4 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
+                        <Minus className="w-5 h-5" />
+                        Stable Areas ({summaryMessages.stable.length})
                       </h4>
-                      <ul className="space-y-1">
+                      <ul className="space-y-3">
                         {summaryMessages.stable.slice(0, 3).map((msg, idx) => (
-                          <li key={idx} className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2">
-                            <span className="mt-1">•</span>
+                          <li key={idx} className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-start gap-3">
+                            <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
                             <span>{msg}</span>
                           </li>
                         ))}
                         {summaryMessages.stable.length > 3 && (
-                          <li className="text-sm text-gray-500 italic">...and {summaryMessages.stable.length - 3} more stable metrics</li>
+                          <li className="text-sm text-gray-500 italic ml-4.5">...and {summaryMessages.stable.length - 3} more stable metrics</li>
                         )}
                       </ul>
                     </div>
                   )}
                 </div>
 
-                {/* Legend */}
-                <div className="flex flex-wrap gap-3 mb-6">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm rounded-full">
-                    <span>↗</span> Improved
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm rounded-full">
-                    <span>↘</span> Decreased
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-full">
-                    <span>→</span> Stable
-                  </div>
-                </div>
-
                 {/* Action buttons */}
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-4 pt-4 border-t border-gray-200/50 dark:border-white/10">
                   <button
                     onClick={() => { setShowComparison(false); setSelectedSessions([]); setComparisonData(null); setAnimateScores(false); }}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all"
+                    className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5"
                   >
                     Compare Others
                   </button>
-                  <button onClick={() => window.print()} className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all">
+                  <button onClick={() => window.print()} className="px-6 py-3 bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-700 font-bold text-gray-700 dark:text-gray-300 rounded-xl transition-all">
                     Print Results
                   </button>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -647,8 +677,13 @@ const ProgressComparisonPage: React.FC = () => {
   // Main List View
   return (
     <MainLayout>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 relative overflow-x-hidden pb-20 pt-16">
+        <style>{`
+          .bg-dot-pattern { background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px); background-size: 24px 24px; }
+          .dark .bg-dot-pattern { background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); }
+        `}</style>
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60"></div>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <Link to="/dashboard" className="inline-flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors mb-6">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -662,57 +697,63 @@ const ProgressComparisonPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-purple-600 animate-spin mb-4"></div>
-              <p className="text-gray-500 dark:text-gray-400">Loading assessment history...</p>
+            <div className="flex flex-col items-center justify-center py-32">
+              <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-indigo-600 animate-spin mb-6 shadow-lg"></div>
+              <p className="text-gray-500 dark:text-gray-400 font-bold tracking-wide uppercase">Loading history...</p>
             </div>
           ) : groupedSessions.length < 2 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
-              <div className="text-center py-20">
-                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  {groupedSessions.length === 0 ? 'No assessment data yet' : 'Need more data to compare'}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                  {groupedSessions.length === 0
-                    ? 'You have no assessment results yet. Take your first assessment to start tracking progress.'
-                    : `You have ${groupedSessions.length} assessment session. Need at least 2 sessions to use comparison feature.`}
-                </p>
-                <Link to="/assessment" className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                  Take New Assessment
-                </Link>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-2xl border border-gray-200/50 dark:border-white/10 p-12 text-center"
+            >
+              <div className="w-24 h-24 bg-indigo-500/10 rounded-3xl flex items-center justify-center mx-auto mb-8 rotate-3 transition-transform hover:rotate-6">
+                <BarChart2 className="w-10 h-10 text-indigo-500" />
               </div>
-            </div>
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
+                {groupedSessions.length === 0 ? 'No assessment data yet' : 'Need more data to compare'}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-10 max-w-lg mx-auto leading-relaxed">
+                {groupedSessions.length === 0
+                  ? 'You have no assessment results yet. Take your first assessment to start tracking progress.'
+                  : `You have ${groupedSessions.length} assessment session. Need at least 2 sessions to use comparison feature.`}
+              </p>
+              <Link to="/assessment" className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-2xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+                Take New Assessment <ArrowLeft className="w-5 h-5 rotate-180" />
+              </Link>
+            </motion.div>
           ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="glass bg-white/60 dark:bg-gray-800/40 rounded-3xl shadow-xl border border-gray-200/50 dark:border-white/10 p-8"
+            >
               {/* Header with Compare Button */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Assessment History ({groupedSessions.length} sessions)</h2>
-                  <p className="text-gray-600 dark:text-gray-400">Select 2 sessions to compare changes over time</p>
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Assessment History</h2>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">Select 2 sessions to compare changes over time ({groupedSessions.length} total)</p>
                 </div>
-                {selectedSessions.length === 2 && (
-                  <button
+                {selectedSessions.length === 2 ? (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
                     onClick={handleCompareResults}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+                    className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center gap-3 w-full md:w-auto justify-center"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                    Compare Selected ({selectedSessions.length}/2)
-                  </button>
-                )}
-                {selectedSessions.length === 1 && (
-                  <span className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg">
-                    Select 1 more session
-                  </span>
+                    Compare Selected
+                    <ArrowLeft className="w-5 h-5 rotate-180" />
+                  </motion.button>
+                ) : (
+                  <div className="px-6 py-3 bg-gray-100/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 rounded-xl font-bold border border-dashed border-gray-300 dark:border-gray-600 w-full md:w-auto text-center">
+                    Select {2 - selectedSessions.length} more session{2 - selectedSessions.length > 1 ? 's' : ''}
+                  </div>
                 )}
               </div>
 
-              {/* Session List - Like Assessment History */}
-              <div className="space-y-4">
-                {groupedSessions.map((session) => {
+              {/* Session List */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {groupedSessions.map((session, i) => {
                   const isSelected = selectedSessions.includes(session.sessionId);
                   const topRiasec = session.topRiasecType ? RIASEC_LABELS[session.topRiasecType] || session.topRiasecType : null;
                   const topBigFive = session.topBigFiveTrait ? BIG_FIVE_LABELS[session.topBigFiveTrait] || session.topBigFiveTrait : null;
@@ -720,7 +761,10 @@ const ProgressComparisonPage: React.FC = () => {
                   const bigFiveScore = session.bigFiveScores ? Math.round(getTopScore(session.bigFiveScores)) : null;
 
                   return (
-                    <div
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
                       key={session.sessionId}
                       onClick={() => {
                         if (isSelected) {
@@ -729,69 +773,63 @@ const ProgressComparisonPage: React.FC = () => {
                           setSelectedSessions(prev => [...prev, session.sessionId]);
                         }
                       }}
-                      className={`p-5 border-2 rounded-xl cursor-pointer transition-all duration-200 ${isSelected
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md'
+                      className={`relative p-6 rounded-2xl cursor-pointer transition-all duration-300 border-2 overflow-hidden ${isSelected
+                        ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-xl shadow-indigo-500/10'
+                        : 'border-transparent bg-white/50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-800'
                         }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          {/* Checkbox */}
-                          <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-purple-500 border-purple-500' : 'border-gray-300 dark:border-gray-600'
-                            }`}>
-                            {isSelected && (
-                              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
+                      {isSelected && (
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-indigo-500/20 to-transparent rounded-bl-full pointer-events-none" />
+                      )}
+
+                      <div className="flex items-start gap-4">
+                        {/* Checkbox */}
+                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all ${isSelected ? 'bg-indigo-500 border-indigo-500' : 'border-gray-300 dark:border-gray-600'
+                          }`}>
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
+                        </div>
+
+                        {/* Session Info */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1 truncate">
+                            {session.timestamp.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                          </h3>
+                          <p className="text-sm text-gray-500 font-medium mb-4 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {session.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+
+                          <div className="space-y-2">
+                            {session.hasRIASEC && topRiasec && (
+                              <div className="flex items-center justify-between bg-white dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                                <span className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-400">
+                                  <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                                  RIASEC
+                                </span>
+                                <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">
+                                  {topRiasec} <span className="opacity-50">({riasecScore}%)</span>
+                                </span>
+                              </div>
+                            )}
+                            {session.hasBigFive && topBigFive && (
+                              <div className="flex items-center justify-between bg-white dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                                <span className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-400">
+                                  <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                                  Big Five
+                                </span>
+                                <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                                  {topBigFive} <span className="opacity-50">({bigFiveScore}%)</span>
+                                </span>
+                              </div>
                             )}
                           </div>
-
-                          {/* Session Info */}
-                          <div>
-                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                              {session.timestamp.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at {session.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                            </h3>
-                            <div className="flex items-center gap-4 mt-2">
-                              {session.hasRIASEC && topRiasec && (
-                                <span className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400">
-                                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                  RIASEC: {topRiasec} ({riasecScore}%)
-                                </span>
-                              )}
-                              {session.hasBigFive && topBigFive && (
-                                <span className="flex items-center gap-1 text-sm text-purple-600 dark:text-purple-400">
-                                  <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                                  BigFive: {topBigFive} ({bigFiveScore}%)
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Tags */}
-                        <div className="flex items-center gap-2">
-                          {session.hasBigFive && session.hasRIASEC && (
-                            <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full">
-                              RIASEC + BigFive
-                            </span>
-                          )}
-                          {session.hasBigFive && !session.hasRIASEC && (
-                            <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium rounded-full">
-                              BigFive
-                            </span>
-                          )}
-                          {session.hasRIASEC && !session.hasBigFive && (
-                            <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full">
-                              RIASEC
-                            </span>
-                          )}
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

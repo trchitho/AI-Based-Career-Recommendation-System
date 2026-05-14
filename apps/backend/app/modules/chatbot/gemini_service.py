@@ -13,11 +13,11 @@ class GeminiChatbotService:
         self.stream_manager = multi_stream_manager.get_chatbot_stream()
         
         if not self.stream_manager.is_available():
-            logger.warning("⚠️ Chatbot Gemini stream not available")
+            logger.warning("[WARN] Chatbot Gemini stream not available")
             self.model = None
         else:
             self.model = self.stream_manager.model
-            logger.info(f"✅ Gemini chatbot initialized with model: {self.stream_manager.model_name}")
+            logger.info(f"[OK] Gemini chatbot initialized with model: {self.stream_manager.model_name}")
         
         # Keep these for compatibility
         self.api_key = self.stream_manager.api_key
@@ -111,24 +111,27 @@ class GeminiChatbotService:
             return self._get_fallback_response(message)
         
         try:
-            # Create prompt with career counseling context - ALWAYS respond in English
+            # Create prompt with career counseling context - ALWAYS respond in Vietnamese
             system_prompt = """
-            You are an intelligent career counseling chatbot for the AI-Based Career Recommendation System.
-            Your responsibilities are:
-            1. Provide career guidance and help users choose suitable careers
-            2. Give advice on skill development
-            3. Guide users on career paths and learning roadmaps
-            4. Answer questions about the job market
-            5. Help users understand different industries and professions
-            
-            IMPORTANT: You MUST ALWAYS respond in English, regardless of the language the user uses.
-            Be friendly, professional, and helpful.
-            Provide specific and practical advice.
+            Bạn là chatbot tư vấn nghề nghiệp thông minh của hệ thống AI-Based Career Recommendation System.
+            Nhiệm vụ của bạn:
+            1. Tư vấn định hướng nghề nghiệp và giúp người dùng chọn nghề phù hợp
+            2. Gợi ý phát triển kỹ năng
+            3. Hướng dẫn lộ trình nghề nghiệp và lộ trình học tập
+            4. Trả lời câu hỏi về thị trường việc làm
+            5. Giúp người dùng hiểu các ngành nghề và lĩnh vực khác nhau
+
+            QUAN TRỌNG:
+            - Luôn trả lời 100% bằng tiếng Việt tự nhiên, kể cả khi người dùng nhập ngôn ngữ khác.
+            - Không mở đầu bằng các câu máy móc như "Tôi hiểu bạn đang hỏi về...".
+            - Trả lời như một tin nhắn chat mentor: ngắn gọn, rõ ý, chia đoạn vừa phải.
+            - Có thể dùng bullet khi cần, nhưng không lạm dụng markdown đậm ở mọi dòng.
+            - Ưu tiên lời khuyên cụ thể, có thể hành động ngay, tránh trả lời chung chung.
             """
             
-            full_prompt = f"{system_prompt}\n\nUser asks: {message}"
+            full_prompt = f"{system_prompt}\n\nNgười dùng hỏi: {message}"
             if context:
-                full_prompt += f"\n\nAdditional context: {context}"
+                full_prompt += f"\n\nNgữ cảnh bổ sung: {context}"
             
             # Use the stream manager to generate content
             response_text = self.stream_manager.generate_content_with_retry(
@@ -158,21 +161,21 @@ class GeminiChatbotService:
         education = user_profile.get('education', '')
         
         prompt = f"""
-        Based on the following user information, provide specific and detailed career advice in English:
+        Dựa trên thông tin người dùng dưới đây, hãy đưa ra tư vấn nghề nghiệp cụ thể và chi tiết bằng tiếng Việt:
         
-        Current skills: {', '.join(skills) if skills else 'Not provided'}
-        Interests/Passions: {', '.join(interests) if interests else 'Not provided'}
-        Work experience: {experience if experience else 'No experience'}
-        Education level: {education if education else 'Not provided'}
+        Kỹ năng hiện tại: {', '.join(skills) if skills else 'Chưa cung cấp'}
+        Sở thích/đam mê: {', '.join(interests) if interests else 'Chưa cung cấp'}
+        Kinh nghiệm làm việc: {experience if experience else 'Chưa có kinh nghiệm'}
+        Trình độ học vấn: {education if education else 'Chưa cung cấp'}
         
-        Please analyze and suggest:
-        1. 3-5 most suitable careers for this profile
-        2. Skills to develop for each career
-        3. Specific learning/development roadmap (6 months, 1 year, 2 years)
-        4. Expected salary and career prospects
-        5. Recommended courses/certifications
+        Hãy phân tích và đề xuất:
+        1. 3-5 nghề phù hợp nhất với hồ sơ này
+        2. Kỹ năng cần phát triển cho từng nghề
+        3. Lộ trình học tập/phát triển cụ thể (6 tháng, 1 năm, 2 năm)
+        4. Mức lương tham khảo và triển vọng nghề nghiệp
+        5. Khóa học/chứng chỉ nên học
         
-        IMPORTANT: Respond in English only.
+        QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt.
         """
         
         return self.generate_response(prompt)
@@ -180,18 +183,18 @@ class GeminiChatbotService:
     def get_skill_development_plan(self, current_skills: List[str], target_job: str) -> str:
         """Generate skill development plan for target job"""
         prompt = f"""
-        User currently has these skills: {', '.join(current_skills)}
-        Career goal: {target_job}
+        Người dùng hiện có các kỹ năng: {', '.join(current_skills)}
+        Mục tiêu nghề nghiệp: {target_job}
         
-        Create a detailed skill development plan in English:
-        1. Skill gap analysis (missing skills)
-        2. Learning roadmap for first 6 months
-        3. Learning roadmap for 6-12 months
-        4. Practical projects to work on
-        5. Recommended online/offline courses
-        6. How to measure progress
+        Hãy tạo kế hoạch phát triển kỹ năng chi tiết bằng tiếng Việt:
+        1. Phân tích khoảng cách kỹ năng
+        2. Lộ trình học trong 6 tháng đầu
+        3. Lộ trình học giai đoạn 6-12 tháng
+        4. Dự án thực hành nên làm
+        5. Khóa học online/offline nên học
+        6. Cách đo lường tiến độ
         
-        IMPORTANT: Respond in English only. Be specific and actionable.
+        QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt. Cần cụ thể và có thể hành động.
         """
         
         return self.generate_response(prompt)
@@ -199,17 +202,17 @@ class GeminiChatbotService:
     def analyze_job_market(self, job_title: str, location: str = "Vietnam") -> str:
         """Analyze job market for specific position"""
         prompt = f"""
-        Analyze the job market for position: {job_title} in {location}
+        Phân tích thị trường việc làm cho vị trí: {job_title} tại {location}
         
-        Please provide information about:
-        1. Current hiring demand
-        2. Average salary (junior, mid, senior levels)
-        3. Companies actively hiring
-        4. Preferred skills
-        5. Industry development trends
-        6. Tips to stand out in applications
+        Hãy cung cấp thông tin về:
+        1. Nhu cầu tuyển dụng hiện tại
+        2. Mức lương trung bình theo cấp độ junior, mid, senior
+        3. Nhóm công ty thường tuyển vị trí này
+        4. Kỹ năng được ưu tiên
+        5. Xu hướng phát triển của ngành
+        6. Mẹo để nổi bật khi ứng tuyển
         
-        IMPORTANT: Respond in English only. Base on 2024-2025 market data.
+        QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt. Dựa trên bối cảnh thị trường 2024-2025.
         """
         
         return self.generate_response(prompt)
@@ -221,235 +224,221 @@ class GeminiChatbotService:
         # Marketing related
         if any(word in message_lower for word in ['marketing', 'advertising', 'digital marketing', 'social media']):
             return """
-**Digital Marketing Roadmap:**
+**Lộ trình Digital Marketing:**
 
-**Required Skills:**
-1. **Content Creation:** Writing content, basic graphic design
-2. **Social Media:** Facebook Ads, Google Ads, TikTok, Instagram
-3. **Analytics:** Google Analytics, Facebook Insights
-4. **SEO/SEM:** Search engine optimization
+**Kỹ năng cần có:**
+1. **Sáng tạo nội dung:** Viết nội dung, thiết kế cơ bản
+2. **Mạng xã hội:** Facebook Ads, Google Ads, TikTok, Instagram
+3. **Phân tích dữ liệu:** Google Analytics, Facebook Insights
+4. **SEO/SEM:** Tối ưu công cụ tìm kiếm và quảng cáo tìm kiếm
 5. **Email Marketing:** Mailchimp, automation
 
-**6-Month Roadmap:**
-- Month 1-2: Learn marketing fundamentals, content writing
-- Month 3-4: Practice Facebook/Google Ads
-- Month 5-6: Real projects, build portfolio
+**Lộ trình 6 tháng:**
+- Tháng 1-2: Học nền tảng marketing và viết nội dung
+- Tháng 3-4: Thực hành Facebook Ads/Google Ads
+- Tháng 5-6: Làm dự án thật và xây portfolio
 
-**Salary:** $400-800 (junior), $800-1,500 (senior)
-**Opportunities:** Agency, in-house, freelance
+**Lương tham khảo:** 10-20 triệu (junior), 20-38 triệu (senior)
+**Cơ hội:** Agency, in-house, freelance
             """
         
         # Data Science/Analytics
         elif any(word in message_lower for word in ['data', 'analysis', 'analyst', 'scientist', 'ai', 'machine learning']):
             return """
-**Data Science Roadmap:**
+**Lộ trình Data Science:**
 
-**Foundation Skills:**
-1. **Math/Statistics:** Probability, descriptive statistics
-2. **Programming:** Python (pandas, numpy, scikit-learn)
-3. **Database:** SQL, NoSQL
-4. **Visualization:** Tableau, Power BI, matplotlib
-5. **Machine Learning:** Supervised/Unsupervised learning
+**Nền tảng cần có:**
+1. **Toán/xác suất/thống kê:** Xác suất, thống kê mô tả
+2. **Lập trình:** Python (pandas, numpy, scikit-learn)
+3. **Cơ sở dữ liệu:** SQL, NoSQL
+4. **Trực quan hóa:** Tableau, Power BI, matplotlib
+5. **Machine Learning:** Học có giám sát và không giám sát
 
-**12-Month Roadmap:**
-- Month 1-3: Python basics + SQL
-- Month 4-6: Pandas, numpy, data cleaning
-- Month 7-9: Machine Learning algorithms
-- Month 10-12: Deep Learning, real projects
+**Lộ trình 12 tháng:**
+- Tháng 1-3: Python cơ bản + SQL
+- Tháng 4-6: Pandas, numpy, làm sạch dữ liệu
+- Tháng 7-9: Thuật toán Machine Learning
+- Tháng 10-12: Deep Learning và dự án thực tế
 
-**Salary:** $600-1,000 (junior), $1,200-2,500 (senior)
-**Opportunities:** Fintech, e-commerce, consulting
+**Lương tham khảo:** 15-25 triệu (junior), 30-60 triệu (senior)
+**Cơ hội:** Fintech, thương mại điện tử, tư vấn, sản phẩm công nghệ
             """
         
         # Business/Finance
         elif any(word in message_lower for word in ['business', 'finance', 'accounting', 'financial']):
             return """
-**Business/Finance Roadmap:**
+**Lộ trình Business/Finance:**
 
-**Finance Track:**
-- **Skills:** Advanced Excel, financial analysis, reporting
-- **Certifications:** CFA, FRM, ACCA
-- **Opportunities:** Banking, securities, insurance
-- **Salary:** $500-900 (junior), $1,000-2,000 (senior)
+**Nhánh tài chính:**
+- **Kỹ năng:** Excel nâng cao, phân tích tài chính, báo cáo
+- **Chứng chỉ:** CFA, FRM, ACCA
+- **Cơ hội:** Ngân hàng, chứng khoán, bảo hiểm
+- **Lương tham khảo:** 12-22 triệu (junior), 25-50 triệu (senior)
 
 **Business Analyst:**
-- **Skills:** Process mapping, requirements gathering, SQL
+- **Kỹ năng:** Vẽ quy trình, khai thác yêu cầu, SQL
 - **Tools:** Visio, JIRA, Power BI
-- **Opportunities:** Consulting, IT, manufacturing
-- **Salary:** $600-1,000 (junior), $1,200-2,200 (senior)
+- **Cơ hội:** Consulting, IT, sản xuất
+- **Lương tham khảo:** 15-25 triệu (junior), 30-55 triệu (senior)
 
-**Tip:** Combine tech skills with domain knowledge
+**Gợi ý:** Kết hợp kỹ năng công nghệ với hiểu biết nghiệp vụ để tăng lợi thế cạnh tranh.
             """
         
         # Design/Creative
         elif any(word in message_lower for word in ['design', 'ui', 'ux', 'graphic', 'creative']):
             return """
-**Design Roadmap:**
+**Lộ trình Design:**
 
 **UI/UX Design:**
-- **Tools:** Figma, Sketch, Adobe XD
-- **Skills:** User research, wireframing, prototyping
-- **Portfolio:** 3-5 detailed case studies
-- **Salary:** $400-750 (junior), $900-1,750 (senior)
+- **Công cụ:** Figma, Sketch, Adobe XD
+- **Kỹ năng:** Nghiên cứu người dùng, wireframe, prototype
+- **Portfolio:** 3-5 case study chi tiết
+- **Lương tham khảo:** 10-18 triệu (junior), 22-43 triệu (senior)
 
 **Graphic Design:**
-- **Tools:** Photoshop, Illustrator, InDesign
-- **Specialization:** Branding, print design, digital assets
-- **Opportunities:** Agency, in-house, freelance
-- **Salary:** $300-600 (junior), $750-1,250 (senior)
+- **Công cụ:** Photoshop, Illustrator, InDesign
+- **Chuyên môn:** Branding, thiết kế in ấn, digital assets
+- **Cơ hội:** Agency, in-house, freelance
+- **Lương tham khảo:** 8-15 triệu (junior), 18-32 triệu (senior)
 
-**Path:** Learn tools → Build portfolio → Internship → Full-time
+**Lộ trình:** Học công cụ -> xây portfolio -> thực tập -> vị trí full-time
             """
         
         # Career advice responses
         elif any(word in message_lower for word in ['career', 'advice', 'guidance', 'direction', 'choose']):
             return """
-**Career Selection Guide:**
+**Hướng dẫn chọn nghề:**
 
-**Step 1: Self-Assessment**
-- What are your interests and passions?
-- What are your current strengths and skills?
-- What's your personality and work style?
-- What are your financial and life goals?
+**Bước 1: Tự đánh giá**
+- Bạn hứng thú và đam mê điều gì?
+- Điểm mạnh và kỹ năng hiện tại của bạn là gì?
+- Tính cách và phong cách làm việc của bạn ra sao?
+- Mục tiêu tài chính và cuộc sống của bạn là gì?
 
-**Step 2: Explore Industries**
-- **Hot trends 2024:** AI/ML, Cybersecurity, Digital Marketing, Data Science
-- **Stable:** Accounting, HR, Education, Healthcare
-- **Creative:** Design, Content, Media, Entertainment
+**Bước 2: Khám phá ngành**
+- **Xu hướng mạnh:** AI/ML, Cybersecurity, Digital Marketing, Data Science
+- **Ổn định:** Kế toán, nhân sự, giáo dục, chăm sóc sức khỏe
+- **Sáng tạo:** Design, content, media, giải trí
 
-**Step 3: Create a Plan**
-- Identify skill gaps
-- Find courses/certifications
-- Build portfolio
-- Network and internship
+**Bước 3: Lập kế hoạch**
+- Xác định kỹ năng còn thiếu
+- Tìm khóa học/chứng chỉ phù hợp
+- Xây portfolio
+- Mở rộng networking và tìm cơ hội thực tập
 
-**Question to consider:** What do you want to be doing in 5 years?
+**Câu hỏi nên tự trả lời:** 5 năm nữa bạn muốn mình đang làm công việc gì?
             """
         
         # IT/Tech related
         elif any(word in message_lower for word in ['it', 'programming', 'developer', 'python', 'java', 'web', 'mobile', 'software']):
             return """
-**IT Career Roadmap:**
+**Lộ trình nghề IT:**
 
 **Web Development:**
 - **Frontend:** HTML/CSS/JS → React/Vue → TypeScript
-- **Backend:** Node.js/Python/Java → Database → API
-- **Salary:** $400-750 (junior), $1,000-2,000 (senior)
+- **Backend:** Node.js/Python/Java -> Database -> API
+- **Lương tham khảo:** 10-18 triệu (junior), 25-50 triệu (senior)
 
 **Mobile Development:**
 - **Native:** Swift (iOS), Kotlin (Android)
 - **Cross-platform:** React Native, Flutter
-- **Salary:** $500-900 (junior), $1,200-2,200 (senior)
+- **Lương tham khảo:** 12-22 triệu (junior), 30-55 triệu (senior)
 
 **DevOps/Cloud:**
-- **Skills:** Docker, Kubernetes, AWS/Azure
-- **Salary:** $750-1,250 (junior), $1,500-3,000 (senior)
+- **Kỹ năng:** Docker, Kubernetes, AWS/Azure
+- **Lương tham khảo:** 18-32 triệu (junior), 38-75 triệu (senior)
 
-**6-Month Roadmap:**
-1. Choose one specialization
-2. Learn basics for 2-3 months
-3. Build real projects for 2-3 months
-4. Find internship/junior position
+**Lộ trình 6 tháng:**
+1. Chọn một hướng chuyên môn
+2. Học nền tảng trong 2-3 tháng
+3. Làm dự án thật trong 2-3 tháng
+4. Ứng tuyển thực tập/junior
             """
         
         # General greeting
         elif any(word in message_lower for word in ['hello', 'hi', 'hey', 'greetings', 'who are you']):
             return """
-**Hello! I'm your AI Career Advisor**
+**Xin chào! Tôi là Trợ lý Nghề nghiệp AI của bạn**
 
-**I can help you with:**
-- Career guidance and choosing suitable careers
-- Detailed skill development roadmaps
-- Job market analysis
-- Learning and certification guidance
-- Salary information by industry
+**Tôi có thể hỗ trợ bạn:**
+- Định hướng nghề nghiệp và chọn nghề phù hợp
+- Xây lộ trình phát triển kỹ năng chi tiết
+- Phân tích thị trường việc làm
+- Gợi ý học tập và chứng chỉ
+- Tham khảo mức lương theo ngành
 
-**Hot Topics:**
-- IT/Programming (Web, Mobile, AI/ML)
+**Chủ đề phổ biến:**
+- IT/Lập trình (Web, Mobile, AI/ML)
 - Digital Marketing & Social Media
 - Data Science & Analytics  
 - Design (UI/UX, Graphic)
 - Business & Finance
 
-**Ask me:** "How to become a [job title]?" or "What career should I choose?"
+**Bạn có thể hỏi:** "Làm sao để trở thành [tên nghề]?" hoặc "Tôi nên chọn nghề gì?"
             """
         
         # Salary/Income related
         elif any(word in message_lower for word in ['salary', 'income', 'pay', 'money', 'earn']):
             return """
-**Salary Information by Industry (2024):**
+**Thông tin lương tham khảo theo ngành (2024):**
 
-**IT/Technology:**
-- Developer: $400-750 (junior) → $1,000-2,000 (senior)
-- Data Scientist: $600-1,000 → $1,200-2,500
-- DevOps: $750-1,250 → $1,500-3,000
-- Product Manager: $900-1,500 → $2,000-4,000
+**IT/Công nghệ:**
+- Developer: 10-18 triệu (junior) -> 25-50 triệu (senior)
+- Data Scientist: 15-25 triệu -> 30-60 triệu
+- DevOps: 18-32 triệu -> 38-75 triệu
+- Product Manager: 22-38 triệu -> 50-100 triệu
 
 **Marketing/Sales:**
-- Digital Marketing: $400-750 → $750-1,500
-- Sales: $400-600 + commission → $1,000-2,000
-- Content Creator: $300-500 → $750-1,250
+- Digital Marketing: 10-18 triệu -> 18-38 triệu
+- Sales: 10-15 triệu + hoa hồng -> 25-50 triệu
+- Content Creator: 8-12 triệu -> 18-32 triệu
 
 **Finance/Business:**
-- Accountant: $350-600 → $750-1,250
-- Business Analyst: $600-1,000 → $1,200-2,200
-- Investment Banking: $750-1,250 → $2,000-5,000
+- Kế toán: 9-15 triệu -> 18-32 triệu
+- Business Analyst: 15-25 triệu -> 30-55 triệu
+- Investment Banking: 18-32 triệu -> 50-125 triệu
 
 **Design:**
-- Graphic Designer: $300-600 → $750-1,250
-- UI/UX Designer: $400-750 → $900-1,750
+- Graphic Designer: 8-15 triệu -> 18-32 triệu
+- UI/UX Designer: 10-18 triệu -> 22-43 triệu
 
-*Note: Salary depends on experience, company, and skills*
+*Lưu ý: Lương phụ thuộc vào kinh nghiệm, công ty, địa điểm và kỹ năng thực tế.*
             """
         
         # Skills development
         elif any(word in message_lower for word in ['skill', 'learn', 'course', 'certificate', 'training']):
             return """
-**Effective Skill Development:**
+**Phát triển kỹ năng hiệu quả:**
 
 **Soft Skills:**
-- Communication and presentation
-- Teamwork and leadership
-- Critical thinking and problem solving
-- Time and stress management
-- English communication
+- Giao tiếp và thuyết trình
+- Làm việc nhóm và lãnh đạo
+- Tư duy phản biện và giải quyết vấn đề
+- Quản lý thời gian và áp lực
+- Giao tiếp tiếng Anh
 
 **Hard Skills:**
-- **Tech:** Programming, data analysis, digital tools
-- **Business:** Excel, PowerPoint, project management
-- **Creative:** Design software, content creation
+- **Công nghệ:** Lập trình, phân tích dữ liệu, công cụ số
+- **Kinh doanh:** Excel, PowerPoint, quản lý dự án
+- **Sáng tạo:** Phần mềm thiết kế, sáng tạo nội dung
 
-**Online Learning Platforms:**
-- **Free:** Coursera, edX, YouTube, FreeCodeCamp
-- **Paid:** Udemy, Pluralsight, LinkedIn Learning
+**Nền tảng học online:**
+- **Miễn phí:** Coursera, edX, YouTube, FreeCodeCamp
+- **Trả phí:** Udemy, Pluralsight, LinkedIn Learning
 
-**Tips:** Learn 1-2 skills at a time, practice immediately, build portfolio
+**Gợi ý:** Mỗi lần chỉ tập trung 1-2 kỹ năng, thực hành ngay và lưu sản phẩm vào portfolio.
             """
         
         # Default fallback
         else:
             return f"""
-**I understand you're asking about: "{message[:50]}..."**
+Bạn muốn được định hướng nghề nghiệp. Mình có thể hỗ trợ tốt hơn nếu bạn cho thêm một vài thông tin:
 
-**Topics I can help with:**
+- Bạn đang học hoặc đang làm lĩnh vực nào?
+- Bạn thích làm việc với con người, dữ liệu, công nghệ, kinh doanh hay sáng tạo?
+- Bạn muốn ưu tiên lương, sự ổn định, cơ hội thăng tiến hay đúng sở thích?
 
-**Career Guidance:**
-- "What career should I choose?"
-- "How to become a [job title]?"
-
-**Technology:**
-- "How to learn web development?"
-- "Is Data Science right for me?"
-
-**Marketing & Business:**
-- "How to start with Digital Marketing?"
-- "Skills needed for Business Analyst?"
-
-**Salary & Market Info:**
-- "Salary for [industry]?"
-- "What industries are hot right now?"
-
-**Please ask a more specific question so I can help you better!**
+Bạn có thể nhắn theo mẫu: "Tôi đang học/làm ..., tôi thích ..., điểm mạnh của tôi là ..., tôi muốn mức lương/khu vực làm việc ...".
             """    
 
     def check_quota_status(self) -> Dict:

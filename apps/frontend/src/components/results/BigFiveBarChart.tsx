@@ -22,11 +22,11 @@ const BigFiveBarChart = ({ scores, compact = false }: BigFiveBarChartProps) => {
   const hasRealData = scores && Object.values(scores).some(score => score > 0);
 
   const data = [
-    { trait: 'Openness', score: scores?.openness || (hasRealData ? 0 : 75), color: '#8B5CF6' }, // Violet
-    { trait: 'Conscientiousness', score: scores?.conscientiousness || (hasRealData ? 0 : 68), color: '#3B82F6' }, // Blue
-    { trait: 'Extraversion', score: scores?.extraversion || (hasRealData ? 0 : 82), color: '#10B981' }, // Emerald
-    { trait: 'Agreeableness', score: scores?.agreeableness || (hasRealData ? 0 : 71), color: '#F59E0B' }, // Amber
-    { trait: 'Neuroticism', score: scores?.neuroticism || (hasRealData ? 0 : 45), color: '#EF4444' }, // Red
+    { trait: 'Cởi Mở', score: scores?.openness || (hasRealData ? 0 : 75), color: '#8B5CF6' }, // Violet
+    { trait: 'Tận Tâm', score: scores?.conscientiousness || (hasRealData ? 0 : 68), color: '#3B82F6' }, // Blue
+    { trait: 'Hướng Ngoại', score: scores?.extraversion || (hasRealData ? 0 : 82), color: '#10B981' }, // Emerald
+    { trait: 'Dễ Chịu', score: scores?.agreeableness || (hasRealData ? 0 : 71), color: '#F59E0B' }, // Amber
+    { trait: 'Nhạy Cảm', score: scores?.neuroticism || (hasRealData ? 0 : 45), color: '#EF4444' }, // Red
   ];
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -53,8 +53,8 @@ const BigFiveBarChart = ({ scores, compact = false }: BigFiveBarChartProps) => {
       {!hasRealData && (
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
-            <span className="text-lg">📊</span>
-            This is sample data. Complete the assessment to see your actual results.
+            <span className="text-lg">ℹ️</span>
+            Chưa có dữ liệu tính cách. Vui lòng hoàn thành bài test để xem kết quả thực tế.
           </p>
         </div>
       )}

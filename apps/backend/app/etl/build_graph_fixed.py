@@ -21,9 +21,9 @@ class CareerGraphETL:
         """Khởi tạo kết nối đến PostgreSQL và Neo4j"""
         try:
             self.pg_conn = psycopg2.connect(host=PG_HOST, port=PG_PORT, dbname=PG_DB, user=PG_USER, password=PG_PASS)
-            print("✅ Kết nối PostgreSQL thành công")
+            print("[OK] Kết nối PostgreSQL thành công")
         except Exception as e:
-            print(f"❌ Lỗi kết nối PostgreSQL: {e}")
+            print(f"[ERR] Lỗi kết nối PostgreSQL: {e}")
             raise
 
         try:
@@ -31,9 +31,9 @@ class CareerGraphETL:
             # Test connection
             with self.neo_driver.session() as session:
                 session.run("RETURN 1")
-            print("✅ Kết nối Neo4j thành công")
+            print("[OK] Kết nối Neo4j thành công")
         except Exception as e:
-            print(f"❌ Lỗi kết nối Neo4j: {e}")
+            print(f"[ERR] Lỗi kết nối Neo4j: {e}")
             raise
 
     def close(self):
@@ -53,14 +53,14 @@ class CareerGraphETL:
             session.run("CREATE CONSTRAINT skill_id_unique IF NOT EXISTS FOR (s:Skill) REQUIRE s.id IS UNIQUE")
             # Tạo index tìm kiếm cho tên nghề (Fulltext search sau này dùng cũng được)
             session.run("CREATE INDEX job_title_index IF NOT EXISTS FOR (j:Job) ON (j.title)")
-        print("✅ Schema đã sẵn sàng.")
+        print("[OK] Schema đã sẵn sàng.")
 
     def clear_database(self):
         """(Tùy chọn) Xóa sạch database để nạp lại từ đầu"""
-        print("⚠️ Đang xóa toàn bộ dữ liệu Neo4j cũ...")
+        print("[WARN] Đang xóa toàn bộ dữ liệu Neo4j cũ...")
         with self.neo_driver.session() as session:
             session.run("MATCH (n) DETACH DELETE n")
-        print("✅ Đã xóa sạch.")
+        print("[OK] Đã xóa sạch.")
 
     def fetch_work_activities_from_postgres(self):
         """Bước 2: Lấy dữ liệu Job-specific Work Activities từ Postgres"""
@@ -99,7 +99,7 @@ class CareerGraphETL:
             processed_row["activity_rank"] = int(processed_row["activity_rank"]) if processed_row["activity_rank"] else 999
             processed_rows.append(processed_row)
 
-        print(f"✅ Đã tải {len(processed_rows)} dòng dữ liệu Work Activities.")
+        print(f"[OK] Đã tải {len(processed_rows)} dòng dữ liệu Work Activities.")
         return processed_rows
 
     def fetch_top_skills_from_postgres(self):
@@ -135,7 +135,7 @@ class CareerGraphETL:
             processed_row["combined_score"] = processed_row["importance"]  # Use importance as combined score
             processed_rows.append(processed_row)
 
-        print(f"✅ Đã tải {len(processed_rows)} dòng dữ liệu Top Skills.")
+        print(f"[OK] Đã tải {len(processed_rows)} dòng dữ liệu Top Skills.")
         return processed_rows
 
     def load_technology_skills(self):
@@ -173,7 +173,7 @@ class CareerGraphETL:
                         "combined_score": 4.5,
                     }
                 )
-        print(f"✅ Đã tải {len(processed_rows)} dòng dữ liệu Technology.")
+        print(f"[OK] Đã tải {len(processed_rows)} dòng dữ liệu Technology.")
         return processed_rows
 
     def batch_insert_neo4j(self, data_rows, batch_size=1000):
@@ -209,7 +209,7 @@ class CareerGraphETL:
                 session.run(cypher_query, batch=batch)
                 print(f"   ... Đã xử lý {min(i + batch_size, total)} / {total}")
 
-        print("✅ Hoàn tất nạp dữ liệu!")
+        print("[OK] Hoàn tất nạp dữ liệu!")
 
     def create_summary_stats(self):
         """Bước 4: Tạo thống kê tổng quan"""
@@ -285,9 +285,9 @@ class CareerGraphETL:
             )
 
             if len(overlap) < 4:  # Less than 50% overlap is good
-                print("   ✅ GOOD: Skills are job-specific!")
+                print("   [OK] GOOD: Skills are job-specific!")
             else:
-                print("   ⚠️ WARNING: Too much overlap, may need further tuning")
+                print("   [WARN] WARNING: Too much overlap, may need further tuning")
 
     def run(self):
         """Chạy toàn bộ quy trình ETL với Work Activities"""
@@ -325,7 +325,7 @@ class CareerGraphETL:
             )
 
         except Exception as e:
-            print(f"❌ Lỗi trong quá trình ETL: {e}")
+            print(f"[ERR] Lỗi trong quá trình ETL: {e}")
             raise
         finally:
             self.close()

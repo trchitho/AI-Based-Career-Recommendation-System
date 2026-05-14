@@ -20,7 +20,7 @@ from .service import (
     get_questions,
     save_assessment,
     save_essay,
-    save_feedback,  # ✅ thêm
+    save_feedback,  # [OK] thêm
 )
 
 # KHÔNG thêm "/api" ở đây vì main.py đã prefix="/api/assessments"
@@ -159,8 +159,12 @@ class EssaySubmitIn(BaseModel):
 
 class EssayPromptOut(BaseModel):
     id: int
-    title: str
-    prompt_text: str
+    title_en: str
+    title_vi: str
+    prompt_text_vi: str
+    # Convenience fields: trả về đúng lang FE yêu cầu
+    title: str        # = title_vi hoặc title_en tuỳ lang param
+    prompt_text: str  # = prompt_text_vi hoặc prompt_text_en tuỳ lang param
     lang: str
 
 
@@ -172,6 +176,32 @@ class FeedbackIn(BaseModel):
 # -------------------------------------------------------------------
 # Routes
 # -------------------------------------------------------------------
+
+
+@router.post("/session/start")
+def api_start_assessment_session(
+    req: Request,
+    db: Session = Depends(_db),
+    user_id: int = Depends(_current_user_id),
+):
+    """
+    Tạo một AssessmentSession mới trong DB và trả về session_id thực.
+    Dùng cho game modes (standard/game) trước khi bắt đầu gamification session.
+    """
+    try:
+        session = AssessmentSession(user_id=user_id)
+        db.add(session)
+        db.flush()
+        db.commit()
+        db.refresh(session)
+        return {"session_id": session.id, "user_id": session.user_id}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"[assessments] start_session error: {repr(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create assessment session",
+        )
 
 
 @router.get("/questions/{test_type}")
@@ -262,6 +292,35 @@ def api_submit_assessment(
             limit = -1
 
         traits = fuse_user_traits(db, user_id=user_id) or {}
+
+        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING (ASYNC) ────
+        # Run in background thread to not block response
+        import threading
+        def create_mentee_profile_async():
+            try:
+                from app.modules.mentor_matching.service import MentorMatchingService
+                from app.modules.graph.neo4j_client import get_driver as _get_neo4j
+                from app.core.db import SessionLocal
+                
+                # Create new DB session for background thread
+                bg_db = SessionLocal()
+                try:
+                    neo4j_driver = _get_neo4j()
+                    mentor_service = MentorMatchingService(bg_db, neo4j_driver)
+                    
+                    # Try to create/update mentee profile from assessment data
+                    mentee_profile = mentor_service.create_mentee_profile_from_user_data(user_id)
+                    print(f"[Mentor Matching] ✓ Auto-created/updated mentee profile for user {user_id} after assessment")
+                finally:
+                    bg_db.close()
+                    
+            except Exception as mentor_err:
+                # Don't fail the whole request if mentor profile creation fails
+                print(f"[Mentor Matching] ✗ Failed to auto-create mentee profile: {mentor_err}")
+        
+        # Start background thread
+        thread = threading.Thread(target=create_mentee_profile_async, daemon=True)
+        thread.start()
 
         return {
             "assessmentId": str(assessment_id),
@@ -355,16 +414,10 @@ def api_get_essay_prompt(
 ):
     """
     Trả về 1 prompt essay cho FE.
-
-    - Nếu có lang: random 1 prompt đúng lang đó; nếu không có thì random toàn bảng.
-    - Nếu không truyền lang: random toàn bộ prompts.
+    - Random 1 prompt từ bảng (tất cả đều có cả VI + EN).
+    - Trả về đủ cả 4 cột bilingual + convenience fields (title, prompt_text) theo lang.
     """
-    if lang:
-        prompt = db.query(EssayPrompt).filter(EssayPrompt.lang == lang).order_by(func.random()).first()
-        if prompt is None:
-            prompt = db.query(EssayPrompt).order_by(func.random()).first()
-    else:
-        prompt = db.query(EssayPrompt).order_by(func.random()).first()
+    prompt = db.query(EssayPrompt).order_by(func.random()).first()
 
     if prompt is None:
         raise HTTPException(
@@ -372,11 +425,16 @@ def api_get_essay_prompt(
             detail="No essay prompt configured",
         )
 
+    effective_lang = lang if lang in ("vi", "en") else "vi"
+
     return EssayPromptOut(
         id=int(prompt.id),
-        title=prompt.title,
-        prompt_text=prompt.prompt_text,
-        lang=prompt.lang or "vi",
+        title_en=prompt.title_en,
+        title_vi=prompt.title_vi,
+        prompt_text_vi=prompt.prompt_text_vi,
+        title=prompt.get_title(effective_lang),
+        prompt_text=prompt.get_prompt_text(effective_lang),
+        lang=effective_lang,
     )
 
 

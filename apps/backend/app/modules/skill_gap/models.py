@@ -36,6 +36,9 @@ class SkillGapAnalysis(Base):
     matched_skills_count = Column(Integer)
     missing_skills_count = Column(Integer)
     
+    # Cached AI-generated learning plan (avoids re-generating on every view)
+    learning_plan_cache = Column(JSON, nullable=True)
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -26,9 +26,9 @@ def public_settings(request: Request):
         return {
             "id": 1,
             "logo_url": None,
-            "app_title": "CareerBridge AI",
-            "app_name": "CareerBridge",
-            "footer_html": "© 2025 CareerBridge AI",
+            "app_title": "CareerVerse AI",
+            "app_name": "CareerVerse",
+            "footer_html": "© 2025 CareerVerse AI",
             "updated_at": None,
             "updated_by": None,
         }
@@ -86,10 +86,39 @@ class ContactFormRequest(BaseModel):
 @router.post("/contact")
 def send_contact_form(request: Request, form: ContactFormRequest):
     """
-    Send contact form message via SMTP email.
+    Send contact form message via SMTP email and save to database.
     """
+    db = _db(request)
+    
+    # 1. Save to database first (ensure message is never lost)
     try:
-        # SMTP Configuration from environment
+        db.execute(
+            text("""
+                CREATE TABLE IF NOT EXISTS core.contact_messages (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    phone TEXT,
+                    message TEXT NOT NULL,
+                    status TEXT DEFAULT 'pending',
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )
+            """)
+        )
+        db.execute(
+            text("""
+                INSERT INTO core.contact_messages (name, email, phone, message)
+                VALUES (:name, :email, :phone, :message)
+            """),
+            {"name": form.name, "email": form.email, "phone": form.phone, "message": form.message}
+        )
+        db.commit()
+    except Exception as e:
+        print(f"[Contact] DB save error (non-fatal): {e}")
+        db.rollback()
+
+    # 2. Try to send email notification
+    try:
         smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
         smtp_port = int(os.getenv("SMTP_PORT", "465"))
         smtp_user = os.getenv("SMTP_USER", "careersystemai@gmail.com")
@@ -97,16 +126,14 @@ def send_contact_form(request: Request, form: ContactFormRequest):
         email_from = os.getenv("EMAIL_FROM", "careersystemai@gmail.com")
         smtp_ssl = os.getenv("SMTP_SSL", "true").lower() == "true"
 
-        # Create email message
         msg = MIMEMultipart()
         msg["From"] = email_from
-        msg["To"] = email_from  # Send to ourselves
-        msg["Subject"] = f"CareerBridge Contact Form - {form.name}"
-        msg["Reply-To"] = form.email  # Allow reply to user's email
+        msg["To"] = email_from
+        msg["Subject"] = f"CareerVerse Contact Form - {form.name}"
+        msg["Reply-To"] = form.email
 
-        # Email body
         body = f"""
-New Contact Form Submission from CareerBridge AI
+New Contact Form Submission from CareerVerse AI
 ================================================
 
 Name: {form.name}
@@ -118,13 +145,12 @@ Message:
 {form.message}
 
 ================================================
-This message was sent from the CareerBridge AI contact form.
+This message was sent from the CareerVerse AI contact form.
 Reply directly to this email to respond to {form.name}.
         """
 
         msg.attach(MIMEText(body, "plain"))
 
-        # Send email
         if smtp_ssl:
             server = smtplib.SMTP_SSL(smtp_host, smtp_port)
         else:
@@ -135,11 +161,12 @@ Reply directly to this email to respond to {form.name}.
         server.sendmail(email_from, email_from, msg.as_string())
         server.quit()
 
-        return {"success": True, "message": "Your message has been sent successfully! We'll get back to you soon."}
+        return {"success": True, "message": "Tin nhắn đã được gửi thành công! Chúng tôi sẽ phản hồi sớm nhất."}
 
     except Exception as e:
-        print(f"Error sending contact form: {e}")
+        print(f"[Contact] SMTP error: {e}")
+        # Message is already saved to DB, so it's not lost
         return {
-            "success": False,
-            "message": "Failed to send message. Please try again or email us directly at careersystemai@gmail.com",
+            "success": True,
+            "message": "Tin nhắn đã được lưu lại. Chúng tôi sẽ phản hồi qua email sớm nhất có thể.",
         }

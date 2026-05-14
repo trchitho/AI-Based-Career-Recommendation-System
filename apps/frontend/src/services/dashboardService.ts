@@ -5,7 +5,6 @@ import {
   ProgressMetrics,
 } from '../types/dashboard';
 import { assessmentService } from './assessmentService';
-import { recommendationService } from './recommendationService';
 
 export const dashboardService = {
   async getDashboardData(): Promise<DashboardData> {
@@ -72,8 +71,8 @@ export const dashboardService = {
             topCareerSuggestions = savedRecResponse.data.slice(0, 3).map((career: any) => ({
               id: career.career_id || career.id,
               slug: career.slug || career.career_id,
-              title: career.title_vi || career.title_en || 'Unknown Career',
-              description: career.description || 'No description available',
+              title: career.title_vi || career.title_vn || career.title_en || 'Nghề nghiệp chưa xác định',
+              description: career.description || 'Chưa có mô tả',
               matchPercentage: Math.round(career.score || 0),
             }));
 
@@ -83,30 +82,33 @@ export const dashboardService = {
             topCareerSuggestions = savedRecResponse.data.items.slice(0, 3).map((career: any) => ({
               id: career.career_id || career.id,
               slug: career.slug || career.career_id,
-              title: career.title_vi || career.title_en || 'Unknown Career',
-              description: career.description || 'No description available',
+              title: career.title_vi || career.title_vn || career.title_en || 'Nghề nghiệp chưa xác định',
+              description: career.description || 'Chưa có mô tả',
               matchPercentage: Math.round(career.score || 0),
             }));
 
             console.log('✅ [DashboardService] Fast career suggestions loaded (items):', topCareerSuggestions);
           } else {
-            console.log('⚠️ [DashboardService] No saved recommendations found, trying fallback...');
-
-            // Fallback: try to get fresh recommendations only if no saved data
+            console.log('⚠️ [DashboardService] No saved recommendations found, trying quick fallback...');
+            // Quick fallback with short timeout - don't block dashboard loading
             try {
-              const recData = await recommendationService.getMain(latestAssessment.id, 3);
-              if (recData.items && recData.items.length > 0) {
-                topCareerSuggestions = recData.items.slice(0, 3).map((career) => ({
-                  id: career.career_id,
+              const recResponse = await api.get('/api/recommendations', {
+                params: { assessment_id: latestAssessment.id, top_k: 3 },
+                timeout: 12000, // 12s max - AI-core needs time
+              });
+              const recData = recResponse.data;
+              if (recData?.items && recData.items.length > 0) {
+                topCareerSuggestions = recData.items.slice(0, 3).map((career: any) => ({
+                  id: career.career_id || career.id,
                   slug: career.slug || career.career_id,
-                  title: career.title_en || career.title_vi || 'Unknown Career',
-                  description: career.description || 'No description available',
-                  matchPercentage: career.display_match || career.match_score || 0,
+                  title: career.title_vi || career.title_en || 'Nghề nghiệp chưa xác định',
+                  description: career.description || 'Khám phá lộ trình nghề nghiệp này.',
+                  matchPercentage: Math.round((career.display_match || career.match_score || 0) * (career.match_score <= 1 ? 100 : 1)),
                 }));
-                console.log('✅ [DashboardService] Fallback recommendations loaded');
+                console.log('✅ [DashboardService] Quick fallback loaded:', topCareerSuggestions);
               }
             } catch (fallbackError) {
-              console.error('❌ [DashboardService] Fallback recommendations failed:', fallbackError);
+              console.log('⚠️ [DashboardService] Quick fallback timed out or failed, showing empty state');
             }
           }
         } catch (error) {

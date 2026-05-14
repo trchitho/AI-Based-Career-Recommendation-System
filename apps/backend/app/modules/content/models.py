@@ -41,21 +41,24 @@ class Career(Base):
     title_en: Mapped[Optional[str]] = mapped_column(Text)
     # Many DBs store short descriptions in localized columns
     short_desc_en: Mapped[Optional[str]] = mapped_column(Text)
-    short_desc_vn: Mapped[Optional[str]] = mapped_column(Text)
+    short_desc_vi: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     onet_code: Mapped[Optional[str]] = mapped_column(Text, unique=True)
     industry_category: Mapped[Optional[str]] = mapped_column(Text)
 
     def to_dict(self) -> dict:
-        # Fallback title from slug if localized titles are missing
         fallback = (self.slug or "").replace("-", " ").title() if getattr(self, "slug", None) else ""
-        display_title = self.title_vi or self.title_en or fallback
-        short_desc = self.short_desc_vn or self.short_desc_en or ""
+        title_vi = self.title_vi or ""
+        title_en = self.title_en or ""
+        display_title = title_vi or title_en or fallback
+        short_desc = self.short_desc_vi or self.short_desc_en or ""
         return {
             "id": self.id,
             "slug": self.slug,
-            "title": display_title,
+            "title":    display_title,   # ưu tiên tiếng Việt
+            "title_vi": title_vi,
+            "title_en": title_en,
             "short_desc": short_desc,
             "description": short_desc,
             "onet_code": self.onet_code,
@@ -64,25 +67,33 @@ class Career(Base):
         }
 
 
-# bảng core.essay_prompts
+# bảng core.essay_prompts (bilingual: VI + EN)
 class EssayPrompt(Base):
     __tablename__ = "essay_prompts"
     __table_args__ = {"schema": "core"}
 
-    id = Column(BigInteger, primary_key=True)
-    title = Column(Text, nullable=False)
-    prompt_text = Column(Text, nullable=False)
-    lang = Column(Text, nullable=False)
-    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    id             = Column(BigInteger, primary_key=True)
+    title_en       = Column(Text, nullable=False)
+    title_vi       = Column(Text, nullable=False)
+    prompt_text_en = Column(Text, nullable=False)
+    prompt_text_vi = Column(Text, nullable=False)
+    created_at     = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id,
-            "title": self.title,
-            "prompt_text": self.prompt_text,
-            "lang": self.lang,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "id":             self.id,
+            "title_en":       self.title_en,
+            "title_vi":       self.title_vi,
+            "prompt_text_en": self.prompt_text_en,
+            "prompt_text_vi": self.prompt_text_vi,
+            "created_at":     self.created_at.isoformat() if self.created_at else None,
         }
+
+    def get_title(self, lang: str = "vi") -> str:
+        return self.title_vi if lang == "vi" or lang == "vn" else self.title_en
+
+    def get_prompt_text(self, lang: str = "vi") -> str:
+        return self.prompt_text_vi if lang == "vi" or lang == "vn" else self.prompt_text_en
 
 
 # bảng core.blog_posts
@@ -253,24 +264,32 @@ class CareerKSA(Base):
     __tablename__ = "career_ksas"
     __table_args__ = (
         {"schema": "core"},
-        # Thêm unique constraint để tránh trùng lặp
-        # UniqueConstraint('onet_code', 'ksa_type', 'name', name='unique_career_ksa')
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     onet_code = Column(Text, nullable=False)
     ksa_type = Column(Text, nullable=False)
-    name = Column(Text, nullable=False)
+    name_en = Column(Text, nullable=False)   # tên thực trong DB
+    name_vn = Column(Text)                   # tên tiếng Việt
     category = Column(Text)
     level = Column(Numeric(5, 2))
     importance = Column(Numeric(5, 2))
     source = Column(Text)
     fetched_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    description_en = Column(Text)
+    description_vn = Column(Text)
+
+    # property tương thích ngược – trả về name_en để không cần sửa hết code cũ
+    @property
+    def name(self) -> str:
+        return self.name_en or ""
 
     def to_skill(self) -> dict:
         return {
             "id": str(self.id),
-            "name": self.name,
-            "description": self.category or "",
+            "name": self.name_en or "",
+            "name_vn": self.name_vn or "",
+            "description": self.description_en or self.category or "",
+            "description_vn": self.description_vn or "",
             "category": self.ksa_type,
             "proficiency_levels": [],
             "learning_resources": [],
@@ -315,10 +334,40 @@ class CareerOverview(Base):
     __table_args__ = {"schema": "core"}
     id = Column(BigInteger, primary_key=True)
     career_id = Column(BigInteger, nullable=False)
-    experience_text = Column(Text)
-    degree_text = Column(Text)
-    salary_min = Column(Numeric(12, 2))
-    salary_max = Column(Numeric(12, 2))
-    salary_avg = Column(Numeric(12, 2))
-    salary_currency = Column(Text, default="VND")
+    experience_text_en = Column("experience_text_en", Text)
+    experience_text_vn = Column("experience_text_vn", Text)
+    degree_text_en = Column("degree_text_en", Text)
+    degree_text_vn = Column("degree_text_vn", Text)
+    salary_min_en = Column("salary_min_en", Numeric(12, 2))
+    salary_min_vn = Column("salary_min_vn", Numeric(12, 2))
+    salary_max_en = Column("salary_max_en", Numeric(12, 2))
+    salary_max_vn = Column("salary_max_vn", Numeric(12, 2))
+    salary_avg_en = Column("salary_avg_en", Numeric(12, 2))
+    salary_avg_vn = Column("salary_avg_vn", Numeric(12, 2))
+    salary_currency_en = Column("salary_currency_en", Text, default="USD")
+    salary_currency_vn = Column("salary_currency_vn", Text, default="VND")
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    @property
+    def experience_text(self) -> Optional[str]:
+        return self.experience_text_vn or self.experience_text_en
+
+    @property
+    def degree_text(self) -> Optional[str]:
+        return self.degree_text_vn or self.degree_text_en
+
+    @property
+    def salary_min(self):
+        return self.salary_min_vn or self.salary_min_en
+
+    @property
+    def salary_max(self):
+        return self.salary_max_vn or self.salary_max_en
+
+    @property
+    def salary_avg(self):
+        return self.salary_avg_vn or self.salary_avg_en
+
+    @property
+    def salary_currency(self) -> Optional[str]:
+        return self.salary_currency_vn or self.salary_currency_en

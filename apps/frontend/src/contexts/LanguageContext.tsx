@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type Language = 'en' | 'vi';
 
@@ -16,20 +17,32 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-    const [language, setLanguageState] = useState<Language>('en'); // Default to English
+    const { i18n } = useTranslation();
+    const [language, setLanguageState] = useState<Language>('vi');
 
-    // Load language from localStorage on mount
+    // Product language is locked to Vietnamese. Any legacy EN toggle is forced back.
     useEffect(() => {
-        const savedLanguage = localStorage.getItem('careerbridge_language') as Language;
-        if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'vi')) {
-            setLanguageState(savedLanguage);
-        }
-    }, []);
+        const forceVietnamese = () => {
+            setLanguageState('vi');
+            localStorage.setItem('i18nextLng', 'vi');
+            if (!i18n.language?.startsWith('vi')) {
+                i18n.changeLanguage('vi');
+            }
+        };
 
-    // Save language to localStorage when changed
-    const setLanguage = (lang: Language) => {
-        setLanguageState(lang);
-        localStorage.setItem('careerbridge_language', lang);
+        forceVietnamese();
+
+        i18n.on('languageChanged', forceVietnamese);
+
+        return () => {
+            i18n.off('languageChanged', forceVietnamese);
+        };
+    }, [i18n]);
+
+    const setLanguage = () => {
+        setLanguageState('vi');
+        i18n.changeLanguage('vi');
+        localStorage.setItem('i18nextLng', 'vi');
     };
 
     const value: LanguageContextType = {

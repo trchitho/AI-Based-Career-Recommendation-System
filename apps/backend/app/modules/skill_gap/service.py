@@ -80,7 +80,7 @@ class SkillGapService:
         
         # If AI didn't find skills, fallback to hybrid method
         if not cv_skills or len(cv_skills) == 0:
-            print("  ⚠️ AI found no skills, using hybrid fallback...")
+            print("  [WARN] AI found no skills, using hybrid fallback...")
             text = cv_data.get('text', '')
             if file_type == 'image':
                 text = self.cv_parser.extract_text_from_image(file_content)
@@ -95,19 +95,21 @@ class SkillGapService:
         
         print(f"  Extracted {len(cv_skills)} skills in {time.time() - parse_start:.2f}s")
         
-        # Analyze skill gap
-        print("[3/4] Analyzing skill gap...")
+        # Analyze skill gap + Upload CV in PARALLEL (tiết kiệm ~30-60% thời gian bước này)
+        print("[3/4] Analyzing skill gap + uploading CV in parallel...")
+        import asyncio
+        loop = asyncio.get_event_loop()
+
         analyze_start = time.time()
-        analysis_result = self.graph_analyzer.analyze_skill_gap(cv_skills, career_id)
-        print(f"  Analysis complete in {time.time() - analyze_start:.2f}s")
-        
-        # Upload CV to Cloudflare R2
-        print("[4/5] Uploading CV to Cloudflare R2...")
-        cv_file_url = r2_storage.upload_cv(
-            file_content=file_content,
-            original_filename=cv_file.filename,
-            user_id=user_id,
+        analysis_result, cv_file_url = await asyncio.gather(
+            loop.run_in_executor(None, lambda: self.graph_analyzer.analyze_skill_gap(cv_skills, career_id)),
+            loop.run_in_executor(None, lambda: r2_storage.upload_cv(
+                file_content=file_content,
+                original_filename=cv_file.filename,
+                user_id=user_id,
+            )),
         )
+        print(f"  Parallel done in {time.time() - analyze_start:.2f}s")
         if cv_file_url:
             print(f"  Uploaded: {cv_file_url}")
         else:
@@ -116,6 +118,12 @@ class SkillGapService:
         # Save to database
         print("[5/5] Saving to database...")
         db_start = time.time()
+
+        # Reset any aborted transaction from earlier queries before saving
+        try:
+            self.db.rollback()
+        except Exception:
+            pass
 
         # Extract personal info
         personal_info = cv_data.get('personal_info', {})
@@ -149,10 +157,19 @@ class SkillGapService:
         self.db.commit()
         self.db.refresh(skill_gap_record)
         print(f"  Saved in {time.time() - db_start:.2f}s")
-        
+
+        # ── Stage 4/5: NeuMF + Thompson Sampling (background, non-blocking) ──
+        job_skills_raw = self.graph_analyzer.get_job_required_skills(career_id)
+        import asyncio as _aio
+        _aio.ensure_future(
+            self._run_ai_ranking_pipeline(
+                skill_gap_record.id, cv_skills, job_skills_raw, user_id
+            )
+        )
+
         total_time = time.time() - start_time
         print(f"Total analysis time: {total_time:.2f}s")
-        
+
         return {
             'analysis_id': skill_gap_record.id,
             'career_id': career_id,
@@ -162,6 +179,28 @@ class SkillGapService:
             'processing_time': round(total_time, 2),
             **analysis_result
         }
+
+    async def _run_ai_ranking_pipeline(
+        self,
+        analysis_id: int,
+        cv_skills: list,
+        job_skills: list,
+        user_id: int,
+    ) -> None:
+        """Background: NeuMF rank + Thompson Sampling adjustment."""
+        try:
+            from .cv_worker import run_cv_pipeline
+            await run_cv_pipeline(
+                db=self.db,
+                analysis_id=analysis_id,
+                cv_text="",
+                cv_skills=cv_skills,
+                job_skills=job_skills,
+                user_id=user_id,
+            )
+            print(f"[cv-worker] Pipeline done for analysis_id={analysis_id}")
+        except Exception as e:
+            print(f"[cv-worker] Pipeline error: {e}")
     
     def get_user_analyses(self, user_id: int, limit: int = 10) -> List[SkillGapAnalysis]:
         """

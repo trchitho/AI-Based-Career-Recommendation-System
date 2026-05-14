@@ -17,7 +17,7 @@ interface RIASECCoverProps {
 const RIASECCover = ({ cover }: RIASECCoverProps) => {
     const formatDate = (dateString?: string) => {
         if (!dateString) return '';
-        return new Date(dateString).toLocaleDateString('en-US', {
+        return new Date(dateString).toLocaleDateString('vi-VN', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -27,26 +27,26 @@ const RIASECCover = ({ cover }: RIASECCoverProps) => {
     return (
         <div className="h-full flex flex-col">
             {/* Header Banner - Full width with negative margins to extend to edges */}
-            <div className="bg-gradient-to-r from-green-600 to-teal-700 text-white px-10 py-6 -mx-10 -mt-10 mb-6 print:-mx-[15mm] print:-mt-[15mm] print:px-[15mm] print:py-5 print:mb-4">
+            <div className="bg-gradient-to-r from-indigo-800 to-violet-700 text-white px-10 py-6 -mx-10 -mt-10 mb-6 print:-mx-[15mm] print:-mt-[15mm] print:px-[15mm] print:py-5 print:mb-4">
                 {/* Title Row */}
                 <h1 className="text-2xl font-extrabold mb-2 print:text-xl">
                     {cover.title}
                 </h1>
                 {cover.subtitle && (
-                    <p className="text-green-100 text-base print:text-sm mb-3">
+                    <p className="text-indigo-100 text-base print:text-sm mb-3">
                         {cover.subtitle}
                     </p>
                 )}
 
                 {/* User Info Row - Full width, flex wrap for safety */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-green-500/30 pt-3 mt-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-indigo-600/30 pt-3 mt-2">
                     {cover.user_name && (
                         <p className="font-semibold uppercase tracking-wide text-base print:text-sm">
-                            Results for: {cover.user_name}
+                            Kết quả cho: {cover.user_name}
                         </p>
                     )}
                     {cover.completed_at && (
-                        <p className="text-green-100 text-base print:text-sm">
+                        <p className="text-indigo-100 text-base print:text-sm">
                             {formatDate(cover.completed_at)}
                         </p>
                     )}
@@ -66,38 +66,38 @@ const RIASECCover = ({ cover }: RIASECCoverProps) => {
                 {/* What's Inside Section */}
                 <div className="mt-6 print:mt-4">
                     <h3 className="text-base font-bold text-gray-900 dark:text-white mb-3 print:text-sm">
-                        What's Inside This Report
+                        Nội Dung Báo Cáo
                     </h3>
                     <div className="grid grid-cols-2 gap-3 text-sm print:text-xs print:gap-2">
                         <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">Your Interest Pattern</span>
+                            <span className="w-2 h-2 bg-indigo-700 rounded-full flex-shrink-0" />
+                            <span className="text-gray-600 dark:text-gray-400">Mẫu Sở Thích Của Bạn</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">6 RIASEC Dimensions</span>
+                            <span className="w-2 h-2 bg-indigo-700 rounded-full flex-shrink-0" />
+                            <span className="text-gray-600 dark:text-gray-400">6 Chiều RIASEC</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">Top Career Interests</span>
+                            <span className="w-2 h-2 bg-indigo-700 rounded-full flex-shrink-0" />
+                            <span className="text-gray-600 dark:text-gray-400">Sở Thích Nghề Nghiệp Hàng Đầu</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400">Interest Interpretations</span>
+                            <span className="w-2 h-2 bg-indigo-700 rounded-full flex-shrink-0" />
+                            <span className="text-gray-600 dark:text-gray-400">Giải Thích Sở Thích</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Decorative Element */}
                 <div className="mt-8 flex justify-center print:mt-6">
-                    <div className="w-16 h-0.5 bg-gradient-to-r from-green-500 to-teal-500 rounded-full" />
+                    <div className="w-16 h-0.5 bg-gradient-to-r from-indigo-700 to-indigo-600 rounded-full" />
                 </div>
             </div>
 
             {/* Footer */}
             <div className="mt-auto pt-4 print:pt-2">
                 <p className="text-xs text-gray-400 dark:text-gray-500 text-center print:text-[10px]">
-                    Based on Holland's RIASEC career interest model
+                    Dựa trên mô hình sở thích nghề nghiệp RIASEC của Holland
                 </p>
             </div>
         </div>

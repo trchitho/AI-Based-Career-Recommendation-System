@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Play, Loader2, Briefcase, Clock, Users, Eye, Star, TrendingUp, Award, Target, Zap, ChevronRight, Sparkles } from 'lucide-react';
+import { Search, Play, Loader2, Briefcase, Clock, Users, Eye, Star, ChevronRight, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { interviewService } from '../services/interviewService';
 import { useDebounce } from '../hooks/useDebounce';
 import MainLayout from '../components/layout/MainLayout';
-
+import './InterviewListPage.css';
 interface Job {
     id: string;
     title: string;
@@ -45,7 +46,6 @@ const InterviewListPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [showAllInterviews, setShowAllInterviews] = useState(false);
-    const [isLoadingAllInterviews, setIsLoadingAllInterviews] = useState(false);
 
     // Debounce search query to avoid too many API calls
     const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -57,7 +57,7 @@ const InterviewListPage: React.FC = () => {
 
         try {
             setIsLoading(true);
-            console.log('🔄 Loading initial interview data...');
+            console.log(' Loading initial interview data...');
 
             // Load truly random jobs from all 959 careers and recent interviews + stats in parallel
             const [jobsResponse, interviewsResponse, allInterviewsResponse] = await Promise.all([
@@ -82,52 +82,38 @@ const InterviewListPage: React.FC = () => {
                 average_score: completedInterviews.length > 0 ? scoresSum / completedInterviews.length : 0
             });
 
-            console.log('✅ Initial interview data loaded successfully');
+            console.log(' Initial interview data loaded successfully');
         } catch (error) {
-            console.error('❌ Error loading initial data:', error);
+            console.error(' Error loading initial data:', error);
             hasLoadedRef.current = false; // Reset on error to allow retry
         } finally {
             setIsLoading(false);
         }
     }, []); // Empty dependency array to prevent re-creation
 
-    // Load all interviews for "View More" functionality
-    const loadAllInterviews = useCallback(async () => {
-        try {
-            setIsLoadingAllInterviews(true);
-            const response = await interviewService.getMyInterviews(1000); // Load all interviews
-            setAllInterviews(response.interviews);
-            setShowAllInterviews(true);
-        } catch (error) {
-            console.error('Error loading all interviews:', error);
-        } finally {
-            setIsLoadingAllInterviews(false);
-        }
-    }, []);
-
     // Handle search with debounce - STABLE reference
     const handleSearch = useCallback(async (query: string) => {
         if (query.trim().length < 2) {
             // If query is too short, load truly random jobs from all 959 careers
             try {
-                console.log('🔍 Loading random jobs for empty search...');
+                console.log(' Loading random jobs for empty search...');
                 const response = await interviewService.searchJobs('', 50, true); // Use random=true for full randomization
                 const shuffledJobs = response.jobs.sort(() => Math.random() - 0.5);
                 setJobs(shuffledJobs.slice(0, 12));
             } catch (error) {
-                console.error('❌ Error loading random jobs:', error);
+                console.error(' Error loading random jobs:', error);
             }
             return;
         }
 
         try {
             setIsSearching(true);
-            console.log(`🔍 Searching jobs with query: "${query}"`);
+            console.log(` Searching jobs with query: "${query}"`);
             const response = await interviewService.searchJobs(query, 50); // Search with query
             setJobs(response.jobs);
-            console.log(`✅ Found ${response.jobs.length} jobs for query: "${query}"`);
+            console.log(` Found ${response.jobs.length} jobs for query: "${query}"`);
         } catch (error) {
-            console.error('❌ Error searching jobs:', error);
+            console.error(' Error searching jobs:', error);
         } finally {
             setIsSearching(false);
         }
@@ -149,36 +135,31 @@ const InterviewListPage: React.FC = () => {
         });
     };
 
-    // Get status color for interview status
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'completed':
-                return 'bg-green-100 text-green-800';
-            case 'active':
-                return 'bg-blue-100 text-blue-800';
-            case 'abandoned':
-                return 'bg-gray-100 text-gray-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
+            case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+            case 'active': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+            case 'abandoned': return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400';
+            case 'terminated': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
+            default: return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400';
         }
     };
 
-    // Get status label in Vietnamese
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'completed':
-                return 'Hoàn thành';
-            case 'active':
-                return 'Đang diễn ra';
-            case 'abandoned':
-                return 'Đã hủy';
-            default:
-                return 'Không xác định';
+            case 'completed': return 'Hoàn thành';
+            case 'active': return 'Đang diễn ra';
+            case 'abandoned': return 'Đã hủy';
+            case 'terminated': return 'Đã thoát';
+            default: return 'Không xác định';
         }
     };
 
     // Check authentication and load data ONLY ONCE
     useEffect(() => {
+        // Scroll to top when component mounts
+        window.scrollTo(0, 0);
+
         if (!user) {
             navigate('/login', {
                 state: {
@@ -195,17 +176,17 @@ const InterviewListPage: React.FC = () => {
 
     // Effect for debounced search - ONLY when search query actually changes
     useEffect(() => {
-        console.log(`🔍 Search query changed to: "${debouncedSearchQuery}"`);
+        console.log(` Search query changed to: "${debouncedSearchQuery}"`);
         handleSearch(debouncedSearchQuery);
     }, [debouncedSearchQuery, handleSearch]); // Include handleSearch but it's stable due to empty deps
 
     if (isLoading) {
         return (
             <MainLayout>
-                <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                     <div className="text-center">
-                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-                        <p className="text-gray-600">Đang tải danh sách nghề nghiệp...</p>
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-indigo-600" />
+                        <p className="text-gray-500 font-medium">Đang tải danh sách nghề nghiệp...</p>
                     </div>
                 </div>
             </MainLayout>
@@ -214,78 +195,173 @@ const InterviewListPage: React.FC = () => {
 
     return (
         <MainLayout>
-            <div className="min-h-screen bg-gray-50 py-8">
-                <div className="max-w-6xl mx-auto px-4">
-                    {/* Header */}
-                    <div className="text-center mb-12">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6">
-                            <Users className="h-8 w-8 text-white" />
-                        </div>
-                        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                            Phỏng vấn AI thông minh
-                        </h1>
-                        <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                            Luyện tập phỏng vấn với AI thông minh, nhận phản hồi chi tiết và cải thiện kỹ năng của bạn.
-                            Chọn nghề nghiệp bạn quan tâm và bắt đầu hành trình phát triển sự nghiệp.
-                        </p>
-                    </div>
+            <div className="min-h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans']">
 
-                    {/* Search */}
-                    <div className="max-w-lg mx-auto mb-8">
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm nghề nghiệp mơ ước của bạn..."
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                className="w-full pl-12 pr-12 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm text-lg"
-                            />
-                            {isSearching && (
-                                <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 animate-spin text-gray-400" />
-                            )}
-                        </div>
+                {/* Hero Section */}
+                <div className="hero-section">
+                    <div className="hero-inner">
+                        {/* Left Content */}
+                        <div className="hero-left">
+                            {/* Icon */}
+                            <div className="hero-icon">
+                                <Users className="h-7 w-7 text-white" />
+                            </div>
 
-                        {/* Popular Career Suggestions */}
-                        <div className="mt-4">
-                            <p className="text-sm text-gray-500 mb-3 text-center">
-                                💡 Nghề nghiệp phổ biến:
+                            {/* Title */}
+                            <h1 className="hero-title">
+                                <span className="text-[#0F172A] dark:text-white">Phỏng vấn AI </span>
+                                <span className="hero-title-gradient">thông minh</span>
+                            </h1>
+
+                            {/* Subtitle */}
+                            <p className="hero-subtitle">
+                                Luyện tập phỏng vấn với AI, nhận phản hồi chi tiết và nâng cao cơ hội thành công trong sự nghiệp.
                             </p>
-                            <div className="flex flex-wrap justify-center gap-2">
-                                {[
-                                    { name: "Kỹ sư phần mềm", query: "kỹ sư phần mềm" },
-                                    { name: "Bác sĩ", query: "bác sĩ" },
-                                    { name: "Giáo viên", query: "giáo viên" },
-                                    { name: "Kế toán", query: "kế toán" },
-                                    { name: "Marketing", query: "marketing" },
-                                    { name: "Thiết kế", query: "thiết kế" },
-                                    { name: "Luật sư", query: "luật sư" },
-                                    { name: "Nhân sự", query: "nhân sự" }
-                                ].map((career) => (
-                                    <button
-                                        key={career.name}
-                                        onClick={() => setSearchQuery(career.query)}
-                                        className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors border border-blue-200"
-                                    >
-                                        {career.name}
-                                    </button>
-                                ))}
+
+                            {/* Search Bar */}
+                            <div className="hero-search">
+                                <Search className="hero-search-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Tìm kiếm kỹ năng, vị trí, công ty..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    className="hero-search-input"
+                                />
+                                {isSearching && (
+                                    <Loader2 className="hero-search-loader" />
+                                )}
+                            </div>
+
+                            {/* Popular Career Suggestions */}
+                            <div className="popular-jobs">
+                                <p className="popular-jobs-title">
+                                    Nghề nghiệp phổ biến
+                                </p>
+                                <div className="popular-jobs-list">
+                                    {[
+                                        { name: "Kỹ sư", query: "kỹ sư" },
+                                        { name: "Nhân viên kinh doanh", query: "nhân viên kinh doanh" },
+                                        { name: "Kế toán", query: "kế toán" },
+                                        { name: "Giáo viên", query: "giáo viên" },
+                                        { name: "Bác sĩ", query: "bác sĩ" },
+                                        { name: "Thợ điện", query: "thợ điện" },
+                                        { name: "Thiết kế đồ họa", query: "thiết kế" },
+                                    ].map((career) => (
+                                        <button
+                                            key={career.name}
+                                            onClick={() => setSearchQuery(career.query)}
+                                            className="popular-job-chip"
+                                            style={{
+                                                background: 'linear-gradient(180deg, #7c3aed 0%, #681fd8 48%, #5516c8 100%)',
+                                                color: '#ffffff'
+                                            }}
+                                        >
+                                            {career.name}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
+
+                        {/* Right Illustration */}
+                        <div className="interview-illustration">
+                            {/* Halo Background */}
+                            <div className="illustration-halo" />
+
+                            {/* Main Card */}
+                            <div className="resume-card">
+                                {/* Clipboard Clip */}
+                                <div className="illustration-clip">
+                                    <div className="illustration-clip-ring" />
+                                </div>
+
+                                {/* Avatar Block */}
+                                <div className="illustration-avatar">
+                                    <div className="avatar-head" />
+                                    <div className="avatar-body" />
+                                </div>
+
+                                {/* Text Lines */}
+                                <div className="illustration-lines-top">
+                                    <div className="line line-top-1" />
+                                    <div className="line line-top-2" />
+                                    <div className="line line-top-3" />
+                                </div>
+                                <div className="illustration-lines-bottom">
+                                    <div className="line line-bot-1" />
+                                    <div className="line line-bot-2" />
+                                    <div className="line line-bot-3" />
+                                    <div className="line line-bot-4" />
+                                    <div className="line line-bot-5" />
+                                </div>
+                            </div>
+
+                            {/* Chat Bubble */}
+                            <div className="chat-bubble">
+                                <div className="chat-dots">
+                                    <div className="chat-dot dot-1" />
+                                    <div className="chat-dot dot-2" />
+                                    <div className="chat-dot dot-3" />
+                                </div>
+                            </div>
+
+                            {/* Magnifying Glass */}
+                            <div className="search-bubble">
+                                <Search className="search-icon" strokeWidth={2.5} />
+                            </div>
+
+                            {/* Mini Card */}
+                            <div className="mini-card">
+                                <div className="mini-line w-[45px]" />
+                                <div className="mini-line w-[55px]" />
+                            </div>
+
+                            {/* Sparkles */}
+                            <div className="sparkle sparkle-1">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="#F6C453" />
+                                </svg>
+                            </div>
+                            <div className="sparkle sparkle-2">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="#8B5CF6" />
+                                </svg>
+                            </div>
+                            <div className="sparkle sparkle-3">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="#F6C453" />
+                                </svg>
+                            </div>
+                            <div className="sparkle sparkle-4">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="#F6C453" />
+                                </svg>
+                            </div>
+
+                            {/* Curved Stroke */}
+                            <svg className="illustration-curve" viewBox="0 0 100 40">
+                                <path d="M10 25 C35 5 65 5 88 15" stroke="#8B5CF6" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.9" />
+                            </svg>
+                        </div>
                     </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="max-w-6xl mx-auto relative z-10 px-4 py-10">
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Job List */}
                         <div className="lg:col-span-2">
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-5 border-b border-gray-200">
-                                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                                        <div className="p-2 bg-white rounded-lg shadow-sm">
-                                            <Briefcase className="h-5 w-5 text-blue-600" />
+                            <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl overflow-hidden h-full">
+                                <div className="px-6 py-5 border-b border-white/40 dark:border-gray-700/50 bg-white/30 dark:bg-gray-800/30">
+                                    <h2 className="flex items-center gap-3 text-xl font-bold text-gray-900 dark:text-white">
+                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+                                            <Briefcase className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         {searchQuery ? 'Kết quả tìm kiếm' : 'Nghề nghiệp phổ biến'}
                                     </h2>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                                         {searchQuery
                                             ? `Tìm thấy ${jobs.length} nghề nghiệp phù hợp`
                                             : 'Được chọn ngẫu nhiên từ 959+ nghề nghiệp trong hệ thống'
@@ -294,14 +370,14 @@ const InterviewListPage: React.FC = () => {
                                 </div>
                                 <div className="p-6">
                                     {jobs.length === 0 ? (
-                                        <div className="text-center py-12">
-                                            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                <Briefcase className="h-10 w-10 text-gray-400" />
+                                        <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
+                                                <Briefcase className="h-8 w-8 text-gray-400" />
                                             </div>
-                                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
                                                 {searchQuery ? 'Không tìm thấy nghề nghiệp phù hợp' : 'Không có dữ liệu nghề nghiệp'}
                                             </h3>
-                                            <p className="text-gray-500 mb-4">
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md">
                                                 {searchQuery
                                                     ? 'Thử tìm kiếm với từ khóa khác hoặc kiểm tra chính tả'
                                                     : 'Vui lòng thử lại sau'
@@ -310,43 +386,55 @@ const InterviewListPage: React.FC = () => {
                                             {searchQuery && (
                                                 <button
                                                     onClick={() => setSearchQuery('')}
-                                                    className="text-blue-600 hover:text-blue-700 font-medium"
+                                                    className="px-5 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-semibold rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors text-sm"
                                                 >
                                                     Xóa bộ lọc và xem tất cả
                                                 </button>
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <motion.div
+                                            initial="hidden"
+                                            animate="visible"
+                                            variants={{
+                                                hidden: { opacity: 0 },
+                                                visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+                                            }}
+                                            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                                        >
                                             {jobs.map((job) => (
-                                                <div
+                                                <motion.div
+                                                    variants={{
+                                                        hidden: { opacity: 0, y: 20 },
+                                                        visible: { opacity: 1, y: 0 }
+                                                    }}
+                                                    whileHover={{ y: -4, scale: 1.01 }}
+                                                    transition={{ type: "spring", stiffness: 300 }}
                                                     key={job.id}
-                                                    className="border border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 group bg-gradient-to-br from-white to-gray-50 flex flex-col h-[360px]"
+                                                    className="glass rounded-2xl p-5 border border-white/40 dark:border-gray-700/50 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all shadow-sm hover:shadow-lg flex flex-col h-full bg-white/50 dark:bg-gray-800/40"
                                                 >
                                                     {/* Header - Fixed height */}
-                                                    <div className="mb-4 h-[100px] flex flex-col justify-between">
-                                                        <div>
-                                                            <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-lg mb-2 leading-tight">
-                                                                <span className="line-clamp-2">
-                                                                    {job.title}
-                                                                </span>
-                                                            </h3>
-                                                            <p className="text-sm text-gray-500 font-medium">
-                                                                Mã nghề: {job.id}
-                                                            </p>
-                                                        </div>
+                                                    <div className="mb-4 h-[90px] flex flex-col justify-start">
+                                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 leading-snug">
+                                                            <span className="line-clamp-2">
+                                                                {job.title}
+                                                            </span>
+                                                        </h3>
+                                                        <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 w-fit px-2 py-0.5 rounded-md">
+                                                            Mã nghề: {job.id}
+                                                        </p>
                                                     </div>
 
                                                     {/* Description - Fixed height with scroll */}
                                                     <div className="flex-1 mb-6 h-[140px] overflow-hidden">
                                                         {job.description_vi ? (
-                                                            <div className="text-sm text-gray-600 leading-relaxed h-full">
+                                                            <div className="h-full text-sm text-gray-600 dark:text-gray-400">
                                                                 <p className="line-clamp-6">
                                                                     {job.description_vi}
                                                                 </p>
                                                             </div>
                                                         ) : (
-                                                            <div className="text-sm text-gray-400 italic h-full flex items-center">
+                                                            <div className="text-sm italic h-full flex items-center" style={{ color: 'var(--text-muted)' }}>
                                                                 <span>Mô tả nghề nghiệp sẽ được cập nhật sớm</span>
                                                             </div>
                                                         )}
@@ -356,22 +444,22 @@ const InterviewListPage: React.FC = () => {
                                                     <div className="flex gap-3 mt-auto">
                                                         <button
                                                             onClick={() => navigate(`/interview/selection/${job.id}`)}
-                                                            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-sm"
+                                                            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/40"
                                                         >
                                                             <Play className="h-4 w-4" />
                                                             Phỏng vấn
                                                         </button>
                                                         <button
                                                             onClick={() => navigate(`/careers/${job.id.replace(/\./g, '-')}`)}
-                                                            className="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                                                            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/60 dark:bg-gray-800/60 hover:bg-white/80 dark:hover:bg-gray-700/80 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold transition-colors shadow-sm"
                                                         >
                                                             <Eye className="h-4 w-4" />
                                                             Chi tiết
                                                         </button>
                                                     </div>
-                                                </div>
+                                                </motion.div>
                                             ))}
-                                        </div>
+                                        </motion.div>
                                     )}
                                 </div>
                             </div>
@@ -380,26 +468,26 @@ const InterviewListPage: React.FC = () => {
                         {/* Sidebar */}
                         <div className="space-y-6">
                             {/* Recent Interviews */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <div className="bg-gradient-to-r from-green-50 to-blue-50 px-6 py-5 border-b border-gray-200">
-                                    <h3 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                                        <div className="p-2 bg-white rounded-lg shadow-sm">
-                                            <Clock className="h-5 w-5 text-green-600" />
+                            <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl overflow-hidden">
+                                <div className="px-6 py-5 border-b border-white/40 dark:border-gray-700/50 bg-white/30 dark:bg-gray-800/30">
+                                    <h3 className="flex items-center gap-3 text-lg font-bold text-gray-900 dark:text-white">
+                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+                                            <Clock className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         Phỏng vấn gần đây
                                     </h3>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                                         Lịch sử phỏng vấn của bạn
                                     </p>
                                 </div>
                                 <div className="p-6">
                                     {recentInterviews.length === 0 ? (
-                                        <div className="text-center py-8">
-                                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-gray-800/20 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
                                                 <Clock className="h-8 w-8 text-gray-400" />
                                             </div>
-                                            <h4 className="font-medium text-gray-900 mb-2">Chưa có phỏng vấn nào</h4>
-                                            <p className="text-sm text-gray-500 mb-4">
+                                            <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Chưa có phỏng vấn nào</h4>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md">
                                                 Bắt đầu phỏng vấn đầu tiên để xem lịch sử tại đây
                                             </p>
                                             <button
@@ -407,9 +495,9 @@ const InterviewListPage: React.FC = () => {
                                                     const firstJob = jobs[0];
                                                     if (firstJob) navigate(`/interview/selection/${firstJob.id}`);
                                                 }}
-                                                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                                                className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors text-sm shadow-md shadow-indigo-500/20 flex items-center gap-2"
                                             >
-                                                Bắt đầu phỏng vấn ngay →
+                                                Bắt đầu phỏng vấn ngay <ChevronRight className="w-4 h-4" />
                                             </button>
                                         </div>
                                     ) : (
@@ -418,11 +506,11 @@ const InterviewListPage: React.FC = () => {
                                                 {(showAllInterviews ? allInterviews : recentInterviews).map((interview) => (
                                                     <div
                                                         key={interview.id}
-                                                        className="border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                                                        className="glass bg-white/50 dark:bg-gray-800/40 border border-white/40 dark:border-gray-700/50 rounded-xl p-4 sm:p-5 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
                                                         onClick={() => navigate(`/interview/results/${interview.id}`)}
                                                     >
                                                         <div className="flex items-center justify-between mb-3">
-                                                            <h4 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-sm leading-tight">
+                                                            <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors text-sm leading-tight">
                                                                 {interview.job_title}
                                                             </h4>
                                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(interview.status)}`}>
@@ -432,19 +520,19 @@ const InterviewListPage: React.FC = () => {
 
                                                         <div className="space-y-2">
                                                             <p className="text-xs text-gray-500">
-                                                                📅 {formatDate(interview.started_at)}
+                                                                {formatDate(interview.started_at)}
                                                             </p>
 
                                                             {interview.overall_score && (
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-2">
                                                                         <span className="text-xs text-gray-400">Điểm:</span>
-                                                                        <span className="text-sm font-bold text-blue-600">
+                                                                        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
                                                                             {interview.overall_score.toFixed(1)}/10
                                                                         </span>
                                                                     </div>
                                                                     {interview.recommendation && (
-                                                                        <span className={`text-xs font-medium ${interview.recommendation === 'PASS' ? 'text-green-600' :
+                                                                        <span className={`text-xs font-medium ${interview.recommendation === 'PASS' ? 'text-indigo-800' :
                                                                             interview.recommendation === 'CONDITIONAL_PASS' ? 'text-yellow-600' :
                                                                                 'text-red-600'
                                                                             }`}>
@@ -456,7 +544,7 @@ const InterviewListPage: React.FC = () => {
                                                                 </div>
                                                             )}
 
-                                                            <div className="text-xs text-blue-600 group-hover:text-blue-700 transition-colors">
+                                                            <div className="text-xs text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
                                                                 Nhấn để xem chi tiết →
                                                             </div>
                                                         </div>
@@ -469,7 +557,7 @@ const InterviewListPage: React.FC = () => {
                                                 <div className="mt-6 text-center">
                                                     <button
                                                         onClick={() => navigate('/interview/history')}
-                                                        className="w-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl font-semibold hover:from-blue-100 hover:to-purple-100 transition-all duration-200 flex items-center justify-center gap-2"
+                                                        className="w-full bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 px-4 py-3 rounded-xl font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all duration-200 flex items-center justify-center gap-2"
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                         Xem thêm ({interviewStats.total_interviews - 5} phỏng vấn)
@@ -482,7 +570,7 @@ const InterviewListPage: React.FC = () => {
                                                 <div className="mt-6 text-center">
                                                     <button
                                                         onClick={() => setShowAllInterviews(false)}
-                                                        className="w-full bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-200 flex items-center justify-center gap-2"
+                                                        className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 flex items-center justify-center gap-2"
                                                     >
                                                         Thu gọn
                                                     </button>
@@ -494,51 +582,51 @@ const InterviewListPage: React.FC = () => {
                             </div>
 
                             {/* Enhanced Stats */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-5 border-b border-gray-200">
-                                    <h3 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                                        <div className="p-2 bg-white rounded-lg shadow-sm">
-                                            <Users className="h-5 w-5 text-purple-600" />
+                            <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl overflow-hidden">
+                                <div className="px-6 py-5 border-b border-white/40 dark:border-gray-700/50 bg-white/30 dark:bg-gray-800/30">
+                                    <h3 className="flex items-center gap-3 text-lg font-bold text-gray-900 dark:text-white">
+                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+                                            <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         Thống kê của bạn
                                     </h3>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                                         Tiến độ phỏng vấn và thành tích
                                     </p>
                                 </div>
                                 <div className="p-6">
-                                    <div className="space-y-6">
+                                    <div className="space-y-4">
                                         {/* Total Interviews */}
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
+                                        <div className="glass bg-white/50 dark:bg-gray-800/40 flex items-center justify-between p-4 rounded-xl border border-white/40 dark:border-gray-700/50">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                                                    <Briefcase className="h-5 w-5 text-white" />
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                                                    <Briefcase className="h-5 w-5" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-blue-900">Tổng phỏng vấn</p>
-                                                    <p className="text-xs text-blue-700">Số lần bạn đã thử</p>
+                                                    <p className="font-semibold text-gray-900 dark:text-white text-sm">Tổng phỏng vấn</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">Số lần bạn đã thử</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-2xl font-bold text-blue-900">{interviewStats.total_interviews}</p>
-                                                <p className="text-xs text-blue-700">lần</p>
+                                                <p className="text-xl font-bold text-gray-900 dark:text-white">{interviewStats.total_interviews}</p>
+                                                <p className="text-xs text-gray-500">lần</p>
                                             </div>
                                         </div>
 
                                         {/* Completed Interviews */}
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
+                                        <div className="glass bg-white/50 dark:bg-gray-800/40 flex items-center justify-between p-4 rounded-xl border border-white/40 dark:border-gray-700/50">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                                                    <Clock className="h-5 w-5 text-white" />
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                                                    <Clock className="h-5 w-5" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-green-900">Hoàn thành</p>
-                                                    <p className="text-xs text-green-700">Phỏng vấn thành công</p>
+                                                    <p className="font-semibold text-gray-900 dark:text-white text-sm">Hoàn thành</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">Phỏng vấn thành công</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-2xl font-bold text-green-900">{interviewStats.completed_interviews}</p>
-                                                <p className="text-xs text-green-700">
+                                                <p className="text-xl font-bold text-gray-900 dark:text-white">{interviewStats.completed_interviews}</p>
+                                                <p className="text-xs text-gray-500">
                                                     {interviewStats.total_interviews > 0
                                                         ? `${((interviewStats.completed_interviews / interviewStats.total_interviews) * 100).toFixed(0)}%`
                                                         : '0%'
@@ -549,38 +637,38 @@ const InterviewListPage: React.FC = () => {
 
                                         {/* Average Score */}
                                         {interviewStats.completed_interviews > 0 && (
-                                            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl">
+                                            <div className="glass bg-white/50 dark:bg-gray-800/40 flex items-center justify-between p-4 rounded-xl border border-white/40 dark:border-gray-700/50">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                                                        <Users className="h-5 w-5 text-white" />
+                                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                                                        <Star className="h-5 w-5" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-medium text-purple-900">Điểm trung bình</p>
-                                                        <p className="text-xs text-purple-700">Thành tích tổng thể</p>
+                                                        <p className="font-semibold text-gray-900 dark:text-white text-sm">Điểm trung bình</p>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">Thành tích tổng thể</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-2xl font-bold text-purple-900">
+                                                    <p className="text-xl font-bold text-gray-900 dark:text-white">
                                                         {interviewStats.average_score.toFixed(1)}
                                                     </p>
-                                                    <p className="text-xs text-purple-700">/10 điểm</p>
+                                                    <p className="text-xs text-gray-500">/10 điểm</p>
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* Progress Message */}
-                                        <div className="text-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200">
-                                            <p className="text-sm font-medium text-yellow-900 mb-1">
+                                        <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/50 rounded-xl p-5 text-center">
+                                            <p className="font-bold text-indigo-900 dark:text-indigo-300 text-sm mb-1.5">
                                                 {interviewStats.total_interviews === 0
-                                                    ? '🚀 Bắt đầu hành trình phỏng vấn của bạn!'
+                                                    ? '🎯 Bắt đầu hành trình phỏng vấn của bạn!'
                                                     : interviewStats.average_score >= 8
-                                                        ? '🎉 Xuất sắc! Bạn đã thành thạo kỹ năng phỏng vấn'
+                                                        ? '🏆 Xuất sắc! Bạn đã thành thạo kỹ năng phỏng vấn'
                                                         : interviewStats.average_score >= 6
                                                             ? '👍 Tốt lắm! Tiếp tục luyện tập để hoàn thiện'
                                                             : '💪 Đừng bỏ cuộc! Mỗi lần thử là một bước tiến'
                                                 }
                                             </p>
-                                            <p className="text-xs text-yellow-700">
+                                            <p className="text-xs text-indigo-700/70 dark:text-indigo-400/70">
                                                 {interviewStats.total_interviews === 0
                                                     ? 'Chọn nghề nghiệp và bắt đầu phỏng vấn đầu tiên'
                                                     : 'Luyện tập thường xuyên để cải thiện kỹ năng'
@@ -592,40 +680,42 @@ const InterviewListPage: React.FC = () => {
                             </div>
 
                             {/* Enhanced Tips */}
-                            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
-                                <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-3">
-                                    <div className="p-2 bg-white rounded-lg shadow-sm">
-                                        <Users className="h-5 w-5 text-blue-600" />
-                                    </div>
-                                    💡 Bí quyết phỏng vấn thành công
-                                </h3>
-                                <div className="space-y-3">
-                                    <div className="flex items-start gap-3 p-3 bg-white/50 rounded-lg">
-                                        <span className="text-lg">🎯</span>
-                                        <div>
-                                            <p className="text-sm font-medium text-blue-900">Chuẩn bị kỹ lưỡng</p>
-                                            <p className="text-xs text-blue-700">Tìm hiểu về công ty và vị trí ứng tuyển</p>
+                            <div className="glass rounded-[24px] border border-indigo-200/50 dark:border-indigo-700/50 shadow-xl overflow-hidden bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-900/20 dark:to-purple-900/20">
+                                <div className="p-6">
+                                    <h3 className="flex items-center gap-3 text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-6">
+                                        <div className="p-2 bg-white/60 dark:bg-indigo-900/50 rounded-xl shadow-sm">
+                                            <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                         </div>
-                                    </div>
-                                    <div className="flex items-start gap-3 p-3 bg-white/50 rounded-lg">
-                                        <span className="text-lg">⭐</span>
-                                        <div>
-                                            <p className="text-sm font-medium text-blue-900">Phương pháp STAR</p>
-                                            <p className="text-xs text-blue-700">Situation → Task → Action → Result</p>
+                                        Bí quyết phỏng vấn thành công
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">📚</span>
+                                            <div>
+                                                <p className="font-bold text-gray-900 dark:text-white text-sm">Chuẩn bị kỹ lưỡng</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Tìm hiểu về công ty và vị trí ứng tuyển</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-start gap-3 p-3 bg-white/50 rounded-lg">
-                                        <span className="text-lg">🗣️</span>
-                                        <div>
-                                            <p className="text-sm font-medium text-blue-900">Giao tiếp tự tin</p>
-                                            <p className="text-xs text-blue-700">Nói chậm, rõ ràng và duy trì ánh mắt</p>
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">⭐</span>
+                                            <div>
+                                                <p className="font-bold text-gray-900 dark:text-white text-sm">Phương pháp STAR</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Situation → Task → Action → Result</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-start gap-3 p-3 bg-white/50 rounded-lg">
-                                        <span className="text-lg">💪</span>
-                                        <div>
-                                            <p className="text-sm font-medium text-blue-900">Thái độ tích cực</p>
-                                            <p className="text-xs text-blue-700">Thể hiện sự nhiệt tình và học hỏi</p>
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">💬</span>
+                                            <div>
+                                                <p className="font-bold text-gray-900 dark:text-white text-sm">Giao tiếp tự tin</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Nói chậm, rõ ràng và duy trì ánh mắt</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">😊</span>
+                                            <div>
+                                                <p className="font-bold text-gray-900 dark:text-white text-sm">Thái độ tích cực</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Thể hiện sự nhiệt tình và học hỏi</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

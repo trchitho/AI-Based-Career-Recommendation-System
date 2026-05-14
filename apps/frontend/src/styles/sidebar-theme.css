@@ -1,0 +1,26 @@
+/* Sidebar Theme Overrides for Light Mode */
+@media (prefers-color-scheme: light) {
+    .sidebar-light-override {
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+        backdrop-filter: none !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        box-shadow: 4px 0 14px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .sidebar-item-light {
+        color: #9ca3af !important;
+    }
+
+    .sidebar-item-light-hover {
+        background: rgba(34, 197, 94, 0.10) !important;
+        color: #22c55e !important;
+    }
+
+    .sidebar-item-light-active {
+        background: rgba(34, 197, 94, 0.15) !important;
+        color: #22c55e !important;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.35) !important;
+    }
+}
+
+/* Dark mode uses inline styles with exact values */

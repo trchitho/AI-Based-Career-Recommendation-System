@@ -1,0 +1,160 @@
+/* Answer option buttons with explicit colors */
+
+.answer-btn {
+    position: relative;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+}
+
+@media (min-width: 768px) {
+    .answer-btn {
+        width: 3rem;
+        height: 3rem;
+    }
+}
+
+/* Option 1 - Rất không đồng ý (Red) */
+.answer-btn-1 {
+    background-color: rgb(252 165 165);
+    /* red-300 */
+}
+
+.answer-btn-1.selected {
+    background-color: rgb(239 68 68);
+    /* red-500 */
+    color: white;
+    transform: scale(1.1);
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 0 0 4px rgb(254 202 202);
+    /* red-200 */
+}
+
+.dark .answer-btn-1 {
+    background-color: rgba(127, 29, 29, 0.4);
+    /* red-900/40 */
+}
+
+.dark .answer-btn-1.selected {
+    background-color: rgb(220 38 38);
+    /* red-600 */
+}
+
+/* Option 2 - Không đồng ý (Orange) */
+.answer-btn-2 {
+    background-color: rgb(253 186 116);
+    /* orange-300 */
+}
+
+.answer-btn-2.selected {
+    background-color: rgb(249 115 22);
+    /* orange-500 */
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.dark .answer-btn-2 {
+    background-color: rgba(124, 45, 18, 0.4);
+    /* orange-900/40 */
+}
+
+.dark .answer-btn-2.selected {
+    background-color: rgb(234 88 12);
+    /* orange-600 */
+}
+
+/* Option 3 - Trung lập (Gray) */
+.answer-btn-3 {
+    background-color: rgb(209 213 219);
+    /* gray-300 */
+}
+
+.answer-btn-3.selected {
+    background-color: rgb(107 114 128);
+    /* gray-500 */
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.dark .answer-btn-3 {
+    background-color: rgb(75 85 99);
+    /* gray-600 */
+}
+
+.dark .answer-btn-3.selected {
+    background-color: rgb(107 114 128);
+    /* gray-500 */
+}
+
+/* Option 4 - Đồng ý (Indigo) */
+.answer-btn-4 {
+    background-color: rgb(165 180 252);
+    /* indigo-300 */
+}
+
+.answer-btn-4.selected {
+    background-color: rgb(79 70 229);
+    /* indigo-600 */
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.dark .answer-btn-4 {
+    background-color: rgba(49, 46, 129, 0.4);
+    /* indigo-900/40 */
+}
+
+.dark .answer-btn-4.selected {
+    background-color: rgb(67 56 202);
+    /* indigo-700 */
+}
+
+/* Option 5 - Rất đồng ý (Indigo Dark) */
+.answer-btn-5 {
+    background-color: rgb(99 102 241);
+    /* indigo-500 */
+}
+
+.answer-btn-5.selected {
+    background-color: rgb(67 56 202);
+    /* indigo-700 */
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.dark .answer-btn-5 {
+    background-color: rgba(49, 46, 129, 0.6);
+    /* indigo-800/60 */
+}
+
+.dark .answer-btn-5.selected {
+    background-color: rgb(55 48 163);
+    /* indigo-800 */
+}
+
+/* Hover effects */
+.answer-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.answer-btn.selected:hover {
+    transform: scale(1.15);
+}
+
+/* Checkmark icon */
+.answer-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}

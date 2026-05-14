@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 class InferTraitsPayload(BaseModel):
     essay_text: str
-    lang: str = "auto"
+    lang: str = "vi"
     user_id: Optional[int] = None
     essay_id: Optional[int] = None
 
@@ -21,8 +21,23 @@ class AIClient:
     @staticmethod
     async def infer_user_traits(payload: InferTraitsPayload) -> dict:
         url = f"{AIClient.BASE}/ai/infer_user_traits"
+        essay_text = (payload.essay_text or "").strip()
+        if len(essay_text) < 5:
+            return {
+                "detected_lang": "vi",
+                "used_lang": "vi",
+                "essay_original": essay_text,
+                "essay_used": essay_text,
+                "riasec": [],
+                "big5": [],
+                "embedding_dim": 0,
+                "embedding": [],
+                "skipped": True,
+                "reason": "Bài luận quá ngắn để phân tích.",
+            }
+        body = {"essay_text": essay_text, "lang": payload.lang or "vi"}
         async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.post(url, json=payload.model_dump())
+            resp = await client.post(url, json=body)
             resp.raise_for_status()
             return resp.json()
 
