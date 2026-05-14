@@ -189,6 +189,14 @@ For example:
 - "GPS" matches "GPS Technology" or "Geographic positioning"
 - "Python" matches "Programming" or "Software development"
 
+Rules:
+- Match from the JOB REQUIREMENT perspective, not from the CV perspective.
+- Do not match a CV skill to a broad generic requirement unless it is genuinely used in this occupation.
+- For non-software/industrial occupations, do NOT treat IT tools/frameworks (Node.js, React, Docker, JWT, Redis, PostgreSQL, Machine Learning, PyTorch, web development) as satisfying generic ONET skills such as "Programming", "Science", or "Systems Analysis".
+- Prefer "unmatched_cv_skills" for skills that are valuable but unrelated to the target occupation.
+- A match must have direct occupational evidence. If the relationship is only abstract, leave it unmatched.
+- Confidence below 0.75 should not be returned as a matched pair.
+
 Return JSON with:
 {{
   "matched_pairs": [

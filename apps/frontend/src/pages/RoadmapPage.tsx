@@ -11,7 +11,6 @@ import SubscriptionRefresh from '../components/subscription/SubscriptionRefresh'
 import { useSubscription } from '../hooks/useSubscription';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
-import { getRIASECFullName } from '../utils/riasec';
 import { mentorMatchingService, MentorMatch } from '../services/mentorMatchingService';
 import ChatModal from '../components/chat/ChatModal';
 
@@ -33,6 +32,7 @@ const RoadmapPage = () => {
   const [traitEvidence, setTraitEvidence] = useState<TraitEvidence | null>(null);
   const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [maxFreeLevel, setMaxFreeLevel] = useState(1);
+  const [careerDetail, setCareerDetail] = useState<any>(null);
 
   const { isPremium } = useSubscription();
   const { incrementUsage } = useUsageTracking();
@@ -84,7 +84,7 @@ const RoadmapPage = () => {
         console.log('✅ Career data fetched in', Date.now() - careerStartTime, 'ms');
       } catch (err: any) {
         console.error(`❌ Career not found: ${normalizedCareerId}`, err);
-        setError('Career not found. Please check the URL and try again.');
+        setError('Không tìm thấy nghề nghiệp. Vui lòng kiểm tra lại đường dẫn.');
         return;
       }
 
@@ -102,7 +102,7 @@ const RoadmapPage = () => {
           // Create empty roadmap structure if not found
           data = {
             careerId: normalizedCareerId,
-            careerTitle: navState.title || careerData?.title_en || careerData?.title || careerId,
+            careerTitle: navState.title || careerData?.title_vi || careerData?.title || careerId,
             milestones: [],
             userProgress: { completed_milestones: [] },
           } as any;
@@ -115,10 +115,18 @@ const RoadmapPage = () => {
       if (!data) throw new Error('No roadmap data');
 
       // Set career description and title from career data or nav state
-      const desc = navState.description || careerData?.short_desc_en || careerData?.description || careerData?.short_desc || '';
+      const desc = navState.description || careerData?.short_desc || careerData?.description || '';
       setCareerDesc(desc);
 
-      const titleOverride = navState.title || careerData?.title_en || careerData?.title || data.careerTitle;
+      // Fetch rich career detail (skills, tasks, technology) from BFF
+      if (careerData?.onet_code) {
+        try {
+          const detail = await careerService.getDetail(careerData.onet_code, currentPlan || 'free', 'vi');
+          setCareerDetail(detail);
+        } catch { /* ignore */ }
+      }
+
+      const titleOverride = navState.title || careerData?.title_vi || careerData?.title || data.careerTitle;
       data = { ...(data as any), careerTitle: titleOverride } as Roadmap;
 
       // Set subscription-based access levels (get fresh values inside function)
@@ -150,7 +158,7 @@ const RoadmapPage = () => {
       console.log('🎉 Total roadmap fetch time:', Date.now() - startTime, 'ms');
     } catch (err) {
       console.error('❌ Error loading roadmap:', err);
-      setError('Failed to load roadmap. Please try again later.');
+      setError('Không thể tải lộ trình. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
@@ -208,7 +216,7 @@ const RoadmapPage = () => {
       await loadTraitEvidence();
     } catch (err: any) {
       console.error('Error completing milestone:', err);
-      setError(err?.response?.data?.message || 'Failed to mark milestone as complete.');
+      setError(err?.response?.data?.message || 'Không thể đánh dấu hoàn thành. Vui lòng thử lại.');
     } finally {
       setCompletingMilestone(null);
     }
@@ -218,6 +226,28 @@ const RoadmapPage = () => {
   const completedCount = roadmap?.userProgress?.completed_milestones?.length || 0;
   const completionRatio = totalMilestones > 0 ? completedCount / totalMilestones : 0;
   const completionPercent = Math.round(completionRatio * 100);
+
+  const educationHighlights = (careerDetail?.sections?.education_requirements || [])
+    .filter((item: any) => Number(item.data_value || 0) > 0)
+    .sort((a: any, b: any) => Number(b.data_value || 0) - Number(a.data_value || 0))
+    .slice(0, 3);
+
+  const workContextHighlights = (careerDetail?.sections?.work_context || [])
+    .filter((item: any) => item.scale_id === 'CX' && Number(item.data_value || 0) >= 3)
+    .sort((a: any, b: any) => Number(b.data_value || 0) - Number(a.data_value || 0))
+    .slice(0, 4);
+
+  const topPracticeActivities = (careerDetail?.sections?.detailed_work_activities || []).slice(0, 4);
+
+  const preparationSummary = careerDetail?.sections?.preparation;
+
+  const formatPercent = (value?: number | null) => {
+    if (value === null || value === undefined) return 'Đang cập nhật';
+    return `${Math.round(Number(value))}%`;
+  };
+
+  const traitGroups = [traitEvidence?.riasec, traitEvidence?.big_five].filter(Boolean) as NonNullable<TraitEvidence['riasec']>[];
+  const hasTraitEvidenceItems = traitGroups.some(group => (group.items || []).length > 0);
 
   const handleUpgradeDetected = useCallback(() => {
     console.log('🔄 Upgrade detected, refreshing roadmap...');
@@ -250,7 +280,7 @@ const RoadmapPage = () => {
           {loading && (
             <div className="flex flex-col items-center justify-center py-32 animate-pulse">
               <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-green-600 mb-4 animate-spin" />
-              <p className="text-gray-500 font-medium">Loading your roadmap...</p>
+              <p className="text-gray-500 font-medium">Đang tải lộ trình...</p>
             </div>
           )}
 
@@ -268,27 +298,27 @@ const RoadmapPage = () => {
           {!loading && roadmap && (
             <div className="animate-fade-in-up space-y-8">
               {/* Hero Header - Career Title + Stages */}
-              <div className="glass rounded-[32px] p-8 md:p-10 relative overflow-hidden shadow-xl">
+              <div className="rounded-[32px] p-8 md:p-10 relative overflow-hidden shadow-xl" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #7c3aed 100%)' }}>
                 <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
                     <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-100/50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50 shadow-sm backdrop-blur-sm">Lộ Trình Nghề Nghiệp</span>
                   </div>
-                  <h1 className="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-500 tracking-tight mb-8 w-fit">{roadmap.careerTitle}</h1>
+                  <h1 className="max-w-4xl text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-8 leading-tight">{roadmap.careerTitle}</h1>
 
-                  {/* Dynamic career stages based on milestones count */}
+                  {/* Dynamic career stages based on Cột mốc count */}
                   {(() => {
                     const milestonesCount = roadmap.milestones?.length || 0;
                     const numStages = Math.max(3, Math.min(6, milestonesCount));
 
                     const stageLabels: { [key: number]: string[] } = {
-                      3: ['Entry', 'Mid-Level', 'Senior'],
-                      4: ['Entry', 'Junior', 'Mid-Level', 'Senior'],
-                      5: ['Intern', 'Junior', 'Mid-Level', 'Senior', 'Lead'],
-                      6: ['Intern', 'Junior', 'Mid-Level', 'Senior', 'Lead', 'Principal'],
+                      3: ['Mới bắt đầu', 'Trung cấp', 'Chuyên gia'],
+                      4: ['Mới bắt đầu', 'Sơ cấp', 'Trung cấp', 'Chuyên gia'],
+                      5: ['Thực tập', 'Sơ cấp', 'Trung cấp', 'Chuyên gia', 'Trưởng nhóm'],
+                      6: ['Thực tập', 'Sơ cấp', 'Trung cấp', 'Chuyên gia', 'Trưởng nhóm', 'Chuyên viên cao cấp'],
                     };
 
-                    const stages: string[] = stageLabels[numStages] ?? ['Entry', 'Mid-Level', 'Senior'];
+                    const stages: string[] = stageLabels[numStages] ?? ['Mới bắt đầu', 'Trung cấp', 'Chuyên gia'];
 
                     return (
                       <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-hide snap-x">
@@ -300,7 +330,7 @@ const RoadmapPage = () => {
 
                           return (
                             <div key={idx} className="flex-shrink-0 flex flex-col items-center snap-center group cursor-default">
-                              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-indigo-900 border-white' : isCurrent ? 'bg-indigo-800 text-white border-white ring-4 ring-white/30' : 'bg-indigo-950/50 text-indigo-300 border-indigo-800/50'}`}>
+                              <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 border-2 ${isCompleted ? 'bg-white text-indigo-900 border-white' : isCurrent ? 'bg-indigo-600 text-white border-white ring-4 ring-white/30' : 'bg-white/20 text-white border-white/40'}`}>
                                 {isCompleted ? (
                                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -308,9 +338,9 @@ const RoadmapPage = () => {
                                 ) : (
                                   <span className="text-lg font-bold">{idx + 1}</span>
                                 )}
-                                {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-indigo-950'}`} />}
+                                {idx < stages.length - 1 && <div className={`absolute left-full top-1/2 w-6 h-0.5 -translate-y-1/2 z-0 ${isCompleted ? 'bg-white' : 'bg-white/30'}`} />}
                               </div>
-                              <span className="mt-2 text-xs font-bold uppercase tracking-wide" style={{ color: isCompleted || isCurrent ? 'var(--neu-btn-text, #ffffff)' : 'rgba(255,255,255,0.45)' }}>{label}</span>
+                              <span className={`mt-2 text-xs font-bold uppercase tracking-wide ${isCompleted ? 'text-white' : isCurrent ? 'text-white' : 'text-white/70'}`}>{label}</span>
                             </div>
                           );
                         })}
@@ -324,37 +354,202 @@ const RoadmapPage = () => {
               {(careerDesc || navState.description) && (
                 <div className="glass rounded-[24px] p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <span className="w-2 h-6 bg-indigo-700 rounded-full" />Overview
+                    <span className="w-2 h-6 bg-indigo-700 rounded-full" />Tổng quan nghề
                   </h3>
                   <div className={`prose prose-green dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 leading-relaxed ${showFullDesc ? '' : 'line-clamp-3'}`}>
                     {navState.description || careerDesc}
                   </div>
                   {(navState.description || careerDesc).length > 250 && (
                     <button onClick={() => setShowFullDesc(!showFullDesc)} className="mt-4 text-sm font-bold text-indigo-800 hover:text-indigo-900 dark:text-indigo-400 hover:underline focus:outline-none">
-                      {showFullDesc ? 'Show Less' : 'Read More'}
+                      {showFullDesc ? 'Thu gọn' : 'Xem thêm'}
                     </button>
                   )}
                 </div>
               )}
 
-              {/* Trait Evidence - Why this career matches */}
-              {traitEvidence && (
-                <div className="glass rounded-[24px] p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <span className="w-2 h-6 bg-blue-500 rounded-full" />How your assessment supports this career match
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    Below are some example items from the <span className="font-semibold">{getRIASECFullName(traitEvidence.scale)}</span> scales that were used when computing your profile.
-                  </p>
-                  <ul className="space-y-2">
-                    {traitEvidence.items.map((q, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-gray-700 dark:text-gray-300 text-sm">
-                        <span className="mt-1 w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
-                        {q}
-                      </li>
-                    ))}
-                  </ul>
+              {/* Career planning signals from catalog */}
+              {careerDetail && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="glass rounded-[24px] p-6 shadow-xl">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <span className="w-2 h-5 bg-emerald-500 rounded-full" />
+                      Nền tảng nên chuẩn bị
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Học vấn thường gặp</p>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                          {preparationSummary?.education_summary || 'Đang cập nhật'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Kinh nghiệm trước khi vào nghề</p>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                          {preparationSummary?.experience_summary || careerDetail.sections?.overview?.experience_text || 'Đang cập nhật'}
+                        </p>
+                      </div>
+                      {preparationSummary?.job_zone && (
+                        <div className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800">
+                          Mức chuẩn bị nghề: {preparationSummary.job_zone}/5
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="glass rounded-[24px] p-6 shadow-xl">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <span className="w-2 h-5 bg-sky-500 rounded-full" />
+                      Tỷ lệ trình độ liên quan
+                    </h3>
+                    {educationHighlights.length > 0 ? (
+                      <div className="space-y-3">
+                        {educationHighlights.map((edu: any, i: number) => (
+                          <div key={i}>
+                            <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                              <span className="font-semibold text-gray-700 dark:text-gray-200">{edu.category_description}</span>
+                              <span className="font-bold text-sky-700 dark:text-sky-300">{formatPercent(edu.data_value)}</span>
+                            </div>
+                            <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                              <div className="h-full rounded-full bg-sky-500" style={{ width: `${Math.min(100, Number(edu.data_value || 0))}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Đang cập nhật dữ liệu học vấn.</p>
+                    )}
+                  </div>
+
+                  <div className="glass rounded-[24px] p-6 shadow-xl">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <span className="w-2 h-5 bg-amber-500 rounded-full" />
+                      Cách công việc diễn ra
+                    </h3>
+                    {workContextHighlights.length > 0 ? (
+                      <div className="space-y-2">
+                        {workContextHighlights.map((item: any, i: number) => (
+                          <div key={i} className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-900/20">
+                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                              {item.element_name_vi || item.element_name}
+                            </p>
+                            <p className="text-xs text-amber-700 dark:text-amber-300">
+                              Mức độ: {Number(item.data_value || 0).toFixed(1)}/5
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Đang cập nhật dữ liệu môi trường làm việc.</p>
+                    )}
+                  </div>
                 </div>
+              )}
+
+              {careerDetail && topPracticeActivities.length > 0 && (
+                <div className="glass rounded-[24px] p-8 shadow-xl">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+                    <span className="w-2 h-6 bg-indigo-600 rounded-full" />
+                    Việc nên luyện trong quá trình học
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {topPracticeActivities.map((activity: any, i: number) => (
+                      <div key={i} className="rounded-2xl border border-indigo-100 bg-white/70 p-4 dark:border-indigo-900/50 dark:bg-slate-900/50">
+                        <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                          {i + 1}
+                        </div>
+                        <p className="text-sm font-semibold leading-6 text-gray-800 dark:text-gray-100">{activity.dwa_title}</p>
+                        {(activity as any).activity_category && (
+                          <p className="mt-2 text-xs font-semibold text-indigo-600 dark:text-indigo-300">{(activity as any).activity_category}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Trait Evidence - latest assessment proof */}
+              {traitEvidence && (
+                <section className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                  <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <h3 className="flex items-center gap-2 text-xl font-bold text-slate-950 dark:text-white">
+                        <span className="h-6 w-2 rounded-full bg-blue-600" />
+                        Minh chứng từ bài đánh giá gần nhất
+                      </h3>
+                      <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+                        Hệ thống đang đối chiếu lộ trình này với các câu trả lời thuộc hai nhãn nổi bật nhất trong lần đánh giá mới nhất của bạn. Mỗi dòng bên dưới là câu hỏi thật bạn đã trả lời, kèm đáp án đã chọn.
+                      </p>
+                    </div>
+
+                    {traitGroups.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {traitGroups.map((group) => (
+                          <span
+                            key={`${group.kind}-${group.code}`}
+                            className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
+                          >
+                            {group.kind === 'riasec' ? 'RIASEC' : 'OCEAN'}: {group.code} - {group.name}
+                            {group.score !== null && group.score !== undefined && (
+                              <span className="rounded-full bg-white px-2 py-0.5 text-blue-600 dark:bg-slate-900 dark:text-blue-300">
+                                {Number(group.score).toFixed(1)}/5
+                              </span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {hasTraitEvidenceItems ? (
+                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                      {traitGroups.map((group) => (
+                        <div key={`${group.kind}-${group.code}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950/40">
+                          <div className="mb-4 flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                {group.kind === 'riasec' ? 'Nhóm sở thích RIASEC nổi bật' : 'Đặc điểm OCEAN nổi bật'}
+                              </p>
+                              <h4 className="mt-1 text-lg font-extrabold text-slate-950 dark:text-white">
+                                {group.code} - {group.name}
+                              </h4>
+                            </div>
+                            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 shadow-sm dark:bg-slate-900 dark:text-slate-300">
+                              {group.items?.length || 0} câu
+                            </span>
+                          </div>
+
+                          <div className="space-y-3">
+                            {(group.items || []).map((item, idx) => (
+                              <div
+                                key={`${group.kind}-${item.question_key}-${idx}`}
+                                className="rounded-xl border border-white bg-white p-4 shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50/60 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-900 dark:hover:bg-blue-950/20"
+                              >
+                                <div className="mb-2 flex flex-wrap items-center gap-2">
+                                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                    {item.question_key || `Câu ${idx + 1}`}
+                                  </span>
+                                  {item.score !== null && item.score !== undefined && (
+                                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                      Điểm quy đổi: {Number(item.score).toFixed(1)}/5
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm font-semibold leading-6 text-slate-800 dark:text-slate-100">{item.question}</p>
+                                <div className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                  <span className="font-bold">Bạn đã chọn:</span> {item.answer || 'Đang cập nhật'}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm leading-6 text-slate-600 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
+                      Chưa có câu trả lời đủ điều kiện để hiển thị minh chứng. Hãy hoàn thành lại bài đánh giá RIASEC và OCEAN để hệ thống cập nhật phần này chính xác hơn.
+                    </div>
+                  )}
+                </section>
               )}
 
               {/* Người đã hoàn thành lộ trình */}
@@ -383,7 +578,7 @@ const RoadmapPage = () => {
                     <div className="text-3xl mb-2"></div>
                     <p className="text-sm">Chưa có ai hoàn thành lộ trình này.<br />Hãy là người đầu tiên!</p>
                     <button onClick={() => navigate('/mentor-matching')} className="mt-4 px-4 py-2 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-semibold hover:bg-purple-200 transition-colors">
-                      Tìm Mentor khác →
+                      Tìm cố vấn khác
                     </button>
                   </div>
                 )}
@@ -425,67 +620,38 @@ const RoadmapPage = () => {
               </div>
 
               {/* Learning Journey Timeline */}
-              <div className="relative glass rounded-[32px] shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
-                <div className="relative bg-indigo-900/60 dark:bg-gray-900/60 p-8 md:p-10 overflow-hidden border-b border-white/10 backdrop-blur-md">
-                  <div className="absolute -right-10 -top-10 w-64 h-64 bg-indigo-700/20 rounded-full blur-3xl" />
+              <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                <div className="relative overflow-hidden border-b border-white/10 bg-gradient-to-br from-indigo-700 via-indigo-600 to-sky-600 px-6 py-8 md:px-10 md:py-10">
+                  <div className="absolute inset-y-0 right-0 w-1/2 bg-white/10 blur-3xl" />
 
-                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="text-white text-center md:text-left">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-700/20 border border-indigo-400/30 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-4">
-                        <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />Live Roadmap
+                  <div className="relative z-10 grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_220px] md:items-center">
+                    <div className="text-white">
+                      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-indigo-50">
+                        <span className="h-2 w-2 rounded-full bg-emerald-300" />Lộ trình học tập
                       </div>
-                      <h2 className="text-2xl md:text-3xl font-extrabold mb-2 tracking-tight">Your Learning Journey</h2>
-                      <p className="text-indigo-100/80 max-w-lg">Master skills one step at a time. Track your progress and reach your career goals.</p>
+                      <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Hành trình học tập của bạn</h2>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-indigo-50/85">Học từng kỹ năng theo thứ tự, mở khóa tài nguyên theo tiến độ và đánh dấu hoàn thành khi bạn đã áp dụng được vào thực tế.</p>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
-                      <div className="relative w-16 h-16 flex-shrink-0">
-                        <svg className="w-full h-full transform -rotate-90">
-                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-indigo-950/50" />
-                          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={176} strokeDashoffset={176 - 176 * completionRatio} className="text-indigo-400 transition-all duration-1000 ease-out" strokeLinecap="round" />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center flex-col text-white">
-                          <span className="text-lg font-bold">{completionPercent}%</span>
+                    <div className="justify-self-start md:justify-self-end">
+                      <div className="flex w-full min-w-[190px] items-center gap-4 rounded-2xl border border-white/20 bg-white/12 p-4 text-white shadow-2xl backdrop-blur-md">
+                        <div className="relative h-16 w-16 flex-shrink-0">
+                          <svg className="h-16 w-16 -rotate-90" viewBox="0 0 64 64">
+                            <circle cx="32" cy="32" r="26" stroke="currentColor" strokeWidth="7" fill="transparent" className="text-white/20" />
+                            <circle cx="32" cy="32" r="26" stroke="currentColor" strokeWidth="7" fill="transparent" strokeDasharray={164} strokeDashoffset={164 - 164 * completionRatio} className="text-emerald-300 transition-all duration-1000 ease-out" strokeLinecap="round" />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center text-base font-black">{completionPercent}%</div>
                         </div>
-                      </div>
-                      <div className="text-white">
-                        <div className="text-xs text-indigo-300 font-bold uppercase tracking-wide">Milestones</div>
-                        <div className="text-xl font-bold">{completedCount}<span className="text-white/50 text-base ml-1">/{totalMilestones || 0}</span></div>
+                        <div>
+                          <div className="text-xs font-bold uppercase tracking-wide text-indigo-100/80">Cột mốc</div>
+                          <div className="mt-1 text-2xl font-black leading-none">{completedCount}<span className="ml-1 text-base text-white/60">/{totalMilestones || 0}</span></div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-8 md:p-10 bg-white/30 dark:bg-gray-800/30">
-                  {upgradeRequired && (
-                    <div className="mb-6 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg">
-                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div className="flex items-start gap-3 flex-1">
-                          <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-xl"></span>
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-bold mb-1">
-                              {maxFreeLevel === 1 ? 'Upgrade to view full roadmap' : 'Unlock full learning roadmap'}
-                            </h3>
-                            <p className="text-white/90 text-sm">
-                              {maxFreeLevel === 1
-                                ? `You are viewing Level 1 (Free). Upgrade to access all ${totalMilestones} levels.`
-                                : `You are viewing Level 1-2. Upgrade to Premium to access all ${totalMilestones} levels.`
-                              }
-                            </p>
-                          </div>
-                        </div>
-                        <button onClick={() => navigate('/pricing')} className="px-5 py-2.5 bg-white text-purple-600 font-bold rounded-xl hover:bg-gray-100 transition-all shadow-lg flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                          View Plans
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
+                <div className="p-5 md:p-8 bg-slate-50/70 dark:bg-slate-950/30">
                   <RoadmapTimelineComponent
                     milestones={roadmap.milestones}
                     userProgress={roadmap.userProgress}

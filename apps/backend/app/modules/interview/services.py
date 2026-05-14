@@ -10,7 +10,17 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from sqlalchemy.orm import Session
-from neo4j import GraphDatabase
+
+try:
+    from neo4j import GraphDatabase
+except ImportError:
+    try:
+        # Try alternative import for neo4j 5.x+
+        import neo4j
+        GraphDatabase = neo4j.GraphDatabase
+    except (ImportError, AttributeError):
+        # Fallback if neo4j is not available
+        GraphDatabase = None
 
 from ...core.gemini_manager import multi_stream_manager
 from .models import InterviewMessage, InterviewSession
@@ -20,6 +30,9 @@ class Neo4jService:
     """Service để lấy thông tin từ Neo4j Graph Database"""
 
     def __init__(self):
+        if GraphDatabase is None:
+            raise ImportError("neo4j package is not properly installed or GraphDatabase is not available")
+        
         self._uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
         self._auth = (os.getenv("NEO4J_USER", "neo4j"), os.getenv("NEO4J_PASSWORD", "password123456"))
         self.driver = None

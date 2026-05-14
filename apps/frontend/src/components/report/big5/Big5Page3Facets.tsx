@@ -21,10 +21,10 @@ const Big5Page3Facets = ({ facets }: Big5Page3FacetsProps) => {
             {/* Page Header - Larger font */}
             <div className="mb-6 print:mb-4 flex-shrink-0">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white print:text-xl">
-                    Behavioral Patterns: Thinking & Motivation
+                    Mẫu Hành Vi: Tư Duy & Động Lực
                 </h2>
                 <p className="text-base text-gray-500 dark:text-gray-400 print:text-sm mt-1">
-                    How you approach problems and what drives you to work
+                    Cách bạn tiếp cận vấn đề và điều gì thúc đẩy bạn làm việc
                 </p>
             </div>
 

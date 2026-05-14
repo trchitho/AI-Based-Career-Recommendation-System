@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { UserProfile } from '../../types/profile';
 import { profileService } from '../../services/profileService';
 import ProfileAvatar from './ProfileAvatar';
-import { useLanguage, Language, getLanguageLabel, getLanguageFlag } from '../../contexts/LanguageContext';
+import { getLanguageFlag } from '../../contexts/LanguageContext';
 
 interface ProfileInfoSectionProps {
   profile: UserProfile;
@@ -10,7 +10,6 @@ interface ProfileInfoSectionProps {
 }
 
 const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
-  const { language, setLanguage } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: profile.first_name || '',
@@ -259,35 +258,13 @@ const ProfileInfoSection = ({ profile, onUpdate }: ProfileInfoSectionProps) => {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Language / Ngôn ngữ</p>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setLanguage('en')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${language === 'en'
-                      ? 'bg-indigo-800 text-white shadow-lg shadow-indigo-900/20'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                >
-                  <span>{getLanguageFlag('en')}</span>
-                  <span>English</span>
-                </button>
-
-                <button
-                  onClick={() => setLanguage('vi')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${language === 'vi'
-                      ? 'bg-indigo-800 text-white shadow-lg shadow-indigo-900/20'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                >
-                  <span>{getLanguageFlag('vi')}</span>
-                  <span>Tiếng Việt</span>
-                </button>
+              <div className="px-3 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 bg-indigo-800 text-white shadow-lg shadow-indigo-900/20">
+                <span>{getLanguageFlag('vi')}</span>
+                <span>Tiếng Việt</span>
               </div>
 
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 pl-1">
-                {language === 'en'
-                  ? 'This affects career information display language'
-                  : 'Điều này ảnh hưởng đến ngôn ngữ hiển thị thông tin nghề nghiệp'
-                }
+                Ứng dụng đang khóa ngôn ngữ hiển thị nghề nghiệp là tiếng Việt.
               </p>
             </div>
 

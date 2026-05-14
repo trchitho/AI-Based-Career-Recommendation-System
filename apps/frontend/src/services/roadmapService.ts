@@ -5,6 +5,24 @@ import { Roadmap } from '../types/roadmap';
 export interface TraitEvidence {
   scale: string;
   items: string[];
+  riasec?: TraitEvidenceGroup | null;
+  big_five?: TraitEvidenceGroup | null;
+}
+
+export interface TraitEvidenceItem {
+  question_key: string;
+  question: string;
+  answer: string;
+  score?: number | null;
+}
+
+export interface TraitEvidenceGroup {
+  kind: 'riasec' | 'big_five' | string;
+  code: string;
+  name: string;
+  score?: number | null;
+  assessment_id?: number | null;
+  items: TraitEvidenceItem[];
 }
 
 export const roadmapService = {

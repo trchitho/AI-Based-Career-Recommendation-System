@@ -45,7 +45,7 @@ const apiCallTracker = {
             return acc;
         }, {} as Record<string, number>);
 
-        return Object.entries(grouped).filter(([, count]) => count > 1);
+        return Object.entries(grouped).filter(([, count]) => Number(count) > 1);
     }
 };
 

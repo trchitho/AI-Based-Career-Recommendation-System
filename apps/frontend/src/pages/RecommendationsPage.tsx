@@ -43,14 +43,15 @@ import { useFeatureAccess } from "../hooks/useFeatureAccess";
 import { useUsageTracking } from "../hooks/useUsageTracking";
 import api from "../lib/api";
 import "./RecommendationsPage.css";
+import "./RecommendationsPage-hero.css";
 
 /* ── helpers ── */
 type MatchLevel = "excellent" | "great" | "good";
 const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
   const pct = Math.round(score * 100);
-  if (pct >= 90) return { level: "excellent", label: "Excellent" };
-  if (pct >= 75) return { level: "great", label: "Great" };
-  return { level: "good", label: "Good" };
+  if (pct >= 90) return { level: "excellent", label: "Xuất sắc" };
+  if (pct >= 75) return { level: "great", label: "Rất phù hợp" };
+  return { level: "good", label: "Phù hợp" };
 };
 const CIRC = 2 * Math.PI * 20; // r=20
 
@@ -100,7 +101,7 @@ const RecommendationsPage = () => {
               items: rows.map((c: any) => ({
                 career_id: c.career_id || c.id,
                 slug: c.slug || c.career_id,
-                title_vi: c.title_vi,
+                title_vn: c.title_vn,
                 title_en: c.title_en,
                 description: c.description,
                 match_score: (c.score ?? c.match_score ?? 0) / (c.score > 1 ? 100 : 1),
@@ -193,10 +194,11 @@ const RecommendationsPage = () => {
                   <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                   <line x1="12" y1="22.08" x2="12" y2="12" />
                 </svg>
-                <span>AI-Powered Recommendations</span>
+                <span>Gợi ý nghề nghiệp AI</span>
               </div>
               <h1 className="hero-title">
-                Khám phá nghề nghiệp <span className="hero-highlight">phù hợp với bạn</span>
+                Khám phá nghề nghiệp<br />
+                <span className="hero-highlight">phù hợp với bạn</span>
               </h1>
               <p className="hero-sub">
                 Hoàn thành bài đánh giá để nhận gợi ý nghề nghiệp cá nhân hóa dựa trên kỹ năng, sở thích và mục tiêu của bạn.
@@ -213,36 +215,58 @@ const RecommendationsPage = () => {
             <div className="rec-hero-right">
               <div className="hero-visual-wrapper">
                 <div className="hero-visual-glow"></div>
+
+                {/* Orbit rings */}
+                <div className="orbit-ring ring-1"></div>
+                <div className="orbit-ring ring-2"></div>
+
+                {/* Floating particles */}
                 <div className="hero-visual">
+                  <div className="floating-particle"></div>
+                  <div className="floating-particle"></div>
+                  <div className="floating-particle"></div>
+
+                  {/* Main central card with briefcase icon */}
                   <div className="floating-card main">
                     <div className="icon-wrapper">
-                      <Briefcase size={40} />
+                      <Briefcase size={48} strokeWidth={2} />
                       <div className="sparkle">✦</div>
                     </div>
                   </div>
+
+                  {/* Small floating cards with icons */}
                   <div className="floating-card small chart">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="20" x2="12" y2="10" />
                       <line x1="18" y1="20" x2="18" y2="4" />
                       <line x1="6" y1="20" x2="6" y2="16" />
                     </svg>
                   </div>
+
                   <div className="floating-card small user">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
                   </div>
+
                   <div className="floating-card small clock">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12 6 12 12 16 14" />
                     </svg>
                   </div>
+
                   <div className="floating-card small pie">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
                       <path d="M22 12A10 10 0 0 0 12 2v10z" />
+                    </svg>
+                  </div>
+
+                  <div className="floating-card small analytics">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                     </svg>
                   </div>
                 </div>
@@ -281,7 +305,7 @@ const RecommendationsPage = () => {
               {recItems.map((it, index) => {
                 const { level, label } = getMatchLevel(it.match_score);
                 const pct = Math.round(it.match_score * 100);
-                const title = it.title_vi || it.title_en || it.career_id || "Unknown";
+                const title = it.title_vn || it.title_en || it.career_id || "Unknown";
                 const offset = CIRC - (CIRC * pct) / 100;
                 const fb = feedback[it.career_id];
 

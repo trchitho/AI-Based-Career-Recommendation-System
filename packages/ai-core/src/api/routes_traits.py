@@ -3,7 +3,9 @@ import json
 
 from fastapi import APIRouter, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from ai_core.nlp.essay_infer import infer_user_traits
 
@@ -11,8 +13,24 @@ router = APIRouter(prefix="/ai", tags=["traits"])
 
 
 class InferReq(BaseModel):
-    essay_text: str
-    lang: str = "auto"  # 'vi' | 'en' | 'auto'
+    model_config = ConfigDict(extra="ignore")
+
+    essay_text: str = ""
+    lang: str = "vi"  # Product mode: Vietnamese first.
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_text_payload(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        if not data.get("essay_text"):
+            for key in ("text", "essay", "content"):
+                if data.get(key):
+                    data = {**data, "essay_text": data[key]}
+                    break
+        if not data.get("lang") and data.get("language"):
+            data = {**data, "lang": data["language"]}
+        return data
 
 
 class InferRes(BaseModel):

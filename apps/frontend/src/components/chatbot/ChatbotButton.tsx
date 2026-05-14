@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageCircle, Bot, X, Calendar, Bell, Clock } from 'lucide-react';
+import { Bot, GraduationCap, X } from 'lucide-react';
 import { Chatbot } from './Chatbot';
 import ChatInboxPanel from '../chat/ChatInboxPanel';
 import { chatService } from '../../services/chatService';
@@ -33,6 +33,8 @@ export const ChatbotButton: React.FC = () => {
   const [isChatbotOpen, setIsChatbotOpen]   = useState(false);
   const [showWelcome, setShowWelcome]         = useState(false);
   const [isMessengerOpen, setIsMessengerOpen] = useState(false);
+  const [isMessengerMinimized, setIsMessengerMinimized] = useState(false);
+  const [isMentorChatOpen, setIsMentorChatOpen] = useState(false);
   const [unreadCount, setUnreadCount]         = useState(0);
   const [toasts, setToasts]                   = useState<Toast[]>([]);
   const wsRef   = useRef<WebSocket | null>(null);
@@ -146,6 +148,11 @@ export const ChatbotButton: React.FC = () => {
   const handleToggleMessenger = () => {
     const next = !isMessengerOpen;
     setIsMessengerOpen(next);
+    setIsMessengerMinimized(false);
+    setIsMentorChatOpen(false);
+    if (next) {
+      setIsChatbotOpen(false);
+    }
     setShowWelcome(false);
     if (next) {
       // Reset badge when user opens inbox
@@ -160,20 +167,32 @@ export const ChatbotButton: React.FC = () => {
 
       {/* Messenger popup */}
       {isMessengerOpen && (
-        <div className="fixed bottom-28 right-6 z-50 w-80 h-[480px] rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700"
+        <div className={`fixed bottom-28 right-6 z-50 w-80 ${isMessengerMinimized ? 'h-14' : 'h-[480px]'} rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300`}
           style={{ background: 'var(--neu-bg-card,#f0f0f3)' }}>
-          <ChatInboxPanel onUnreadChange={fetchUnread} />
+          <ChatInboxPanel
+            onUnreadChange={fetchUnread}
+            onClose={() => {
+              setIsMessengerOpen(false);
+              setIsMessengerMinimized(false);
+              setIsMentorChatOpen(false);
+              fetchUnread();
+            }}
+            isMinimized={isMessengerMinimized}
+            onToggleMinimized={() => setIsMessengerMinimized(value => !value)}
+            onChatModalOpenChange={setIsMentorChatOpen}
+          />
         </div>
       )}
 
       {/* Floating Messenger Button */}
-      <div className="fixed bottom-20 right-6 z-50">
+      {!isMessengerOpen && !isMentorChatOpen && (
+      <div className={`fixed ${isChatbotOpen ? 'bottom-6 right-6' : 'bottom-20 right-6'} z-50 transition-all duration-300`}>
         <button
           onClick={handleToggleMessenger}
-          className="relative bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-          title="Tin nhắn"
+          className="relative bg-gradient-to-r from-emerald-500 to-green-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          title="Tin nhắn Mentor"
         >
-          {isMessengerOpen ? <X size={20} /> : <MessageCircle size={20} />}
+          <GraduationCap size={20} />
 
           {/* Unread badge — đỏ, hiện số thực */}
           {unreadCount > 0 && (
@@ -187,23 +206,33 @@ export const ChatbotButton: React.FC = () => {
 
           {/* Chấm xanh khi không có tin chưa đọc */}
           {unreadCount === 0 && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full border-2 border-white" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-300 rounded-full border-2 border-white" />
           )}
         </button>
       </div>
+      )}
 
       {/* Floating Chatbot Button */}
+      {!isChatbotOpen && (
       <div className="fixed bottom-6 right-6 z-50">
         <button
-          onClick={() => { setIsChatbotOpen(o => !o); setShowWelcome(false); }}
+          onClick={() => {
+            setIsChatbotOpen(o => {
+              const next = !o;
+              if (next) {
+                setIsMessengerOpen(false);
+                setIsMessengerMinimized(false);
+                setIsMentorChatOpen(false);
+              }
+              return next;
+            });
+            setShowWelcome(false);
+          }}
           className={`relative bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${isChatbotOpen ? 'bg-gray-500' : ''}`}
-          title="AI Career Counseling"
+          title="Chatbot tư vấn nghề nghiệp"
         >
           <div className="relative">
-            {isChatbotOpen
-              ? <X size={20} className="transition-transform duration-200" />
-              : <MessageCircle size={20} className="transition-transform duration-200" />
-            }
+            <Bot size={20} className="transition-transform duration-200" />
           </div>
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full border-2 border-white animate-pulse" />
           {!isChatbotOpen && (
@@ -212,10 +241,11 @@ export const ChatbotButton: React.FC = () => {
         </button>
         <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
           <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-            AI Career Counseling
+            Chatbot tư vấn nghề nghiệp
           </div>
         </div>
       </div>
+      )}
 
       {/* Welcome popup */}
       {showWelcome && !isChatbotOpen && (
@@ -230,9 +260,9 @@ export const ChatbotButton: React.FC = () => {
                 <Bot size={12} className="text-blue-600" />
               </div>
               <div>
-                <div className="font-medium text-sm text-gray-800 mb-1">Hello!</div>
+                <div className="font-medium text-sm text-gray-800 mb-1">Xin chào!</div>
                 <div className="text-xs text-gray-600 leading-relaxed">
-                  I can help you with career counseling. Click to chat!
+                  Tôi có thể hỗ trợ bạn tư vấn nghề nghiệp. Nhấn để bắt đầu trò chuyện!
                 </div>
               </div>
             </div>

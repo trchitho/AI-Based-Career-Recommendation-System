@@ -112,11 +112,11 @@ const CareerRecommendationsDisplay = ({
 
       let message = '';
       if (currentPlan === 'free') {
-        message = `Upgrade to ${planInfo?.name || 'Basic Plan'} to view top 2 career matches.`;
+        message = `Nâng cấp lên ${planInfo?.name || 'Gói Cơ bản'} để xem top 2 nghề phù hợp.`;
       } else if (currentPlan === 'basic') {
-        message = `Upgrade to ${getPlanInfo('premium')?.name || 'Premium Plan'} to view all career categories.`;
+        message = `Nâng cấp lên ${getPlanInfo('premium')?.name || 'Gói Premium'} để xem tất cả nghề nghiệp.`;
       } else {
-        message = `Upgrade to ${getPlanInfo('premium')?.name || 'Premium Plan'} to view all career categories.`;
+        message = `Nâng cấp lên ${getPlanInfo('premium')?.name || 'Gói Premium'} để xem tất cả nghề nghiệp.`;
       }
 
       navigate('/pricing', {

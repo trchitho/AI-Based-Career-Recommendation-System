@@ -14,9 +14,23 @@ export interface ChatRoom {
   room_id: string;
   other_user_id: number;
   other_name: string;
+  other_role?: 'mentor' | 'mentee';
   last_message: string;
   last_at: string;
   unread: number;
+  is_online?: boolean;
+  last_status_at?: string | null;
+  offline_since?: string | null;
+  presence_label?: string;
+}
+
+export interface ChatPresence {
+  user_id: number;
+  role?: 'mentor' | 'mentee';
+  is_online: boolean;
+  last_status_at?: string | null;
+  offline_since?: string | null;
+  presence_label?: string;
 }
 
 class ChatService {
@@ -32,6 +46,11 @@ class ChatService {
 
   async getRooms(): Promise<ChatRoom[]> {
     const res = await api.get('/api/chat/rooms');
+    return res.data;
+  }
+
+  async getPresence(otherUserId: number): Promise<ChatPresence> {
+    const res = await api.get(`/api/chat/${otherUserId}/presence`);
     return res.data;
   }
 

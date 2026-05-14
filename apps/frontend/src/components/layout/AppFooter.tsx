@@ -25,7 +25,7 @@ const AppFooter = () => {
     const app = useAppSettings();
     const config = parseFooterConfig(app.footer_html);
 
-    const brand_desc = config?.brand_desc || 'CareerBridge AI giúp bạn xây dựng CV chuyên nghiệp, phân tích kỹ năng và tìm con đường sự nghiệp hoàn hảo bằng trí tuệ nhân tạo tiên tiến.';
+    const brand_desc = config?.brand_desc || 'CareerVerse AI giúp bạn xây dựng CV chuyên nghiệp, phân tích kỹ năng và tìm con đường sự nghiệp hoàn hảo bằng trí tuệ nhân tạo tiên tiến.';
     const columns = config?.columns || [
         { title: 'Sản phẩm', items: [{ label: 'Tính năng', href: '/features' }, { label: 'Bảng giá', href: '/pricing' }, { label: 'Đánh giá', href: '/assessment' }] },
         { title: 'Tài nguyên', items: [{ label: 'Bài viết', href: '/blog' }, { label: 'Hướng dẫn nghề nghiệp', href: '/guide' }, { label: 'Trung tâm trợ giúp', href: '/help' }] },
@@ -37,7 +37,7 @@ const AppFooter = () => {
         { label: 'LinkedIn', href: '' },
         { label: 'Discord', href: '' },
     ];
-    const copyright = config?.copyright || `© ${new Date().getFullYear()} CareerBridge AI. Bảo lưu mọi quyền.`;
+    const copyright = config?.copyright || `© ${new Date().getFullYear()} CareerVerse AI. Bảo lưu mọi quyền.`;
 
     return (
         <footer className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pt-16 pb-8">

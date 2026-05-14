@@ -167,8 +167,8 @@ const CareerManagementPage = () => {
                 {careers.map((career) => (
                   <tr key={career.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900 dark:text-white">{career.title}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">{career.description}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{(career as any).title_vi || career.title}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">{(career as any).description_vi || career.description}</div>
                     </td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 text-xs font-bold rounded bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400">

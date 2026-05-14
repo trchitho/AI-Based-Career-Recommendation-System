@@ -50,10 +50,14 @@ class RoadmapMilestone(Base):
     id = Column(BigInteger, primary_key=True)
     roadmap_id = Column(BigInteger, nullable=False)
     order_no = Column(Integer)
-    skill_name = Column(Text)
-    description = Column(Text)
-    estimated_duration = Column(Text)
-    resources_json = Column(JSONB)
+    skill_name_en = Column(Text)
+    skill_name_vn = Column(Text)
+    description_en = Column(Text)
+    description_vn = Column(Text)
+    estimated_duration_en = Column(Text)
+    estimated_duration_vn = Column(Text)
+    resources_json_en = Column(JSONB)
+    resources_json_vn = Column(JSONB)
     level = Column(Integer, default=1)  # Level of milestone (1-6)
 
 

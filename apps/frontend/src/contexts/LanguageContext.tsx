@@ -18,31 +18,31 @@ interface LanguageProviderProps {
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
     const { i18n } = useTranslation();
-    const [language, setLanguageState] = useState<Language>('en'); // Default to English
+    const [language, setLanguageState] = useState<Language>('vi');
 
-    // Sync with i18next language changes
+    // Product language is locked to Vietnamese. Any legacy EN toggle is forced back.
     useEffect(() => {
-        const handleLanguageChange = (lng: string) => {
-            const newLang = lng.startsWith('vi') ? 'vi' : 'en';
-            setLanguageState(newLang);
+        const forceVietnamese = () => {
+            setLanguageState('vi');
+            localStorage.setItem('i18nextLng', 'vi');
+            if (!i18n.language?.startsWith('vi')) {
+                i18n.changeLanguage('vi');
+            }
         };
 
-        // Set initial language from i18next
-        handleLanguageChange(i18n.language);
+        forceVietnamese();
 
-        // Listen for i18next language changes
-        i18n.on('languageChanged', handleLanguageChange);
+        i18n.on('languageChanged', forceVietnamese);
 
         return () => {
-            i18n.off('languageChanged', handleLanguageChange);
+            i18n.off('languageChanged', forceVietnamese);
         };
     }, [i18n]);
 
-    // Save language to localStorage when changed and sync with i18next
-    const setLanguage = (lang: Language) => {
-        setLanguageState(lang);
-        i18n.changeLanguage(lang);
-        localStorage.setItem('i18nextLng', lang);
+    const setLanguage = () => {
+        setLanguageState('vi');
+        i18n.changeLanguage('vi');
+        localStorage.setItem('i18nextLng', 'vi');
     };
 
     const value: LanguageContextType = {

@@ -5,6 +5,7 @@ from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
+from loguru import logger
 
 from app.core.db import get_db
 from app.core.auth_deps import get_current_user_from_token
@@ -148,6 +149,34 @@ async def cleanup_audio_cache(
         "message": f"Cleaned up {deleted_count} expired cache entries",
         "deleted_count": deleted_count
     }
+
+
+@router.delete("/cache/clear-all")
+async def clear_all_audio_cache(
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+):
+    """
+    DANGER: Clear ALL audio cache entries (for debugging only)
+    Use this to force fresh TTS synthesis for all requests
+    """
+    try:
+        # Delete all cache entries
+        from app.models.audio_cache import AudioCache
+        deleted_count = db.query(AudioCache).delete()
+        db.commit()
+        
+        logger.warning(f"[VoicePreferences] ALL audio cache cleared by user {current_user.id}: {deleted_count} entries deleted")
+        
+        return {
+            "success": True,
+            "deleted_count": deleted_count,
+            "message": "All audio cache entries have been cleared. Fresh TTS synthesis will be used for all requests."
+        }
+    except Exception as e:
+        logger.error(f"[VoicePreferences] Clear all cache failed: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/performance/stats")

@@ -15,9 +15,9 @@ export interface AppSettings {
 const defaultSettings: AppSettings = {
   id: 1,
   logo_url: null,
-  app_title: "CareerBridge AI",
-  app_name: "CareerBridge",
-  footer_html: "© 2025 CareerBridge AI",
+  app_title: "CareerVerse AI",
+  app_name: "CareerVerse",
+  footer_html: "© 2025 CareerVerse AI",
   theme: "light",
 };
 

@@ -1,0 +1,514 @@
+/* ══════════════════════════════════════════════════════════════
+   ENHANCED 3D HERO ILLUSTRATION - PREMIUM SAAS DESIGN
+   Futuristic floating UI with Apple-level polish
+   ══════════════════════════════════════════════════════════════ */
+
+/* Visual wrapper */
+.hero-visual-wrapper {
+    position: relative;
+    width: 400px !important;
+    height: 400px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Central radial glow with volumetric lighting */
+.hero-visual-glow {
+    position: absolute;
+    width: 350px !important;
+    height: 350px !important;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.18) 0%, rgba(139, 92, 246, 0.12) 35%, transparent 70%) !important;
+    border-radius: 50%;
+    z-index: 0;
+    animation: pulse 4s ease-in-out infinite;
+    filter: blur(40px) !important;
+}
+
+.hero-visual-glow-secondary {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.12) 0%, rgba(59, 130, 246, 0.08) 40%, transparent 70%);
+    border-radius: 50%;
+    z-index: 0;
+    animation: pulse 5s ease-in-out infinite reverse;
+    filter: blur(35px);
+}
+
+/* Soft shadow fog beneath elements */
+.shadow-fog {
+    position: absolute;
+    bottom: 20px;
+    width: 300px;
+    height: 80px;
+    background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(30px);
+    z-index: 0;
+}
+
+/* Thin glowing orbit rings */
+.orbit-ring-3 {
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    border: 1px solid rgba(236, 72, 153, 0.1);
+    pointer-events: none;
+    filter: blur(0.5px);
+    animation: rotate 20s linear infinite;
+}
+
+.orbit-ring-1 {
+    width: 300px !important;
+    height: 300px !important;
+    border-color: rgba(124, 58, 237, 0.12) !important;
+    animation: rotate 25s linear infinite !important;
+    filter: blur(0.5px);
+}
+
+.orbit-ring-2 {
+    width: 360px !important;
+    height: 360px !important;
+    border-color: rgba(59, 130, 246, 0.08) !important;
+    animation: rotate 35s linear infinite reverse !important;
+    filter: blur(0.5px);
+}
+
+/* Floating luminous particles - additional ones */
+.particle-5 {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.8), 0 0 25px rgba(59, 130, 246, 0.4);
+    animation: particleFloat 7s ease-in-out infinite;
+    filter: blur(0.5px);
+    top: 50%;
+    left: 5%;
+    animation-delay: 4.8s;
+}
+
+.particle-6 {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a78bfa, #ec4899);
+    box-shadow: 0 0 15px rgba(167, 139, 250, 0.8), 0 0 25px rgba(236, 72, 153, 0.4);
+    animation: particleFloat 7s ease-in-out infinite;
+    filter: blur(0.5px);
+    top: 50%;
+    right: 5%;
+    animation-delay: 6s;
+}
+
+.floating-particle {
+    width: 5px !important;
+    height: 5px !important;
+    box-shadow: 0 0 15px rgba(167, 139, 250, 0.8), 0 0 25px rgba(236, 72, 153, 0.4) !important;
+    animation: particleFloat 7s ease-in-out infinite !important;
+    filter: blur(0.5px);
+}
+
+.particle-2 {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+}
+
+.particle-4 {
+    background: linear-gradient(135deg, #ec4899, #f59e0b) !important;
+}
+
+@keyframes particleFloat {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+        opacity: 0.5;
+    }
+
+    25% {
+        transform: translate(8px, -12px);
+        opacity: 0.9;
+    }
+
+    50% {
+        transform: translate(15px, -8px);
+        opacity: 0.7;
+    }
+
+    75% {
+        transform: translate(8px, -15px);
+        opacity: 0.9;
+    }
+}
+
+/* Enhanced floating cards with premium glassmorphism */
+.floating-card {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    border-radius: 28px !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow:
+        0 0 0 1px rgba(124, 58, 237, 0.08),
+        0 25px 50px rgba(124, 58, 237, 0.12),
+        0 50px 100px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.card-glass-surface {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
+    z-index: 1;
+}
+
+/* Glossy shine effect */
+.card-glossy-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.3) 45%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.3) 55%, transparent 100%);
+    transform: rotate(45deg);
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.6;
+}
+
+/* Bottom glow for main card */
+.card-bottom-glow {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140%;
+    height: 60px;
+    background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.4) 0%, rgba(236, 72, 153, 0.2) 40%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(20px);
+    z-index: 0;
+}
+
+/* Main central card - Large rounded square */
+.floating-card.main {
+    width: 200px !important;
+    height: 200px !important;
+    border-radius: 40px !important;
+    transform: translate(-50%, -50%) rotate(-2deg) perspective(1000px) rotateX(5deg) !important;
+    animation: floatMain 7s ease-in-out infinite !important;
+    box-shadow:
+        0 0 0 1px rgba(124, 58, 237, 0.12),
+        0 30px 60px rgba(124, 58, 237, 0.18),
+        0 60px 120px rgba(0, 0, 0, 0.08),
+        inset 0 2px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+@keyframes floatMain {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) rotate(-2deg) perspective(1000px) rotateX(5deg);
+    }
+
+    50% {
+        transform: translate(-50%, -53%) rotate(1deg) perspective(1000px) rotateX(3deg);
+    }
+}
+
+.floating-card.main:hover {
+    transform: translate(-50%, -50%) rotate(0deg) perspective(1000px) rotateX(0deg) scale(1.05) !important;
+    box-shadow:
+        0 0 0 1px rgba(124, 58, 237, 0.2),
+        0 40px 80px rgba(124, 58, 237, 0.25),
+        0 80px 160px rgba(0, 0, 0, 0.12),
+        inset 0 2px 0 rgba(255, 255, 255, 1) !important;
+}
+
+/* Icon wrapper with emboss effect */
+.icon-wrapper {
+    filter: drop-shadow(0 2px 4px rgba(124, 58, 237, 0.3)) !important;
+    z-index: 3 !important;
+}
+
+.icon-emboss-shadow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 70%);
+    filter: blur(10px);
+    z-index: -1;
+}
+
+/* Enhanced sparkles */
+.sparkle {
+    font-size: 16px !important;
+    animation: sparkle 2.5s ease-in-out infinite !important;
+    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.8));
+    z-index: 4;
+}
+
+.sparkle-1 {
+    top: -24px !important;
+    right: -26px !important;
+}
+
+.sparkle-2 {
+    bottom: -22px !important;
+    left: -24px !important;
+    animation-delay: 1.2s !important;
+    font-size: 14px !important;
+}
+
+.sparkle-3 {
+    top: -20px;
+    left: -22px;
+    animation-delay: 2.4s;
+    font-size: 12px;
+}
+
+@keyframes sparkle {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1) rotate(0deg);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.3) rotate(180deg);
+    }
+}
+
+/* Secondary floating cards - Below and behind */
+.floating-card.pie-card {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    color: #8b5cf6;
+    z-index: 5;
+    bottom: 70px;
+    left: 50px;
+    transform: rotate(-6deg) perspective(800px) rotateX(8deg);
+    animation: floatSmall1 6s ease-in-out infinite;
+}
+
+.floating-card.chart-card {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    color: #8b5cf6;
+    z-index: 5;
+    bottom: 60px;
+    right: 45px;
+    transform: rotate(8deg) perspective(800px) rotateX(10deg);
+    animation: floatSmall2 6.5s ease-in-out infinite;
+}
+
+@keyframes floatSmall1 {
+
+    0%,
+    100% {
+        transform: rotate(-6deg) perspective(800px) rotateX(8deg) translateY(0);
+    }
+
+    50% {
+        transform: rotate(-3deg) perspective(800px) rotateX(5deg) translateY(-10px);
+    }
+}
+
+@keyframes floatSmall2 {
+
+    0%,
+    100% {
+        transform: rotate(8deg) perspective(800px) rotateX(10deg) translateY(0);
+    }
+
+    50% {
+        transform: rotate(11deg) perspective(800px) rotateX(7deg) translateY(-12px);
+    }
+}
+
+.floating-card.small:hover {
+    transform: scale(1.12) rotate(0deg) perspective(800px) rotateX(0deg) !important;
+    box-shadow:
+        0 0 0 1px rgba(139, 92, 246, 0.2),
+        0 20px 40px rgba(139, 92, 246, 0.18) !important;
+}
+
+/* Tiny ambient cards for depth */
+.floating-card.user-card,
+.floating-card.clock-card {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    color: #a78bfa;
+    opacity: 0.7;
+    z-index: 3;
+}
+
+.floating-card.user-card {
+    top: 60px;
+    left: 35px;
+    transform: rotate(-10deg);
+    animation: floatTiny1 5.5s ease-in-out infinite;
+}
+
+.floating-card.clock-card {
+    top: 50px;
+    right: 30px;
+    transform: rotate(12deg);
+    animation: floatTiny2 6s ease-in-out infinite;
+}
+
+@keyframes floatTiny1 {
+
+    0%,
+    100% {
+        transform: rotate(-10deg) translateY(0);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: rotate(-7deg) translateY(-8px);
+        opacity: 0.9;
+    }
+}
+
+@keyframes floatTiny2 {
+
+    0%,
+    100% {
+        transform: rotate(12deg) translateY(0);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: rotate(15deg) translateY(-9px);
+        opacity: 0.9;
+    }
+}
+
+/* Light bloom effects */
+.light-bloom {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(40px);
+    z-index: 0;
+}
+
+.bloom-1 {
+    width: 200px;
+    height: 200px;
+    top: 30%;
+    left: 20%;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 70%);
+    animation: bloomPulse 6s ease-in-out infinite;
+}
+
+.bloom-2 {
+    width: 180px;
+    height: 180px;
+    bottom: 25%;
+    right: 18%;
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.12) 0%, transparent 70%);
+    animation: bloomPulse 7s ease-in-out infinite reverse;
+}
+
+@keyframes bloomPulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.15);
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DARK MODE ENHANCEMENTS
+   ══════════════════════════════════════════════════════════════ */
+
+.dark .hero-visual-glow {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, rgba(124, 58, 237, 0.15) 40%, transparent 70%) !important;
+}
+
+.dark .hero-visual-glow-secondary {
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.18) 0%, rgba(59, 130, 246, 0.12) 40%, transparent 70%);
+}
+
+.dark .shadow-fog {
+    background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.25) 0%, transparent 70%);
+}
+
+.dark .orbit-ring-1 {
+    border-color: rgba(139, 92, 246, 0.18) !important;
+}
+
+.dark .orbit-ring-2 {
+    border-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+.dark .orbit-ring-3 {
+    border-color: rgba(236, 72, 153, 0.15);
+}
+
+.dark .floating-particle {
+    box-shadow: 0 0 18px rgba(196, 181, 253, 0.9), 0 0 30px rgba(236, 72, 153, 0.5) !important;
+}
+
+.dark .floating-card {
+    background: rgba(30, 41, 59, 0.6) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    box-shadow:
+        0 0 0 1px rgba(139, 92, 246, 0.15),
+        0 25px 50px rgba(0, 0, 0, 0.6),
+        0 50px 100px rgba(124, 58, 237, 0.15),
+        inset 0 1px 0 rgba(139, 92, 246, 0.2) !important;
+}
+
+.dark .card-glass-surface {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%) !important;
+}
+
+.dark .card-bottom-glow {
+    background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.5) 0%, rgba(236, 72, 153, 0.3) 40%, transparent 70%);
+}
+
+.dark .floating-card.main {
+    background: rgba(30, 41, 59, 0.8) !important;
+    box-shadow:
+        0 0 0 1px rgba(139, 92, 246, 0.25),
+        0 30px 60px rgba(0, 0, 0, 0.7),
+        0 60px 120px rgba(139, 92, 246, 0.2),
+        inset 0 2px 0 rgba(139, 92, 246, 0.3) !important;
+}
+
+.dark .floating-card.main:hover {
+    box-shadow:
+        0 0 0 1px rgba(139, 92, 246, 0.35),
+        0 40px 80px rgba(0, 0, 0, 0.8),
+        0 80px 160px rgba(139, 92, 246, 0.3),
+        inset 0 2px 0 rgba(139, 92, 246, 0.4) !important;
+}
+
+.dark .icon-wrapper {
+    color: #c4b5fd !important;
+    filter: drop-shadow(0 2px 6px rgba(196, 181, 253, 0.5)) !important;
+}
+
+.dark .light-bloom.bloom-1 {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+}
+
+.dark .light-bloom.bloom-2 {
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.18) 0%, transparent 70%);
+}

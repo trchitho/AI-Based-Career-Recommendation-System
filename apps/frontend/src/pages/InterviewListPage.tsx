@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Play, Loader2, Briefcase, Clock, Users, Eye, Star, TrendingUp, Award, Target, Zap, ChevronRight, Sparkles } from 'lucide-react';
+import { Search, Play, Loader2, Briefcase, Clock, Users, Eye, Star, ChevronRight, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { interviewService } from '../services/interviewService';
 import { useDebounce } from '../hooks/useDebounce';
 import MainLayout from '../components/layout/MainLayout';
+import './InterviewListPage.css';
 interface Job {
     id: string;
     title: string;
@@ -45,7 +46,6 @@ const InterviewListPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [showAllInterviews, setShowAllInterviews] = useState(false);
-    const [isLoadingAllInterviews, setIsLoadingAllInterviews] = useState(false);
 
     // Debounce search query to avoid too many API calls
     const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -90,20 +90,6 @@ const InterviewListPage: React.FC = () => {
             setIsLoading(false);
         }
     }, []); // Empty dependency array to prevent re-creation
-
-    // Load all interviews for "View More" functionality
-    const loadAllInterviews = useCallback(async () => {
-        try {
-            setIsLoadingAllInterviews(true);
-            const response = await interviewService.getMyInterviews(1000); // Load all interviews
-            setAllInterviews(response.interviews);
-            setShowAllInterviews(true);
-        } catch (error) {
-            console.error('Error loading all interviews:', error);
-        } finally {
-            setIsLoadingAllInterviews(false);
-        }
-    }, []);
 
     // Handle search with debounce - STABLE reference
     const handleSearch = useCallback(async (query: string) => {
@@ -151,21 +137,21 @@ const InterviewListPage: React.FC = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'completed':  return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-            case 'active':     return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-            case 'abandoned':  return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400';
+            case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+            case 'active': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+            case 'abandoned': return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400';
             case 'terminated': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
-            default:           return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400';
+            default: return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400';
         }
     };
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'completed':  return 'Hoàn thành';
-            case 'active':     return 'Đang diễn ra';
-            case 'abandoned':  return 'Đã hủy';
+            case 'completed': return 'Hoàn thành';
+            case 'active': return 'Đang diễn ra';
+            case 'abandoned': return 'Đã hủy';
             case 'terminated': return 'Đã thoát';
-            default:           return 'Không xác định';
+            default: return 'Không xác định';
         }
     };
 
@@ -209,69 +195,160 @@ const InterviewListPage: React.FC = () => {
 
     return (
         <MainLayout>
-            <div className="min-h-[calc(100vh-64px)] py-10 px-4 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans'] pb-20">
-                
-                <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
-                <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
-                <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
+            <div className="min-h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans']">
 
-                <div className="max-w-6xl mx-auto relative z-10">
-                    {/* Header */}
-                    <div className="text-center mb-12">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-[20px] bg-indigo-600 shadow-lg shadow-indigo-500/30 mb-6">
-                            <Users className="h-8 w-8 text-white" />
-                        </div>
-                        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-4">
-                            Phỏng vấn AI <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">thông minh</span>
-                        </h1>
-                        <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-medium">
-                            Luyện tập phỏng vấn với AI, nhận phản hồi chi tiết
-                            và nâng cao cơ hội thành công trong sự nghiệp.
-                        </p>
-                    </div>
+                {/* Hero Section */}
+                <div className="hero-section">
+                    <div className="hero-inner">
+                        {/* Left Content */}
+                        <div className="hero-left">
+                            {/* Icon */}
+                            <div className="hero-icon">
+                                <Users className="h-7 w-7 text-white" />
+                            </div>
 
-                    {/* Search */}
-                    <div className="max-w-3xl mx-auto mb-12">
-                        <div className="relative glass rounded-[24px] overflow-hidden border border-white/40 dark:border-gray-700/50 shadow-xl transition-all focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-indigo-500/70" />
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm kỹ năng, vị trí, công ty..."
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                className="w-full pl-16 pr-12 py-5 bg-transparent border-none focus:outline-none text-gray-900 dark:text-white placeholder-gray-500 text-lg font-medium"
-                            />
-                            {isSearching && (
-                                <Loader2 className="h-5 w-5 animate-spin" style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            )}
-                        </div>
+                            {/* Title */}
+                            <h1 className="hero-title">
+                                <span className="text-[#0F172A] dark:text-white">Phỏng vấn AI </span>
+                                <span className="hero-title-gradient">thông minh</span>
+                            </h1>
 
-                        {/* Popular Career Suggestions */}
-                        <div className="mt-4">
-                            <p className="text-sm text-gray-500 mb-3 text-center">
-                                Nghề nghiệp phổ biến
+                            {/* Subtitle */}
+                            <p className="hero-subtitle">
+                                Luyện tập phỏng vấn với AI, nhận phản hồi chi tiết và nâng cao cơ hội thành công trong sự nghiệp.
                             </p>
-                            <div className="flex flex-wrap justify-center gap-2">
-                                {[
-                                    { name: "Kỹ sư", query: "kỹ sư" },
-                                    { name: "Nhân viên kinh doanh", query: "nhân viên kinh doanh" },
-                                    { name: "Kế toán", query: "kế toán" },
-                                    { name: "Giáo viên", query: "giáo viên" },
-                                    { name: "Bác sĩ", query: "bác sĩ" },
-                                    { name: "Thợ điện", query: "thợ điện" },
-                                    { name: "Thiết kế đồ họa", query: "thiết kế" },
-                                ].map((career) => (
-                                    <button
-                                        key={career.name}
-                                        onClick={() => setSearchQuery(career.query)}
-                                        className="px-3 py-1.5 text-xs font-semibold bg-white/50 dark:bg-gray-800/50 border border-indigo-100 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900/40 hover:shadow-sm transition-all"
-                                    >
-                                        {career.name}
-                                    </button>
-                                ))}
+
+                            {/* Search Bar */}
+                            <div className="hero-search">
+                                <Search className="hero-search-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Tìm kiếm kỹ năng, vị trí, công ty..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    className="hero-search-input"
+                                />
+                                {isSearching && (
+                                    <Loader2 className="hero-search-loader" />
+                                )}
+                            </div>
+
+                            {/* Popular Career Suggestions */}
+                            <div className="popular-jobs">
+                                <p className="popular-jobs-title">
+                                    Nghề nghiệp phổ biến
+                                </p>
+                                <div className="popular-jobs-list">
+                                    {[
+                                        { name: "Kỹ sư", query: "kỹ sư" },
+                                        { name: "Nhân viên kinh doanh", query: "nhân viên kinh doanh" },
+                                        { name: "Kế toán", query: "kế toán" },
+                                        { name: "Giáo viên", query: "giáo viên" },
+                                        { name: "Bác sĩ", query: "bác sĩ" },
+                                        { name: "Thợ điện", query: "thợ điện" },
+                                        { name: "Thiết kế đồ họa", query: "thiết kế" },
+                                    ].map((career) => (
+                                        <button
+                                            key={career.name}
+                                            onClick={() => setSearchQuery(career.query)}
+                                            className="popular-job-chip"
+                                            style={{
+                                                background: 'linear-gradient(180deg, #7c3aed 0%, #681fd8 48%, #5516c8 100%)',
+                                                color: '#ffffff'
+                                            }}
+                                        >
+                                            {career.name}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
+
+                        {/* Right Illustration */}
+                        <div className="interview-illustration">
+                            {/* Halo Background */}
+                            <div className="illustration-halo" />
+
+                            {/* Main Card */}
+                            <div className="resume-card">
+                                {/* Clipboard Clip */}
+                                <div className="illustration-clip">
+                                    <div className="illustration-clip-ring" />
+                                </div>
+
+                                {/* Avatar Block */}
+                                <div className="illustration-avatar">
+                                    <div className="avatar-head" />
+                                    <div className="avatar-body" />
+                                </div>
+
+                                {/* Text Lines */}
+                                <div className="illustration-lines-top">
+                                    <div className="line line-top-1" />
+                                    <div className="line line-top-2" />
+                                    <div className="line line-top-3" />
+                                </div>
+                                <div className="illustration-lines-bottom">
+                                    <div className="line line-bot-1" />
+                                    <div className="line line-bot-2" />
+                                    <div className="line line-bot-3" />
+                                    <div className="line line-bot-4" />
+                                    <div className="line line-bot-5" />
+                                </div>
+                            </div>
+
+                            {/* Chat Bubble */}
+                            <div className="chat-bubble">
+                                <div className="chat-dots">
+                                    <div className="chat-dot dot-1" />
+                                    <div className="chat-dot dot-2" />
+                                    <div className="chat-dot dot-3" />
+                                </div>
+                            </div>
+
+                            {/* Magnifying Glass */}
+                            <div className="search-bubble">
+                                <Search className="search-icon" strokeWidth={2.5} />
+                            </div>
+
+                            {/* Mini Card */}
+                            <div className="mini-card">
+                                <div className="mini-line w-[45px]" />
+                                <div className="mini-line w-[55px]" />
+                            </div>
+
+                            {/* Sparkles */}
+                            <div className="sparkle sparkle-1">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="#F6C453" />
+                                </svg>
+                            </div>
+                            <div className="sparkle sparkle-2">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="#8B5CF6" />
+                                </svg>
+                            </div>
+                            <div className="sparkle sparkle-3">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="#F6C453" />
+                                </svg>
+                            </div>
+                            <div className="sparkle sparkle-4">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="#F6C453" />
+                                </svg>
+                            </div>
+
+                            {/* Curved Stroke */}
+                            <svg className="illustration-curve" viewBox="0 0 100 40">
+                                <path d="M10 25 C35 5 65 5 88 15" stroke="#8B5CF6" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.9" />
+                            </svg>
+                        </div>
                     </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="max-w-6xl mx-auto relative z-10 px-4 py-10">
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Job List */}
@@ -316,15 +393,15 @@ const InterviewListPage: React.FC = () => {
                                             )}
                                         </div>
                                     ) : (
-                                            <motion.div 
-                                                initial="hidden" 
-                                                animate="visible" 
-                                                variants={{
-                                                    hidden: { opacity: 0 },
-                                                    visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
-                                                }}
-                                                className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                                            >
+                                        <motion.div
+                                            initial="hidden"
+                                            animate="visible"
+                                            variants={{
+                                                hidden: { opacity: 0 },
+                                                visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+                                            }}
+                                            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                                        >
                                             {jobs.map((job) => (
                                                 <motion.div
                                                     variants={{
@@ -382,7 +459,7 @@ const InterviewListPage: React.FC = () => {
                                                     </div>
                                                 </motion.div>
                                             ))}
-                                            </motion.div>
+                                        </motion.div>
                                     )}
                                 </div>
                             </div>

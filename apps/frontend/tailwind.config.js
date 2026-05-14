@@ -234,6 +234,24 @@ export default {
           '0%': { transform: 'translateX(-50%)' },
           '100%': { transform: 'translateX(0)' },
         },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-6px)' },
+        },
+        'pulse': {
+          '0%, 100%': {
+            transform: 'scale(1)',
+            boxShadow: '0 0 60px rgba(124,58,237,0.45), 0 0 100px rgba(124,58,237,0.22), 0 18px 42px rgba(109,40,217,0.42)',
+          },
+          '50%': {
+            transform: 'scale(1.03)',
+            boxShadow: '0 0 80px rgba(124,58,237,0.55), 0 0 120px rgba(124,58,237,0.28), 0 20px 50px rgba(109,40,217,0.48)',
+          },
+        },
+        'progressFlow': {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -248,6 +266,9 @@ export default {
         'bounce-in': 'bounce-in 0.4s ease-out',
         'scroll': 'scroll 40s linear infinite',
         'scroll-reverse': 'scroll-reverse 40s linear infinite',
+        'float': 'float 5s ease-in-out infinite',
+        'pulse': 'pulse 3s ease-in-out infinite',
+        'progressFlow': 'progressFlow 1.8s linear infinite',
       },
 
       // ── Background images ──────────────────────────────────────────────

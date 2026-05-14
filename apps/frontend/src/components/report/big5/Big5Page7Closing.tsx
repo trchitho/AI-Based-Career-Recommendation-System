@@ -18,31 +18,31 @@ const Big5Page7Closing = () => {
 
                 {/* Title */}
                 <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-5 print:text-xl print:mb-4">
-                    Conclusion & Next Steps
+                    Kết Luận & Bước Tiếp Theo
                 </h2>
 
                 {/* Content Paragraphs - Shortened */}
                 <div className="space-y-4 text-gray-600 dark:text-gray-400 leading-relaxed text-left print:space-y-3">
                     <p className="text-sm print:text-xs">
-                        This report analyzes your personality using the Big Five model (OCEAN).
-                        The six behavioral patterns show how your traits manifest in workplace contexts.
+                        Báo cáo này phân tích tính cách của bạn bằng mô hình Big Five (OCEAN).
+                        Sáu mẫu hành vi cho thấy các đặc điểm của bạn biểu hiện như thế nào trong môi trường làm việc.
                     </p>
 
                     <p className="text-sm print:text-xs">
-                        <span className="font-semibold text-gray-700 dark:text-gray-300">Self-awareness</span> enables
-                        better career decisions. Use these insights to identify roles that leverage your
-                        strengths and develop strategies for growth areas.
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">Tự nhận thức</span> giúp
+                        đưa ra quyết định nghề nghiệp tốt hơn. Hãy sử dụng những hiểu biết này để xác định các vai trò
+                        phát huy điểm mạnh và xây dựng chiến lược phát triển.
                     </p>
 
                     <p className="text-sm print:text-xs">
-                        <span className="font-semibold text-gray-700 dark:text-gray-300">Career alignment</span> occurs
-                        when your work environment matches your personality. Evaluate opportunities based on
-                        how well they fit your natural tendencies.
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">Sự phù hợp nghề nghiệp</span> xảy ra
+                        khi môi trường làm việc phù hợp với tính cách của bạn. Hãy đánh giá các cơ hội dựa trên
+                        mức độ phù hợp với xu hướng tự nhiên của bạn.
                     </p>
 
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300 print:text-xs">
-                        Personality assessments are tools for reflection, not predictions. Combine these
-                        insights with experience and continuous learning.
+                        Các bài đánh giá tính cách là công cụ để suy ngẫm, không phải dự đoán. Hãy kết hợp những
+                        hiểu biết này với kinh nghiệm và học hỏi liên tục.
                     </p>
                 </div>
 
@@ -56,8 +56,8 @@ const Big5Page7Closing = () => {
             <div className="mt-auto pt-8 print:pt-6">
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 print:pt-3">
                     <p className="text-xs text-gray-400 dark:text-gray-500 text-center print:text-[10px]">
-                        Generated using the Big Five personality model (OCEAN) with heuristic behavioral mapping
-                        based on established psychological research.
+                        Được tạo bằng mô hình tính cách Big Five (OCEAN) với ánh xạ hành vi heuristic
+                        dựa trên nghiên cứu tâm lý học đã được thiết lập.
                     </p>
                 </div>
             </div>

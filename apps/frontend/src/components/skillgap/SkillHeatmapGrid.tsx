@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SkillGapAnalysis } from '../../types/skillGap';
 import { useTheme } from '../../contexts/ThemeContext';
+import { translateSkillCategory, translateSkillName } from '../../utils/skillTranslation';
 
 interface Props {
   analysis: SkillGapAnalysis;
@@ -29,10 +30,10 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
 
   // Build unified skill list
   const allSkills: SkillCell[] = [
-    ...(analysis.matched_skills || []).map(s => ({ name: s.name, status: 'matched' as Status, category: s.category || 'Kỹ năng' })),
-    ...(analysis.skill_gaps?.critical || []).map(s => ({ name: s.name, status: 'critical' as Status, category: s.category || 'Kỹ năng' })),
-    ...(analysis.skill_gaps?.important || []).map(s => ({ name: s.name, status: 'important' as Status, category: s.category || 'Kỹ năng' })),
-    ...(analysis.skill_gaps?.nice_to_have || []).map(s => ({ name: s.name, status: 'nice_to_have' as Status, category: s.category || 'Kỹ năng' })),
+    ...(analysis.matched_skills || []).map(s => ({ name: translateSkillName(s.name), status: 'matched' as Status, category: translateSkillCategory(s.category) })),
+    ...(analysis.skill_gaps?.critical || []).map(s => ({ name: translateSkillName(s.name), status: 'critical' as Status, category: translateSkillCategory(s.category) })),
+    ...(analysis.skill_gaps?.important || []).map(s => ({ name: translateSkillName(s.name), status: 'important' as Status, category: translateSkillCategory(s.category) })),
+    ...(analysis.skill_gaps?.nice_to_have || []).map(s => ({ name: translateSkillName(s.name), status: 'nice_to_have' as Status, category: translateSkillCategory(s.category) })),
   ];
 
   // Group by category

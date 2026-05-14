@@ -13,7 +13,7 @@ const HomeCTA: React.FC<Props> = ({ isAuthenticated }) => {
             </h2>
 
             <p className="text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-                Hơn 10.000 người đã tìm được định hướng nghề nghiệp phù hợp với CareerBridge AI.
+                Hơn 10.000 người đã tìm được định hướng nghề nghiệp phù hợp với CareerVerse AI.
             </p>
 
             <Link

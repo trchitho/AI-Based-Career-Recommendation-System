@@ -64,12 +64,12 @@ function Avatar({ name, size = 40 }: { name: string; size?: number }) {
 /* ── StatusBadge ──────────────────────────────────────────────── */
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; bg: string; color: string }> = {
-    pending:   { label: 'Đang chờ',     bg: '#fef3c7', color: '#92400e' },
-    accepted:  { label: 'Đã chấp nhận', bg: '#d1fae5', color: '#065f46' },
-    rejected:  { label: 'Đã từ chối',   bg: '#fee2e2', color: '#991b1b' },
-    confirmed: { label: 'Đã xác nhận',  bg: '#dbeafe', color: '#1e40af' },
-    cancelled: { label: 'Đã huỷ',       bg: '#f3f4f6', color: '#6b7280' },
-    completed: { label: 'Hoàn thành',   bg: '#d1fae5', color: '#065f46' },
+    pending: { label: 'Đang chờ', bg: '#fef3c7', color: '#92400e' },
+    accepted: { label: 'Đã chấp nhận', bg: '#d1fae5', color: '#065f46' },
+    rejected: { label: 'Đã từ chối', bg: '#fee2e2', color: '#991b1b' },
+    confirmed: { label: 'Đã xác nhận', bg: '#dbeafe', color: '#1e40af' },
+    cancelled: { label: 'Đã huỷ', bg: '#f3f4f6', color: '#6b7280' },
+    completed: { label: 'Hoàn thành', bg: '#d1fae5', color: '#065f46' },
   };
   const s = map[status] ?? { label: status, bg: '#f3f4f6', color: '#6b7280' };
   return (
@@ -120,7 +120,7 @@ const MentorMatchingPage = () => {
     full_name: user?.email?.split('@')[0] || '',
     current_position: '', company: '', bio: '', expertise_areas: [],
     experience_years: 0, available_hours_per_week: 2,
-    preferred_communication: ['video', 'chat'], max_mentees: 5,
+    preferred_communication: ['chat'], max_mentees: 5,
   });
   const [mentorSaving, setMentorSaving] = useState(false);
   const [mentorSuccess, setMentorSuccess] = useState('');
@@ -129,23 +129,25 @@ const MentorMatchingPage = () => {
 
   /* ── init ── */
   useEffect(() => {
+    console.log('🔍 MentorMatchingPage mounted, current tab:', tab);
+    console.log('🔍 hasProfile:', hasProfile);
     (async () => {
       // Try existing mentee profile
-      try { 
-        await mentorMatchingService.getMenteeProfile(); 
-        setHasProfile(true); 
-        loadMentors(); 
-        return; 
-      } catch {}
-      
-      // Auto-create from user data (assessment + CV)
-      try { 
-        await mentorMatchingService.createMenteeFromProfile(); 
+      try {
+        await mentorMatchingService.getMenteeProfile();
         setHasProfile(true);
         loadMentors();
         return;
-      } catch {}
-      
+      } catch { }
+
+      // Auto-create from user data (assessment + CV)
+      try {
+        await mentorMatchingService.createMenteeFromProfile();
+        setHasProfile(true);
+        loadMentors();
+        return;
+      } catch { }
+
       // If we reach here, user has no profile and no CV/Assessment data
       setHasProfile(false);
     })();
@@ -231,7 +233,7 @@ const MentorMatchingPage = () => {
   return (
     <MainLayout>
       <div className="mm-page min-h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden pb-20">
-        
+
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
         <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
         <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
@@ -348,23 +350,133 @@ const MentorMatchingPage = () => {
           </div>
 
           {/* Tabs */}
-          <div className="mm-tabs">
-            <button className={`mm-tab${tab === 'find' ? ' active' : ''}`} onClick={() => setTab('find')}>
-              <Target size={15} />Tìm Mentor
+          <div className="mm-tabs-shell" style={{ display: 'flex', gap: '8px', padding: '8px', background: 'rgba(255,255,255,0.97)', borderRadius: '16px', maxWidth: '1000px', margin: '0 auto 32px' }}>
+            <button
+              className={`mm-tab-item mm-tab-find${tab === 'find' ? ' mm-tab-active' : ''}`}
+              onClick={() => { console.log('🖱️ Clicked Tìm Mentor'); setTab('find'); }}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '12px 18px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: tab === 'find' ? 800 : 700,
+                cursor: 'pointer',
+                transition: 'all 0.22s ease',
+                border: tab === 'find' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(226, 232, 240, 0.85)',
+                background: tab === 'find' ? 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%)',
+                color: tab === 'find' ? '#065f46' : '#334155',
+                boxShadow: tab === 'find' ? '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)' : 'inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(15, 23, 42, 0.04)',
+                transform: tab === 'find' ? 'translateY(-1px)' : 'none'
+              }}
+            >
+              <Target size={15} style={{ color: tab === 'find' ? '#065f46' : '#475569', stroke: tab === 'find' ? '#065f46' : '#475569' }} />
+              <span style={{ color: tab === 'find' ? '#065f46' : '#334155' }}>Tìm Mentor</span>
             </button>
-            <button className={`mm-tab${tab === 'requests' ? ' active' : ''}`} onClick={() => setTab('requests')}>
-              <ClipboardList size={15} />Yêu cầu
+            <button
+              className={`mm-tab-item mm-tab-requests${tab === 'requests' ? ' mm-tab-active' : ''}`}
+              onClick={() => setTab('requests')}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '12px 18px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: tab === 'requests' ? 800 : 700,
+                cursor: 'pointer',
+                transition: 'all 0.22s ease',
+                border: tab === 'requests' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(226, 232, 240, 0.85)',
+                background: tab === 'requests' ? 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%)',
+                color: tab === 'requests' ? '#065f46' : '#334155',
+                boxShadow: tab === 'requests' ? '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)' : 'inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(15, 23, 42, 0.04)',
+                transform: tab === 'requests' ? 'translateY(-1px)' : 'none'
+              }}
+            >
+              <ClipboardList size={15} style={{ color: tab === 'requests' ? '#065f46' : '#475569', stroke: tab === 'requests' ? '#065f46' : '#475569' }} />
+              <span>Yêu cầu</span>
               {(pendingMyReq + pendingIncoming) > 0 && <span className="mm-tab-count">{pendingMyReq + pendingIncoming}</span>}
             </button>
-            <button className={`mm-tab${tab === 'mentees' ? ' active' : ''}`} onClick={() => setTab('mentees')}>
-              <Users size={15} />Mentee của tôi
+            <button
+              className={`mm-tab-item mm-tab-mentees${tab === 'mentees' ? ' mm-tab-active' : ''}`}
+              onClick={() => setTab('mentees')}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '12px 18px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: tab === 'mentees' ? 800 : 700,
+                cursor: 'pointer',
+                transition: 'all 0.22s ease',
+                border: tab === 'mentees' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(226, 232, 240, 0.85)',
+                background: tab === 'mentees' ? 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%)',
+                color: tab === 'mentees' ? '#065f46' : '#334155',
+                boxShadow: tab === 'mentees' ? '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)' : 'inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(15, 23, 42, 0.04)',
+                transform: tab === 'mentees' ? 'translateY(-1px)' : 'none'
+              }}
+            >
+              <Users size={15} style={{ color: tab === 'mentees' ? '#065f46' : '#475569', stroke: tab === 'mentees' ? '#065f46' : '#475569' }} />
+              <span>Mentee của tôi</span>
               {mentees.length > 0 && <span className="mm-tab-count">{mentees.length}</span>}
             </button>
-            <button className={`mm-tab${tab === 'schedule' ? ' active' : ''}`} onClick={() => setTab('schedule')}>
-              <Calendar size={15} />Lịch hẹn
+            <button
+              className={`mm-tab-item mm-tab-schedule${tab === 'schedule' ? ' mm-tab-active' : ''}`}
+              onClick={() => setTab('schedule')}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '12px 18px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: tab === 'schedule' ? 800 : 700,
+                cursor: 'pointer',
+                transition: 'all 0.22s ease',
+                border: tab === 'schedule' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(226, 232, 240, 0.85)',
+                background: tab === 'schedule' ? 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%)',
+                color: tab === 'schedule' ? '#065f46' : '#334155',
+                boxShadow: tab === 'schedule' ? '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)' : 'inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(15, 23, 42, 0.04)',
+                transform: tab === 'schedule' ? 'translateY(-1px)' : 'none'
+              }}
+            >
+              <Calendar size={15} style={{ color: tab === 'schedule' ? '#065f46' : '#475569', stroke: tab === 'schedule' ? '#065f46' : '#475569' }} />
+              <span>Lịch hẹn</span>
             </button>
-            <button className={`mm-tab${tab === 'become' ? ' active' : ''}`} onClick={() => setTab('become')}>
-              <Star size={15} />{isMentor ? 'Hồ sơ Mentor' : 'Trở thành Mentor'}
+            <button
+              className={`mm-tab-item mm-tab-become${tab === 'become' ? ' mm-tab-active' : ''}`}
+              onClick={() => setTab('become')}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '12px 18px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: tab === 'become' ? 800 : 700,
+                cursor: 'pointer',
+                transition: 'all 0.22s ease',
+                border: tab === 'become' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(226, 232, 240, 0.85)',
+                background: tab === 'become' ? 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%)',
+                color: tab === 'become' ? '#065f46' : '#334155',
+                boxShadow: tab === 'become' ? '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)' : 'inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(15, 23, 42, 0.04)',
+                transform: tab === 'become' ? 'translateY(-1px)' : 'none'
+              }}
+            >
+              <Star size={15} style={{ color: tab === 'become' ? '#065f46' : '#475569', stroke: tab === 'become' ? '#065f46' : '#475569' }} />
+              <span>{isMentor ? 'Hồ sơ Mentor' : 'Trở thành Mentor'}</span>
             </button>
           </div>
 
@@ -380,13 +492,65 @@ const MentorMatchingPage = () => {
                   <h2>Hoàn thiện hồ sơ để tìm mentor</h2>
                   <p>Hệ thống AI yêu cầu kết quả từ <strong>Bài đánh giá tính cách</strong> và <strong>CV</strong> của bạn để có thể ghép đôi bạn với Mentor phù hợp nhất dựa trên điểm số RIASEC, Big Five và kỹ năng chuyên môn.</p>
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
-                    <button className="mm-btn-secondary" onClick={() => window.location.href = '/cv-analysis'}>
-                      <ClipboardList size={18} />
-                      Cập nhật CV
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = '/cv-analysis'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(16, 185, 129, 0.4)',
+                        background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)',
+                        color: '#065f46',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)',
+                        transition: 'all 0.22s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.35), 0 4px 10px rgba(5, 150, 105, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)';
+                      }}
+                    >
+                      <ClipboardList size={18} style={{ color: '#065f46', stroke: '#065f46' }} />
+                      <span>Cập nhật CV</span>
                     </button>
-                    <button className="mm-btn-gradient" onClick={() => window.location.href = '/assessment'}>
-                      <Target size={18} />
-                      Làm bài đánh giá
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = '/assessment'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(16, 185, 129, 0.4)',
+                        background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)',
+                        color: '#065f46',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)',
+                        transition: 'all 0.22s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.35), 0 4px 10px rgba(5, 150, 105, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)';
+                      }}
+                    >
+                      <Target size={18} style={{ color: '#065f46', stroke: '#065f46' }} />
+                      <span>Làm bài đánh giá</span>
                     </button>
                   </div>
                 </div>
@@ -457,15 +621,15 @@ const MentorMatchingPage = () => {
                               {isSent ? <><Check size={12} className="inline mr-1" />Đã gửi</> : isFull ? 'Đã đầy slot' : 'Gửi yêu cầu'}
                             </button>
                             <button title="Xem hồ sơ chi tiết" onClick={() => setViewProfileMentor(m)}
-                              style={{ padding: '0 0.6rem', borderRadius: 10, border: '1.5px solid #10b981', background: 'rgba(16,185,129,0.08)', color: '#059669', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', flexShrink: 0, display:'flex', alignItems:'center', gap: '0.2rem' }}>
+                              style={{ padding: '0 0.6rem', borderRadius: 10, border: '1.5px solid #10b981', background: 'rgba(16,185,129,0.08)', color: '#059669', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                               Hồ sơ
                             </button>
                             <button title="Nhắn tin" onClick={() => setChatTarget({ userId: m.user_id, name: m.mentor_name })}
-                              style={{ padding: '0 0.5rem', borderRadius: 10, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0, display:'flex', alignItems:'center' }}>
+                              style={{ padding: '0 0.5rem', borderRadius: 10, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                               <MessageCircle size={15} />
                             </button>
                             <button title="Đặt lịch" onClick={() => setBookingTarget({ userId: m.user_id, name: m.mentor_name })}
-                              style={{ padding: '0 0.5rem', borderRadius: 10, border: '1.5px solid #8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0, display:'flex', alignItems:'center' }}>
+                              style={{ padding: '0 0.5rem', borderRadius: 10, border: '1.5px solid #8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                               <Calendar size={15} />
                             </button>
                           </div>
@@ -484,13 +648,65 @@ const MentorMatchingPage = () => {
                   <h3>Chưa tìm thấy mentor phù hợp</h3>
                   <p>Hệ thống AI cần thêm thông tin để tìm kiếm tốt hơn. Hãy cập nhật CV và làm bài đánh giá tính cách.</p>
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '24px' }}>
-                    <button className="mm-btn-secondary" onClick={() => window.location.href = '/cv-analysis'}>
-                      <ClipboardList size={18} />
-                      Cập nhật CV
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = '/skill-gap'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(16, 185, 129, 0.4)',
+                        background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)',
+                        color: '#065f46',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)',
+                        transition: 'all 0.22s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.35), 0 4px 10px rgba(5, 150, 105, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)';
+                      }}
+                    >
+                      <ClipboardList size={18} style={{ color: '#065f46', stroke: '#065f46' }} />
+                      <span>Cập nhật CV</span>
                     </button>
-                    <button className="mm-btn-gradient" onClick={() => window.location.href = '/assessment'}>
-                      <Target size={18} />
-                      Làm bài đánh giá
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = '/assessment'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 24px',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(16, 185, 129, 0.4)',
+                        background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)',
+                        color: '#065f46',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)',
+                        transition: 'all 0.22s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.35), 0 4px 10px rgba(5, 150, 105, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(5, 150, 105, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7)';
+                      }}
+                    >
+                      <Target size={18} style={{ color: '#065f46', stroke: '#065f46' }} />
+                      <span>Làm bài đánh giá</span>
                     </button>
                   </div>
                 </div>
@@ -691,14 +907,14 @@ const MentorMatchingPage = () => {
                           </button>
                           {isMentorRole && s.status === 'pending' && (
                             <>
-                              <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'confirmed'); await loadSessions(); } catch {} finally { setSessionRespondingId(null); } }}
-                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: 'var(--color-success)', color: '#fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display:'flex', alignItems:'center', gap:4 }}><Check size={12} />Xác nhận</button>
-                              <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'cancelled'); await loadSessions(); } catch {} finally { setSessionRespondingId(null); } }}
-                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display:'flex', alignItems:'center', gap:4 }}><X size={12} />Từ chối</button>
+                              <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'confirmed'); await loadSessions(); } catch { } finally { setSessionRespondingId(null); } }}
+                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: 'var(--color-success)', color: '#fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><Check size={12} />Xác nhận</button>
+                              <button disabled={sessionRespondingId === s.id} onClick={async () => { setSessionRespondingId(s.id); try { await scheduleService.respond(s.id, 'cancelled'); await loadSessions(); } catch { } finally { setSessionRespondingId(null); } }}
+                                style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><X size={12} />Từ chối</button>
                             </>
                           )}
                           {(s.status === 'pending' || s.status === 'confirmed') && (
-                            <button onClick={async () => { try { await scheduleService.cancel(s.id); await loadSessions(); } catch {} }}
+                            <button onClick={async () => { try { await scheduleService.cancel(s.id); await loadSessions(); } catch { } }}
                               style={{ padding: '0.35rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: '#f9fafb', color: '#374151', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>Huỷ</button>
                           )}
                         </div>
@@ -760,11 +976,11 @@ const MentorMatchingPage = () => {
                   <div className="mm-form-group">
                     <label>Hình thức liên lạc ưa thích</label>
                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                      {['video', 'chat', 'email', 'phone'].map(opt => (
+                      {['chat', 'email', 'phone'].map(opt => (
                         <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--neu-text)' }}>
                           <input type="checkbox" checked={mentorProfile.preferred_communication.includes(opt)}
                             onChange={e => setMentorProfile(p => ({ ...p, preferred_communication: e.target.checked ? [...p.preferred_communication, opt] : p.preferred_communication.filter(x => x !== opt) }))} />
-                          {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                          {opt === 'chat' ? 'Chat' : opt === 'email' ? 'Email' : 'Điện thoại'}
                         </label>
                       ))}
                     </div>
@@ -810,15 +1026,15 @@ const MentorMatchingPage = () => {
                   <h3 style={{ fontSize: '1.35rem', margin: 0, fontWeight: 800 }}>{viewProfileMentor.mentor_name}</h3>
                   <div style={{ color: 'var(--neu-text-muted)', fontWeight: 600, fontSize: '0.9rem' }}>{viewProfileMentor.current_position} {viewProfileMentor.company && `tại ${viewProfileMentor.company}`}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--neu-text-muted)', marginTop: '4px' }}>
-                    {viewProfileMentor.experience_years ? `${viewProfileMentor.experience_years} năm kinh nghiệm` : ''} 
-                    {viewProfileMentor.experience_years ? ' · ' : ''} 
+                    {viewProfileMentor.experience_years ? `${viewProfileMentor.experience_years} năm kinh nghiệm` : ''}
+                    {viewProfileMentor.experience_years ? ' · ' : ''}
                     {viewProfileMentor.available_hours_per_week}h/tuần
                   </div>
                 </div>
               </div>
               <button className="mm-btn-icon" onClick={() => setViewProfileMentor(null)}><X size={20} /></button>
             </div>
-            
+
             {viewProfileMentor.bio && (
               <div style={{ marginTop: '1.25rem' }}>
                 <div className="mm-section-label">Giới thiệu bản thân</div>
@@ -829,8 +1045,8 @@ const MentorMatchingPage = () => {
             <div style={{ marginTop: '1.25rem' }}>
               <div className="mm-section-label">Lĩnh vực chuyên môn</div>
               <div className="mm-tags">
-                {viewProfileMentor.expertise_areas.length > 0 
-                  ? viewProfileMentor.expertise_areas.map(s => <span key={s} className="mm-skill-tag">{s}</span>) 
+                {viewProfileMentor.expertise_areas.length > 0
+                  ? viewProfileMentor.expertise_areas.map(s => <span key={s} className="mm-skill-tag">{s}</span>)
                   : <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>Chưa cập nhật kỹ năng chi tiết</span>}
               </div>
             </div>
@@ -842,9 +1058,9 @@ const MentorMatchingPage = () => {
                 </div>
                 <div style={{ background: '#3b82f6', color: '#fff', padding: '0.2rem 0.6rem', borderRadius: 20, fontWeight: 800, fontSize: '0.85rem' }}>Match {Math.round(viewProfileMentor.compatibility_score)}%</div>
               </div>
-              
+
               <ul className="mm-reasons" style={{ marginTop: '0.8rem', marginBottom: '1.25rem' }}>
-                {viewProfileMentor.matching_reasons.length > 0 
+                {viewProfileMentor.matching_reasons.length > 0
                   ? viewProfileMentor.matching_reasons.map((r, i) => <li key={i} className="mm-reason"><span className="mm-reason-dot" style={{ background: '#3b82f6' }} />{r}</li>)
                   : <li className="mm-reason"><span className="mm-reason-dot" style={{ background: '#9ca3af' }} />Hệ thống chưa tìm thấy lý do nổi bật</li>
                 }

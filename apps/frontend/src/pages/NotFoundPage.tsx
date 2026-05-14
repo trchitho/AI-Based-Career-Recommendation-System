@@ -96,7 +96,7 @@ const NotFoundPage: React.FC = () => {
                 <Compass className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                 Có thể bạn đang tìm kiếm
               </h2>
-              <p className="text-slate-600 dark:text-slate-400">Khám phá các tính năng phổ biến của CareerBridge</p>
+              <p className="text-slate-600 dark:text-slate-400">Khám phá các tính năng phổ biến của CareerVerse</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -155,7 +155,7 @@ const NotFoundPage: React.FC = () => {
             <p className="text-slate-500 dark:text-slate-400 text-sm">
               Vẫn không tìm thấy những gì bạn cần?{' '}
               <a
-                href="mailto:support@careerbridge.com"
+                href="mailto:support@CareerVerse.com"
                 className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold hover:underline transition-colors"
               >
                 Liên hệ với chúng tôi

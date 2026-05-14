@@ -21,10 +21,10 @@ const Big5Page5Facets = ({ facets }: Big5Page5FacetsProps) => {
             {/* Page Header - Larger font */}
             <div className="mb-6 print:mb-4 flex-shrink-0">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white print:text-xl">
-                    Behavioral Patterns: Teamwork & Task Management
+                    Mẫu Hành Vi: Làm Việc Nhóm & Quản Lý Công Việc
                 </h2>
                 <p className="text-base text-gray-500 dark:text-gray-400 print:text-sm mt-1">
-                    How you collaborate with others and manage your work
+                    Cách bạn hợp tác với người khác và quản lý công việc của mình
                 </p>
             </div>
 

@@ -18,6 +18,10 @@ var/
 wheels/
 *.egg-info/
 .installed.cfg
+
+# Virtual environments
+.venv/
+apps/backend/.venv/
 *.egg
 
 # Node
@@ -44,4 +48,13 @@ Thumbs.db
 
 # Build artifacts
 *.log
+# Python virtual environments
 .venv/
+venv/
+env/
+apps/backend/.venv/
+apps/frontend/.venv/
+
+# Large DB dumps
+db/backup/
+*.sql

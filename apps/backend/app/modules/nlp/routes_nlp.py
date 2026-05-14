@@ -40,7 +40,7 @@ def _require_admin(user: User) -> None:
 
 class EssayRequest(BaseModel):
     essay_text: str = Field(..., min_length=10, max_length=5000)
-    lang: str = Field("auto", pattern="^(auto|vi|en)$")
+    lang: str = Field("vi", pattern="^(auto|vi|en)$")
     store_embedding: bool = Field(True, description="Persist embedding for future matching")
 
 

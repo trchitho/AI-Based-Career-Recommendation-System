@@ -76,7 +76,7 @@ const CVDocumentsPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <FileText size={24} className="text-indigo-800" />
-            CV Documents
+            Tài liệu CV
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Danh sách CV mà người dùng đã tải lên — tổng {total} bản
@@ -86,7 +86,7 @@ const CVDocumentsPage = () => {
           onClick={load}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-sm font-semibold rounded-lg transition-colors"
         >
-          <RefreshCw size={15} /> Refresh
+          <RefreshCw size={15} /> Làm mới
         </button>
       </div>
 
@@ -183,7 +183,7 @@ const CVDocumentsPage = () => {
                           </span>
                         )}
                         {!doc.cv_name && !doc.cv_email && (
-                          <span className="text-xs text-gray-400">User {doc.user_id}</span>
+                          <span className="text-xs text-gray-400">Người dùng {doc.user_id}</span>
                         )}
                       </div>
                     </td>
@@ -229,7 +229,7 @@ const CVDocumentsPage = () => {
                       </div>
                       <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
                         <BarChart2 size={11} />
-                        {doc.matched_skills_count}/{doc.total_required_skills} skills
+                        {doc.matched_skills_count}/{doc.total_required_skills} kỹ năng
                       </div>
                     </td>
 

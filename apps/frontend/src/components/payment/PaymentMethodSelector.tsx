@@ -1,6 +1,6 @@
 /**
  * Payment Method Selector Component
- * Redesigned to match CareerBridge green theme
+ * Redesigned to match CareerVerse green theme
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -79,7 +79,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
                 
-                {/* Header - Green gradient matching CareerBridge */}
+                {/* Header - Green gradient matching CareerVerse */}
                 <div className="bg-gradient-to-r from-indigo-500 to-indigo-800 p-6">
                     <div className="flex justify-between items-start">
                         <div>

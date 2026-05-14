@@ -273,8 +273,8 @@ const GardenScenery: React.FC<GardenSceneryProps> = ({ timeOfDay, isAnswering, t
       <div className="absolute left-1/2 -translate-x-32 bottom-28 text-3xl z-10 filter drop-shadow-lg transform rotate-45" style={{ marginBottom: '-0.75rem' }}>🪵</div>
       <div className="absolute left-1/2 translate-x-32 bottom-28 text-3xl z-10 filter drop-shadow-lg transform -rotate-45" style={{ marginBottom: '-0.75rem' }}>🪵</div>
 
-      {/* Gardener Character (User) - MAXIMUM VISIBILITY */}
-      <div className="absolute left-1/4 bottom-44 z-50 flex items-center gap-4" style={{ pointerEvents: 'auto' }}>
+      {/* Gardener Character (User) - RAISED HIGHER */}
+      <div className="absolute left-1/4 bottom-56 z-50 flex items-center gap-4" style={{ pointerEvents: 'auto' }}>
         <div className={`transition-all duration-500 ${isAnswering ? 'scale-125' : 'scale-100'}`}>
           {/* Character - HUGE AND CLEAR */}
           <div className="relative">
@@ -317,8 +317,8 @@ const GardenScenery: React.FC<GardenSceneryProps> = ({ timeOfDay, isAnswering, t
         </div>
       </div>
       
-      {/* Tree Stage Indicator - in the sky area, centered, higher */}
-      <div className="absolute top-[15%] left-1/2 transform -translate-x-1/2 z-50">
+      {/* Tree Stage Indicator - LOWERED to align with gardener */}
+      <div className="absolute bottom-64 left-1/2 transform -translate-x-1/2 z-50">
         <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-5 py-2.5 rounded-full text-base font-bold text-gray-700 dark:text-gray-300 shadow-xl border-2 border-white/50">
           {treeGrowth.stage === 'seed' && '🌱 Hạt Giống'}
           {treeGrowth.stage === 'sprout' && '🌱 Mầm Non'}
@@ -330,9 +330,9 @@ const GardenScenery: React.FC<GardenSceneryProps> = ({ timeOfDay, isAnswering, t
         </div>
       </div>
 
-      {/* Watering can (when watering) - VERY VISIBLE */}
+      {/* Watering can (when watering) - ADJUSTED position */}
       {isAnswering && (
-        <div className="absolute left-1/4 bottom-56 animate-bounce z-50">
+        <div className="absolute left-1/4 bottom-68 animate-bounce z-50">
           <div className="text-6xl filter drop-shadow-2xl">🚿</div>
         </div>
       )}
