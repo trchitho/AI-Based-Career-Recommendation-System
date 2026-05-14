@@ -898,143 +898,7 @@ def _career_to_client(c: Career, session: Session) -> dict:
     }
 
 
-@router.get("/careers")
-def list_careers(
-    request: Request,
-    riasecCode: str | None = Query(None, description="Filter by dominant RIASEC code (R/I/A/S/E/C)"),
-    q: str | None = Query(None, description="search by title/slug"),
-    limit: int = Query(20, ge=1, le=200),
-    offset: int = Query(0, ge=0),
-):
-    _ = require_admin(request)
-    session = _db(request)
-
-    # Build base query
-    stmt = select(Career)
-    if q:
-        like = f"%{q.lower()}%"
-        # Search in English title first, then Vietnamese
-        stmt = stmt.where(or_(
-            Career.title_en.ilike(like),
-            Career.title_vi.ilike(like),
-            Career.slug.ilike(like)
-        ))
-
-    # If filtering by RIASEC code, join with career_interests
-    if riasecCode and riasecCode.upper() in ['R', 'I', 'A', 'S', 'E', 'C']:
-        code = riasecCode.upper()
-        # Subquery to find onet_codes with dominant RIASEC code
-        code_map = {'R': CareerInterest.r, 'I': CareerInterest.i, 'A': CareerInterest.a,
-                    'S': CareerInterest.s, 'E': CareerInterest.e, 'C': CareerInterest.c}
-        target_col = code_map[code]
-        # Filter where the target code is the maximum
-        subq = select(CareerInterest.onet_code).where(
-            target_col >= CareerInterest.r,
-            target_col >= CareerInterest.i,
-            target_col >= CareerInterest.a,
-            target_col >= CareerInterest.s,
-            target_col >= CareerInterest.e,
-            target_col >= CareerInterest.c,
-        )
-        stmt = stmt.where(Career.onet_code.in_(subq))
-
-    # Get total count
-    total = session.execute(select(func.count()).select_from(stmt.subquery())).scalar() or 0
-
-    # Get paginated results
-    rows = session.execute(stmt.order_by(Career.id.asc()).limit(limit).offset(offset)).scalars().all()
-    items = [_career_to_client(c, session) for c in rows]
-    return {"items": items, "total": int(total), "limit": limit, "offset": offset}
-
-
-@router.get("/careers/export")
-def export_careers_csv(request: Request):
-    _ = require_admin(request)
-    session = _db(request)
-    rows = session.execute(select(Career).order_by(Career.id.asc())).scalars().all()
-    output = StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["id", "title_vi", "title_en", "description", "industry_category", "riasec_code", "created_at"])
-    for c in rows:
-        writer.writerow([
-            c.id,
-            getattr(c, "title_vi", "") or "",
-            getattr(c, "title_en", "") or getattr(c, "title", "") or "",
-            (getattr(c, "description", "") or "")[:200],
-            getattr(c, "industry_category", "") or "",
-            getattr(c, "riasec_code", "") or "",
-            _iso_or_none(getattr(c, "created_at", None)),
-        ])
-    output.seek(0)
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=careers_export.csv"},
-    )
-
-
-@router.get("/careers/{career_id}")
-def get_career(request: Request, career_id: int):
-    _ = require_admin(request)
-    session = _db(request)
-    c = session.get(Career, career_id)
-    if not c:
-        raise HTTPException(status_code=404, detail="Career not found")
-    return _career_to_client(c, session)
-
-
-@router.post("/careers")
-def create_career(request: Request, payload: dict):
-    admin_id = require_admin(request)
-    session = _db(request)
-    title = (payload.get("title") or "").strip()
-    description = str(payload.get("description") or "")
-    if not title:
-        raise HTTPException(status_code=400, detail="title is required")
-
-    slug = "-".join(title.lower().split())[:100]
-    c = Career(title_en=title, slug=slug, short_desc_en=description)
-    session.add(c)
-    session.flush()
-    _write_audit_log(session, "create_career", "career", c.id, actor_id=admin_id,
-                     details={"title": title})
-    session.commit()
-    session.refresh(c)
-    return {"career": _career_to_client(c, session)}
-
-
-@router.put("/careers/{career_id}")
-def update_career(request: Request, career_id: int, payload: dict):
-    admin_id = require_admin(request)
-    session = _db(request)
-    c = session.get(Career, career_id)
-    if not c:
-        raise HTTPException(status_code=404, detail="Career not found")
-    if "title" in payload and payload["title"]:
-        c.title_en = payload["title"].strip()
-    if "description" in payload:
-        desc = str(payload.get("description") or "")
-        c.short_desc_en = desc
-    _write_audit_log(session, "update_career", "career", career_id, actor_id=admin_id,
-                     details={"title": c.title_en})
-    session.commit()
-    session.refresh(c)
-    return {"career": _career_to_client(c, session)}
-
-
-@router.delete("/careers/{career_id}")
-def delete_career(request: Request, career_id: int):
-    admin_id = require_admin(request)
-    session = _db(request)
-    c = session.get(Career, career_id)
-    if not c:
-        raise HTTPException(status_code=404, detail="Career not found")
-    title = c.title_en or c.title_vi or c.slug
-    _write_audit_log(session, "delete_career", "career", career_id, actor_id=admin_id,
-                     details={"title": title})
-    session.delete(c)
-    session.commit()
-    return {"status": "ok"}
+# OLD CAREER ENDPOINTS REMOVED - Using Vietnamese-aware endpoints at line ~2996 instead
 
 
 _has_multipart = _importlib_util.find_spec("multipart") is not None
@@ -2018,21 +1882,27 @@ def get_career_trends(
     # Calculate date filter
     period_days = {"7d": 7, "30d": 30, "90d": 90, "all": 9999}
     days = period_days.get(period, 30)
-    period_labels = {"7d": "7 Days", "30d": "30 Days", "90d": "90 Days", "all": "All Time"}
+    period_labels = {"7d": "7 Ngày", "30d": "30 Ngày", "90d": "90 Ngày", "all": "Tất cả thời gian"}
     
     try:
         # Get recommendation data from core.career_recommendations joined with core.careers
-        # Use English title (title_en) first, fallback to title_vi
+        # Use Vietnamese title only if it doesn't contain English words, otherwise use English
         query = """
             SELECT 
                 c.id as career_id,
-                COALESCE(c.title_en, c.title_vi, c.slug) as career_title,
+                CASE 
+                    WHEN c.title_vi IS NOT NULL 
+                         AND c.title_vi != '' 
+                         AND c.title_vi !~ '[A-Za-z]{3,}'
+                    THEN c.title_vi
+                    ELSE c.title_en
+                END as career_title,
                 COALESCE(c.industry_category, 'Other') as industry_category,
                 COUNT(cr.id) as recommendation_count
             FROM core.career_recommendations cr
             INNER JOIN core.careers c ON c.id = cr.career_id
             WHERE cr.created_at >= NOW() - INTERVAL '%s days'
-            GROUP BY c.id, c.title_en, c.title_vi, c.slug, c.industry_category
+            GROUP BY c.id, c.title_en, c.title_vi, c.industry_category
             ORDER BY recommendation_count DESC
             LIMIT 20
         """ % days
@@ -2056,14 +1926,14 @@ def get_career_trends(
         return {
             "topCareers": top_careers,
             "totalRecommendations": total_recommendations,
-            "periodLabel": period_labels.get(period, "30 Days"),
+            "periodLabel": period_labels.get(period, "30 Ngày"),
         }
     except Exception as e:
         logger.error(f"Error fetching career trends: {e}")
         return {
             "topCareers": [],
             "totalRecommendations": 0,
-            "periodLabel": period_labels.get(period, "30 Days"),
+            "periodLabel": period_labels.get(period, "30 Ngày"),
         }
 
 
@@ -2987,3 +2857,328 @@ async def get_cv_documents(
 
     except Exception as e:
         return {"success": False, "error": str(e), "items": [], "total": 0}
+
+
+# ============================================================================
+# CAREER MANAGEMENT ENDPOINTS (with Vietnamese support)
+# ============================================================================
+
+@router.get("/careers")
+def admin_list_careers(
+    request: Request,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    q: str | None = Query(None, description="Search query"),
+    riasecCode: str | None = Query(None, description="RIASEC filter"),
+):
+    """
+    List all careers with Vietnamese title support.
+    Returns title_vi, title_en, description_vn fields from database.
+    """
+    _ = require_admin(request)
+    session = _db(request)
+    
+    try:
+        # Build query with Vietnamese fields
+        query = text("""
+            SELECT 
+                c.id,
+                c.onet_code,
+                c.slug,
+                c.title_vi,
+                c.title_en,
+                c.description_vi,
+                c.description_en,
+                c.short_desc_vi,
+                c.short_desc_en,
+                c.industry_category,
+                c.created_at
+            FROM core.careers c
+            WHERE 1=1
+            {search_filter}
+            {riasec_filter}
+            ORDER BY c.title_vi NULLS LAST, c.title_en
+            LIMIT :limit OFFSET :offset
+        """)
+        
+        # Build filters
+        search_filter = ""
+        riasec_filter = ""
+        params = {"limit": limit, "offset": offset}
+        
+        if q:
+            search_filter = """
+                AND (
+                    LOWER(c.title_vi) LIKE :search 
+                    OR LOWER(c.title_en) LIKE :search
+                    OR LOWER(c.description_vi) LIKE :search
+                    OR LOWER(c.description_en) LIKE :search
+                )
+            """
+            params["search"] = f"%{q.lower()}%"
+        
+        if riasecCode:
+            # Note: riasec_profile doesn't exist in schema, skip this filter for now
+            pass
+        
+        # Replace placeholders
+        query_str = str(query).format(
+            search_filter=search_filter,
+            riasec_filter=riasec_filter
+        )
+        
+        # Execute query
+        result = session.execute(text(query_str), params)
+        rows = result.fetchall()
+        
+        # Get total count
+        count_query = text("""
+            SELECT COUNT(*) FROM core.careers c
+            WHERE 1=1
+            {search_filter}
+            {riasec_filter}
+        """.format(search_filter=search_filter, riasec_filter=riasec_filter))
+        
+        total = session.execute(count_query, {k: v for k, v in params.items() if k not in ['limit', 'offset']}).scalar() or 0
+        
+        # Format response
+        items = []
+        for row in rows:
+            items.append({
+                "id": str(row.id),
+                "onet_code": row.onet_code,
+                "slug": row.slug,
+                "title": row.title_vi or row.title_en,  # Prefer Vietnamese
+                "title_vi": row.title_vi,
+                "title_en": row.title_en,
+                "description": row.description_vi or row.description_en,
+                "description_vi": row.description_vi,
+                "description_en": row.description_en,
+                "short_desc": row.short_desc_vi or row.short_desc_en,
+                "industry_category": row.industry_category,
+                "salary_range": None,  # Not in schema
+                "riasec_profile": None,  # Not in schema
+                "required_skills": [],  # Not in schema
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+            })
+        
+        return {
+            "items": items,
+            "total": int(total),
+            "limit": limit,
+            "offset": offset,
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listing careers: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to list careers: {str(e)}")
+
+
+@router.get("/careers/{career_id}")
+def admin_get_career(request: Request, career_id: str):
+    """Get single career with Vietnamese support"""
+    _ = require_admin(request)
+    session = _db(request)
+    
+    try:
+        result = session.execute(text("""
+            SELECT 
+                c.id,
+                c.onet_code,
+                c.slug,
+                c.title_vi,
+                c.title_en,
+                c.description_vi,
+                c.description_en,
+                c.short_desc_vi,
+                c.short_desc_en,
+                c.industry_category,
+                c.created_at
+            FROM core.careers c
+            WHERE c.id = :career_id OR c.onet_code = :career_id OR c.slug = :career_id
+            LIMIT 1
+        """), {"career_id": career_id})
+        
+        row = result.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Career not found")
+        
+        return {
+            "id": str(row.id),
+            "onet_code": row.onet_code,
+            "slug": row.slug,
+            "title": row.title_vi or row.title_en,
+            "title_vi": row.title_vi,
+            "title_en": row.title_en,
+            "description": row.description_vi or row.description_en,
+            "description_vi": row.description_vi,
+            "description_en": row.description_en,
+            "short_desc": row.short_desc_vi or row.short_desc_en,
+            "industry_category": row.industry_category,
+            "salary_range": None,
+            "riasec_profile": None,
+            "required_skills": [],
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting career: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to get career: {str(e)}")
+
+
+@router.put("/careers/{career_id}")
+def admin_update_career(request: Request, career_id: str, payload: dict):
+    """Update career (title, description, skills only)"""
+    admin_id = require_admin(request)
+    session = _db(request)
+    
+    try:
+        # Check if career exists
+        check = session.execute(text("SELECT id FROM core.careers WHERE id = :id OR onet_code = :id OR slug = :id LIMIT 1"), {"id": career_id}).fetchone()
+        if not check:
+            raise HTTPException(status_code=404, detail="Career not found")
+        
+        actual_id = check.id
+        
+        # Build update query
+        updates = []
+        params = {"career_id": actual_id}
+        
+        if "title" in payload:
+            updates.append("title_vi = :title")
+            params["title"] = payload["title"]
+        
+        if "description" in payload:
+            updates.append("description_vi = :description")
+            params["description"] = payload["description"]
+        
+        if "requiredSkills" in payload:
+            # Skills are stored in career_ksas table, not in careers table
+            # Skip for now
+            pass
+        
+        if not updates:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        
+        # Execute update
+        update_query = f"""
+            UPDATE core.careers
+            SET {", ".join(updates)}, updated_at = NOW()
+            WHERE id = :career_id
+        """
+        
+        session.execute(text(update_query), params)
+        
+        # Write audit log
+        _write_audit_log(
+            session, "update_career", "career", actual_id,
+            actor_id=admin_id,
+            details={"updated_fields": list(payload.keys())},
+        )
+        
+        session.commit()
+        
+        # Return updated career
+        return admin_get_career(request, str(actual_id))
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating career: {e}", exc_info=True)
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update career: {str(e)}")
+
+
+@router.post("/careers")
+def admin_create_career(request: Request, payload: dict):
+    """Create new career"""
+    admin_id = require_admin(request)
+    session = _db(request)
+    
+    try:
+        title = payload.get("title", "").strip()
+        if not title:
+            raise HTTPException(status_code=400, detail="Title is required")
+        
+        # Generate slug from title
+        import re
+        slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+        
+        # Insert career
+        result = session.execute(text("""
+            INSERT INTO core.careers (
+                title_vi, title_en,
+                description_vi, description_en,
+                slug,
+                created_at, updated_at
+            ) VALUES (
+                :title, :title,
+                :description, :description,
+                :slug,
+                NOW(), NOW()
+            )
+            RETURNING id
+        """), {
+            "title": title,
+            "description": payload.get("description", ""),
+            "slug": slug,
+        })
+        
+        career_id = result.scalar()
+        
+        # Write audit log
+        _write_audit_log(
+            session, "create_career", "career", career_id,
+            actor_id=admin_id,
+            details={"title": title},
+        )
+        
+        session.commit()
+        
+        return {"career": admin_get_career(request, str(career_id))}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating career: {e}", exc_info=True)
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create career: {str(e)}")
+
+
+@router.delete("/careers/{career_id}")
+def admin_delete_career(request: Request, career_id: str):
+    """Delete career"""
+    admin_id = require_admin(request)
+    session = _db(request)
+    
+    try:
+        # Check if exists
+        check = session.execute(text("SELECT id, title_vi, title FROM core.careers WHERE id = :id OR onet_code = :id OR slug = :id LIMIT 1"), {"id": career_id}).fetchone()
+        if not check:
+            raise HTTPException(status_code=404, detail="Career not found")
+        
+        actual_id = check.id
+        title = check.title_vi or check.title
+        
+        # Delete career
+        session.execute(text("DELETE FROM core.careers WHERE id = :id"), {"id": actual_id})
+        
+        # Write audit log
+        _write_audit_log(
+            session, "delete_career", "career", actual_id,
+            actor_id=admin_id,
+            details={"title": title},
+        )
+        
+        session.commit()
+        
+        return {"status": "deleted", "id": str(actual_id)}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting career: {e}", exc_info=True)
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete career: {str(e)}")

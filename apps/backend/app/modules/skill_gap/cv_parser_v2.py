@@ -122,26 +122,52 @@ Use clear formatting with line breaks between sections.
             return ''
     
     def extract_text_from_pdf(self, file_content: bytes) -> str:
-        """Extract text from PDF - tries multiple methods"""
+        """Extract text from PDF - tries multiple methods and validates CV content"""
         
         # Method 1: Try PyMuPDF (best)
         text = self._extract_with_pymupdf(file_content)
         if text and len(text) > 50:
+            # Validate CV content
+            print("  [CV Validation] Checking if PDF content is a valid CV...")
+            is_cv, reason = self._is_cv_content(text)
+            if not is_cv:
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
+            print("  [CV Validation] ✓ PDF content validated as CV")
             return text
         
         # Method 2: Try pdfplumber
         text = self._extract_with_pdfplumber(file_content)
         if text and len(text) > 50:
+            # Validate CV content
+            print("  [CV Validation] Checking if PDF content is a valid CV...")
+            is_cv, reason = self._is_cv_content(text)
+            if not is_cv:
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
+            print("  [CV Validation] ✓ PDF content validated as CV")
             return text
         
         # Method 3: Try PyPDF2
         text = self._extract_with_pypdf2(file_content)
         if text and len(text) > 50:
+            # Validate CV content
+            print("  [CV Validation] Checking if PDF content is a valid CV...")
+            is_cv, reason = self._is_cv_content(text)
+            if not is_cv:
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
+            print("  [CV Validation] ✓ PDF content validated as CV")
             return text
         
         # Method 4: AI Vision (last resort)
         print("  [WARN] All PDF extraction methods failed, trying AI Vision...")
         text = self.extract_text_with_ai_vision(file_content, is_pdf=True)
+        
+        # Validate CV content from AI Vision
+        if text and len(text) > 50:
+            print("  [CV Validation] Checking if PDF content is a valid CV...")
+            is_cv, reason = self._is_cv_content(text)
+            if not is_cv:
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
+            print("  [CV Validation] ✓ PDF content validated as CV")
         
         return text
     
@@ -263,6 +289,99 @@ Use clear formatting with line breaks between sections.
         except Exception as e:
             print(f"  [PreCheck] Error: {e} - skipping pre-check")
             return True, ""   # Nếu lỗi hẳn thì skip, để Gemini quyết định
+
+    @staticmethod
+    def _is_cv_content(text: str) -> tuple[bool, str]:
+        """
+        TC-NON-02: Kiểm tra xem nội dung có phải là CV hay không bằng AI.
+        
+        Sử dụng Gemini để phân tích nội dung và xác định:
+        - Có phải là CV/Resume không
+        - Nếu không, đó là loại tài liệu gì
+        
+        Returns:
+            (is_cv, reason): 
+                - is_cv=True: Đây là CV hợp lệ
+                - is_cv=False: Không phải CV, kèm lý do
+        """
+        try:
+            # Lấy 2000 ký tự đầu để phân tích nhanh
+            sample_text = text[:2000].strip()
+            
+            if not sample_text or len(sample_text) < 50:
+                return False, "Nội dung quá ngắn, không đủ thông tin để xác định là CV."
+            
+            # Sử dụng CV stream để kiểm tra
+            cv_stream = multi_stream_manager.get_cv_stream()
+            
+            if not cv_stream.is_available():
+                print("  [WARN] CV validation stream not available, skipping validation")
+                return True, ""  # Skip validation if stream not available
+            
+            prompt = f"""Phân tích văn bản sau và xác định xem đây có phải là CV/Resume (hồ sơ xin việc) hay không.
+
+VĂN BẢN:
+{sample_text}
+
+Trả lời ĐÚNG định dạng JSON sau (không có text khác):
+{{
+  "is_cv": true/false,
+  "confidence": 0.0-1.0,
+  "document_type": "CV" hoặc "Báo chí" hoặc "Sách" hoặc "Menu" hoặc "Hóa đơn" hoặc "Khác",
+  "reason": "Lý do ngắn gọn bằng tiếng Việt"
+}}
+
+Đặc điểm của CV:
+- Có thông tin cá nhân (tên, email, số điện thoại)
+- Có phần học vấn/kinh nghiệm làm việc
+- Có danh sách kỹ năng
+- Mục đích: xin việc, giới thiệu bản thân chuyên môn
+
+KHÔNG PHẢI CV nếu:
+- Bài báo, tin tức
+- Sách, tài liệu học tập
+- Menu nhà hàng
+- Hóa đơn, biên lai
+- Ảnh chụp màn hình mạng xã hội
+- Meme, ảnh vui"""
+
+            response_text = cv_stream.generate_content_with_retry(
+                prompt,
+                max_output_tokens=200,
+                temperature=0.1  # Low temperature for consistent validation
+            )
+            
+            if not response_text:
+                print("  [WARN] CV validation failed, allowing by default")
+                return True, ""
+            
+            # Parse JSON response
+            import re
+            # Extract JSON from response
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if not json_match:
+                print("  [WARN] Could not parse validation response, allowing by default")
+                return True, ""
+            
+            import json
+            result = json.loads(json_match.group())
+            
+            is_cv = result.get('is_cv', False)
+            confidence = result.get('confidence', 0.0)
+            doc_type = result.get('document_type', 'Không xác định')
+            reason = result.get('reason', '')
+            
+            print(f"  [CV Validation] is_cv={is_cv}, confidence={confidence:.2f}, type={doc_type}")
+            
+            # Chỉ reject nếu confidence cao (> 0.7) và không phải CV
+            if not is_cv and confidence > 0.7:
+                return False, f"Tài liệu này là '{doc_type}', không phải CV/Resume. {reason}"
+            
+            return True, ""
+            
+        except Exception as e:
+            print(f"  [WARN] CV validation error: {e}, allowing by default")
+            return True, ""  # Allow by default if validation fails
 
     @staticmethod
     def _detect_selfie(img_original) -> tuple[bool, str]:
@@ -423,11 +542,13 @@ Use clear formatting with line breaks between sections.
         if not text or not text.strip():
             raise ValueError("Không tìm thấy nội dung văn bản trong ảnh")
 
-        # TC-NON-02: Validate that extracted text is actually CV content
+        # TC-NON-02: Validate that extracted text is actually CV content using AI
+        print("  [CV Validation] Checking if content is a valid CV...")
         is_cv, reason = self._is_cv_content(text)
         if not is_cv:
-            raise ValueError("Nội dung không giống một hồ sơ nghề nghiệp.")
+            raise ValueError(f"Tài liệu không phải là CV. {reason}")
 
+        print("  [CV Validation] ✓ Content validated as CV")
         return text
 
     # ── TC-IMG-12: Multi-image merge ──────────────────────────────────────
@@ -835,30 +956,28 @@ CRITICAL RULES:
         ]
         financial_count = sum(1 for kw in financial_keywords if kw in lower)
         
-        if financial_count >= 3:
-            return False, "File chứa nội dung tài chính, không phải CV/Resume."
+        if financial_count >= 8:  # Increased threshold to 8 to avoid rejecting finance/accounting CVs
+            return False, "File chứa quá nhiều nội dung tài chính, có thể là hóa đơn hoặc biên lai."
 
         # ── 1. Dấu hiệu rõ ràng KHÔNG PHẢI CV ────────────────────────────
         # Check for non-CV document types (must be more specific to avoid false positives)
         non_cv_patterns = [
-            # Administrative/Official documents (MUST REJECT EARLY - saves tokens!)
-            ("thông báo", "thông báo hành chính"),
-            ("thong bao", "thông báo hành chính"),
-            ("công văn", "công văn"),
-            ("cong van", "công văn"),
-            ("quyết định", "quyết định"),
-            ("quyet dinh", "quyết định"),
-            ("giấy chứng nhận", "giấy chứng nhận"),
-            ("giay chung nhan", "giấy chứng nhận"),
+            # Administrative/Official documents (Only reject if very specific)
+            ("công văn số", "công văn"),
+            ("cong van so", "công văn"),
+            ("quyết định số", "quyết định"),
+            ("quyet dinh so", "quyết định"),
+            ("mã số thuế", "hóa đơn/MST"),
             ("học phí", "thông báo học phí"),
             ("hoc phi", "thông báo học phí"),
             ("nộp học phí", "thông báo học phí"),
             ("nop hoc phi", "thông báo học phí"),
             ("official notice", "official notice"),
-            ("announcement", "announcement"),
-            ("notification", "notification"),
-            ("circular", "circular"),
-            ("memorandum", "memorandum"),
+            ("announcement letter", "announcement"),
+            ("official notification", "official notification"),
+            ("notification letter", "notification letter"),
+            ("circular letter", "circular"),
+            ("memorandum to", "memorandum"),
             # Educational materials (check for specific phrases, not just keywords)
             ("learning roadmap", "roadmap"),
             ("course roadmap", "roadmap"),
@@ -974,8 +1093,10 @@ CRITICAL RULES:
 DOCUMENT:
 {cv_text}
 
-STEP 1 — Determine if this is a CV/Resume (contains name + contact + experience/education/skills).
-STEP 2 — If YES, extract all information.
+STEP 1 — Determine if this is a CV/Resume or Professional Profile.
+Be lenient: as long as the document contains some professional information (experience, education, or skills), consider it a CV. It does NOT need to have all sections to be valid.
+
+STEP 2 — If it is a professional document, extract all information.
 
 Return ONLY valid JSON:
 {{
@@ -991,13 +1112,13 @@ Return ONLY valid JSON:
   ]
 }}
 
-If NOT a CV/Resume, return:
+If clearly NOT a professional document (e.g., a recipe, a movie script, an invoice), return:
 {{"is_cv": false, "reason": "brief reason"}}
 
 RULES:
 - Return ONLY valid JSON, no markdown
 - Extract ALL skills (technical + soft)
-- name = person's real name (2-4 words, NOT a job title)
+- name = person's real name (2-4 words, NOT a job title). If not found, use "".
 """
         try:
             cv_stream = multi_stream_manager.get_cv_stream()
@@ -1049,20 +1170,20 @@ TEXT TO ANALYZE:
 {text_preview}
 
 INSTRUCTIONS:
-1. A CV/Resume contains:
+1. A CV/Resume or Professional Profile typically contains SOME of these:
    - Personal information (name, contact details)
-   - Work experience or employment history
+   - Work experience or projects
    - Education background
-   - Skills or competencies
-   - Professional summary or objective
+   - Skills, tools, or competencies
+   - Professional summary
 
-2. NOT a CV/Resume:
-   - Test answer keys (TOEIC, IELTS, exam answers)
-   - Textbooks or study materials
-   - Tutorial documents or course materials
-   - Technical documentation
-   - News articles or blog posts
-   - Any other non-CV document
+2. Clearly NOT a CV/Resume:
+   - Test answer keys (TOEIC, IELTS, etc.)
+   - Textbooks, news articles, or recipes
+   - Technical manuals or marketing brochures
+   - Invoices, receipts, or financial statements
+
+CRITICAL: Be lenient. If it looks like someone's professional profile or list of qualifications, it's a CV.
 
 CRITICAL: Analyze the CONTENT and STRUCTURE, not just keywords.
 

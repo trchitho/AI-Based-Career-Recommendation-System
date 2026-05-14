@@ -165,8 +165,8 @@ class SkillGraphAnalyzer:
                 importance = raw_imp / 100.0 if raw_imp > 1 else raw_imp
 
                 skills.append({
-                    'name': ksa.name_en or "",
-                    'category': ksa.category or 'Other',
+                    'name': row.name_en or row.name_vn or "",
+                    'category': row.category or 'Other',
                     'importance': importance,
                     'proficiency_level': 'intermediate',  # Default
                     'source': 'onet_database'

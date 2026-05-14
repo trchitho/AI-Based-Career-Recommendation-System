@@ -203,7 +203,46 @@ def create_mentee_from_profile(
 def list_mentors(db: Session = Depends(get_db)):
     from .models import MentorProfile as MP
     rows = db.query(MP).filter(MP.is_active == True).all()
+    print(f"[Mentor Matching] Found {len(rows)} active mentors in database")
     return rows
+
+
+@router.get("/debug/mentee-profile", summary="Debug: Xem mentee profile của user hiện tại")
+def debug_mentee_profile(
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
+    """Debug endpoint để xem mentee profile và lý do không tìm thấy mentor"""
+    svc = MentorMatchingService(db)
+    mentee = svc.get_mentee_profile(current_user.id)
+    
+    if not mentee:
+        return {
+            "error": "No mentee profile found",
+            "message": "Mentee profile chưa được tạo. Hãy upload CV hoặc làm assessment.",
+            "user_id": current_user.id
+        }
+    
+    # Count active mentors
+    from .models import MentorProfile as MP
+    mentor_count = db.query(MP).filter(MP.is_active == True).count()
+    
+    return {
+        "mentee_profile": {
+            "user_id": mentee.user_id,
+            "full_name": mentee.full_name,
+            "target_career": mentee.target_career,
+            "current_skills": mentee.current_skills or [],
+            "desired_skills": mentee.desired_skills or [],
+            "riasec_scores": mentee.riasec_scores or {},
+            "big_five_scores": mentee.big_five_scores or {},
+        },
+        "mentor_count": mentor_count,
+        "has_skills": bool(mentee.desired_skills or mentee.current_skills),
+        "has_career": bool(mentee.target_career),
+        "has_personality": bool(mentee.riasec_scores),
+        "message": f"Found {mentor_count} active mentors in database"
+    }
 
 
 @router.get("/career-mentors", response_model=List[MatchingResult], summary="Tìm Mentor theo nghề nghiệp cụ thể")

@@ -18,6 +18,10 @@ var/
 wheels/
 *.egg-info/
 .installed.cfg
+
+# Virtual environments
+.venv/
+apps/backend/.venv/
 *.egg
 
 # Node
@@ -50,3 +54,7 @@ venv/
 env/
 apps/backend/.venv/
 apps/frontend/.venv/
+
+# Large DB dumps
+db/backup/
+*.sql

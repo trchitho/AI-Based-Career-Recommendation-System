@@ -110,12 +110,43 @@ async def test_analyze_cv_skill_gap(
             career_id=career_id
         )
         
+        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING ────
+        try:
+            from app.modules.mentor_matching.service import MentorMatchingService
+            mentor_service = MentorMatchingService(db, neo4j_driver)
+            
+            # Try to create/update mentee profile from CV data
+            mentee_profile = mentor_service.create_mentee_profile_from_user_data(test_user_id)
+            print(f"[Mentor Matching] Auto-created/updated mentee profile for test user {test_user_id}")
+            
+        except Exception as mentor_err:
+            # Don't fail the whole request if mentor profile creation fails
+            print(f"[Mentor Matching] Failed to auto-create mentee profile: {mentor_err}")
+        
         return {
             'success': True,
             'message': 'CV analyzed successfully (TEST MODE)',
             'test_user_id': test_user_id,
             'data': result
         }
+    except ValueError as ve:
+        # Handle validation errors (not CV, wrong format, etc.)
+        error_msg = str(ve)
+        print(f"[Validation Error] {error_msg}")
+        raise HTTPException(
+            status_code=422,  # Unprocessable Entity
+            detail={
+                'error': 'validation_failed',
+                'message': error_msg,
+                'message_en': 'File validation failed',
+                'suggestions': [
+                    'Đảm bảo file là CV/Resume thật sự',
+                    'Không upload ảnh báo chí, menu, hóa đơn',
+                    'CV cần có: tên, email, kỹ năng, kinh nghiệm',
+                    'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX'
+                ]
+            }
+        )
     except Exception as e:
         try:
             db.rollback()
@@ -312,11 +343,42 @@ async def analyze_cv_skill_gap(
             career_id=career_id
         )
         
+        # ── AUTO-CREATE/UPDATE MENTEE PROFILE FOR MENTOR MATCHING ────
+        try:
+            from app.modules.mentor_matching.service import MentorMatchingService
+            mentor_service = MentorMatchingService(db, neo4j_driver)
+            
+            # Try to create/update mentee profile from CV data
+            mentee_profile = mentor_service.create_mentee_profile_from_user_data(user_id)
+            print(f"[Mentor Matching] Auto-created/updated mentee profile for user {user_id}")
+            
+        except Exception as mentor_err:
+            # Don't fail the whole request if mentor profile creation fails
+            print(f"[Mentor Matching] Failed to auto-create mentee profile: {mentor_err}")
+        
         return {
             'success': True,
             'message': 'CV analyzed successfully',
             'data': result
         }
+    except ValueError as ve:
+        # Handle validation errors (not CV, wrong format, etc.)
+        error_msg = str(ve)
+        print(f"[Validation Error] {error_msg}")
+        raise HTTPException(
+            status_code=422,  # Unprocessable Entity
+            detail={
+                'error': 'validation_failed',
+                'message': error_msg,
+                'message_en': 'File validation failed',
+                'suggestions': [
+                    'Đảm bảo file là CV/Resume thật sự',
+                    'Không upload ảnh báo chí, menu, hóa đơn',
+                    'CV cần có: tên, email, kỹ năng, kinh nghiệm',
+                    'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX'
+                ]
+            }
+        )
     except Exception as e:
         # Rollback any aborted transaction
         try:

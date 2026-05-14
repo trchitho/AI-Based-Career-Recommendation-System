@@ -180,7 +180,7 @@ async def deepgram_stt_websocket(
 
         async with _wss.connect(
             dg_url,
-            extra_headers={"Authorization": f"Token {api_key}"},
+            additional_headers={"Authorization": f"Token {api_key}"},
             ping_interval=None,   # Deepgram manages its own keepalive
             close_timeout=5,
         ) as dg_ws:

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -46,6 +46,19 @@ import { useTrendsSummary } from '../hooks/useTrends';
 import { useTheme } from '../contexts/ThemeContext';
 import './TrendsPage-dark.css';
 
+// Hook lấy trends từ dữ liệu crawl thật
+const useCrawledTrends = () => {
+  return useQuery({
+    queryKey: ['crawled-trends-summary'],
+    queryFn: async () => {
+      const response = await axios.get('http://localhost:8000/api/jobs/analytics/trends-summary');
+      return response.data;
+    },
+    staleTime: 30 * 1000,       // 30s — refresh nhanh khi có data mới
+    gcTime: 5 * 60 * 1000,
+  });
+};
+
 interface MarketMetrics {
   avg_salary: number;
   salary_change: number;
@@ -74,17 +87,6 @@ interface RegionData {
   change: string;
 }
 
-interface LogData {
-  id: number;
-  skill: string;
-  time: string;
-  meta: string;
-  score: number;
-  color: string;
-  match?: number;
-  source?: string;
-}
-
 interface TrendingJob {
   id: string;
   title: string;
@@ -99,6 +101,9 @@ interface TrendingJob {
   urgency: 'high' | 'medium' | 'low';
   skills: string[];
   description?: string;
+  apply_url?: string;
+  url?: string;
+  source?: string;
 }
 
 const generateMockJobs = (): TrendingJob[] => {
@@ -168,12 +173,6 @@ const mockTrends = {
     { region: 'Cần Thơ', count: 28 },
     { region: 'Hải Phòng', count: 22 },
   ],
-  logs: [
-    { id: 1, skill: 'Phân tích dữ liệu', time: '5 giây trước', meta: 'Data Analyst tại Shopee', score: 0.98, color: 'text-indigo-600' },
-    { id: 2, skill: 'Tư vấn y tế', time: '14 giây trước', meta: 'Bác sĩ Đa khoa tại Vinmec', score: 0.92, color: 'text-emerald-600' },
-    { id: 3, skill: 'Quản lý tài chính', time: '23 giây trước', meta: 'Chuyên viên Tài chính tại Vietcombank', score: 0.89, color: 'text-purple-600' },
-    { id: 4, skill: 'Thiết kế kết cấu', time: '45 giây trước', meta: 'Kỹ sư Xây dựng tại Coteccons', score: 0.95, color: 'text-rose-600' },
-  ],
   trending_jobs: generateMockJobs()
 };
 
@@ -198,6 +197,57 @@ const TrendsPage: React.FC = () => {
 
   // Trending jobs expansion state
   const [expandedTrendCategories, setExpandedTrendCategories] = useState<Record<string, boolean>>({});
+
+  // Trending jobs manual refresh state — không tự load lại, chỉ load khi bấm nút
+  const [trendingJobs, setTrendingJobs] = useState<TrendingJob[]>([]);
+  const [isRefreshingJobs, setIsRefreshingJobs] = useState(true);  // true ban đầu vì đang load
+  const [refreshStatus, setRefreshStatus] = useState<string>('Đang tải...');
+  const [dataSource, setDataSource] = useState<'mock' | 'live_scrape' | 'fallback_db' | 'fallback_mock'>('live_scrape');
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
+
+  const fetchTrendingJobs = async () => {
+    setIsRefreshingJobs(true);
+    setRefreshStatus('Đang tải...');
+    try {
+      // Đọc từ DB — dữ liệu đã được crawler cập nhật tự động mỗi 1 giờ
+      const response = await axios.get('http://localhost:8000/api/jobs/trending', {
+        params: { active_only: true },
+        timeout: 15000,
+      });
+      const jobs = response.data?.trending_jobs;
+      const total = response.data?.total ?? 0;
+
+      if (jobs && jobs.length > 0) {
+        setTrendingJobs(jobs);
+        setDataSource('live_scrape');
+        setRefreshStatus(`✓ ${total} việc làm từ 20 nhóm ngành`);
+      } else {
+        setTrendingJobs([]);
+        setDataSource('live_scrape');
+        setRefreshStatus('Chưa có dữ liệu — hệ thống đang thu thập, vui lòng chờ');
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải việc làm:', error);
+      setTrendingJobs([]);
+      setDataSource('fallback_mock');
+      setRefreshStatus('⚠ Không kết nối được server');
+    } finally {
+      setLastRefreshed(new Date());
+      setIsRefreshingJobs(false);
+      setTimeout(() => setRefreshStatus(''), 5000);
+    }
+  };
+
+  // Load dữ liệu thực từ API khi mount
+  useEffect(() => {
+    fetchTrendingJobs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleRefreshJobs = () => {
+    fetchTrendingJobs();
+    refetch(); // Cũng refresh biểu đồ thống kê
+  };
 
   const toggleTrendCategory = (categoryName: string) => {
     setExpandedTrendCategories(prev => ({
@@ -224,7 +274,7 @@ const TrendsPage: React.FC = () => {
     selectedCategoryGroup
   });
 
-  const { data: trends, isLoading, error, refetch } = useTrendsSummary();
+  const { data: trends, isLoading, error, refetch } = useCrawledTrends();
 
   useEffect(() => {
     if (trends?.market_metrics) {
@@ -294,17 +344,17 @@ const TrendsPage: React.FC = () => {
   }, [trends]);
 
   // Ensure trends always has all required properties
+  // trending_jobs dùng state riêng, không tự cập nhật theo refetch interval
   const safeTrends = {
     salary_growth: trends?.salary_trends || mockTrends.salary_growth,
     trending_skills: trends?.top_trending || mockTrends.trending_skills,
     industry_demand: trends?.industry_demand || mockTrends.industry_demand,
     regional_demand: trends?.regional_distribution || mockTrends.regional_demand,
-    logs: trends?.live_skills || mockTrends.logs,
-    trending_jobs: trends?.trending_jobs || mockTrends.trending_jobs,
+    trending_jobs: trendingJobs,
   };
 
-  // Filter and sort trending jobs
-  const filteredJobs = (safeTrends.trending_jobs || [])
+  // Filter and sort trending jobs — useMemo để tránh re-compute khi re-render không liên quan
+  const filteredJobs = useMemo(() => (trendingJobs || [])
     .map((job: any) => ({
       ...job,
       trend: (job.trend || 'stable') as 'up' | 'down' | 'stable',
@@ -321,10 +371,11 @@ const TrendsPage: React.FC = () => {
       switch (sortBy) {
         case 'trend':
           return b.trendPercentage - a.trendPercentage;
-        case 'salary':
+        case 'salary': {
           const salaryA = parseInt(a.salary.replace(/[^0-9]/g, ''));
           const salaryB = parseInt(b.salary.replace(/[^0-9]/g, ''));
           return salaryB - salaryA;
+        }
         case 'applicants':
           return a.applicants - b.applicants;
         case 'posted':
@@ -332,9 +383,12 @@ const TrendsPage: React.FC = () => {
         default:
           return 0;
       }
-    });
+    }), [trendingJobs, jobFilter, jobSearch, sortBy]);
 
-  const uniqueCategories = Array.from(new Set((safeTrends.trending_jobs || []).map((job: any) => job.category))) as string[];
+  const uniqueCategories = useMemo(
+    () => Array.from(new Set((trendingJobs || []).map((job: any) => job.category))) as string[],
+    [trendingJobs]
+  );
 
   const formatCurrency = (value: number, currency: string = 'VND') => {
     return new Intl.NumberFormat('vi-VN', {
@@ -407,44 +461,39 @@ const TrendsPage: React.FC = () => {
 
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -2 }}
-        className="bento-item p-6 cursor-pointer group"
+        className="bento-item p-6 cursor-pointer group flex flex-col"
       >
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-bold text-lg text-slate-900 group-hover:text-indigo-600 transition-colors">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h3 className="font-bold text-base text-slate-900 group-hover:text-indigo-600 transition-colors leading-tight">
                 {job.title}
               </h3>
-              <div className={cn("flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded border", getTrendColor())}>
+              <div className={cn("flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded border shrink-0", getTrendColor())}>
                 {getTrendIcon()}
                 {job.trendPercentage > 0 ? '+' : ''}{job.trendPercentage}%
               </div>
             </div>
-            <div className="flex items-center gap-3 text-sm text-slate-600 mb-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600 mb-2">
               <div className="flex items-center gap-1">
-                <Building2 className="w-4 h-4" />
-                <span>{job.company}</span>
+                <Building2 className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate max-w-[160px]">{job.company}</span>
               </div>
               <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
+                <MapPin className="w-3.5 h-3.5 shrink-0" />
                 <span>{job.location}</span>
               </div>
             </div>
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <div className="flex items-center gap-1">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
-                <span className="font-mono text-sm font-bold text-slate-900">{job.salary}</span>
+                <DollarSign className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="font-mono text-sm font-bold text-emerald-700">{job.salary}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4 text-slate-400" />
-                <span className="text-xs text-slate-500">{job.posted}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <UserCheck className="w-4 h-4 text-slate-400" />
-                <span className="text-xs text-slate-500">{job.applicants} applicants</span>
+              <div className="flex items-center gap-1 text-slate-400">
+                <Clock className="w-3.5 h-3.5 shrink-0" />
+                <span className="text-xs">{job.posted}</span>
               </div>
             </div>
           </div>
@@ -473,14 +522,60 @@ const TrendsPage: React.FC = () => {
                   +{job.skills.length - 3} more
                 </span>
               )}
+          <div className="flex flex-col items-end gap-1 ml-2 shrink-0">
+            <div className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border", getUrgencyColor())}>
+              {job.urgency === 'high' ? 'Gấp' : job.urgency === 'medium' ? 'Bình thường' : 'Thường'}
             </div>
+            {job.source && (
+              <span className="text-[9px] text-slate-400 font-mono">
+                {job.source === 'vietnamworks' ? 'VNW' : job.source === 'itviec' ? 'ITViec' : job.source}
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Category:</span>
-            <span className="px-2 py-1 bg-purple-50 text-purple-700 text-[10px] font-medium rounded border border-purple-100">
-              {job.category}
+        </div>
+
+        {/* Description */}
+        {job.description ? (
+          <p className="text-xs text-slate-600 leading-relaxed mb-3 line-clamp-3 flex-1">
+            {job.description}
+          </p>
+        ) : (
+          <p className="text-xs text-slate-400 italic mb-3 flex-1">Xem chi tiết tại trang tuyển dụng.</p>
+        )}
+
+        {/* Skills */}
+        <div className="flex flex-wrap gap-1 mb-3">
+          {job.skills.slice(0, 4).map((skill, index) => (
+            <span key={index} className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-medium rounded border border-indigo-100">
+              {skill}
             </span>
-          </div>
+          ))}
+          {job.skills.length > 4 && (
+            <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded border border-slate-200">
+              +{job.skills.length - 4}
+            </span>
+          )}
+        </div>
+
+        {/* Footer: category + apply button */}
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
+          <span className="px-2 py-0.5 bg-purple-50 text-purple-700 text-[10px] font-medium rounded border border-purple-100 truncate max-w-[140px]">
+            {job.category}
+          </span>
+          {(job.apply_url || job.url) ? (
+            <a
+              href={job.apply_url || job.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors shrink-0"
+            >
+              Ứng tuyển ngay
+              <ChevronRight className="w-3 h-3" />
+            </a>
+          ) : (
+            <span className="text-[10px] text-slate-400 italic">Chưa có link</span>
+          )}
         </div>
       </motion.div>
     );
@@ -525,8 +620,6 @@ const TrendsPage: React.FC = () => {
 
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
         className={cn(
           "p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-indigo-100 hover:bg-white transition-all cursor-pointer",
           isExpanded && isGrid ? "col-span-2 shadow-md ring-1 ring-indigo-500" : "",
@@ -641,12 +734,6 @@ const TrendsPage: React.FC = () => {
         .bento-item {
           @apply bg-white dark:bg-gray-800 rounded-3xl border border-slate-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300;
         }
-        .status-dot {
-          @apply w-2 h-2 rounded-full;
-        }
-        .status-online {
-          @apply bg-emerald-500;
-        }
         .animate-pulse {
           animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
@@ -676,6 +763,11 @@ const TrendsPage: React.FC = () => {
         >
           <RefreshCw className="w-5 h-5" />
         </button>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          Phân tích thị trường
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">Dữ liệu việc làm được cập nhật tự động mỗi giờ</p>
       </div>
 
       {/* Stats Overview */}
@@ -684,6 +776,7 @@ const TrendsPage: React.FC = () => {
           title="LƯƠNG TRUNG BÌNH"
           value={formatCurrency(marketMetrics?.avg_salary || 0)}
           change="+8.4%"
+          change={`${marketMetrics?.job_postings || 0} tin`}
           trend="up"
           icon={TrendingUp}
           color="indigo"
@@ -692,6 +785,7 @@ const TrendsPage: React.FC = () => {
           title="TIN TUYỂN DỤNG"
           value={(marketMetrics?.job_postings || 0).toLocaleString()}
           change="+12.1%"
+          change="đang hoạt động"
           trend="up"
           icon={Briefcase}
           color="indigo"
@@ -710,10 +804,24 @@ const TrendsPage: React.FC = () => {
           change="+0.5d"
           trend="up"
           icon={MapPin}
+          title="NGÀNH ĐANG TUYỂN"
+          value={uniqueCategories.length || 0}
+          change="nhóm ngành"
+          trend="up"
+          icon={Users}
+          color="emerald"
+        />
+        <StatCard
+          title="CẬP NHẬT GẦN NHẤT"
+          value={lastRefreshed.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+          change="tự động mỗi 1h"
+          trend="up"
+          icon={Clock}
           color="purple"
         />
       </div>
 
+      {/* ═══ ANALYTICS SECTION — Biểu đồ phân tích ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Trending Jobs Section */}
         <div className="lg:col-span-3">
@@ -828,20 +936,17 @@ const TrendsPage: React.FC = () => {
         </div>
 
         {/* Main Chart */}
+        {/* Lương theo ngành */}
         <div className="lg:col-span-2 bento-item p-4 sm:p-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h3 className="font-bold text-lg text-slate-900">Xu hướng tăng trưởng lương</h3>
-              <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider">Biến động lương trung bình / Thị trường CNTT Việt Nam</p>
+              <h3 className="font-bold text-lg text-slate-900">Mức lương theo nhóm ngành</h3>
+              <p className="text-xs text-slate-500 mt-1">Lương trung bình (triệu VND) từ dữ liệu tuyển dụng thực tế</p>
             </div>
-            <select className="w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 focus:ring-2 focus:ring-indigo-500 py-2 px-3 outline-none">
-              <option>6 tháng qua</option>
-              <option>1 năm qua</option>
-            </select>
           </div>
-          <div className="h-64 sm:h-80 w-full">
+          <div style={{ height: Math.max(280, (safeTrends.salary_growth?.length || 5) * 40) }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={safeTrends.salary_growth}>
+              <BarChart data={safeTrends.salary_growth} layout="vertical" margin={{ left: 10, right: 20 }}>
                 <defs>
                   <linearGradient id="colorSal" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
@@ -853,21 +958,33 @@ const TrendsPage: React.FC = () => {
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #E2E8F0', color: '#1E293B' }}
+                  <linearGradient id="salaryGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#6366f1" />
+                    <stop offset="100%" stopColor="#8b5cf6" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
+                <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} unit=" tr" />
+                <YAxis dataKey="period" type="category" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 11 }} width={130} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #E2E8F0' }}
+                  formatter={(value: any) => [`${value} triệu VND`, 'Lương TB']}
                 />
-                <Area type="monotone" dataKey="average" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorSal)" />
-              </AreaChart>
+                <Bar dataKey="average" fill="url(#salaryGradient)" radius={[0, 6, 6, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Trending Skills Widget */}
+        {/* Kỹ năng thịnh hành */}
         <div className="bento-item p-4 sm:p-8 flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Kỹ năng thịnh hành</h3>
-            <TrendingUp className="text-indigo-500 w-5 h-5" />
+            <TrendingUp className="text-emerald-500 w-5 h-5" />
           </div>
-          <div className="space-y-4 flex-1">
-            {safeTrends.trending_skills.slice(0, 5).map((skill: SkillData, i: number) => (
+          <p className="text-[10px] text-slate-400 mb-4">Kỹ năng được yêu cầu nhiều nhất từ tất cả ngành nghề</p>
+          <div className="space-y-3 flex-1">
+            {safeTrends.trending_skills.slice(0, 10).map((skill: SkillData, i: number) => (
               <div key={skill.skill} className="flex items-center gap-4">
                 <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-[10px] font-bold text-slate-400 border border-slate-100">
                   #{i + 1}
@@ -877,25 +994,22 @@ const TrendsPage: React.FC = () => {
                   <div className="w-full bg-slate-100 h-1.5 rounded-full mt-1 overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${(skill.trend_score / (safeTrends.trending_skills[0]?.trend_score || 1)) * 100}%` }}
-                      className="bg-indigo-500 h-full rounded-full shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                      animate={{ width: `${Math.min(100, (skill.trend_score / (safeTrends.trending_skills[0]?.trend_score || 1)) * 100)}%` }}
+                      className="bg-emerald-500 h-full rounded-full shadow-[0_0_10px_rgba(16,185,129,0.2)]"
                     />
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-mono text-emerald-600">{skill.growth > 0 ? '+' : ''}{skill.growth.toFixed(1)}%</p>
+                  <p className="text-[10px] font-mono text-emerald-600 font-bold">{skill.trend_score} jobs</p>
                 </div>
               </div>
             ))}
           </div>
-          <button className="w-full mt-8 py-3 bg-slate-50 border border-slate-100 text-slate-500 font-bold rounded-xl hover:bg-slate-100 transition-all text-[11px] uppercase tracking-widest">
-            Xem bản đồ kỹ năng
-          </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-        {/* Industry Growth */}
+        {/* Nhu cầu theo ngành */}
         <div className="bento-item p-4 sm:p-8">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Nhu cầu theo ngành</h3>
           <div className="h-64">
@@ -908,22 +1022,43 @@ const TrendsPage: React.FC = () => {
                 <Bar dataKey="growth" fill="#6366f1" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
+          <div className="h-80 overflow-y-auto">
+            <div style={{ height: Math.max(300, (safeTrends.industry_demand?.length || 5) * 32) }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={safeTrends.industry_demand} layout="vertical" margin={{ left: 0, right: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
+                  <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                  <YAxis dataKey="industry" type="category" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 11 }} width={160} />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #E2E8F0' }}
+                    formatter={(value: any) => [`${value} tin tuyển dụng`, 'Nhu cầu']}
+                  />
+                  <Bar dataKey="growth" radius={[0, 4, 4, 0]}>
+                    {(safeTrends.industry_demand || []).map((_: any, index: number) => {
+                      const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#f97316', '#14b8a6', '#ef4444', '#3b82f6', '#84cc16', '#a855f7', '#f43f5e'];
+                      return <Cell key={index} fill={colors[index % colors.length]} />;
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
-        {/* Regional Demand */}
+        {/* Phân bổ khu vực */}
         <div className="bento-item p-4 sm:p-8">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Phân bổ khu vực</h3>
           <div className="space-y-6">
             {(safeTrends.regional_demand || []).map((reg: any, index: number) => (
               <div key={`region-${index}-${reg.region || reg.city}`} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_5px_rgba(99,102,241,0.4)]" />
+                  <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_5px_rgba(249,115,22,0.4)]" />
                   <span className="text-sm font-medium text-slate-600">{reg.region || reg.city}</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-bold font-mono text-slate-900">{reg.posts || reg.count} tin</span>
-                  <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded border border-emerald-100 font-bold">
+                  <span className="text-[10px] bg-orange-50 text-orange-600 px-2 py-0.5 rounded border border-orange-100 font-bold">
                     {reg.change || '+0%'}
                   </span>
                 </div>
@@ -931,14 +1066,39 @@ const TrendsPage: React.FC = () => {
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Live Skill Extraction Feed */}
-        <div className="bento-item p-4 sm:p-8 flex flex-col max-h-[400px]">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Trích xuất kỹ năng trực tiếp</h3>
-            <div className="flex items-center gap-2">
-              <span className="status-dot status-online animate-pulse" />
-              <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Đang đồng bộ</span>
+      {/* ═══ JOB LISTINGS SECTION — Việc làm thịnh hành ═══ */}
+      <div className="bento-item p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
+              <Flame className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900">Việc làm thịnh hành</h3>
+                {dataSource === 'live_scrape' && (
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full uppercase tracking-wide">
+                    🟢 Dữ liệu thật
+                  </span>
+                )}
+                {dataSource === 'fallback_db' && (
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 rounded-full uppercase tracking-wide">
+                    🔵 Từ cơ sở dữ liệu
+                  </span>
+                )}
+                {(dataSource === 'mock' || dataSource === 'fallback_mock') && (
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 rounded-full uppercase tracking-wide">
+                    Dữ liệu mẫu
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 uppercase tracking-wider mt-0.5">
+                {dataSource === 'live_scrape'
+                  ? `${trendingJobs.length} việc làm`
+                  : 'Cơ hội việc làm nổi bật theo xu hướng thị trường'}
+              </p>
             </div>
           </div>
           <div className="space-y-4 overflow-y-auto pr-2">
@@ -962,11 +1122,121 @@ const TrendsPage: React.FC = () => {
                 </div>
               </motion.div>
             ))}
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-[10px] text-slate-400 font-mono">
+                {refreshStatus
+                  ? <span className={cn("font-semibold", isRefreshingJobs ? "text-orange-500 animate-pulse" : "text-emerald-600")}>{refreshStatus}</span>
+                  : <>Cập nhật lúc {lastRefreshed.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</>
+                }
+              </span>
+              <button
+                onClick={handleRefreshJobs}
+                disabled={isRefreshingJobs}
+                className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors text-sm font-bold disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className={cn("w-4 h-4", isRefreshingJobs && "animate-spin")} />
+                {isRefreshingJobs ? 'Đang lấy dữ liệu...' : 'Tải lại'}
+              </button>
+            </div>
           </div>
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Sức khỏe hệ thống</span>
-            <span className="text-[10px] text-emerald-600 font-mono">99.9%</span>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo tên công việc, công ty, kỹ năng..."
+                value={jobSearch}
+                onChange={(e) => setJobSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
+              />
+              <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
           </div>
+          <div className="flex gap-2">
+            <select
+              value={jobFilter}
+              onChange={(e) => setJobFilter(e.target.value)}
+              className="px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm bg-white"
+            >
+              <option value="all">Tất cả danh mục</option>
+              {uniqueCategories.map((category: string) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm bg-white"
+            >
+              <option value="trend">Xu hướng</option>
+              <option value="salary">Lương</option>
+              <option value="applicants">Ứng viên</option>
+              <option value="posted">Ngày đăng</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Job Cards Grid */}
+        <div className={cn("space-y-8 relative", isRefreshingJobs && "opacity-50 pointer-events-none")}>
+          {isRefreshingJobs && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/60 rounded-2xl min-h-[200px]">
+              <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mb-3" />
+              <p className="text-sm font-semibold text-orange-600 animate-pulse">{refreshStatus || 'Đang lấy dữ liệu mới nhất...'}</p>
+              <p className="text-xs text-slate-400 mt-1">Playwright đang scrape VietnamWorks & ITViec</p>
+            </div>
+          )}
+          {filteredJobs.length > 0 ? (
+            Object.entries(
+              filteredJobs.reduce((acc: any, job: TrendingJob) => {
+                const cat = job.category || 'Khác';
+                if (!acc[cat]) acc[cat] = [];
+                acc[cat].push(job);
+                return acc;
+              }, {})
+            ).map(([categoryName, jobsInCategory]: [string, any]) => {
+              const isExpanded = expandedTrendCategories[categoryName];
+              const displayedJobs = isExpanded ? jobsInCategory : jobsInCategory.slice(0, 6);
+              const hasMore = jobsInCategory.length > 6;
+
+              return (
+                <div key={categoryName} className="mb-8">
+                  <div className="flex items-center justify-between mb-4 border-b border-indigo-100 pb-2">
+                    <h4 className="text-md font-bold text-indigo-700">{categoryName} <span className="text-sm font-normal text-slate-500">({jobsInCategory.length})</span></h4>
+                    {hasMore && (
+                      <button
+                        onClick={() => toggleTrendCategory(categoryName)}
+                        className="px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded hover:bg-indigo-100 transition-colors flex items-center gap-1"
+                      >
+                        {isExpanded ? 'Thu gọn' : `Xem thêm ${jobsInCategory.length - 6} việc`}
+                        {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {displayedJobs.map((job: TrendingJob) => (
+                      <TrendingJobCard key={job.id} job={job} />
+                    ))}
+                  </div>
+                </div>
+              )
+            })
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Không tìm thấy công việc</h3>
+              <p className="text-slate-500">Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm của bạn</p>
+            </div>
+          )}
         </div>
       </div>
 
