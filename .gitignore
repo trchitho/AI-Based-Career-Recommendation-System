@@ -56,5 +56,4 @@ apps/backend/.venv/
 apps/frontend/.venv/
 
 # Large DB dumps
-db/backup/
 *.sql
