@@ -269,27 +269,41 @@ const CourseRecommendationPage = ({
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
-          {(["critical", "important", "nice_to_have"] as PriorityGroup[]).map((group) => (
-            <button
-              key={group}
-              onClick={() => {
-                setActiveGroup(activeGroup === group ? "all" : group);
-                setActiveSkill(null);
-              }}
-              className={`text-left rounded-2xl border p-4 transition-all ${GROUP_META[group].border} ${activeGroup === group ? "ring-2 ring-indigo-500 bg-indigo-50/60 dark:bg-indigo-900/20" : "bg-gray-50/70 dark:bg-gray-950/30 hover:bg-gray-100 dark:hover:bg-gray-800/60"}`}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-black border ${GROUP_META[group].badge}`}>
-                  <span className={`w-2 h-2 rounded-full ${GROUP_META[group].dot}`} />
-                  {GROUP_META[group].label}
-                </span>
-                <span className="text-lg font-black text-gray-900 dark:text-white">
-                  {initialGroups[group].length}
-                </span>
-              </div>
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{GROUP_META[group].caption}</p>
-            </button>
-          ))}
+          {(["critical", "important", "nice_to_have"] as PriorityGroup[]).map((group) => {
+            const isActive = activeGroup === group;
+            return (
+              <button
+                type="button"
+                key={group}
+                onClick={() => {
+                  setActiveGroup(isActive ? "all" : group);
+                  setActiveSkill(null);
+                }}
+                className={[
+                  "group relative overflow-hidden text-left rounded-2xl border p-4 min-h-[104px]",
+                  "transition-[background,border-color,box-shadow,transform] duration-200 ease-out",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2",
+                  "dark:focus-visible:ring-offset-gray-950",
+                  GROUP_META[group].border,
+                  isActive
+                    ? "bg-white dark:bg-gray-900 shadow-md ring-2 ring-indigo-500/80"
+                    : "bg-gray-50/70 dark:bg-gray-950/30 shadow-sm hover:bg-white dark:hover:bg-gray-900 hover:shadow-md hover:-translate-y-0.5",
+                ].join(" ")}
+              >
+                <span className={`absolute inset-y-4 left-0 w-1 rounded-r-full ${GROUP_META[group].dot} ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-70"} transition-opacity`} />
+                <div className="flex items-center justify-between gap-3">
+                  <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-black border ${GROUP_META[group].badge}`}>
+                    <span className={`w-2 h-2 rounded-full ${GROUP_META[group].dot}`} />
+                    {GROUP_META[group].label}
+                  </span>
+                  <span className="text-lg font-black text-gray-950 dark:text-white">
+                    {initialGroups[group].length}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs font-medium text-gray-600 dark:text-gray-300">{GROUP_META[group].caption}</p>
+              </button>
+            );
+          })}
         </div>
 
         {skillChips.length > 0 && (

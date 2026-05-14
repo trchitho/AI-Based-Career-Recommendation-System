@@ -210,6 +210,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     clearSubscriptionCache();
+    
+    // Clear all game-related data to prevent data leakage between users
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith('pg_backup_') ||
+        key.startsWith('pg_session_') ||
+        key.startsWith('assessment_session_') ||
+        key.startsWith('assessment_seed_') ||
+        key === 'pg_backup_current'
+      )) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
     setUser(null);
     window.location.href = '/login';
   };
