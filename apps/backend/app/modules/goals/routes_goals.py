@@ -455,7 +455,7 @@ def _get_roadmap_data(session: Session, career_id: str) -> dict:
     """Get roadmap data for a career"""
     # Try to find career by slug or onet_code
     career_query = text("""
-        SELECT c.id, c.slug, c.title_vn, c.title_en, c.onet_code
+        SELECT c.id, c.slug, c.title_vi, c.title_en, c.onet_code
         FROM core.careers c
         WHERE c.slug = :career_id OR c.onet_code = :career_id OR CAST(c.id AS TEXT) = :career_id
         LIMIT 1
@@ -466,7 +466,7 @@ def _get_roadmap_data(session: Session, career_id: str) -> dict:
         return None
     
     career_db_id = career_row.id
-    career_title = career_row.title_vn or career_row.title_en or career_row.slug
+    career_title = career_row.title_vi or career_row.title_en or career_row.slug
     
     # Get roadmap with language preference
     roadmap_query = text("""

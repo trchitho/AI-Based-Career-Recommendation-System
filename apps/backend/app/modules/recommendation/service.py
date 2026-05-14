@@ -94,7 +94,7 @@ class RecService:
                 "title_vi": meta.get("title_vi"),  # backwards compatibility for older FE/tests
                 "title_en": meta.get("title_en"),
                 # Ưu tiên mô tả tiếng Việt
-                "description": (meta.get("short_desc_vn") or meta.get("short_desc_en") or meta.get("description") or ""),
+                "description": (meta.get("short_desc_vi") or meta.get("short_desc_en") or meta.get("description") or ""),
                 "tags": riasec_codes,  # ["R", "RI", ...]
                 "job_zone": meta.get("job_zone"),
                 "match_score": float(score),
@@ -478,10 +478,10 @@ class RecService:
                     cr.rank,
                     c.slug,
                     c.onet_code,
-                    c.title_vn,
+                    c.title_vi,
                     c.title_en,
                     c.short_desc_en,
-                    c.short_desc_vn,
+                    c.short_desc_vi,
                     COALESCE(
                         array_agg(rl.code) FILTER (WHERE rl.code IS NOT NULL),
                         '{}'
@@ -492,7 +492,7 @@ class RecService:
                 LEFT JOIN core.riasec_labels rl ON rl.id = m.label_id
                 WHERE cr.assessment_id = :assessment_id
                 GROUP BY cr.career_id, cr.score, cr.rank, c.slug, c.onet_code,
-                         c.title_vn, c.title_en, c.short_desc_en, c.short_desc_vn
+                         c.title_vi, c.title_en, c.short_desc_en, c.short_desc_vi
                 ORDER BY cr.rank ASC
                 LIMIT :top_k
                 """
@@ -826,9 +826,9 @@ class RecService:
                 c.id,
                 c.slug,
                 c.onet_code,
-                c.title_vn,
+                c.title_vi,
                 c.title_en,
-                c.short_desc_vn,
+                c.short_desc_vi,
                 c.short_desc_en,
                 NULL::int AS job_zone,
                 COALESCE(
@@ -843,8 +843,8 @@ class RecService:
             WHERE c.onet_code = :cid
             GROUP BY
                 c.id, c.slug, c.onet_code,
-                c.title_vn, c.title_en,
-                c.short_desc_vn, c.short_desc_en
+                c.title_vi, c.title_en,
+                c.short_desc_vi, c.short_desc_en
             LIMIT 1
             """
         )

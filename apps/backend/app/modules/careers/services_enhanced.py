@@ -91,9 +91,9 @@ class EnhancedCareerGroupService:
         if search_query and search_query.strip():
             search_condition = """
             AND (
-                LOWER(c.title_vn) LIKE LOWER(:search) OR 
+                LOWER(c.title_vi) LIKE LOWER(:search) OR 
                 LOWER(c.title_en) LIKE LOWER(:search) OR
-                LOWER(c.short_desc_vn) LIKE LOWER(:search) OR
+                LOWER(c.short_desc_vi) LIKE LOWER(:search) OR
                 LOWER(c.short_desc_en) LIKE LOWER(:search)
             )
             """
@@ -102,14 +102,14 @@ class EnhancedCareerGroupService:
         # Lấy careers trong group với search
         query = text(f"""
             SELECT 
-                c.id, c.slug, c.title_vn, c.title_en, c.short_desc_vn, c.short_desc_en,
-                c.description_vn, c.description_en,
+                c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vi, c.short_desc_en,
+                c.description_vi, c.description_en,
                 c.onet_code, c.industry_category
             FROM core.careers c
             JOIN core.career_group_mapping cgm ON c.id = cgm.career_id
             WHERE cgm.group_id = :group_id
             {search_condition}
-            ORDER BY c.title_vn, c.title_en
+            ORDER BY c.title_vi, c.title_en
             LIMIT :limit OFFSET :offset
         """)
         
@@ -134,17 +134,17 @@ class EnhancedCareerGroupService:
         for row in result:
             # Fallback title logic
             fallback = (row.slug or "").replace("-", " ").title() if row.slug else ""
-            display_title = row.title_vn or row.title_en or fallback
-            short_desc = row.short_desc_vn or row.short_desc_en or ""
+            display_title = row.title_vi or row.title_en or fallback
+            short_desc = row.short_desc_vi or row.short_desc_en or ""
             
             career_data = {
                 "id": row.id,
                 "slug": row.slug,
                 "title": display_title,
-                "title_vn": row.title_vn,
+                "title_vn": row.title_vi,
                 "title_en": row.title_en,
-                "short_desc": row.short_desc_vn or row.short_desc_en or "",
-                "description_vn": row.description_vn or row.description_en or row.short_desc_vn or row.short_desc_en or "",
+                "short_desc": row.short_desc_vi or row.short_desc_en or "",
+                "description_vn": row.description_vi or row.description_en or row.short_desc_vi or row.short_desc_en or "",
                 "onet_code": row.onet_code,
                 "industry_category": row.industry_category
             }
@@ -196,14 +196,16 @@ class EnhancedCareerLevelService:
             "id": result.id,
             "group_id": result.group_id,
             "level_order": result.level_order,
-            "level_name_vn": result.level_name_vn,
+            "level_name_vi": result.level_name_vi,
+            "level_name_vn": result.level_name_vi,   # backwards compat
             "level_name_en": result.level_name_en,
             "level_slug": result.level_slug,
             "min_exp_years": result.min_exp_years,
             "max_exp_years": result.max_exp_years,
             "job_zone_mapping": result.job_zone_mapping,
             "seniority_keywords": result.seniority_keywords or [],
-            "description_vn": result.description_vn,
+            "description_vi": result.description_vi,
+            "description_vn": result.description_vi,  # backwards compat
             "description_en": result.description_en,
             "created_at": result.created_at,
             "updated_at": result.updated_at
@@ -218,14 +220,14 @@ class EnhancedCareerLevelService:
                 clm.*,
                 cgl.group_id,
                 cgl.level_order,
-                cgl.level_name_vn,
+                cgl.level_name_vi,
                 cgl.level_name_en,
                 cgl.level_slug,
                 cgl.min_exp_years,
                 cgl.max_exp_years,
                 cgl.job_zone_mapping,
                 cgl.seniority_keywords,
-                cgl.description_vn,
+                cgl.description_vi,
                 cgl.description_en
             FROM core.career_level_mapping clm
             JOIN core.career_group_levels cgl ON clm.group_level_id = cgl.id
@@ -241,14 +243,16 @@ class EnhancedCareerLevelService:
                 "id": row.group_level_id,
                 "group_id": row.group_id,
                 "level_order": row.level_order,
-                "level_name_vn": row.level_name_vn,
+                "level_name_vi": row.level_name_vi,
+                "level_name_vn": row.level_name_vi,   # backwards compat
                 "level_name_en": row.level_name_en,
                 "level_slug": row.level_slug,
                 "min_exp_years": row.min_exp_years,
                 "max_exp_years": row.max_exp_years,
                 "job_zone_mapping": row.job_zone_mapping,
                 "seniority_keywords": row.seniority_keywords or [],
-                "description_vn": row.description_vn,
+                "description_vi": row.description_vi,
+                "description_vn": row.description_vi,  # backwards compat
                 "description_en": row.description_en,
                 "created_at": None,
                 "updated_at": None
@@ -280,7 +284,7 @@ class EnhancedInterviewService:
         # Lấy thông tin career
         career_query = text("""
             SELECT 
-                c.id, c.title_vn, c.title_en, c.slug, c.onet_code,
+                c.id, c.title_vi, c.title_en, c.slug, c.onet_code,
                 cg.name as group_name,
                 cg.slug as group_slug
             FROM core.careers c
@@ -334,20 +338,20 @@ class EnhancedInterviewService:
         tasks = [row.task_vn or row.task_en for row in tasks_result if row.task_vn or row.task_en]
         
         # Xây dựng interview focus dựa trên level description
-        interview_focus = self._parse_interview_focus(level_result.description_vn or level_result.description_en)
+        interview_focus = self._parse_interview_focus(level_result.description_vi or level_result.description_en)
         
         # Xây dựng experience range
         max_exp_str = f"{level_result.max_exp_years}" if level_result.max_exp_years else "10+"
         experience_range = f"{level_result.min_exp_years}-{max_exp_str} năm"
         
         # Tên career
-        career_title = career_result.title_vn or career_result.title_en or career_result.slug.replace("-", " ").title()
+        career_title = career_result.title_vi or career_result.title_en or career_result.slug.replace("-", " ").title()
         
         return InterviewContextOut(
             career=career_title,
             group=career_result.group_name or "Chưa phân loại",
-            level=level_result.level_name_vn,
-            level_description=level_result.description_vn or level_result.description_en or "",
+            level=level_result.level_name_vi,
+            level_description=level_result.description_vi or level_result.description_en or "",
             skills=skills,
             tasks=tasks,
             experience_range=experience_range,

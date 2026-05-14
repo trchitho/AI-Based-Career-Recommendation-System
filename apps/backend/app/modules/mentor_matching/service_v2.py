@@ -274,7 +274,7 @@ class MentorMatchingService:
 
         # 2. Career match (30%)
         career_score = calculate_career_match(
-            mentee_target_career=mentee.target_career or "",
+            mentee_target=mentee.target_career or "",
             mentor_position=mentor.current_position or "",
             mentor_expertise=mentor.expertise_areas or [],
         )
@@ -296,7 +296,7 @@ class MentorMatchingService:
             skill_match=skill_score,
             career_match=career_score,
             personality_sim=personality_score,
-            has_personality_data=has_personality_data,
+            has_personality=has_personality_data,
         )
 
         # 5. Tạo lý do matching để hiển thị UI

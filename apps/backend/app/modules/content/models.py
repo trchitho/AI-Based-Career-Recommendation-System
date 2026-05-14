@@ -37,11 +37,11 @@ class Career(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     slug: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     # Some DBs have title_vi/title_en instead of a generic title
-    title_vn: Mapped[Optional[str]] = mapped_column(Text)
+    title_vi: Mapped[Optional[str]] = mapped_column(Text)
     title_en: Mapped[Optional[str]] = mapped_column(Text)
     # Many DBs store short descriptions in localized columns
     short_desc_en: Mapped[Optional[str]] = mapped_column(Text)
-    short_desc_vn: Mapped[Optional[str]] = mapped_column(Text)
+    short_desc_vi: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     onet_code: Mapped[Optional[str]] = mapped_column(Text, unique=True)
@@ -49,15 +49,15 @@ class Career(Base):
 
     def to_dict(self) -> dict:
         fallback = (self.slug or "").replace("-", " ").title() if getattr(self, "slug", None) else ""
-        title_vn = self.title_vn or ""
+        title_vi = self.title_vi or ""
         title_en = self.title_en or ""
-        display_title = title_vn or title_en or fallback
-        short_desc = self.short_desc_vn or self.short_desc_en or ""
+        display_title = title_vi or title_en or fallback
+        short_desc = self.short_desc_vi or self.short_desc_en or ""
         return {
             "id": self.id,
             "slug": self.slug,
             "title":    display_title,   # ưu tiên tiếng Việt
-            "title_vn": title_vn,
+            "title_vi": title_vi,
             "title_en": title_en,
             "short_desc": short_desc,
             "description": short_desc,
@@ -74,26 +74,26 @@ class EssayPrompt(Base):
 
     id             = Column(BigInteger, primary_key=True)
     title_en       = Column(Text, nullable=False)
-    title_vn       = Column(Text, nullable=False)
+    title_vi       = Column(Text, nullable=False)
     prompt_text_en = Column(Text, nullable=False)
-    prompt_text_vn = Column(Text, nullable=False)
+    prompt_text_vi = Column(Text, nullable=False)
     created_at     = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     def to_dict(self) -> dict:
         return {
             "id":             self.id,
             "title_en":       self.title_en,
-            "title_vn":       self.title_vn,
+            "title_vi":       self.title_vi,
             "prompt_text_en": self.prompt_text_en,
-            "prompt_text_vn": self.prompt_text_vn,
+            "prompt_text_vi": self.prompt_text_vi,
             "created_at":     self.created_at.isoformat() if self.created_at else None,
         }
 
     def get_title(self, lang: str = "vi") -> str:
-        return self.title_vn if lang == "vi" or lang == "vn" else self.title_en
+        return self.title_vi if lang == "vi" or lang == "vn" else self.title_en
 
     def get_prompt_text(self, lang: str = "vi") -> str:
-        return self.prompt_text_vn if lang == "vi" or lang == "vn" else self.prompt_text_en
+        return self.prompt_text_vi if lang == "vi" or lang == "vn" else self.prompt_text_en
 
 
 # bảng core.blog_posts

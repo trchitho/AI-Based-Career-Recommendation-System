@@ -1260,7 +1260,7 @@ def build_results(session: Session, assessment_id: int) -> dict:
         try:
             rec_query = text(
                 f"""
-                SELECT c.id, c.slug, c.title_vn, c.title_en, c.short_desc_vn, c.short_desc_en
+                SELECT c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vi, c.short_desc_en
                 FROM core.careers c
                 JOIN core.career_interests ci ON c.onet_code = ci.onet_code
                 WHERE ci.{interest_col} IS NOT NULL
@@ -1295,9 +1295,9 @@ def build_results(session: Session, assessment_id: int) -> dict:
                 select(
                     Career.id,
                     Career.slug,
-                    Career.title_vn,
+                    Career.title_vi,
                     Career.title_en,
-                    Career.short_desc_vn,
+                    Career.short_desc_vi,
                     Career.short_desc_en,
                 )
                 .order_by(func.random())

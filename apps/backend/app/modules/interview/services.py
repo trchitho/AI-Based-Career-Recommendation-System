@@ -813,8 +813,8 @@ class InterviewService:
         try:
             sql = """
                 SELECT
-                    m.element_name_vn  AS skill_name,
-                    m.activity_category_vn AS skill_type,
+                    m.element_name_vi  AS skill_name,
+                    m.activity_category_vi AS skill_type,
                     s.importance_score AS importance,
                     s.level_score      AS level,
                     s.activity_rank    AS rank,
@@ -885,7 +885,7 @@ class InterviewService:
         try:
             sql = """
                 SELECT
-                    COALESCE(name_vn, name) AS skill_name,
+                    COALESCE(name_vn, name_en) AS skill_name,
                     CASE 
                         WHEN ksa_type = 'ability' THEN 'Khả năng'
                         WHEN ksa_type = 'knowledge' THEN 'Kiến thức'
@@ -929,10 +929,10 @@ class InterviewService:
         """Lấy tên nghề từ core.careers"""
         try:
             from sqlalchemy import text
-            sql = text("SELECT title_vn FROM core.careers WHERE onet_code = :code LIMIT 1")
+            sql = text("SELECT title_vi FROM core.careers WHERE onet_code = :code LIMIT 1")
             row = self.db.execute(sql, {"code": job_id}).mappings().first()
             if row:
-                return row.title_vn
+                return row.title_vi
         except Exception as e:
             print(f"[WARN] Postgres job title query failed: {e}")
         return None
@@ -950,7 +950,7 @@ class InterviewService:
             rows = self.db.execute(
                 text(
                     """
-                SELECT task_en, task_vn, importance, task_type, incumbents_responding, task_id
+                SELECT task_en, task_vi, importance, task_type, incumbents_responding, task_id
                 FROM core.career_tasks
                 WHERE onet_code = :onet_code
                 ORDER BY importance DESC, incumbents_responding DESC, task_id ASC
@@ -964,9 +964,9 @@ class InterviewService:
                 all_tasks = [
                     {
                         "task_en": r.task_en, 
-                        "task_vn": r.task_vn, 
+                        "task_vn": r.task_vi, 
                         "importance": float(r.importance) if r.importance else 0.0, 
-                        "task_type": r.task_type or "Kỹ năng chuyên ngành",  # Sử dụng task_type từ DB
+                        "task_type": r.task_type or "Kỹ năng chuyên ngành",
                         "incumbents_responding": r.incumbents_responding or 0, 
                         "task_id": r.task_id
                     } for r in rows
@@ -992,24 +992,19 @@ class InterviewService:
                 ]
 
             def skill_name(t):
-                vn = t.get("task_vn", "")
+                vi = t.get("task_vn", "")  # task_vn key holds task_vi value
                 en = t.get("task_en", "")
                 
-                # Kiểm tra nếu task_vi có trộn lẫn tiếng Anh (có từ tiếng Anh dài)
                 if vi:
-                    # Nếu task_vi chứa nhiều từ tiếng Anh, ưu tiên task_en
                     english_words = ['and', 'or', 'with', 'the', 'to', 'of', 'in', 'on', 'for', 'by', 'from', 'into', 'onto', 'under', 'after', 'before', 'during', 'using', 'providing']
                     english_count = sum(1 for word in english_words if word in vi.lower())
                     
-                    # Nếu có quá nhiều từ tiếng Anh (>2), dùng task_en
                     if english_count > 2:
                         return en if en else vi
                     
-                    # Nếu task_vi không bắt đầu bằng "Thực hiện các nhiệm vụ" và khác task_en
                     if vi != en and not vi.startswith("Thực hiện các nhiệm vụ"):
                         return vi
                 
-                # Fallback to English
                 return en if en else vi
 
             top5 = [

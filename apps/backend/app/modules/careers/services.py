@@ -74,13 +74,13 @@ class CareerGroupService:
         # Lấy careers trong group
         query = text("""
             SELECT 
-                c.id, c.slug, c.title_vn, c.title_en, c.short_desc_vn, c.short_desc_en,
-                c.description_vn, c.description_en,
+                c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vi, c.short_desc_en,
+                c.description_vi, c.description_en,
                 c.onet_code, c.industry_category
             FROM core.careers c
             JOIN core.career_group_mapping cgm ON c.id = cgm.career_id
             WHERE cgm.group_id = :group_id
-            ORDER BY c.title_vn, c.title_en
+            ORDER BY c.title_vi, c.title_en
             LIMIT :limit OFFSET :offset
         """)
         
@@ -94,17 +94,17 @@ class CareerGroupService:
         for row in result:
             # Fallback title logic
             fallback = (row.slug or "").replace("-", " ").title() if row.slug else ""
-            display_title = row.title_vn or row.title_en or fallback
-            short_desc = row.short_desc_vn or row.short_desc_en or ""
+            display_title = row.title_vi or row.title_en or fallback
+            short_desc = row.short_desc_vi or row.short_desc_en or ""
             
             career_data = {
                 "id": row.id,
                 "slug": row.slug,
                 "title": display_title,
-                "title_vn": row.title_vn,
+                "title_vn": row.title_vi,
                 "title_en": row.title_en,
-                "short_desc": row.short_desc_vn or row.short_desc_en or "",
-                "description_vn": row.description_vn or row.description_en or row.short_desc_vn or row.short_desc_en or "",
+                "short_desc": row.short_desc_vi or row.short_desc_en or "",
+                "description_vn": row.description_vi or row.description_en or row.short_desc_vi or row.short_desc_en or "",
                 "onet_code": row.onet_code,
                 "industry_category": row.industry_category,
                 "group": group
@@ -128,7 +128,7 @@ class InterviewService:
         # Lấy thông tin career
         career_query = text("""
             SELECT 
-                c.id, c.title_vn, c.title_en, c.slug, c.onet_code,
+                c.id, c.title_vi, c.title_en, c.slug, c.onet_code,
                 cg.name as group_name
             FROM core.careers c
             LEFT JOIN core.career_group_mapping cgm ON c.id = cgm.career_id
@@ -142,7 +142,7 @@ class InterviewService:
         
         # Lấy thông tin level từ enhanced system
         level_query = text("""
-            SELECT cgl.level_name_vn, cgl.level_name_en, cgl.description_vn, 
+            SELECT cgl.level_name_vi, cgl.level_name_en, cgl.description_vi, 
                 cgl.level_slug, cgl.min_exp_years, cgl.max_exp_years
             FROM core.career_group_levels cgl
             JOIN core.career_level_mapping clm ON cgl.id = clm.group_level_id
@@ -184,13 +184,13 @@ class InterviewService:
         
         # Tên career
         career_result = self.db.query(Career).filter(Career.id == career_id).first()
-        career_title = career_result.title_vn or career_result.title_en or career_result.slug.replace("-", " ").title()
+        career_title = career_result.title_vi or career_result.title_en or career_result.slug.replace("-", " ").title()
         
         return InterviewContextOut(
             career=career_title,
             group=career_result.group_name or "Chưa phân loại",
-            level=level_result.level_name_vn or level_result.level_name_en,
-            level_description=level_result.description_vn or "",
+            level=level_result.level_name_vi or level_result.level_name_en,
+            level_description=level_result.description_vi or "",
             skills=skills,
             tasks=tasks,
             experience_range=experience_range,

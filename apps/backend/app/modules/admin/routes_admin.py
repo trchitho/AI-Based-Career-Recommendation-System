@@ -880,8 +880,8 @@ def _career_to_client(c: Career, session: Session) -> dict:
         }
 
     # Use English data (title_en, short_desc_en)
-    title = c.title_en or c.title_vn or c.slug.replace("-", " ").title()
-    description = c.short_desc_en or c.short_desc_vn or ""
+    title = c.title_en or c.title_vi or c.slug.replace("-", " ").title()
+    description = c.short_desc_en or c.short_desc_vi or ""
 
     return {
         "id": str(c.id),
@@ -916,7 +916,7 @@ def list_careers(
         # Search in English title first, then Vietnamese
         stmt = stmt.where(or_(
             Career.title_en.ilike(like),
-            Career.title_vn.ilike(like),
+            Career.title_vi.ilike(like),
             Career.slug.ilike(like)
         ))
 
@@ -1029,7 +1029,7 @@ def delete_career(request: Request, career_id: int):
     c = session.get(Career, career_id)
     if not c:
         raise HTTPException(status_code=404, detail="Career not found")
-    title = c.title_en or c.title_vn or c.slug
+    title = c.title_en or c.title_vi or c.slug
     _write_audit_log(session, "delete_career", "career", career_id, actor_id=admin_id,
                      details={"title": title})
     session.delete(c)
@@ -1216,15 +1216,15 @@ def _question_to_client(q: AssessmentQuestion, test_type: str, lang: str = "vi")
     else:
         opts = []
 
-    prompt = getattr(q, "prompt_vn", None) if lang == "vn" else getattr(q, "prompt_en", None)
+    prompt = getattr(q, "prompt_vi", None) if lang == "vn" else getattr(q, "prompt_en", None)
     if not prompt:
-        prompt = getattr(q, "prompt_en", "") or getattr(q, "prompt_vn", "")
+        prompt = getattr(q, "prompt_en", "") or getattr(q, "prompt_vi", "")
 
     return {
         "id": str(q.id),
         "text": prompt,
         "prompt_en": getattr(q, "prompt_en", ""),
-        "prompt_vn": getattr(q, "prompt_vn", ""),
+        "prompt_vi": getattr(q, "prompt_vi", ""),
         "test_type": test_type,
         "dimension": q.question_key or "",
         "question_type": "multiple_choice" if opts else "scale",
@@ -1328,13 +1328,13 @@ def update_question(request: Request, question_id: int, payload: dict):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     if "text" in payload:
-        q.prompt_vn = payload.get("text") or q.prompt_vn
+        q.prompt_vi = payload.get("text") or q.prompt_vi
     if "dimension" in payload:
         q.question_key = payload.get("dimension") or q.question_key
     if "options" in payload:
         q.options_json = payload.get("options") or None  # type: ignore[assignment]
     _write_audit_log(session, "update_question", "question", question_id, actor_id=admin_id,
-                     details={"prompt_preview": (q.prompt_vn or q.prompt_en or "")[:80]})
+                     details={"prompt_preview": (q.prompt_vi or q.prompt_en or "")[:80]})
     session.commit()
     f = session.get(AssessmentForm, q.form_id) if q.form_id is not None else None
     form_type = str(f.form_type) if f and f.form_type is not None else "RIASEC"
@@ -1349,7 +1349,7 @@ def delete_question(request: Request, question_id: int):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     _write_audit_log(session, "delete_question", "question", question_id, actor_id=admin_id,
-                     details={"prompt_preview": (q.prompt_vn or q.prompt_en or "")[:80]})
+                     details={"prompt_preview": (q.prompt_vi or q.prompt_en or "")[:80]})
     session.delete(q)
     session.commit()
     return {"status": "ok"}

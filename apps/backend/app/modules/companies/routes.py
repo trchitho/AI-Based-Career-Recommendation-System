@@ -31,7 +31,8 @@ def _to_dict(c: Company) -> dict:
         "career_group_name": c.career_group_name,
         "onet_major_group":  c.onet_major_group,
         "name":         c.name,
-        "name_vn":      c.name_vn,
+        "name_vi":      c.name_vi,
+        "name_vn":      c.name_vi,   # backwards compat
         "description":  c.description,
         "industry":     c.industry,
         "size":         c.size,
@@ -88,7 +89,7 @@ def search(
         Company.is_active == True,
         or_(
             Company.name.ilike(f"%{q}%"),
-            Company.name_vn.ilike(f"%{q}%"),
+            Company.name_vi.ilike(f"%{q}%"),
             Company.description.ilike(f"%{q}%"),
         )
     )

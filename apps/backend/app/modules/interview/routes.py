@@ -759,9 +759,9 @@ async def search_jobs(
         if random or not query.strip():
             # TRUE RANDOM selection from ALL 959 careers in database
             sql = """
-                SELECT onet_code as id, title_vn as title, short_desc_vn
+                SELECT onet_code as id, title_vi as title, short_desc_vi as description_vi
                 FROM core.careers
-                WHERE title_vn IS NOT NULL AND title_vn != ''
+                WHERE title_vi IS NOT NULL AND title_vi != ''
                 ORDER BY RANDOM()
                 LIMIT :limit
             """
@@ -772,17 +772,17 @@ async def search_jobs(
         else:
             # Search with query
             sql = """
-                SELECT onet_code as id, title_vn as title, short_desc_vn
+                SELECT onet_code as id, title_vi as title, short_desc_vi as description_vi
                 FROM core.careers
-                WHERE (title_vn ILIKE :q OR title_en ILIKE :q OR onet_code ILIKE :q)
-                AND title_vn IS NOT NULL AND title_vn != ''
+                WHERE (title_vi ILIKE :q OR title_en ILIKE :q OR onet_code ILIKE :q)
+                AND title_vi IS NOT NULL AND title_vi != ''
                 ORDER BY 
                     CASE 
-                        WHEN title_vn ILIKE :exact_q THEN 1
-                        WHEN title_vn ILIKE :start_q THEN 2
+                        WHEN title_vi ILIKE :exact_q THEN 1
+                        WHEN title_vi ILIKE :start_q THEN 2
                         ELSE 3
                     END,
-                    title_vn
+                    title_vi
                 LIMIT :limit
             """
             rows = service.db.execute(
@@ -936,7 +936,7 @@ async def get_more_hard_skills(job_id: str, limit: int = 10, service: InterviewS
         from sqlalchemy import text
 
         sql = """
-            SELECT task_en, task_vn, importance, task_type, incumbents_responding, task_id
+            SELECT task_en, task_vi, importance, task_type, incumbents_responding, task_id
             FROM core.career_tasks
             WHERE onet_code = :onet_code
             ORDER BY importance DESC, incumbents_responding DESC, task_id ASC

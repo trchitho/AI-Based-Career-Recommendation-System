@@ -26,23 +26,23 @@ class AssessmentQuestion(Base):
     question_no   = Column(Integer)
     question_key  = Column(Text)
     prompt_en     = Column(Text, nullable=False)
-    prompt_vn     = Column(Text, nullable=False)
+    prompt_vi     = Column(Text, nullable=False)
     options_json  = Column(JSONB)
     reverse_score = Column(Boolean, default=False)
     created_at    = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     @property
     def prompt(self) -> str:
-        """Backward-compatible property that returns prompt_vn if available, otherwise prompt_en."""
-        return self.prompt_vn or self.prompt_en or ""
+        """Backward-compatible property that returns prompt_vi if available, otherwise prompt_en."""
+        return self.prompt_vi or self.prompt_en or ""
     
     @prompt.setter
     def prompt(self, value: str) -> None:
-        """Backward-compatible setter that updates prompt_vn."""
-        self.prompt_vn = value
+        """Backward-compatible setter that updates prompt_vi."""
+        self.prompt_vi = value
 
     def get_prompt(self, lang: str = "vi") -> str:
-        return self.prompt_vn if lang == "vi" or lang == "vn" else self.prompt_en
+        return self.prompt_vi if lang == "vi" or lang == "vn" else self.prompt_en
 
     def to_client(self, lang: str = "vi") -> dict:
         opts_src = self.options_json or {}
@@ -62,7 +62,7 @@ class AssessmentQuestion(Base):
         qtype = "MULTIPLE_CHOICE" if opts else "SCALE"
         
         # Use Vietnamese prompt by default, fallback to English
-        question_text = self.prompt_vn or self.prompt_en or ""
+        question_text = self.prompt_vi or self.prompt_en or ""
 
         return {
             "id":            str(self.id),

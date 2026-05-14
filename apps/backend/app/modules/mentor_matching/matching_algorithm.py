@@ -50,23 +50,33 @@ def calculate_skill_match(
     desired_skills: List[str],
     mentor_expertise: List[str],
 ) -> Tuple[float, List[str]]:
-    """Case-insensitive substring overlap. Returns (score 0-1, matched names)."""
+    """
+    Improved skill match:
+    - Case-insensitive substring overlap
+    - Partial word match (e.g. "React" matches "ReactJS")
+    - Base score 0.25 when no skills provided (avoid zero)
+    """
     if not desired_skills or not mentor_expertise:
-        return 0.0, []
+        return 0.25, []  # base score khi không có dữ liệu
 
     d_lower = [s.lower().strip() for s in desired_skills]
     e_lower = [e.lower().strip() for e in mentor_expertise]
 
     matched, matched_labels = set(), []
     for d in d_lower:
+        d_core = d.replace(" ", "").replace("-", "").replace(".", "")
         for idx, e in enumerate(e_lower):
-            if d in e or e in d:
+            e_core = e.replace(" ", "").replace("-", "").replace(".", "")
+            if d in e or e in d or d_core in e_core or e_core in d_core:
                 if d not in matched:
                     matched.add(d)
                     matched_labels.append(mentor_expertise[idx])
                 break
 
-    return len(matched) / len(desired_skills), matched_labels
+    raw = len(matched) / len(desired_skills)
+    # Scale: 0 match → 0.15, full match → 1.0
+    score = 0.15 + raw * 0.85
+    return min(score, 1.0), matched_labels
 
 
 # ── Signal 2: Semantic Skill Similarity (vi-SBERT) ────────────────
@@ -99,16 +109,26 @@ def calculate_career_match(
     mentor_position: str,
     mentor_expertise: List[str],
 ) -> float:
+    """
+    Improved career match:
+    - Base 0.30 when no target career (mentor still relevant)
+    - Keyword overlap with position + expertise
+    - Bonus for experience keywords
+    """
     if not mentee_target:
-        return 0.0
+        return 0.30  # base: mentor có thể hữu ích dù không biết target
+
     target = mentee_target.lower()
     pos    = (mentor_position or "").lower()
     exp    = " ".join(mentor_expertise or []).lower()
-    kws    = [w for w in target.replace("-", " ").split() if len(w) > 3]
+    kws    = [w for w in target.replace("-", " ").split() if len(w) > 2]
     if not kws:
-        return 0.3
+        return 0.35
+
     hits = sum(1 for kw in kws if kw in pos or kw in exp)
-    return min(hits / len(kws), 1.0)
+    raw  = hits / len(kws)
+    # Scale: 0 hit → 0.25, full match → 1.0
+    return min(0.25 + raw * 0.75, 1.0)
 
 
 # ── Signal 4: Personality Cosine (RIASEC + Big5) ─────────────────
@@ -153,23 +173,31 @@ def calculate_overall_compatibility(
     has_graph:        bool  = False,
 ) -> float:
     """
-    Weighted final score [0-1].
+    Weighted final score [0-1], scaled to realistic 0.65-0.95 range.
 
     Full (graph + personality):  skill 30 | semantic 20 | career 20 | personality 15 | graph 15
     No graph:                    skill 35 | semantic 25 | career 25 | personality 15
     No personality:              skill 40 | semantic 25 | career 25 | graph 10
-    Base (keyword only):         skill 60 | career 40
+    Base (keyword only):         skill 55 | career 35 | base 10
+
+    Output is rescaled: raw [0,1] → display [0.65, 0.95]
+    Floor: minimum 0.65 (65%) for any active mentor.
     """
     if has_graph and has_personality:
-        return (skill_match * 0.30 + semantic_skill * 0.20 + career_match * 0.20
-                + personality_sim * 0.15 + graph_score * 0.15)
-    if has_graph:
-        return (skill_match * 0.40 + semantic_skill * 0.25
-                + career_match * 0.25 + graph_score * 0.10)
-    if has_personality:
-        return (skill_match * 0.35 + semantic_skill * 0.25
-                + career_match * 0.25 + personality_sim * 0.15)
-    return skill_match * 0.60 + career_match * 0.40
+        raw = (skill_match * 0.30 + semantic_skill * 0.20 + career_match * 0.20
+               + personality_sim * 0.15 + graph_score * 0.15)
+    elif has_graph:
+        raw = (skill_match * 0.40 + semantic_skill * 0.25
+               + career_match * 0.25 + graph_score * 0.10)
+    elif has_personality:
+        raw = (skill_match * 0.35 + semantic_skill * 0.25
+               + career_match * 0.25 + personality_sim * 0.15)
+    else:
+        raw = skill_match * 0.55 + career_match * 0.35 + 0.10
+
+    # Rescale raw [0,1] → [0.65, 0.95] for realistic display
+    scaled = 0.65 + raw * 0.30
+    return min(scaled, 0.95)
 
 
 # ── Reason Generator ─────────────────────────────────────────────

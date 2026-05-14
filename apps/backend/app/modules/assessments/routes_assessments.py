@@ -160,11 +160,11 @@ class EssaySubmitIn(BaseModel):
 class EssayPromptOut(BaseModel):
     id: int
     title_en: str
-    title_vn: str
-    prompt_text_vn: str
+    title_vi: str
+    prompt_text_vi: str
     # Convenience fields: trả về đúng lang FE yêu cầu
-    title: str        # = title_vn hoặc title_en tuỳ lang param
-    prompt_text: str  # = prompt_text_vn hoặc prompt_text_en tuỳ lang param
+    title: str        # = title_vi hoặc title_en tuỳ lang param
+    prompt_text: str  # = prompt_text_vi hoặc prompt_text_en tuỳ lang param
     lang: str
 
 
@@ -430,8 +430,8 @@ def api_get_essay_prompt(
     return EssayPromptOut(
         id=int(prompt.id),
         title_en=prompt.title_en,
-        title_vn=prompt.title_vn,
-        prompt_text_vn=prompt.prompt_text_vn,
+        title_vi=prompt.title_vi,
+        prompt_text_vi=prompt.prompt_text_vi,
         title=prompt.get_title(effective_lang),
         prompt_text=prompt.get_prompt_text(effective_lang),
         lang=effective_lang,

@@ -10,8 +10,8 @@ from .models import Career
 def list_careers(session: Session, q: str | None, category_id: int | None, limit: int, offset: int):
     # Select only portable columns to avoid schema drift
     # Ưu tiên tiếng Việt
-    title_expr = func.coalesce(Career.title_vn, Career.title_en)
-    desc_expr = func.coalesce(Career.short_desc_vn, Career.short_desc_en)
+    title_expr = func.coalesce(Career.title_vi, Career.title_en)
+    desc_expr = func.coalesce(Career.short_desc_vi, Career.short_desc_en)
     stmt = select(
         Career.id,
         Career.slug,
@@ -57,9 +57,9 @@ def get_career(session: Session, id_or_slug: str):
         cols = (
             Career.id,
             Career.slug,
-            Career.title_vn,
+            Career.title_vi,
             Career.title_en,
-            Career.short_desc_vn,
+            Career.short_desc_vi,
             Career.short_desc_en,
             Career.created_at,
             Career.updated_at,

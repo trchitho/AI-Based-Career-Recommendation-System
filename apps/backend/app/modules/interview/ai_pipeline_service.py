@@ -330,21 +330,21 @@ class AIPipelineService:
             
             # Lấy thông tin cơ bản
             career_row = self.db.execute(
-                text("SELECT title_vn, title_en FROM core.careers WHERE onet_code = :code LIMIT 1"),
+                text("SELECT title_vi, title_en FROM core.careers WHERE onet_code = :code LIMIT 1"),
                 {"code": job_id}
             ).fetchone()
             
             if not career_row:
                 return None
             
-            title = career_row.title_vn or career_row.title_en or f"Job {job_id}"
+            title = career_row.title_vi or career_row.title_en or f"Job {job_id}"
             
             # ── SOFT SKILLS: từ work activities (tiếng Việt tốt) ─────────────
             # Sort: importance_score DESC → combined_score DESC → activity_rank ASC
             soft_rows = self.db.execute(
                 text("""
-                    SELECT m.element_name_vn as skill_name,
-                           m.activity_category_vn as skill_type,
+                    SELECT m.element_name_vi as skill_name,
+                           m.activity_category_vi as skill_type,
                            s.importance_score as importance,
                            s.level_score as level,
                            s.combined_score,
@@ -380,7 +380,7 @@ class AIPipelineService:
             # Sort: importance DESC → incumbents_responding DESC → task_id ASC (O*NET priority order)
             hard_rows = self.db.execute(
                 text("""
-                    SELECT task_vn, task_en, importance, incumbents_responding, task_id
+                    SELECT task_vi, task_en, importance, incumbents_responding, task_id
                     FROM core.career_tasks
                     WHERE onet_code = :onet_code
                     ORDER BY importance DESC, incumbents_responding DESC, task_id ASC
@@ -391,7 +391,7 @@ class AIPipelineService:
             
             hard_skills = []
             for row in hard_rows:
-                name = self._select_best_task_name(row.task_vn, row.task_en)
+                name = self._select_best_task_name(row.task_vi, row.task_en)
                 hard_skills.append({
                     "skill_name": name,
                     "skill_type": "Kỹ năng chuyên ngành",
@@ -443,17 +443,10 @@ class AIPipelineService:
             print(f"⚠️ Failed to get career context: {e}")
             return None
 
-    def _select_best_task_name(self, task_vn: Optional[str], task_en: Optional[str]) -> str:
-        """Chọn tên task tốt nhất: ưu tiên task_vn nếu chất lượng tốt, fallback task_en.
-        
-        Tiêu chí đánh giá chất lượng task_vn:
-        - Null hoặc bằng task_en → dùng task_en
-        - Bắt đầu bằng placeholder → dùng task_en
-        - >35% từ thuần Latin (tiếng Anh) → dịch máy kém, dùng task_en
-        """
-        if not task_vn:
+    def _select_best_task_name(self, task_vi: Optional[str], task_en: Optional[str]) -> str:
+        """Chọn tên task tốt nhất: ưu tiên task_vi nếu chất lượng tốt, fallback task_en."""
+        if not task_vi:
             return task_en or ""
-            return task_en or task_vi
         
         # Đếm tỷ lệ từ thuần Latin (tiếng Anh không dấu)
         import re as _re

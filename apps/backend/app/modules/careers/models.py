@@ -43,14 +43,14 @@ class CareerGroupLevel(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     group_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.career_groups.id"), nullable=False)
     level_order: Mapped[int] = mapped_column(Integer, nullable=False)
-    level_name_vn: Mapped[str] = mapped_column(Text, nullable=False)
+    level_name_vi: Mapped[str] = mapped_column(Text, nullable=False)
     level_name_en: Mapped[str] = mapped_column(Text, nullable=False)
     level_slug: Mapped[str] = mapped_column(Text, nullable=False)
     min_exp_years: Mapped[int] = mapped_column(Integer, nullable=False)
     max_exp_years: Mapped[Optional[int]] = mapped_column(Integer)
     job_zone_mapping: Mapped[Optional[str]] = mapped_column(Text)
     seniority_keywords: Mapped[Optional[List[str]]] = mapped_column(ARRAY(Text))
-    description_vn: Mapped[Optional[str]] = mapped_column(Text)
+    description_vi: Mapped[Optional[str]] = mapped_column(Text)
     description_en: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
@@ -60,14 +60,16 @@ class CareerGroupLevel(Base):
             "id": self.id,
             "group_id": self.group_id,
             "level_order": self.level_order,
-            "level_name_vn": self.level_name_vn,
+            "level_name_vi": self.level_name_vi,
+            "level_name_vn": self.level_name_vi,   # backwards compat
             "level_name_en": self.level_name_en,
             "level_slug": self.level_slug,
             "min_exp_years": self.min_exp_years,
             "max_exp_years": self.max_exp_years,
             "job_zone_mapping": self.job_zone_mapping,
             "seniority_keywords": self.seniority_keywords or [],
-            "description_vn": self.description_vn,
+            "description_vi": self.description_vi,
+            "description_vn": self.description_vi,  # backwards compat
             "description_en": self.description_en,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
