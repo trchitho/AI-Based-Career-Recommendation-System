@@ -74,13 +74,13 @@ class CareerGroupService:
         # Lấy careers trong group
         query = text("""
             SELECT 
-                c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vi, c.short_desc_en,
-                c.description_vi, c.description_en,
+                c.id, c.slug, c.title_vn, c.title_en, c.short_desc_vn, c.short_desc_en,
+                c.description_vn, c.description_en,
                 c.onet_code, c.industry_category
             FROM core.careers c
             JOIN core.career_group_mapping cgm ON c.id = cgm.career_id
             WHERE cgm.group_id = :group_id
-            ORDER BY c.title_vi, c.title_en
+            ORDER BY c.title_vn, c.title_en
             LIMIT :limit OFFSET :offset
         """)
         
@@ -94,17 +94,17 @@ class CareerGroupService:
         for row in result:
             # Fallback title logic
             fallback = (row.slug or "").replace("-", " ").title() if row.slug else ""
-            display_title = row.title_vi or row.title_en or fallback
-            short_desc = row.short_desc_vi or row.short_desc_en or ""
+            display_title = row.title_vn or row.title_en or fallback
+            short_desc = row.short_desc_vn or row.short_desc_en or ""
             
             career_data = {
                 "id": row.id,
                 "slug": row.slug,
                 "title": display_title,
-                "title_vn": row.title_vi,
+                "title_vn": row.title_vn,
                 "title_en": row.title_en,
-                "short_desc": row.short_desc_vi or row.short_desc_en or "",
-                "description_vn": row.description_vi or row.description_en or row.short_desc_vi or row.short_desc_en or "",
+                "short_desc": row.short_desc_vn or row.short_desc_en or "",
+                "description_vn": row.description_vn or row.description_en or row.short_desc_vn or row.short_desc_en or "",
                 "onet_code": row.onet_code,
                 "industry_category": row.industry_category,
                 "group": group
@@ -128,7 +128,7 @@ class InterviewService:
         # Lấy thông tin career
         career_query = text("""
             SELECT 
-                c.id, c.title_vi, c.title_en, c.slug, c.onet_code,
+                c.id, c.title_vn, c.title_en, c.slug, c.onet_code,
                 cg.name as group_name
             FROM core.careers c
             LEFT JOIN core.career_group_mapping cgm ON c.id = cgm.career_id
@@ -142,39 +142,39 @@ class InterviewService:
         
         # Lấy thông tin level từ enhanced system
         level_query = text("""
-            SELECT cgl.level_name_vi, cgl.level_name_en, cgl.description_vi, 
-                   cgl.min_exp_years, cgl.max_exp_years
+            SELECT cgl.level_name_vn, cgl.level_name_en, cgl.description_vn, 
+                cgl.level_slug, cgl.min_exp_years, cgl.max_exp_years
             FROM core.career_group_levels cgl
-            WHERE cgl.level_slug = :level_slug
+            JOIN core.career_level_mapping clm ON cgl.id = clm.group_level_id
+            WHERE clm.career_id = :career_id AND cgl.level_slug = :level_slug
             LIMIT 1
         """)
         
-        level_result = self.db.execute(level_query, {"level_slug": level_slug}).fetchone()
+        level_result = self.db.execute(level_query, {"career_id": career_id, "level_slug": level_slug}).fetchone()
         if not level_result:
             raise HTTPException(status_code=404, detail="Career level not found")
         
         # Lấy skills cho career
         skills_query = text("""
-            SELECT element_name_vi, element_name_en
-            FROM core.career_ksas
-            WHERE onet_code = :onet_code
-            ORDER BY level_value DESC
+            SELECT element_name_vn, element_name_en
+            FROM core.career_work_context
+            WHERE onet_code = (SELECT onet_code FROM core.careers WHERE id = :career_id)
             LIMIT 10
         """)
         
-        skills_result = self.db.execute(skills_query, {"onet_code": career_result.onet_code}).fetchall()
-        skills = [row.element_name_vi or row.element_name_en for row in skills_result if row.element_name_vi or row.element_name_en]
+        skills_result = self.db.execute(skills_query, {"career_id": career_id}).fetchall()
+        skills = [row.element_name_vn or row.element_name_en for row in skills_result if row.element_name_vn or row.element_name_en]
         
         # Lấy tasks cho career
         tasks_query = text("""
-            SELECT task_vi, task_en
+            SELECT task_vn, task_en
             FROM core.career_tasks
-            WHERE onet_code = :onet_code
+            WHERE onet_code = (SELECT onet_code FROM core.careers WHERE id = :career_id)
             LIMIT 5
         """)
         
-        tasks_result = self.db.execute(tasks_query, {"onet_code": career_result.onet_code}).fetchall()
-        tasks = [row.task_vi or row.task_en for row in tasks_result if row.task_vi or row.task_en]
+        tasks_result = self.db.execute(tasks_query, {"career_id": career_id}).fetchall()
+        tasks = [row.task_vn or row.task_en for row in tasks_result if row.task_vn or row.task_en]
         
         # Xây dựng interview focus dựa trên level
         interview_focus = self._get_interview_focus_by_level(level_slug)
@@ -183,13 +183,14 @@ class InterviewService:
         experience_range = f"{level_result.min_exp_years}-{level_result.max_exp_years or '10+'} năm"
         
         # Tên career
-        career_title = career_result.title_vi or career_result.title_en or career_result.slug.replace("-", " ").title()
+        career_result = self.db.query(Career).filter(Career.id == career_id).first()
+        career_title = career_result.title_vn or career_result.title_en or career_result.slug.replace("-", " ").title()
         
         return InterviewContextOut(
             career=career_title,
             group=career_result.group_name or "Chưa phân loại",
-            level=level_result.level_name_vi or level_result.level_name_en,
-            level_description=level_result.description_vi or "",
+            level=level_result.level_name_vn or level_result.level_name_en,
+            level_description=level_result.description_vn or "",
             skills=skills,
             tasks=tasks,
             experience_range=experience_range,

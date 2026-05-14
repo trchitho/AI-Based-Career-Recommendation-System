@@ -880,8 +880,8 @@ def _career_to_client(c: Career, session: Session) -> dict:
         }
 
     # Use English data (title_en, short_desc_en)
-    title = c.title_en or c.title_vi or c.slug.replace("-", " ").title()
-    description = c.short_desc_en or c.short_desc_vi or ""
+    title = c.title_en or c.title_vn or c.slug.replace("-", " ").title()
+    description = c.short_desc_en or c.short_desc_vn or ""
 
     return {
         "id": str(c.id),
@@ -898,7 +898,143 @@ def _career_to_client(c: Career, session: Session) -> dict:
     }
 
 
-# OLD CAREER ENDPOINTS REMOVED - Using Vietnamese-aware endpoints at line ~2996 instead
+@router.get("/careers")
+def list_careers(
+    request: Request,
+    riasecCode: str | None = Query(None, description="Filter by dominant RIASEC code (R/I/A/S/E/C)"),
+    q: str | None = Query(None, description="search by title/slug"),
+    limit: int = Query(20, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    _ = require_admin(request)
+    session = _db(request)
+
+    # Build base query
+    stmt = select(Career)
+    if q:
+        like = f"%{q.lower()}%"
+        # Search in English title first, then Vietnamese
+        stmt = stmt.where(or_(
+            Career.title_en.ilike(like),
+            Career.title_vn.ilike(like),
+            Career.slug.ilike(like)
+        ))
+
+    # If filtering by RIASEC code, join with career_interests
+    if riasecCode and riasecCode.upper() in ['R', 'I', 'A', 'S', 'E', 'C']:
+        code = riasecCode.upper()
+        # Subquery to find onet_codes with dominant RIASEC code
+        code_map = {'R': CareerInterest.r, 'I': CareerInterest.i, 'A': CareerInterest.a,
+                    'S': CareerInterest.s, 'E': CareerInterest.e, 'C': CareerInterest.c}
+        target_col = code_map[code]
+        # Filter where the target code is the maximum
+        subq = select(CareerInterest.onet_code).where(
+            target_col >= CareerInterest.r,
+            target_col >= CareerInterest.i,
+            target_col >= CareerInterest.a,
+            target_col >= CareerInterest.s,
+            target_col >= CareerInterest.e,
+            target_col >= CareerInterest.c,
+        )
+        stmt = stmt.where(Career.onet_code.in_(subq))
+
+    # Get total count
+    total = session.execute(select(func.count()).select_from(stmt.subquery())).scalar() or 0
+
+    # Get paginated results
+    rows = session.execute(stmt.order_by(Career.id.asc()).limit(limit).offset(offset)).scalars().all()
+    items = [_career_to_client(c, session) for c in rows]
+    return {"items": items, "total": int(total), "limit": limit, "offset": offset}
+
+
+@router.get("/careers/export")
+def export_careers_csv(request: Request):
+    _ = require_admin(request)
+    session = _db(request)
+    rows = session.execute(select(Career).order_by(Career.id.asc())).scalars().all()
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "title_vn", "title_en", "description", "industry_category", "riasec_code", "created_at"])
+    for c in rows:
+        writer.writerow([
+            c.id,
+            getattr(c, "title_vn", "") or "",
+            getattr(c, "title_en", "") or getattr(c, "title", "") or "",
+            (getattr(c, "short_desc_en", "") or "")[:200],
+            getattr(c, "industry_category", "") or "",
+            getattr(c, "riasec_code", "") or "",
+            _iso_or_none(getattr(c, "created_at", None)),
+        ])
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=careers_export.csv"},
+    )
+
+
+@router.get("/careers/{career_id}")
+def get_career(request: Request, career_id: int):
+    _ = require_admin(request)
+    session = _db(request)
+    c = session.get(Career, career_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Career not found")
+    return _career_to_client(c, session)
+
+
+@router.post("/careers")
+def create_career(request: Request, payload: dict):
+    admin_id = require_admin(request)
+    session = _db(request)
+    title = (payload.get("title") or "").strip()
+    description = str(payload.get("description") or "")
+    if not title:
+        raise HTTPException(status_code=400, detail="title is required")
+
+    slug = "-".join(title.lower().split())[:100]
+    c = Career(title_en=title, slug=slug, short_desc_en=description)
+    session.add(c)
+    session.flush()
+    _write_audit_log(session, "create_career", "career", c.id, actor_id=admin_id,
+                     details={"title": title})
+    session.commit()
+    session.refresh(c)
+    return {"career": _career_to_client(c, session)}
+
+
+@router.put("/careers/{career_id}")
+def update_career(request: Request, career_id: int, payload: dict):
+    admin_id = require_admin(request)
+    session = _db(request)
+    c = session.get(Career, career_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Career not found")
+    if "title" in payload and payload["title"]:
+        c.title_en = payload["title"].strip()
+    if "description" in payload:
+        desc = str(payload.get("description") or "")
+        c.short_desc_en = desc
+    _write_audit_log(session, "update_career", "career", career_id, actor_id=admin_id,
+                     details={"title": c.title_en})
+    session.commit()
+    session.refresh(c)
+    return {"career": _career_to_client(c, session)}
+
+
+@router.delete("/careers/{career_id}")
+def delete_career(request: Request, career_id: int):
+    admin_id = require_admin(request)
+    session = _db(request)
+    c = session.get(Career, career_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Career not found")
+    title = c.title_en or c.title_vn or c.slug
+    _write_audit_log(session, "delete_career", "career", career_id, actor_id=admin_id,
+                     details={"title": title})
+    session.delete(c)
+    session.commit()
+    return {"status": "ok"}
 
 
 _has_multipart = _importlib_util.find_spec("multipart") is not None
@@ -1002,9 +1138,9 @@ def create_skill(request: Request, payload: dict):
             c = Career(
                 slug=slug,
                 onet_code="GENERIC",
-                title_vi="Kỹ năng chung",
+                title_vn="Kỹ năng chung",
                 title_en="Generic Skills",
-                short_desc_vi="Nhóm kỹ năng tổng quát",
+                short_desc_vn="Nhóm kỹ năng tổng quát",
                 short_desc_en="Generic skill bucket",
             )
             session.add(c)
@@ -1069,8 +1205,8 @@ def _question_to_client(q: AssessmentQuestion, test_type: str, lang: str = "vi")
     opts_src = getattr(q, "options_json", None) or {}
     # Chọn options theo lang
     if isinstance(opts_src, dict):
-        if lang == "vi" and "options_vi" in opts_src:
-            opts = opts_src["options_vi"]
+        if lang == "vn" and "options_vn" in opts_src:
+            opts = opts_src["options_vn"]
         elif "options" in opts_src:
             opts = opts_src["options"]
         else:
@@ -1080,15 +1216,15 @@ def _question_to_client(q: AssessmentQuestion, test_type: str, lang: str = "vi")
     else:
         opts = []
 
-    prompt = getattr(q, "prompt_vi", None) if lang == "vi" else getattr(q, "prompt_en", None)
+    prompt = getattr(q, "prompt_vn", None) if lang == "vn" else getattr(q, "prompt_en", None)
     if not prompt:
-        prompt = getattr(q, "prompt_en", "") or getattr(q, "prompt_vi", "")
+        prompt = getattr(q, "prompt_en", "") or getattr(q, "prompt_vn", "")
 
     return {
         "id": str(q.id),
         "text": prompt,
         "prompt_en": getattr(q, "prompt_en", ""),
-        "prompt_vi": getattr(q, "prompt_vi", ""),
+        "prompt_vn": getattr(q, "prompt_vn", ""),
         "test_type": test_type,
         "dimension": q.question_key or "",
         "question_type": "multiple_choice" if opts else "scale",
@@ -1192,13 +1328,13 @@ def update_question(request: Request, question_id: int, payload: dict):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     if "text" in payload:
-        q.prompt_vi = payload.get("text") or q.prompt_vi
+        q.prompt_vn = payload.get("text") or q.prompt_vn
     if "dimension" in payload:
         q.question_key = payload.get("dimension") or q.question_key
     if "options" in payload:
         q.options_json = payload.get("options") or None  # type: ignore[assignment]
     _write_audit_log(session, "update_question", "question", question_id, actor_id=admin_id,
-                     details={"prompt_preview": (q.prompt_vi or q.prompt_en or "")[:80]})
+                     details={"prompt_preview": (q.prompt_vn or q.prompt_en or "")[:80]})
     session.commit()
     f = session.get(AssessmentForm, q.form_id) if q.form_id is not None else None
     form_type = str(f.form_type) if f and f.form_type is not None else "RIASEC"
@@ -1213,7 +1349,7 @@ def delete_question(request: Request, question_id: int):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     _write_audit_log(session, "delete_question", "question", question_id, actor_id=admin_id,
-                     details={"prompt_preview": (q.prompt_vi or q.prompt_en or "")[:80]})
+                     details={"prompt_preview": (q.prompt_vn or q.prompt_en or "")[:80]})
     session.delete(q)
     session.commit()
     return {"status": "ok"}

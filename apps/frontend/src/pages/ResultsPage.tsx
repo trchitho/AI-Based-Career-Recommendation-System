@@ -94,6 +94,9 @@ const ResultsPage = () => {
       setLoadingResults(true);
       setErrorResults(null);
       const resultsData = await assessmentService.getResults(id);
+      console.log('[ResultsPage] Fetched results:', resultsData);
+      console.log('[ResultsPage] RIASEC scores:', resultsData.riasec_scores);
+      console.log('[ResultsPage] Big Five scores:', resultsData.big_five_scores);
       setResults(resultsData);
     } catch (err: any) {
       if (err?.response?.status === 404) {

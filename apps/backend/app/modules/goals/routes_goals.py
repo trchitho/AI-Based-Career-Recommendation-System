@@ -391,17 +391,23 @@ def _get_gemini_models():
     """Get list of Gemini models to try"""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
+        logger.error("[Goals] GEMINI_API_KEY not found in environment")
         raise HTTPException(status_code=500, detail="AI service not configured")
     
-    genai.configure(api_key=api_key)
+    try:
+        genai.configure(api_key=api_key)
+        logger.info("[Goals] Gemini API configured successfully")
+    except Exception as e:
+        logger.error(f"[Goals] Failed to configure Gemini API: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail="AI service configuration failed")
     
     # Prioritize fast models - same as chatbot
     # NOTE: Gemma models require OAuth (not API key) → excluded
     return [
-        "models/gemini-2.5-flash",       # Fast and efficient (2025)
-        "models/gemini-flash-latest",    # Always latest
-        "models/gemini-2.0-flash",       # Stable alternative
-        "models/gemini-2.0-flash-lite",  # Lightweight fallback
+        "gemini-2.0-flash-exp",          # Latest experimental (fastest)
+        "gemini-1.5-flash",              # Stable and fast
+        "gemini-1.5-flash-8b",           # Lightweight
+        "gemini-1.5-pro",                # Most capable (fallback)
     ]
 
 
@@ -412,7 +418,7 @@ def _generate_with_fallback(prompt: str, max_tokens: int = 1000):
     
     for model_name in models:
         try:
-            logger.info(f"Trying model: {model_name}")
+            logger.info(f"[Goals] Trying model: {model_name}")
             model = genai.GenerativeModel(model_name)
             
             # Không giới hạn token nếu max_tokens <= 0
@@ -432,21 +438,24 @@ def _generate_with_fallback(prompt: str, max_tokens: int = 1000):
                     )
                 )
             
-            logger.info(f"Success with model: {model_name}")
+            logger.info(f"[Goals] Success with model: {model_name}")
             return response.text.strip()
         except Exception as e:
-            logger.warning(f"Model {model_name} failed: {e}")
+            logger.warning(f"[Goals] Model {model_name} failed: {type(e).__name__}: {str(e)}")
             last_error = e
             continue
     
-    raise last_error or Exception("All models failed")
+    # If all models failed, log the last error and raise
+    error_msg = f"All Gemini models failed. Last error: {type(last_error).__name__}: {str(last_error)}"
+    logger.error(f"[Goals] {error_msg}")
+    raise Exception(error_msg) if last_error is None else last_error
 
 
 def _get_roadmap_data(session: Session, career_id: str) -> dict:
     """Get roadmap data for a career"""
     # Try to find career by slug or onet_code
     career_query = text("""
-        SELECT c.id, c.slug, c.title_vi, c.title_en, c.onet_code
+        SELECT c.id, c.slug, c.title_vn, c.title_en, c.onet_code
         FROM core.careers c
         WHERE c.slug = :career_id OR c.onet_code = :career_id OR CAST(c.id AS TEXT) = :career_id
         LIMIT 1
@@ -457,12 +466,12 @@ def _get_roadmap_data(session: Session, career_id: str) -> dict:
         return None
     
     career_db_id = career_row.id
-    career_title = career_row.title_vi or career_row.title_en or career_row.slug
+    career_title = career_row.title_vn or career_row.title_en or career_row.slug
     
     # Get roadmap with language preference
     roadmap_query = text("""
         SELECT r.id, 
-               COALESCE(r.title_vi, r.title_en) as title
+               COALESCE(r.title_vn, r.title_en) as title
         FROM core.roadmaps r
         WHERE r.career_id = :career_id
         LIMIT 1
@@ -609,7 +618,10 @@ ONLY JSON, no other text."""
         # Use fallback function that tries multiple models
         # Sử dụng cấu hình từ environment, -1 nghĩa là không giới hạn
         max_tokens = int(os.getenv("GEMINI_MAX_TOKENS", "1000"))
+        
+        logger.info(f"[Goals] Generating milestones for goal {goal_id}, target_months={target_months}")
         response_text = _generate_with_fallback(prompt, max_tokens=max_tokens)
+        logger.info(f"[Goals] AI response received, length={len(response_text)}")
         
         # Clean up response - extract JSON
         if "```json" in response_text:
@@ -699,7 +711,8 @@ ONLY JSON, no other text."""
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"AI milestone generation error: {e}")
+        logger.error(f"[Goals] AI milestone generation error for goal {goal_id}: {type(e).__name__}: {str(e)}")
+        session.rollback()
         # Fallback: create basic milestones without AI
         return _create_fallback_milestones(session, goal_id, career_name, target_months, recommended_months, time_warning)
 

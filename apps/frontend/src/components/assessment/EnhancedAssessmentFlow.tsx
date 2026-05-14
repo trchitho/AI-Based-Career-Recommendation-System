@@ -15,6 +15,8 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<FlowStep>('assessment');
   const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
+  // Key changes each session → forces StoryBasedAssessment to fully remount → fresh questions
+  const [sessionKey, setSessionKey] = useState(() => Date.now());
 
   const handleAssessmentComplete = async (responses: QuestionResponse[], essayText?: string) => {
     console.log('[EnhancedAssessmentFlow] Starting assessment submission...', responses);
@@ -115,18 +117,15 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
       console.log('[EnhancedAssessmentFlow] Completing assessment...');
       setAssessmentResult(result);
       setCurrentStep('complete');
-      onComplete(result); // Call parent's onComplete to show results page
-      console.log('[EnhancedAssessmentFlow] Assessment completed');
+      setSessionKey(Date.now()); // next session will remount StoryBasedAssessment fresh
+      onComplete(result);
     } catch (error) {
       console.error('[EnhancedAssessmentFlow] Error processing assessment:', error);
-      // Fallback to basic processing if backend fails
-      console.log('[EnhancedAssessmentFlow] Using fallback processing...');
       const basicResult = await processAssessmentResults(responses);
-      console.log('[EnhancedAssessmentFlow] Fallback result:', basicResult);
       setAssessmentResult(basicResult);
       setCurrentStep('complete');
-      onComplete(basicResult); // Call parent's onComplete to show results page
-      console.log('[EnhancedAssessmentFlow] Assessment completed (fallback)');
+      setSessionKey(Date.now()); // next session will remount StoryBasedAssessment fresh
+      onComplete(basicResult);
     }
   };
 
@@ -448,9 +447,11 @@ const EnhancedAssessmentFlow = ({ onComplete, onCancel }: EnhancedAssessmentFlow
   }
 
   if (currentStep === 'assessment') {
+    const completeWithCancel = Object.assign(handleAssessmentComplete, { __cancel: onCancel });
     return (
       <StoryBasedAssessment
-        onComplete={handleAssessmentComplete}
+        key={sessionKey}
+        onComplete={completeWithCancel}
       />
     );
   }

@@ -84,9 +84,9 @@ def get_saved_recommendations(
                 cr.score,
                 cr.rank,
                 c.slug,
-                c.title_vi,
+                c.title_vn,
                 c.title_en,
-                c.description_vi,
+                c.description_vn,
                 c.description_en
             FROM core.career_recommendations cr
             JOIN core.careers c ON c.id = cr.career_id

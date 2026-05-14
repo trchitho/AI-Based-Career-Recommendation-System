@@ -45,7 +45,7 @@ def _extract_career_title(career_recommendations) -> str:
     if isinstance(career_recommendations, list) and len(career_recommendations) > 0:
         top = career_recommendations[0]
         if isinstance(top, dict):
-            return (top.get("title_en") or top.get("title_vi") or
+            return (top.get("title_en") or top.get("title_vn") or
                     top.get("career_title") or top.get("title") or "")
         if isinstance(top, str):
             return top
@@ -195,13 +195,12 @@ class MentorMatchingService:
 
         has_graph = bool(graph_score_map)
 
-        # SBERT model — load only when skills exist (avoids 30s cold start)
+        # SBERT: only use if already in memory — never trigger cold-start (30s) during matching
         sbert_available = False
         if has_skills:
             try:
-                from app.modules.skill_gap.vector_service import _get_model
-                _get_model()  # warm up if already loaded
-                sbert_available = True
+                from app.modules.skill_gap.vector_service import _model_cache
+                sbert_available = _model_cache is not None
             except Exception:
                 pass
 
@@ -307,7 +306,7 @@ class MentorMatchingService:
                 career_objs = self.db.query(CareerModel).filter(
                     or_(
                         CareerModel.title_en.ilike(f"%{target}%"),
-                        CareerModel.title_vi.ilike(f"%{target}%"),
+                        CareerModel.title_vn.ilike(f"%{target}%"),
                         CareerModel.slug == target.lower().replace(" ", "-").replace(",", ""),
                     )
                 ).all()
@@ -348,7 +347,7 @@ class MentorMatchingService:
 
                 # Get career title for display
                 career_obj = self.db.query(CareerModel).filter(CareerModel.id == prog.career_id).first()
-                career_label = (career_obj.title_en or career_obj.title_vi or "") if career_obj else ""
+                career_label = (career_obj.title_en or career_obj.title_vn or "") if career_obj else ""
 
                 skill_score, matching_skills = calculate_skill_match(
                     mentee.desired_skills or [], milestone_skills

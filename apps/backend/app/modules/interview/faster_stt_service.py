@@ -1,8 +1,6 @@
 """
-faster_stt_service.py
-=====================
-Real-time STT using faster-whisper (4-5x faster than openai-whisper).
-Model: base (balance speed vs accuracy for Vietnamese)
+faster_stt_service.py — Whisper STT via faster-whisper (CPU, int8).
+Used by the legacy /ws/stt WebSocket endpoint as a fallback when Deepgram is unavailable.
 """
 from __future__ import annotations
 
@@ -13,29 +11,32 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-MODEL_SIZE = os.getenv("WHISPER_MODEL", "base")  # only used by ws_stt.py (legacy); stt-live uses _get_fw_model()
+_MODEL_SIZE = os.getenv("WHISPER_MODEL", "base")
 
-_model_cache = None
+_model = None
 _model_loaded = False
+
+_HALLUCINATION_PHRASES = [
+    "la la school", "subscribe", "đăng ký kênh",
+    "dòng cốt phúc", "hẹn gặp lại",
+]
 
 
 def _get_model():
-    """Lazy-load faster-whisper model (singleton). Does NOT cache None — retries on failure."""
-    global _model_cache, _model_loaded
+    """Lazy-load faster-whisper model. Retries on failure (never caches None)."""
+    global _model, _model_loaded
     if _model_loaded:
-        return _model_cache
+        return _model
     try:
         from faster_whisper import WhisperModel
-        logger.info(f"[FasterWhisper] Loading model: {MODEL_SIZE} ...")
-        model = WhisperModel(MODEL_SIZE, device="cpu", compute_type="int8")
-        _model_cache = model
+        logger.info(f"[FasterWhisper] Loading model: {_MODEL_SIZE}")
+        _model = WhisperModel(_MODEL_SIZE, device="cpu", compute_type="int8")
         _model_loaded = True
-        logger.info(f"[FasterWhisper] Model ready: {MODEL_SIZE}")
-        return model
+        logger.info(f"[FasterWhisper] Model ready: {_MODEL_SIZE}")
     except Exception as e:
-        logger.error(f"[FasterWhisper] Failed to load model '{MODEL_SIZE}': {e}")
-        # Do NOT set _model_loaded=True — allow retry on next call
-        return None
+        logger.error(f"[FasterWhisper] Failed to load '{_MODEL_SIZE}': {e}")
+        # Do NOT set _model_loaded — allow retry on next call
+    return _model
 
 
 def transcribe_audio_bytes(
@@ -44,9 +45,8 @@ def transcribe_audio_bytes(
     language: str = "vi",
 ) -> Optional[str]:
     """
-    Transcribe audio bytes using faster-whisper.
-    Returns transcript string or None on failure.
-    Fast: ~200ms for 3s audio on CPU with int8 quantization.
+    Transcribe raw audio bytes using faster-whisper.
+    Returns transcript string or None on failure / no speech.
     """
     model = _get_model()
     if not model:
@@ -54,26 +54,16 @@ def transcribe_audio_bytes(
 
     ext = "webm"
     ct = (content_type or "").lower()
-    if "mp3" in ct:  ext = "mp3"
+    if "mp3" in ct:   ext = "mp3"
     elif "wav" in ct:  ext = "wav"
-    elif "mp4" in ct or "m4a" in ct:  ext = "mp4"
+    elif "mp4" in ct or "m4a" in ct: ext = "mp4"
     elif "ogg" in ct:  ext = "ogg"
 
     tmp_path = None
     try:
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix=f".{ext}", prefix="stt_fw_"
-        ) as f:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}", prefix="stt_") as f:
             f.write(audio_bytes)
             tmp_path = f.name
-
-        logger.info(f"[FasterWhisper] Transcribing {len(audio_bytes)} bytes ({ext}) lang={language}")
-
-        _HALLUCINATION_PHRASES = [
-            "la la school", "subscribe", "đăng ký kênh", "bấm like",
-            "cảm ơn các bạn đã xem", "hẹn gặp lại", "dòng cốt phúc",
-            "chúc các bạn học tốt", "nhấn chuông",
-        ]
 
         segments, info = model.transcribe(
             tmp_path,
@@ -90,28 +80,26 @@ def transcribe_audio_bytes(
             log_prob_threshold=-0.8,
         )
 
-        # Filter: only include segments with speech detected
-        valid_segs = [seg.text.strip() for seg in segments if seg.no_speech_prob < 0.7]
-        text = " ".join(valid_segs).strip()
+        valid = [s.text.strip() for s in segments if s.no_speech_prob < 0.7]
+        text = " ".join(valid).strip()
+        logger.info(f"[FasterWhisper] Result: {repr(text)} | duration={info.duration:.1f}s")
 
-        # Reject known hallucination patterns
-        if text and any(p in text.lower() for p in _HALLUCINATION_PHRASES):
+        if any(p in text.lower() for p in _HALLUCINATION_PHRASES):
             logger.warning(f"[FasterWhisper] Hallucination rejected: {repr(text[:80])}")
             return None
 
-        logger.info(f"[FasterWhisper] Result: {repr(text)} | duration={info.duration:.1f}s")
-        return text if text else None
+        return text or None
 
     except Exception as e:
         logger.error(f"[FasterWhisper] Transcribe error ({ext}, {len(audio_bytes)}b): {e}", exc_info=True)
         return None
     finally:
-        if tmp_path and os.path.exists(tmp_path):
+        if tmp_path:
             try:
                 os.unlink(tmp_path)
             except Exception:
                 pass
 
 
-# Singleton for use in routes
+# Module-level alias for convenience
 faster_stt = type("FasterSTT", (), {"transcribe": staticmethod(transcribe_audio_bytes)})()

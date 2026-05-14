@@ -94,7 +94,7 @@ class RecService:
                 "title_vi": meta.get("title_vi"),  # backwards compatibility for older FE/tests
                 "title_en": meta.get("title_en"),
                 # Ưu tiên mô tả tiếng Việt
-                "description": (meta.get("short_desc_vi") or meta.get("short_desc_en") or meta.get("description") or ""),
+                "description": (meta.get("short_desc_vn") or meta.get("short_desc_en") or meta.get("description") or ""),
                 "tags": riasec_codes,  # ["R", "RI", ...]
                 "job_zone": meta.get("job_zone"),
                 "match_score": float(score),
@@ -256,7 +256,7 @@ class RecService:
         logger.debug(f"[OK] Final {len(result)} careers after L1/L2 filter:")
         if logger.level <= logging.DEBUG:
             for i, job in enumerate(result[:top_k], 1):
-                title = job.get("title_en") or job.get("title_vi") or "Unknown"
+                title = job.get("title_en") or job.get("title_vn") or "Unknown"
                 tags = job.get("tags", [])
                 score = job.get("match_score", 0.0)
 
@@ -305,6 +305,7 @@ class RecService:
         # 1) Map assessment -> user_id
         user_id = self._get_user_from_assessment(db, assessment_id)
         if user_id is None:
+            logger.error(f"[Recommendations] Assessment {assessment_id} not found or invalid")
             raise RuntimeError(f"Assessment {assessment_id} not found or invalid")
 
         # 2) Load traits early so fallback can still produce relevant catalog results
@@ -477,10 +478,10 @@ class RecService:
                     cr.rank,
                     c.slug,
                     c.onet_code,
-                    c.title_vi,
+                    c.title_vn,
                     c.title_en,
                     c.short_desc_en,
-                    c.short_desc_vi,
+                    c.short_desc_vn,
                     COALESCE(
                         array_agg(rl.code) FILTER (WHERE rl.code IS NOT NULL),
                         '{}'
@@ -491,7 +492,7 @@ class RecService:
                 LEFT JOIN core.riasec_labels rl ON rl.id = m.label_id
                 WHERE cr.assessment_id = :assessment_id
                 GROUP BY cr.career_id, cr.score, cr.rank, c.slug, c.onet_code,
-                         c.title_vi, c.title_en, c.short_desc_en, c.short_desc_vi
+                         c.title_vn, c.title_en, c.short_desc_en, c.short_desc_vn
                 ORDER BY cr.rank ASC
                 LIMIT :top_k
                 """
@@ -637,22 +638,34 @@ class RecService:
         url = f"{AI_CORE_BASE_URL}/recs/top_careers"
         payload = {"assessment_id": assessment_id, "top_k": top_k}
 
+        logger.info(f"[Recommendations] Calling AI-core: {url} with assessment_id={assessment_id}, top_k={top_k}")
+
         try:
             with httpx.Client(timeout=5.0) as client:
                 resp = client.post(url, json=payload)
 
+            logger.info(f"[Recommendations] AI-core response status: {resp.status_code}")
+
             if resp.status_code != 200:
-                print(f"AI-core error {resp.status_code}: {resp.text}")
+                logger.error(f"[Recommendations] AI-core error {resp.status_code}: {resp.text[:200]}")
                 return []  # Return empty to trigger saved recommendations fallback
 
             data = resp.json()
             items = data.get("items", [])
             if not isinstance(items, list):
-                print("AI-core returned invalid format")
+                logger.error("[Recommendations] AI-core returned invalid format (items not a list)")
                 return []  # Return empty to trigger saved recommendations fallback
 
+            logger.info(f"[Recommendations] AI-core returned {len(items)} career recommendations")
+
+        except httpx.TimeoutException as e:
+            logger.error(f"[Recommendations] AI-core timeout: {str(e)}")
+            return []  # Return empty to trigger saved recommendations fallback
+        except httpx.ConnectError as e:
+            logger.error(f"[Recommendations] AI-core not reachable: {str(e)}")
+            return []  # Return empty to trigger saved recommendations fallback
         except Exception as e:
-            print(f"AI-core not reachable: {e}")
+            logger.error(f"[Recommendations] AI-core unexpected error: {type(e).__name__}: {str(e)}")
             return []  # Return empty to trigger saved recommendations fallback
 
         out: List[Dict[str, Any]] = []
@@ -669,6 +682,7 @@ class RecService:
             )
 
         out.sort(key=lambda x: x["final_score"], reverse=True)
+        logger.info(f"[Recommendations] Processed {len(out)} valid career recommendations")
         return out
 
     # ====================================================================== #
@@ -812,9 +826,9 @@ class RecService:
                 c.id,
                 c.slug,
                 c.onet_code,
-                c.title_vi,
+                c.title_vn,
                 c.title_en,
-                c.short_desc_vi,
+                c.short_desc_vn,
                 c.short_desc_en,
                 NULL::int AS job_zone,
                 COALESCE(
@@ -829,8 +843,8 @@ class RecService:
             WHERE c.onet_code = :cid
             GROUP BY
                 c.id, c.slug, c.onet_code,
-                c.title_vi, c.title_en,
-                c.short_desc_vi, c.short_desc_en
+                c.title_vn, c.title_en,
+                c.short_desc_vn, c.short_desc_en
             LIMIT 1
             """
         )

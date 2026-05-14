@@ -185,6 +185,30 @@ def _normalize_onet_code(code: str) -> str:
     return code
 
 
+def _safe_query(cur, conn, sql: str, params: tuple):
+    """Execute a query and return results, rolling back on error (handles missing tables)."""
+    try:
+        cur.execute(sql, params)
+        return cur.fetchall()
+    except Exception as e:
+        logger.warning(f"[BFF] Optional query failed (table may not exist): {e}")
+        try: conn.rollback()
+        except Exception: pass
+        return []
+
+
+def _safe_query_one(cur, conn, sql: str, params: tuple):
+    """Execute a query and return one row, rolling back on error."""
+    try:
+        cur.execute(sql, params)
+        return cur.fetchone()
+    except Exception as e:
+        logger.warning(f"[BFF] Optional query failed (table may not exist): {e}")
+        try: conn.rollback()
+        except Exception: pass
+        return None
+
+
 def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -> Dict[str, Any]:
     """Fetch career data from all available tables with language support"""
     with conn.cursor(row_factory=dict_row) as cur:
@@ -201,12 +225,13 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         # 1. Career header from core.careers
         cur.execute(
             f"""
-            SELECT {get_lang_col("title_en", "title_vi")} AS title,
-                   {get_lang_col("short_desc_en", "short_desc_vi")} AS description,
-                   title_vi, title_en, short_desc_vi, short_desc_en,
-                   alternative_titles_vi, alternative_titles_en,
+            SELECT {get_lang_col("title_en", "title_vn")} AS title,
+                   {get_lang_col("short_desc_en", "short_desc_vn")} AS description,
+                   title_vn AS title_vi, title_en,
+                   short_desc_vn AS short_desc_vi, short_desc_en,
+                   alternative_titles_vn AS alternative_titles_vi, alternative_titles_en,
                    industry_category, onet_code, id
-            FROM core.careers 
+            FROM core.careers
             WHERE onet_code = %s OR onet_code = %s OR slug = %s
             LIMIT 1
             """,
@@ -221,12 +246,12 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         # 2. Tasks from core.career_tasks
         cur.execute(
             f"""
-            SELECT task_id, 
-                   {get_lang_col("task_en", "task_vi")} AS task_text,
-                   task_en, task_vi,
+            SELECT task_id,
+                   {get_lang_col("task_en", "task_vn")} AS task_text,
+                   task_en, task_vn AS task_vi,
                    importance, task_type, incumbents_responding
-            FROM core.career_tasks 
-            WHERE onet_code = %s 
+            FROM core.career_tasks
+            WHERE onet_code = %s
             ORDER BY importance DESC NULLS LAST, id ASC
             """,
             (code,),
@@ -236,12 +261,12 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         # 3. Technology from core.career_technology
         cur.execute(
             f"""
-            SELECT {get_lang_col("category", "category_vi")} AS category, 
-                   {get_lang_col("name_en", "name_vi")} AS name,
-                   {get_lang_col("example_en", "example_vi")} AS example,
+            SELECT {get_lang_col("category", "category_vn")} AS category,
+                   {get_lang_col("name_en", "name_vn")} AS name,
+                   {get_lang_col("example_en", "example_vn")} AS example,
                    hot_flag, in_demand_flag, commodity_code
-            FROM core.career_technology 
-            WHERE onet_code = %s 
+            FROM core.career_technology
+            WHERE onet_code = %s
             ORDER BY hot_flag DESC NULLS LAST, in_demand_flag DESC NULLS LAST, id ASC
             """,
             (code,),
@@ -346,29 +371,106 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         if language == "vi":
             # Vietnam wages
             cur.execute(
-                """
-                SELECT annual_median_vnd, annual_min_vnd, annual_max_vnd,
-                       monthly_median_vnd, monthly_min_vnd, monthly_max_vnd,
-                       region_hcm_monthly, region_hanoi_monthly, region_danang_monthly, region_provinces_monthly,
-                       experience_level, job_zone, industry_category, data_quality, market_demand
-                FROM core.career_wages_vi 
-                WHERE onet_code = %s
-                """,
-                (code,),
+                f"""
+                SELECT dwa_id,
+                       {get_lang_col("dwa_title_en", "dwa_title_vn")} AS dwa_title,
+                       element_id, iwa_id
+                FROM core.career_dwas
+                WHERE onet_code = %s ORDER BY dwa_id
+                """, (code,),
             )
-        else:
-            # US wages
+            dwas = cur.fetchall()
+        except Exception as _e:
+            logger.warning(f"[BFF] Optional table query failed: {_e}")
+            try: conn.rollback()
+            except Exception: pass
+
+        # 8. Education Percentages (optional table)
+        education_pct = []
+        try:
+            cur.execute(
+                f"""
+                SELECT element_id,
+                       {get_lang_col("element_name_en", "element_name_vn")} AS element_name,
+                       category,
+                       {get_lang_col("category_description_en", "category_description_vn")} AS category_description,
+                       data_value, n, standard_error
+                FROM core.career_education_pct
+                WHERE onet_code = %s ORDER BY category, data_value DESC
+                """, (code,),
+            )
+            education_pct = cur.fetchall()
+        except Exception as _e:
+            logger.warning(f"[BFF] Optional table query failed: {_e}")
+            try: conn.rollback()
+            except Exception: pass
+
+        # 9. Career Preparation (optional table)
+        prep = None
+        try:
+            cur.execute(
+                f"""
+                SELECT job_zone,
+                       {get_lang_col("education_summary_en", "education_summary_vn")} AS education_summary,
+                       {get_lang_col("experience_summary_en", "experience_summary_vn")} AS experience_summary,
+                       COALESCE(domain_source_vn, '') AS domain_source
+                FROM core.career_prep
+                WHERE onet_code = %s
+                """, (code,),
+            )
+            prep = cur.fetchone()
+        except Exception as _e:
+            logger.warning(f"[BFF] career_prep query failed: {_e}")
+            try: conn.rollback()
+            except Exception: pass
+
+        # 10. Wages (optional — career_wages_vi may not exist yet)
+        wages = None
+        try:
+            if language == "vi":
+                cur.execute(
+                    """
+                    SELECT annual_median_vnd, annual_min_vnd, annual_max_vnd,
+                           monthly_median_vnd, monthly_min_vnd, monthly_max_vnd,
+                           region_hcm_monthly, region_hanoi_monthly,
+                           region_danang_monthly, region_provinces_monthly,
+                           experience_level, job_zone, industry_category,
+                           data_quality, market_demand
+                    FROM core.career_wages_vi WHERE onet_code = %s
+                    """, (code,),
+                )
+            else:
+                cur.execute(
+                    """
+                    SELECT annual_median, annual_10th_percentile, annual_25th_percentile,
+                           annual_75th_percentile, annual_90th_percentile,
+                           hourly_median, hourly_10th_percentile, hourly_25th_percentile,
+                           hourly_75th_percentile, hourly_90th_percentile,
+                           experience_level, job_zone, industry_category,
+                           data_quality, market_demand
+                    FROM core.career_wages_us WHERE onet_code = %s
+                    """, (code,),
+                )
+            wages = cur.fetchone()
+        except Exception as _e:
+            logger.warning(f"[BFF] wages query failed (table may not exist): {_e}")
+            try: conn.rollback()
+            except Exception: pass
+
+        # 11. Work Activity Summary (optional table)
+        work_activities = []
+        try:
             cur.execute(
                 """
-                SELECT annual_median, annual_10th_percentile, annual_25th_percentile, 
-                       annual_75th_percentile, annual_90th_percentile,
-                       hourly_median, hourly_10th_percentile, hourly_25th_percentile,
-                       hourly_75th_percentile, hourly_90th_percentile,
-                       experience_level, job_zone, industry_category, data_quality, market_demand
-                FROM core.career_wages_us 
-                WHERE onet_code = %s
-                """,
-                (code,),
+                SELECT s.element_id, s.importance_score, s.level_score, s.combined_score,
+                       s.activity_rank, s.is_top_activity,
+                       m.element_name_vn, m.element_name, m.description_vn, m.description,
+                       m.activity_category_vn, m.activity_category
+                FROM core.career_work_activity_summary s
+                LEFT JOIN core.career_work_activities_master m ON s.element_id = m.element_id
+                WHERE s.onet_code = %s
+                ORDER BY s.activity_rank ASC NULLS LAST, s.combined_score DESC
+                """, (code,),
             )
         wages = cur.fetchone()
 

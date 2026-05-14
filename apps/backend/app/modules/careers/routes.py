@@ -42,7 +42,7 @@ def lookup_career_group(onet_code: str, db: Session = Depends(get_db)):
         onet_dot = onet_code.replace('-', '.', 1).replace('-', '.', 1)  # 39-5094.00
         
         query = text("""
-            SELECT cg.slug as group_slug, c.slug as career_slug, c.title_vi, c.title_en, c.onet_code
+            SELECT cg.slug as group_slug, c.slug as career_slug, c.title_vn, c.title_en, c.onet_code
             FROM core.careers c
             JOIN core.career_group_mapping cgm ON c.id = cgm.career_id
             JOIN core.career_groups cg ON cgm.group_id = cg.id
@@ -63,7 +63,7 @@ def lookup_career_group(onet_code: str, db: Session = Depends(get_db)):
             "onet_code": onet_code,
             "group_slug": result.group_slug,
             "career_slug": result.career_slug,
-            "title": result.title_vi or result.title_en,
+            "title": result.title_vn or result.title_en,
             "redirect_url": f"/careers/{result.group_slug}/{onet_code}"
         }
     except Exception as e:
@@ -224,9 +224,9 @@ def get_careers(
     if q and q.strip():
         search_condition = """
         WHERE (
-            LOWER(c.title_vi) LIKE LOWER(:search) OR 
+            LOWER(c.title_vn) LIKE LOWER(:search) OR 
             LOWER(c.title_en) LIKE LOWER(:search) OR
-            LOWER(c.short_desc_vi) LIKE LOWER(:search) OR
+            LOWER(c.short_desc_vn) LIKE LOWER(:search) OR
             LOWER(c.short_desc_en) LIKE LOWER(:search) OR
             LOWER(cg.name) LIKE LOWER(:search)
         )
@@ -235,15 +235,15 @@ def get_careers(
     
     query = text(f"""
         SELECT 
-            c.id, c.slug, c.title_vi, c.title_en, c.short_desc_vi, c.short_desc_en,
-            c.description_vi, c.description_en,
+            c.id, c.slug, c.title_vn, c.title_en, c.short_desc_vn, c.short_desc_en,
+            c.description_vn, c.description_en,
             c.onet_code, c.industry_category,
             cg.name as group_name, cg.slug as group_slug
         FROM core.careers c
         LEFT JOIN core.career_group_mapping cgm ON c.id = cgm.career_id
         LEFT JOIN core.career_groups cg ON cgm.group_id = cg.id
         {search_condition}
-        ORDER BY c.title_vi, c.title_en
+        ORDER BY c.title_vn, c.title_en
         LIMIT :limit OFFSET :offset
     """)
     
@@ -253,8 +253,8 @@ def get_careers(
     for row in result:
         # Fallback title logic
         fallback = (row.slug or "").replace("-", " ").title() if row.slug else ""
-        display_title = row.title_vi or row.title_en or fallback
-        short_desc = row.short_desc_vi or row.short_desc_en or ""
+        display_title = row.title_vn or row.title_en or fallback
+        short_desc = row.short_desc_vn or row.short_desc_en or ""
         
         group_data = None
         if row.group_name:
@@ -273,10 +273,10 @@ def get_careers(
             "id": row.id,
             "slug": row.slug,
             "title": display_title,
-            "title_vn": row.title_vi,
+            "title_vn": row.title_vn,
             "title_en": row.title_en,
-            "short_desc": row.short_desc_vi or row.short_desc_en or "",
-            "description_vn": row.description_vi or row.description_en or row.short_desc_vi or row.short_desc_en or "",
+            "short_desc": row.short_desc_vn or row.short_desc_en or "",
+            "description_vn": row.description_vn or row.description_en or row.short_desc_vn or row.short_desc_en or "",
             "onet_code": row.onet_code,
             "industry_category": row.industry_category,
             "group": group_data,

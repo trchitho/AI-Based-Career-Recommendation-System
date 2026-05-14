@@ -40,14 +40,14 @@ class CareerGroupsResponse(BaseModel):
 class CareerGroupLevelBase(BaseModel):
     group_id: int = Field(..., description="ID nhóm ngành")
     level_order: int = Field(..., description="Thứ tự level")
-    level_name_vi: str = Field(..., description="Tên level tiếng Việt")
+    level_name_vn: str = Field(..., description="Tên level tiếng Việt")
     level_name_en: str = Field(..., description="Tên level tiếng Anh")
     level_slug: str = Field(..., description="Slug cho URL")
     min_exp_years: int = Field(..., description="Tối thiểu năm kinh nghiệm")
     max_exp_years: Optional[int] = Field(None, description="Tối đa năm kinh nghiệm")
     job_zone_mapping: Optional[str] = Field(None, description="Map với O*NET job zones")
     seniority_keywords: Optional[List[str]] = Field(None, description="Keywords trong job title")
-    description_vi: Optional[str] = Field(None, description="Mô tả tiếng Việt")
+    description_vn: Optional[str] = Field(None, description="Mô tả tiếng Việt")
     description_en: Optional[str] = Field(None, description="Mô tả tiếng Anh")
 
 

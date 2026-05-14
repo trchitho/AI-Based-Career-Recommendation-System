@@ -329,7 +329,9 @@ async def lifespan(_: FastAPI):
             _asyncio.set_event_loop(loop)
             try:
                 from app.modules.chat.schedule_routes import _send_session_reminders
-                loop.run_until_complete(_send_session_reminders())
+                loop.run_until_complete(_asyncio.wait_for(_send_session_reminders(), timeout=30))
+            except _asyncio.TimeoutError:
+                logger.warning("Session reminder job timed out after 30s")
             finally:
                 loop.close()
 
@@ -464,11 +466,18 @@ def create_app() -> FastAPI:
             response = await call_next(request)
             db.commit()
             return response
-        except Exception:
-            db.rollback()
+        except BaseException:
+            try:
+                db.rollback()
+            except Exception:
+                logger.exception("Failed to rollback request database session")
             raise
         finally:
-            db.close()
+            request.state.db = None
+            try:
+                db.close()
+            except Exception:
+                logger.debug("Request database session close skipped during shutdown", exc_info=True)
 
     # Health & root
     @app.get("/health", tags=["system"])
