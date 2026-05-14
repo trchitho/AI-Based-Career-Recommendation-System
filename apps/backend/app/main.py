@@ -276,6 +276,41 @@ async def lifespan(_: FastAPI):
             print("✅ interview_sessions.question_distribution ready")
     except Exception as e:
         print("Skip question_distribution migration:", repr(e))
+    # ── Job crawling system: migrate tables + seed industries + start scheduler ──
+    try:
+        from app.modules.jobs.service import ensure_tables
+        from app.core.db import SessionLocal as _SL
+        _db = _SL()
+        try:
+            ensure_tables(_db)
+            print("[OK] Job crawling tables ready")
+
+            # Auto-trigger first crawl if DB is empty
+            from app.modules.jobs.models import CrawledJob as _CJ
+            job_count = _db.query(_CJ).count()
+            if job_count == 0:
+                print("[INFO] No jobs in DB — triggering initial crawl in background...")
+                import threading as _t
+                from app.modules.jobs.scheduler import _run_full_crawl_job
+                _t.Thread(
+                    target=_run_full_crawl_job,
+                    daemon=True,
+                    name="job-crawl-initial",
+                ).start()
+            else:
+                print(f"[OK] Job DB has {job_count} existing jobs")
+        finally:
+            _db.close()
+    except Exception as e:
+        print(f"[WARN] Job crawling table setup failed: {e}")
+
+    try:
+        from app.modules.jobs.scheduler import start_job_scheduler
+        start_job_scheduler()
+        print("[OK] Job crawling scheduler started (full crawl every 6h)")
+    except Exception as e:
+        print(f"[WARN] Job crawling scheduler failed: {e}")
+
     # Start company update scheduler
     try:
         from app.modules.companies.scheduler import start_scheduler, stop_scheduler
@@ -332,7 +367,13 @@ async def lifespan(_: FastAPI):
 
     yield
 
-    # Shutdown scheduler on app stop
+    # Shutdown schedulers on app stop
+    try:
+        from app.modules.jobs.scheduler import stop_job_scheduler
+        stop_job_scheduler()
+    except Exception:
+        pass
+
     try:
         from app.modules.companies.scheduler import stop_scheduler
         stop_scheduler()
@@ -666,6 +707,14 @@ def create_app() -> FastAPI:
         app.include_router(tracking_router.router, prefix="/api/analytics", tags=["analytics"])
     except Exception as e:
         print("??  Skip analytics tracking router:", repr(e))
+
+    # Job crawling & labor market intelligence
+    try:
+        from .modules.jobs.routes import router as jobs_router
+        app.include_router(jobs_router)
+        print("[OK] Job crawling & labor market intelligence API registered at /api/jobs")
+    except Exception as e:
+        print(f"??  Skip jobs router: {repr(e)}")
 
     # Trends & Market Analytics
     try:

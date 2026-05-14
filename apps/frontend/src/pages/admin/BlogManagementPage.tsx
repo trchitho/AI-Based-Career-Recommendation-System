@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { blogService, BlogPost, BlogListResponse } from '../../services/blogService';
 import BlogPreviewModal from '../../components/admin/BlogPreviewModal';
+import { translateStatus } from '../../utils/translations';
 
 const BlogManagementPage = () => {
   const navigate = useNavigate();
@@ -152,7 +153,7 @@ const BlogManagementPage = () => {
                               ? 'bg-[#FEE2E2] text-[#DC2626] dark:bg-red-900/20 dark:text-red-400'
                               : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
                           }`}>
-                          {post.status || 'Draft'}
+                          {translateStatus(post.status || 'Draft')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">

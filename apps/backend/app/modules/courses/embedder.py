@@ -13,17 +13,28 @@ logger = logging.getLogger(__name__)
 
 # ── Try SBERT ─────────────────────────────────────────────────────
 _sbert_model = None
+_sbert_unavailable = False
+_gemini_unavailable = False
+
+_GEMINI_EMBED_MODELS = [
+    m.strip()
+    for m in os.getenv("GEMINI_EMBEDDING_MODELS", "models/embedding-001,text-embedding-004").split(",")
+    if m.strip()
+]
 
 def _get_sbert():
-    global _sbert_model
+    global _sbert_model, _sbert_unavailable
     if _sbert_model is not None:
         return _sbert_model
+    if _sbert_unavailable:
+        return None
     try:
         from sentence_transformers import SentenceTransformer  # type: ignore
         _sbert_model = SentenceTransformer("all-MiniLM-L6-v2")
         logger.info("✅ SBERT model loaded: all-MiniLM-L6-v2")
         return _sbert_model
     except Exception as e:
+        _sbert_unavailable = True
         logger.warning(f"⚠️  sentence-transformers not available: {e}")
         return None
 
@@ -45,18 +56,34 @@ def embed_text(text: str) -> Optional[list[float]]:
         except Exception as e:
             logger.warning(f"SBERT encode failed: {e}")
 
-    # 2️⃣  Fallback: Gemini embedding (text-embedding-004)
+    # 2️⃣  Fallback: Gemini embedding. Try a small model list because the
+    # supported model name differs across google-generativeai API versions.
+    global _gemini_unavailable
+    if _gemini_unavailable:
+        return None
+
     try:
         import google.generativeai as genai  # type: ignore
         api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if api_key:
             genai.configure(api_key=api_key)
-            result = genai.embed_content(
-                model="models/text-embedding-004",
-                content=text,
-            )
-            return result["embedding"]
+            last_error: Exception | None = None
+            for model_name in _GEMINI_EMBED_MODELS:
+                try:
+                    result = genai.embed_content(
+                        model=model_name,
+                        content=text,
+                    )
+                    embedding = result.get("embedding") if isinstance(result, dict) else None
+                    if embedding:
+                        return embedding
+                except Exception as e:
+                    last_error = e
+                    logger.debug(f"Gemini embedding model {model_name} failed: {e}")
+            if last_error:
+                raise last_error
     except Exception as e:
+        _gemini_unavailable = True
         logger.warning(f"Gemini embedding fallback failed: {e}")
 
     return None

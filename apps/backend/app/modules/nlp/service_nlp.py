@@ -24,7 +24,12 @@ logger = logging.getLogger(__name__)
 
 AI_CORE_URL = os.getenv("AI_CORE_URL", "http://localhost:9000")
 EMBEDDING_DIM = 768
-_GEMINI_EMBED_MODEL = "models/text-embedding-004"
+_GEMINI_EMBED_MODELS = [
+    m.strip()
+    for m in os.getenv("GEMINI_EMBEDDING_MODELS", "models/embedding-001,text-embedding-004").split(",")
+    if m.strip()
+]
+_gemini_embed_unavailable = False
 
 RIASEC_KEYS = ["realistic", "investigative", "artistic", "social", "enterprising", "conventional"]
 BIG5_KEYS   = ["openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"]
@@ -96,20 +101,34 @@ def get_embedding(text_input: str, task_type: str = "RETRIEVAL_DOCUMENT") -> lis
         logger.debug(f"[NLP] AI-core /ai/encode unavailable: {e}")
 
     # 2) Fallback: Gemini embed
+    global _gemini_embed_unavailable
+    if _gemini_embed_unavailable:
+        return []
+
     api_key = _gemini_api_key()
     if not api_key:
         return []
     try:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        result = genai.embed_content(
-            model=_GEMINI_EMBED_MODEL,
-            content=text_input[:2000],
-            task_type=task_type,
-        )
-        emb = result.get("embedding") or result["embedding"]
-        return emb if emb else []
+        last_error: Exception | None = None
+        for model_name in _GEMINI_EMBED_MODELS:
+            try:
+                result = genai.embed_content(
+                    model=model_name,
+                    content=text_input[:2000],
+                    task_type=task_type,
+                )
+                emb = result.get("embedding") if isinstance(result, dict) else None
+                if emb:
+                    return emb
+            except Exception as e:
+                last_error = e
+                logger.debug(f"[NLP] Gemini embed model {model_name} failed: {e}")
+        if last_error:
+            raise last_error
     except Exception as e:
+        _gemini_embed_unavailable = True
         logger.warning(f"[NLP] Gemini embed_content failed: {e}")
         return []
 

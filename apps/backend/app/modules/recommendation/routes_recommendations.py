@@ -27,6 +27,7 @@ def _db(req: Request) -> Session:
 class CareerDTO(BaseModel):
     career_id: str
     slug: Optional[str] = None
+    job_onet: Optional[str] = None
     title_vn: Optional[str] = None
     title_en: Optional[str] = None
     description: Optional[str] = None

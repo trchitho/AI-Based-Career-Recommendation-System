@@ -50,16 +50,24 @@ class AudioCache(Base):
     def generate_content_hash(text: str, voice_settings: dict) -> str:
         """
         Generate SHA256 hash for text + voice settings combination
+        CRITICAL: Must include provider and voice_model to prevent cross-language cache pollution
         
         Args:
             text: Text content to be synthesized
-            voice_settings: Voice settings (type, rate, pitch, etc.)
+            voice_settings: Voice settings (type, rate, pitch, language, provider, voice_model)
             
         Returns:
             SHA256 hash string
         """
+        # CRITICAL: Include provider and voice_model in hash to prevent English audio reuse
+        # for Vietnamese requests
+        provider = voice_settings.get('provider', 'edge-tts')  # edge-tts, gtts, pyttsx3
+        voice_model = voice_settings.get('voice_model', 'unknown')  # vi-VN-NamMinhNeural, gtts-vi, etc.
+        
         # Create consistent string from text + settings
-        settings_str = f"{voice_settings.get('voice_type', 'female')}_" \
+        settings_str = f"{provider}_" \
+                      f"{voice_model}_" \
+                      f"{voice_settings.get('voice_type', 'female')}_" \
                       f"{voice_settings.get('rate', '+0%')}_" \
                       f"{voice_settings.get('pitch', '+0Hz')}_" \
                       f"{voice_settings.get('volume', 1.0)}_" \
