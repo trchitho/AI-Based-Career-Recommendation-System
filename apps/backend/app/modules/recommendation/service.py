@@ -90,7 +90,8 @@ class RecService:
                 "career_id": slug,  # FE dùng slug làm id
                 "slug": slug,
                 "job_onet": onet_code,  # giữ O*NET để log / debug
-                "title_vi": meta.get("title_vi"),
+                "title_vn": meta.get("title_vi"),
+                "title_vi": meta.get("title_vi"),  # backwards compatibility for older FE/tests
                 "title_en": meta.get("title_en"),
                 # Ưu tiên mô tả tiếng Việt
                 "description": (meta.get("short_desc_vi") or meta.get("short_desc_en") or meta.get("description") or ""),
@@ -306,30 +307,33 @@ class RecService:
         if user_id is None:
             raise RuntimeError(f"Assessment {assessment_id} not found or invalid")
 
-        # 2) Gọi AI-core
+        # 2) Load traits early so fallback can still produce relevant catalog results
+        traits = self._load_traits_snapshot(db, assessment_id)
+        riasec_values = traits.get("riasec_values")
+        top_dim = traits.get("riasec_top_dim")
+
+        # 3) Gọi AI-core
         logger.debug(f"[get_main_recommendations] Calling AI-core for assessment {assessment_id}")
         scored = self._call_ai_core_top_careers(assessment_id, internal_top_k)
         logger.debug(f"[get_main_recommendations] AI-core returned {len(scored) if scored else 0} items")
 
-        # 2.1) Nếu AI-core không trả về kết quả, thử lấy từ saved recommendations
+        # 3.1) Nếu AI-core không trả về kết quả, thử saved recommendations rồi fallback catalog.
         if not scored:
             logger.warning(f"AI-core returned no results, trying saved recommendations for assessment {assessment_id}")
             saved_items = self._get_saved_recommendations_from_db(db, assessment_id, top_k)
             if saved_items:
                 logger.debug(f"Returning {len(saved_items)} saved recommendations")
                 return {"request_id": None, "items": saved_items}
-            logger.warning(f"No saved recommendations found for assessment {assessment_id}")
-            return {"request_id": None, "items": []}
+            logger.warning(f"No saved recommendations found for assessment {assessment_id}; using catalog fallback")
+            fallback_items = self._get_catalog_fallback_recommendations(db, riasec_values, top_k)
+            self._apply_display_match(fallback_items)
+            for idx, it in enumerate(fallback_items, start=1):
+                it["position"] = idx
+            self._save_career_recommendations(db, user_id, assessment_id, fallback_items[:5])
+            return {"request_id": str(uuid.uuid4()) if fallback_items else None, "items": fallback_items}
 
-        # 3) Snapshot traits của **chính assessment này**
-        traits = self._load_traits_snapshot(db, assessment_id)
-        riasec_values = traits.get("riasec_values")
-        top_dim = traits.get("riasec_top_dim")
-
-        # STRICT: Bắt buộc phải có RIASEC values
         if not riasec_values or len(riasec_values) != 6:
             logger.error(f"Assessment {assessment_id}: Missing RIASEC values for user {user_id}")
-            raise RuntimeError(f"Missing RIASEC traits for user {user_id}. User must complete RIASEC assessment first.")
 
         logger.debug(f"Assessment {assessment_id}: top_interest={top_dim}, AI-core returned {len(scored)} careers")
 
@@ -342,17 +346,23 @@ class RecService:
         if logger.level <= logging.DEBUG:
             logger.debug("📋 First 10 careers with tags (before filter):")
             for i, item in enumerate(items_with_meta[:10], 1):
-                title = item.get("title_en") or item.get("title_vi") or "Unknown"
+                title = item.get("title_en") or item.get("title_vn") or item.get("title_vi") or "Unknown"
                 tags = item.get("tags", [])
                 score = item.get("match_score", 0.0)
                 logger.debug(f"  {i}. {title[:40]:<40} | Tags: {tags} | Score: {score:.3f}")
 
-        # 5) Filter theo RIASEC L1/L2 (NEW LOGIC - chỉ dùng top 2 dimensions)
-        items_filtered = self._filter_by_riasec_top2(
-            jobs=items_with_meta,
-            riasec_scores=riasec_values,
-            top_k=top_k,
-        )
+        # 5) Filter theo RIASEC L1/L2 nếu có snapshot; nếu thiếu thì vẫn trả top score để UI không rỗng.
+        if riasec_values and len(riasec_values) == 6:
+            items_filtered = self._filter_by_riasec_top2(
+                jobs=items_with_meta,
+                riasec_scores=riasec_values,
+                top_k=top_k,
+            )
+        else:
+            items_filtered = sorted(
+                items_with_meta,
+                key=lambda x: (-x.get("match_score", 0.0), x.get("job_onet", "")),
+            )[:top_k]
 
         logger.debug(f"Assessment {assessment_id}: {len(items_filtered)} careers after L1/L2 filter")
 
@@ -491,7 +501,7 @@ class RecService:
 
             items = []
             for row in rows:
-                riasec_codes = row[9] if row[9] else []
+                riasec_codes = row[10] if row[10] else []
                 if isinstance(riasec_codes, (list, tuple)):
                     riasec_codes = [str(x) for x in riasec_codes if x is not None]
 
@@ -500,9 +510,10 @@ class RecService:
                         "career_id": row[3] or str(row[0]),  # slug or career_id
                         "slug": row[3],
                         "job_onet": row[4],
+                        "title_vn": row[5],
                         "title_vi": row[5],
                         "title_en": row[6],
-                        "description": row[7] or row[8] or "",
+                        "description": row[8] or row[7] or "",
                         "match_score": float(row[1]) if row[1] else 0.0,
                         "display_match": float(row[1]) if row[1] else 0.0,
                         "tags": riasec_codes,
@@ -516,6 +527,103 @@ class RecService:
         except Exception as e:
             logger.error(f"Failed to get saved recommendations: {e}")
             return []
+
+    def _get_catalog_fallback_recommendations(
+        self,
+        db: Session,
+        riasec_scores: Optional[List[float]],
+        top_k: int,
+    ) -> List[Dict[str, Any]]:
+        """
+        Last-resort fallback that uses careers already present in PostgreSQL.
+        This keeps /api/recommendations useful when AI-core, saved rows, or
+        embedding providers are unavailable.
+        """
+        try:
+            rows = db.execute(
+                text(
+                    """
+                    SELECT
+                        c.slug,
+                        c.onet_code,
+                        c.title_vi,
+                        c.title_en,
+                        c.short_desc_vi,
+                        c.short_desc_en,
+                        COALESCE(
+                            array_agg(rl.code) FILTER (WHERE rl.code IS NOT NULL),
+                            '{}'
+                        ) AS riasec_codes
+                    FROM core.careers c
+                    LEFT JOIN core.career_riasec_map m ON m.career_id = c.id
+                    LEFT JOIN core.riasec_labels rl ON rl.id = m.label_id
+                    WHERE COALESCE(c.title_vi, c.title_en, '') <> ''
+                    GROUP BY c.id, c.slug, c.onet_code, c.title_vi, c.title_en,
+                             c.short_desc_vi, c.short_desc_en
+                    LIMIT 500
+                    """
+                )
+            ).fetchall()
+        except Exception as e:
+            logger.error(f"Failed to build catalog fallback recommendations: {e}")
+            return []
+
+        dims = ["R", "I", "A", "S", "E", "C"]
+        weights: Dict[str, float] = {}
+        if riasec_scores and len(riasec_scores) == 6:
+            max_score = max(float(x or 0.0) for x in riasec_scores) or 1.0
+            weights = {
+                dim: float(riasec_scores[i] or 0.0) / max_score
+                for i, dim in enumerate(dims)
+            }
+
+        items: List[Dict[str, Any]] = []
+        for idx, row in enumerate(rows):
+            tags = row[6] if row[6] else []
+            if isinstance(tags, (list, tuple)):
+                riasec_codes = [str(x) for x in tags if x is not None]
+            else:
+                riasec_codes = []
+
+            primary_dims = {
+                code.strip().upper()[0]
+                for code in riasec_codes
+                if code and code.strip().upper()[0] in dims
+            }
+            if weights and primary_dims:
+                fit = max(weights.get(dim, 0.0) for dim in primary_dims)
+                score = 0.55 + fit * 0.40
+            else:
+                score = 0.55
+
+            # Tiny deterministic tiebreaker so ordering is stable without random.
+            score -= min(idx, 100) * 0.0001
+
+            slug = row[0] or row[1] or f"career-{idx}"
+            items.append(
+                {
+                    "career_id": slug,
+                    "slug": row[0],
+                    "job_onet": row[1],
+                    "title_vn": row[2],
+                    "title_vi": row[2],
+                    "title_en": row[3],
+                    "description": row[4] or row[5] or "",
+                    "match_score": round(score, 4),
+                    "display_match": None,
+                    "tags": riasec_codes,
+                    "job_zone": None,
+                    "position": 0,
+                }
+            )
+
+        items.sort(
+            key=lambda x: (
+                -float(x.get("match_score") or 0.0),
+                x.get("title_vn") or x.get("title_en") or x.get("career_id") or "",
+            )
+        )
+        return items[:top_k]
 
     # ====================================================================== #
     # 4. AI-core integration

@@ -5,10 +5,12 @@ export interface CareerItem {
   slug: string;
   title: string;      // display title (vi preferred)
   title_vn?: string;  // tiếng Việt
+  title_vi?: string;  // legacy backend alias
   title_en?: string;  // tiếng Anh
   short_desc?: string;
   description?: string;
   description_vn?: string;
+  description_vi?: string;
   skills?: string[];
   education_requirements?: string;
   salary_range?: string;
