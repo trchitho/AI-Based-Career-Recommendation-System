@@ -85,7 +85,7 @@ const EssayModalComponent = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-6 md:p-10 font-['Plus_Jakarta_Sans'] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 md:p-8 font-['Plus_Jakarta_Sans'] overflow-y-auto">
 
       <style>{`
         @keyframes modal-pop {
@@ -95,10 +95,10 @@ const EssayModalComponent = ({
         .animate-modal-pop { animation: modal-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       `}</style>
 
-      <div className="w-full max-w-2xl max-h-[85vh] bg-white dark:bg-gray-800 rounded-[32px] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-modal-pop flex flex-col">
+      <div className="w-full max-w-2xl max-h-[calc(100vh-72px)] md:max-h-[calc(100vh-96px)] bg-white dark:bg-gray-800 rounded-[28px] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-modal-pop flex flex-col">
 
         {/* Header */}
-        <div className="relative p-6 md:p-8 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+        <div className="relative p-5 md:p-6 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-700 to-indigo-600"></div>
 
           <div className="flex justify-between items-start gap-4">
@@ -106,10 +106,10 @@ const EssayModalComponent = ({
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-3 border border-indigo-200 dark:border-indigo-800">
                 {t('assessment.essay.optionalStep')}
               </div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">
+              <h2 className="text-2xl md:text-[1.65rem] font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight">
                 {promptTitle || t('assessment.essay.title')}
               </h2>
-              <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+              <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
                 {promptText || t('assessment.essay.defaultPrompt')}
               </p>
             </div>
@@ -125,12 +125,12 @@ const EssayModalComponent = ({
         </div>
 
         {/* Body */}
-        <div className="p-6 md:p-8 bg-gray-50/50 dark:bg-gray-900/50 overflow-y-auto flex-1">
+        <div className="p-5 md:p-6 bg-gray-50/50 dark:bg-gray-900/50 overflow-y-auto flex-1">
           <div className="relative">
             <textarea
               value={essayText}
               onChange={handleChange}
-              rows={6}
+              rows={5}
               className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-5 py-4 pr-14 text-base text-gray-900 dark:text-white shadow-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 outline-none transition-all resize-none placeholder-gray-400 font-medium"
               placeholder={t('assessment.essay.placeholder')}
               disabled={loading}
@@ -215,7 +215,7 @@ const EssayModalComponent = ({
           )}
 
           {/* Footer Actions */}
-          <div className="mt-8 flex items-center justify-end gap-4">
+          <div className="mt-5 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onSkip}

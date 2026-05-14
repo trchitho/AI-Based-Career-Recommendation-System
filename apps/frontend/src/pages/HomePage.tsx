@@ -148,11 +148,11 @@ const HomePage = () => {
     };
 
     const testimonials = [
-        { name: 'Sarah Nguyen', role: 'Software Engineer', text: "The insights were incredibly accurate. I finally understand why certain careers appeal to me.", initial: 'S', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
-        { name: 'Michael Chen', role: 'Product Manager', text: "A game-changer for my career planning. The roadmap gave me clear direction.", initial: 'M', gradient: 'linear-gradient(135deg, #3b82f6, #06b6d4)' },
-        { name: 'Emily Patel', role: 'UX Designer', text: "Highly recommended for anyone feeling stuck in their current role.", initial: 'E', gradient: 'linear-gradient(135deg, #ec4899, #8b5cf6)' },
-        { name: 'David Kim', role: 'Data Scientist', text: "The AI analysis is spot on. It helped me pivot my career successfully.", initial: 'D', gradient: 'linear-gradient(135deg, #06b6d4, #22c55e)' },
-        { name: 'Lisa Wang', role: 'Marketing Lead', text: "Simple, intuitive, and effective. Best career tool I've used.", initial: 'L', gradient: 'linear-gradient(135deg, #f59e0b, #fb923c)' },
+        { name: 'Nguyễn Minh Anh', role: 'Kỹ sư phần mềm', text: "Kết quả phân tích cực kỳ chính xác. Tôi cuối cùng cũng hiểu tại sao mình phù hợp với những nghề nhất định.", initial: 'A', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
+        { name: 'Trần Đức Minh', role: 'Quản lý sản phẩm', text: "Thay đổi hoàn toàn cách tôi lập kế hoạch sự nghiệp. Lộ trình rõ ràng và chi tiết.", initial: 'M', gradient: 'linear-gradient(135deg, #3b82f6, #06b6d4)' },
+        { name: 'Lê Thị Hương', role: 'Nhà thiết kế UX', text: "Rất khuyến khích cho bất kỳ ai đang cảm thấy bế tắc trong công việc hiện tại.", initial: 'H', gradient: 'linear-gradient(135deg, #ec4899, #8b5cf6)' },
+        { name: 'Phạm Quốc Đạt', role: 'Chuyên viên phân tích dữ liệu', text: "AI phân tích rất chuẩn xác. Giúp tôi chuyển đổi nghề nghiệp thành công.", initial: 'Đ', gradient: 'linear-gradient(135deg, #06b6d4, #22c55e)' },
+        { name: 'Võ Thanh Tâm', role: 'Trưởng nhóm Marketing', text: "Đơn giản, trực quan và hiệu quả. Công cụ hướng nghiệp tốt nhất tôi từng dùng.", initial: 'T', gradient: 'linear-gradient(135deg, #f59e0b, #fb923c)' },
     ];
     const row1 = [...testimonials, ...testimonials];
     const row2 = [...testimonials].reverse().concat([...testimonials].reverse());

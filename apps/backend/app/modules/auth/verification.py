@@ -23,7 +23,7 @@ def send_verification_email(session: Session, user, minutes: int = DEFAULT_VERIF
     name = getattr(user, "full_name", None) or "there"
     body = (
         f"Hi {name},\n\n"
-        "Here is your verification code to activate your CareerBridge AI account:\n\n"
+        "Here is your verification code to activate your CareerVerse AI account:\n\n"
         f"Verification code: {otp}\n"
         "(This code will expire soon. Do not share it with anyone.)\n\n"
         "If you did not request this, you can ignore this email."

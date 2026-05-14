@@ -183,34 +183,50 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
             (
                 1,
                 "Fundamentals",
+                "Kiến thức nền tảng",
                 "Master the foundational knowledge and core concepts",
+                "Nắm vững kiến thức và khái niệm cơ bản",
                 "2 weeks",
+                "2 tuần",
                 [{"title": "CS50 Lecture 1", "url": "https://cs50.harvard.edu/", "type": "course"}],
+                [{"title": "CS50 Bài giảng 1", "url": "https://cs50.harvard.edu/", "type": "course"}],
             ),
             (
                 2,
                 "Tools & Workflow",
+                "Công cụ & Quy trình",
                 "Get familiar with essential tools and workflows",
+                "Làm quen với các công cụ và quy trình làm việc",
                 "1 week",
+                "1 tuần",
                 [{"title": "Git Handbook", "url": "https://guides.github.com/", "type": "article"}],
+                [{"title": "Hướng dẫn Git", "url": "https://guides.github.com/", "type": "article"}],
             ),
             (
                 3,
                 "Project",
+                "Dự án thực hành",
                 "Practice with a small hands-on project",
+                "Thực hành với một dự án nhỏ",
                 "2 weeks",
+                "2 tuần",
                 [{"title": "Build a Todo App", "url": "https://example.com/todo", "type": "video"}],
+                [{"title": "Xây dựng ứng dụng Todo", "url": "https://example.com/todo", "type": "video"}],
             ),
         ]
-        for order_no, skill_name, desc, est, res in demo_ms:
+        for order_no, skill_en, skill_vn, desc_en, desc_vn, dur_en, dur_vn, res_en, res_vn in demo_ms:
             session.add(
                 RoadmapMilestone(
                     roadmap_id=roadmap.id,
                     order_no=order_no,
-                    skill_name=skill_name,
-                    description=desc,
-                    estimated_duration=est,
-                    resources_json=res,
+                    skill_name_en=skill_en,
+                    skill_name_vn=skill_vn,
+                    description_en=desc_en,
+                    description_vn=desc_vn,
+                    estimated_duration_en=dur_en,
+                    estimated_duration_vn=dur_vn,
+                    resources_json_en=res_en,
+                    resources_json_vn=res_vn,
                 )
             )
         session.commit()
@@ -225,11 +241,15 @@ def get_roadmap(session: Session, user_id: int, id_or_slug: str):
     milestones = [
         {
             "order": m.order_no or 0,
-            "skillName": m.skill_name,
-            "description": m.description,
-            "estimatedDuration": m.estimated_duration,
-            "resources": m.resources_json or [],
-            "level": m.level or (m.order_no or 1),  # Use level column or fallback to order_no
+            "skillName": m.skill_name_en or m.skill_name_vn or "",
+            "skillNameVn": m.skill_name_vn or m.skill_name_en or "",
+            "description": m.description_en or m.description_vn or "",
+            "descriptionVn": m.description_vn or m.description_en or "",
+            "estimatedDuration": m.estimated_duration_en or m.estimated_duration_vn or "",
+            "estimatedDurationVn": m.estimated_duration_vn or m.estimated_duration_en or "",
+            "resources": m.resources_json_en or [],
+            "resourcesVn": m.resources_json_vn or [],
+            "level": m.level or (m.order_no or 1),
         }
         for m in ms
     ]

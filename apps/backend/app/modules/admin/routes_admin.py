@@ -811,9 +811,9 @@ def get_settings(request: Request):
     if not s:
         s = AppSettings(
             id=1,
-            app_title="CareerBridge AI",
-            app_name="CareerBridge",
-            footer_html="© 2025 CareerBridge AI",
+            app_title="CareerVerse AI",
+            app_name="CareerVerse",
+            footer_html="© 2025 CareerVerse AI",
         )
         session.add(s)
         session.commit()

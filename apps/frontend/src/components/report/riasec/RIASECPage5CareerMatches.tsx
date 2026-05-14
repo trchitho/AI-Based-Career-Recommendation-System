@@ -41,12 +41,12 @@ const RIASECPage5CareerMatches = ({ careers, pageNumber }: RIASECPage5CareerMatc
         <div className="h-full flex flex-col overflow-hidden">
             {/* Page Title */}
             <h2 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2 print:text-lg">
-                {isFirstPage ? 'Your Top Career Matches' : 'More Careers to Explore'}
+                {isFirstPage ? 'Nghề Nghiệp Phù Hợp Nhất Của Bạn' : 'Thêm Nghề Nghiệp Để Khám Phá'}
             </h2>
             <p className="text-xs text-gray-600 dark:text-gray-400 mb-4 print:text-[10px] print:mb-3">
                 {isFirstPage
-                    ? 'This list includes the careers that best match your interest profile.'
-                    : 'Here are additional careers that may also be a good fit for your interests.'}
+                    ? 'Danh sách này bao gồm các nghề nghiệp phù hợp nhất với hồ sơ sở thích của bạn.'
+                    : 'Đây là các nghề nghiệp bổ sung cũng có thể phù hợp với sở thích của bạn.'}
             </p>
 
             {/* Career List */}
@@ -62,7 +62,7 @@ const RIASECPage5CareerMatches = ({ careers, pageNumber }: RIASECPage5CareerMatc
                                 {startIdx + index + 1}. {career.title}
                             </h3>
                             <span className="text-[10px] bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 px-2 py-0.5 rounded-full print:text-[8px]">
-                                {Math.round(career.match_score)}% Match
+                                {Math.round(career.match_score)}% Phù Hợp
                             </span>
                         </div>
 
@@ -76,10 +76,10 @@ const RIASECPage5CareerMatches = ({ careers, pageNumber }: RIASECPage5CareerMatc
                         {/* Salary & Growth */}
                         <div className="flex gap-4 text-[10px] text-gray-500 dark:text-gray-400 mb-2 print:text-[8px]">
                             {career.salary_avg && (
-                                <span>Average Earnings: {formatSalary(career.salary_avg)}</span>
+                                <span>Thu Nhập Trung Bình: {formatSalary(career.salary_avg)}</span>
                             )}
                             {career.growth_label && (
-                                <span>Projected Growth: {career.growth_label}</span>
+                                <span>Tăng Trưởng Dự Kiến: {career.growth_label}</span>
                             )}
                         </div>
 
@@ -96,7 +96,7 @@ const RIASECPage5CareerMatches = ({ careers, pageNumber }: RIASECPage5CareerMatc
                         {career.tasks && career.tasks.length > 0 && (
                             <div>
                                 <p className="text-[9px] font-medium text-gray-700 dark:text-gray-300 mb-0.5 print:text-[8px]">
-                                    Typical tasks include:
+                                    Nhiệm vụ điển hình bao gồm:
                                 </p>
                                 <ul className="text-[9px] text-gray-500 dark:text-gray-400 grid grid-cols-2 gap-x-2 print:text-[8px]">
                                     {career.tasks.slice(0, 6).map((task, i) => (

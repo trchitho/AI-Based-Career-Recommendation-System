@@ -54,6 +54,41 @@ function big5Color(score: number) {
   return '#ef4444';                    /* red-500 */
 }
 
+type ScoreMap = Record<string, number>;
+
+function averageScores<T extends ScoreMap>(
+  assessments: AssessmentHistoryItem[] | undefined,
+  field: 'riasec_scores' | 'big_five_scores',
+): { scores?: T; count: number } {
+  const totals: ScoreMap = {};
+  const counts: ScoreMap = {};
+  let sourceCount = 0;
+
+  for (const assessment of assessments || []) {
+    const scores = assessment[field] as ScoreMap | undefined;
+    if (!scores) continue;
+
+    const entries = Object.entries(scores).filter(([, value]) => Number.isFinite(Number(value)));
+    if (entries.length === 0) continue;
+    sourceCount += 1;
+
+    for (const [key, value] of entries) {
+      totals[key] = (totals[key] || 0) + Number(value);
+      counts[key] = (counts[key] || 0) + 1;
+    }
+  }
+
+  const averaged = Object.keys(totals).reduce<ScoreMap>((acc, key) => {
+    acc[key] = Math.round((totals[key] / counts[key]) * 10) / 10;
+    return acc;
+  }, {});
+
+  return {
+    scores: Object.keys(averaged).length > 0 ? averaged as T : undefined,
+    count: sourceCount,
+  };
+}
+
 /* ── Assessment card mini ─────────────────────────────── */
 function AssessmentCard({ item }: { item: AssessmentHistoryItem }) {
   const navigate = useNavigate();
@@ -127,17 +162,21 @@ const ProfilePage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const latestAssessment = profileData?.assessmentHistory
-    ?.sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())[0];
+  const sortedAssessments = [...(profileData?.assessmentHistory || [])]
+    .sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime());
+  const latestAssessment = sortedAssessments[0];
 
-  const riasec = latestAssessment?.riasec_scores;
-  const big5 = latestAssessment?.big_five_scores;
+  const riasecAverage = averageScores<NonNullable<AssessmentHistoryItem['riasec_scores']>>(profileData?.assessmentHistory, 'riasec_scores');
+  const big5Average = averageScores<NonNullable<AssessmentHistoryItem['big_five_scores']>>(profileData?.assessmentHistory, 'big_five_scores');
+  const riasec = riasecAverage.scores;
+  const big5 = big5Average.scores;
 
   const riasecSorted = riasec
     ? Object.entries(riasec).sort((a, b) => b[1] - a[1])
     : [];
 
   const topRiasecCode = riasecSorted.slice(0, 2).map(([k]) => k[0].toUpperCase()).join('');
+  const topRiasecKey = riasecSorted[0]?.[0];
 
   const assessmentCount = profileData?.assessmentHistory?.length || 0;
   const completedRoadmaps = profileData?.developmentProgress?.filter(r => r.progress_percentage >= 100).length || 0;
@@ -199,8 +238,8 @@ const ProfilePage = () => {
                   </h1>
                   <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', marginTop: '0.3rem' }}>
                     {profileData.profile.email}
-                    {latestAssessment?.top_interest && (
-                      <span> · Sở thích hàng đầu: <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{RIASEC_LABELS[latestAssessment.top_interest] || latestAssessment.top_interest}</strong></span>
+                    {topRiasecKey && (
+                      <span> · DNA trung bình nổi bật: <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{RIASEC_LABELS[topRiasecKey] || topRiasecKey}</strong></span>
                     )}
                   </div>
                 </div>
@@ -235,11 +274,16 @@ const ProfilePage = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
                   <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)' }}>DNA Nghề Nghiệp (RIASEC)</div>
                   {latestAssessment && (
-                    <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
-                      Cập nhật lần cuối {new Date(latestAssessment.completed_at).toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' })}
+                    <div style={{ fontSize: '0.7rem', color: '#9ca3af', textAlign: 'right' }}>
+                      Cập nhật gần nhất {new Date(latestAssessment.completed_at).toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' })}
                     </div>
                   )}
                 </div>
+                {riasecAverage.count > 0 && (
+                  <div style={{ marginTop: '-0.65rem', marginBottom: '0.95rem', fontSize: '0.72rem', color: '#6b7280' }}>
+                    Đang hiển thị điểm trung bình từ {riasecAverage.count} lần test có dữ liệu RIASEC của bạn.
+                  </div>
+                )}
 
                 {riasec ? (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
@@ -276,6 +320,11 @@ const ProfilePage = () => {
                 <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
                   Tính Cách Big Five
                 </div>
+                {big5Average.count > 0 && (
+                  <div style={{ marginTop: '-0.65rem', marginBottom: '0.95rem', fontSize: '0.72rem', color: '#6b7280' }}>
+                    Đang hiển thị điểm trung bình từ {big5Average.count} lần test có dữ liệu Big Five của bạn.
+                  </div>
+                )}
 
                 {big5 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -354,8 +403,7 @@ const ProfilePage = () => {
               </div>
               {profileData.assessmentHistory.length > 0 ? (
                 <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                  {profileData.assessmentHistory
-                    .sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
+                  {sortedAssessments
                     .slice(0, 8)
                     .map(item => <AssessmentCard key={item.id} item={item} />)}
                 </div>

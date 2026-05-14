@@ -92,7 +92,7 @@ const TopCareerWidget: React.FC<Props> = ({ career }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
             <span style={{ fontSize: '2rem', fontWeight: 900, color: '#4f46e5', lineHeight: 1 }}>{career.matchPercentage}%</span>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#7c3aed', background: 'rgba(124,58,237,0.1)', padding: '0.2rem 0.6rem', borderRadius: 99 }}>
-              AI Match Score
+              Điểm phù hợp AI
             </span>
           </div>
 

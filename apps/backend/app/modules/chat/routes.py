@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Dict, Set
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
-from sqlalchemy import desc
+from sqlalchemy import desc, text
 from sqlalchemy.orm import Session
 
 from app.core.db import Base, engine, get_db
@@ -52,6 +52,76 @@ class ChatManager:
 
 
 chat_manager = ChatManager()
+
+
+def _get_user_presence(db: Session, user_id: int) -> dict:
+    """Resolve online/offline from the latest login/logout audit log entry."""
+    try:
+        row = (
+            db.execute(
+                text(
+                    """
+                    SELECT action, created_at
+                    FROM core.audit_logs
+                    WHERE action IN ('login', 'logout')
+                      AND (
+                        CAST(user_id AS text) = CAST(:uid AS text)
+                        OR CAST(actor_id AS text) = CAST(:uid AS text)
+                        OR CAST(resource_id AS text) = CAST(:uid AS text)
+                        OR CAST(entity_id AS text) = CAST(:uid AS text)
+                      )
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                ),
+                {"uid": int(user_id)},
+            )
+            .mappings()
+            .first()
+        )
+    except Exception:
+        row = None
+
+    if not row:
+        return {
+            "is_online": False,
+            "last_status_at": None,
+            "offline_since": None,
+            "presence_label": "Không rõ trạng thái",
+        }
+
+    action = str(row["action"] or "").lower()
+    status_at = row["created_at"]
+    status_iso = status_at.isoformat() if status_at else None
+    is_online = action == "login"
+
+    return {
+        "is_online": is_online,
+        "last_status_at": status_iso,
+        "offline_since": None if is_online else status_iso,
+        "presence_label": "Đang hoạt động" if is_online else "Đã offline",
+    }
+
+
+def _get_user_chat_role(db: Session, user_id: int) -> str:
+    """Best-effort role label for chat UI: mentor if active mentor profile exists, otherwise mentee."""
+    try:
+        row = db.execute(
+            text(
+                """
+                SELECT id
+                FROM core.mentor_profiles
+                WHERE user_id = :uid AND COALESCE(is_active, true) = true
+                LIMIT 1
+                """
+            ),
+            {"uid": int(user_id)},
+        ).first()
+        if row:
+            return "mentor"
+    except Exception:
+        pass
+    return "mentee"
 
 
 # ── WebSocket endpoint ─────────────────────────────────────────
@@ -178,6 +248,19 @@ def get_messages(
     ]
 
 
+@router.get("/api/chat/{other_user_id}/presence")
+def get_presence(
+    other_user_id: int,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
+    _ = current_user
+    return _get_user_presence(db, other_user_id) | {
+        "user_id": other_user_id,
+        "role": _get_user_chat_role(db, other_user_id),
+    }
+
+
 # ── REST: list conversations ───────────────────────────────────
 @router.get("/api/chat/rooms")
 def list_rooms(
@@ -221,8 +304,10 @@ def list_rooms(
             "room_id": r.room_id,
             "other_user_id": other_id,
             "other_name": (other.full_name or other.email) if other else str(other_id),
+            "other_role": _get_user_chat_role(db, other_id),
             "last_message": r.content,
             "last_at": r.created_at.isoformat() if r.created_at else None,
             "unread": unread,
+            **_get_user_presence(db, other_id),
         })
     return result

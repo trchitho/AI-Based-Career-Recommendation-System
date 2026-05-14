@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LearningPlan as LearningPlanType, LearningPhase } from '../../types/skillGap';
 import { useTheme } from '../../contexts/ThemeContext';
+import { translateSkillName } from '../../utils/skillTranslation';
 
 interface Props {
   plan: LearningPlanType;
@@ -17,18 +18,36 @@ const PLATFORM_COLORS: Record<string, string> = {
 };
 
 const TYPE_ICONS: Record<string, string> = {
-  course: '',
-  video: '▶',
-  docs: '',
-  practice: '',
+  course: 'Khoá học',
+  video: 'Video',
+  docs: 'Tài liệu',
+  practice: 'Thực hành',
 };
 
 const PHASE_COLORS = ['#16a34a', '#0d9488', '#0891b2', '#d97706'];
+
+const LEVEL_LABELS: Record<string, string> = {
+  beginner: 'Cơ bản',
+  intermediate: 'Trung cấp',
+  advanced: 'Nâng cao',
+};
+
+const buildLearningUrl = (resourceName: string, skillName: string, platform: string) => {
+  const query = encodeURIComponent(`${skillName || resourceName} course`);
+  const normalized = platform.toLowerCase();
+  if (normalized.includes('coursera')) return `https://www.coursera.org/search?query=${query}`;
+  if (normalized.includes('udemy')) return `https://www.udemy.com/courses/search/?q=${query}`;
+  if (normalized.includes('youtube')) return `https://www.youtube.com/results?search_query=${encodeURIComponent(`${skillName || resourceName} tutorial`)}`;
+  if (normalized.includes('freecodecamp')) return `https://www.freecodecamp.org/search?query=${query}`;
+  return `https://www.google.com/search?q=${query}`;
+};
 
 const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [openPhase, setOpenPhase] = useState<number>(0);
+  const focusSkills = plan.phases?.flatMap(p => p.skills || []).slice(0, 5).map(translateSkillName) || [];
+  const summary = `Lộ trình ${plan.total_weeks || 16} tuần giúp bạn bổ sung các kỹ năng nghề còn thiếu${focusSkills.length ? ` như ${focusSkills.join(', ')}` : ''} để phù hợp hơn với vai trò ${careerName}.`;
 
   return (
     <div style={{ background: isDark ? '#1e293b' : 'white', borderRadius: 16, padding: '1.5rem', boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.08)' }}>
@@ -36,7 +55,7 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
          Lộ trình học tập
       </h2>
       <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-        {plan.summary || `Lộ trình ${plan.total_weeks} tuần để trở thành ${careerName}`}
+        {summary}
       </p>
 
       {/* Timeline overview */}
@@ -48,10 +67,10 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
                 width: 36, height: 36, borderRadius: '50%', background: 'var(--color-primary)', color: 'white',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem',
               }}>
-                W{m.week}
+                Tuần {m.week}
               </div>
               <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1e293b', marginTop: 4, textAlign: 'center', maxWidth: 90 }}>
-                {m.title}
+                    {m.title?.replace(/^W(\d+)/i, 'Tuần $1')}
               </div>
             </div>
             {i < (plan.milestones.length - 1) && (
@@ -94,7 +113,7 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
                 <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', maxWidth: 200 }}>
                   {phase.skills?.slice(0, 3).map((s, i) => (
                     <span key={i} style={{ padding: '0.15rem 0.5rem', background: `${color}20`, color, borderRadius: 12, fontSize: '0.72rem', fontWeight: 600 }}>
-                      {s}
+                      {translateSkillName(s)}
                     </span>
                   ))}
                   {phase.skills?.length > 3 && (
@@ -112,7 +131,7 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                       {phase.skills?.map((s, i) => (
                         <span key={i} style={{ padding: '0.2rem 0.6rem', background: `${color}15`, color, border: `1px solid ${color}40`, borderRadius: 6, fontSize: '0.8rem', fontWeight: 600 }}>
-                          {s}
+                          {translateSkillName(s)}
                         </span>
                       ))}
                     </div>
@@ -123,15 +142,16 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {phase.resources?.map((r, i) => (
-                      <div key={i} style={{
+                      <a key={i} href={buildLearningUrl(r.name, phase.skills?.[0] || r.name, r.platform)} target="_blank" rel="noopener noreferrer" style={{
                         display: 'flex', alignItems: 'center', gap: '0.75rem',
                         padding: '0.6rem 0.75rem', background: isDark ? '#0f172a' : 'white', borderRadius: 8,
                         border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                        textDecoration: 'none',
                       }}>
-                        <span style={{ fontSize: '1.1rem' }}>{TYPE_ICONS[r.type] || ''}</span>
+                        <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, minWidth: 58 }}>{TYPE_ICONS[r.type] || 'Nguồn'}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 600, fontSize: '0.85rem', color: isDark ? '#f1f5f9' : '#1e293b' }}>{r.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: isDark ? '#94a3b8' : '#64748b' }}>{r.level}</div>
+                          <div style={{ fontSize: '0.75rem', color: isDark ? '#94a3b8' : '#64748b' }}>{LEVEL_LABELS[r.level] || r.level}</div>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
                           <span style={{
@@ -141,10 +161,10 @@ const LearningPlan: React.FC<Props> = ({ plan, careerName }) => {
                             {r.platform}
                           </span>
                           <span style={{ fontSize: '0.72rem', color: r.free ? 'var(--color-primary)' : '#dc2626', fontWeight: 600 }}>
-                            {r.free ? '🆓 Miễn phí' : ' Trả phí'}
+                            {r.free ? 'Miễn phí' : 'Trả phí'}
                           </span>
                         </div>
-                      </div>
+                      </a>
                     ))}
                     {(!phase.resources || phase.resources.length === 0) && (
                       <div style={{ color: '#94a3b8', fontSize: '0.82rem' }}>Tìm kiếm trên Coursera, YouTube, Udemy</div>

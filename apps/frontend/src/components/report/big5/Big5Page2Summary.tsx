@@ -16,12 +16,12 @@ interface Big5Page2SummaryProps {
 
 // Facet display names for cards
 const FACET_DISPLAY_NAMES: Record<string, string> = {
-    problemSolving: 'Think & Solve',
-    motivation: 'Get Motivated',
-    interaction: 'Interact',
-    communication: 'Communicate',
-    teamwork: 'Teamwork',
-    taskManagement: 'Manage Tasks',
+    problemSolving: 'Tư Duy & Giải Quyết',
+    motivation: 'Động Lực',
+    interaction: 'Tương Tác',
+    communication: 'Giao Tiếp',
+    teamwork: 'Làm Việc Nhóm',
+    taskManagement: 'Quản Lý Công Việc',
 };
 
 // Fixed color mapping by trait name - matches QuadrantChart and FacetSection
@@ -73,10 +73,10 @@ const Big5Page2Summary = ({ narrative, facets }: Big5Page2SummaryProps) => {
             {/* Section A: Your Career Personality Type */}
             <section className="mb-5 print:mb-4 flex-shrink-0">
                 <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-2 print:text-xl">
-                    Your Career Personality Type
+                    Loại Tính Cách Nghề Nghiệp Của Bạn
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400 mb-3 italic text-sm print:text-xs">
-                    What motivates you? How do you approach work and relationships?
+                    Điều gì thúc đẩy bạn? Bạn tiếp cận công việc và các mối quan hệ như thế nào?
                 </p>
 
                 <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-purple-100 dark:border-purple-800/30 print:p-3">
@@ -94,11 +94,11 @@ const Big5Page2Summary = ({ narrative, facets }: Big5Page2SummaryProps) => {
             {/* Section B: Behavioral Patterns Overview */}
             <section className="flex-1 flex flex-col overflow-hidden">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 print:text-base flex-shrink-0">
-                    Behavioral Patterns
+                    Mẫu Hành Vi
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-3 text-sm print:text-xs print:mb-2 flex-shrink-0">
-                    Your personality manifests in six key behavioral areas. Each area shows your dominant style
-                    based on the Big Five personality dimensions.
+                    Tính cách của bạn thể hiện qua sáu lĩnh vực hành vi chính. Mỗi lĩnh vực cho thấy phong cách nổi trội của bạn
+                    dựa trên các chiều tính cách Big Five.
                 </p>
 
                 {/* 6 Summary Cards - 2x3 Grid - Each card uses dominant trait's color */}
@@ -126,8 +126,8 @@ const Big5Page2Summary = ({ narrative, facets }: Big5Page2SummaryProps) => {
 
                 {/* Note - Shortened */}
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 italic print:mt-2 print:text-[10px] flex-shrink-0">
-                    Note: These behavioral patterns are derived from your Big Five scores using
-                    heuristic mapping formulas. Detailed charts follow on the next pages.
+                    Lưu ý: Các mẫu hành vi này được suy ra từ điểm số Big Five của bạn bằng
+                    công thức ánh xạ heuristic. Biểu đồ chi tiết sẽ xuất hiện ở các trang tiếp theo.
                 </p>
             </section>
         </div>

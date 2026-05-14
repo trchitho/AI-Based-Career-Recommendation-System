@@ -31,7 +31,7 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 );
 
 const defaultFooter: FooterConfig = {
-  brand_desc: 'CareerBridge AI giúp bạn xây dựng CV chuyên nghiệp, phân tích kỹ năng và tìm con đường sự nghiệp hoàn hảo bằng trí tuệ nhân tạo tiên tiến.',
+  brand_desc: 'CareerVerse AI giúp bạn xây dựng CV chuyên nghiệp, phân tích kỹ năng và tìm con đường sự nghiệp hoàn hảo bằng trí tuệ nhân tạo tiên tiến.',
   columns: [
     { title: 'Sản phẩm', items: [{ label: 'Tính năng', href: '/features' }, { label: 'Bảng giá', href: '/pricing' }, { label: 'Đánh giá', href: '/assessment' }] },
     { title: 'Tài nguyên', items: [{ label: 'Bài viết', href: '/blog' }, { label: 'Hướng dẫn nghề nghiệp', href: '/guide' }, { label: 'Trung tâm trợ giúp', href: '/help' }] },
@@ -43,7 +43,7 @@ const defaultFooter: FooterConfig = {
     { label: 'LinkedIn', href: '' },
     { label: 'Discord', href: '' },
   ],
-  copyright: `© ${new Date().getFullYear()} CareerBridge AI. Bảo lưu mọi quyền.`,
+  copyright: `© ${new Date().getFullYear()} CareerVerse AI. Bảo lưu mọi quyền.`,
 };
 
 const SettingsPage = () => {
@@ -167,14 +167,14 @@ const SettingsPage = () => {
             <Field label="Tên đầy đủ (App Title)">
               <div className="relative">
                 <Type size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input className={inputCls + " pl-9"} placeholder="VD: CareerBridge AI System"
+                <input className={inputCls + " pl-9"} placeholder="VD: CareerVerse AI System"
                   value={form.app_title || ''} onChange={e => setForm(f => ({ ...f, app_title: e.target.value }))} />
               </div>
             </Field>
             <Field label="Tên ngắn (App Name)">
               <div className="relative">
                 <Type size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input className={inputCls + " pl-9"} placeholder="VD: CareerBridge"
+                <input className={inputCls + " pl-9"} placeholder="VD: CareerVerse"
                   value={form.app_name || ''} onChange={e => setForm(f => ({ ...f, app_name: e.target.value }))} />
               </div>
             </Field>
@@ -229,7 +229,7 @@ const SettingsPage = () => {
             <Field label="Bản quyền (copyright)">
               <div className="relative">
                 <FileText size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input className={inputCls + " pl-9"} placeholder={`© ${new Date().getFullYear()} CareerBridge AI. Bảo lưu mọi quyền.`}
+                <input className={inputCls + " pl-9"} placeholder={`© ${new Date().getFullYear()} CareerVerse AI. Bảo lưu mọi quyền.`}
                   value={footer.copyright || ''} onChange={e => setFooter(f => ({ ...f, copyright: e.target.value }))} />
               </div>
             </Field>
@@ -318,7 +318,7 @@ const SettingsPage = () => {
                 <div className="max-w-4xl mx-auto px-6">
                   <div className={`grid grid-cols-2 gap-6 mb-8 ${(footer.columns || []).length <= 2 ? 'md:grid-cols-3' : 'md:grid-cols-5'}`}>
                     <div className="col-span-2">
-                      <span className="font-extrabold text-xl text-gray-900 dark:text-white">career<span className="text-indigo-800">bridge</span><span className="text-indigo-800 text-2xl">.</span></span>
+                      <span className="font-extrabold text-xl text-gray-900 dark:text-white">career<span className="text-indigo-800">verse</span><span className="text-indigo-800 text-2xl">.</span></span>
                       <p className="mt-3 text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-xs">{footer.brand_desc}</p>
                     </div>
                     {(footer.columns || []).map((col, i) => (

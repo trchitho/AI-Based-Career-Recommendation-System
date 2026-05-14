@@ -24,6 +24,10 @@ export interface CourseRecommendation {
   skill_name: string;
   similarity_score: number;
   relevance_label: string;
+  priority_group?: "critical" | "important" | "nice_to_have" | null;
+  priority_label?: string | null;
+  reason?: string | null;
+  source_quality?: string | null;
 }
 
 export interface CourseRecommendationsResponse {
@@ -31,6 +35,7 @@ export interface CourseRecommendationsResponse {
   recommendations: CourseRecommendation[];
   total: number;
   source: string;
+  grouped_counts?: Record<string, number>;
 }
 
 export interface PipelineStatus {
@@ -49,6 +54,28 @@ const courseService = {
     const params = new URLSearchParams({ top_k: String(topK) });
     skills.forEach((s) => params.append("skills", s));
     const res = await api.get(`/api/courses/recommend?${params.toString()}`);
+    return res.data;
+  },
+
+  getSkillGapRecommendations: async (payload: {
+    analysis_id?: number;
+    critical?: string[];
+    important?: string[];
+    nice_to_have?: string[];
+    owned_skills?: string[];
+    career_name?: string;
+    topK?: number;
+  }): Promise<CourseRecommendationsResponse> => {
+    const params = new URLSearchParams({ top_k: String(payload.topK ?? 3) });
+    if (payload.analysis_id) params.set("analysis_id", String(payload.analysis_id));
+    (payload.critical ?? []).forEach((s) => params.append("critical", s));
+    (payload.important ?? []).forEach((s) => params.append("important", s));
+    (payload.nice_to_have ?? []).forEach((s) => params.append("nice_to_have", s));
+    (payload.owned_skills ?? []).forEach((s) => params.append("owned_skills", s));
+    if (payload.career_name) params.set("career_name", payload.career_name);
+    const res = await api.get(`/api/courses/recommend/skill-gap?${params.toString()}`, {
+      timeout: 60000,
+    });
     return res.data;
   },
 

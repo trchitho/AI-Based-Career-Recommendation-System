@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import {
   CheckCircle, XCircle, BarChart2, AlertCircle, AlertTriangle,
-  Star, Bot, BookOpen, Mic, Download, Target, Circle
+  Star, Bot, Mic, Download, Target, Circle
 } from 'lucide-react';
 import { SkillGapAnalysis } from '../../types/skillGap';
+import { translateSkillCategory, translateSkillName } from '../../utils/skillTranslation';
 import './SkillGapResult.css';
 
 interface SkillGapResultProps {
@@ -11,7 +14,19 @@ interface SkillGapResultProps {
   onStartInterview?: () => void;
 }
 
+interface JobCriterion {
+  name: string;
+  category: string;
+  importance: number;
+  score: number;
+  status: 'matched' | 'missing';
+  evidence?: string;
+  matchType?: string;
+}
+
 const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterview }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const getMatchColor = (percentage: number) => {
     if (percentage >= 80) return '#10b981';
     if (percentage >= 60) return '#f59e0b';
@@ -32,13 +47,123 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
     return <Circle size={12} fill="#ca8a04" color="#ca8a04" />;
   };
 
+  const catalogSkillName = (name?: string) => translateSkillName(name);
+  const catalogSkillCategory = (category?: string) => translateSkillCategory(category);
+
+  const getCriterionLabel = (score: number) => {
+    if (score >= 80) return 'Đáp ứng tốt';
+    if (score >= 55) return 'Đáp ứng một phần';
+    if (score > 0) return 'Bằng chứng yếu';
+    return 'Chưa có bằng chứng';
+  };
+
+  const buildJobCriteria = (): JobCriterion[] => {
+    const byName = new Map<string, JobCriterion>();
+
+    (analysis.matched_skills || []).forEach((skill: any) => {
+      const jobSkill = skill.onet_skill || skill.job_skill || skill.name;
+      const key = String(jobSkill).toLowerCase();
+      const matchType = skill.match_type || 'semantic';
+      const confidence = Number(skill.confidence ?? 0.75);
+      const genericJobSkill = ['programming', 'science', 'systems analysis'].includes(String(jobSkill).toLowerCase());
+      const cappedScore = Math.round(Math.min(confidence * 100, matchType === 'direct' ? 90 : genericJobSkill ? 55 : 70));
+
+      byName.set(key, {
+        name: jobSkill,
+        category: skill.onet_category || skill.job_category || skill.category || 'Kỹ năng nghề',
+        importance: Number(skill.importance ?? 0.5),
+        score: cappedScore,
+        status: 'matched',
+        evidence: skill.name,
+        matchType,
+      });
+    });
+
+    [
+      ...(analysis.skill_gaps?.critical || []),
+      ...(analysis.skill_gaps?.important || []),
+      ...(analysis.skill_gaps?.nice_to_have || []),
+    ].forEach((skill: any) => {
+      const key = String(skill.name).toLowerCase();
+      if (!byName.has(key)) {
+        byName.set(key, {
+          name: skill.name,
+          category: skill.category || 'Kỹ năng nghề',
+          importance: Number(skill.importance ?? 0.5),
+          score: 0,
+          status: 'missing',
+        });
+      }
+    });
+
+    return Array.from(byName.values())
+      .sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'missing' ? -1 : 1;
+        return b.importance - a.importance;
+      })
+      .slice(0, 8);
+  };
+
+  const handleDownloadReport = async () => {
+    const reportElement = document.getElementById('skill-gap-report');
+    if (!reportElement || isDownloading) return;
+
+    setIsDownloading(true);
+    document.body.classList.add('skill-report-exporting');
+
+    try {
+      await new Promise(resolve => window.setTimeout(resolve, 120));
+      const canvas = await html2canvas(reportElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#f8fafc',
+        logging: false,
+        windowWidth: reportElement.scrollWidth,
+        windowHeight: reportElement.scrollHeight,
+      });
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pageContentHeight = pageHeight - margin * 2;
+
+      let heightLeft = imgHeight;
+      let position = margin;
+      const imageData = canvas.toDataURL('image/png', 1.0);
+
+      pdf.addImage(imageData, 'PNG', margin, position, imgWidth, imgHeight);
+      heightLeft -= pageContentHeight;
+
+      while (heightLeft > 0) {
+        position = margin - (imgHeight - heightLeft);
+        pdf.addPage();
+        pdf.addImage(imageData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= pageContentHeight;
+      }
+
+      const date = new Date().toISOString().slice(0, 10);
+      const fileBase = (analysis.cv_name || analysis.cv_filename || `skill-gap-${analysis.id}`)
+        .replace(/[\\/:*?"<>|]+/g, '-')
+        .replace(/\s+/g, '-')
+        .slice(0, 80);
+      pdf.save(`bao-cao-phan-tich-ky-nang-${fileBase}-${date}.pdf`);
+    } finally {
+      document.body.classList.remove('skill-report-exporting');
+      setIsDownloading(false);
+    }
+  };
+
   // Deduplicate matched_skills by name (keep first occurrence = highest importance)
   const uniqueMatchedSkills = analysis.matched_skills.filter(
     (skill, index, self) => index === self.findIndex(s => s.name.toLowerCase() === skill.name.toLowerCase())
   );
+  const jobCriteria = buildJobCriteria();
 
   return (
-    <div className="skill-gap-result">
+    <div id="skill-gap-report" className="skill-gap-result">
       {/* Personal Info & Skills Summary */}
       <div className="personal-info-section">
         <div className="info-card">
@@ -86,19 +211,25 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
       {/* JD Criteria Evaluation */}
       <div className="jd-criteria-section">
         <h3 className="section-title-main">
-          Đánh giá theo các tiêu chí của JD
+          Đánh giá theo tiêu chí nghề/JD
         </h3>
+        <p className="section-description">
+          Các tiêu chí bên dưới là kỹ năng yêu cầu của nghề trong catalog. CV chỉ được dùng làm bằng chứng đáp ứng từng tiêu chí, nên kỹ năng ngoài nghề sẽ không được xem là tiêu chí chính.
+        </p>
         <div className="criteria-grid">
-          {uniqueMatchedSkills.slice(0, 8).map((skill, index) => {
-            const confidence = (skill as any).confidence || 0.9;
-            const score = Math.round(confidence * 100);
+          {jobCriteria.map((criterion, index) => {
+            const score = criterion.score;
             return (
-              <div key={index} className="criteria-item">
+              <div key={index} className={`criteria-card ${criterion.status}`}>
                 <div className="criteria-header">
-                  <span className="criteria-name">{skill.name}</span>
+                  <span className="criteria-name">{catalogSkillName(criterion.name)}</span>
                   <span className="criteria-score" style={{ color: getMatchColor(score) }}>
                     {score}%
                   </span>
+                </div>
+                <div className="criteria-meta">
+                  <span>{catalogSkillCategory(criterion.category)}</span>
+                  <span>{Math.round(criterion.importance * 100)}% quan trọng</span>
                 </div>
                 <div className="criteria-bar">
                   <div
@@ -107,7 +238,9 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
                   />
                 </div>
                 <p className="criteria-description">
-                  {`Ứng viên có ${score >= 90 ? 'kỹ năng xuất sắc' : score >= 75 ? 'kỹ năng tốt' : 'kinh nghiệm'} về ${skill.name}${(skill as any).onet_skill && (skill as any).onet_skill !== skill.name ? ` (khớp với yêu cầu: ${(skill as any).onet_skill})` : ''}.`}
+                  {criterion.status === 'matched'
+                    ? `${getCriterionLabel(score)}. Bằng chứng trong CV: ${criterion.evidence}.`
+                    : 'Chưa tìm thấy bằng chứng rõ ràng trong CV cho tiêu chí này.'}
                 </p>
               </div>
             );
@@ -174,8 +307,8 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           <div className="skills-grid">
             {analysis.skill_gaps.critical.map((skill, index) => (
               <div key={index} className="skill-badge critical">
-                <span className="skill-name">{skill.name}</span>
-                <span className="skill-category">{skill.category}</span>
+                <span className="skill-name">{catalogSkillName(skill.name)}</span>
+                <span className="skill-category">{catalogSkillCategory(skill.category)}</span>
                 <span className="skill-importance">{(skill.importance! * 100).toFixed(0)}% mức độ quan trọng</span>
               </div>
             ))}
@@ -194,8 +327,8 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           <div className="skills-grid">
             {analysis.skill_gaps.important.map((skill, index) => (
               <div key={index} className="skill-badge important">
-                <span className="skill-name">{skill.name}</span>
-                <span className="skill-category">{skill.category}</span>
+                <span className="skill-name">{catalogSkillName(skill.name)}</span>
+                <span className="skill-category">{catalogSkillCategory(skill.category)}</span>
                 <span className="skill-importance">{(skill.importance! * 100).toFixed(0)}% mức độ quan trọng</span>
               </div>
             ))}
@@ -214,8 +347,8 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           <div className="skills-grid">
             {analysis.skill_gaps.nice_to_have.map((skill, index) => (
               <div key={index} className="skill-badge nice-to-have">
-                <span className="skill-name">{skill.name}</span>
-                <span className="skill-category">{skill.category}</span>
+                <span className="skill-name">{catalogSkillName(skill.name)}</span>
+                <span className="skill-category">{catalogSkillCategory(skill.category)}</span>
               </div>
             ))}
           </div>
@@ -233,8 +366,8 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           <div className="skills-grid">
             {analysis.extra_skills.map((skill, index) => (
               <div key={index} className="skill-badge extra">
-                <span className="skill-name">{skill.name}</span>
-                <span className="skill-category">{skill.category}</span>
+                <span className="skill-name">{catalogSkillName(skill.name)}</span>
+                <span className="skill-category">{catalogSkillCategory(skill.category)}</span>
               </div>
             ))}
           </div>
@@ -260,7 +393,7 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
               {(() => {
                 const pct = analysis.match_percentage;
                 const matched = uniqueMatchedSkills.slice(0, 3).map(s => s.name).join(', ');
-                const critical = analysis.skill_gaps?.critical?.slice(0, 2).map((s: any) => s.name).join(', ') || '';
+                const critical = analysis.skill_gaps?.critical?.slice(0, 2).map((s: any) => catalogSkillName(s.name)).join(', ') || '';
                 const totalGaps = (analysis.skill_gaps?.critical?.length || 0) + (analysis.skill_gaps?.important?.length || 0);
                 if (pct >= 80)
                   return `CV phù hợp ở mức xuất sắc với vị trí này. Ứng viên đã đáp ứng ${analysis.matched_skills_count}/${analysis.total_required_skills} kỹ năng yêu cầu${matched ? `, bao gồm: ${matched}` : ''}. ${totalGaps > 0 ? `Cần bổ sung thêm ${totalGaps} kỹ năng để hoàn thiện hồ sơ.` : 'Hồ sơ rất cạnh tranh cho vị trí này.'}`;
@@ -305,7 +438,7 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
                 if (allGaps.length > 0) {
                   return allGaps.slice(0, 5).map((skill, index) => (
                     <li key={index}>
-                      Cần học thêm kỹ năng <strong>{skill.name}</strong> ({skill.category})
+                      Cần học thêm kỹ năng <strong>{catalogSkillName(skill.name)}</strong> ({catalogSkillCategory(skill.category)})
                       {skill.importance && skill.importance >= 0.8 && ' - Rất quan trọng'}
                       {skill.importance && skill.importance >= 0.5 && skill.importance < 0.8 && ' - Quan trọng'}
                       {skill.importance && skill.importance < 0.5 && ' - Nên có'}
@@ -343,11 +476,8 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
             <Mic size={16} /> Bắt đầu phỏng vấn AI
           </button>
         )}
-        <button className="action-btn secondary">
-          <BookOpen size={16} /> Tài nguyên học tập
-        </button>
-        <button className="action-btn secondary">
-          <Download size={16} /> Tải xuống báo cáo
+        <button className="action-btn secondary" onClick={handleDownloadReport} disabled={isDownloading}>
+          <Download size={16} /> {isDownloading ? 'Đang tạo báo cáo...' : 'Tải xuống báo cáo'}
         </button>
       </div>
     </div>

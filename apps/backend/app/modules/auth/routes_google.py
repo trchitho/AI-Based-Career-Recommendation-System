@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import secrets
 import urllib.parse
@@ -8,13 +9,16 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
+from ...core.db import engine
 from ...core.jwt import create_access_token, refresh_expiry_dt
 from ..auth.models import RefreshToken
 from ..users.models import User
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+_SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
 def _db(req: Request) -> Session:
@@ -176,6 +180,39 @@ def google_callback(request: Request, code: str | None = None, state: str | None
     )
     session.add(rt)
     session.commit()
+
+    # Audit log cho Google OAuth login
+    try:
+        audit_session = _SessionLocal()
+        try:
+            client_ip = request.client.host if request.client else "unknown"
+            forwarded = request.headers.get("x-forwarded-for")
+            if forwarded:
+                client_ip = forwarded.split(",")[0].strip()
+            user_agent = request.headers.get("user-agent", "")[:200]
+
+            audit_session.execute(text("""
+                INSERT INTO core.audit_logs 
+                (actor_id, action, entity, entity_id, data_json, user_id, resource_type, resource_id, details, ip_address, created_at)
+                VALUES 
+                (:actor_id, :action, :entity, :entity_id, CAST(:data_json AS jsonb), :user_id, :resource_type, :resource_id, CAST(:details AS jsonb), :ip_address, NOW())
+            """), {
+                "actor_id": u.id,
+                "action": "login",
+                "entity": "user",
+                "entity_id": u.id,
+                "data_json": json.dumps({"method": "google_oauth", "role": u.role or "user", "email": u.email, "user_agent": user_agent}),
+                "user_id": u.id,
+                "resource_type": "user",
+                "resource_id": str(u.id),
+                "details": json.dumps({"method": "google_oauth", "role": u.role or "user", "email": u.email, "user_agent": user_agent}),
+                "ip_address": client_ip,
+            })
+            audit_session.commit()
+        finally:
+            audit_session.close()
+    except Exception as e:
+        logger.error(f"Failed to log Google OAuth audit: {e}")
 
     # Redirect back to FE with tokens in query (dev-friendly)
     try:

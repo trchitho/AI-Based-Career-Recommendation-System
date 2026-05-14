@@ -21,10 +21,10 @@ const Big5Page4Facets = ({ facets }: Big5Page4FacetsProps) => {
             {/* Page Header - Larger font */}
             <div className="mb-6 print:mb-4 flex-shrink-0">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white print:text-xl">
-                    Behavioral Patterns: Interaction & Communication
+                    Mẫu Hành Vi: Tương Tác & Giao Tiếp
                 </h2>
                 <p className="text-base text-gray-500 dark:text-gray-400 print:text-sm mt-1">
-                    How you engage with others and express your ideas
+                    Cách bạn giao tiếp với người khác và thể hiện ý tưởng của mình
                 </p>
             </div>
 

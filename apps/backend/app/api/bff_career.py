@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from app.core.serialization import dumps_str as json_dumps, loads as json_loads  # orjson binary
 import re
 from pathlib import Path
@@ -59,6 +60,81 @@ except ImportError:
 # Fallback to basic Redis if enhanced caching not available
 _redis = None
 _redis_available = True
+_memory_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+_MEMORY_CACHE_TTL_SECONDS = 60 * 60 * 12
+_MEMORY_CACHE_MAX_ITEMS = 512
+
+RIASEC_INTERESTS_VI = {
+    "R": {
+        "label": "Thực tế",
+        "description": "Phù hợp với công việc thiên về thao tác thực hành, công cụ, máy móc, kỹ thuật hoặc môi trường làm việc cụ thể.",
+    },
+    "I": {
+        "label": "Nghiên cứu",
+        "description": "Thể hiện mức độ công việc cần phân tích, tìm hiểu dữ liệu, khám phá vấn đề và ra quyết định dựa trên tư duy logic.",
+    },
+    "A": {
+        "label": "Nghệ thuật",
+        "description": "Gắn với các nhiệm vụ sáng tạo, biểu đạt ý tưởng, thiết kế, nội dung hoặc cách làm linh hoạt, ít rập khuôn.",
+    },
+    "S": {
+        "label": "Xã hội",
+        "description": "Cho thấy công việc cần hỗ trợ, hướng dẫn, tư vấn, chăm sóc hoặc tương tác thường xuyên với con người.",
+    },
+    "E": {
+        "label": "Quản lý và thuyết phục",
+        "description": "Phù hợp với hoạt động lãnh đạo, bán hàng, đàm phán, kinh doanh, ra quyết định và tạo ảnh hưởng đến người khác.",
+    },
+    "C": {
+        "label": "Quy củ",
+        "description": "Thể hiện mức độ công việc cần tuân thủ quy trình, xử lý hồ sơ, tổ chức dữ liệu và đảm bảo tính chính xác.",
+    },
+}
+
+
+def _top_riasec_interests(row: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not row:
+        return []
+    pairs = [
+        ("R", row.get("r")),
+        ("I", row.get("i")),
+        ("A", row.get("a")),
+        ("S", row.get("s")),
+        ("E", row.get("e")),
+        ("C", row.get("c")),
+    ]
+    ranked = sorted(
+        ((code, float(score)) for code, score in pairs if score is not None),
+        key=lambda item: item[1],
+        reverse=True,
+    )[:2]
+    return [
+        {
+            "code": code,
+            "label": RIASEC_INTERESTS_VI[code]["label"],
+            "description": RIASEC_INTERESTS_VI[code]["description"],
+            "score": round(score, 3),
+        }
+        for code, score in ranked
+    ]
+
+
+def _memory_get(key: str) -> dict[str, Any] | None:
+    item = _memory_cache.get(key)
+    if not item:
+        return None
+    expires_at, value = item
+    if expires_at < time.time():
+        _memory_cache.pop(key, None)
+        return None
+    return value
+
+
+def _memory_set(key: str, value: dict[str, Any]) -> None:
+    if len(_memory_cache) >= _MEMORY_CACHE_MAX_ITEMS:
+        oldest_key = min(_memory_cache, key=lambda k: _memory_cache[k][0])
+        _memory_cache.pop(oldest_key, None)
+    _memory_cache[key] = (time.time() + _MEMORY_CACHE_TTL_SECONDS, value)
 
 
 async def _get_redis():
@@ -219,15 +295,18 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         )
         overview = cur.fetchone()
 
-        # 7. NEW: Detailed Work Activities (DWAs)
+        # 7. NEW: Detailed Work Activities (DWAs) - enriched with category and description
         cur.execute(
             f"""
-            SELECT dwa_id, 
-                   {get_lang_col("dwa_title_en", "dwa_title_vn")} AS dwa_title,
-                   element_id, iwa_id
-            FROM core.career_dwas 
-            WHERE onet_code = %s
-            ORDER BY dwa_id
+            SELECT d.dwa_id, 
+                   {get_lang_col("d.dwa_title_en", "d.dwa_title_vn")} AS dwa_title,
+                   d.element_id,
+                   COALESCE(m.activity_category_vi, m.activity_category) AS activity_category,
+                   COALESCE(m.description_vi, m.description) AS activity_description
+            FROM core.career_dwas d
+            LEFT JOIN core.career_work_activities_master m ON d.element_id = m.element_id
+            WHERE d.onet_code = %s
+            ORDER BY d.dwa_id
             """,
             (code,),
         )
@@ -309,21 +388,34 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         )
         work_activities = cur.fetchall()
 
-        # 12. NEW: Work Context
+        # 12. NEW: Work Context - trả về đầy đủ cả EN và VI để FE xử lý
         cur.execute(
-            f"""
+            """
             SELECT element_id,
-                   {get_lang_col("element_name", "element_name_vi")} AS element_name,
+                   element_name,
+                   element_name_vi,
                    scale_id, category,
-                   {get_lang_col("category_description", "category_description_vi")} AS category_description,
+                   category_description,
+                   category_description_vi,
                    data_value, n, standard_error
             FROM core.career_work_context 
             WHERE onet_code = %s
-            ORDER BY scale_id, data_value DESC
+            ORDER BY scale_id, element_id, data_value DESC
             """,
             (code,),
         )
         work_context = cur.fetchall()
+
+        # 13. RIASEC interests from O*NET career_interests: display top 2 labels only.
+        cur.execute(
+            """
+            SELECT r, i, a, s, e, c
+            FROM core.career_interests
+            WHERE onet_code = %s
+            """,
+            (header["onet_code"],),
+        )
+        riasec_interests = _top_riasec_interests(cur.fetchone())
 
     # Build response DTO with all sections
     dto = {
@@ -337,6 +429,7 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
         "alternative_titles": header["alternative_titles_vi"] if language == "vi" else header["alternative_titles_en"],
         "industry_category": header["industry_category"],
         "language": language,
+        "riasec_interests": riasec_interests,
         "sections": {
             # Original sections
             "tasks": tasks or [],
@@ -363,7 +456,7 @@ def _fetch_sections(conn: psycopg.Connection, code: str, language: str = "en") -
 async def get_career(
     onet_code: str,
     plan: str = Query("free", description="User plan: free, basic, premium, pro"),
-    language: str = Query("en", description="Language: en (English) or vi (Vietnamese)"),
+    language: str = Query("vi", description="Language is locked to vi"),
 ):
     """Get career details by onet_code or slug with section locking based on plan and language support"""
     normalized_code = _normalize_onet_code(onet_code)
@@ -373,12 +466,14 @@ async def get_career(
     if plan not in valid_plans:
         plan = "free"
 
-    # Validate language
-    valid_languages = ["en", "vi"]
-    if language not in valid_languages:
-        language = "en"
+    # Vietnamese-only product mode. Keep the query parameter for compatibility, but ignore EN.
+    language = "vi"
 
-    cache_key = f"career:v9:{normalized_code}:{plan}:{language}"
+    cache_key = f"career:v11:{normalized_code}:{plan}:{language}"
+
+    memory_cached = _memory_get(cache_key)
+    if memory_cached:
+        return memory_cached
 
     # Try to get from cache (enhanced or basic Redis)
     cache_client = await _get_redis()
@@ -393,6 +488,7 @@ async def get_career(
                 cached = json_loads(cached_data) if cached_data else None
 
             if cached:
+                _memory_set(cache_key, cached)
                 return cached
         except Exception as e:
             logger.warning(f"Cache get error: {e}")
@@ -425,12 +521,14 @@ async def get_career(
     if cache_client:
         try:
             if cache_manager:
-                # Use enhanced cache manager with 30 minute TTL
-                await cache_manager.set(cache_key, dto, ttl=1800)
+                # Career catalog is stable; cache longer to keep detail pages snappy.
+                await cache_manager.set(cache_key, dto, ttl=_MEMORY_CACHE_TTL_SECONDS)
             else:
                 # Use basic Redis
-                await cache_client.set(cache_key, json_dumps(dto), ex=1800)
+                await cache_client.set(cache_key, json_dumps(dto), ex=_MEMORY_CACHE_TTL_SECONDS)
         except Exception as e:
             logger.warning(f"Cache set error: {e}")
+
+    _memory_set(cache_key, dto)
 
     return dto

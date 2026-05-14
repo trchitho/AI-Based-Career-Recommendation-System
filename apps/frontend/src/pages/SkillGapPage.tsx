@@ -5,13 +5,13 @@ import MainLayout from '../components/layout/MainLayout';
 import CVUploadForm from '../components/skillgap/CVUploadForm';
 import SkillGapResult from '../components/skillgap/SkillGapResult';
 import SkillHeatmapGrid from '../components/skillgap/SkillHeatmapGrid';
-import StreamingLearningPlan from '../components/skillgap/StreamingLearningPlan';
 import WhyUseAIScanner from '../components/skillgap/WhyUseAIScanner';
 import CourseRecommendationPage from './CourseRecommendationPage';
 import { skillGapService } from '../services/skillGapService';
 import { careerService } from '../services/careerService';
-import { SkillGapAnalysis, LearningPlan as LearningPlanType } from '../types/skillGap';
+import { SkillGapAnalysis } from '../types/skillGap';
 import { useTheme } from '../contexts/ThemeContext';
+import careerTitleVi from '../data/careerTitleVi.json';
 import './SkillGapPage.css';
 
 /* ══════════════════════════════════════════════════════════════
@@ -85,6 +85,25 @@ function matchBarColor(pct: number) {
   return '#9ca3af';
 }
 
+const careerTitleViMap = careerTitleVi as Record<string, string>;
+
+function getVietnameseCareerName(careerId?: string, career?: { title?: string; title_vn?: string; title_vi?: string; title_en?: string }) {
+  const rawId = (careerId || '').trim();
+  const titleVi = (career?.title_vn || career?.title_vi || '').trim();
+  const titleEn = (career?.title_en || '').trim();
+  const displayTitle = (career?.title || '').trim();
+
+  return (
+    titleVi ||
+    careerTitleViMap[titleEn] ||
+    careerTitleViMap[displayTitle] ||
+    careerTitleViMap[rawId] ||
+    displayTitle ||
+    rawId ||
+    '—'
+  );
+}
+
 const SkillGapPage: React.FC = () => {
   const navigate = useNavigate();
   const { analysisId } = useParams<{ analysisId?: string }>();
@@ -103,8 +122,6 @@ const SkillGapPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<'upload' | 'result'>('upload');
   const [analysis, setAnalysis] = useState<SkillGapAnalysis | null>(null);
   const [careerName, setCareerName] = useState<string>('');
-  const [learningPlan, setLearningPlan] = useState<{ plan: LearningPlanType; career_id: string } | null>(null);
-  const [planLoading, setPlanLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<SkillGapAnalysis[]>([]);
   const [historyCareerNames, setHistoryCareerNames] = useState<Record<string, string>>({});
@@ -152,8 +169,8 @@ const SkillGapPage: React.FC = () => {
       const map: Record<string, string> = {};
       await Promise.all(ids.map(id =>
         careerService.get(id)
-          .then(c => { map[id] = c.title_vn || c.title_en || c.title || id; })
-          .catch(() => { map[id] = id; })
+          .then(c => { map[id] = getVietnameseCareerName(id, c); })
+          .catch(() => { map[id] = getVietnameseCareerName(id); })
       ));
       setHistoryCareerNames(map);
     } catch { }
@@ -180,7 +197,7 @@ const SkillGapPage: React.FC = () => {
     }
   }, [loading]);
 
-  const loadAnalysis = async (id: number, autoLoadPlan = false) => {
+  const loadAnalysis = async (id: number) => {
     setLoading(true);
     setError(null);
     try {
@@ -189,15 +206,8 @@ const SkillGapPage: React.FC = () => {
       setCurrentStep('result');
       if (analysisData.career_id) {
         careerService.get(analysisData.career_id)
-          .then(c => setCareerName(c.title_vn || c.title_en || c.title || analysisData.career_id))
-          .catch(() => setCareerName(analysisData.career_id));
-      }
-      if (autoLoadPlan) {
-        setPlanLoading(true);
-        skillGapService.getLearningPlan(id)
-          .then(res => setLearningPlan({ plan: res.plan, career_id: res.career_id }))
-          .catch(() => { })
-          .finally(() => setPlanLoading(false));
+          .then(c => setCareerName(getVietnameseCareerName(analysisData.career_id, c)))
+          .catch(() => setCareerName(getVietnameseCareerName(analysisData.career_id)));
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load analysis');
@@ -208,7 +218,7 @@ const SkillGapPage: React.FC = () => {
 
   const handleAnalysisComplete = (newAnalysisId: number) => {
     navigate(`/skill-gap/${newAnalysisId}`);
-    loadAnalysis(newAnalysisId, true);
+    loadAnalysis(newAnalysisId);
     loadHistory();
   };
 
@@ -232,7 +242,6 @@ const SkillGapPage: React.FC = () => {
   const handleNewAnalysis = () => {
     setCurrentStep('upload');
     setAnalysis(null);
-    setLearningPlan(null);
     navigate('/skill-gap');
   };
 
@@ -492,10 +501,10 @@ const SkillGapPage: React.FC = () => {
         <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-hidden pb-20 pt-8 px-4 sm:px-6 lg:px-8">
           <div className="error-container">
             <AlertTriangle size={48} className="text-red-500 mb-3" />
-            <h2 className="text-xl font-bold mb-2">Error Loading Analysis</h2>
+            <h2 className="text-xl font-bold mb-2">Không tải được phân tích</h2>
             <p className="text-gray-500 mb-4">{error}</p>
             <button onClick={handleNewAnalysis} className="px-6 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-bold">
-              Start New Analysis
+              Phân tích CV mới
             </button>
           </div>
         </div>
@@ -532,11 +541,11 @@ const SkillGapPage: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
                     <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1rem', color: 'var(--neu-text, #111)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <FileText size={16} />
-                      CV History
+                      Lịch sử CV
                     </h3>
                     {history.length > 0 && (
                       <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#6b7280', background: 'var(--neu-bg, #f3f4f6)', padding: '3px 10px', borderRadius: 99, border: '1px solid var(--neu-border, #e5e7eb)' }}>
-                        {history.length} PREVIOUS UPLOAD{history.length !== 1 ? 'S' : ''}
+                        {history.length} lần tải CV trước đây
                       </span>
                     )}
                   </div>
@@ -545,7 +554,7 @@ const SkillGapPage: React.FC = () => {
                   <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 14, border: '1px solid var(--neu-border, #e5e7eb)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                     {/* Table head */}
                     <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.65rem 1.25rem', background: 'var(--neu-bg, #f9fafb)', borderBottom: '1px solid var(--neu-border, #e5e7eb)' }}>
-                      {['FILENAME & TARGET ROLE', 'DATE UPLOADED', 'MATCH SCORE', 'ACTIONS'].map(h => (
+                      {['TÊN TỆP & NGHỀ MỤC TIÊU', 'NGÀY TẢI LÊN', 'ĐỘ PHÙ HỢP', 'THAO TÁC'].map(h => (
                         <span key={h} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</span>
                       ))}
                     </div>
@@ -559,8 +568,8 @@ const SkillGapPage: React.FC = () => {
                     ) : (
                       history.map((item, idx) => {
                         const pct = Math.round(item.match_percentage ?? 0);
-                        const cName = historyCareerNames[item.career_id] || item.career_id || '—';
-                        const date = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const cName = historyCareerNames[item.career_id] || getVietnameseCareerName(item.career_id);
+                        const date = new Date(item.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
                         const isLast = idx === history.length - 1;
                         return (
                           <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.9rem 1.25rem', alignItems: 'center', borderBottom: isLast ? 'none' : '1px solid var(--neu-border, #f3f4f6)', transition: 'background 0.15s' }}
@@ -573,7 +582,7 @@ const SkillGapPage: React.FC = () => {
                               </div>
                               <div style={{ minWidth: 0 }}>
                                 <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--neu-text, #111)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {item.cv_filename || `CV ${item.id}`}
+                                  {item.cv_filename || `Hồ sơ ${item.id}`}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {cName}
@@ -591,7 +600,7 @@ const SkillGapPage: React.FC = () => {
                               <button
                                 onClick={() => navigate(`/skill-gap/${item.id}`)}
                                 style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--neu-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
-                                View Analysis
+                                Xem phân tích
                                 <ChevronRight size={11} />
                               </button>
                             </div>
@@ -611,7 +620,7 @@ const SkillGapPage: React.FC = () => {
             <>
               <div className="result-header">
                 <button onClick={handleNewAnalysis} className="back-button">
-                  ← New Analysis
+                  ← Phân tích CV mới
                 </button>
                 <span className="analysis-career" title={careerName || analysis.career_id}>
                   {careerName || analysis.career_id}
@@ -638,28 +647,30 @@ const SkillGapPage: React.FC = () => {
                 <SkillHeatmapGrid analysis={analysis} />
               </div>
 
-              <div style={{ marginTop: '1.5rem' }}>
-                <StreamingLearningPlan
-                  analysisId={analysis.id}
-                  careerId={careerName || analysis.career_id}
-                  autoStart={false}
-                />
-              </div>
-
-              {/* Course Recommendations — auto-populated from missing skills */}
+              {/* Gợi ý khóa học — tự động lấy từ kỹ năng còn thiếu */}
               {(() => {
                 const gaps = analysis.skill_gaps as any;
-                const missing: string[] = [
-                  ...(gaps?.critical ?? []),
-                  ...(gaps?.important ?? []),
-                  ...(gaps?.nice_to_have ?? []),
-                ]
+                const toNames = (items: any[] = []) => items
                   .map((s: any) => (typeof s === 'string' ? s : s?.name))
-                  .filter(Boolean)
-                  .slice(0, 8);
-                return missing.length > 0 ? (
+                  .filter(Boolean);
+                const skillGroups = {
+                  critical: toNames(gaps?.critical),
+                  important: toNames(gaps?.important),
+                  nice_to_have: toNames(gaps?.nice_to_have),
+                };
+                const ownedSkills = [
+                  ...(analysis.cv_skills || []),
+                  ...(analysis.matched_skills || []),
+                ].map((s: any) => (typeof s === 'string' ? s : s?.name)).filter(Boolean);
+                const totalMissing = skillGroups.critical.length + skillGroups.important.length + skillGroups.nice_to_have.length;
+                return totalMissing > 0 ? (
                   <div style={{ marginTop: '1.5rem' }}>
-                    <CourseRecommendationPage missingSkills={missing} />
+                    <CourseRecommendationPage
+                      analysisId={analysis.id}
+                      skillGroups={skillGroups}
+                      ownedSkills={ownedSkills}
+                      careerName={careerName || analysis.career_id}
+                    />
                   </div>
                 ) : null;
               })()}

@@ -98,8 +98,10 @@ class RoadmapService:
         
         # Get milestones
         milestones_query = text("""
-            SELECT rm.id, rm.order_no, rm.skill_name, rm.description, 
-                   rm.estimated_duration, rm.resources_json, rm.level
+            SELECT rm.id, rm.order_no, rm.skill_name_en, rm.skill_name_vn,
+                   rm.description_en, rm.description_vn,
+                   rm.estimated_duration_en, rm.estimated_duration_vn,
+                   rm.resources_json_en, rm.resources_json_vn, rm.level
             FROM core.roadmap_milestones rm
             WHERE rm.roadmap_id = :roadmap_id
             ORDER BY rm.order_no ASC
@@ -115,10 +117,14 @@ class RoadmapService:
             milestones.append({
                 "id": row["id"],
                 "order_no": row["order_no"],
-                "skill_name": row["skill_name"],
-                "description": row["description"],
-                "estimated_duration": row["estimated_duration"],
-                "resources": row["resources_json"] or [],
+                "skill_name": row["skill_name_en"] or row["skill_name_vn"] or "",
+                "skill_name_vn": row["skill_name_vn"] or row["skill_name_en"] or "",
+                "description": row["description_en"] or row["description_vn"] or "",
+                "description_vn": row["description_vn"] or row["description_en"] or "",
+                "estimated_duration": row["estimated_duration_en"] or row["estimated_duration_vn"] or "",
+                "estimated_duration_vn": row["estimated_duration_vn"] or row["estimated_duration_en"] or "",
+                "resources": row["resources_json_en"] or [],
+                "resources_vn": row["resources_json_vn"] or [],
                 "level": row["level"]
             })
         

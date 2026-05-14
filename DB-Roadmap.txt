@@ -1,3 +1,76 @@
+-- Table: core.course_catalog
+
+-- DROP TABLE IF EXISTS core.course_catalog;
+
+CREATE TABLE IF NOT EXISTS core.course_catalog
+(
+    id integer NOT NULL DEFAULT nextval('core.course_catalog_id_seq'::regclass),
+    external_id character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    title character varying(500) COLLATE pg_catalog."default" NOT NULL,
+    description text COLLATE pg_catalog."default",
+    url character varying(1000) COLLATE pg_catalog."default",
+    platform character varying(50) COLLATE pg_catalog."default",
+    instructor character varying(255) COLLATE pg_catalog."default",
+    rating double precision DEFAULT 0.0,
+    num_reviews integer DEFAULT 0,
+    price double precision DEFAULT 0.0,
+    is_free boolean DEFAULT false,
+    level character varying(50) COLLATE pg_catalog."default",
+    duration_hrs double precision,
+    thumbnail character varying(1000) COLLATE pg_catalog."default",
+    language character varying(20) COLLATE pg_catalog."default" DEFAULT 'en'::character varying,
+    tags text[] COLLATE pg_catalog."default" DEFAULT '{}'::text[],
+    embedding double precision[],
+    is_embedded boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT course_catalog_pkey PRIMARY KEY (id),
+    CONSTRAINT course_catalog_external_id_key UNIQUE (external_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS core.course_catalog
+    OWNER to postgres;
+
+
+
+
+
+-- Table: core.course_skill_map
+
+-- DROP TABLE IF EXISTS core.course_skill_map;
+
+CREATE TABLE IF NOT EXISTS core.course_skill_map
+(
+    id integer NOT NULL DEFAULT nextval('core.course_skill_map_id_seq'::regclass),
+    course_id integer NOT NULL,
+    skill_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    similarity_score double precision NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT course_skill_map_pkey PRIMARY KEY (id),
+    CONSTRAINT course_skill_map_course_id_skill_name_key UNIQUE (course_id, skill_name),
+    CONSTRAINT course_skill_map_course_id_fkey FOREIGN KEY (course_id)
+        REFERENCES core.course_catalog (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS core.course_skill_map
+    OWNER to postgres;
+-- Index: ix_csm_skill_score
+
+-- DROP INDEX IF EXISTS core.ix_csm_skill_score;
+
+CREATE INDEX IF NOT EXISTS ix_csm_skill_score
+    ON core.course_skill_map USING btree
+    (skill_name COLLATE pg_catalog."default" ASC NULLS LAST, similarity_score DESC NULLS FIRST)
+    TABLESPACE pg_default;
+
+
+
 -- Table: core.roadmap_milestones
 
 -- DROP TABLE IF EXISTS core.roadmap_milestones;
@@ -46,6 +119,7 @@ CREATE INDEX IF NOT EXISTS idx_roadmap_milestones_roadmap_level
     ON core.roadmap_milestones USING btree
     (roadmap_id ASC NULLS LAST, level ASC NULLS LAST)
     TABLESPACE pg_default;
+
 
 
 
@@ -100,7 +174,39 @@ CREATE OR REPLACE TRIGGER roadmaps_sync_title
 
 
 
--- Table: core.user_progress
+-- Table: core.skill_vectors
+
+-- DROP TABLE IF EXISTS core.skill_vectors;
+
+CREATE TABLE IF NOT EXISTS core.skill_vectors
+(
+    id integer NOT NULL DEFAULT nextval('core.skill_vectors_id_seq'::regclass),
+    skill_name text COLLATE pg_catalog."default" NOT NULL,
+    embedding vector(768),
+    source text COLLATE pg_catalog."default" DEFAULT 'onet'::text,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT skill_vectors_pkey PRIMARY KEY (id),
+    CONSTRAINT skill_vectors_skill_name_key UNIQUE (skill_name)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS core.skill_vectors
+    OWNER to postgres;
+-- Index: skill_vectors_embedding_idx
+
+-- DROP INDEX IF EXISTS core.skill_vectors_embedding_idx;
+
+CREATE INDEX IF NOT EXISTS skill_vectors_embedding_idx
+    ON core.skill_vectors USING ivfflat
+    (embedding vector_cosine_ops)
+    WITH (lists=100)
+    TABLESPACE pg_default;
+
+
+
+
+    -- Table: core.user_progress
 
 -- DROP TABLE IF EXISTS core.user_progress;
 

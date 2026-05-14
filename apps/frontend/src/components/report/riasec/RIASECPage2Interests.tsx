@@ -13,22 +13,22 @@ interface RIASECPage2InterestsProps {
 
 // RIASEC display names mapping to Truity style
 const INTEREST_NAMES: Record<string, string> = {
-    realistic: 'Building',
-    investigative: 'Thinking',
-    artistic: 'Creating',
-    social: 'Helping',
-    enterprising: 'Persuading',
-    conventional: 'Organizing',
+    realistic: 'Xây Dựng',
+    investigative: 'Tư Duy',
+    artistic: 'Sáng Tạo',
+    social: 'Hỗ Trợ',
+    enterprising: 'Thuyết Phục',
+    conventional: 'Tổ Chức',
 };
 
 // Full descriptions for each interest area
 const INTEREST_DESCRIPTIONS: Record<string, string> = {
-    realistic: 'Building jobs involve the use of tools, machines, or physical skill. Builders like working with their hands and bodies, working with plants and animals, and working outdoors.',
-    investigative: 'Thinking jobs involve theory, research, and intellectual inquiry. Thinkers like working with ideas and concepts, and enjoy science, technology, and academia.',
-    artistic: 'Creating jobs involve art, design, language, and self-expression. Creators like working in unstructured environments and producing something unique.',
-    social: 'Helping jobs involve assisting, teaching, coaching, and serving other people. Helpers like working in cooperative environments to improve the lives of others.',
-    enterprising: 'Persuading jobs involve leading, motivating, and influencing others. Persuaders like working in positions of power to make decisions and carry out projects.',
-    conventional: 'Organizing jobs involve managing data, information, and processes. Organizers like to work in structured environments to complete tasks with precision and accuracy.',
+    realistic: 'Công việc Xây Dựng liên quan đến việc sử dụng công cụ, máy móc hoặc kỹ năng thể chất. Người thuộc nhóm này thích làm việc bằng tay và cơ thể, làm việc với cây cối và động vật, và làm việc ngoài trời.',
+    investigative: 'Công việc Tư Duy liên quan đến lý thuyết, nghiên cứu và khám phá trí tuệ. Người thuộc nhóm này thích làm việc với ý tưởng và khái niệm, và yêu thích khoa học, công nghệ và học thuật.',
+    artistic: 'Công việc Sáng Tạo liên quan đến nghệ thuật, thiết kế, ngôn ngữ và tự biểu đạt. Người thuộc nhóm này thích làm việc trong môi trường không có cấu trúc cứng nhắc và tạo ra những sản phẩm độc đáo.',
+    social: 'Công việc Hỗ Trợ liên quan đến việc giúp đỡ, giảng dạy, huấn luyện và phục vụ người khác. Người thuộc nhóm này thích làm việc trong môi trường hợp tác để cải thiện cuộc sống của người khác.',
+    enterprising: 'Công việc Thuyết Phục liên quan đến việc lãnh đạo, thúc đẩy và ảnh hưởng đến người khác. Người thuộc nhóm này thích làm việc ở vị trí có quyền lực để đưa ra quyết định và thực hiện dự án.',
+    conventional: 'Công việc Tổ Chức liên quan đến quản lý dữ liệu, thông tin và quy trình. Người thuộc nhóm này thích làm việc trong môi trường có cấu trúc để hoàn thành nhiệm vụ với độ chính xác và cẩn thận.',
 };
 
 const BAR_COLORS: Record<string, string> = {
@@ -51,10 +51,10 @@ const RIASECPage2Interests = ({ scores }: RIASECPage2InterestsProps) => {
         <div className="h-full flex flex-col overflow-hidden">
             {/* Page Title */}
             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-3 print:text-2xl">
-                Your Career Interests
+                Sở Thích Nghề Nghiệp Của Bạn
             </h2>
             <p className="text-base text-gray-600 dark:text-gray-400 mb-6 print:text-sm print:mb-4">
-                This section shows your top career interest areas. There are 6 total interest areas, each with its own set of typical work tasks, roles, and values. Choosing a career which is a good match for your interest profile ensures that you enjoy your daily work.
+                Phần này cho thấy các lĩnh vực sở thích nghề nghiệp hàng đầu của bạn. Có tổng cộng 6 lĩnh vực sở thích, mỗi lĩnh vực có tập hợp các nhiệm vụ công việc, vai trò và giá trị điển hình riêng. Chọn nghề nghiệp phù hợp với hồ sơ sở thích của bạn đảm bảo rằng bạn thích thú với công việc hàng ngày.
             </p>
 
             {/* Horizontal Bar Chart */}
@@ -101,10 +101,10 @@ const RIASECPage2Interests = ({ scores }: RIASECPage2InterestsProps) => {
 
             {/* The Six Interest Areas */}
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 print:text-lg">
-                The Six Interest Areas
+                Sáu Lĩnh Vực Sở Thích
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 print:text-xs print:mb-3">
-                Each of the six interest areas describes a cluster of related work tasks and activities. People who are drawn to each of these interest areas tend to have certain characteristics, preferences, and personality traits in common.
+                Mỗi trong sáu lĩnh vực sở thích mô tả một nhóm các nhiệm vụ và hoạt động công việc liên quan. Những người bị thu hút bởi mỗi lĩnh vực sở thích này thường có những đặc điểm, sở thích và tính cách chung.
             </p>
 
             {/* Interest Descriptions Grid */}

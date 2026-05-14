@@ -161,7 +161,7 @@ const DashboardPage = () => {
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-base font-bold text-gray-700 dark:text-gray-200"> Nghề phù hợp nhất với bạn</span>
                     <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400">
-                      {dashboardData.topCareerSuggestions[0].matchPercentage}% match
+                      {dashboardData.topCareerSuggestions[0].matchPercentage}% phù hợp
                     </span>
                   </div>
                   <TopCareerWidget career={dashboardData.topCareerSuggestions[0]} />

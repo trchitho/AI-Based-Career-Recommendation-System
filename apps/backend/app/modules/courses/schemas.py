@@ -28,13 +28,18 @@ class CourseRecommendation(BaseModel):
     skill_name: str
     similarity_score: float
     relevance_label: str   # "Highly Relevant" | "Relevant" | "Related"
+    priority_group: Optional[str] = None  # "critical" | "important" | "nice_to_have"
+    priority_label: Optional[str] = None
+    reason: Optional[str] = None
+    source_quality: Optional[str] = None
 
 
 class CourseRecommendationsResponse(BaseModel):
     missing_skills: list[str]
     recommendations: list[CourseRecommendation]
     total: int
-    source: str   # "neo4j" | "postgresql" | "fallback"
+    source: str   # "neo4j" | "postgresql" | "fallback" | "gemini" | "cache"
+    grouped_counts: dict[str, int] = {}
 
 
 class SeedStatus(BaseModel):

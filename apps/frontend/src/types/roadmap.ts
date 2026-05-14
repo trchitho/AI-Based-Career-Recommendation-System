@@ -1,15 +1,26 @@
 export interface LearningResource {
   title: string;
   url: string;
-  type: 'course' | 'article' | 'video' | 'book';
+  type: 'course' | 'course_search' | 'article' | 'video' | 'book' | string;
+  provider?: string;
+  lang?: string;
+  level?: string;
+  pricing?: string;
+  is_free?: boolean | null;
+  is_paid?: boolean | null;
+  cost_note_vi?: string;
 }
 
 export interface Milestone {
   order: number;
   skillName: string;
+  skillNameVn?: string;
   description: string;
+  descriptionVn?: string;
   estimatedDuration: string;
+  estimatedDurationVn?: string;
   resources: LearningResource[];
+  resourcesVn?: LearningResource[];
 }
 
 export interface UserProgress {

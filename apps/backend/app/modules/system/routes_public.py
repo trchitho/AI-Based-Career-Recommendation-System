@@ -26,9 +26,9 @@ def public_settings(request: Request):
         return {
             "id": 1,
             "logo_url": None,
-            "app_title": "CareerBridge AI",
-            "app_name": "CareerBridge",
-            "footer_html": "© 2025 CareerBridge AI",
+            "app_title": "CareerVerse AI",
+            "app_name": "CareerVerse",
+            "footer_html": "© 2025 CareerVerse AI",
             "updated_at": None,
             "updated_by": None,
         }
@@ -129,11 +129,11 @@ def send_contact_form(request: Request, form: ContactFormRequest):
         msg = MIMEMultipart()
         msg["From"] = email_from
         msg["To"] = email_from
-        msg["Subject"] = f"CareerBridge Contact Form - {form.name}"
+        msg["Subject"] = f"CareerVerse Contact Form - {form.name}"
         msg["Reply-To"] = form.email
 
         body = f"""
-New Contact Form Submission from CareerBridge AI
+New Contact Form Submission from CareerVerse AI
 ================================================
 
 Name: {form.name}
@@ -145,7 +145,7 @@ Message:
 {form.message}
 
 ================================================
-This message was sent from the CareerBridge AI contact form.
+This message was sent from the CareerVerse AI contact form.
 Reply directly to this email to respond to {form.name}.
         """
 

@@ -18,18 +18,18 @@ export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({
   const featureInfo = {
     voice: {
       icon: <Mic className="text-purple-600" size={24} />,
-      title: 'Voice Input',
-      description: 'Speak directly to AI instead of typing. Convenient and fast!'
+      title: 'Nhập bằng giọng nói',
+      description: 'Nói trực tiếp với AI thay vì gõ. Nhanh và tiện hơn.'
     },
     blog: {
       icon: <FileText className="text-purple-600" size={24} />,
-      title: 'Create Blog from Conversation',
-      description: 'Convert your conversation into a complete blog post with just one click!'
+      title: 'Tạo blog từ cuộc trò chuyện',
+      description: 'Chuyển cuộc trò chuyện thành một bài blog hoàn chỉnh chỉ với một lần nhấn.'
     },
     tts: {
       icon: <Volume2 className="text-purple-600" size={24} />,
-      title: 'Text-to-Speech',
-      description: 'AI will read responses aloud so you can listen while doing other tasks!'
+      title: 'Đọc văn bản',
+      description: 'AI sẽ đọc phản hồi thành tiếng để bạn có thể nghe khi làm việc khác.'
     }
   };
 
@@ -48,7 +48,7 @@ export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <Crown className="text-purple-600" size={24} />
-            <h3 className="text-xl font-bold text-gray-900">Premium Feature</h3>
+            <h3 className="text-xl font-bold text-gray-900">Tính năng Premium</h3>
           </div>
           <button
             onClick={onClose}
@@ -71,23 +71,23 @@ export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({
         </div>
 
         <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
-          <h5 className="font-semibold text-purple-800 mb-2">Upgrade to Premium for:</h5>
+          <h5 className="font-semibold text-purple-800 mb-2">Nâng cấp Premium để dùng:</h5>
           <ul className="text-sm text-purple-700 space-y-1">
             <li className="flex items-center gap-2">
               <Mic size={14} />
-              Voice input
+              Nhập bằng giọng nói
             </li>
             <li className="flex items-center gap-2">
               <Volume2 size={14} />
-              Text-to-speech
+              Đọc văn bản
             </li>
             <li className="flex items-center gap-2">
               <FileText size={14} />
-              Create blog from conversation
+              Tạo blog từ cuộc trò chuyện
             </li>
             <li className="flex items-center gap-2">
               <Crown size={14} />
-              Unlimited career counseling
+              Tư vấn nghề nghiệp không giới hạn
             </li>
           </ul>
         </div>
@@ -97,13 +97,13 @@ export const PremiumFeaturePrompt: React.FC<PremiumFeaturePromptProps> = ({
             onClick={onClose}
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Later
+            Để sau
           </button>
           <button
             onClick={handleUpgrade}
             className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium"
           >
-            Upgrade Now
+            Nâng cấp ngay
           </button>
         </div>
       </div>

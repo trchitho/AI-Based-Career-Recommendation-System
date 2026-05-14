@@ -602,7 +602,7 @@ class SkillGraphAnalyzer:
         print("  [3/4] Performing gap analysis...")
         if ai_result:
             # Use AI semantic matching results
-            analysis = self._build_analysis_from_ai(ai_result, cv_skills, job_skills)
+            analysis = self._build_analysis_from_ai(ai_result, cv_skills, job_skills, career_name)
         else:
             # Fallback to traditional matching
             print("  [WARN] AI matching unavailable, using traditional matching")
@@ -619,7 +619,7 @@ class SkillGraphAnalyzer:
         
         return analysis
     
-    def _build_analysis_from_ai(self, ai_result: Dict, cv_skills: List[Dict], job_skills: List[Dict]) -> Dict:
+    def _build_analysis_from_ai(self, ai_result: Dict, cv_skills: List[Dict], job_skills: List[Dict], career_name: str = "") -> Dict:
         """
         Build analysis result from AI semantic matching
         
@@ -657,6 +657,13 @@ class SkillGraphAnalyzer:
         matched_skills = []
         cv_skill_dict = {s['name'].lower(): s for s in cv_skills}
         job_skill_dict = {s['name'].lower(): s for s in job_skills}
+        software_career_markers = ("software", "developer", "programmer", "web", "data", "computer", "information technology", "ai", "machine learning")
+        is_software_like_career = any(marker in (career_name or "").lower() for marker in software_career_markers)
+        generic_job_skills = {"programming", "science", "systems analysis"}
+        software_tool_skills = {
+            "node.js", "react", "docker", "jwt", "redis", "postgresql", "sqlite", "tailwindcss",
+            "phobert", "pytorch", "machine learning", "web development", "javascript", "typescript"
+        }
         
         seen_cv_skills = set()
         seen_job_skills = set()
@@ -673,7 +680,23 @@ class SkillGraphAnalyzer:
             seen_cv_skills.add(cv_key)
             seen_job_skills.add(job_key)
 
-            confidence = pair.get('confidence', 0.8)
+            try:
+                confidence = float(pair.get('confidence', 0.8))
+            except (TypeError, ValueError):
+                confidence = 0.0
+            if confidence < 0.75:
+                unmatched_cv.add(cv_skill_name)
+                unmatched_job.add(job_skill_name)
+                continue
+
+            if (
+                not is_software_like_career
+                and cv_key in software_tool_skills
+                and job_key in generic_job_skills
+            ):
+                unmatched_cv.add(cv_skill_name)
+                unmatched_job.add(job_skill_name)
+                continue
 
             # Get original skill data
             cv_skill = cv_skill_dict.get(cv_key, {'name': cv_skill_name, 'category': 'Other'})

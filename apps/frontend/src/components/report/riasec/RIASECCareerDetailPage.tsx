@@ -64,9 +64,9 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                         {sectionTitle}
                     </h1>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 print:text-[10px]">
-                        {sectionTitle === 'Your Top Career Matches'
-                            ? 'These careers best match your interest profile based on your RIASEC assessment results.'
-                            : 'Additional careers that align well with your interests and may be worth exploring.'}
+                        {sectionTitle === 'Nghề Nghiệp Phù Hợp Nhất Của Bạn'
+                            ? 'Những nghề nghiệp này phù hợp nhất với hồ sơ sở thích của bạn dựa trên kết quả đánh giá RIASEC.'
+                            : 'Các nghề nghiệp bổ sung phù hợp tốt với sở thích của bạn và có thể đáng khám phá.'}
                     </p>
                 </div>
             )}
@@ -84,7 +84,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     )}
                 </div>
                 <span className="text-xs bg-indigo-700 text-white px-3 py-1 rounded-full font-semibold shadow-sm print:text-[10px]">
-                    {Math.round(career.match_score)}% Match
+                    {Math.round(career.match_score)}% Phù Hợp
                 </span>
             </div>
 
@@ -103,25 +103,25 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
             <div className="mb-3 print:mb-2 flex-shrink-0">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 flex items-center gap-1.5 print:text-xs">
                     <span className="w-1 h-3 bg-blue-500 rounded"></span>
-                    Career Overview
+                    Tổng Quan Nghề Nghiệp
                 </h3>
                 <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed print:text-[10px] print:leading-snug">
-                    {truncateText(career.description || 'No description available for this career.', 280)}
+                    {truncateText(career.description || 'Không có mô tả cho nghề nghiệp này.', 280)}
                 </p>
             </div>
 
             {/* Quick Stats - 3 columns - Compact */}
             <div className="grid grid-cols-3 gap-2 mb-3 print:mb-2 print:gap-1.5 flex-shrink-0">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg p-2 print:p-1.5">
-                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium uppercase tracking-wide print:text-[9px]">Average Salary</p>
+                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium uppercase tracking-wide print:text-[9px]">Lương Trung Bình</p>
                     <p className="text-base font-bold text-blue-700 dark:text-blue-300 print:text-sm">{formatSalary(career.salary_avg)}</p>
                 </div>
                 <div className="bg-gradient-to-br from-indigo-50 to-indigo-50 dark:from-indigo-950/30 dark:to-indigo-900/20 rounded-lg p-2 print:p-1.5">
-                    <p className="text-[10px] text-indigo-800 dark:text-indigo-400 font-medium uppercase tracking-wide print:text-[9px]">Job Growth</p>
+                    <p className="text-[10px] text-indigo-800 dark:text-indigo-400 font-medium uppercase tracking-wide print:text-[9px]">Tăng Trưởng Việc Làm</p>
                     <p className="text-base font-bold text-indigo-900 dark:text-indigo-300 print:text-sm">{career.growth_label || 'N/A'}</p>
                 </div>
                 <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 rounded-lg p-2 print:p-1.5">
-                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium uppercase tracking-wide print:text-[9px]">Education</p>
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium uppercase tracking-wide print:text-[9px]">Học Vấn</p>
                     <p className="text-xs font-bold text-amber-700 dark:text-amber-300 print:text-[10px] leading-tight">{truncateText(career.education_req || 'N/A', 50)}</p>
                 </div>
             </div>
@@ -134,7 +134,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 flex items-center gap-1.5 print:text-xs print:mb-1">
                             <span className="w-1 h-3 bg-indigo-700 rounded"></span>
-                            Typical Tasks
+                            Nhiệm Vụ Điển Hình
                         </h3>
                         {career.tasks && career.tasks.length > 0 ? (
                             <ul className="text-xs text-gray-700 dark:text-gray-300 space-y-1 print:text-[10px] print:space-y-0.5">
@@ -146,7 +146,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 italic print:text-[10px]">Task information not available</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 italic print:text-[10px]">Không có thông tin nhiệm vụ</p>
                         )}
                     </div>
 
@@ -154,7 +154,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 flex items-center gap-1.5 print:text-xs print:mb-1">
                             <span className="w-1 h-3 bg-orange-500 rounded"></span>
-                            Knowledge Areas
+                            Lĩnh Vực Kiến Thức
                         </h3>
                         {career.knowledge && career.knowledge.length > 0 ? (
                             <ul className="text-xs text-gray-700 dark:text-gray-300 space-y-0.5 print:text-[10px]">
@@ -166,7 +166,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 italic print:text-[10px]">Knowledge information not available</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 italic print:text-[10px]">Không có thông tin kiến thức</p>
                         )}
                     </div>
                 </div>
@@ -177,7 +177,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 flex items-center gap-1.5 print:text-xs print:mb-1">
                             <span className="w-1 h-3 bg-cyan-500 rounded"></span>
-                            Technologies & Tools
+                            Công Nghệ & Công Cụ
                         </h3>
                         {career.technologies && career.technologies.length > 0 ? (
                             <div className="flex flex-wrap gap-1.5 print:gap-1">
@@ -195,7 +195,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 italic print:text-[10px]">Technology information not available</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 italic print:text-[10px]">Không có thông tin công nghệ</p>
                         )}
                     </div>
 
@@ -203,15 +203,15 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 flex items-center gap-1.5 print:text-xs print:mb-1">
                             <span className="w-1 h-3 bg-indigo-600 rounded"></span>
-                            Career Outlook
+                            Triển Vọng Nghề Nghiệp
                         </h3>
                         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2 print:p-1.5">
                             {career.outlook_summary ? (
                                 <p className="text-xs text-gray-700 dark:text-gray-300 leading-snug print:text-[10px]">{truncateText(career.outlook_summary, 180)}</p>
                             ) : (
                                 <div className="text-xs text-gray-700 dark:text-gray-300 space-y-0.5 print:text-[10px]">
-                                    <p><span className="font-medium">Growth:</span> {career.growth_label || 'Data not available'}</p>
-                                    <p><span className="font-medium">Education:</span> {truncateText(career.education_req || 'Data not available', 60)}</p>
+                                    <p><span className="font-medium">Tăng trưởng:</span> {career.growth_label || 'Không có dữ liệu'}</p>
+                                    <p><span className="font-medium">Học vấn:</span> {truncateText(career.education_req || 'Không có dữ liệu', 60)}</p>
                                 </div>
                             )}
                         </div>
