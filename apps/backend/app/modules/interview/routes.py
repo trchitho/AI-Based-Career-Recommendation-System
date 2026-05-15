@@ -1196,8 +1196,41 @@ async def admin_get_session_detail(
             .all()
         )
 
+        # Build audio URL map: candidate_message_id → file_url
+        # Note: interview_audio.message_id sometimes points to the wrong message (interviewer
+        # instead of candidate), so we match by order: Nth audio → Nth candidate message.
+        from app.modules.interview.models import InterviewAudio
+        audio_rows = (
+            service.db.query(InterviewAudio.message_id, InterviewAudio.file_url, InterviewAudio.duration_seconds)
+            .filter(
+                InterviewAudio.session_id == session_id,
+                InterviewAudio.audio_type == "user_answer",
+            )
+            .order_by(InterviewAudio.created_at.asc())
+            .all()
+        )
+        # Candidate messages in order
+        candidate_msgs_ordered = sorted(
+            [m for m in messages if m.role == "candidate"],
+            key=lambda m: (m.order_index or 0, m.id)
+        )
+        # First try direct message_id match; fallback to positional match
+        direct_map = {row.message_id: {"url": row.file_url, "duration": row.duration_seconds} for row in audio_rows}
+        audio_map: dict = {}
+        # Direct match for any that point to candidate messages
+        for row in audio_rows:
+            if any(m.id == row.message_id for m in candidate_msgs_ordered):
+                audio_map[row.message_id] = {"url": row.file_url, "duration": row.duration_seconds}
+        # Positional fallback: assign Nth audio to Nth candidate message that still has no match
+        unmatched_audio = [row for row in audio_rows if row.message_id not in audio_map
+                           and not any(m.id == row.message_id for m in candidate_msgs_ordered)]
+        unmatched_candidates = [m for m in candidate_msgs_ordered if m.id not in audio_map]
+        for audio_row, cand_msg in zip(unmatched_audio, unmatched_candidates):
+            audio_map[cand_msg.id] = {"url": audio_row.file_url, "duration": audio_row.duration_seconds}
+
         msgs = []
         for m in messages:
+            audio_info = audio_map.get(m.id, {})
             msgs.append({
                 "id": m.id,
                 "role": m.role,
@@ -1210,8 +1243,9 @@ async def admin_get_session_detail(
                 "strengths": m.strengths,
                 "weaknesses": m.weaknesses,
                 "suggestion": m.suggestion,
-                "has_audio": m.has_audio,
-                "audio_url": m.audio_url,
+                "has_audio": m.has_audio or bool(audio_info),
+                "audio_url": audio_info.get("url"),
+                "audio_duration": audio_info.get("duration") or m.audio_duration,
                 "order_index": m.order_index,
             })
 

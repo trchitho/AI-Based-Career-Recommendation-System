@@ -793,18 +793,37 @@ async def get_full_conversation(
         .all()
     )
 
+    candidate_msg_ids = {m.id for m in messages if m.role == "candidate"}
+    interviewer_msg_ids = {m.id for m in messages if m.role == "interviewer"}
+
+    # Direct map: message_id → audio (for correctly linked records)
     audio_by_msg = {ar.message_id: ar for ar in audio_records if ar.message_id}
+
+    # User answer audios linked to wrong (interviewer) message_id — collect unmatched ones
+    unmatched_user_audio = sorted(
+        [ar for ar in audio_records
+         if ar.audio_type == "user_answer"
+         and ar.message_id not in candidate_msg_ids],
+        key=lambda a: a.created_at or 0,
+    )
     ai_audios = [ar for ar in audio_records if ar.audio_type == "ai_question" and not ar.message_id]
+
+    # Build positional map: Nth unmatched user_answer → Nth candidate message without audio
+    candidate_msgs_ordered = [m for m in messages if m.role == "candidate"]
+    positional_user_audio: dict = {}
+    unmatched_candidates = [m for m in candidate_msgs_ordered if m.id not in audio_by_msg or audio_by_msg[m.id].audio_type != "user_answer"]
+    for audio_rec, cand_msg in zip(unmatched_user_audio, unmatched_candidates):
+        positional_user_audio[cand_msg.id] = audio_rec
 
     conversation = []
     ai_idx = 0
     for msg in messages:
         audio_url = duration = transcript = None
-        if msg.id in audio_by_msg:
-            ar = audio_by_msg[msg.id]
+        ar = audio_by_msg.get(msg.id) or positional_user_audio.get(msg.id)
+        if ar:
             audio_url = ar.file_url if ar.file_url and ar.file_url.startswith("https://") else None
             duration = ar.duration_seconds
-            transcript = ar.transcript
+            transcript = getattr(ar, "transcript", None)
         elif msg.role == "interviewer" and ai_idx < len(ai_audios):
             ar = ai_audios[ai_idx]
             audio_url = ar.file_url if ar.file_url and ar.file_url.startswith("https://") else None

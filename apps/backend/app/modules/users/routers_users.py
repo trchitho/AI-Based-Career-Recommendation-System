@@ -69,8 +69,6 @@ def _log_audit(
         finally:
             new_session.close()
     except Exception:
-        # Log audit failures but don't propagate to avoid breaking the main flow
-        # Using exception() to include stack trace for debugging
         logger.exception("Failed to log audit")
 
 
@@ -102,7 +100,7 @@ def _profile_dict(u: User) -> dict:
 @router.get("/me")
 def get_me(request: Request):
     session = _db(request)
-    user_id = require_user(request)  # đọc từ Authorization: Bearer <token>
+    user_id = require_user(request)  
     u = session.get(User, user_id)
     if not u:
         raise HTTPException(status_code=404, detail="User not found")
@@ -119,7 +117,6 @@ def update_me(request: Request, payload: dict):
 
     # Track changes for audit log
     changes = {}
-    # Map first/last name into full_name if provided
     first = payload.get("first_name")
     last = payload.get("last_name")
     if first is not None or last is not None:

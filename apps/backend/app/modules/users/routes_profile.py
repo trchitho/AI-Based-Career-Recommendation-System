@@ -64,7 +64,7 @@ def get_profile(request: Request):
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "goals": [{"id": str(g.id), "goal_text": g.goal_text} for g in goals]
         }
-        
+    #Xử lý lỗi hệ thống (Cơ chế dự phòng)
     except Exception as e:
         # If there's a transaction error, rollback and try again with basic info only
         session.rollback()
