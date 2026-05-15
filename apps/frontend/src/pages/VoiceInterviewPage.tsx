@@ -683,11 +683,15 @@ const VoiceInterviewPage: React.FC = () => {
                     console.log(`[DG-WS] ${isFinal ? 'FINAL' : 'INTERIM'} transcript:`, text.slice(0, 50));
                     
                     if (isFinal) {
-                        // Final: update confirmed text, clear interim
-                        setLiveTranscript(accumulated);
-                        liveTranscriptRef.current = accumulated;
+                        // Accumulate on client side (not server accumulated)
+                        // so user's manual clear is respected
+                        const newAccum = liveTranscriptRef.current
+                            ? (liveTranscriptRef.current + ' ' + text).trim()
+                            : text.trim();
+                        setLiveTranscript(newAccum);
+                        liveTranscriptRef.current = newAccum;
                         setInterimTranscript('');
-                        console.log('[DG-WS] ✓ Final transcript saved:', accumulated.slice(0, 80));
+                        console.log('[DG-WS] ✓ Final transcript saved:', newAccum.slice(0, 80));
                     } else {
                         // Interim: only update preview
                         setInterimTranscript(text);
@@ -705,31 +709,22 @@ const VoiceInterviewPage: React.FC = () => {
 
         dgWs.onerror = (err) => {
             console.error('[DG-WS] WebSocket error:', err);
-            setErrorMessage('Lỗi kết nối Deepgram. Đang chuyển sang phương thức dự phòng...');
-            if (!dgReady) { 
-                console.warn('[DG-WS] fail → HTTP fallback'); 
-                startHttpSTT(stream); 
+            if (!dgReady) {
+                console.warn('[DG-WS] fail → HTTP fallback');
+                startHttpSTT(stream);
             }
         };
-        
-        dgWs.onclose = (ev) => { 
-            dgReady = false; 
+
+        dgWs.onclose = (ev) => {
+            dgReady = false;
             console.log('[DG-WS] Connection closed:', ev.code, ev.reason);
-            
-            // Only show error if NOT user-initiated close or timeout
-            // 1000 = normal, 1001 = going away, 1005 = no status, 1011 = Deepgram timeout
+
             if (ev.code !== 1000 && ev.code !== 1001 && ev.code !== 1005 && ev.code !== 1011) {
-                // Abnormal closure (1006 = connection lost)
                 if (ev.code === 1006) {
-                    console.error('[DG-WS] Connection lost (1006) - Deepgram may have timed out');
-                    setErrorMessage('Kết nối Deepgram bị mất. Đang chuyển sang phương thức dự phòng...');
-                    // Auto fallback to HTTP STT
+                    console.error('[DG-WS] Connection lost (1006) - switching to HTTP fallback');
                     if (isRecordingRef.current) {
-                        console.log('[DG-WS] Auto-switching to HTTP STT fallback');
                         startHttpSTT(stream);
                     }
-                } else {
-                    setErrorMessage(`Kết nối Deepgram bị đóng (code ${ev.code}). Vui lòng thử lại.`);
                 }
             } else if (ev.code === 1011) {
                 // Deepgram timeout - normal when user stops speaking
@@ -766,6 +761,8 @@ const VoiceInterviewPage: React.FC = () => {
                 const data = await res.json();
                 const text = (data.text || '').trim();
                 if (text && isRecordingRef.current) {
+                    // Sync with liveTranscriptRef so manual clear is respected
+                    sttAccumText = liveTranscriptRef.current;
                     // Deduplicate: skip if new text is substring of last chunk
                     const lastChunk = sttAccumText.split(' ').slice(-8).join(' ').toLowerCase();
                     if (!lastChunk || !text.toLowerCase().startsWith(lastChunk)) {
@@ -971,6 +968,11 @@ const VoiceInterviewPage: React.FC = () => {
                 setSttRetryCount(0);
                 setShowTextFallback(false);
 
+                // Clear transcript for next question
+                setLiveTranscript('');
+                setInterimTranscript('');
+                liveTranscriptRef.current = '';
+
                 // Always use fetchAndPlayTTS for consistent voice and fresh audio
                 await fetchAndPlayTTS(nextQ);
             } else if (result.ai_response?.status === 'completed') {
@@ -1031,6 +1033,7 @@ const VoiceInterviewPage: React.FC = () => {
 
                 // Clear transcript trước khi AI đọc câu hỏi mới
                 setLiveTranscript('');
+                setInterimTranscript('');
                 liveTranscriptRef.current = '';
 
                 // Always use fetchAndPlayTTS for consistent voice and fresh audio

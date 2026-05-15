@@ -1753,9 +1753,24 @@ Kỹ năng cần đánh giá: {skills_str}
 CÁC CÂU HỎI ĐÃ HỎI (KHÔNG được lặp lại hoặc tương tự):
 {asked_context_safe}
 
+CÂU HỎI VỪA HỎI (bắt buộc phải hoàn toàn khác):
+{asked_list[-1] if asked_list else 'chưa có'}
+
 Yêu cầu: câu hỏi {type_label} cụ thể, khác hoàn toàn các câu trên, phù hợp với cấp bậc {effective_level}.
 Khuyến khích chia sẻ kinh nghiệm thực tế.
 CHỈ trả về câu hỏi."""
+
+        def _is_too_similar(new_q: str, existing: list[str], threshold: float = 0.6) -> bool:
+            """Return True if new_q shares too many words with any existing question."""
+            new_words = set(new_q.lower().split())
+            for eq in existing:
+                eq_words = set(eq.lower().split())
+                if not eq_words:
+                    continue
+                overlap = len(new_words & eq_words) / max(len(new_words), len(eq_words))
+                if overlap >= threshold:
+                    return True
+            return False
 
         try:
             next_question = self.gemini.stream_manager.generate_content_with_retry(
@@ -1763,6 +1778,17 @@ CHỈ trả về câu hỏi."""
                 max_output_tokens=150,
                 temperature=0.8
             )
+
+            # Retry once with higher temperature if too similar to existing questions
+            if next_question and _is_too_similar(next_question.strip(), asked_list):
+                print(f"[Interview] ⚠️ Generated question too similar to existing, retrying...")
+                retry_prompt = question_prompt + "\n\nQUAN TRỌNG: Câu vừa tạo quá giống câu đã hỏi. Hãy tạo câu hoàn toàn khác về chủ đề và cách diễn đạt."
+                next_question = self.gemini.stream_manager.generate_content_with_retry(
+                    retry_prompt,
+                    max_output_tokens=150,
+                    temperature=1.0
+                )
+                print(f"[Interview] ✓ Retry generated: {(next_question or '')[:80]}")
 
             if next_question and next_question.strip():
                 question_msg = InterviewMessage(

@@ -148,6 +148,41 @@ async def lifespan(_: FastAPI):
     except Exception as e:
         print("Skip course auto-migration:", repr(e))
 
+    # Auto-create interview answer analysis table
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS interview.interview_answer_analysis (
+                    id               BIGSERIAL PRIMARY KEY,
+                    session_id       BIGINT NOT NULL REFERENCES interview.interview_sessions(id) ON DELETE CASCADE,
+                    message_id       BIGINT NOT NULL UNIQUE,
+                    user_id          BIGINT NOT NULL,
+                    strengths        TEXT[]  DEFAULT ARRAY[]::TEXT[],
+                    weaknesses       TEXT[]  DEFAULT ARRAY[]::TEXT[],
+                    missing_elements TEXT[]  DEFAULT ARRAY[]::TEXT[],
+                    improved_example TEXT    DEFAULT '',
+                    action_tips      TEXT[]  DEFAULT ARRAY[]::TEXT[],
+                    score_explanation TEXT   DEFAULT '',
+                    raw_score        FLOAT,
+                    created_at       TIMESTAMPTZ DEFAULT NOW()
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_answer_analysis_session ON interview.interview_answer_analysis(session_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_answer_analysis_user ON interview.interview_answer_analysis(user_id)"))
+            conn.commit()
+        print("[OK] interview_answer_analysis table ready")
+    except Exception as e:
+        print(f"[WARN] interview_answer_analysis table init: {e}")
+
+    # Add analysis_data column to interview_messages if missing
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE interview.interview_messages ADD COLUMN IF NOT EXISTS analysis_data BYTEA"))
+            conn.commit()
+        print("[OK] interview_messages.analysis_data column ready")
+    except Exception as e:
+        print(f"[WARN] analysis_data column init: {e}")
+
     # Auto-seed + embed courses in background on startup (gated by env flag)
     # Set RUN_COURSE_PIPELINE_ON_STARTUP=true to enable (disabled by default in production)
     if _bool_env("RUN_COURSE_PIPELINE_ON_STARTUP", default=False):

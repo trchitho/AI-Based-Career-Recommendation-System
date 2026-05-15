@@ -201,7 +201,48 @@ const InterviewResultsPage: React.FC = () => {
 
         setIsGeneratingPDF(true);
         try {
-            // Create PDF using jsPDF
+            // Capture the page content as canvas (handles Vietnamese chars correctly)
+            const element = document.getElementById('interview-results-content') || document.body;
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.92);
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft > 0) {
+                position -= pageHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            pdf.save(`interview-report-${history.session.job_title}-${sessionId}.pdf`);
+            toast.success('Đã tải xuống báo cáo PDF');
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            toast.error('Lỗi khi tạo báo cáo PDF');
+        } finally {
+            setIsGeneratingPDF(false);
+        }
+    };
+
+    const _downloadReport_OLD = async () => {
+        if (!history) return;
+        try {
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
@@ -357,16 +398,8 @@ const InterviewResultsPage: React.FC = () => {
             pdf.text(`Báo cáo được tạo tự động bởi AI Career System - ${new Date().toLocaleString('vi-VN')}`,
                 pageWidth / 2, pageHeight - 10, { align: 'center' });
 
-            // Save PDF
             pdf.save(`interview-report-${history.session.job_title}-${sessionId}.pdf`);
-            toast.success('Đã tải xuống báo cáo PDF');
-
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            toast.error('Lỗi khi tạo báo cáo PDF');
-        } finally {
-            setIsGeneratingPDF(false);
-        }
+        } catch (_) { /* unused */ }
     };
 
     const shareResults = async () => {
@@ -436,7 +469,7 @@ const InterviewResultsPage: React.FC = () => {
                 <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
                 <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
                 
-                <div className="py-8 relative z-10">
+                <div id="interview-results-content" className="py-8 relative z-10">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Header */}
                         <div className="mb-8">
@@ -1052,6 +1085,29 @@ const InterviewResultsPage: React.FC = () => {
                         )}
                         </div>
                         <p className="text-sm text-gray-700 leading-relaxed">{msg.content || <span className="italic text-gray-400">Không có câu trả lời</span>}</p>
+
+                        {/* Audio playback */}
+                        {msg.audio_url && (
+                        <div className="mt-3 pt-3 border-t border-gray-200/60">
+                          <div className="flex items-center gap-2 mb-1">
+                            <svg className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                            </svg>
+                            <span className="text-xs font-semibold text-indigo-600">Nghe lại câu trả lời</span>
+                            {msg.audio_duration && (
+                              <span className="text-xs text-gray-400">({Math.round(msg.audio_duration)}s)</span>
+                            )}
+                          </div>
+                          <audio
+                            controls
+                            src={msg.audio_url}
+                            className="w-full h-8"
+                            style={{ accentColor: '#6366f1' }}
+                          >
+                            Trình duyệt không hỗ trợ audio.
+                          </audio>
+                        </div>
+                        )}
                         </div>
 
                         {/* AI Deep Analysis */}

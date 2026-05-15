@@ -270,14 +270,108 @@ def find_mentors_for_career(
     career_keywords = [w for w in career_title.replace("-", " ").split() if len(w) > 2]
     results = []
     seen_user_ids: set = set()
+    completer_user_ids: set = set()  # users who completed roadmap — excluded from mentor dedup
 
-    # ── Source 1: registered MentorProfiles ──────────────────────
-    mentors = db.query(MP).filter(
+    # ── Source 2 FIRST: users who completed this career's roadmap ──
+    # Run before Source 1 so completers are never blocked by seen_user_ids
+    try:
+        career_objs = []
+        if career_slug:
+            career_objs = db.query(Career).filter(Career.slug == career_slug).all()
+        if not career_objs:
+            career_objs = db.query(Career).filter(
+                or_(
+                    Career.title_en.ilike(f"%{career_title}%"),
+                    Career.title_vi.ilike(f"%{career_title}%"),
+                    Career.slug == career_title.lower().replace(" ", "-").replace(",", ""),
+                )
+            ).all()
+        career_ids = [c.id for c in career_objs]
+        print(f"[career-mentors] title={career_title!r} slug={career_slug!r} → career_ids={career_ids}")
+
+        if career_ids:
+            progresses = (
+                db.query(UserProgress)
+                .filter(UserProgress.career_id.in_(career_ids))
+                .all()
+            )
+            print(f"[career-mentors] found {len(progresses)} UserProgress rows")
+
+            for prog in progresses:
+                completed = prog.completed_milestones or []
+                if not completed:
+                    continue
+
+                # completed_milestones stores order numbers as strings ("1", "2", ...)
+                completed_orders = []
+                for m in completed:
+                    try:
+                        completed_orders.append(int(m))
+                    except (ValueError, TypeError):
+                        pass
+
+                milestone_skills: List[str] = []
+                if completed_orders:
+                    milestones = db.query(RoadmapMilestone).filter(
+                        RoadmapMilestone.roadmap_id == prog.roadmap_id,
+                        RoadmapMilestone.order_no.in_(completed_orders),
+                    ).all()
+                    milestone_skills = [
+                        ms.skill_name_vn or ms.skill_name_en
+                        for ms in milestones
+                        if ms.skill_name_vn or ms.skill_name_en
+                    ]
+
+                user = db.query(UserModel).filter(UserModel.id == prog.user_id).first()
+                if not user:
+                    continue
+
+                n_completed = len(completed_orders)
+                try:
+                    progress_pct = float(prog.progress_percentage or 0)
+                except (ValueError, TypeError):
+                    progress_pct = 0.0
+                score = min(0.5 + (progress_pct / 200), 0.95)
+
+                completer_user_ids.add(prog.user_id)
+                seen_user_ids.add(prog.user_id)
+                priority_score = min(95.0 + (progress_pct / 100), 99.0)
+                results.append(MatchingResult(
+                    mentor_id=0,
+                    user_id=prog.user_id,
+                    mentor_name=user.full_name or user.email.split("@")[0],
+                    current_position=f"Đã hoàn thành {n_completed} bước lộ trình {career_title}",
+                    company="",
+                    bio="",
+                    expertise_areas=milestone_skills,
+                    experience_years=0,
+                    available_hours_per_week=2,
+                    preferred_communication=["chat"],
+                    compatibility_score=round(priority_score, 1),
+                    skill_match_score=round(priority_score, 1),
+                    career_match_score=99.0,
+                    personality_score=50.0,
+                    matching_skills=milestone_skills[:3],
+                    matching_reasons=[
+                        f"Đã hoàn thành {n_completed} bước trong lộ trình {career_title}",
+                        "Có kinh nghiệm thực tế với nghề nghiệp này",
+                    ],
+                    current_mentees_count=0,
+                    max_mentees=5,
+                ))
+    except Exception as _src2_err:
+        print(f"[career-mentors] Source2 error: {_src2_err}")
+
+    # ── Source 1: registered MentorProfiles (run AFTER Source 2) ──
+    # Skip users already added as completers
+    mentors_list = db.query(MP).filter(
         MP.is_active == True,
         MP.current_mentees_count < MP.max_mentees,
     ).all()
 
-    for mentor in mentors:
+    for mentor in mentors_list:
+        if mentor.user_id in seen_user_ids:
+            continue  # already a completer or already added
         skill_score, matching_skills = calculate_skill_match(
             career_keywords, mentor.expertise_areas or [],
         )
@@ -312,95 +406,11 @@ def find_mentors_for_career(
             max_mentees=mentor.max_mentees or 5,
         ))
 
-    # ── Source 2: users who completed this career's roadmap ──────
-    try:
-        # Find career by slug (direct, reliable) or by title (fallback)
-        career_objs = []
-        if career_slug:
-            career_objs = db.query(Career).filter(Career.slug == career_slug).all()
-        if not career_objs:
-            career_objs = db.query(Career).filter(
-                or_(
-                    Career.title_en.ilike(f"%{career_title}%"),
-                    Career.title_vi.ilike(f"%{career_title}%"),
-                    Career.slug == career_title.lower().replace(" ", "-").replace(",", ""),
-                )
-            ).all()
-        career_ids = [c.id for c in career_objs]
-        print(f"[career-mentors] title={career_title!r} slug={career_slug!r} → career_ids={career_ids}")
-
-        if career_ids:
-            progresses = (
-                db.query(UserProgress)
-                .filter(UserProgress.career_id.in_(career_ids))
-                .all()
-            )
-            print(f"[career-mentors] found {len(progresses)} UserProgress rows")
-
-            for prog in progresses:
-                if prog.user_id in seen_user_ids:
-                    continue
-
-                completed = prog.completed_milestones or []
-                if not completed:
-                    continue
-
-                # completed_milestones stores order numbers as strings ("1", "2", ...)
-                completed_orders = []
-                for m in completed:
-                    try:
-                        completed_orders.append(int(m))
-                    except (ValueError, TypeError):
-                        pass
-
-                milestone_skills: List[str] = []
-                if completed_orders:
-                    milestones = db.query(RoadmapMilestone).filter(
-                        RoadmapMilestone.roadmap_id == prog.roadmap_id,
-                        RoadmapMilestone.order_no.in_(completed_orders),
-                    ).all()
-                    milestone_skills = [ms.skill_name for ms in milestones if ms.skill_name]
-
-                user = db.query(UserModel).filter(UserModel.id == prog.user_id).first()
-                if not user:
-                    continue
-
-                n_completed = len(completed_orders)
-                try:
-                    progress_pct = float(prog.progress_percentage or 0)
-                except (ValueError, TypeError):
-                    progress_pct = 0.0
-                score = min(0.5 + (progress_pct / 200), 0.95)
-
-                seen_user_ids.add(prog.user_id)
-                results.append(MatchingResult(
-                    mentor_id=0,
-                    user_id=prog.user_id,
-                    mentor_name=user.full_name or user.email.split("@")[0],
-                    current_position=f"Đã hoàn thành {n_completed} bước lộ trình {career_title}",
-                    company="",
-                    bio="",
-                    expertise_areas=milestone_skills,
-                    experience_years=0,
-                    available_hours_per_week=2,
-                    preferred_communication=["chat"],
-                    compatibility_score=round(score * 100, 1),
-                    skill_match_score=round(score * 100, 1),
-                    career_match_score=90.0,
-                    personality_score=50.0,
-                    matching_skills=milestone_skills[:3],
-                    matching_reasons=[
-                        f"Đã hoàn thành {n_completed} bước trong lộ trình {career_title}",
-                        "Có kinh nghiệm thực tế với nghề nghiệp này",
-                    ],
-                    current_mentees_count=0,
-                    max_mentees=5,
-                ))
-    except Exception as _src2_err:
-        print(f"[career-mentors] Source2 error: {_src2_err}")
-
-    results.sort(key=lambda x: x.compatibility_score, reverse=True)
-    return results[:limit]
+    # Completers (mentor_id=0) first, then remaining mentor slots
+    completers = [r for r in results if r.mentor_id == 0]
+    mentors_r  = [r for r in results if r.mentor_id != 0]
+    mentors_r.sort(key=lambda x: x.compatibility_score, reverse=True)
+    return (completers + mentors_r)[:limit]
 
 
 # ── Graph sync endpoint ───────────────────────────────────────────
