@@ -51,7 +51,6 @@ import DebugAuthPage from './pages/DebugAuthPage';
 import SubscriptionDemoPage from './pages/SubscriptionDemoPage';
 import ProgressComparisonPage from './pages/ProgressComparisonPage';
 import SettingsPage from './pages/SettingsPage';
-import CareerGoalsPage from './pages/CareerGoalsPage';
 import SkillGapPage from './pages/SkillGapPage';
 import CourseRecommendationPage from './pages/CourseRecommendationPage';
 import CVHistoryPage from './pages/CVHistoryPage';
@@ -362,14 +361,6 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <ProgressComparisonPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/career-goals"
-                    element={
-                      <ProtectedRoute>
-                        <CareerGoalsPage />
                       </ProtectedRoute>
                     }
                   />

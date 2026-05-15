@@ -35,42 +35,42 @@ export const PaymentPage: React.FC = () => {
     const plans: Plan[] = [
         {
             id: 'basic',
-            name: 'Basic Plan',
+            name: 'Gói Cơ Bản',
             price: 99000,
-            description: 'For new users who want to explore',
+            description: 'Dành cho người mới muốn khám phá',
             features: [
-                'Up to 20 assessments per month',
-                'View top 5 career matches',
-                'Basic learning roadmap (Level 1-2)',
-                'Summary RIASEC & Big Five analysis'
+                'Tối đa 20 bài đánh giá mỗi tháng',
+                'Xem top 5 nghề phù hợp',
+                'Lộ trình học tập cơ bản (Cấp 1-2)',
+                'Tóm tắt phân tích RIASEC & Big Five'
             ],
             gradient: 'from-blue-500 to-cyan-500',
         },
         {
             id: 'premium',
-            name: 'Premium Plan',
+            name: 'Gói Nâng Cao',
             price: 199000,
-            description: 'Most popular - Clear career guidance',
+            description: 'Phổ biến nhất - Định hướng nghề nghiệp rõ ràng',
             features: [
-                'Unlimited assessments',
-                'View all career categories',
-                'Full learning roadmap',
-                'Detailed Knowledge, Skills, and Abilities analysis'
+                'Đánh giá không giới hạn',
+                'Xem tất cả danh mục nghề nghiệp',
+                'Lộ trình học tập đầy đủ',
+                'Phân tích chi tiết Kiến thức, Kỹ năng và Năng lực'
             ],
             gradient: 'from-indigo-700 to-indigo-700',
             popular: true,
         },
         {
             id: 'pro',
-            name: 'Pro Plan',
+            name: 'Gói Chuyên Nghiệp',
             price: 299000,
-            description: 'Your digital career advisor',
+            description: 'Cố vấn nghề nghiệp số của bạn',
             features: [
-                'All Premium features',
-                'AI Assistant 24/7',
-                'Export detailed PDF reports',
-                'Progress history comparison',
-                'Full career-related information'
+                'Tất cả tính năng Nâng Cao',
+                'Trợ lý AI 24/7',
+                'Xuất báo cáo PDF chi tiết',
+                'So sánh lịch sử tiến trình',
+                'Đầy đủ thông tin liên quan nghề nghiệp'
             ],
             gradient: 'from-purple-500 to-pink-500',
         },
@@ -233,10 +233,10 @@ export const PaymentPage: React.FC = () => {
                     {/* Header */}
                     <div className="text-center mb-16 relative z-10">
                         <h1 className="text-4xl md:text-5xl font-extrabold premium-gradient mb-6 inline-block tracking-tight">
-                            Choose Your Plan
+                            Chọn Gói Dịch Vụ
                         </h1>
                         <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                            Unlock your career potential with our premium features
+                            Khai phá tiềm năng nghề nghiệp với các tính năng cao cấp
                         </p>
 
                         {!planLoading && userPlan !== 'Free' && (
@@ -252,16 +252,16 @@ export const PaymentPage: React.FC = () => {
                                         <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                                             <span className="text-lg font-bold text-gray-500">Free</span>
                                         </div>
-                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Free Plan (Current)</h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Free - Default for all users</p>
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Gói Miễn Phí (Hiện tại)</h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Miễn phí - Mặc định cho tất cả người dùng</p>
                                         <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                                             <div className="flex items-center justify-center gap-2">
                                                 <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                                                <span>5 assessments per month</span>
+                                                <span>5 bài đánh giá mỗi tháng</span>
                                             </div>
                                             <div className="flex items-center justify-center gap-2">
                                                 <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                                                <span>View first career only</span>
+                                                <span>Chỉ xem nghề đầu tiên</span>
                                             </div>
                                         </div>
                                     </div>
@@ -284,7 +284,7 @@ export const PaymentPage: React.FC = () => {
                                     onClick={() => setActiveTab('history')}
                                     className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${activeTab === 'history' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
                                 >
-                                    Transaction History
+                                    Lịch Sử Giao Dịch
                                 </button>
                             </div>
                         </div>
@@ -314,10 +314,10 @@ export const PaymentPage: React.FC = () => {
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                         </svg>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">You have the highest plan!</h3>
-                                    <p className="text-gray-600 dark:text-gray-400 mb-8">You are using the {userPlan} plan.</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Bạn đang dùng gói cao nhất!</h3>
+                                    <p className="text-gray-600 dark:text-gray-400 mb-8">Bạn đang sử dụng gói {userPlan}.</p>
                                     <button onClick={() => window.location.href = '/dashboard'} className="px-8 py-3 bg-indigo-800 hover:bg-indigo-900 text-white font-bold rounded-xl">
-                                        Back to Dashboard
+                                        Về Trang Chủ
                                     </button>
                                 </div>
                             ) : (
@@ -329,7 +329,7 @@ export const PaymentPage: React.FC = () => {
                                         >
                                             {plan.popular && (
                                                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                                                    <span className="bg-indigo-800 text-white px-4 py-1 rounded-full text-xs font-bold">Most Popular</span>
+                                                    <span className="bg-indigo-800 text-white px-4 py-1 rounded-full text-xs font-bold">Phổ Biến Nhất</span>
                                                 </div>
                                             )}
 
@@ -345,7 +345,7 @@ export const PaymentPage: React.FC = () => {
                                                     </span>
                                                     <span className="text-gray-400 text-lg font-bold ml-1">đ</span>
                                                 </div>
-                                                <p className="text-xs text-gray-400 mt-1">one-time payment</p>
+                                                <p className="text-xs text-gray-400 mt-1">thanh toán một lần</p>
                                             </div>
 
                                             <ul className="space-y-4 mb-8">
@@ -365,7 +365,7 @@ export const PaymentPage: React.FC = () => {
                                                 onClick={() => handleSelectPlan(plan)}
                                                 className={`w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r ${plan.gradient} hover:opacity-90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5`}
                                             >
-                                                {userPlan === 'Free' ? 'Choose This Plan' : 'Upgrade'}
+                                                {userPlan === 'Free' ? 'Chọn Gói Này' : 'Nâng Cấp'}
                                             </button>
                                         </div>
                                     ))}

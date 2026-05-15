@@ -213,11 +213,14 @@ class SkillGapService:
         Returns:
             List[SkillGapAnalysis]: Danh sách phân tích
         """
-        return self.db.query(SkillGapAnalysis)\
+        analyses = self.db.query(SkillGapAnalysis)\
             .filter(SkillGapAnalysis.user_id == user_id)\
             .order_by(SkillGapAnalysis.created_at.desc())\
             .limit(limit)\
             .all()
+        for analysis in analyses:
+            self._sanitize_analysis_record(analysis)
+        return analyses
     
     def get_analysis_by_id(self, analysis_id: int, user_id: int) -> SkillGapAnalysis:
         """
@@ -230,12 +233,52 @@ class SkillGapService:
         Returns:
             SkillGapAnalysis: Chi tiết phân tích
         """
-        return self.db.query(SkillGapAnalysis)\
+        analysis = self.db.query(SkillGapAnalysis)\
             .filter(
                 SkillGapAnalysis.id == analysis_id,
                 SkillGapAnalysis.user_id == user_id
             )\
             .first()
+        return self._sanitize_analysis_record(analysis)
+
+    def _sanitize_analysis_record(self, analysis: SkillGapAnalysis) -> SkillGapAnalysis:
+        """Normalize legacy records before returning them to the UI."""
+        if not analysis:
+            return analysis
+
+        skill_gaps = analysis.skill_gaps if isinstance(analysis.skill_gaps, dict) else {}
+        critical = [
+            skill for skill in (skill_gaps.get('critical') or [])
+            if self.graph_analyzer._should_surface_job_ksa(skill, analysis.career_id or "")
+        ]
+        important = [
+            skill for skill in (skill_gaps.get('important') or [])
+            if self.graph_analyzer._should_surface_job_ksa(skill, analysis.career_id or "")
+        ]
+        nice_to_have = [
+            skill for skill in (skill_gaps.get('nice_to_have') or [])
+            if self.graph_analyzer._should_surface_job_ksa(skill, analysis.career_id or "")
+        ]
+        analysis.skill_gaps = {
+            'critical': critical,
+            'important': important,
+            'nice_to_have': nice_to_have,
+        }
+        matched = analysis.matched_skills if isinstance(analysis.matched_skills, list) else []
+        unique_matched_names = {
+            str(skill.get('name') or '').strip().lower()
+            for skill in matched
+            if isinstance(skill, dict) and skill.get('name')
+        }
+
+        analysis.matched_skills_count = len(unique_matched_names)
+        analysis.missing_skills_count = len(critical) + len(important) + len(nice_to_have)
+        analysis.total_required_skills = analysis.matched_skills_count + analysis.missing_skills_count
+        analysis.extra_skills = self.graph_analyzer._filter_contextual_extra_skills(
+            analysis.extra_skills if isinstance(analysis.extra_skills, list) else [],
+            analysis.career_id or "",
+        )
+        return analysis
     
     def generate_heatmap_data(self, analysis_id: int, user_id: int) -> Dict:
         """

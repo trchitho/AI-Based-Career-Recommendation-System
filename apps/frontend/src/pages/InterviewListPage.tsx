@@ -209,7 +209,7 @@ const InterviewListPage: React.FC = () => {
 
                             {/* Title */}
                             <h1 className="hero-title">
-                                <span className="text-[#0F172A] dark:text-white">Phỏng vấn AI </span>
+                                <span className="text-white">Phỏng vấn AI </span>
                                 <span className="hero-title-gradient">thông minh</span>
                             </h1>
 

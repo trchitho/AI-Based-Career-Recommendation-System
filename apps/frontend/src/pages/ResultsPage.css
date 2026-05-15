@@ -274,6 +274,10 @@
 }
 
 /* ── Highlight cards (summary) ───────────────────────────────── */
+.res-highlights-section {
+  grid-column: 1 / -1;
+}
+
 .res-highlights {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -291,6 +295,12 @@
   padding: 1.5rem;
   position: relative;
   overflow: hidden;
+  text-align: center;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .res-highlight-card.green {
@@ -309,6 +319,8 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0 0 0.4rem;
+  max-width: 100%;
+  text-align: center;
 }
 
 .res-highlight-card.green .res-highlight-label {
@@ -325,6 +337,9 @@
   color: var(--neu-text);
   margin: 0;
   line-height: 1.1;
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .res-highlight-bg-icon {

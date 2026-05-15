@@ -61,6 +61,39 @@ const TRAIT_COLORS: Record<string, { text: string; border: string; bg: string }>
 
 const DEFAULT_COLOR = { text: 'text-gray-600 dark:text-gray-400', border: 'border-gray-300 dark:border-gray-700', bg: 'bg-gray-50 dark:bg-gray-800/50' };
 
+// Vietnamese display names for facet labels
+const LABEL_DISPLAY_NAMES: Record<string, string> = {
+    innovator: 'Nhà Đổi Mới (Innovator)',
+    humanitarian: 'Nhà Nhân Đạo (Humanitarian)',
+    caretaker: 'Người Cẩn Trọng (Caretaker)',
+    pragmatist: 'Người Thực Tế (Pragmatist)',
+    ambitious: 'Tham Vọng (Ambitious)',
+    excitable: 'Nhiệt Huyết (Excitable)',
+    dutiful: 'Tận Tụy (Dutiful)',
+    casual: 'Thoải Mái (Casual)',
+    gregarious: 'Hòa Đồng (Gregarious)',
+    dominant: 'Quyết Đoán (Dominant)',
+    supportive: 'Hỗ Trợ (Supportive)',
+    independent: 'Độc Lập (Independent)',
+    inspiring: 'Truyền Cảm Hứng (Inspiring)',
+    informative: 'Cung Cấp Thông Tin (Informative)',
+    insightful: 'Sâu Sắc (Insightful)',
+    concise: 'Ngắn Gọn (Concise)',
+    taskmaster: 'Người Dẫn Dắt (Taskmaster)',
+    empath: 'Đồng Cảm (Empath)',
+    improviser: 'Ứng Biến (Improviser)',
+    cooperator: 'Hợp Tác (Cooperator)',
+    director: 'Người Điều Phối (Director)',
+    visionary: 'Tầm Nhìn (Visionary)',
+    inspector: 'Kiểm Soát (Inspector)',
+    responder: 'Linh Hoạt (Responder)',
+};
+
+const getLabelDisplayName = (labelName: string): string => {
+    const lowerName = labelName.toLowerCase();
+    return LABEL_DISPLAY_NAMES[lowerName] || labelName;
+};
+
 // Get color by dominant trait name
 const getTraitColor = (traitName: string) => {
     const lowerName = traitName.toLowerCase();
@@ -111,10 +144,10 @@ const Big5Page2Summary = ({ narrative, facets }: Big5Page2SummaryProps) => {
                                 className={`rounded-lg p-3 border shadow-sm print:p-2 print:shadow-none ${traitColor.bg} ${traitColor.border}`}
                             >
                                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-0.5 print:text-[10px]">
-                                    {FACET_DISPLAY_NAMES[facet.name] || facet.title.replace('How you ', '')}
+                                    {FACET_DISPLAY_NAMES[facet.name] || facet.title}
                                 </p>
-                                <p className={`text-lg font-bold capitalize print:text-base ${traitColor.text}`}>
-                                    {facet.dominant}
+                                <p className={`text-lg font-bold print:text-base ${traitColor.text}`}>
+                                    {getLabelDisplayName(facet.dominant)}
                                 </p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 print:text-xs">
                                     {facet.dominant_percent}%

@@ -14,12 +14,12 @@ interface RIASECSpiderChartProps {
 }
 
 const DIMENSIONS = [
-  { key: 'realistic',     label: 'Kỹ Thuật',     sub: 'Doers',      color: '#EF4444' },
-  { key: 'investigative', label: 'Nghiên Cứu',  sub: 'Thinkers',   color: '#F59E0B' },
-  { key: 'artistic',      label: 'Nghệ Thuật',       sub: 'Creators',   color: '#10B981' },
-  { key: 'social',        label: 'Xã Hội',         sub: 'Helpers',    color: '#3B82F6' },
-  { key: 'enterprising',  label: 'Kinh Doanh',   sub: 'Persuaders', color: '#8B5CF6' },
-  { key: 'conventional',  label: 'Nghiệp Vụ',   sub: 'Organizers', color: '#EC4899' },
+  { key: 'realistic',     label: 'Kỹ Thuật',     sub: 'Realistic',      color: '#EF4444' },
+  { key: 'investigative', label: 'Nghiên Cứu',  sub: 'Investigative',   color: '#F59E0B' },
+  { key: 'artistic',      label: 'Nghệ Thuật',       sub: 'Artistic',   color: '#10B981' },
+  { key: 'social',        label: 'Xã Hội',         sub: 'Social',    color: '#3B82F6' },
+  { key: 'enterprising',  label: 'Kinh Doanh',   sub: 'Enterprising', color: '#8B5CF6' },
+  { key: 'conventional',  label: 'Nghiệp Vụ',   sub: 'Conventional', color: '#EC4899' },
 ];
 
 const RIASECSpiderChart = ({ scores }: RIASECSpiderChartProps) => {

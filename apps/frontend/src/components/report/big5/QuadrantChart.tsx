@@ -79,6 +79,39 @@ const FACET_LABEL_ORDER: Record<string, string[]> = {
 
 const DEFAULT_COLOR: ColorDef = { bg: 'rgba(156, 163, 175, 0.75)', border: '#9CA3AF' };
 
+// Vietnamese display names for facet labels
+const LABEL_DISPLAY_NAMES: Record<string, string> = {
+    innovator: 'Nhà Đổi Mới (Innovator)',
+    humanitarian: 'Nhà Nhân Đạo (Humanitarian)',
+    caretaker: 'Người Cẩn Trọng (Caretaker)',
+    pragmatist: 'Người Thực Tế (Pragmatist)',
+    ambitious: 'Tham Vọng (Ambitious)',
+    excitable: 'Nhiệt Huyết (Excitable)',
+    dutiful: 'Tận Tụy (Dutiful)',
+    casual: 'Thoải Mái (Casual)',
+    gregarious: 'Hòa Đồng (Gregarious)',
+    dominant: 'Quyết Đoán (Dominant)',
+    supportive: 'Hỗ Trợ (Supportive)',
+    independent: 'Độc Lập (Independent)',
+    inspiring: 'Truyền Cảm Hứng (Inspiring)',
+    informative: 'Cung Cấp Thông Tin (Informative)',
+    insightful: 'Sâu Sắc (Insightful)',
+    concise: 'Ngắn Gọn (Concise)',
+    taskmaster: 'Người Dẫn Dắt (Taskmaster)',
+    empath: 'Đồng Cảm (Empath)',
+    improviser: 'Ứng Biến (Improviser)',
+    cooperator: 'Hợp Tác (Cooperator)',
+    director: 'Người Điều Phối (Director)',
+    visionary: 'Tầm Nhìn (Visionary)',
+    inspector: 'Kiểm Soát (Inspector)',
+    responder: 'Linh Hoạt (Responder)',
+};
+
+const getLabelDisplayName = (labelName: string): string => {
+    const lowerName = labelName.toLowerCase();
+    return LABEL_DISPLAY_NAMES[lowerName] || labelName;
+};
+
 // Get color by label name (FIXED - consistent across all tests)
 const getColorByLabelName = (labelName: string): ColorDef => {
     const lowerName = labelName.toLowerCase();
@@ -239,8 +272,8 @@ const QuadrantChart = ({
                                 className={`w-2 h-2 rounded-full flex-shrink-0 transition-transform duration-200 ${isHovered ? 'scale-125' : ''}`}
                                 style={{ backgroundColor: legendColor.border }}
                             />
-                            <span className={`text-[10px] font-medium text-gray-600 dark:text-gray-400 capitalize print:text-[8px] ${isHovered ? 'font-bold' : ''}`}>
-                                {label.name}
+                            <span className={`text-[10px] font-medium text-gray-600 dark:text-gray-400 print:text-[8px] ${isHovered ? 'font-bold' : ''}`}>
+                                {getLabelDisplayName(label.name)}
                             </span>
                         </div>
                     );

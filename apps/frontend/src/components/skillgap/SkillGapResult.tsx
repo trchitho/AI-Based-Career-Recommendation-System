@@ -3,7 +3,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import {
   CheckCircle, XCircle, BarChart2, AlertCircle, AlertTriangle,
-  Star, Bot, Mic, Download, Target, Circle
+  Star, Bot, Mic, Download, Target
 } from 'lucide-react';
 import { SkillGapAnalysis } from '../../types/skillGap';
 import { translateSkillCategory, translateSkillName } from '../../utils/skillTranslation';
@@ -12,16 +12,6 @@ import './SkillGapResult.css';
 interface SkillGapResultProps {
   analysis: SkillGapAnalysis;
   onStartInterview?: () => void;
-}
-
-interface JobCriterion {
-  name: string;
-  category: string;
-  importance: number;
-  score: number;
-  status: 'matched' | 'missing';
-  evidence?: string;
-  matchType?: string;
 }
 
 const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterview }) => {
@@ -41,67 +31,60 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
     return 'Cần cải thiện';
   };
 
-  const getPriorityIcon = (importance?: number) => {
-    if (importance && importance >= 0.8) return <Circle size={12} fill="#dc2626" color="#dc2626" />;
-    if (importance && importance >= 0.5) return <Circle size={12} fill="#ea580c" color="#ea580c" />;
-    return <Circle size={12} fill="#ca8a04" color="#ca8a04" />;
-  };
-
   const catalogSkillName = (name?: string) => translateSkillName(name);
   const catalogSkillCategory = (category?: string) => translateSkillCategory(category);
 
-  const getCriterionLabel = (score: number) => {
-    if (score >= 80) return 'Đáp ứng tốt';
-    if (score >= 55) return 'Đáp ứng một phần';
-    if (score > 0) return 'Bằng chứng yếu';
-    return 'Chưa có bằng chứng';
+  const getPriorityLabel = (importance?: number) => {
+    if ((importance || 0) >= 0.8) return 'Ưu tiên rất cao';
+    if ((importance || 0) >= 0.65) return 'Ưu tiên cao';
+    if ((importance || 0) >= 0.5) return 'Ưu tiên vừa';
+    return 'Bổ trợ';
   };
 
-  const buildJobCriteria = (): JobCriterion[] => {
-    const byName = new Map<string, JobCriterion>();
+  const getKsaTypeLabel = (type?: string) => {
+    if (type === 'knowledge') return 'Kiến thức';
+    if (type === 'ability') return 'Năng lực';
+    return 'Kỹ năng';
+  };
 
-    (analysis.matched_skills || []).forEach((skill: any) => {
-      const jobSkill = skill.onet_skill || skill.job_skill || skill.name;
-      const key = String(jobSkill).toLowerCase();
-      const matchType = skill.match_type || 'semantic';
-      const confidence = Number(skill.confidence ?? 0.75);
-      const genericJobSkill = ['programming', 'science', 'systems analysis'].includes(String(jobSkill).toLowerCase());
-      const cappedScore = Math.round(Math.min(confidence * 100, matchType === 'direct' ? 90 : genericJobSkill ? 55 : 70));
+  const getSkillDescription = (skill: { description_vn?: string; description_en?: string }) => (
+    skill.description_vn || skill.description_en || ''
+  );
 
-      byName.set(key, {
-        name: jobSkill,
-        category: skill.onet_category || skill.job_category || skill.category || 'Kỹ năng nghề',
-        importance: Number(skill.importance ?? 0.5),
-        score: cappedScore,
-        status: 'matched',
-        evidence: skill.name,
-        matchType,
-      });
-    });
+  const getSkillAction = (skill: { name: string; category?: string; importance?: number }, level: 'critical' | 'important' | 'nice' | 'extra') => {
+    const name = catalogSkillName(skill.name).toLowerCase();
+    const category = catalogSkillCategory(skill.category);
+    if (level === 'extra') {
+      return `Đây là kỹ năng đang có trong CV, thuộc nhóm ${category.toLowerCase()}, không phải yêu cầu chính của nghề mục tiêu.`;
+    }
+    if (name.includes('lắng nghe') || name.includes('giao tiếp') || name.includes('nhạy bén xã hội')) {
+      return 'Bổ sung ví dụ chăm sóc, tư vấn, phối hợp với bệnh nhân/đồng đội để chứng minh năng lực này.';
+    }
+    if (name.includes('phán đoán') || name.includes('quyết định') || name.includes('tư duy') || name.includes('giải quyết')) {
+      return 'Chuẩn bị 1-2 tình huống thực tế: vấn đề, cách đánh giá lựa chọn, quyết định và kết quả.';
+    }
+    if (category.toLowerCase().includes('quản lý')) {
+      return 'Thể hiện bằng trải nghiệm sắp xếp lịch, phân bổ nguồn lực, theo dõi tiến độ hoặc ưu tiên công việc.';
+    }
+    return 'Cần có bằng chứng cụ thể trong CV: khóa học, chứng chỉ, dự án, ca làm việc hoặc trách nhiệm đã đảm nhiệm.';
+  };
 
-    [
-      ...(analysis.skill_gaps?.critical || []),
-      ...(analysis.skill_gaps?.important || []),
-      ...(analysis.skill_gaps?.nice_to_have || []),
-    ].forEach((skill: any) => {
-      const key = String(skill.name).toLowerCase();
-      if (!byName.has(key)) {
-        byName.set(key, {
-          name: skill.name,
-          category: skill.category || 'Kỹ năng nghề',
-          importance: Number(skill.importance ?? 0.5),
-          score: 0,
-          status: 'missing',
-        });
-      }
-    });
+  const priorityText = (items: string[]) => {
+    const filtered = items.filter(Boolean);
+    if (filtered.length === 0) return 'Ba kỹ năng quan trọng nhất';
+    return filtered.join(', ');
+  };
 
-    return Array.from(byName.values())
-      .sort((a, b) => {
-        if (a.status !== b.status) return a.status === 'missing' ? -1 : 1;
-        return b.importance - a.importance;
-      })
-      .slice(0, 8);
+  const inferCvSkillDomain = (skills: Array<{ name?: string; category?: string }>) => {
+    const text = skills.map((s) => `${s.name || ''} ${s.category || ''}`).join(' ').toLowerCase();
+    if (/react|frontend|backend|node|express|typescript|javascript|api|database|postgres|mongodb|spring|fastapi|fullstack/.test(text)) {
+      if (/react|frontend/.test(text) && /backend|node|express|api|database|spring|fastapi/.test(text)) return 'IT/Phần mềm - Fullstack';
+      if (/backend|node|express|api|database|spring|fastapi/.test(text)) return 'IT/Phần mềm - Backend';
+      if (/react|frontend|typescript|javascript/.test(text)) return 'IT/Phần mềm - Frontend';
+      return 'IT/Phần mềm';
+    }
+    if (/ai|nlp|machine learning|data|pandas|numpy|model|vector/.test(text)) return 'AI / Dữ liệu';
+    return 'ngoài nghề mục tiêu';
   };
 
   const handleDownloadReport = async () => {
@@ -160,7 +143,18 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
   const uniqueMatchedSkills = analysis.matched_skills.filter(
     (skill, index, self) => index === self.findIndex(s => s.name.toLowerCase() === skill.name.toLowerCase())
   );
-  const jobCriteria = buildJobCriteria();
+  const criticalGaps = analysis.skill_gaps?.critical || [];
+  const importantGaps = analysis.skill_gaps?.important || [];
+  const niceToHaveGaps = analysis.skill_gaps?.nice_to_have || [];
+  const allGaps = [...criticalGaps, ...importantGaps, ...niceToHaveGaps];
+  const computedMissingCount = allGaps.length;
+  const computedTotalRequired = uniqueMatchedSkills.length + computedMissingCount;
+  const computedMatchedCount = uniqueMatchedSkills.length;
+  const computedCoverage = computedTotalRequired > 0
+    ? (computedMatchedCount / computedTotalRequired) * 100
+    : analysis.match_percentage;
+  const extraSkills = analysis.extra_skills || [];
+  const cvSkillDomain = inferCvSkillDomain([...(analysis.cv_skills || []), ...extraSkills]);
 
   return (
     <div id="skill-gap-report" className="skill-gap-result">
@@ -208,46 +202,6 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
         </div>
       </div>
 
-      {/* JD Criteria Evaluation */}
-      <div className="jd-criteria-section">
-        <h3 className="section-title-main">
-          Đánh giá theo tiêu chí nghề/JD
-        </h3>
-        <p className="section-description">
-          Các tiêu chí bên dưới là kỹ năng yêu cầu của nghề trong catalog. CV chỉ được dùng làm bằng chứng đáp ứng từng tiêu chí, nên kỹ năng ngoài nghề sẽ không được xem là tiêu chí chính.
-        </p>
-        <div className="criteria-grid">
-          {jobCriteria.map((criterion, index) => {
-            const score = criterion.score;
-            return (
-              <div key={index} className={`criteria-card ${criterion.status}`}>
-                <div className="criteria-header">
-                  <span className="criteria-name">{catalogSkillName(criterion.name)}</span>
-                  <span className="criteria-score" style={{ color: getMatchColor(score) }}>
-                    {score}%
-                  </span>
-                </div>
-                <div className="criteria-meta">
-                  <span>{catalogSkillCategory(criterion.category)}</span>
-                  <span>{Math.round(criterion.importance * 100)}% quan trọng</span>
-                </div>
-                <div className="criteria-bar">
-                  <div
-                    className="criteria-fill"
-                    style={{ width: `${score}%`, backgroundColor: getMatchColor(score) }}
-                  />
-                </div>
-                <p className="criteria-description">
-                  {criterion.status === 'matched'
-                    ? `${getCriterionLabel(score)}. Bằng chứng trong CV: ${criterion.evidence}.`
-                    : 'Chưa tìm thấy bằng chứng rõ ràng trong CV cho tiêu chí này.'}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Overview Section */}
       <div className="result-overview">
         <div className="overview-card main-score">
@@ -255,24 +209,27 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
             <span className="score-number">{analysis.match_percentage.toFixed(1)}%</span>
             <span className="score-label">{getMatchLabel(analysis.match_percentage)}</span>
           </div>
+          <p className="score-caption">
+            Điểm có trọng số theo mức độ quan trọng của từng kỹ năng. Tỷ lệ đếm thuần: {computedCoverage.toFixed(1)}%.
+          </p>
         </div>
 
         <div className="overview-stats">
           <div className="stat-card">
             <span className="stat-icon"><CheckCircle size={22} color="#10b981" /></span>
-            <span className="stat-value">{analysis.matched_skills_count}</span>
+            <span className="stat-value">{computedMatchedCount}</span>
             <span className="stat-label">Kỹ năng phù hợp</span>
           </div>
 
           <div className="stat-card">
             <span className="stat-icon"><XCircle size={22} color="#ef4444" /></span>
-            <span className="stat-value">{analysis.missing_skills_count}</span>
+            <span className="stat-value">{computedMissingCount}</span>
             <span className="stat-label">Kỹ năng còn thiếu</span>
           </div>
 
           <div className="stat-card">
             <span className="stat-icon"><BarChart2 size={22} color="#6366f1" /></span>
-            <span className="stat-value">{analysis.total_required_skills}</span>
+            <span className="stat-value">{computedTotalRequired}</span>
             <span className="stat-label">Tổng yêu cầu</span>
           </div>
         </div>
@@ -297,19 +254,22 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
       )}
 
       {/* Critical Gaps */}
-      {analysis.skill_gaps?.critical && analysis.skill_gaps.critical.length > 0 && (
+      {criticalGaps.length > 0 && (
         <div className="skills-section">
           <h3 className="section-title critical">
             <span className="title-icon"><AlertCircle size={18} color="#dc2626" /></span>
-            Điểm cần cải thiện ({analysis.skill_gaps.critical.length})
+            Điểm cần cải thiện ({criticalGaps.length})
           </h3>
           <p className="section-description">Những kỹ năng quan trọng cần học để phù hợp với vị trí này.</p>
           <div className="skills-grid">
-            {analysis.skill_gaps.critical.map((skill, index) => (
+            {criticalGaps.map((skill, index) => (
               <div key={index} className="skill-badge critical">
                 <span className="skill-name">{catalogSkillName(skill.name)}</span>
                 <span className="skill-category">{catalogSkillCategory(skill.category)}</span>
                 <span className="skill-importance">{(skill.importance! * 100).toFixed(0)}% mức độ quan trọng</span>
+                {getSkillDescription(skill) && (
+                  <p className="skill-description">{getSkillDescription(skill)}</p>
+                )}
               </div>
             ))}
           </div>
@@ -317,19 +277,28 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
       )}
 
       {/* Important Gaps */}
-      {analysis.skill_gaps?.important && analysis.skill_gaps.important.length > 0 && (
-        <div className="skills-section">
+      {importantGaps.length > 0 && (
+        <div className="skills-section skills-section-featured important-section">
           <h3 className="section-title important">
             <span className="title-icon"><AlertTriangle size={18} color="#ea580c" /></span>
-            Khoảng cách kỹ năng quan trọng ({analysis.skill_gaps.important.length})
+            Khoảng cách kỹ năng quan trọng ({importantGaps.length})
           </h3>
-          <p className="section-description">Những kỹ năng này sẽ cải thiện đáng kể cơ hội ứng tuyển của bạn.</p>
-          <div className="skills-grid">
-            {analysis.skill_gaps.important.map((skill, index) => (
-              <div key={index} className="skill-badge important">
+          <p className="section-description">
+            Đây là nhóm nên ưu tiên trước vì ảnh hưởng trực tiếp đến khả năng vượt qua lọc CV và phỏng vấn chuyên môn.
+          </p>
+          <div className="skills-grid insight-grid">
+            {importantGaps.map((skill, index) => (
+              <div key={index} className="skill-badge skill-insight-card important">
+                <div className="skill-card-top">
+                  <span className="skill-priority">{getPriorityLabel(skill.importance)}</span>
+                  <span className="skill-weight">{((skill.importance || 0) * 100).toFixed(0)}%</span>
+                </div>
                 <span className="skill-name">{catalogSkillName(skill.name)}</span>
-                <span className="skill-category">{catalogSkillCategory(skill.category)}</span>
-                <span className="skill-importance">{(skill.importance! * 100).toFixed(0)}% mức độ quan trọng</span>
+                <span className="skill-category">{getKsaTypeLabel(skill.ksa_type)} - {catalogSkillCategory(skill.category)}</span>
+                {getSkillDescription(skill) && (
+                  <p className="skill-description">{getSkillDescription(skill)}</p>
+                )}
+                <p className="skill-action">{getSkillAction(skill, 'important')}</p>
               </div>
             ))}
           </div>
@@ -337,18 +306,28 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
       )}
 
       {/* Nice to Have */}
-      {analysis.skill_gaps?.nice_to_have && analysis.skill_gaps.nice_to_have.length > 0 && (
-        <div className="skills-section">
+      {niceToHaveGaps.length > 0 && (
+        <div className="skills-section skills-section-featured nice-section">
           <h3 className="section-title nice-to-have">
             <span className="title-icon"><Target size={18} color="#ca8a04" /></span>
-            Kỹ năng nên có ({analysis.skill_gaps.nice_to_have.length})
+            Kỹ năng nên có ({niceToHaveGaps.length})
           </h3>
-          <p className="section-description">Những kỹ năng này có ích nhưng không bắt buộc.</p>
-          <div className="skills-grid">
-            {analysis.skill_gaps.nice_to_have.map((skill, index) => (
-              <div key={index} className="skill-badge nice-to-have">
+          <p className="section-description">
+            Nhóm này không phải điều kiện loại trực tiếp, nhưng giúp CV trông đầy đủ hơn khi bạn đã xử lý các khoảng cách quan trọng.
+          </p>
+          <div className="skills-grid compact-insight-grid">
+            {niceToHaveGaps.map((skill, index) => (
+              <div key={index} className="skill-badge skill-insight-card nice-to-have">
+                <div className="skill-card-top">
+                  <span className="skill-priority">{getPriorityLabel(skill.importance)}</span>
+                  <span className="skill-weight">{((skill.importance || 0) * 100).toFixed(0)}%</span>
+                </div>
                 <span className="skill-name">{catalogSkillName(skill.name)}</span>
-                <span className="skill-category">{catalogSkillCategory(skill.category)}</span>
+                <span className="skill-category">{getKsaTypeLabel(skill.ksa_type)} - {catalogSkillCategory(skill.category)}</span>
+                {getSkillDescription(skill) && (
+                  <p className="skill-description">{getSkillDescription(skill)}</p>
+                )}
+                <p className="skill-action">{getSkillAction(skill, 'nice')}</p>
               </div>
             ))}
           </div>
@@ -356,18 +335,24 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
       )}
 
       {/* Extra Skills */}
-      {analysis.extra_skills.length > 0 && (
-        <div className="skills-section">
+      {extraSkills.length > 0 && (
+        <div className="skills-section skills-section-featured extra-section">
           <h3 className="section-title extra">
             <span className="title-icon"><Star size={18} color="#f59e0b" /></span>
-            Kỹ năng bổ sung ({analysis.extra_skills.length})
+            Kỹ năng ngoài nghề mục tiêu trong CV: {cvSkillDomain} ({extraSkills.length})
           </h3>
-          <p className="section-description">Những kỹ năng bạn có nhưng không bắt buộc, tuy nhiên vẫn tạo thêm giá trị.</p>
-          <div className="skills-grid">
-            {analysis.extra_skills.map((skill, index) => (
-              <div key={index} className="skill-badge extra">
+          <p className="section-description">
+            Đây là các kỹ năng hệ thống đọc được từ CV của bạn nhưng không thuộc yêu cầu chính của nghề đang so sánh. Chúng được giữ để bạn hiểu hồ sơ hiện tại nghiêng về ngành nào, không dùng để tính thiếu kỹ năng của nghề mục tiêu.
+          </p>
+          <div className="scope-note">
+            Ví dụ: nếu nghề mục tiêu là Biên tập viên phim và video nhưng CV có Pandas, NumPy, Postman, hệ thống sẽ xem đó là tín hiệu CV thuộc hướng IT/Dữ liệu, không phải kỹ năng cần học cho nghề biên tập phim.
+          </div>
+          <div className="skills-grid compact-insight-grid">
+            {extraSkills.map((skill, index) => (
+              <div key={index} className="skill-badge skill-insight-card extra">
                 <span className="skill-name">{catalogSkillName(skill.name)}</span>
                 <span className="skill-category">{catalogSkillCategory(skill.category)}</span>
+                <p className="skill-action">{getSkillAction(skill, 'extra')}</p>
               </div>
             ))}
           </div>
@@ -393,17 +378,35 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
               {(() => {
                 const pct = analysis.match_percentage;
                 const matched = uniqueMatchedSkills.slice(0, 3).map(s => s.name).join(', ');
-                const critical = analysis.skill_gaps?.critical?.slice(0, 2).map((s: any) => catalogSkillName(s.name)).join(', ') || '';
-                const totalGaps = (analysis.skill_gaps?.critical?.length || 0) + (analysis.skill_gaps?.important?.length || 0);
+                const priority = [...criticalGaps, ...importantGaps].slice(0, 3).map((s: any) => catalogSkillName(s.name)).join(', ');
+                const topCategory = allGaps[0]?.category ? catalogSkillCategory(allGaps[0].category) : '';
                 if (pct >= 80)
-                  return `CV phù hợp ở mức xuất sắc với vị trí này. Ứng viên đã đáp ứng ${analysis.matched_skills_count}/${analysis.total_required_skills} kỹ năng yêu cầu${matched ? `, bao gồm: ${matched}` : ''}. ${totalGaps > 0 ? `Cần bổ sung thêm ${totalGaps} kỹ năng để hoàn thiện hồ sơ.` : 'Hồ sơ rất cạnh tranh cho vị trí này.'}`;
+                  return `CV đang phù hợp ở mức cao. Ứng viên có ${computedMatchedCount}/${computedTotalRequired} kỹ năng yêu cầu${matched ? `, nổi bật là: ${matched}` : ''}. Bước tiếp theo là bổ sung bằng chứng định lượng trong CV và chuẩn bị ví dụ phỏng vấn cho các kỹ năng còn thiếu${priority ? `: ${priority}` : ''}.`;
                 if (pct >= 60)
-                  return `CV có nền tảng tốt với ${analysis.matched_skills_count} kỹ năng phù hợp${matched ? ` (${matched})` : ''}. Cần bổ sung thêm ${totalGaps} kỹ năng quan trọng${critical ? ` như: ${critical}` : ''} để tăng tính cạnh tranh.`;
+                  return `CV có nền tảng dùng được nhưng chưa đủ mạnh để cạnh tranh. Hiện ghi nhận ${computedMatchedCount}/${computedTotalRequired} kỹ năng phù hợp${matched ? ` (${matched})` : ''}. Nên ưu tiên hoàn thiện nhóm ${topCategory || 'kỹ năng cốt lõi'} và đưa minh chứng cụ thể cho ${priority || 'các kỹ năng quan trọng nhất'} trước khi ứng tuyển.`;
                 if (pct >= 30)
-                  return `Ứng viên đang ở giai đoạn phát triển. Đã có ${analysis.matched_skills_count} kỹ năng cơ bản phù hợp. Cần tập trung học thêm ${totalGaps} kỹ năng${critical ? ` quan trọng như: ${critical}` : ''} để đáp ứng yêu cầu công việc.`;
-                return `CV cần được cải thiện đáng kể. Hiện chỉ đáp ứng ${analysis.matched_skills_count}/${analysis.total_required_skills} yêu cầu. Khuyến nghị học thêm các kỹ năng cốt lõi${critical ? ` như: ${critical}` : ''} trước khi ứng tuyển.`;
+                  return `Ứng viên đang ở giai đoạn phát triển cho nghề mục tiêu. Tỷ lệ đáp ứng theo số lượng là ${computedCoverage.toFixed(1)}%, còn thiếu ${computedMissingCount} kỹ năng. Hãy chọn 3 kỹ năng đầu tiên trong nhóm quan trọng${priority ? ` (${priority})` : ''}, học theo tình huống thực tế, rồi cập nhật CV bằng ví dụ công việc hoặc chứng chỉ.`;
+                return `CV chưa đủ sát với nghề mục tiêu. Hệ thống chỉ tìm thấy ${computedMatchedCount}/${computedTotalRequired} kỹ năng yêu cầu trong CV, vì vậy chưa nên dựa vào các kỹ năng ngoài ngành để kết luận phù hợp. Lộ trình thực tế là xử lý trước ${Math.min(5, computedMissingCount)} kỹ năng nền tảng${priority ? ` như: ${priority}` : ''}, sau đó bổ sung minh chứng vào CV và luyện trả lời phỏng vấn theo từng kỹ năng.`;
               })()}
             </p>
+          </div>
+        </div>
+
+        <div className="ai-plan-grid">
+          <div className="ai-plan-card">
+            <span className="ai-plan-kicker">Ưu tiên 7 ngày</span>
+            <strong>{[...criticalGaps, ...importantGaps][0] ? catalogSkillName([...criticalGaps, ...importantGaps][0].name) : 'Củng cố CV'}</strong>
+            <p>Chọn một kỹ năng có trọng số cao nhất, học khái niệm nền, ghi lại ví dụ áp dụng và thêm bằng chứng vào CV.</p>
+          </div>
+          <div className="ai-plan-card">
+            <span className="ai-plan-kicker">Ưu tiên 30 ngày</span>
+            <strong>{priorityText([...criticalGaps, ...importantGaps].slice(0, 3).map((s: any) => catalogSkillName(s.name)))}</strong>
+            <p>Hoàn thành nhóm kỹ năng quan trọng đầu tiên, mỗi kỹ năng cần có ít nhất một minh chứng thực tế hoặc khóa học liên quan.</p>
+          </div>
+          <div className="ai-plan-card">
+            <span className="ai-plan-kicker">Rủi ro khi ứng tuyển</span>
+            <strong>{computedMissingCount > computedMatchedCount ? 'Thiếu bằng chứng nghề nghiệp' : 'Cần làm rõ kinh nghiệm'}</strong>
+            <p>Nhà tuyển dụng có thể loại CV nếu các kỹ năng quan trọng chỉ xuất hiện chung chung hoặc không có tình huống chứng minh.</p>
           </div>
         </div>
 
@@ -430,11 +433,6 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
             <h4 className="sw-title">Điểm cần cải thiện</h4>
             <ul className="sw-list">
               {(() => {
-                const allGaps = [
-                  ...(analysis.skill_gaps?.critical || []),
-                  ...(analysis.skill_gaps?.important || []),
-                  ...(analysis.skill_gaps?.nice_to_have || [])
-                ];
                 if (allGaps.length > 0) {
                   return allGaps.slice(0, 5).map((skill, index) => (
                     <li key={index}>
@@ -444,10 +442,10 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
                       {skill.importance && skill.importance < 0.5 && ' - Nên có'}
                     </li>
                   ));
-                } else if (analysis.missing_skills_count > 0) {
+                } else if (computedMissingCount > 0) {
                   return (
                     <>
-                      <li>Cần bổ sung thêm <strong>{analysis.missing_skills_count} kỹ năng</strong> để phù hợp hơn.</li>
+                      <li>Cần bổ sung thêm <strong>{computedMissingCount} kỹ năng</strong> để phù hợp hơn.</li>
                       <li>Khuyến nghị tham gia các khóa học và dự án thực tế.</li>
                       <li>Tập trung vào các kỹ năng cốt lõi của ngành nghề mục tiêu.</li>
                     </>

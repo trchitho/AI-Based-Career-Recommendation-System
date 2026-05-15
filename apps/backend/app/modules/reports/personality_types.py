@@ -540,31 +540,31 @@ PERSONALITY_TYPES: Dict[Tuple[str, str, str, str, str], Dict[str, Any]] = {
     # =========================================================================
     # Type 19: Medium across all traits
     ("M", "M", "M", "M", "M"): {
-        "type_name": "Balanced Adapter",
-        "short_desc": "You have a well-rounded personality that allows you to adapt flexibly to different situations and roles.",
+        "type_name": "Người Thích Ứng Cân Bằng (Balanced Adapter)",
+        "short_desc": "Bạn có tính cách toàn diện cho phép bạn thích ứng linh hoạt với các tình huống và vai trò khác nhau.",
         "full_desc": [
-            "You have moderate levels across all Big Five dimensions, giving you a balanced, adaptable personality. "
-            "You're neither extremely creative nor extremely conventional, neither highly organized nor highly spontaneous, "
-            "neither very outgoing nor very reserved, neither extremely agreeable nor extremely challenging.",
-            "This balance allows you to adapt to different situations and work effectively with diverse colleagues. "
-            "You can draw on different aspects of your personality depending on what the context requires. "
-            "You're not locked into any extreme pattern.",
-            "Generalist roles, project management, consulting, and roles requiring versatility suit your profile. "
-            "You thrive in environments that value adaptability and well-rounded capability.",
+            "Bạn có mức độ vừa phải trên tất cả các chiều Big Five, mang lại cho bạn tính cách cân bằng và thích ứng. "
+            "Bạn không quá sáng tạo cũng không quá truyền thống, không quá có tổ chức cũng không quá tự phát, "
+            "không quá hướng ngoại cũng không quá khép kín, không quá dễ chịu cũng không quá thách thức.",
+            "Sự cân bằng này cho phép bạn thích ứng với các tình huống khác nhau và làm việc hiệu quả với đồng nghiệp đa dạng. "
+            "Bạn có thể khai thác các khía cạnh khác nhau của tính cách tùy thuộc vào bối cảnh yêu cầu. "
+            "Bạn không bị giới hạn trong bất kỳ mẫu cực đoan nào.",
+            "Các vai trò tổng hợp, quản lý dự án, tư vấn và các vị trí đòi hỏi sự đa năng phù hợp với hồ sơ của bạn. "
+            "Bạn phát triển mạnh trong môi trường coi trọng khả năng thích ứng và năng lực toàn diện.",
         ],
         "strengths": [
-            "Your balanced profile allows you to adapt your approach based on situational demands. "
-            "You can be creative when needed, organized when required, social or independent as appropriate.",
-            "Your moderate tendencies make you relatable to a wide range of colleagues. "
-            "You can understand and work with people across the personality spectrum.",
-            "Your lack of extreme tendencies means you have few blind spots or vulnerabilities. "
-            "You're not likely to be derailed by situations that challenge extreme personalities.",
+            "Hồ sơ cân bằng của bạn cho phép bạn điều chỉnh cách tiếp cận dựa trên yêu cầu tình huống. "
+            "Bạn có thể sáng tạo khi cần, có tổ chức khi được yêu cầu, hòa đồng hoặc độc lập tùy hoàn cảnh.",
+            "Xu hướng vừa phải của bạn giúp bạn dễ gần với nhiều đồng nghiệp khác nhau. "
+            "Bạn có thể hiểu và làm việc với mọi người trên toàn bộ phổ tính cách.",
+            "Việc không có xu hướng cực đoan nghĩa là bạn có ít điểm mù hoặc điểm yếu. "
+            "Bạn ít có khả năng bị ảnh hưởng bởi các tình huống thách thức những tính cách cực đoan.",
         ],
         "challenges": [
-            "Your balanced profile may make it harder to identify your unique strengths and ideal roles. "
-            "Consider what you most enjoy and value to guide career decisions.",
-            "Your adaptability may lead to being a generalist without deep expertise. "
-            "Consider developing specialized skills in areas that interest you most.",
+            "Hồ sơ cân bằng có thể khiến bạn khó xác định điểm mạnh độc đáo và vai trò lý tưởng. "
+            "Hãy cân nhắc những gì bạn thích nhất và coi trọng nhất để hướng dẫn quyết định nghề nghiệp.",
+            "Khả năng thích ứng có thể dẫn đến việc trở thành người tổng hợp mà không có chuyên môn sâu. "
+            "Hãy cân nhắc phát triển kỹ năng chuyên biệt trong các lĩnh vực bạn quan tâm nhất.",
         ],
     },
     # Type 20: High O, Medium C, Medium E, Medium A, Low N

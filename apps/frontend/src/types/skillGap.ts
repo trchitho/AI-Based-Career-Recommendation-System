@@ -6,6 +6,10 @@ export interface SkillInfo {
   name: string;
   category: string;
   importance?: number;
+  level?: number;
+  ksa_type?: string;
+  description_en?: string;
+  description_vn?: string;
   proficiency_level?: string;
 }
 
@@ -30,7 +34,7 @@ export interface SkillGapAnalysis {
   cv_skills: SkillInfo[];
   matched_skills: SkillInfo[];
   skill_gaps: SkillGapCategory;
-  extra_skills: Array<{ name: string; category: string }>;
+  extra_skills: Array<{ name: string; category: string; source?: string }>;
   created_at: string;
 }
 

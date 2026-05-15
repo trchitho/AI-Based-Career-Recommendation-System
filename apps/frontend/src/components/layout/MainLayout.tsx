@@ -174,7 +174,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
           {/* Sidebar */}
           <aside
-            className={`fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-40 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'md:w-16' : 'md:w-52'
+            className={`fixed left-0 top-[72px] h-[calc(100vh-72px)] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-40 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'md:w-16' : 'md:w-52'
               } ${mobileSidebarOpen ? 'w-52 translate-x-0' : 'w-52 -translate-x-full md:translate-x-0'
               }`}
           >
@@ -264,11 +264,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className={`flex-1 min-w-0 flex flex-col transition-[margin] duration-300 ${showSidebar && !sidebarCollapsed ? 'md:ml-52' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
+      <div className={`flex-1 min-w-0 flex flex-col ${showSidebar && !sidebarCollapsed ? 'md:ml-52' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
         }`}>
 
         {/* HEADER */}
-        <header className={`fixed top-0 z-50 transition-[left,background-color,box-shadow] duration-300 ease-in-out bg-[#ffffff] dark:bg-[rgba(15,23,42,0.9)] border-b border-[rgba(15,23,42,0.06)] dark:border-[rgba(255,255,255,0.08)] shadow-[0_8px_28px_rgba(15,23,42,0.04)] ${showSidebar && !sidebarCollapsed ? 'md:left-52 left-0 right-0' : showSidebar && sidebarCollapsed ? 'md:left-16 left-0 right-0' : 'left-0 right-0'} h-[72px] flex items-center`}>
+        <header className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,box-shadow] duration-300 ease-in-out bg-[#ffffff] dark:bg-[rgba(15,23,42,0.9)] border-b border-[rgba(15,23,42,0.06)] dark:border-[rgba(255,255,255,0.08)] shadow-[0_8px_28px_rgba(15,23,42,0.04)] h-[72px] flex items-center`}>
           <div className="w-full px-6 md:px-10 lg:px-14">
             <div className="flex items-center justify-between h-full relative">
 
@@ -278,13 +278,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               </div>
 
               {/* Desktop Navigation - KHÔNG ảnh hưởng đến sidebar state */}
-              <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 absolute left-1/2 -translate-x-1/2">
+              <nav className="hidden md:flex items-center space-x-2 lg:space-x-4 whitespace-nowrap">
                 {navLinks.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `relative px-[18px] py-[10px] rounded-full text-[15px] leading-none transition-all duration-250 ease-out cursor-pointer group outline-none ${isActive
+                      `relative px-3 py-[10px] rounded-full text-[13px] lg:text-[14px] leading-none transition-all duration-250 ease-out cursor-pointer group outline-none whitespace-nowrap ${isActive
                         ? "text-[#4f46e5] dark:text-[#a78bfa] font-[700] bg-transparent"
                         : "text-[#64748b] dark:text-[#cbd5e1] font-[600] hover:text-[#4f46e5] dark:hover:text-[#a78bfa] hover:bg-[rgba(15,23,42,0.04)] dark:hover:bg-[rgba(139,92,246,0.14)] hover:-translate-y-[1px] hover:shadow-[0_8px_22px_rgba(15,23,42,0.06)]"
                       }`

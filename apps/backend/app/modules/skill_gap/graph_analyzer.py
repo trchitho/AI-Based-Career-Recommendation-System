@@ -10,6 +10,26 @@ from sqlalchemy.orm import Session
 
 class SkillGraphAnalyzer:
     """Analyzer để so sánh kỹ năng CV với yêu cầu từ database"""
+
+    SOFTWARE_CAREER_MARKERS = (
+        "software", "developer", "programmer", "web", "data", "computer",
+        "information technology", "ai", "machine learning", "frontend",
+        "backend", "devops", "systems analyst"
+    )
+    TECH_EXTRA_SKILLS = {
+        "vi-sbert", "phobert", "ai", "express.js", "backend", "typescript",
+        "frontend", "react.js", "react", "axios", "vector search", "postgresql",
+        "jwt authentication", "spring boot", "pgvector", "spring security",
+        "bcrypt", "daisyui", "tailwind css", "tailwindcss", "spring mvc",
+        "fastapi", "restful apis", "oop", "zustand", "nlp", "mongodb",
+        "mongoose", "cloudinary", "faiss", "sql", "recommendation systems",
+        "neumf", "node.js", "javascript", "docker", "redis", "sqlite",
+        "pytorch", "machine learning", "web development"
+    }
+    TECH_EXTRA_CATEGORIES = {
+        "ai", "backend", "frontend", "database", "security", "services",
+        "programming", "web development", "devops", "lập trình"
+    }
     
     def __init__(self, neo4j_driver=None, db_session: Session = None):
         """
@@ -21,6 +41,87 @@ class SkillGraphAnalyzer:
         """
         self.driver = neo4j_driver
         self.db = db_session
+
+    @staticmethod
+    def _norm(value: str) -> str:
+        return str(value or "").strip().lower()
+
+    def _is_software_like_career(self, career_name: str) -> bool:
+        career_text = self._norm(career_name)
+        return any(marker in career_text for marker in self.SOFTWARE_CAREER_MARKERS)
+
+    def _is_tech_extra_skill(self, skill: Dict) -> bool:
+        name = self._norm(skill.get("name"))
+        category = self._norm(skill.get("category"))
+        return name in self.TECH_EXTRA_SKILLS or category in self.TECH_EXTRA_CATEGORIES
+
+    def _filter_contextual_extra_skills(self, extra_skills: List[Dict], career_name: str) -> List[Dict]:
+        return extra_skills
+
+    def _normalize_onet_score(self, value, default: float = 0.0) -> float:
+        try:
+            score = float(value if value is not None else default)
+        except (TypeError, ValueError):
+            score = default
+        return score / 100.0 if score > 1 else score
+
+    def _should_surface_job_ksa(self, skill: Dict, career_name: str = "") -> bool:
+        """Keep only KSA items strong enough to be useful on the user-facing gap UI."""
+        importance = float(skill.get("importance") or 0)
+        level = float(skill.get("level") or 0)
+        combined = (importance * 0.7) + (level * 0.3)
+        name = self._norm(skill.get("name"))
+        generic_low_signal = {"mathematics", "science", "programming"}
+
+        if name in generic_low_signal and not self._is_software_like_career(career_name):
+            return importance >= 0.55 and combined >= 0.55
+        return importance >= 0.50 or (importance >= 0.45 and level >= 0.60 and combined >= 0.52)
+
+    def _gap_bucket(self, skill: Dict) -> str:
+        importance = float(skill.get("importance") or 0)
+        level = float(skill.get("level") or 0)
+        combined = (importance * 0.7) + (level * 0.3)
+        if importance >= 0.80 or combined >= 0.78:
+            return "critical"
+        if importance >= 0.55 or combined >= 0.58:
+            return "important"
+        return "nice_to_have"
+
+    def _build_gap_info(self, skill: Dict) -> Dict:
+        importance = float(skill.get("importance") or 0.5)
+        return {
+            'name': skill['name'],
+            'category': skill.get('category', 'Other'),
+            'importance': importance,
+            'level': skill.get('level'),
+            'ksa_type': skill.get('ksa_type', 'skill'),
+            'description_en': skill.get('description_en'),
+            'description_vn': skill.get('description_vn'),
+            'proficiency_level': skill.get('proficiency_level', 'intermediate'),
+            'market_demand': 'high' if importance >= 0.8 else 'medium' if importance >= 0.5 else 'low'
+        }
+
+    def _normalize_analysis_consistency(self, analysis: Dict, career_name: str) -> Dict:
+        """Keep displayed metrics consistent with the actual matched and missing skill lists."""
+        if not isinstance(analysis, dict) or "skill_gaps" not in analysis:
+            return analysis
+
+        gaps = analysis.get("skill_gaps") or {}
+        critical = gaps.get("critical") or []
+        important = gaps.get("important") or []
+        nice_to_have = gaps.get("nice_to_have") or []
+        matched = analysis.get("matched_skills") or []
+        missing_count = len(critical) + len(important) + len(nice_to_have)
+        matched_count = len({self._norm(skill.get("name")) for skill in matched if isinstance(skill, dict) and skill.get("name")})
+
+        analysis["matched_skills_count"] = matched_count
+        analysis["missing_skills_count"] = missing_count
+        analysis["total_required_skills"] = matched_count + missing_count
+        analysis["extra_skills"] = self._filter_contextual_extra_skills(
+            analysis.get("extra_skills") or [],
+            career_name,
+        )
+        return analysis
     
     def execute_query(self, query: str, params: dict = None):
         """Execute a Neo4j query (deprecated)"""
@@ -144,15 +245,16 @@ class SkillGraphAnalyzer:
                     actual_onet_code = onet_code
                     print(f"  [WARN] Career not found, using provided code: {actual_onet_code}")
             
-            # Query skills from database
+            # Query skills, abilities and knowledge from database.
             # Use raw SQL to avoid model column name mismatch (name_en vs name)
             from sqlalchemy import text as _text
             rows = self.db.execute(_text("""
-                SELECT name_en, name_vn, category, level, importance
+                SELECT ksa_type, name_en, name_vn, category, level, importance, description_en, description_vn
                 FROM core.career_ksas
-                WHERE onet_code = :code AND ksa_type = 'skill'
+                WHERE onet_code = :code
+                  AND ksa_type IN ('skill', 'ability', 'knowledge')
                   AND (name_en IS NOT NULL OR name_vn IS NOT NULL)
-                ORDER BY importance DESC
+                ORDER BY importance DESC, level DESC
             """), {"code": actual_onet_code}).fetchall()
 
             skills = []
@@ -160,19 +262,24 @@ class SkillGraphAnalyzer:
                 skill_name = row.name_en or row.name_vn or ""
                 if not skill_name:
                     continue
-                # Importance stored as 0-100 or 0-1, normalize to 0-1
-                raw_imp = float(row.importance or 50)
-                importance = raw_imp / 100.0 if raw_imp > 1 else raw_imp
+                importance = self._normalize_onet_score(row.importance)
+                level = self._normalize_onet_score(row.level)
 
-                skills.append({
+                skill = {
                     'name': row.name_en or row.name_vn or "",
                     'category': row.category or 'Other',
                     'importance': importance,
-                    'proficiency_level': 'intermediate',  # Default
+                    'level': level,
+                    'ksa_type': row.ksa_type or 'skill',
+                    'description_en': row.description_en,
+                    'description_vn': row.description_vn,
+                    'proficiency_level': 'advanced' if level >= 0.65 else 'intermediate' if level >= 0.35 else 'foundational',
                     'source': 'onet_database'
-                })
+                }
+                if self._should_surface_job_ksa(skill, career.title_en if career else onet_code):
+                    skills.append(skill)
             
-            print(f"  [OK] Loaded {len(skills)} ONET skills from database")
+            print(f"  [OK] Loaded {len(skills)} surfaced ONET KSA items from database")
             return skills
             
         except Exception as e:
@@ -442,6 +549,10 @@ class SkillGraphAnalyzer:
                             'onet_skill': job_skill_dict[job_skill_name]['name'],
                             'category': cv_skill_dict[cv_skill].get('category', 'Other'),
                             'importance': job_skill_dict[job_skill_name].get('importance', 0.5),
+                            'level': job_skill_dict[job_skill_name].get('level'),
+                            'ksa_type': job_skill_dict[job_skill_name].get('ksa_type', 'skill'),
+                            'description_en': job_skill_dict[job_skill_name].get('description_en'),
+                            'description_vn': job_skill_dict[job_skill_name].get('description_vn'),
                             'match_type': 'direct'
                         })
                         break
@@ -469,6 +580,10 @@ class SkillGraphAnalyzer:
                         'onet_skill': job_skill_dict[job_skill_name]['name'],
                         'category': cv_skill_dict[cv_skill].get('category', 'Other'),
                         'importance': job_skill_dict[job_skill_name].get('importance', 0.5),
+                        'level': job_skill_dict[job_skill_name].get('level'),
+                        'ksa_type': job_skill_dict[job_skill_name].get('ksa_type', 'skill'),
+                        'description_en': job_skill_dict[job_skill_name].get('description_en'),
+                        'description_vn': job_skill_dict[job_skill_name].get('description_vn'),
                         'match_type': 'fuzzy'
                     })
                     break
@@ -492,19 +607,13 @@ class SkillGraphAnalyzer:
         
         for skill_name in missing_skills:
             skill = job_skill_dict[skill_name]
-            importance = skill.get('importance', 0.5)
-            
-            gap_info = {
-                'name': skill_name,
-                'category': skill.get('category', 'Other'),
-                'importance': importance,
-                'proficiency_level': skill.get('proficiency_level', 'intermediate'),
-                'market_demand': 'high' if importance >= 0.8 else 'medium' if importance >= 0.5 else 'low'
-            }
-            
-            if importance >= 0.8:
+            if not self._should_surface_job_ksa(skill):
+                continue
+            gap_info = self._build_gap_info(skill)
+            bucket = self._gap_bucket(skill)
+            if bucket == "critical":
                 critical_gaps.append(gap_info)
-            elif importance >= 0.5:
+            elif bucket == "important":
                 important_gaps.append(gap_info)
             else:
                 nice_to_have_gaps.append(gap_info)
@@ -607,6 +716,8 @@ class SkillGraphAnalyzer:
             # Fallback to traditional matching
             print("  [WARN] AI matching unavailable, using traditional matching")
             analysis = self.calculate_skill_match(cv_skills, job_skills)
+
+        analysis = self._normalize_analysis_consistency(analysis, career_name)
         
         analysis['career_id'] = career_id
         
@@ -641,29 +752,13 @@ class SkillGraphAnalyzer:
         # Build job skill importance map
         job_skill_imp = {s['name'].lower(): float(s.get('importance', 0.5)) for s in job_skills}
         total_importance = sum(job_skill_imp.values()) or 1.0
-
-        # Collect matched job skill names (deduped)
-        seen_job_matched: set = set()
-        for pair in matched_pairs:
-            seen_job_matched.add(pair['job_skill'].lower())
-
-        # Importance-weighted match%: consistent with calculate_skill_match
-        matched_importance = sum(
-            job_skill_imp.get(j, 0.5) for j in seen_job_matched
-        )
-        match_percentage = round((matched_importance / total_importance) * 100, 2)
         
         # Build matched skills list
         matched_skills = []
         cv_skill_dict = {s['name'].lower(): s for s in cv_skills}
         job_skill_dict = {s['name'].lower(): s for s in job_skills}
-        software_career_markers = ("software", "developer", "programmer", "web", "data", "computer", "information technology", "ai", "machine learning")
-        is_software_like_career = any(marker in (career_name or "").lower() for marker in software_career_markers)
+        is_software_like_career = self._is_software_like_career(career_name)
         generic_job_skills = {"programming", "science", "systems analysis"}
-        software_tool_skills = {
-            "node.js", "react", "docker", "jwt", "redis", "postgresql", "sqlite", "tailwindcss",
-            "phobert", "pytorch", "machine learning", "web development", "javascript", "typescript"
-        }
         
         seen_cv_skills = set()
         seen_job_skills = set()
@@ -691,7 +786,7 @@ class SkillGraphAnalyzer:
 
             if (
                 not is_software_like_career
-                and cv_key in software_tool_skills
+                and self._is_tech_extra_skill({'name': cv_skill_name, 'category': cv_skill_dict.get(cv_key, {}).get('category')})
                 and job_key in generic_job_skills
             ):
                 unmatched_cv.add(cv_skill_name)
@@ -707,10 +802,21 @@ class SkillGraphAnalyzer:
                 'onet_skill': job_skill['name'],
                 'category': cv_skill.get('category', 'Other'),
                 'importance': job_skill.get('importance', 0.5),
+                'level': job_skill.get('level'),
+                'ksa_type': job_skill.get('ksa_type', 'skill'),
+                'description_en': job_skill.get('description_en'),
+                'description_vn': job_skill.get('description_vn'),
                 'match_type': 'ai_semantic',
                 'confidence': confidence,
                 'reason': pair.get('reason', '')
             })
+
+        matched_job_keys = {self._norm(skill.get('onet_skill') or skill.get('job_skill') or skill.get('name')) for skill in matched_skills}
+        unmatched_job = set(job_skill_dict.keys()) - matched_job_keys
+
+        # Importance-weighted match% after confidence/domain filters.
+        matched_importance = sum(job_skill_imp.get(j, 0.5) for j in matched_job_keys)
+        match_percentage = round((matched_importance / total_importance) * 100, 2)
         
         # Build skill gaps
         critical_gaps = []
@@ -728,32 +834,29 @@ class SkillGraphAnalyzer:
             if not job_skill:
                 continue
             
-            importance = job_skill.get('importance', 0.5)
-            gap_info = {
-                'name': job_skill['name'],
-                'category': job_skill.get('category', 'Other'),
-                'importance': importance,
-                'proficiency_level': job_skill.get('proficiency_level', 'intermediate'),
-                'market_demand': 'high' if importance >= 0.8 else 'medium' if importance >= 0.5 else 'low'
-            }
-            
-            if importance >= 0.8:
+            if not self._should_surface_job_ksa(job_skill, career_name):
+                continue
+            gap_info = self._build_gap_info(job_skill)
+            bucket = self._gap_bucket(job_skill)
+            if bucket == "critical":
                 critical_gaps.append(gap_info)
-            elif importance >= 0.5:
+            elif bucket == "important":
                 important_gaps.append(gap_info)
             else:
                 nice_to_have_gaps.append(gap_info)
         
         # Build extra skills
         extra_skills = []
+        matched_cv_keys = {self._norm(skill.get('name')) for skill in matched_skills}
         for skill_name in unmatched_cv:
             cv_skill = cv_skill_dict.get(skill_name.lower())
-            if cv_skill:
+            if cv_skill and self._norm(cv_skill.get('name')) not in matched_cv_keys:
                 extra_skills.append({
                     'name': cv_skill['name'],
                     'category': cv_skill.get('category', 'Other'),
                     'source': cv_skill.get('source', 'unknown')
                 })
+        extra_skills = self._filter_contextual_extra_skills(extra_skills, career_name)
         
         print("  [OK] AI Analysis built:")
         print(f"     - Match percentage: {match_percentage:.1f}%")

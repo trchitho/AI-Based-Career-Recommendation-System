@@ -258,7 +258,7 @@ const ResultsPage = () => {
                 {activeTab === 'summary' && (
                   <div className="res-summary-grid">
                     {/* Highlights */}
-                    <div className="res-section">
+                    <div className="res-section res-highlights-section">
                       <div className="res-section-header">
                         <span className="res-section-icon green">
                           <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -359,28 +359,6 @@ const ResultsPage = () => {
                         <p className="res-chart-title">Biểu Đồ Đường</p>
                         <div className="res-chart-inner sm">
                           <RIASECLineChart scores={results.riasec_scores} />
-                        </div>
-                      </div>
-
-                      <div className="res-chart-box">
-                        <p className="res-chart-title">Chi Tiết Điểm</p>
-                        <div className="res-score-grid">
-                          {Object.entries(results.riasec_scores)
-                            .sort((a, b) => b[1] - a[1])
-                            .map(([key, value], index) => (
-                              <div key={key} className="res-score-item">
-                                <div className="res-score-label-row">
-                                  <span className="res-score-name">{getRIASECFullName(key)}</span>
-                                  <span className="res-score-val">{value.toFixed(0)}/100</span>
-                                </div>
-                                <div className="res-score-track">
-                                  <div
-                                    className={`res-score-fill c${index % 6}`}
-                                    style={{ width: `${Math.min(value, 100)}%` }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
                         </div>
                       </div>
                     </div>

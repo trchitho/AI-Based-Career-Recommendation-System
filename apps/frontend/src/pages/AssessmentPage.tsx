@@ -211,7 +211,7 @@ const AssessmentPage = () => {
         setAssessmentSessionId(realSessionId);
       } catch (err) {
         console.error('Failed to load questions:', err);
-        setError('Failed to load questions. Please try again.');
+        setError('Không thể tải câu hỏi. Vui lòng thử lại.');
         return;
       } finally {
         setLoading(false);

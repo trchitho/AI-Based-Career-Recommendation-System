@@ -21,9 +21,9 @@ function displayName(profile: ProfileData['profile']) {
 }
 
 const RIASEC_LABELS: Record<string, string> = {
-  realistic: 'Kỹ Thuật', investigative: 'Nghiên Cứu',
-  artistic: 'Nghệ Thuật', social: 'Xã Hội',
-  enterprising: 'Kinh Doanh', conventional: 'Nghiệp Vụ',
+  realistic: 'Kỹ Thuật (Realistic)', investigative: 'Nghiên Cứu (Investigative)',
+  artistic: 'Nghệ Thuật (Artistic)', social: 'Xã Hội (Social)',
+  enterprising: 'Kinh Doanh (Enterprising)', conventional: 'Nghiệp Vụ (Conventional)',
 };
 
 const RIASEC_COLORS: Record<string, string> = {
@@ -36,8 +36,8 @@ const RIASEC_COLORS: Record<string, string> = {
 };
 
 const BIG5_LABELS: Record<string, string> = {
-  openness: 'Cởi Mở', conscientiousness: 'Tận Tâm',
-  extraversion: 'Hướng Ngoại', agreeableness: 'Dễ Chịu', neuroticism: 'Nhạy Cảm',
+  openness: 'Cởi Mở (Openness)', conscientiousness: 'Tận Tâm (Conscientiousness)',
+  extraversion: 'Hướng Ngoại (Extraversion)', agreeableness: 'Dễ Chịu (Agreeableness)', neuroticism: 'Nhạy Cảm (Neuroticism)',
 };
 
 function big5Level(score: number) {

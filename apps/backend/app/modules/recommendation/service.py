@@ -90,8 +90,9 @@ class RecService:
                 "career_id": slug,  # FE dùng slug làm id
                 "slug": slug,
                 "job_onet": onet_code,  # giữ O*NET để log / debug
+                "title": meta.get("title_vi") or meta.get("title_en") or slug,
                 "title_vn": meta.get("title_vi"),
-                "title_vi": meta.get("title_vi"),  # backwards compatibility for older FE/tests
+                "title_vi": meta.get("title_vi"),
                 "title_en": meta.get("title_en"),
                 # Ưu tiên mô tả tiếng Việt
                 "description": (meta.get("short_desc_vi") or meta.get("short_desc_en") or meta.get("description") or ""),
@@ -508,9 +509,10 @@ class RecService:
 
                 items.append(
                     {
-                        "career_id": row[3] or str(row[0]),  # slug or career_id
+                        "career_id": row[3] or str(row[0]),
                         "slug": row[3],
                         "job_onet": row[4],
+                        "title": row[5] or row[6] or row[3] or "",
                         "title_vn": row[5],
                         "title_vi": row[5],
                         "title_en": row[6],
@@ -606,6 +608,7 @@ class RecService:
                     "career_id": slug,
                     "slug": row[0],
                     "job_onet": row[1],
+                    "title": row[2] or row[3] or slug,
                     "title_vn": row[2],
                     "title_vi": row[2],
                     "title_en": row[3],
