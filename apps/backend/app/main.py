@@ -3,7 +3,13 @@ from __future__ import annotations
 import logging
 import os
 import time
+import warnings
 from contextlib import asynccontextmanager
+
+# Suppress FutureWarning from deprecated google-generativeai package globally.
+# This MUST run before any module imports google.generativeai.
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning, module=r"google")
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -367,6 +373,14 @@ async def lifespan(_: FastAPI):
     import threading as _threading
     _threading.Thread(target=_preload_whisper, daemon=True, name="whisper-preload").start()
 
+    # Start learning path email reminder scheduler
+    try:
+        from app.modules.learning_path.reminder_scheduler import start_reminder_scheduler
+        start_reminder_scheduler()
+        print("[ok] Learning path reminder scheduler started")
+    except Exception as e:
+        print(f"[WARN] Reminder scheduler failed to start: {e}")
+
     yield
 
     # Shutdown schedulers on app stop
@@ -382,6 +396,12 @@ async def lifespan(_: FastAPI):
     except Exception:
         pass
 
+    try:
+        from app.modules.learning_path.reminder_scheduler import stop_reminder_scheduler
+        stop_reminder_scheduler()
+    except Exception:
+        pass
+
 
 def create_app() -> FastAPI:
     import sys
@@ -391,9 +411,9 @@ def create_app() -> FastAPI:
         except Exception:
             pass
     try:
-        print("OK Error tracking initialized")
+        print("[OK] Error tracking initialized")
     except Exception as e:
-        print(f"WARN Error tracking initialization failed: {e}")
+        print(f"[WARN] Error tracking initialization failed: {e}")
 
     from app.core.serialization import ORJSONResponse
     app = FastAPI(
