@@ -33,28 +33,6 @@ def _normalize_skills(skills: List[Any]) -> List[str]:
     return [s.strip() for s in result if s.strip()]
 
 
-def _rank_missing_by_weight(job_skills: List[Dict[str, Any]], missing_names: List[str], top_k: int = 20) -> List[Dict[str, Any]]:
-    """Deterministic fallback when embedding/NeuMF is unavailable."""
-    wanted = {str(name).strip().lower() for name in missing_names if str(name).strip()}
-    ranked = []
-    for skill in job_skills or []:
-        name = str(skill.get("name") or "").strip()
-        if not name or name.lower() not in wanted:
-            continue
-        importance = float(skill.get("importance") or 0.5)
-        level = float(skill.get("level") or 0.0)
-        score = (importance * 0.72) + (level * 0.28)
-        ranked.append({
-            "name": name,
-            "score": round(score, 4),
-            "importance": importance,
-            "level": level,
-            "fallback_reason": "ranked_by_importance_level",
-        })
-    ranked.sort(key=lambda item: (item["score"], item["importance"], item["level"], item["name"]), reverse=True)
-    return ranked[:top_k]
-
-
 async def run_cv_pipeline(
     db: Session,
     analysis_id: int,
@@ -127,18 +105,7 @@ async def run_cv_pipeline(
         logger.info("[cv-worker] Stage2 NeuMF ranked %s skills", len(ranked))
     except Exception as e:
         logger.warning("[cv-worker] Stage2 error: %s", e)
-        missing_names = result.get("semantic_missing", job_skill_names)
-        missing_name_strs = [
-            m if isinstance(m, str) else (m[1] if isinstance(m, (list, tuple)) and len(m) > 1 else str(m))
-            for m in missing_names
-        ]
-        fallback_ranked = _rank_missing_by_weight(job_skills, missing_name_strs, 20)
-        result["neumf_priority_skills"] = fallback_ranked
-        result["stages"]["neumf_ranking"] = {
-            "error": str(e),
-            "fallback": "importance_level",
-            "ranked": len(fallback_ranked),
-        }
+        result["stages"]["neumf_ranking"] = {"error": str(e)}
 
     # ── Stage 3: Thompson Sampling ────────────────────────────────
     try:

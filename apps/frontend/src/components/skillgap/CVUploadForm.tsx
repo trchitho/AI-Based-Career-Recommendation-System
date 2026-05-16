@@ -178,7 +178,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
               const careers = recData.items.map((career: any) => ({
                 id: career.slug || career.career_id,
                 title: career.title_vn || career.title_en || 'Nghề nghiệp chưa xác định',
-                match: Math.round(career.display_match || career.match_score || 0)
+                match: parseFloat((career.display_match || career.match_score || 0).toFixed(1))
               }));
 
               setRecommendedCareers(careers);

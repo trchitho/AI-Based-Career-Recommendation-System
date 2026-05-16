@@ -798,6 +798,18 @@ const MentorMatchingPage = () => {
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                               <StatusBadge status={r.status} />
+                              {r.status === 'pending' && (
+                                <button onClick={async () => {
+                                  if (!window.confirm('Bạn có chắc muốn hủy yêu cầu này?')) return;
+                                  try {
+                                    await import('../lib/api').then(m => m.default.post(`/api/mentor-matching/mentee/cancel-request/${r.id}`));
+                                    await loadRequests();
+                                  } catch { alert('Hủy yêu cầu thất bại'); }
+                                }}
+                                  style={{ padding: '0.35rem 0.85rem', borderRadius: 8, border: 'none', background: '#6b7280', color: '#fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                  <X size={12} />Hủy yêu cầu
+                                </button>
+                              )}
                               {r.status === 'accepted' && (
                                 <>
                                   <button onClick={() => setChatTarget({ userId: r.mentor_user_id || r.mentor_id, name: r.mentor_name || 'Mentor' })}
@@ -844,14 +856,24 @@ const MentorMatchingPage = () => {
                         </div>
                         {r.message && <div style={{ fontSize: '0.82rem', color: 'var(--neu-text-muted)', marginTop: '0.25rem', fontStyle: 'italic' }}>"{r.message}"</div>}
                       </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap' }}>
                         <button onClick={() => setChatTarget({ userId: r.mentee_user_id || r.mentee_id, name: r.mentee_name || 'Mentee' })}
                           style={{ padding: '0.45rem 1rem', borderRadius: 9, border: '1.5px solid #3b82f6', background: 'rgba(59,130,246,0.08)', color: '#2563eb', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                          <MessageCircle size={14} className="inline mr-1" />Nhắn tin
+                          <MessageCircle size={14} />Nhắn tin
                         </button>
                         <button onClick={() => setBookingTarget({ userId: r.mentee_id, name: r.mentee_name || 'Mentee' })}
                           style={{ padding: '0.45rem 1rem', borderRadius: 9, border: '1.5px solid #8b5cf6', background: 'rgba(139,92,246,0.08)', color: '#7c3aed', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                          <Calendar size={14} className="inline mr-1" />Đặt lịch
+                          <Calendar size={14} />Đặt lịch
+                        </button>
+                        <button onClick={async () => {
+                          if (!window.confirm(`Bạn có chắc muốn kết thúc kết nối với ${r.mentee_name || 'mentee này'}?`)) return;
+                          try {
+                            await import('../lib/api').then(m => m.default.post(`/api/mentor-matching/mentor/end-mentorship/${r.id}`));
+                            await loadRequests();
+                          } catch { alert('Kết thúc kết nối thất bại'); }
+                        }}
+                          style={{ padding: '0.45rem 1rem', borderRadius: 9, border: '1.5px solid #ef4444', background: 'rgba(239,68,68,0.08)', color: '#dc2626', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <X size={14} />Hủy kết nối
                         </button>
                       </div>
                     </div>

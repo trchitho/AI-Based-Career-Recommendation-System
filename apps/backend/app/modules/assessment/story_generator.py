@@ -82,8 +82,8 @@ class StoryGeneratorService:
         prompt = self._build_prompt(groups)
         raw = self.stream.generate_content_with_retry(
             prompt,
-            max_output_tokens=8192,
-            temperature=0.4,
+            max_output_tokens=16384,
+            temperature=0.55,
         )
 
         if not raw:
@@ -165,23 +165,28 @@ class StoryGeneratorService:
 
         groups_text = "\n".join(lines)
         return (
-            f"Nhiệm vụ: tạo {n_groups} CÂU CHUYỆN tiếng Việt cho bài trắc nghiệm nghề nghiệp.\n"
+            f"Nhiệm vụ: tạo {n_groups} CÂU CHUYỆN tiếng Việt SÂU SẮC cho bài trắc nghiệm nghề nghiệp.\n"
             f"\n"
-            f"Mỗi nhóm câu hỏi = 1 câu chuyện có bối cảnh chung. Các kịch bản trong nhóm\n"
-            f"phải liên kết với nhau trong cùng một câu chuyện đó (như các cảnh trong phim).\n"
+            f"YÊU CẦU QUAN TRỌNG:\n"
+            f"- Mỗi nhóm = 1 câu chuyện nghề nghiệp có bối cảnh phong phú, thực tế, hấp dẫn\n"
+            f"- Các kịch bản trong nhóm phải liên kết mạch lạc (như các cảnh trong một ngày làm việc)\n"
+            f"- Bối cảnh nhóm (i): 2-3 câu, mô tả rõ môi trường làm việc, nhân vật, tình huống chung\n"
+            f"- Ngữ cảnh kịch bản (c): 2-3 câu, cụ thể hóa tình huống đang xảy ra, có chi tiết sinh động\n"
+            f"- Tình huống câu hỏi (s): 1-2 câu, đặt người dùng vào đúng hoàn cảnh, hành động rõ ràng\n"
             f"\n"
-            f"Ví dụ nhóm [R]: câu chuyện 'Ngày làm việc tại xưởng cơ khí' →\n"
-            f"  kịch bản 1: máy bị hỏng giữa ca\n"
-            f"  kịch bản 2: đồng nghiệp nhờ bạn sửa thiết bị\n"
-            f"  kịch bản 3: trưởng xưởng giao nhiệm vụ lắp ráp...\n"
+            f"Ví dụ nhóm [R] CHẤT LƯỢNG CAO:\n"
+            f"  Bối cảnh nhóm: 'Xưởng cơ khí Phương Nam, nơi bạn làm kỹ thuật viên được 2 năm. Hôm nay là ngày bận rộn — đơn hàng lớn phải giao trước 5 giờ chiều. Tiếng máy ầm ầm, mùi dầu máy quen thuộc bao quanh bạn.'\n"
+            f"  Kịch bản 1 context: 'Đang giữa ca làm, dây chuyền lắp ráp bỗng dừng lại hoàn toàn. Tiếng còi báo hiệu lỗi vang lên, cả xưởng nhìn về phía bạn vì bạn là người gần nhất.'\n"
+            f"  Kịch bản 1 situation: 'Bạn lập tức tiến đến kiểm tra bảng điều khiển và tìm cách khởi động lại dây chuyền.'\n"
             f"\n"
             f"Trả về JSON (không có text nào ngoài JSON):\n"
             f'{{"groups":[\n'
-            f'  {{"g":{{"e":"emoji","t":"tên câu chuyện ≤5 từ","i":"mô tả bối cảnh chung 1-2 câu"}},\n'
-            f'   "q":[{{"e":"emoji","t":"tên cảnh ≤4 từ","c":"ngữ cảnh trong câu chuyện 1 câu","s":"tình huống cụ thể 1 câu"}}]\n'
+            f'  {{"g":{{"e":"emoji","t":"tên câu chuyện ≤6 từ","i":"bối cảnh chung 2-3 câu sinh động"}},\n'
+            f'   "q":[{{"e":"emoji","t":"tên cảnh ≤5 từ","c":"ngữ cảnh cụ thể 2-3 câu","s":"tình huống hành động 1-2 câu"}}]\n'
             f'  }}\n'
             f']}}\n'
             f"Đúng {n_groups} phần tử, mỗi nhóm có đúng số kịch bản bằng số câu hỏi.\n"
+            f"QUAN TRỌNG: Nội dung phải ĐỦ DÀI, CỤ THỂ, SINH ĐỘNG — không được quá ngắn.\n"
             f"\n"
             f"Các nhóm câu hỏi:\n{groups_text}"
         )

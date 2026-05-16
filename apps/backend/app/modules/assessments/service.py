@@ -440,7 +440,13 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             "trung lập": 3.0,
             "thích": 4.0,
             "rất thích": 5.0,
-            # Big Five style
+            # Big Five style (accuracy scale)
+            "very inaccurate": 1.0,
+            "moderately inaccurate": 2.0,
+            "neither accurate nor inaccurate": 3.0,
+            "moderately accurate": 4.0,
+            "very accurate": 5.0,
+            # Big Five agree/disagree style
             "strongly disagree": 1.0,
             "disagree": 2.0,
             "agree": 4.0,
@@ -450,6 +456,12 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             "không đồng ý": 2.0,
             "đồng ý": 4.0,
             "rất đồng ý": 5.0,
+            # Generic
+            "very low": 1.0,
+            "low": 2.0,
+            "medium": 3.0,
+            "high": 4.0,
+            "very high": 5.0,
         }
 
         return likert_map.get(sl)
@@ -562,6 +574,8 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             skipped_count += 1
             continue
 
+        # dim_letter từ effective_key = COALESCE(question_key, dimension)
+        # Ví dụ: "R1"→"R", "O1"→"O", "C3"→"C"
         dim_letter = (qkey or "").strip()[:1].upper() or None
         if not dim_letter:
             skipped_count += 1

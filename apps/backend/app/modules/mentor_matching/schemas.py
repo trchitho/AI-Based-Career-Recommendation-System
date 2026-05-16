@@ -93,8 +93,8 @@ class MentorshipRequestOut(BaseModel):
     status: str
     message: Optional[str]
     response_message: Optional[str]
-    requested_at: datetime
-    responded_at: Optional[datetime]
+    requested_at: Optional[datetime] = None
+    responded_at: Optional[datetime] = None
 
     # Joined info
     mentor_name: Optional[str] = None

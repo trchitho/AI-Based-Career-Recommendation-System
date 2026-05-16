@@ -2,56 +2,14 @@
 Graph Analyzer - Giai đoạn 2
 Truy vấn database để lấy yêu cầu kỹ năng và so sánh với CV
 """
-import hashlib
-import os
-import time
 from typing import Dict, List
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 
-# Module-level cache for Gemini current-career skill suggestions.
-# Keyed by (current_career, target_career, hash(cv_skill_names)) — stable across requests.
-# Cuts down on quota usage and gives instant response when the same combination is requested.
-_CURRENT_CAREER_SUGG_CACHE: Dict[str, tuple[float, List[Dict]]] = {}
-_CURRENT_CAREER_SUGG_TTL: float = 24 * 3600.0  # 24 hours
-
-
-def _make_suggestion_cache_key(current_career: str, target_career: str, cv_skill_names: List[str]) -> str:
-    skills_norm = sorted({(name or "").strip().lower() for name in cv_skill_names if name})
-    payload = f"{current_career}|{target_career}|{','.join(skills_norm)}"
-    return hashlib.sha1(payload.encode("utf-8")).hexdigest()
-
-
 class SkillGraphAnalyzer:
     """Analyzer để so sánh kỹ năng CV với yêu cầu từ database"""
-
-    SOFTWARE_CAREER_MARKERS = (
-        "software", "developer", "programmer", "web", "data", "computer",
-        "information technology", "ai", "machine learning", "frontend",
-        "backend", "devops", "systems analyst"
-    )
-    TECH_EXTRA_SKILLS = {
-        "vi-sbert", "phobert", "ai", "express.js", "backend", "typescript",
-        "frontend", "react.js", "react", "axios", "vector search", "postgresql",
-        "jwt authentication", "spring boot", "pgvector", "spring security",
-        "bcrypt", "daisyui", "tailwind css", "tailwindcss", "spring mvc",
-        "fastapi", "restful apis", "oop", "zustand", "nlp", "mongodb",
-        "mongoose", "cloudinary", "faiss", "sql", "recommendation systems",
-        "neumf", "node.js", "javascript", "docker", "redis", "sqlite",
-        "pytorch", "machine learning", "web development"
-    }
-    TECH_EXTRA_CATEGORIES = {
-        "ai", "backend", "frontend", "database", "security", "services",
-        "programming", "web development", "devops", "lập trình"
-    }
-    SOFTWARE_SECURITY_SKILLS = {
-        "jwt", "jwt authentication", "bcrypt", "oauth2", "spring security",
-        "csrf", "xss", "web security", "authentication", "authorization"
-    }
-    MAX_IMPORTANT_GAPS = 20
-    CURRENT_CAREER_SUGGESTION_LIMIT = 10
     
     def __init__(self, neo4j_driver=None, db_session: Session = None):
         """
@@ -63,415 +21,6 @@ class SkillGraphAnalyzer:
         """
         self.driver = neo4j_driver
         self.db = db_session
-
-    @staticmethod
-    def _norm(value: str) -> str:
-        return str(value or "").strip().lower()
-
-    def _is_software_like_career(self, career_name: str) -> bool:
-        career_text = self._norm(career_name)
-        return any(marker in career_text for marker in self.SOFTWARE_CAREER_MARKERS)
-
-    def _is_tech_extra_skill(self, skill: Dict) -> bool:
-        name = self._norm(skill.get("name"))
-        category = self._norm(skill.get("category"))
-        return name in self.TECH_EXTRA_SKILLS or category in self.TECH_EXTRA_CATEGORIES
-
-    def _is_domain_incompatible_match(self, cv_skill: Dict | str, job_skill: Dict | str, career_name: str = "") -> bool:
-        """Block cross-domain false positives, especially IT security vs protective-service security."""
-        if isinstance(cv_skill, dict):
-            cv_name = str(cv_skill.get("name") or "")
-            cv_category = str(cv_skill.get("category") or "")
-        else:
-            cv_name = str(cv_skill or "")
-            cv_category = ""
-        if isinstance(job_skill, dict):
-            job_name = str(job_skill.get("name") or "")
-            job_category = str(job_skill.get("category") or "")
-        else:
-            job_name = str(job_skill or "")
-            job_category = ""
-
-        cv_key = self._skill_key(cv_name)
-        job_key = self._skill_key(job_name)
-        if not cv_key or not job_key:
-            return False
-
-        if self._equivalent_skill_keys(cv_name) & self._equivalent_skill_keys(job_name):
-            return False
-
-        if self._is_software_like_career(career_name):
-            return False
-
-        cv_is_tech = self._is_tech_extra_skill({"name": cv_name, "category": cv_category})
-        cv_is_software_security = cv_key in self.SOFTWARE_SECURITY_SKILLS or self._skill_key(cv_category) == "security"
-        job_text = self._skill_key(f"{job_name} {job_category}")
-        protective_security_terms = {
-            "security", "public safety", "law", "protective", "guard",
-            "patrol", "surveillance", "emergency", "protection"
-        }
-
-        if cv_is_tech and (job_key not in self.TECH_EXTRA_SKILLS):
-            return True
-        if cv_is_software_security and any(term in job_text for term in protective_security_terms):
-            return True
-        return False
-
-    def _filter_contextual_extra_skills(self, extra_skills: List[Dict], career_name: str) -> List[Dict]:
-        return extra_skills
-
-    def _skill_key(self, value: str) -> str:
-        import re as _re
-        return _re.sub(r"[^a-z0-9]+", " ", str(value or "").lower()).strip()
-
-    def _equivalent_skill_keys(self, name: str) -> set[str]:
-        key = self._skill_key(name)
-        aliases = {
-            "english language": {"english", "english language", "tiếng anh", "ngoại ngữ tiếng anh"},
-            "english": {"english", "english language", "tiếng anh", "ngoại ngữ tiếng anh"},
-            "react js": {"react", "react js", "react.js"},
-            "node js": {"node", "node js", "node.js"},
-            "express js": {"express", "express js", "express.js"},
-            "restful apis": {"rest api", "restful api", "restful apis", "api"},
-            "javascript": {"javascript", "js", "es6"},
-            "typescript": {"typescript", "ts"},
-            "cloudinary": {"cloudinary"},
-            "bcrypt": {"bcrypt"},
-        }
-        for alias_set in aliases.values():
-            normalized = {self._skill_key(item) for item in alias_set}
-            if key in normalized:
-                return normalized
-        return {key}
-
-    def _has_cv_skill(self, cv_skill_keys: set[str], candidate_name: str) -> bool:
-        return bool(self._equivalent_skill_keys(candidate_name) & cv_skill_keys)
-
-    def _infer_cv_career_label(self, cv_skills: List[Dict]) -> str:
-        text = " ".join(f"{s.get('name', '')} {s.get('category', '')}" for s in (cv_skills or [])).lower()
-        
-        # IT / Developer careers
-        if any(token in text for token in ["react", "node", "express", "spring boot", "mongodb", "postgresql", "typescript", "javascript", "fastapi"]):
-            if any(token in text for token in ["react", "frontend", "typescript", "javascript"]) and any(token in text for token in ["node", "express", "backend", "spring boot", "fastapi", "mongodb", "postgresql"]):
-                return "Fullstack Web Developer"
-            if any(token in text for token in ["node", "express", "backend", "spring boot", "fastapi", "mongodb", "postgresql"]):
-                return "Backend Developer"
-            return "Frontend Developer"
-        
-        # AI / Data careers
-        if any(token in text for token in ["pandas", "numpy", "faiss", "nlp", "machine learning", "phobert", "sbert", "data analysis", "data science"]):
-            return "AI/Data Developer"
-        
-        # Sales / Business Development careers
-        if any(token in text for token in ["sales", "kinh doanh", "bán hàng", "business development", "account manager", "crm", "khách hàng", "doanh số", "chốt sale", "tư vấn bán hàng"]):
-            return "Sales/Kinh doanh"
-        
-        # Marketing careers
-        if any(token in text for token in ["marketing", "seo", "content", "digital marketing", "quảng cáo", "social media", "brand", "copywriting"]):
-            return "Marketing"
-        
-        # Office / Admin careers
-        if any(token in text for token in ["admin", "hành chính", "văn phòng", "office", "thư ký", "secretary", "assistant"]):
-            return "Office/Hành chính"
-        
-        return "Nghề hiện tại theo CV"
-
-    def _current_career_catalog(self, career_label: str) -> List[Dict]:
-        """Return baseline skill suggestions for the inferred CV career when Gemini is unavailable."""
-        label_lower = career_label.lower()
-
-        # IT / Developer careers
-        if any(kw in label_lower for kw in ["fullstack", "backend", "frontend", "developer", "lập trình"]):
-            return [
-                {"name": "Docker", "category": "DevOps", "description_vn": "Docker giúp đóng gói ứng dụng và toàn bộ môi trường chạy vào container, giúp triển khai nhất quán giữa máy local, staging và production."},
-                {"name": "CI/CD", "category": "DevOps", "description_vn": "CI/CD là quy trình tự động kiểm thử, build và triển khai mã nguồn, giúp giảm lỗi thủ công và tăng tốc phát hành phần mềm."},
-                {"name": "Unit Testing", "category": "Testing", "description_vn": "Unit Testing kiểm thử từng hàm, component hoặc module nhỏ để phát hiện lỗi sớm và bảo vệ logic quan trọng khi refactor."},
-                {"name": "Integration Testing", "category": "Testing", "description_vn": "Integration Testing kiểm tra cách API, database, service và frontend phối hợp với nhau trong luồng nghiệp vụ thực tế."},
-                {"name": "Redis", "category": "Backend", "description_vn": "Redis là kho dữ liệu in-memory thường dùng cho cache, session, rate limiting và hàng đợi nhẹ để tăng tốc hệ thống web."},
-                {"name": "Docker Compose", "category": "DevOps", "description_vn": "Docker Compose giúp định nghĩa và chạy nhiều service như backend, frontend, database, cache trong một môi trường phát triển thống nhất."},
-                {"name": "Web Security", "category": "Security", "description_vn": "Web Security bao gồm các kỹ thuật phòng chống XSS, CSRF, SQL/NoSQL injection, lộ token và cấu hình phân quyền sai trong ứng dụng web."},
-                {"name": "OAuth2", "category": "Security", "description_vn": "OAuth2 là chuẩn ủy quyền phổ biến để đăng nhập và cấp quyền an toàn qua các nhà cung cấp như Google, GitHub hoặc hệ thống SSO."},
-                {"name": "System Design", "category": "Architecture", "description_vn": "System Design là năng lực thiết kế kiến trúc hệ thống có khả năng mở rộng, chịu tải, chia module rõ ràng và kiểm soát rủi ro vận hành."},
-                {"name": "Observability", "category": "DevOps", "description_vn": "Observability gồm logging, metrics và tracing để theo dõi sức khỏe hệ thống, phát hiện lỗi và điều tra nguyên nhân khi production gặp sự cố."},
-            ]
-
-        # AI / Data careers
-        if any(kw in label_lower for kw in ["ai", "data", "machine learning", "ml", "analyst"]):
-            return [
-                {"name": "SQL nâng cao", "category": "Database", "description_vn": "Viết truy vấn phức tạp với JOIN, subquery, window function để phân tích dữ liệu lớn hiệu quả."},
-                {"name": "Python cho Data", "category": "Programming", "description_vn": "Sử dụng pandas, numpy, matplotlib để xử lý, phân tích và trực quan hóa dữ liệu."},
-                {"name": "Thống kê ứng dụng", "category": "Analysis", "description_vn": "Hiểu và áp dụng các khái niệm thống kê như phân phối, kiểm định giả thuyết, hồi quy vào phân tích thực tế."},
-                {"name": "Data Visualization", "category": "Analysis", "description_vn": "Tạo biểu đồ và dashboard trực quan giúp stakeholder hiểu insight từ dữ liệu."},
-                {"name": "ETL Pipeline", "category": "Data Engineering", "description_vn": "Xây dựng quy trình trích xuất, chuyển đổi và nạp dữ liệu từ nhiều nguồn vào data warehouse."},
-                {"name": "Machine Learning cơ bản", "category": "AI", "description_vn": "Hiểu và áp dụng các thuật toán ML phổ biến như regression, classification, clustering."},
-                {"name": "Feature Engineering", "category": "AI", "description_vn": "Tạo và chọn lọc đặc trưng từ dữ liệu thô để cải thiện hiệu suất mô hình."},
-                {"name": "Model Evaluation", "category": "AI", "description_vn": "Đánh giá mô hình bằng các metrics phù hợp và tránh overfitting/underfitting."},
-                {"name": "Git cho Data Science", "category": "Tools", "description_vn": "Quản lý phiên bản code và notebook, cộng tác với team qua Git."},
-                {"name": "Storytelling với dữ liệu", "category": "Communication", "description_vn": "Trình bày kết quả phân tích một cách thuyết phục cho đối tượng không chuyên kỹ thuật."},
-            ]
-
-        # Sales / Business Development careers
-        if any(kw in label_lower for kw in ["sales", "kinh doanh", "bán hàng", "business development"]):
-            return [
-                {"name": "CRM Software", "category": "Tools", "description_vn": "Sử dụng thành thạo phần mềm quản lý khách hàng như Salesforce, HubSpot hoặc Zoho để theo dõi pipeline và chăm sóc khách hàng."},
-                {"name": "Kỹ năng đàm phán", "category": "Soft Skills", "description_vn": "Thương lượng giá cả, điều khoản hợp đồng và xử lý phản đối của khách hàng một cách chuyên nghiệp."},
-                {"name": "Phân tích thị trường", "category": "Analysis", "description_vn": "Nghiên cứu đối thủ cạnh tranh, xu hướng ngành và nhu cầu khách hàng để xây dựng chiến lược bán hàng hiệu quả."},
-                {"name": "Kỹ năng thuyết trình", "category": "Communication", "description_vn": "Trình bày sản phẩm/dịch vụ một cách thuyết phục, tạo ấn tượng tốt với khách hàng tiềm năng."},
-                {"name": "Email Marketing", "category": "Marketing", "description_vn": "Viết email chào hàng, follow-up và nurturing hiệu quả để chuyển đổi lead thành khách hàng."},
-                {"name": "Social Selling", "category": "Sales", "description_vn": "Sử dụng LinkedIn và mạng xã hội để tìm kiếm, kết nối và xây dựng quan hệ với khách hàng tiềm năng."},
-                {"name": "Quản lý thời gian", "category": "Soft Skills", "description_vn": "Ưu tiên công việc, quản lý lịch hẹn và đảm bảo follow-up đúng hạn với nhiều khách hàng cùng lúc."},
-                {"name": "Xử lý từ chối", "category": "Sales", "description_vn": "Kỹ thuật vượt qua sự từ chối của khách hàng và chuyển đổi 'không' thành cơ hội."},
-                {"name": "Báo cáo doanh số", "category": "Analysis", "description_vn": "Tổng hợp và phân tích số liệu bán hàng, dự báo doanh thu và báo cáo cho quản lý."},
-                {"name": "Kỹ năng lắng nghe", "category": "Soft Skills", "description_vn": "Lắng nghe chủ động để hiểu nhu cầu thực sự của khách hàng và đề xuất giải pháp phù hợp."},
-            ]
-
-        # Marketing careers
-        if any(kw in label_lower for kw in ["marketing", "digital", "content", "seo", "quảng cáo"]):
-            return [
-                {"name": "Google Analytics", "category": "Tools", "description_vn": "Phân tích traffic website, hành vi người dùng và đo lường hiệu quả chiến dịch marketing."},
-                {"name": "SEO", "category": "Marketing", "description_vn": "Tối ưu hóa website để tăng thứ hạng trên công cụ tìm kiếm và thu hút traffic tự nhiên."},
-                {"name": "Content Marketing", "category": "Marketing", "description_vn": "Tạo nội dung giá trị để thu hút, giữ chân và chuyển đổi khách hàng mục tiêu."},
-                {"name": "Facebook/Google Ads", "category": "Advertising", "description_vn": "Chạy và tối ưu quảng cáo trả phí trên các nền tảng để đạt ROI cao nhất."},
-                {"name": "Email Automation", "category": "Marketing", "description_vn": "Thiết lập chuỗi email tự động để nurturing lead và tăng tỷ lệ chuyển đổi."},
-                {"name": "Copywriting", "category": "Content", "description_vn": "Viết nội dung quảng cáo, landing page và email thuyết phục để tăng conversion."},
-                {"name": "A/B Testing", "category": "Analysis", "description_vn": "Thử nghiệm các phiên bản khác nhau của nội dung/quảng cáo để tìm ra phương án hiệu quả nhất."},
-                {"name": "Social Media Management", "category": "Marketing", "description_vn": "Quản lý và phát triển các kênh mạng xã hội của thương hiệu."},
-                {"name": "Marketing Analytics", "category": "Analysis", "description_vn": "Đo lường và phân tích hiệu quả các chiến dịch marketing để tối ưu ngân sách."},
-                {"name": "Brand Strategy", "category": "Marketing", "description_vn": "Xây dựng và duy trì hình ảnh thương hiệu nhất quán trên các kênh."},
-            ]
-
-        # Office / Admin / General careers (fallback)
-        return [
-            {"name": "Microsoft Excel nâng cao", "category": "Office", "description_vn": "Sử dụng công thức phức tạp, pivot table, VLOOKUP/XLOOKUP và macro để xử lý dữ liệu hiệu quả."},
-            {"name": "Kỹ năng giao tiếp", "category": "Soft Skills", "description_vn": "Truyền đạt thông tin rõ ràng, lắng nghe chủ động và xây dựng mối quan hệ tốt với đồng nghiệp và khách hàng."},
-            {"name": "Quản lý thời gian", "category": "Soft Skills", "description_vn": "Ưu tiên công việc, lập kế hoạch và hoàn thành deadline một cách hiệu quả."},
-            {"name": "Làm việc nhóm", "category": "Soft Skills", "description_vn": "Hợp tác hiệu quả với các thành viên trong team để đạt mục tiêu chung."},
-            {"name": "Giải quyết vấn đề", "category": "Soft Skills", "description_vn": "Phân tích tình huống, xác định nguyên nhân gốc rễ và đề xuất giải pháp phù hợp."},
-            {"name": "Viết báo cáo", "category": "Communication", "description_vn": "Tổng hợp thông tin và trình bày báo cáo rõ ràng, chuyên nghiệp cho các bên liên quan."},
-            {"name": "Thuyết trình", "category": "Communication", "description_vn": "Trình bày ý tưởng và thông tin một cách tự tin, thuyết phục trước nhóm hoặc khách hàng."},
-            {"name": "Tư duy phản biện", "category": "Soft Skills", "description_vn": "Đánh giá thông tin một cách khách quan, nhận diện thiên kiến và đưa ra quyết định hợp lý."},
-            {"name": "Tiếng Anh giao tiếp", "category": "Language", "description_vn": "Giao tiếp cơ bản bằng tiếng Anh trong môi trường công việc, đọc hiểu tài liệu và email."},
-            {"name": "Kỹ năng tổ chức", "category": "Soft Skills", "description_vn": "Sắp xếp công việc, tài liệu và không gian làm việc một cách khoa học để tăng năng suất."},
-        ]
-
-    def _gemini_current_career_suggestions(self, cv_skills: List[Dict], current_career: str, target_career: str) -> List[Dict]:
-        api_key = os.getenv("GEMINI_COURSE_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            return []
-
-        # Check module-level cache first to dodge Gemini quota
-        cv_skill_names = [str(s.get("name") or "") for s in (cv_skills or []) if s.get("name")]
-        cache_key = _make_suggestion_cache_key(current_career, target_career, cv_skill_names)
-        cached = _CURRENT_CAREER_SUGG_CACHE.get(cache_key)
-        now = time.time()
-        if cached and (now - cached[0]) < _CURRENT_CAREER_SUGG_TTL:
-            return cached[1]
-
-        try:
-            import json as _json
-            import google.generativeai as genai  # type: ignore
-            prompt = f"""
-Return ONLY valid JSON. No markdown.
-
-Task: suggest missing skills for the user's CURRENT CV career, not for the target comparison career.
-
-Current CV career: {current_career}
-Target comparison career: {target_career}
-Skills already present in CV:
-{_json.dumps(cv_skill_names, ensure_ascii=False)}
-
-STRICT RULES:
-1. Return max {self.CURRENT_CAREER_SUGGESTION_LIMIT} skills.
-2. Every returned skill MUST be useful for the current CV career.
-3. Every returned skill MUST NOT already appear in the CV skill list, including aliases.
-4. Do NOT return tools already listed in CV.
-5. Do NOT return generic filler like Communication unless it is a concrete missing skill for the current career.
-6. description_vn must define the skill/tool accurately and specifically, not a template sentence.
-7. category must be specific: Frontend, Backend, DevOps, Testing, Security, Database, Architecture, Cloud, Tools.
-8. Return JSON shape:
-{{"skills":[{{"name":"Docker","category":"DevOps","description_vn":"..."}}]}}
-"""
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(os.getenv("GEMINI_COURSE_MODEL", "gemini-flash-latest"))
-            response = model.generate_content(
-                prompt,
-                generation_config={"temperature": 0.1, "top_p": 0.5, "max_output_tokens": 2500},
-            )
-            text = getattr(response, "text", "") or ""
-            if "```json" in text:
-                text = text.split("```json", 1)[1].split("```", 1)[0].strip()
-            elif "```" in text:
-                text = text.split("```", 1)[1].split("```", 1)[0].strip()
-            payload = _json.loads(text)
-            raw = payload.get("skills") if isinstance(payload, dict) else []
-            if not isinstance(raw, list):
-                return []
-            out = []
-            for item in raw:
-                if not isinstance(item, dict):
-                    continue
-                name = str(item.get("name") or "").strip()
-                desc = str(item.get("description_vn") or "").strip()
-                if name and desc:
-                    out.append({
-                        "name": name,
-                        "category": str(item.get("category") or "Other").strip() or "Other",
-                        "description_vn": desc,
-                        "source": "gemini_current_career",
-                        "current_career": current_career,
-                        "target_career": target_career,
-                    })
-            # Cache successful result for 24h to dodge quota on identical (career, skills) combos
-            if out:
-                _CURRENT_CAREER_SUGG_CACHE[cache_key] = (now, out)
-            return out
-        except Exception as exc:
-            err_text = str(exc)
-            print(f"  [WARN] Gemini current-career suggestions failed: {err_text[:200]}")
-            # On quota/429, cache empty for 5 minutes to stop hammering the API
-            if "429" in err_text or "quota" in err_text.lower() or "exceeded" in err_text.lower():
-                _CURRENT_CAREER_SUGG_CACHE[cache_key] = (now - (_CURRENT_CAREER_SUGG_TTL - 300), [])
-            return []
-
-    def _build_current_career_skill_suggestions(self, cv_skills: List[Dict], target_career_name: str) -> List[Dict]:
-        current_career = self._infer_cv_career_label(cv_skills)
-        
-        # If cv_skills is empty or career not detected, try to infer from target_career_name
-        if current_career == "Nghề hiện tại theo CV" and target_career_name:
-            target_lower = target_career_name.lower()
-            if any(kw in target_lower for kw in ["sales", "kinh doanh", "bán hàng", "business"]):
-                current_career = "Sales/Kinh doanh"
-            elif any(kw in target_lower for kw in ["marketing", "seo", "content", "digital"]):
-                current_career = "Marketing"
-            elif any(kw in target_lower for kw in ["developer", "software", "engineer", "lập trình"]):
-                current_career = "Backend Developer"
-            elif any(kw in target_lower for kw in ["data", "analyst", "ai", "machine learning"]):
-                current_career = "AI/Data Developer"
-        
-        cv_keys = set()
-        for skill in cv_skills or []:
-            for key in self._equivalent_skill_keys(str(skill.get("name") or "")):
-                if key:
-                    cv_keys.add(key)
-
-        suggestions = self._gemini_current_career_suggestions(cv_skills, current_career, target_career_name)
-        if not suggestions:
-            suggestions = self._current_career_catalog(current_career)
-
-        out = []
-        seen = set()
-        for skill in suggestions:
-            name = str(skill.get("name") or "").strip()
-            key = self._skill_key(name)
-            if not name or key in seen or self._has_cv_skill(cv_keys, name):
-                continue
-            seen.add(key)
-            out.append({
-                **skill,
-                "source": skill.get("source") or "current_career_catalog",
-                "current_career": skill.get("current_career") or current_career,
-                "target_career": skill.get("target_career") or target_career_name,
-            })
-            if len(out) >= self.CURRENT_CAREER_SUGGESTION_LIMIT:
-                break
-        return out
-
-    def _normalize_onet_score(self, value, default: float = 0.0) -> float:
-        try:
-            score = float(value if value is not None else default)
-        except (TypeError, ValueError):
-            score = default
-        return score / 100.0 if score > 1 else score
-
-    @staticmethod
-    def _bool_env(name: str, default: bool = False) -> bool:
-        value = os.getenv(name)
-        if value is None:
-            return default
-        return value.strip().lower() in {"1", "true", "yes", "y", "on"}
-
-    def _should_surface_job_ksa(self, skill: Dict, career_name: str = "") -> bool:
-        """Keep only KSA items strong enough to be useful on the user-facing gap UI."""
-        importance = float(skill.get("importance") or 0)
-        level = float(skill.get("level") or 0)
-        combined = (importance * 0.7) + (level * 0.3)
-        name = self._norm(skill.get("name"))
-        generic_low_signal = {"mathematics", "science", "programming"}
-
-        if name in generic_low_signal and not self._is_software_like_career(career_name):
-            return importance >= 0.55 and combined >= 0.55
-        return importance >= 0.50 or (importance >= 0.45 and level >= 0.60 and combined >= 0.52)
-
-    def _gap_bucket(self, skill: Dict) -> str:
-        importance = float(skill.get("importance") or 0)
-        level = float(skill.get("level") or 0)
-        combined = (importance * 0.7) + (level * 0.3)
-        if importance >= 0.80 or combined >= 0.78:
-            return "critical"
-        if importance >= 0.55 or combined >= 0.58:
-            return "important"
-        return "nice_to_have"
-
-    def _gap_rank_score(self, skill: Dict) -> float:
-        importance = float(skill.get("importance") or 0)
-        level = float(skill.get("level") or 0)
-        return (importance * 0.72) + (level * 0.28)
-
-    def _limit_important_gaps(self, analysis: Dict) -> Dict:
-        gaps = analysis.get("skill_gaps") or {}
-        important = gaps.get("important") or []
-        if len(important) <= self.MAX_IMPORTANT_GAPS:
-            return analysis
-        gaps["important"] = sorted(
-            important,
-            key=lambda skill: (
-                self._gap_rank_score(skill),
-                float(skill.get("importance") or 0),
-                float(skill.get("level") or 0),
-                str(skill.get("name") or ""),
-            ),
-            reverse=True,
-        )[:self.MAX_IMPORTANT_GAPS]
-        analysis["skill_gaps"] = gaps
-        return analysis
-
-    def _build_gap_info(self, skill: Dict) -> Dict:
-        importance = float(skill.get("importance") or 0.5)
-        return {
-            'name': skill.get('name_vn') or skill.get('name') or skill.get('name_en') or '',
-            'name_vn': skill.get('name_vn') or '',
-            'name_en': skill.get('name_en') or '',
-            'category': skill.get('category', 'Other'),
-            'importance': importance,
-            'level': skill.get('level'),
-            'ksa_type': skill.get('ksa_type', 'skill'),
-            'description_en': skill.get('description_en'),
-            'description_vn': skill.get('description_vn'),
-            'proficiency_level': skill.get('proficiency_level', 'intermediate'),
-            'market_demand': 'high' if importance >= 0.8 else 'medium' if importance >= 0.5 else 'low'
-        }
-
-    def _normalize_analysis_consistency(self, analysis: Dict, career_name: str) -> Dict:
-        """Keep displayed metrics consistent with the actual matched and missing skill lists."""
-        if not isinstance(analysis, dict) or "skill_gaps" not in analysis:
-            return analysis
-
-        gaps = analysis.get("skill_gaps") or {}
-        critical = gaps.get("critical") or []
-        important = gaps.get("important") or []
-        nice_to_have = gaps.get("nice_to_have") or []
-        matched = analysis.get("matched_skills") or []
-        missing_count = len(critical) + len(important)
-        matched_count = len({self._norm(skill.get("name")) for skill in matched if isinstance(skill, dict) and skill.get("name")})
-
-        analysis["matched_skills_count"] = matched_count
-        analysis["missing_skills_count"] = missing_count
-        analysis["total_required_skills"] = matched_count + missing_count
-        analysis["extra_skills"] = self._filter_contextual_extra_skills(
-            analysis.get("extra_skills") or [],
-            career_name,
-        )
-        return analysis
     
     def execute_query(self, query: str, params: dict = None):
         """Execute a Neo4j query (deprecated)"""
@@ -595,47 +144,44 @@ STRICT RULES:
                     actual_onet_code = onet_code
                     print(f"  [WARN] Career not found, using provided code: {actual_onet_code}")
             
-            # Query skills, abilities and knowledge from database.
+            # Query skills from database
             # Use raw SQL to avoid model column name mismatch (name_en vs name)
             from sqlalchemy import text as _text
             rows = self.db.execute(_text("""
-                SELECT ksa_type, name_en, name_vn, category, level, importance, description_en, description_vn
+                SELECT name_en, name_vn, category, level, importance
                 FROM core.career_ksas
-                WHERE onet_code = :code
-                  AND ksa_type IN ('skill', 'ability', 'knowledge')
+                WHERE onet_code = :code AND ksa_type = 'skill'
                   AND (name_en IS NOT NULL OR name_vn IS NOT NULL)
-                ORDER BY importance DESC, level DESC
+                ORDER BY importance DESC
             """), {"code": actual_onet_code}).fetchall()
 
+            seen_names: set = set()
             skills = []
             for row in rows:
-                # Ưu tiên tiếng Việt nếu có
-                skill_name_vn = (row.name_vn or '').strip()
-                skill_name_en = (row.name_en or '').strip()
-                # Display name: VN nếu có, fallback EN
-                skill_name = skill_name_vn or skill_name_en
+                # Ưu tiên tên tiếng Việt, fallback sang tiếng Anh
+                skill_name = row.name_vn or row.name_en or ""
                 if not skill_name:
                     continue
-                importance = self._normalize_onet_score(row.importance)
-                level = self._normalize_onet_score(row.level)
+                # Dedup theo tên (case-insensitive)
+                key = skill_name.strip().lower()
+                if key in seen_names:
+                    continue
+                seen_names.add(key)
 
-                skill = {
-                    'name': skill_name,  # tên hiển thị (VN ưu tiên)
-                    'name_en': skill_name_en,  # giữ EN để tham chiếu
-                    'name_vn': skill_name_vn,  # VN explicit
+                # Importance stored as 0-100 or 0-1, normalize to 0-1
+                raw_imp = float(row.importance or 50)
+                importance = raw_imp / 100.0 if raw_imp > 1 else raw_imp
+
+                skills.append({
+                    'name': skill_name.strip(),
+                    'name_en': row.name_en or "",
                     'category': row.category or 'Other',
                     'importance': importance,
-                    'level': level,
-                    'ksa_type': row.ksa_type or 'skill',
-                    'description_en': row.description_en,
-                    'description_vn': row.description_vn,
-                    'proficiency_level': 'advanced' if level >= 0.65 else 'intermediate' if level >= 0.35 else 'foundational',
+                    'proficiency_level': 'intermediate',
                     'source': 'onet_database'
-                }
-                if self._should_surface_job_ksa(skill, career.title_en if career else onet_code):
-                    skills.append(skill)
+                })
             
-            print(f"  [OK] Loaded {len(skills)} surfaced ONET KSA items from database")
+            print(f"  [OK] Loaded {len(skills)} ONET skills from database")
             return skills
             
         except Exception as e:
@@ -839,7 +385,7 @@ STRICT RULES:
             {'name': 'Teamwork', 'category': 'Soft Skills', 'importance': 0.75, 'proficiency_level': 'intermediate'},
         ]
     
-    def calculate_skill_match(self, cv_skills: List[Dict], job_skills: List[Dict], career_name: str = "") -> Dict:
+    def calculate_skill_match(self, cv_skills: List[Dict], job_skills: List[Dict]) -> Dict:
         """
         Gap Analysis Engine - So sánh năng lực CV với yêu cầu công việc
         
@@ -861,14 +407,9 @@ STRICT RULES:
         # Convert CV skills to lowercase dict for matching
         cv_skill_names = {skill['name'].lower() for skill in cv_skills}
         cv_skill_dict = {skill['name'].lower(): skill for skill in cv_skills}
-        # For ONET skills, MATCH theo name_en (vì CV skills là EN), nhưng OUTPUT name (VN)
-        # Build dict với key là EN-lowercase để match được
-        job_skill_dict: Dict[str, Dict[str, Any]] = {}
-        for skill in job_skills:
-            # Ưu tiên name_en để match (vì CV skills extract từ CV thường là English)
-            match_key = (skill.get('name_en') or skill.get('name') or '').lower().strip()
-            if match_key and match_key not in job_skill_dict:
-                job_skill_dict[match_key] = skill
+        
+        # For ONET skills, we need smarter matching
+        job_skill_dict = {skill['name'].lower(): skill for skill in job_skills}
         job_skill_names = set(job_skill_dict.keys())
         
         print(f"     - CV skills: {len(cv_skill_names)}")
@@ -902,33 +443,14 @@ STRICT RULES:
         for cv_skill in cv_skill_names:
             for job_skill_name in job_skill_names:
                 # Check if CV skill appears in ONET description or vice versa
-                if (
-                    cv_skill in job_skill_name
-                    or job_skill_name in cv_skill
-                    or bool(self._equivalent_skill_keys(job_skill_name) & self._equivalent_skill_keys(cv_skill))
-                ):
-                    if self._is_domain_incompatible_match(
-                        cv_skill_dict[cv_skill],
-                        job_skill_dict[job_skill_name],
-                        career_name,
-                    ):
-                        continue
+                if cv_skill in job_skill_name or job_skill_name in cv_skill:
                     if job_skill_name not in matched_skills:
                         matched_skills.add(job_skill_name)
-                        # Lấy ưu tiên tiếng Việt cho display
-                        job_skill = job_skill_dict[job_skill_name]
-                        display_name = job_skill.get('name_vn') or job_skill.get('name') or job_skill.get('name_en') or ''
                         matched_details.append({
                             'name': cv_skill_dict[cv_skill]['name'],
-                            'onet_skill': display_name,
-                            'onet_skill_vn': job_skill.get('name_vn') or '',
-                            'onet_skill_en': job_skill.get('name_en') or '',
+                            'onet_skill': job_skill_dict[job_skill_name]['name'],
                             'category': cv_skill_dict[cv_skill].get('category', 'Other'),
-                            'importance': job_skill.get('importance', 0.5),
-                            'level': job_skill.get('level'),
-                            'ksa_type': job_skill.get('ksa_type', 'skill'),
-                            'description_en': job_skill.get('description_en'),
-                            'description_vn': job_skill.get('description_vn'),
+                            'importance': job_skill_dict[job_skill_name].get('importance', 0.5),
                             'match_type': 'direct'
                         })
                         break
@@ -950,26 +472,12 @@ STRICT RULES:
                 
                 # Check if any keyword matches the job skill
                 if any(keyword in job_skill_name for keyword in keywords):
-                    if self._is_domain_incompatible_match(
-                        cv_skill_dict[cv_skill],
-                        job_skill_dict[job_skill_name],
-                        career_name,
-                    ):
-                        continue
                     matched_skills.add(job_skill_name)
-                    job_skill = job_skill_dict[job_skill_name]
-                    display_name = job_skill.get('name_vn') or job_skill.get('name') or job_skill.get('name_en') or ''
                     matched_details.append({
                         'name': cv_skill_dict[cv_skill]['name'],
-                        'onet_skill': display_name,
-                        'onet_skill_vn': job_skill.get('name_vn') or '',
-                        'onet_skill_en': job_skill.get('name_en') or '',
+                        'onet_skill': job_skill_dict[job_skill_name]['name'],
                         'category': cv_skill_dict[cv_skill].get('category', 'Other'),
-                        'importance': job_skill.get('importance', 0.5),
-                        'level': job_skill.get('level'),
-                        'ksa_type': job_skill.get('ksa_type', 'skill'),
-                        'description_en': job_skill.get('description_en'),
-                        'description_vn': job_skill.get('description_vn'),
+                        'importance': job_skill_dict[job_skill_name].get('importance', 0.5),
                         'match_type': 'fuzzy'
                     })
                     break
@@ -993,22 +501,33 @@ STRICT RULES:
         
         for skill_name in missing_skills:
             skill = job_skill_dict[skill_name]
-            if not self._should_surface_job_ksa(skill):
-                continue
-            gap_info = self._build_gap_info(skill)
-            bucket = self._gap_bucket(skill)
-            if bucket == "critical":
+            importance = skill.get('importance', 0.5)
+            
+            gap_info = {
+                'name': skill_name,
+                'category': skill.get('category', 'Other'),
+                'importance': importance,
+                'proficiency_level': skill.get('proficiency_level', 'intermediate'),
+                'market_demand': 'high' if importance >= 0.8 else 'medium' if importance >= 0.5 else 'low'
+            }
+            
+            if importance >= 0.8:
                 critical_gaps.append(gap_info)
-            elif bucket == "important":
+            elif importance >= 0.5:
                 important_gaps.append(gap_info)
             else:
                 nice_to_have_gaps.append(gap_info)
+        
+        # Step 6: Identify extra skills (not required but good to have)
+        matched_cv_skills = {detail['name'].lower() for detail in matched_details}
+        extra_skills = cv_skill_names - matched_cv_skills
         
         print("  [OK] [Gap Analysis] Complete:")
         print(f"     - Match percentage: {match_percentage:.1f}%")
         print(f"     - Critical gaps: {len(critical_gaps)}")
         print(f"     - Important gaps: {len(important_gaps)}")
         print(f"     - Nice-to-have gaps: {len(nice_to_have_gaps)}")
+        print(f"     - Extra skills: {len(extra_skills)}")
         
         return {
             'match_percentage': round(match_percentage, 2),
@@ -1021,7 +540,14 @@ STRICT RULES:
                 'important': sorted(important_gaps, key=lambda x: x['importance'], reverse=True),
                 'nice_to_have': sorted(nice_to_have_gaps, key=lambda x: x['importance'], reverse=True)
             },
-            'extra_skills': [],
+            'extra_skills': [
+                {
+                    'name': cv_skill_dict[skill]['name'], 
+                    'category': cv_skill_dict[skill].get('category', 'Other'),
+                    'source': cv_skill_dict[skill].get('source', 'unknown')
+                }
+                for skill in sorted(extra_skills)
+            ],
             'analysis_metadata': {
                 'direct_matches': sum(1 for d in matched_details if d.get('match_type') == 'direct'),
                 'fuzzy_matches': sum(1 for d in matched_details if d.get('match_type') == 'fuzzy'),
@@ -1061,6 +587,9 @@ STRICT RULES:
                 'suggestion': 'Try selecting a different career or check if the career exists in database'
             }
         
+        # Step 2: Try AI semantic matching first
+        print("  [2/4] Attempting AI semantic skill matching...")
+        
         # Get career name for AI context
         career_name = career_id.replace('-', ' ').title()
         if self.db:
@@ -1075,14 +604,8 @@ STRICT RULES:
                     career_name = career.title_en
             except Exception as e:
                 print(f"  [WARN] Could not get career name: {e}")
-
-        ai_result = None
-        if self._bool_env("SKILL_GAP_USE_AI_MATCHING", default=False):
-            # Step 2: AI semantic matching is useful but slow, so keep it opt-in.
-            print("  [2/4] Attempting AI semantic skill matching...")
-            ai_result = self.ai_semantic_skill_matching(cv_skills, job_skills, career_name)
-        else:
-            print("  [2/4] AI semantic matching disabled; using local matching")
+        
+        ai_result = self.ai_semantic_skill_matching(cv_skills, job_skills, career_name)
         
         # Step 3: Perform gap analysis (use AI results if available)
         print("  [3/4] Performing gap analysis...")
@@ -1092,14 +615,9 @@ STRICT RULES:
         else:
             # Fallback to traditional matching
             print("  [WARN] AI matching unavailable, using traditional matching")
-            analysis = self.calculate_skill_match(cv_skills, job_skills, career_name)
-
-        analysis["extra_skills"] = self._build_current_career_skill_suggestions(cv_skills, career_name)
-        analysis = self._limit_important_gaps(analysis)
-        analysis = self._normalize_analysis_consistency(analysis, career_name)
+            analysis = self.calculate_skill_match(cv_skills, job_skills)
         
         analysis['career_id'] = career_id
-        analysis['job_skills'] = job_skills
         
         # Step 4: Generate insights
         print("  [4/4] Generating insights...")
@@ -1132,13 +650,29 @@ STRICT RULES:
         # Build job skill importance map
         job_skill_imp = {s['name'].lower(): float(s.get('importance', 0.5)) for s in job_skills}
         total_importance = sum(job_skill_imp.values()) or 1.0
+
+        # Collect matched job skill names (deduped)
+        seen_job_matched: set = set()
+        for pair in matched_pairs:
+            seen_job_matched.add(pair['job_skill'].lower())
+
+        # Importance-weighted match%: consistent with calculate_skill_match
+        matched_importance = sum(
+            job_skill_imp.get(j, 0.5) for j in seen_job_matched
+        )
+        match_percentage = round((matched_importance / total_importance) * 100, 2)
         
         # Build matched skills list
         matched_skills = []
         cv_skill_dict = {s['name'].lower(): s for s in cv_skills}
         job_skill_dict = {s['name'].lower(): s for s in job_skills}
-        is_software_like_career = self._is_software_like_career(career_name)
+        software_career_markers = ("software", "developer", "programmer", "web", "data", "computer", "information technology", "ai", "machine learning")
+        is_software_like_career = any(marker in (career_name or "").lower() for marker in software_career_markers)
         generic_job_skills = {"programming", "science", "systems analysis"}
+        software_tool_skills = {
+            "node.js", "react", "docker", "jwt", "redis", "postgresql", "sqlite", "tailwindcss",
+            "phobert", "pytorch", "machine learning", "web development", "javascript", "typescript"
+        }
         
         seen_cv_skills = set()
         seen_job_skills = set()
@@ -1148,8 +682,9 @@ STRICT RULES:
             cv_key = cv_skill_name.lower()
             job_key = job_skill_name.lower()
 
-            # Skip if either side already matched
-            if cv_key in seen_cv_skills or job_key in seen_job_skills:
+            # Allow many-to-many: one CV skill can cover multiple job skills.
+            # Only skip if this exact job skill was already covered (avoid double-counting).
+            if job_key in seen_job_skills:
                 continue
 
             seen_cv_skills.add(cv_key)
@@ -1159,14 +694,14 @@ STRICT RULES:
                 confidence = float(pair.get('confidence', 0.8))
             except (TypeError, ValueError):
                 confidence = 0.0
-            if confidence < 0.75:
+            if confidence < 0.65:   # Lowered from 0.75 to handle cross-language matching
                 unmatched_cv.add(cv_skill_name)
                 unmatched_job.add(job_skill_name)
                 continue
 
             if (
                 not is_software_like_career
-                and self._is_tech_extra_skill({'name': cv_skill_name, 'category': cv_skill_dict.get(cv_key, {}).get('category')})
+                and cv_key in software_tool_skills
                 and job_key in generic_job_skills
             ):
                 unmatched_cv.add(cv_skill_name)
@@ -1176,31 +711,16 @@ STRICT RULES:
             # Get original skill data
             cv_skill = cv_skill_dict.get(cv_key, {'name': cv_skill_name, 'category': 'Other'})
             job_skill = job_skill_dict.get(job_key, {'name': job_skill_name, 'importance': 0.5})
-            if self._is_domain_incompatible_match(cv_skill, job_skill, career_name):
-                unmatched_cv.add(cv_skill_name)
-                unmatched_job.add(job_skill_name)
-                continue
 
             matched_skills.append({
                 'name': cv_skill['name'],
                 'onet_skill': job_skill['name'],
                 'category': cv_skill.get('category', 'Other'),
                 'importance': job_skill.get('importance', 0.5),
-                'level': job_skill.get('level'),
-                'ksa_type': job_skill.get('ksa_type', 'skill'),
-                'description_en': job_skill.get('description_en'),
-                'description_vn': job_skill.get('description_vn'),
                 'match_type': 'ai_semantic',
                 'confidence': confidence,
                 'reason': pair.get('reason', '')
             })
-
-        matched_job_keys = {self._norm(skill.get('onet_skill') or skill.get('job_skill') or skill.get('name')) for skill in matched_skills}
-        unmatched_job = set(job_skill_dict.keys()) - matched_job_keys
-
-        # Importance-weighted match% after confidence/domain filters.
-        matched_importance = sum(job_skill_imp.get(j, 0.5) for j in matched_job_keys)
-        match_percentage = round((matched_importance / total_importance) * 100, 2)
         
         # Build skill gaps
         critical_gaps = []
@@ -1218,29 +738,32 @@ STRICT RULES:
             if not job_skill:
                 continue
             
-            if not self._should_surface_job_ksa(job_skill, career_name):
-                continue
-            gap_info = self._build_gap_info(job_skill)
-            bucket = self._gap_bucket(job_skill)
-            if bucket == "critical":
+            importance = job_skill.get('importance', 0.5)
+            gap_info = {
+                'name': job_skill['name'],
+                'category': job_skill.get('category', 'Other'),
+                'importance': importance,
+                'proficiency_level': job_skill.get('proficiency_level', 'intermediate'),
+                'market_demand': 'high' if importance >= 0.8 else 'medium' if importance >= 0.5 else 'low'
+            }
+            
+            if importance >= 0.8:
                 critical_gaps.append(gap_info)
-            elif bucket == "important":
+            elif importance >= 0.5:
                 important_gaps.append(gap_info)
             else:
                 nice_to_have_gaps.append(gap_info)
         
         # Build extra skills
         extra_skills = []
-        matched_cv_keys = {self._norm(skill.get('name')) for skill in matched_skills}
         for skill_name in unmatched_cv:
             cv_skill = cv_skill_dict.get(skill_name.lower())
-            if cv_skill and self._norm(cv_skill.get('name')) not in matched_cv_keys:
+            if cv_skill:
                 extra_skills.append({
                     'name': cv_skill['name'],
                     'category': cv_skill.get('category', 'Other'),
                     'source': cv_skill.get('source', 'unknown')
                 })
-        extra_skills = self._filter_contextual_extra_skills(extra_skills, career_name)
         
         print("  [OK] AI Analysis built:")
         print(f"     - Match percentage: {match_percentage:.1f}%")
@@ -1250,12 +773,33 @@ STRICT RULES:
         print(f"     - Nice-to-have gaps: {len(nice_to_have_gaps)}")
         print(f"     - Extra skills: {len(extra_skills)}")
         
+        # Dedup matched_skills by CV skill name — keep highest importance
+        dedup_matched: dict = {}
+        for ms in matched_skills:
+            key = ms['name'].strip().lower()
+            if key not in dedup_matched or ms['importance'] > dedup_matched[key]['importance']:
+                dedup_matched[key] = ms
+        matched_skills_deduped = list(dedup_matched.values())
+
+        # Dedup gaps by skill name
+        def _dedup_gaps(gaps: list) -> list:
+            seen: dict = {}
+            for g in gaps:
+                k = g['name'].strip().lower()
+                if k not in seen or g['importance'] > seen[k]['importance']:
+                    seen[k] = g
+            return list(seen.values())
+
+        critical_gaps    = _dedup_gaps(critical_gaps)
+        important_gaps   = _dedup_gaps(important_gaps)
+        nice_to_have_gaps = _dedup_gaps(nice_to_have_gaps)
+
         return {
             'match_percentage': round(match_percentage, 2),
             'total_required_skills': len(job_skills),
-            'matched_skills_count': len(matched_skills),
+            'matched_skills_count': len(matched_skills_deduped),
             'missing_skills_count': len(unmatched_job),
-            'matched_skills': sorted(matched_skills, key=lambda x: x['importance'], reverse=True),
+            'matched_skills': sorted(matched_skills_deduped, key=lambda x: x['importance'], reverse=True),
             'skill_gaps': {
                 'critical': sorted(critical_gaps, key=lambda x: x['importance'], reverse=True),
                 'important': sorted(important_gaps, key=lambda x: x['importance'], reverse=True),

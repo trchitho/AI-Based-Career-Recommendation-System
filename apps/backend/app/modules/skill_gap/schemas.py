@@ -12,10 +12,6 @@ class SkillInfo(BaseModel):
     name: str
     category: str
     importance: Optional[float] = 0.5
-    level: Optional[float] = None
-    ksa_type: Optional[str] = None
-    description_en: Optional[str] = None
-    description_vn: Optional[str] = None
     proficiency_level: Optional[str] = None
 
 

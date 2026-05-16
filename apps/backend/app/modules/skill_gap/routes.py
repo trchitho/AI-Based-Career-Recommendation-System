@@ -15,155 +15,6 @@ from .service import SkillGapService
 router = APIRouter(tags=["Skill Gap Analysis"])
 
 
-# ─── Helper: Vietnamese error responses chuẩn UI ─────────────────────────────
-def _vn_error_response(
-    title: str,
-    message: str,
-    suggestions: list[str],
-    error_code: str = "validation_failed",
-) -> dict:
-    """Trả về structured error tiếng Việt thân thiện cho UI."""
-    return {
-        "error": error_code,
-        "title": title,
-        "message": message,
-        "suggestions": suggestions,
-    }
-
-
-def _classify_unexpected_error(e: Exception) -> dict:
-    """Phân loại Exception 500 thành message tiếng Việt cụ thể tùy ngữ cảnh.
-
-    Tránh trả message generic "Lỗi xử lý CV" cho mọi case. Dựa vào type(e) và
-    keyword trong message để đoán loại lỗi: timeout, AI quota, DB, OCR, parsing.
-    """
-    err_name = type(e).__name__
-    err_msg = str(e).lower()
-
-    # AI / Gemini errors
-    if any(kw in err_msg for kw in ["gemini", "google", "deadlineexceeded", "resourceexhausted", "quota", "rate limit"]):
-        if "quota" in err_msg or "resourceexhausted" in err_msg or "rate limit" in err_msg:
-            return _vn_error_response(
-                title="Hệ thống AI đang quá tải",
-                message="Dịch vụ AI hiện đang xử lý nhiều yêu cầu. Vui lòng thử lại sau ít phút.",
-                suggestions=[
-                    "Đợi 1-2 phút rồi thử lại",
-                    "Nếu vẫn lỗi, vui lòng liên hệ hỗ trợ",
-                ],
-                error_code="ai_quota_exceeded",
-            )
-        return _vn_error_response(
-            title="Không kết nối được dịch vụ AI",
-            message="Hệ thống AI tạm thời không phản hồi. Vui lòng thử lại sau.",
-            suggestions=[
-                "Kiểm tra kết nối mạng của bạn",
-                "Thử lại sau ít phút",
-            ],
-            error_code="ai_unavailable",
-        )
-
-    # Timeout
-    if any(kw in err_name.lower() for kw in ["timeout"]) or "timeout" in err_msg or "timed out" in err_msg:
-        return _vn_error_response(
-            title="Xử lý CV quá lâu",
-            message="Tệp CV mất quá nhiều thời gian để phân tích. Có thể tệp quá phức tạp hoặc kích thước lớn.",
-            suggestions=[
-                "Thử nén tệp CV nhỏ hơn (dưới 2 MB)",
-                "Nếu là ảnh, giảm độ phân giải",
-                "Đảm bảo CV không có quá nhiều trang",
-            ],
-            error_code="timeout",
-        )
-
-    # PDF / OCR errors
-    if any(kw in err_msg for kw in ["pdf", "pymupdf", "pdfplumber", "pypdf"]):
-        return _vn_error_response(
-            title="Không đọc được tệp PDF",
-            message="Tệp PDF bị lỗi hoặc đã được mã hóa nên không trích xuất được nội dung.",
-            suggestions=[
-                "Đảm bảo tệp PDF không bị hỏng",
-                "Nếu PDF có mật khẩu, hãy bỏ mật khẩu trước khi tải lên",
-                "Thử xuất lại CV thành PDF mới và tải lên",
-                "Hoặc tải lên dưới dạng ảnh JPG/PNG",
-            ],
-            error_code="pdf_read_failed",
-        )
-    if any(kw in err_msg for kw in ["ocr", "tesseract", "image", "pillow", "decompression", "unidentifiedimage"]):
-        return _vn_error_response(
-            title="Không đọc được ảnh CV",
-            message="Hệ thống không nhận diện được nội dung văn bản trong ảnh CV của bạn.",
-            suggestions=[
-                "Đảm bảo ảnh rõ nét, không bị mờ",
-                "Tăng độ sáng/độ tương phản nếu ảnh tối",
-                "Chụp lại ảnh với góc thẳng đứng",
-                "Hoặc xuất CV sang PDF và tải lên",
-            ],
-            error_code="ocr_failed",
-        )
-
-    # Database errors
-    if any(kw in err_msg for kw in ["database", "psycopg", "sqlalchemy", "operationalerror", "integrityerror"]):
-        return _vn_error_response(
-            title="Lỗi cơ sở dữ liệu",
-            message="Hệ thống không lưu được kết quả phân tích. Vui lòng thử lại.",
-            suggestions=[
-                "Thử lại sau ít phút",
-                "Nếu vẫn lỗi, vui lòng liên hệ hỗ trợ",
-            ],
-            error_code="db_error",
-        )
-
-    # Network / connection
-    if any(kw in err_msg for kw in ["connection", "network", "dns", "ssl", "certificate"]):
-        return _vn_error_response(
-            title="Lỗi kết nối mạng",
-            message="Hệ thống đang gặp sự cố kết nối. Vui lòng thử lại.",
-            suggestions=[
-                "Kiểm tra kết nối Internet của bạn",
-                "Thử lại sau ít phút",
-            ],
-            error_code="network_error",
-        )
-
-    # JSON / parsing errors (AI response không đúng format)
-    if any(kw in err_msg for kw in ["json", "decode", "expecting value", "parse"]):
-        return _vn_error_response(
-            title="Lỗi xử lý kết quả AI",
-            message="AI trả về kết quả không đúng định dạng. Vui lòng thử lại.",
-            suggestions=[
-                "Thử lại với tệp CV khác",
-                "Đảm bảo CV có định dạng rõ ràng",
-            ],
-            error_code="ai_parse_error",
-        )
-
-    # Memory / resource
-    if any(kw in err_msg for kw in ["memory", "resource", "out of"]):
-        return _vn_error_response(
-            title="Tệp quá lớn để xử lý",
-            message="Hệ thống không đủ tài nguyên để xử lý tệp này.",
-            suggestions=[
-                "Nén CV xuống dưới 2 MB",
-                "Nếu là ảnh, giảm độ phân giải",
-                "Chia CV thành các trang nhỏ và tải từng phần",
-            ],
-            error_code="resource_exhausted",
-        )
-
-    # Default fallback - vẫn cụ thể hơn message generic
-    return _vn_error_response(
-        title="Hệ thống gặp sự cố khi xử lý CV",
-        message=f"Đã xảy ra lỗi không mong muốn ({err_name}). Vui lòng thử lại sau.",
-        suggestions=[
-            "Kiểm tra kết nối mạng",
-            "Thử với tệp CV khác (đảm bảo dưới 5 MB)",
-            "Thử lại sau ít phút",
-            "Nếu vẫn lỗi, vui lòng liên hệ hỗ trợ",
-        ],
-        error_code="server_error",
-    )
-
-
 def get_neo4j_driver():
     """Get Neo4j driver"""
     return get_driver()
@@ -204,16 +55,7 @@ async def test_analyze_cv_skill_gap(
     if not file_ext or file_ext not in allowed_extensions:
         raise HTTPException(
             status_code=400,
-            detail=_vn_error_response(
-                title="Định dạng tệp không hỗ trợ",
-                message=f"Tệp '{cv_file.filename}' có đuôi '{file_ext or '(không có)'}' không được hỗ trợ.",
-                suggestions=[
-                    "Định dạng hỗ trợ: PDF, JPG, JPEG, PNG, DOCX, TXT",
-                    "Đảm bảo tệp có đuôi mở rộng đúng (ví dụ: cv.pdf)",
-                    "Nếu tệp là ảnh, dùng định dạng JPG hoặc PNG",
-                ],
-                error_code="unsupported_format",
-            ),
+            detail=f"Unsupported file format. Allowed: {', '.join(allowed_extensions)}. Got: {file_ext or 'no extension'}"
         )
     
     # TC-CV-02: Validate file size
@@ -231,45 +73,19 @@ async def test_analyze_cv_skill_gap(
     if file_size == 0:
         raise HTTPException(
             status_code=400,
-            detail=_vn_error_response(
-                title="Tệp rỗng",
-                message="Tệp tải lên không có nội dung (0 bytes).",
-                suggestions=[
-                    "Kiểm tra lại tệp CV trên máy tính của bạn",
-                    "Thử mở tệp xem có đọc được nội dung không",
-                    "Tải lại tệp CV gốc và thử lại",
-                ],
-                error_code="empty_file",
-            ),
+            detail="File is empty (0 bytes). Please upload a valid CV file."
         )
     
     if file_size < MIN_FILE_SIZE_BYTES:
         raise HTTPException(
             status_code=400,
-            detail=_vn_error_response(
-                title="Tệp quá nhỏ",
-                message=f"Tệp chỉ có {file_size} bytes, không đủ nội dung của một CV.",
-                suggestions=[
-                    f"Kích thước tối thiểu: {MIN_FILE_SIZE_BYTES} bytes",
-                    "Hãy tải lên CV đầy đủ với thông tin cá nhân, kinh nghiệm và kỹ năng",
-                ],
-                error_code="file_too_small",
-            ),
+            detail=f"File too small ({file_size} bytes). Minimum size: {MIN_FILE_SIZE_BYTES} bytes."
         )
     
     if file_size > MAX_FILE_SIZE_BYTES:
         raise HTTPException(
             status_code=413,
-            detail=_vn_error_response(
-                title="Tệp quá lớn",
-                message=f"Tệp có kích thước {file_size / 1024 / 1024:.1f} MB, vượt quá giới hạn cho phép.",
-                suggestions=[
-                    f"Kích thước tối đa: {MAX_FILE_SIZE_MB} MB",
-                    "Nén CV bằng công cụ online (Smallpdf, ILovePDF) trước khi tải lại",
-                    "Nếu là ảnh, giảm độ phân giải hoặc đổi sang JPG",
-                ],
-                error_code="file_too_large",
-            ),
+            detail=f"File too large ({file_size / 1024 / 1024:.2f} MB). Maximum size: {MAX_FILE_SIZE_MB} MB."
         )
     
     # TC-CV-03: Validate filename length
@@ -334,48 +150,26 @@ async def test_analyze_cv_skill_gap(
         raise HTTPException(
             status_code=422,  # Unprocessable Entity
             detail={
-                'error': 'invalid_cv',
-                'title': 'Tệp tải lên không phải là CV/Resume',
+                'error': 'validation_failed',
                 'message': error_msg,
+                'message_en': 'File validation failed',
                 'suggestions': [
-                    'Hãy chắc chắn tệp là CV hoặc Resume thật của bạn',
-                    'Không tải hóa đơn, menu, hợp đồng, ảnh chụp hoặc tài liệu khác',
-                    'CV cần chứa: họ tên, email, kinh nghiệm làm việc, học vấn và kỹ năng',
-                    'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX',
-                ],
-            },
+                    'Đảm bảo file là CV/Resume thật sự',
+                    'Không upload ảnh báo chí, menu, hóa đơn',
+                    'CV cần có: tên, email, kỹ năng, kinh nghiệm',
+                    'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX'
+                ]
+            }
         )
-    except HTTPException as http_exc:
-        # Service layer đã raise HTTPException với detail tiếng Việt structured
-        # Re-raise để FastAPI trả về đúng status_code và message gốc
-        # Nếu detail là string (vd: "Tệp này có vẻ là hóa đơn..."), wrap thành structured
-        if http_exc.status_code == 422 and isinstance(http_exc.detail, str):
-            raise HTTPException(
-                status_code=422,
-                detail={
-                    'error': 'invalid_cv',
-                    'title': 'Tệp tải lên không phải là CV/Resume',
-                    'message': http_exc.detail,
-                    'suggestions': [
-                        'Hãy chắc chắn tệp là CV hoặc Resume thật của bạn',
-                        'Không tải hóa đơn, menu, hợp đồng, ảnh chụp hoặc tài liệu khác',
-                        'CV cần chứa: họ tên, email, kinh nghiệm làm việc, học vấn và kỹ năng',
-                        'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX',
-                    ],
-                },
-            )
-        raise
     except Exception as e:
         try:
             db.rollback()
         except Exception:
             pass
         import traceback
-        import traceback
-        traceback.print_exc()
         raise HTTPException(
             status_code=500,
-            detail=_classify_unexpected_error(e),
+            detail=f"Error analyzing CV: {str(e)}\n\n{traceback.format_exc()}"
         )
 
 
@@ -429,7 +223,7 @@ def _current_user_id(req: Request) -> int:
                 pass
     
     if uid is None:
-        raise HTTPException(status_code=401, detail="Vui lòng đăng nhập để tiếp tục.")
+        raise HTTPException(status_code=401, detail="Authentication required")
     
     return int(uid)
 
@@ -511,16 +305,7 @@ async def analyze_cv_skill_gap(
     if not file_ext or file_ext not in allowed_extensions:
         raise HTTPException(
             status_code=400,
-            detail=_vn_error_response(
-                title="Định dạng tệp không hỗ trợ",
-                message=f"Tệp '{cv_file.filename}' có đuôi '{file_ext or '(không có)'}' không được hỗ trợ.",
-                suggestions=[
-                    "Định dạng hỗ trợ: PDF, JPG, JPEG, PNG, DOCX, TXT",
-                    "Đảm bảo tệp có đuôi mở rộng đúng (ví dụ: cv.pdf)",
-                    "Nếu tệp là ảnh, dùng định dạng JPG hoặc PNG",
-                ],
-                error_code="unsupported_format",
-            ),
+            detail=f"Unsupported file format. Allowed: {', '.join(allowed_extensions)}. Got: {file_ext or 'no extension'}"
         )
     
     # TC-CV-02: Validate file size
@@ -538,45 +323,19 @@ async def analyze_cv_skill_gap(
     if file_size == 0:
         raise HTTPException(
             status_code=400,
-            detail=_vn_error_response(
-                title="Tệp rỗng",
-                message="Tệp tải lên không có nội dung (0 bytes).",
-                suggestions=[
-                    "Kiểm tra lại tệp CV trên máy tính của bạn",
-                    "Thử mở tệp xem có đọc được nội dung không",
-                    "Tải lại tệp CV gốc và thử lại",
-                ],
-                error_code="empty_file",
-            ),
+            detail="File is empty (0 bytes). Please upload a valid CV file."
         )
     
     if file_size < MIN_FILE_SIZE_BYTES:
         raise HTTPException(
             status_code=400,
-            detail=_vn_error_response(
-                title="Tệp quá nhỏ",
-                message=f"Tệp chỉ có {file_size} bytes, không đủ nội dung của một CV.",
-                suggestions=[
-                    f"Kích thước tối thiểu: {MIN_FILE_SIZE_BYTES} bytes",
-                    "Hãy tải lên CV đầy đủ với thông tin cá nhân, kinh nghiệm và kỹ năng",
-                ],
-                error_code="file_too_small",
-            ),
+            detail=f"File too small ({file_size} bytes). Minimum size: {MIN_FILE_SIZE_BYTES} bytes."
         )
     
     if file_size > MAX_FILE_SIZE_BYTES:
         raise HTTPException(
             status_code=413,
-            detail=_vn_error_response(
-                title="Tệp quá lớn",
-                message=f"Tệp có kích thước {file_size / 1024 / 1024:.1f} MB, vượt quá giới hạn cho phép.",
-                suggestions=[
-                    f"Kích thước tối đa: {MAX_FILE_SIZE_MB} MB",
-                    "Nén CV bằng công cụ online (Smallpdf, ILovePDF) trước khi tải lại",
-                    "Nếu là ảnh, giảm độ phân giải hoặc đổi sang JPG",
-                ],
-                error_code="file_too_large",
-            ),
+            detail=f"File too large ({file_size / 1024 / 1024:.2f} MB). Maximum size: {MAX_FILE_SIZE_MB} MB."
         )
     
     # TC-CV-03: Validate filename length
@@ -637,48 +396,26 @@ async def analyze_cv_skill_gap(
         raise HTTPException(
             status_code=422,  # Unprocessable Entity
             detail={
-                'error': 'invalid_cv',
-                'title': 'Tệp tải lên không phải là CV/Resume',
+                'error': 'validation_failed',
                 'message': error_msg,
+                'message_en': 'File validation failed',
                 'suggestions': [
-                    'Hãy chắc chắn tệp là CV hoặc Resume thật của bạn',
-                    'Không tải hóa đơn, menu, hợp đồng, ảnh chụp hoặc tài liệu khác',
-                    'CV cần chứa: họ tên, email, kinh nghiệm làm việc, học vấn và kỹ năng',
-                    'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX',
-                ],
-            },
+                    'Đảm bảo file là CV/Resume thật sự',
+                    'Không upload ảnh báo chí, menu, hóa đơn',
+                    'CV cần có: tên, email, kỹ năng, kinh nghiệm',
+                    'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX'
+                ]
+            }
         )
-    except HTTPException as http_exc:
-        # Service layer đã raise HTTPException với detail tiếng Việt structured
-        # Re-raise để FastAPI trả về đúng status_code và message gốc
-        # Nếu detail là string (vd: "Tệp này có vẻ là hóa đơn..."), wrap thành structured
-        if http_exc.status_code == 422 and isinstance(http_exc.detail, str):
-            raise HTTPException(
-                status_code=422,
-                detail={
-                    'error': 'invalid_cv',
-                    'title': 'Tệp tải lên không phải là CV/Resume',
-                    'message': http_exc.detail,
-                    'suggestions': [
-                        'Hãy chắc chắn tệp là CV hoặc Resume thật của bạn',
-                        'Không tải hóa đơn, menu, hợp đồng, ảnh chụp hoặc tài liệu khác',
-                        'CV cần chứa: họ tên, email, kinh nghiệm làm việc, học vấn và kỹ năng',
-                        'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX',
-                    ],
-                },
-            )
-        raise
     except Exception as e:
         # Rollback any aborted transaction
         try:
             db.rollback()
         except Exception:
             pass
-        import traceback
-        traceback.print_exc()
         raise HTTPException(
             status_code=500,
-            detail=_classify_unexpected_error(e),
+            detail=f"Error analyzing CV: {str(e)}"
         )
 
 
@@ -745,24 +482,9 @@ async def analyze_cv_multi_image(
         merged_text = parser.extract_text_from_multiple_images(image_contents)
     except ValueError as e:
         # TC-IMG-13: no text found in any image
-        raise HTTPException(
-            status_code=422,
-            detail=_vn_error_response(
-                title="Tệp tải lên không phải là CV/Resume",
-                message=str(e),
-                suggestions=[
-                    'Hãy chắc chắn tệp là CV hoặc Resume thật của bạn',
-                    'Không tải hóa đơn, menu, hợp đồng, ảnh chụp hoặc tài liệu khác',
-                    'CV cần chứa: họ tên, email, kinh nghiệm làm việc, học vấn và kỹ năng',
-                    'Định dạng hỗ trợ: PDF, JPG, PNG, DOCX',
-                ],
-                error_code="invalid_cv",
-            ),
-        )
-    except HTTPException:
-        raise
+        raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=_classify_unexpected_error(e))
+        raise HTTPException(status_code=500, detail=f"Lỗi xử lý ảnh: {e}")
 
     return {
         "success": True,
@@ -809,7 +531,7 @@ def get_analysis_detail(
     if not analysis:
         raise HTTPException(
             status_code=404,
-            detail="Không tìm thấy kết quả phân tích này."
+            detail="Analysis not found"
         )
     
     return analysis
@@ -841,7 +563,7 @@ def get_heatmap_data(
     if not heatmap_data:
         raise HTTPException(
             status_code=404,
-            detail="Không tìm thấy kết quả phân tích này."
+            detail="Analysis not found"
         )
     
     return heatmap_data
@@ -871,7 +593,7 @@ def get_interview_prep_data(
     if not analysis:
         raise HTTPException(
             status_code=404,
-            detail="Không tìm thấy kết quả phân tích này."
+            detail="Analysis not found"
         )
     
     # Prepare data for AI interview
@@ -931,7 +653,7 @@ async def get_learning_plan(
     analysis = service.get_analysis_by_id(analysis_id, user_id)
 
     if not analysis:
-        raise HTTPException(status_code=404, detail="Không tìm thấy kết quả phân tích này.")
+        raise HTTPException(status_code=404, detail="Analysis not found")
 
     # ── CACHE HIT: trả ngay nếu đã có ────────────────────────────
     if analysis.learning_plan_cache:
@@ -1093,7 +815,7 @@ def record_feedback(
         payload_jwt = decode_access_token(token)
         user_id = int(payload_jwt.get("sub", 0))
     except Exception:
-        raise HTTPException(status_code=401, detail="Bạn không có quyền truy cập tính năng này.")
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
     if payload.event_type not in ("click", "like", "dislike"):
         raise HTTPException(400, "event_type must be click | like | dislike")
@@ -1126,7 +848,7 @@ def get_priority_skills(
         payload_jwt = decode_access_token(token)
         user_id = int(payload_jwt.get("sub", 0))
     except Exception:
-        raise HTTPException(401, "Bạn không có quyền truy cập tính năng này.")
+        raise HTTPException(401, "Unauthorized")
 
     from .models import SkillGapAnalysis
     from sqlalchemy import text as _text
@@ -1136,7 +858,7 @@ def get_priority_skills(
         SkillGapAnalysis.user_id == user_id,
     ).first()
     if not analysis:
-        raise HTTPException(404, "Không tìm thấy kết quả phân tích này.")
+        raise HTTPException(404, "Analysis not found")
 
     # Check if NeuMF already ran (stored in skill_gaps JSONB)
     gaps = analysis.skill_gaps or {}

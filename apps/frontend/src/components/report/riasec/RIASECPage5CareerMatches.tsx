@@ -62,7 +62,7 @@ const RIASECPage5CareerMatches = ({ careers, pageNumber }: RIASECPage5CareerMatc
                                 {startIdx + index + 1}. {career.title}
                             </h3>
                             <span className="text-[10px] bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-400 px-2 py-0.5 rounded-full print:text-[8px]">
-                                {Math.round(career.match_score)}% Phù Hợp
+                                {parseFloat(career.match_score.toFixed(1))}% Phù Hợp
                             </span>
                         </div>
 
